@@ -88,6 +88,8 @@
     flex-direction: column;
     min-height: 600px;
     border: 1.5px solid var(--divider);
+    position: relative;
+    z-index: 1;
 }
 
 .rpts-form-view {
@@ -102,6 +104,8 @@
     flex-direction: column;
     min-height: 600px;
     border: 1.5px solid var(--divider);
+    position: relative;
+    z-index: 1;
 }
 
 .rpts-toolbar {
