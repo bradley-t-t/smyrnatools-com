@@ -49,8 +49,9 @@ export default function VerificationRequirementsModal({
                     {needsVin && (
                         <div className="form-group vin-group">
                             <label htmlFor="verify-vin">VIN</label>
-                            <input id="verify-vin" className="form-control" type="text" placeholder="17 characters (no I, O, Q)" value={vin}
-                                   onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g,''))}/>
+                            <input id="verify-vin" className="form-control" type="text"
+                                   placeholder="17 characters (no I, O, Q)" value={vin}
+                                   onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}/>
                             <div className="vin-hint">17 characters. Letters I, O, and Q are not used.</div>
                             {vin && !vinOk && (
                                 <div className="vin-errors" aria-live="polite">

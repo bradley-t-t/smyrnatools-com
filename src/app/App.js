@@ -106,7 +106,8 @@ function UpdateWarningPopup({onRefreshNow, onClose, latestVersion}) {
                 </div>
                 <div className="global-modal-footer">
                     <button className="global-action-button" onClick={onClose} aria-label="Close">Close</button>
-                    <button className="global-action-button primary" onClick={onRefreshNow} aria-label="Refresh Now">Refresh
+                    <button className="global-action-button primary" onClick={onRefreshNow}
+                            aria-label="Refresh Now">Refresh
                         Now
                     </button>
                 </div>

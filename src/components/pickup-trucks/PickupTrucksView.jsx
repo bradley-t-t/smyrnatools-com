@@ -43,7 +43,9 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         }
     }, [])
 
-    useEffect(() => { fetchAllPickups() }, [fetchAllPickups])
+    useEffect(() => {
+        fetchAllPickups()
+    }, [fetchAllPickups])
 
     useEffect(() => {
         async function loadPlants() {
@@ -54,11 +56,13 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                 setPlants([])
             }
         }
+
         loadPlants()
     }, [])
 
     useEffect(() => {
         let cancelled = false
+
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -89,8 +93,11 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
+
         loadAllowedPlants()
-        return () => { cancelled = true }
+        return () => {
+            cancelled = true
+        }
     }, [preferences.selectedRegion?.code, selectedPlant])
 
     function handleViewModeChange(mode) {
@@ -110,12 +117,15 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             const root = document.querySelector('.global-dashboard-container.pickup-trucks-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
+
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchText, selectedPlant, statusFilter])
 
-    const debouncedSetSearchText = useCallback(AsyncUtility.debounce((value) => { setSearchText(value) }, 300), [])
+    const debouncedSetSearchText = useCallback(AsyncUtility.debounce((value) => {
+        setSearchText(value)
+    }, 300), [])
 
     const filtered = useMemo(() => {
         const q = searchText.trim().toLowerCase()
@@ -142,7 +152,9 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             counts.set(key, (counts.get(key) || 0) + 1)
         }
         const dups = new Set()
-        counts.forEach((count, key) => { if (count > 1) dups.add(key) })
+        counts.forEach((count, key) => {
+            if (count > 1) dups.add(key)
+        })
         return dups
     }, [pickups])
 
@@ -154,18 +166,23 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             counts.set(key, (counts.get(key) || 0) + 1)
         }
         const dups = new Set()
-        counts.forEach((count, key) => { if (count > 1) dups.add(key) })
+        counts.forEach((count, key) => {
+            if (count > 1) dups.add(key)
+        })
         return dups
     }, [pickups])
 
     const content = useMemo(() => {
-        if (isLoading) return <div className="global-loading-container loading-container"><LoadingScreen message="Loading pickup trucks..." inline={true}/></div>
+        if (isLoading) return <div className="global-loading-container loading-container"><LoadingScreen
+            message="Loading pickup trucks..." inline={true}/></div>
         if (filtered.length === 0) return (
             <div className="global-no-results-container no-results-container">
                 <div className="no-results-icon"><i className="fas fa-truck-pickup"></i></div>
                 <h3>No Pickup Trucks Found</h3>
                 <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') ? 'No pickups match your search criteria.' : 'There are no pickup trucks in the system yet.'}</p>
-                <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add Pickup Truck</button>
+                <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add
+                    Pickup Truck
+                </button>
             </div>
         )
         if (viewMode === 'grid') return (
@@ -190,7 +207,15 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         return (
             <div className="mixers-list-table-container">
                 <table className="mixers-list-table pickup-trucks-columns">
-                    <colgroup><col/><col/><col/><col/><col/><col/><col/></colgroup>
+                    <colgroup>
+                        <col/>
+                        <col/>
+                        <col/>
+                        <col/>
+                        <col/>
+                        <col/>
+                        <col/>
+                    </colgroup>
                     <tbody>
                     {filtered.map(p => {
                         const statusClass = String(p.status || '').toLowerCase().replace(/\s+/g, '-')
@@ -199,12 +224,22 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                         return (
                             <tr key={p.id} className="clickable-row" onClick={() => setSelectedId(p.id)}>
                                 <td>{p.assignedPlant || '\u2014'}</td>
-                                <td><span className={`item-status-dot ${statusClass}`}></span>{p.status || '\u2014'}</td>
-                                <td>{p.assigned ? <span className="cell-inline"><span>{p.assigned}</span>{duplicateAssigned.has(assignedKey) && <span className="warning-badge" title="Assigned to multiple pickups"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
+                                <td><span className={`item-status-dot ${statusClass}`}></span>{p.status || '\u2014'}
+                                </td>
+                                <td>{p.assigned ? <span
+                                    className="cell-inline"><span>{p.assigned}</span>{duplicateAssigned.has(assignedKey) &&
+                                    <span className="warning-badge" title="Assigned to multiple pickups"><i
+                                        className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
                                 <td>{p.year || '\u2014'}</td>
                                 <td>{`${p.make || ''} ${p.model || ''}`.trim() || '\u2014'}</td>
-                                <td>{p.vin ? <span className="cell-inline"><span>{p.vin}</span>{duplicateVINs.has(vinKey) && <span className="warning-badge" title="Duplicate VIN"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
-                                <td>{typeof p.mileage === 'number' ? <span className="mileage-cell"><span>{p.mileage.toLocaleString()}</span>{p.mileage > 300000 && <span className="warning-badge" title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
+                                <td>{p.vin ?
+                                    <span className="cell-inline"><span>{p.vin}</span>{duplicateVINs.has(vinKey) &&
+                                        <span className="warning-badge" title="Duplicate VIN"><i
+                                            className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
+                                <td>{typeof p.mileage === 'number' ? <span
+                                    className="mileage-cell"><span>{p.mileage.toLocaleString()}</span>{p.mileage > 300000 &&
+                                    <span className="warning-badge" title="High mileage"><i
+                                        className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
                             </tr>
                         )
                     })}
@@ -217,9 +252,13 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
 
     return (
-        <div className={`global-dashboard-container dashboard-container global-flush-top flush-top pickup-trucks-view${selectedId ? ' detail-open' : ''}`}>
+        <div
+            className={`global-dashboard-container dashboard-container global-flush-top flush-top pickup-trucks-view${selectedId ? ' detail-open' : ''}`}>
             {selectedId ? (
-                <PickupTrucksDetailView pickupId={selectedId} onClose={() => { setSelectedId(null); fetchAllPickups() }}/>
+                <PickupTrucksDetailView pickupId={selectedId} onClose={() => {
+                    setSelectedId(null);
+                    fetchAllPickups()
+                }}/>
             ) : (
                 <>
                     <TopSection
@@ -227,8 +266,14 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                         addButtonLabel="Add Pickup"
                         onAddClick={() => setShowAddSheet(true)}
                         searchInput={searchInput}
-                        onSearchInputChange={v => { setSearchInput(v); debouncedSetSearchText(v) }}
-                        onClearSearch={() => { setSearchInput(''); debouncedSetSearchText('') }}
+                        onSearchInputChange={v => {
+                            setSearchInput(v);
+                            debouncedSetSearchText(v)
+                        }}
+                        onClearSearch={() => {
+                            setSearchInput('');
+                            debouncedSetSearchText('')
+                        }}
                         searchPlaceholder="Search by VIN, make, model, year, or name..."
                         viewMode={viewMode}
                         onViewModeChange={handleViewModeChange}
@@ -240,14 +285,20 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                         statusOptions={statusOptions}
                         onStatusFilterChange={v => setStatusFilter(v)}
                         showReset={showReset}
-                        onReset={() => { setSearchText(''); setSearchInput(''); setSelectedPlant(''); setStatusFilter('All Statuses') }}
-                        listHeaderLabels={['Plant','Status','Assigned','Year','Make & Model','VIN','Mileage']}
+                        onReset={() => {
+                            setSearchText('');
+                            setSearchInput('');
+                            setSelectedPlant('');
+                            setStatusFilter('All Statuses')
+                        }}
+                        listHeaderLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
                         showListHeader={viewMode === 'list'}
                         listHeaderClassName="mixers-list-header-row pickup-trucks-columns"
                         forwardedRef={headerRef}
                     />
                     <div className="global-content-container content-container">{content}</div>
-                    {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)} onAdded={newItem => setPickups([...pickups, newItem])}/>}
+                    {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}
+                                                          onAdded={newItem => setPickups([...pickups, newItem])}/>}
                 </>
             )}
         </div>

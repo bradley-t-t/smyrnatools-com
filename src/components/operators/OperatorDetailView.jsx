@@ -89,7 +89,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
             setAssignedPlant(data.plant_code || '');
             setPosition(data.position || '');
             const rawPending = data.pending_start_date || '';
-            const normalizedPending = typeof rawPending === 'string' && rawPending.includes('T') ? rawPending.slice(0,10) : rawPending;
+            const normalizedPending = typeof rawPending === 'string' && rawPending.includes('T') ? rawPending.slice(0, 10) : rawPending;
             setPendingStartDate(normalizedPending);
             setIsTrainer(data.is_trainer || false);
             setAssignedTrainer(data.assigned_trainer || '');
@@ -128,7 +128,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
     const handleSave = async () => {
         setIsSaving(true);
         setMessage('');
-        const pendingForSave = (status === 'Pending Start' && pendingStartDate) ? pendingStartDate.slice(0,10) : null;
+        const pendingForSave = (status === 'Pending Start' && pendingStartDate) ? pendingStartDate.slice(0, 10) : null;
         const updateObj = {
             smyrna_id: smyrnaId,
             name: name,
@@ -136,7 +136,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
             plant_code: assignedPlant,
             position: position,
             is_trainer: isTrainer,
-            assigned_trainer: (['Training','Pending Start'].includes(status) && !isTrainer) ? assignedTrainer : null,
+            assigned_trainer: (['Training', 'Pending Start'].includes(status) && !isTrainer) ? assignedTrainer : null,
             pending_start_date: pendingForSave,
             rating: typeof rating === 'number' ? rating : Number(rating) || 0,
             phone: phone || null
@@ -265,7 +265,11 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                         <label>Status</label>
                         <select
                             value={status}
-                            onChange={(e) => { const value = e.target.value; setStatus(value); if (value === 'Active') setAssignedTrainer(''); }}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setStatus(value);
+                                if (value === 'Active') setAssignedTrainer('');
+                            }}
                             className="form-control"
                         >
                             <option value="Active">Active</option>

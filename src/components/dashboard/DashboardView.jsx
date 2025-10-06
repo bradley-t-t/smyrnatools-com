@@ -561,12 +561,16 @@ export default function DashboardView() {
                     }
                 })
                 setTrainingOperators(training)
-                const pending = ops.filter(o => o.status === 'Pending Start').map(o => ({
-                    id: o.employeeId,
-                    operatorName: o.name || '',
-                    plant: o.plantCode || '',
-                    pendingDate: o.pendingStartDate || ''
-                }))
+                const pending = ops.filter(o => o.status === 'Pending Start').map(o => {
+                    const trainer = o.assignedTrainer ? byId.get(o.assignedTrainer) : null
+                    return {
+                        id: o.employeeId,
+                        operatorName: o.name || '',
+                        operatorPlant: o.plantCode || '',
+                        trainerPlant: trainer?.plantCode || '',
+                        pendingDate: o.pendingStartDate || ''
+                    }
+                })
                 setPendingStartOperators(pending)
                 const lightDuty = ops.filter(o => o.status === 'Light Duty').map(o => ({
                     id: o.employeeId,
@@ -693,7 +697,7 @@ export default function DashboardView() {
         const plantSet = plantSetRef.current
         const active = plantSet.size > 0
         if (!active) return pendingStartOperators
-        return pendingStartOperators.filter(r => plantSet.has(String(r.plant || '').trim()))
+        return pendingStartOperators.filter(r => plantSet.has(String(r.trainerPlant || '').trim()) || plantSet.has(String(r.operatorPlant || '').trim()))
     })()
     const filteredLightDutyOperators = (() => {
         const plantSet = plantSetRef.current
@@ -923,15 +927,17 @@ export default function DashboardView() {
                                             <table className="training-table">
                                                 <thead>
                                                 <tr>
-                                                    <th>Plant</th>
+                                                    <th>Plant (Training At)</th>
                                                     <th>Operator</th>
+                                                    <th>Plant (Training For)</th>
                                                     <th>Pending Start Date</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 {filteredPendingStartOperators.map(r => <tr key={r.id}>
-                                                    <td>{r.plant || '-'}</td>
+                                                    <td>{r.trainerPlant || '-'}</td>
                                                     <td>{r.operatorName || '-'}</td>
+                                                    <td>{r.operatorPlant || '-'}</td>
                                                     <td>{formatPendingDate(r.pendingDate)}</td>
                                                 </tr>)}
                                                 </tbody>

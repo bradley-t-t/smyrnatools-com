@@ -74,7 +74,7 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
             let userId = sessionStorage.getItem('userId');
             if (!UserUtility.isValidUUID(userId)) throw new Error('Invalid or missing User ID. Please log in again.');
             const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-            const normalizedPending = (status === 'Pending Start' && pendingStartDate) ? pendingStartDate.slice(0,10) : null;
+            const normalizedPending = (status === 'Pending Start' && pendingStartDate) ? pendingStartDate.slice(0, 10) : null;
             const newOperator = {
                 employee_id: UserUtility.generateUUID(),
                 smyrna_id: null,
@@ -83,7 +83,7 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                 status,
                 position: position || null,
                 is_trainer: isTrainer,
-                assigned_trainer: (['Training','Pending Start'].includes(status) && !isTrainer) ? UserUtility.safeUUID(assignedTrainer) : null,
+                assigned_trainer: (['Training', 'Pending Start'].includes(status) && !isTrainer) ? UserUtility.safeUUID(assignedTrainer) : null,
                 created_at: now,
                 updated_at: now,
                 updated_by: userId,

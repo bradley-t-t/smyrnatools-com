@@ -201,7 +201,11 @@
     box-sizing: border-box;
 }
 
-.managers-view .managers-list-table-container { border-top-left-radius: 0; border-top-right-radius: 0; border-top: none; }
+.managers-view .managers-list-table-container {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+}
 
 @media (max-width: 800px) {
     .status-item {

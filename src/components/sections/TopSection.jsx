@@ -2,38 +2,38 @@ import React from 'react'
 import './styles/TopSection.css'
 
 function TopSection({
-    title,
-    onToggleSidebar,
-    addButtonLabel,
-    onAddClick,
-    searchInput,
-    onSearchInputChange,
-    onClearSearch,
-    searchPlaceholder,
-    viewMode,
-    onViewModeChange,
-    plants,
-    regionPlantCodes,
-    selectedPlant,
-    onSelectedPlantChange,
-    statusFilter,
-    statusOptions,
-    onStatusFilterChange,
-    freightFilter,
-    freightOptions,
-    onFreightFilterChange,
-    showReset,
-    onReset,
-    listHeaderLabels,
-    showListHeader,
-    listHeaderClassName,
-    forwardedRef,
-    sticky = true,
-    flush = true,
-    tightTop = false,
-    flushTop,
-    showCoverOverlay: _showCoverOverlay
-}) {
+                        title,
+                        onToggleSidebar,
+                        addButtonLabel,
+                        onAddClick,
+                        searchInput,
+                        onSearchInputChange,
+                        onClearSearch,
+                        searchPlaceholder,
+                        viewMode,
+                        onViewModeChange,
+                        plants,
+                        regionPlantCodes,
+                        selectedPlant,
+                        onSelectedPlantChange,
+                        statusFilter,
+                        statusOptions,
+                        onStatusFilterChange,
+                        freightFilter,
+                        freightOptions,
+                        onFreightFilterChange,
+                        showReset,
+                        onReset,
+                        listHeaderLabels,
+                        showListHeader,
+                        listHeaderClassName,
+                        forwardedRef,
+                        sticky = true,
+                        flush = true,
+                        tightTop = false,
+                        flushTop,
+                        showCoverOverlay: _showCoverOverlay
+                    }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
     const safeListLabels = Array.isArray(listHeaderLabels) ? listHeaderLabels : []
@@ -50,7 +50,8 @@ function TopSection({
                     <h1 className="top-title">{title}</h1>
                     <div className="action-cluster" role="group" aria-label="Primary actions">
                         {onToggleSidebar && (
-                            <button className="action-button subtle" onClick={onToggleSidebar} type="button" aria-label="Toggle menu">
+                            <button className="action-button subtle" onClick={onToggleSidebar} type="button"
+                                    aria-label="Toggle menu">
                                 <i className="fas fa-bars" aria-hidden="true"></i>
                                 <span className="action-label">Menu</span>
                             </button>
@@ -115,7 +116,8 @@ function TopSection({
                                     })
                                     .sort((a, b) => parseInt((a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt((b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
                                     .map(plant => (
-                                        <option key={plant.plantCode || plant.plant_code} value={plant.plantCode || plant.plant_code}>
+                                        <option key={plant.plantCode || plant.plant_code}
+                                                value={plant.plantCode || plant.plant_code}>
                                             ({plant.plantCode || plant.plant_code}) {plant.plantName || plant.plant_name}
                                         </option>
                                     ))}
@@ -150,14 +152,16 @@ function TopSection({
                             </div>
                         )}
                         {showReset && onReset && (
-                            <button className="filter-reset-button" onClick={onReset} type="button" aria-label="Reset filters">
+                            <button className="filter-reset-button" onClick={onReset} type="button"
+                                    aria-label="Reset filters">
                                 <i className="fas fa-undo" aria-hidden="true"></i>
                             </button>
                         )}
                     </div>
                 </div>
                 {showListHeader && safeListLabels.length > 0 && (
-                    <div className={`list-headers header-row ${listHeaderClassName || ''}`} role="row" aria-label="List headers">
+                    <div className={`list-headers header-row ${listHeaderClassName || ''}`} role="row"
+                         aria-label="List headers">
                         {safeListLabels.map(l => <div key={l} role="columnheader">{l}</div>)}
                     </div>
                 )}

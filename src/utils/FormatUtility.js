@@ -1,12 +1,12 @@
 const FormatUtility = {
     formatDate: (dateStr) => {
         if (!dateStr) return ''
-        const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : (/^\d{4}-\d{2}-\d{2}T/.test(dateStr) ? dateStr.slice(0,10) : null)
+        const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : (/^\d{4}-\d{2}-\d{2}T/.test(dateStr) ? dateStr.slice(0, 10) : null)
         if (isoDateOnly) {
-            const [y,m,d] = isoDateOnly.split('-').map(n=>parseInt(n,10))
+            const [y, m, d] = isoDateOnly.split('-').map(n => parseInt(n, 10))
             if (!y || !m || !d) return dateStr
-            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
-            const monthName = monthNames[m-1] || ''
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+            const monthName = monthNames[m - 1] || ''
             let suffix = 'th'
             if (d % 10 === 1 && d !== 11) suffix = 'st'
             else if (d % 10 === 2 && d !== 12) suffix = 'nd'

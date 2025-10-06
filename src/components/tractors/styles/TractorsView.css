@@ -1,20 +1,77 @@
-.filters-title {}
+.filters-title {
+}
 
-.add-tractor-button { margin-left: auto; height: 40px; align-self: center; white-space: nowrap; }
+.add-tractor-button {
+    margin-left: auto;
+    height: 40px;
+    align-self: center;
+    white-space: nowrap;
+}
 
-.tractors-content { padding-top: 10px; }
+.tractors-content {
+    padding-top: 10px;
+}
 
-.tractors-grid.search.results { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); border-radius: var(--border-radius); max-height: none; position: relative; z-index: 1; }
+.tractors-grid.search.results {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    border-radius: var(--border-radius);
+    max-height: none;
+    position: relative;
+    z-index: 1;
+}
 
-.freight-select { width: 120px; }
-.filters .filter-wrapper .freight-select { max-width: 140px; }
-.filters .filter-wrapper select.ios-select.freight-select { width: 110px !important; min-width: 110px !important; max-width: 140px; flex: 0 0 auto; box-sizing: border-box; }
-@media (max-width: 900px) { .freight-select { width: 100% !important; max-width: 100% !important; } }
+.freight-select {
+    width: 120px;
+}
 
-.tractors-view { overscroll-behavior-y: none; padding-top: 0; --sticky-cover-height: 14px; }
+.filters .filter-wrapper .freight-select {
+    max-width: 140px;
+}
 
-.tractors-list-header-row { display: grid; grid-template-columns: 10% 12% 12% 18% 12% 18% 10% 8%; gap: 0; width: 100%; box-sizing: border-box; padding: 0; }
-.tractors-list-header-row > div { padding: 10px 8px; box-sizing: border-box; white-space: nowrap; }
-@media (max-width: 900px) { .tractors-list-header-row { grid-template-columns: 16% 14% 14% 22% 0 20% 14% 0; } }
+.filters .filter-wrapper select.ios-select.freight-select {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 140px;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+}
 
-.tractors-view .tractors-list-table-container { border-top-left-radius: 0; border-top-right-radius: 0; border-top: none; }
+@media (max-width: 900px) {
+    .freight-select {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+.tractors-view {
+    overscroll-behavior-y: none;
+    padding-top: 0;
+    --sticky-cover-height: 14px;
+}
+
+.tractors-list-header-row {
+    display: grid;
+    grid-template-columns: 10% 12% 12% 18% 12% 18% 10% 8%;
+    gap: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.tractors-list-header-row > div {
+    padding: 10px 8px;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .tractors-list-header-row {
+        grid-template-columns: 16% 14% 14% 22% 0 20% 14% 0;
+    }
+}
+
+.tractors-view .tractors-list-table-container {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+}

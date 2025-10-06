@@ -39,7 +39,7 @@
 
 .operators-list-header-row {
     display: grid;
-    grid-template-columns: 10% 30% 18% 18% 24%;
+    grid-template-columns: 10% 28% 16% 16% 14% 16%;
     gap: 0;
     width: 100%;
     box-sizing: border-box;

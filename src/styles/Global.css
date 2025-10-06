@@ -62,7 +62,13 @@ body {
     padding: 0;
 }
 
-#root, .global-app {
+#root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.global-app {
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -128,11 +134,31 @@ a:hover {
     border-color: var(--divider);
 }
 
-.accent-red button.primary,
-.accent-red .global-ios-button,
-.accent-red .global-action-button.primary,
-.accent-blue button.primary,
-.accent-blue .global-ios-button,
+.accent-red button.primary {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.accent-red .global-ios-button {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.accent-red .global-action-button.primary {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.accent-blue button.primary {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.accent-blue .global-ios-button {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
 .accent-blue .global-action-button.primary {
     background-color: var(--accent);
     border-color: var(--accent);
@@ -163,7 +189,19 @@ html, #root {
     -webkit-overflow-scrolling: touch;
 }
 
-.global-layout-container, .global-app-container, .global-content-container {
+.global-layout-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.global-app-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.global-content-container {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
@@ -174,13 +212,25 @@ html, #root {
     overscroll-behavior: contain;
 }
 
-.global-detail-view, .global-form-container {
+.global-detail-view {
     max-width: 100%;
     overflow-x: hidden;
     width: 100%;
 }
 
-.global-card-content, .global-detail-content {
+.global-form-container {
+    max-width: 100%;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.global-card-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+.global-detail-content {
     width: 100%;
     max-width: 100%;
     overflow-wrap: break-word;
@@ -212,13 +262,45 @@ td, th {
     mix-blend-mode: normal;
 }
 
-.global-app, .global-dashboard-container, .global-mixers-view, .global-layout-container, .global-app-container {
+.global-app {
     position: relative;
     z-index: 1;
     background: transparent !important;
 }
 
-.global-dashboard-container, .global-equipments-dashboard-container, .global-reports-view {
+.global-dashboard-container {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+.global-mixers-view {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+.global-layout-container {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+.global-app-container {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+.global-dashboard-container {
+    background: transparent !important;
+}
+
+.global-equipments-dashboard-container {
+    background: transparent !important;
+}
+
+.global-reports-view {
     background: transparent !important;
 }
 
@@ -395,12 +477,23 @@ td, th {
     flex-direction: column;
 }
 
-.global-days-ago, .global-date-small {
+.global-days-ago {
     font-size: 12px;
     color: var(--text-light);
 }
 
-.global-stars, .global-cleanliness-rating .global-stars {
+.global-date-small {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.global-stars {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.global-cleanliness-rating .global-stars {
     display: flex;
     gap: 2px;
     align-items: center;
@@ -415,7 +508,14 @@ td, th {
     box-shadow: none;
 }
 
-.global-star.global-filled, .global-filled-star {
+.global-star.global-filled {
+    color: var(--warning);
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.global-filled-star {
     color: var(--warning);
     border: none;
     outline: none;
@@ -511,7 +611,7 @@ td, th {
     color: var(--warning);
 }
 
-.global-ios-button, .global-primary-button {
+.global-ios-button {
     background: var(--accent);
     color: var(--text-light);
     font-size: 15px;
@@ -527,18 +627,45 @@ td, th {
     box-shadow: var(--shadow-sm);
 }
 
-.global-ios-button:hover, .global-primary-button:hover {
+.global-primary-button {
+    background: var(--accent);
+    color: var(--text-light);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.global-ios-button:hover {
     background: var(--accent-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow);
 }
 
-.global-ios-button:active, .global-primary-button:active {
+.global-primary-button:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.global-ios-button:active {
     transform: translateY(1px);
     box-shadow: var(--shadow-xs);
 }
 
-.global-button-secondary, .global-secondary-button, .global-cancel-button {
+.global-primary-button:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-xs);
+}
+
+.global-button-secondary {
     background-color: var(--background);
     color: var(--text-primary);
     border: 1px solid var(--divider);
@@ -550,13 +677,69 @@ td, th {
     transition: all var(--transition);
 }
 
-.global-button-secondary:hover, .global-secondary-button:hover, .global-cancel-button:hover {
+.global-secondary-button {
+    background-color: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.global-cancel-button {
+    background-color: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.global-button-secondary:hover {
     background-color: var(--card-bg);
     border-color: var(--text-light);
     box-shadow: var(--shadow-sm);
 }
 
-.global-loading-container, .global-loading-indicator, .global-equipments-loading-indicator {
+.global-secondary-button:hover {
+    background-color: var(--card-bg);
+    border-color: var(--text-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.global-cancel-button:hover {
+    background-color: var(--card-bg);
+    border-color: var(--text-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.global-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-secondary);
+    gap: var(--spacing-md);
+}
+
+.global-loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-secondary);
+    gap: var(--spacing-md);
+}
+
+.global-equipments-loading-indicator {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -919,66 +1102,71 @@ td, th {
     letter-spacing: 0.01em;
 }
 
-.global-mixers-grid,
-.global-tractors-grid,
-.global-trailers-grid,
-.global-equipments-grid,
-.global-operators-grid,
-.global-managers-grid,
-.global-list-items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
+.global-mixer-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--card-border);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
 }
 
-@media (max-width: 1500px) {
-    .global-mixers-grid,
-    .global-tractors-grid,
-    .global-trailers-grid,
-    .global-equipments-grid,
-    .global-operators-grid,
-    .global-managers-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    }
+.global-tractor-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--card-border);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
 }
 
-@media (max-width: 1200px) {
-    .global-mixers-grid,
-    .global-tractors-grid,
-    .global-trailers-grid,
-    .global-equipments-grid,
-    .global-operators-grid,
-    .global-managers-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
+.global-trailers-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--card-border);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
 }
 
-@media (max-width: 900px) {
-    .global-tractors-grid,
-    .global-trailers-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    }
+.global-equipments-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--card-border);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
 }
 
-@media (max-width: 768px) {
-    .global-mixers-grid,
-    .global-tractors-grid,
-    .global-trailers-grid,
-    .global-equipments-grid,
-    .global-operators-grid,
-    .global-managers-grid {
-        grid-template-columns: 1fr;
-    }
+.global-manager-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--card-border);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
 }
 
-.global-mixer-card,
-.global-tractor-card,
-.global-trailers-card,
-.global-equipments-card,
-.global-manager-card,
 .global-operator-card-wrapper {
     background-color: var(--card-bg);
     border-radius: var(--border-radius-lg);
@@ -992,10 +1180,30 @@ td, th {
     display: flex;
 }
 
-.global-mixer-card:hover,
-.global-tractor-card:hover,
-.global-trailers-card:hover,
-.global-equipments-card:hover,
+.global-mixer-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    border-color: var(--card-border-hover);
+}
+
+.global-tractor-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    border-color: var(--card-border-hover);
+}
+
+.global-trailers-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    border-color: var(--card-border-hover);
+}
+
+.global-equipments-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    border-color: var(--card-border-hover);
+}
+
 .global-manager-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-3px);
@@ -1101,12 +1309,23 @@ td, th {
     flex-direction: column;
 }
 
-.global-days-ago, .global-date-small {
+.global-days-ago {
     font-size: 12px;
     color: var(--text-light);
 }
 
-.global-stars, .global-cleanliness-rating .global-stars {
+.global-date-small {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.global-stars {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.global-cleanliness-rating .global-stars {
     display: flex;
     gap: 2px;
     align-items: center;
@@ -1121,7 +1340,14 @@ td, th {
     box-shadow: none;
 }
 
-.global-star.global-filled, .global-filled-star {
+.global-star.global-filled {
+    color: var(--warning);
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.global-filled-star {
     color: var(--warning);
     border: none;
     outline: none;
@@ -1217,7 +1443,7 @@ td, th {
     color: var(--warning);
 }
 
-.global-ios-button, .global-primary-button {
+.global-ios-button {
     background: var(--accent);
     color: var(--text-light);
     font-size: 15px;
@@ -1233,18 +1459,45 @@ td, th {
     box-shadow: var(--shadow-sm);
 }
 
-.global-ios-button:hover, .global-primary-button:hover {
+.global-primary-button {
+    background: var(--accent);
+    color: var(--text-light);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.global-ios-button:hover {
     background: var(--accent-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow);
 }
 
-.global-ios-button:active, .global-primary-button:active {
+.global-primary-button:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.global-ios-button:active {
     transform: translateY(1px);
     box-shadow: var(--shadow-xs);
 }
 
-.global-button-secondary, .global-secondary-button, .global-cancel-button {
+.global-primary-button:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-xs);
+}
+
+.global-button-secondary {
     background-color: var(--background);
     color: var(--text-primary);
     border: 1px solid var(--divider);
@@ -1256,13 +1509,69 @@ td, th {
     transition: all var(--transition);
 }
 
-.global-button-secondary:hover, .global-secondary-button:hover, .global-cancel-button:hover {
+.global-secondary-button {
+    background-color: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.global-cancel-button {
+    background-color: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.global-button-secondary:hover {
     background-color: var(--card-bg);
     border-color: var(--text-light);
     box-shadow: var(--shadow-sm);
 }
 
-.global-loading-container, .global-loading-indicator, .global-equipments-loading-indicator {
+.global-secondary-button:hover {
+    background-color: var(--card-bg);
+    border-color: var(--text-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.global-cancel-button:hover {
+    background-color: var(--card-bg);
+    border-color: var(--text-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.global-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-secondary);
+    gap: var(--spacing-md);
+}
+
+.global-loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-secondary);
+    gap: var(--spacing-md);
+}
+
+.global-equipments-loading-indicator {
     display: flex;
     flex-direction: column;
     align-items: center;

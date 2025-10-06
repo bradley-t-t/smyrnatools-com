@@ -151,6 +151,21 @@
     background-color: #fee2e2;
 }
 
+.stars-container {
+    display: inline-flex;
+    align-items: center;
+}
+
+.filled-star {
+    color: var(--accent);
+    margin-right: 2px;
+}
+
+.empty-star {
+    color: var(--divider);
+    margin-right: 2px;
+}
+
 @media (max-width: 768px) {
     .operator-card .card-header {
         flex-direction: column;

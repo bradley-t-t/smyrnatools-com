@@ -173,7 +173,12 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
         setExportError('')
         setExporting(true)
         try {
-            await exportGeneralManagerReport({form, plants, weekIso: report.weekIso || initialData?.week, filename: `general_manager_report_${report.weekIso || initialData?.week || ''}.xlsx`})
+            await exportGeneralManagerReport({
+                form,
+                plants,
+                weekIso: report.weekIso || initialData?.week,
+                filename: `general_manager_report_${report.weekIso || initialData?.week || ''}.xlsx`
+            })
         } catch (e) {
             setExportError(e?.message || 'Export failed')
         }
@@ -189,7 +194,8 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                     </button>
                     <div className="rpts-reports-review-actions">
                         {report.name === 'general_manager' && (
-                            <button type="button" className="rpts-manager-edit-button" disabled={exporting} onClick={handleExport}>
+                            <button type="button" className="rpts-manager-edit-button" disabled={exporting}
+                                    onClick={handleExport}>
                                 {exporting ? 'Exporting...' : 'Export'}
                             </button>
                         )}

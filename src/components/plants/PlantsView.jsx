@@ -105,7 +105,8 @@ function PlantsView({title = 'Plants'}) {
                                 </div>
                                 <h3>No Plants Found</h3>
                                 <p>{searchText ? "No plants match your search criteria." : "There are no plants in the system yet."}</p>
-                                <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add Plant
+                                <button className="global-primary-button primary-button"
+                                        onClick={() => setShowAddSheet(true)}>Add Plant
                                 </button>
                             </div>
                         ) : (

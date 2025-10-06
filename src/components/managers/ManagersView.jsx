@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './styles/ManagersView.css';
 import {DatabaseService, supabase} from '../../services/DatabaseService';
 import {UserService} from '../../services/UserService';
@@ -30,8 +30,17 @@ function ManagersView({title = 'Managers', onSelectManager}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const headerRef = useRef(null)
 
-    useEffect(() => { async function fetchCurrentUser() { const user = await UserService.getCurrentUser(); if (user) setCurrentUserId(user.id); } fetchCurrentUser(); }, []);
-    useEffect(() => { fetchAllData(); }, []);
+    useEffect(() => {
+        async function fetchCurrentUser() {
+            const user = await UserService.getCurrentUser();
+            if (user) setCurrentUserId(user.id);
+        }
+
+        fetchCurrentUser();
+    }, []);
+    useEffect(() => {
+        fetchAllData();
+    }, []);
 
     useEffect(() => {
         if (preferences.managerFilters) {
@@ -45,12 +54,16 @@ function ManagersView({title = 'Managers', onSelectManager}) {
     useEffect(() => {
         if (preferences.managerFilters?.viewMode !== undefined && preferences.managerFilters?.viewMode !== null) setViewMode(preferences.managerFilters.viewMode)
         else if (preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null) setViewMode(preferences.defaultViewMode)
-        else { const lastUsed = localStorage.getItem('managers_last_view_mode'); if (lastUsed) setViewMode(lastUsed) }
+        else {
+            const lastUsed = localStorage.getItem('managers_last_view_mode');
+            if (lastUsed) setViewMode(lastUsed)
+        }
     }, [preferences.managerFilters?.viewMode, preferences.defaultViewMode])
 
     useEffect(() => {
         const prefCode = preferences.selectedRegion?.code || ''
         let cancelled = false
+
         async function loadRegionPlants() {
             let regionCode = prefCode
             try {
@@ -67,32 +80,58 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                         }
                     }
                 }
-                if (!regionCode) { setRegionPlantCodes(null); return }
+                if (!regionCode) {
+                    setRegionPlantCodes(null);
+                    return
+                }
                 const regionPlants = await RegionService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) { setSelectedPlant(''); updateManagerFilter('selectedPlant', '') }
-            } catch { if (!cancelled) setRegionPlantCodes(null) }
+                if (sel && !codes.has(sel)) {
+                    setSelectedPlant('');
+                    updateManagerFilter('selectedPlant', '')
+                }
+            } catch {
+                if (!cancelled) setRegionPlantCodes(null)
+            }
         }
+
         loadRegionPlants()
-        return () => { cancelled = true }
+        return () => {
+            cancelled = true
+        }
     }, [preferences.selectedRegion?.code])
 
     function handleViewModeChange(mode) {
-        if (viewMode === mode) { setViewMode(null); updateManagerFilter('viewMode', null); localStorage.removeItem('managers_last_view_mode') }
-        else { setViewMode(mode); updateManagerFilter('viewMode', mode); localStorage.setItem('managers_last_view_mode', mode) }
+        if (viewMode === mode) {
+            setViewMode(null);
+            updateManagerFilter('viewMode', null);
+            localStorage.removeItem('managers_last_view_mode')
+        } else {
+            setViewMode(mode);
+            updateManagerFilter('viewMode', mode);
+            localStorage.setItem('managers_last_view_mode', mode)
+        }
     }
 
     async function fetchAllData() {
         setIsLoading(true)
-        try { await Promise.all([fetchManagers(), fetchPlants(), fetchRoles()]) } catch {} finally { setIsLoading(false) }
+        try {
+            await Promise.all([fetchManagers(), fetchPlants(), fetchRoles()])
+        } catch {
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     async function fetchManagers() {
         try {
-            const [{data: users, error: usersError}, {data: profiles, error: profilesError}, { data: permissions, error: permissionsError }, {data: rolesList, error: rolesError}] = await Promise.all([
+            const [{data: users, error: usersError}, {data: profiles, error: profilesError}, {
+                data: permissions,
+                error: permissionsError
+            }, {data: rolesList, error: rolesError}] = await Promise.all([
                 supabase.from('users').select('id, email, created_at, updated_at'),
                 supabase.from('users_profiles').select('id, first_name, last_name, plant_code, created_at, updated_at'),
                 supabase.from('users_permissions').select('user_id, role_id'),
@@ -106,7 +145,17 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                 const profile = profiles.find(p => p.id === user.id) || {}
                 const permission = permissions.find(p => p.user_id === user.id) || {}
                 const role = permission.role_id ? rolesList.find(r => r.id === permission.role_id) : null
-                return { id: user.id, email: user.email, firstName: profile.first_name || '', lastName: profile.last_name || '', plantCode: profile.plant_code || '', roleName: role?.name || 'User', roleWeight: role?.weight || 0, createdAt: user.created_at, updatedAt: user.updated_at }
+                return {
+                    id: user.id,
+                    email: user.email,
+                    firstName: profile.first_name || '',
+                    lastName: profile.last_name || '',
+                    plantCode: profile.plant_code || '',
+                    roleName: role?.name || 'User',
+                    roleWeight: role?.weight || 0,
+                    createdAt: user.created_at,
+                    updatedAt: user.updated_at
+                }
             })
             setManagers(managersData)
             localStorage.setItem('cachedManagers', JSON.stringify(managersData))
@@ -118,16 +167,28 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         }
     }
 
-    async function fetchPlants() { try { const {data, error} = await supabase.from('plants').select('*'); if (error) throw error; setPlants(data) } catch {} }
+    async function fetchPlants() {
+        try {
+            const {data, error} = await supabase.from('plants').select('*');
+            if (error) throw error;
+            setPlants(data)
+        } catch {
+        }
+    }
 
     async function fetchRoles() {
         try {
             const rolesData = await DatabaseService.getAllRecords('users_roles')
-            if (rolesData?.length) { setAvailableRoles(rolesData); return }
+            if (rolesData?.length) {
+                setAvailableRoles(rolesData);
+                return
+            }
             const {data, error} = await supabase.from('users_roles').select('*')
             if (error) throw error
             setAvailableRoles(data || [])
-        } catch { setAvailableRoles([]) }
+        } catch {
+            setAvailableRoles([])
+        }
     }
 
     const filteredManagers = managers.filter(manager => {
@@ -143,8 +204,14 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         return weightA !== weightB ? weightB - weightA : `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`)
     })
 
-    const getPlantName = plantCode => { const plant = plants.find(p => p.plant_code === plantCode); return plant ? plant.plant_name : plantCode || 'No Plant' }
-    const handleSelectManager = manager => { setSelectedManager(manager); onSelectManager ? onSelectManager(manager.id) : setShowDetailView(true) }
+    const getPlantName = plantCode => {
+        const plant = plants.find(p => p.plant_code === plantCode);
+        return plant ? plant.plant_name : plantCode || 'No Plant'
+    }
+    const handleSelectManager = manager => {
+        setSelectedManager(manager);
+        onSelectManager ? onSelectManager(manager.id) : setShowDetailView(true)
+    }
 
     useEffect(() => {
         function updateStickyCoverHeight() {
@@ -153,6 +220,7 @@ function ManagersView({title = 'Managers', onSelectManager}) {
             const root = document.querySelector('.dashboard-container.managers-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
+
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
@@ -163,9 +231,13 @@ function ManagersView({title = 'Managers', onSelectManager}) {
     const showReset = (searchText || selectedPlant || roleFilter)
 
     return (
-        <div className={`global-dashboard-container dashboard-container global-flush-top flush-top managers-view${showDetailView && selectedManager ? ' detail-open' : ''}`}>
+        <div
+            className={`global-dashboard-container dashboard-container global-flush-top flush-top managers-view${showDetailView && selectedManager ? ' detail-open' : ''}`}>
             {showDetailView && selectedManager ? (
-                <ManagerDetailView managerId={selectedManager.id} onClose={() => { setShowDetailView(false); fetchManagers() }}/>
+                <ManagerDetailView managerId={selectedManager.id} onClose={() => {
+                    setShowDetailView(false);
+                    fetchManagers()
+                }}/>
             ) : (
                 <>
                     <TopSection
@@ -173,21 +245,40 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                         addButtonLabel={null}
                         onAddClick={null}
                         searchInput={searchText}
-                        onSearchInputChange={v => { setSearchText(v); updateManagerFilter('searchText', v) }}
-                        onClearSearch={() => { setSearchText(''); updateManagerFilter('searchText', '') }}
+                        onSearchInputChange={v => {
+                            setSearchText(v);
+                            updateManagerFilter('searchText', v)
+                        }}
+                        onClearSearch={() => {
+                            setSearchText('');
+                            updateManagerFilter('searchText', '')
+                        }}
                         searchPlaceholder="Search by name or email..."
                         viewMode={viewMode}
                         onViewModeChange={handleViewModeChange}
                         plants={plants.map(p => ({...p, plantCode: p.plant_code, plantName: p.plant_name}))}
                         regionPlantCodes={regionPlantCodes}
                         selectedPlant={selectedPlant}
-                        onSelectedPlantChange={v => { setSelectedPlant(v); updateManagerFilter('selectedPlant', v) }}
+                        onSelectedPlantChange={v => {
+                            setSelectedPlant(v);
+                            updateManagerFilter('selectedPlant', v)
+                        }}
                         statusFilter={statusFilterValue}
                         statusOptions={statusOptions}
-                        onStatusFilterChange={v => { const val = v === 'All Roles' ? '' : v; setRoleFilter(val); updateManagerFilter('roleFilter', val) }}
+                        onStatusFilterChange={v => {
+                            const val = v === 'All Roles' ? '' : v;
+                            setRoleFilter(val);
+                            updateManagerFilter('roleFilter', val)
+                        }}
                         showReset={showReset}
-                        onReset={() => { const currentViewMode = viewMode; setSearchText(''); setSelectedPlant(''); setRoleFilter(''); resetManagerFilters?.({keepViewMode: true, currentViewMode}) }}
-                        listHeaderLabels={viewMode === 'list' ? ['Plant','Email','First Name','Last Name','Role'] : []}
+                        onReset={() => {
+                            const currentViewMode = viewMode;
+                            setSearchText('');
+                            setSelectedPlant('');
+                            setRoleFilter('');
+                            resetManagerFilters?.({keepViewMode: true, currentViewMode})
+                        }}
+                        listHeaderLabels={viewMode === 'list' ? ['Plant', 'Email', 'First Name', 'Last Name', 'Role'] : []}
                         showListHeader={viewMode === 'list'}
                         listHeaderClassName="managers-list-header-row"
                         forwardedRef={headerRef}
@@ -195,7 +286,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                     />
                     <div className="global-content-container content-container">
                         {isLoading ? (
-                            <div className="global-loading-container loading-container"><LoadingScreen message="Loading managers..." inline={true}/></div>
+                            <div className="global-loading-container loading-container"><LoadingScreen
+                                message="Loading managers..." inline={true}/></div>
                         ) : filteredManagers.length === 0 ? (
                             <div className="global-no-results-container no-results-container">
                                 <div className="no-results-icon"><i className="fas fa-user-tie"></i></div>
@@ -205,7 +297,9 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                         ) : viewMode === 'grid' ? (
                             <div className={`global-grid managers-grid ${searchText ? 'search-results' : ''}`}>
                                 {filteredManagers.map(manager => (
-                                    <ManagerCard key={manager.id} manager={manager} plantName={getPlantName(manager.plantCode)} onSelect={() => handleSelectManager(manager)}/>
+                                    <ManagerCard key={manager.id} manager={manager}
+                                                 plantName={getPlantName(manager.plantCode)}
+                                                 onSelect={() => handleSelectManager(manager)}/>
                                 ))}
                             </div>
                         ) : (
@@ -220,7 +314,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                                     </colgroup>
                                     <tbody>
                                     {filteredManagers.map(manager => (
-                                        <tr key={manager.id} onClick={() => handleSelectManager(manager)} style={{cursor: 'pointer'}}>
+                                        <tr key={manager.id} onClick={() => handleSelectManager(manager)}
+                                            style={{cursor: 'pointer'}}>
                                             <td>{manager.plantCode ? manager.plantCode : '---'}</td>
                                             <td>{manager.email ? manager.email : '---'}</td>
                                             <td>{manager.firstName ? manager.firstName : '---'}</td>

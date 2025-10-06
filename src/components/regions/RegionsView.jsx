@@ -106,7 +106,8 @@ function RegionsView({title = 'Regions'}) {
                                 </div>
                                 <h3>No Regions Found</h3>
                                 <p>{searchText ? "No regions match your search criteria." : "There are no regions in the system yet."}</p>
-                                <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add Region
+                                <button className="global-primary-button primary-button"
+                                        onClick={() => setShowAddSheet(true)}>Add Region
                                 </button>
                             </div>
                         ) : (
