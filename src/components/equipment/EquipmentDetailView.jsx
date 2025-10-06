@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {EquipmentService} from '../../services/EquipmentService';
 import {PlantService} from '../../services/PlantService';
 import {UserService} from '../../services/UserService';
@@ -12,7 +12,7 @@ import './styles/EquipmentDetailView.css';
 import LoadingScreen from '../common/LoadingScreen';
 import {RegionService} from '../../services/RegionService';
 
-function EquipmentDetailView({equipmentId, onClose}) {
+function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const {preferences} = usePreferences();
     const [equipment, setEquipment] = useState(null);
     const [plants, setPlants] = useState([]);
@@ -40,7 +40,6 @@ function EquipmentDetailView({equipmentId, onClose}) {
     const [year, setYear] = useState('');
     const [comments, setComments] = useState([]);
     const [issues, setIssues] = useState([]);
-    const equipmentCardRef = useRef(null);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
 
     useEffect(() => {
@@ -61,12 +60,13 @@ function EquipmentDetailView({equipmentId, onClose}) {
                 setStatus(equipmentData.status || '');
                 setCleanlinessRating(equipmentData.cleanlinessRating || 0);
                 setConditionRating(equipmentData.conditionRating || 0);
-                setLastServiceDate(equipmentData.lastServiceDate ? new Date(equipmentData.lastServiceDate) : null);
-                setHoursMileage(equipmentData.hoursMileage || '');
+                setLastServiceDate(equipmentData.lastServiceDate || null);
+                setHoursMileage(equipmentData.hoursMileage ? equipmentData.hoursMileage.toString() : '');
                 setMake(equipmentData.equipmentMake || '');
                 setModel(equipmentData.equipmentModel || '');
-                setYear(equipmentData.yearMade || '');
-
+                setYear(equipmentData.yearMade ? equipmentData.yearMade.toString() : '');
+                setComments(equipmentData.comments || []);
+                setIssues(equipmentData.issues || []);
                 setOriginalValues({
                     identifyingNumber: equipmentData.identifyingNumber || '',
                     assignedPlant: equipmentData.assignedPlant || '',
@@ -74,20 +74,17 @@ function EquipmentDetailView({equipmentId, onClose}) {
                     status: equipmentData.status || '',
                     cleanlinessRating: equipmentData.cleanlinessRating || 0,
                     conditionRating: equipmentData.conditionRating || 0,
-                    lastServiceDate: equipmentData.lastServiceDate ? new Date(equipmentData.lastServiceDate) : null,
-                    hoursMileage: equipmentData.hoursMileage || '',
-                    make: equipmentData.equipmentMake || '',
-                    model: equipmentData.equipmentModel || '',
-                    year: equipmentData.yearMade || ''
+                    lastServiceDate: equipmentData.lastServiceDate || null,
+                    hoursMileage: equipmentData.hoursMileage ? equipmentData.hoursMileage.toString() : '',
+                    equipmentMake: equipmentData.equipmentMake || '',
+                    equipmentModel: equipmentData.equipmentModel || '',
+                    yearMade: equipmentData.yearMade ? equipmentData.yearMade.toString() : ''
                 });
             } catch (error) {
-                console.error('Error fetching equipment details:', error);
-            } finally {
-                setIsLoading(false);
-                setHasUnsavedChanges(false);
+                setMessage('Error loading equipment details');
             }
+            setIsLoading(false);
         }
-
         fetchData();
     }, [equipmentId]);
 
@@ -150,7 +147,6 @@ function EquipmentDetailView({equipmentId, onClose}) {
                     }
                 }
             } catch (error) {
-                console.error('Error checking plant restriction:', error);
             }
         }
 
@@ -191,13 +187,16 @@ function EquipmentDetailView({equipmentId, onClose}) {
     async function handleSave() {
         if (!equipment?.id) {
             alert('Error: Cannot save equipment with undefined ID');
-            return;
+            return null;
         }
-
         setIsSaving(true);
         try {
-            const userId = await UserService.getCurrentUser();
-
+            const user = await UserService.getCurrentUser();
+            const userId = user && typeof user === 'object' ? user.id : user;
+            if (!userId) {
+                setMessage('Error saving changes: User ID is required');
+                return null;
+            }
             const updatedEquipment = {
                 ...equipment,
                 id: equipment.id,
@@ -215,31 +214,14 @@ function EquipmentDetailView({equipmentId, onClose}) {
                 updatedAt: new Date().toISOString(),
                 updatedBy: userId
             };
-
             await EquipmentService.updateEquipment(updatedEquipment.id, updatedEquipment, userId);
             setEquipment(updatedEquipment);
-
             setMessage('Changes saved successfully!');
-            setTimeout(() => setMessage(''), 5000);
-
-            setOriginalValues({
-                identifyingNumber: updatedEquipment.identifyingNumber,
-                assignedPlant: updatedEquipment.assignedPlant,
-                equipmentType: updatedEquipment.equipmentType,
-                status: updatedEquipment.status,
-                cleanlinessRating: updatedEquipment.cleanlinessRating,
-                conditionRating: updatedEquipment.conditionRating,
-                lastServiceDate: updatedEquipment.lastServiceDate ? new Date(updatedEquipment.lastServiceDate) : null,
-                hoursMileage: updatedEquipment.hoursMileage,
-                make: updatedEquipment.equipmentMake,
-                model: updatedEquipment.equipmentModel,
-                year: updatedEquipment.yearMade
-            });
-
             setHasUnsavedChanges(false);
+            return updatedEquipment;
         } catch (error) {
-            console.error('Error saving equipment:', error);
-            alert(`Error saving changes: ${error.message || 'Unknown error'}`);
+            setMessage('Error saving changes: ' + (error.message || 'Unknown error'));
+            return null;
         } finally {
             setIsSaving(false);
         }
@@ -254,7 +236,6 @@ function EquipmentDetailView({equipmentId, onClose}) {
             alert('Equipment deleted successfully');
             onClose();
         } catch (error) {
-            console.error('Error deleting equipment:', error);
             alert('Error deleting equipment');
         } finally {
             setShowDeleteConfirmation(false);
@@ -263,9 +244,14 @@ function EquipmentDetailView({equipmentId, onClose}) {
 
     async function handleBackClick() {
         if (hasUnsavedChanges) {
-            await handleSave();
+            const updated = await handleSave();
+            if (!updated) return;
+            if (typeof onSaved === 'function') onSaved(updated);
+            else onClose();
+            return;
         }
-        onClose();
+        if (typeof onSaved === 'function') onSaved();
+        else onClose();
     }
 
     function getPlantName(plantCode) {

@@ -148,6 +148,20 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         }
     }
 
+    function handleDetailViewSaved(updated) {
+        if (updated && updated.id) {
+            setEquipments(prev => {
+                const arr = prev.slice();
+                const idx = arr.findIndex(e => e.id === updated.id);
+                if (idx >= 0) arr[idx] = {...arr[idx], ...updated};
+                else arr.unshift(updated);
+                return arr;
+            });
+        }
+        setSelectedEquipment(null);
+        fetchEquipments();
+    }
+
     function handleSelectEquipment(equipmentId) {
         const equipment = equipments.find(e => e.id === equipmentId);
         if (!equipment || !equipment.id) return;
@@ -310,7 +324,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         <div
             className={`global-dashboard-container dashboard-container global-flush-top flush-top equipments-view${selectedEquipment ? ' detail-open' : ''}`}>
             {selectedEquipment ? (
-                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={() => setSelectedEquipment(null)}/>
+                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={() => setSelectedEquipment(null)} onSaved={handleDetailViewSaved}/>
             ) : (
                 <>
                     <TopSection

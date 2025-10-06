@@ -8,7 +8,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import {UserService} from '../../services/UserService'
 
-function PickupTrucksDetailView({pickupId, onClose}) {
+function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const {preferences} = usePreferences()
     const [pickup, setPickup] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -25,6 +25,8 @@ function PickupTrucksDetailView({pickupId, onClose}) {
     const [comments, setComments] = useState('')
     const [plants, setPlants] = useState([])
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
+    const [originalValues, setOriginalValues] = useState(null)
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -41,6 +43,17 @@ function PickupTrucksDetailView({pickupId, onClose}) {
                 setStatus(data?.status || '')
                 setMileage(data?.mileage ?? '')
                 setComments(data?.comments || '')
+                setOriginalValues({
+                    vin: data?.vin || '',
+                    make: data?.make || '',
+                    model: data?.model || '',
+                    year: data?.year || '',
+                    assigned: data?.assigned || '',
+                    assignedPlant: data?.assignedPlant || '',
+                    status: data?.status || '',
+                    mileage: data?.mileage ?? '',
+                    comments: data?.comments || ''
+                })
             } catch {
                 setPickup(null)
             } finally {
@@ -107,8 +120,23 @@ function PickupTrucksDetailView({pickupId, onClose}) {
         return plants.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()))
     }, [plants, regionPlantCodes])
 
+    useEffect(() => {
+        if (!originalValues) return
+        const changed =
+            (vin || '') !== (originalValues.vin || '') ||
+            (make || '') !== (originalValues.make || '') ||
+            (model || '') !== (originalValues.model || '') ||
+            (year || '') !== (originalValues.year || '') ||
+            (assigned || '') !== (originalValues.assigned || '') ||
+            (assignedPlant || '') !== (originalValues.assignedPlant || '') ||
+            (status || '') !== (originalValues.status || '') ||
+            String(mileage ?? '') !== String(originalValues.mileage ?? '') ||
+            (comments || '') !== (originalValues.comments || '')
+        setHasUnsavedChanges(changed)
+    }, [vin, make, model, year, assigned, assignedPlant, status, mileage, comments, originalValues])
+
     async function handleSave() {
-        if (!pickup?.id) return
+        if (!pickup?.id) return null
         setIsSaving(true)
         try {
             const payload = {
@@ -126,9 +154,23 @@ function PickupTrucksDetailView({pickupId, onClose}) {
             setPickup(updated)
             setMessage('Changes saved')
             setTimeout(() => setMessage(''), 3000)
+            setOriginalValues({
+                vin: updated?.vin || '',
+                make: updated?.make || '',
+                model: updated?.model || '',
+                year: updated?.year || '',
+                assigned: updated?.assigned || '',
+                assignedPlant: updated?.assignedPlant || '',
+                status: updated?.status || '',
+                mileage: updated?.mileage ?? '',
+                comments: updated?.comments || ''
+            })
+            setHasUnsavedChanges(false)
+            return updated
         } catch (e) {
             setMessage(e?.message || 'Error saving changes')
             setTimeout(() => setMessage(''), 4000)
+            return null
         } finally {
             setIsSaving(false)
         }
@@ -141,6 +183,18 @@ function PickupTrucksDetailView({pickupId, onClose}) {
             onClose?.()
         } catch {
         }
+    }
+
+    async function handleBackClick() {
+        if (hasUnsavedChanges) {
+            const updated = await handleSave()
+            if (!updated) return
+            if (typeof onSaved === 'function') onSaved(updated)
+            else onClose?.()
+            return
+        }
+        if (typeof onSaved === 'function') onSaved()
+        else onClose?.()
     }
 
     function handleExportEmail() {
@@ -192,7 +246,7 @@ function PickupTrucksDetailView({pickupId, onClose}) {
             )}
             <div className="detail-header themed">
                 <div className="header-left">
-                    <button className="back-button" onClick={onClose} aria-label="Back"><i
+                    <button className="back-button" onClick={handleBackClick} aria-label="Back"><i
                         className="fas fa-arrow-left"></i><span>Back</span></button>
                 </div>
                 <h1>Pickup {assigned ? `- ${assigned}` : ''}</h1>

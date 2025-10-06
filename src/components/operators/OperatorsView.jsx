@@ -294,6 +294,12 @@ function OperatorsView({
         )
     }
 
+    const renderStarsOrNA = (operator) => {
+        const allowedStatuses = ['Active', 'Light Duty', 'Training']
+        if (!allowedStatuses.includes(operator.status)) return 'Not Applicable'
+        return renderStars(operator.rating)
+    }
+
     return (
         <div
             className={`global-dashboard-container dashboard-container global-flush-top flush-top operators-view${showDetailView && selectedOperator ? ' detail-open' : ''}`}>
@@ -409,7 +415,7 @@ function OperatorsView({
                                                 </td>
                                                 <td>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
                                                 <td>{operator.status || '\u2014'}</td>
-                                                <td>{renderStars(operator.rating)}</td>
+                                                <td>{renderStarsOrNA(operator)}</td>
                                                 <td>{trainerObj ? trainerObj.name : '\u2014'}</td>
                                             </tr>
                                         )

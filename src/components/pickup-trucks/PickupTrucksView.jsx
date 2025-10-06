@@ -251,14 +251,25 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
 
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
 
+    function handleDetailSaved(updated) {
+        if (updated && updated.id) {
+            setPickups(prev => {
+                const arr = prev.slice()
+                const idx = arr.findIndex(p => p.id === updated.id)
+                if (idx >= 0) arr[idx] = {...arr[idx], ...updated}
+                else arr.unshift(updated)
+                return arr
+            })
+        }
+        setSelectedId(null)
+        fetchAllPickups()
+    }
+
     return (
         <div
             className={`global-dashboard-container dashboard-container global-flush-top flush-top pickup-trucks-view${selectedId ? ' detail-open' : ''}`}>
             {selectedId ? (
-                <PickupTrucksDetailView pickupId={selectedId} onClose={() => {
-                    setSelectedId(null);
-                    fetchAllPickups()
-                }}/>
+                <PickupTrucksDetailView pickupId={selectedId} onClose={() => setSelectedId(null)} onSaved={handleDetailSaved}/>
             ) : (
                 <>
                     <TopSection
@@ -306,3 +317,4 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
 }
 
 export default PickupTrucksView
+
