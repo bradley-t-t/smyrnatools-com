@@ -5,6 +5,7 @@
     color: var(--text-primary);
     text-align: left;
     position: relative;
+    z-index: 1;
 }
 
 .account-hero {
