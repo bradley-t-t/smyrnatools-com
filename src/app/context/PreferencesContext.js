@@ -28,6 +28,7 @@ const defaultPreferences = {
         searchText: '',
         selectedPlant: '',
         statusFilter: '',
+        positionFilter: '',
         viewMode: 'grid'
     },
     managerFilters: {
@@ -136,7 +137,8 @@ export const PreferencesProvider = ({children}) => {
             } : {...defaultPreferences.mixerFilters},
             operatorFilters: data.operator_filters ? {
                 ...data.operator_filters,
-                viewMode: data.operator_filters.viewMode || 'grid'
+                viewMode: data.operator_filters.viewMode || 'grid',
+                positionFilter: data.operator_filters.positionFilter === undefined ? '' : data.operator_filters.positionFilter
             } : {...defaultPreferences.operatorFilters},
             managerFilters: data.manager_filters ? {
                 ...data.manager_filters,

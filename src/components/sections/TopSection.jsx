@@ -32,11 +32,15 @@ function TopSection({
                         flush = true,
                         tightTop = false,
                         flushTop,
-                        showCoverOverlay: _showCoverOverlay
+                        showCoverOverlay: _showCoverOverlay,
+                        positionFilter,
+                        positionOptions,
+                        onPositionFilterChange
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
     const safeListLabels = Array.isArray(listHeaderLabels) ? listHeaderLabels : []
+    const safePositionOptions = Array.isArray(positionOptions) ? positionOptions : []
     const effectiveFlush = typeof flushTop === 'boolean' ? flushTop : flush
     const classes = ['top-section']
     if (sticky) classes.push('top-section-sticky-header')
@@ -133,6 +137,20 @@ function TopSection({
                                 >
                                     {safeStatusOptions.map(option => (
                                         <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        {safePositionOptions.length > 0 && (
+                            <div className="filter-wrapper">
+                                <select
+                                    className="ios-select"
+                                    value={positionFilter || ''}
+                                    onChange={e => onPositionFilterChange && onPositionFilterChange(e.target.value)}
+                                    aria-label="Position filter"
+                                >
+                                    {safePositionOptions.map(opt => (
+                                        <option key={opt} value={opt === 'All Positions' ? '' : opt}>{opt}</option>
                                     ))}
                                 </select>
                             </div>

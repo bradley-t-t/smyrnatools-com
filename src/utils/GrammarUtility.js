@@ -87,7 +87,20 @@ function cleanComments(text) {
     return cleanedLines.join('\n').trim()
 }
 
-const GrammarUtility = {cleanDescription, cleanComments}
+function formatPhone(input) {
+    const raw = input == null ? '' : String(input)
+    const digits = raw.replace(/\D/g, '')
+    if (digits.length === 11 && digits.startsWith('1')) {
+        const d = digits.slice(1)
+        return `(${d.slice(0, 3)})-${d.slice(3, 6)}-${d.slice(6, 10)}`
+    }
+    if (digits.length === 10) {
+        return `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+    }
+    return raw.trim()
+}
+
+const GrammarUtility = {cleanDescription, cleanComments, formatPhone}
 
 export default GrammarUtility
-export {GrammarUtility, cleanText}
+export {GrammarUtility, cleanText, formatPhone}

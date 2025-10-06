@@ -11,6 +11,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import FormatUtility from '../../utils/FormatUtility'
 import {RegionService} from '../../services/RegionService'
 import TopSection from '../sections/TopSection'
+import GrammarUtility from '../../utils/GrammarUtility'
 
 function OperatorsView({
                            title = 'Operator Roster',
@@ -25,6 +26,7 @@ function OperatorsView({
     const [searchText, setSearchText] = useState(preferences.operatorFilters?.searchText || '')
     const [selectedPlant, setSelectedPlant] = useState(preferences.operatorFilters?.selectedPlant || '')
     const [statusFilter, setStatusFilter] = useState(preferences.operatorFilters?.statusFilter || '')
+    const [positionFilter, setPositionFilter] = useState(preferences.operatorFilters?.positionFilter || '')
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [showDetailView, setShowDetailView] = useState(false)
     const [selectedOperator, setSelectedOperator] = useState(null)
@@ -42,6 +44,7 @@ function OperatorsView({
         'All Statuses', 'Active', 'Light Duty', 'Pending Start', 'Training', 'Terminated', 'No Hire',
         'Trainer', 'Not Trainer'
     ]
+    const positionOptions = ['All Positions', 'Mixer', 'Tractor']
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
 
     useEffect(() => {
@@ -61,6 +64,7 @@ function OperatorsView({
             setSearchText(preferences.operatorFilters.searchText || '')
             setSelectedPlant(preferences.operatorFilters.selectedPlant || '')
             setStatusFilter(preferences.operatorFilters.statusFilter || '')
+            setPositionFilter(preferences.operatorFilters.positionFilter || '')
             setViewMode(preferences.operatorFilters.viewMode || preferences.defaultViewMode || 'grid')
         }
     }, [preferences.operatorFilters, preferences.defaultViewMode])
@@ -205,7 +209,13 @@ function OperatorsView({
             else if (statusFilter === 'Trainer') matchesStatus = operator.isTrainer === true || String(operator.isTrainer).toLowerCase() === 'true'
             else if (statusFilter === 'Not Trainer') matchesStatus = operator.isTrainer !== true && String(operator.isTrainer).toLowerCase() !== 'true'
         }
-        return matchesSearch && matchesPlant && matchesRegion && matchesStatus
+        let matchesPosition = true
+        if (positionFilter) {
+            const pos = String(operator.position || '').trim().toLowerCase()
+            if (positionFilter === 'Mixer') matchesPosition = pos === 'mixer operator' || pos === 'mixer'
+            else if (positionFilter === 'Tractor') matchesPosition = pos === 'tractor operator' || pos === 'tractor'
+        }
+        return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesPosition
     }).sort((a, b) => {
         if (a.status === 'Active' && b.status !== 'Active') return -1
         if (a.status !== 'Active' && b.status === 'Active') return 1
@@ -253,6 +263,7 @@ function OperatorsView({
         setSearchText('')
         setSelectedPlant('')
         setStatusFilter('')
+        setPositionFilter('')
         resetOperatorFilters({keepViewMode: true, currentViewMode})
     }
 
@@ -267,9 +278,9 @@ function OperatorsView({
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
-    }, [viewMode, searchText, selectedPlant, statusFilter])
+    }, [viewMode, searchText, selectedPlant, statusFilter, positionFilter])
 
-    const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
+    const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || positionFilter)
 
     const renderStars = (val) => {
         const rating = Math.round(Number(val) || 0)
@@ -331,6 +342,12 @@ function OperatorsView({
                             setStatusFilter(value);
                             updateOperatorFilter('statusFilter', value)
                         }}
+                        positionFilter={positionFilter}
+                        positionOptions={positionOptions}
+                        onPositionFilterChange={value => {
+                            setPositionFilter(value);
+                            updateOperatorFilter('positionFilter', value)
+                        }}
                         showReset={showReset}
                         onReset={handleResetFilters}
                         listHeaderLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
@@ -346,7 +363,7 @@ function OperatorsView({
                             <div className="global-no-results-container no-results-container">
                                 <div className="no-results-icon"><i className="fas fa-user-hard-hat"></i></div>
                                 <h3>No Operators Found</h3>
-                                <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') ? 'No operators match your search criteria.' : 'There are no operators in the system yet.'}</p>
+                                <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || positionFilter ? 'No operators match your search criteria.' : 'There are no operators in the system yet.'}</p>
                                 <button className="global-primary-button primary-button"
                                         onClick={() => setShowAddSheet(true)}>Add Operator
                                 </button>
@@ -390,7 +407,7 @@ function OperatorsView({
                                                 <td><span
                                                     className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
                                                 </td>
-                                                <td>{operator.phone || '\u2014'}</td>
+                                                <td>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
                                                 <td>{operator.status || '\u2014'}</td>
                                                 <td>{renderStars(operator.rating)}</td>
                                                 <td>{trainerObj ? trainerObj.name : '\u2014'}</td>

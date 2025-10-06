@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import supabase, {DatabaseService} from '../../services/DatabaseService';
 import './styles/OperatorDetailView.css';
+import GrammarUtility from '../../utils/GrammarUtility';
 
 function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onScheduledOffSaved, allowedPlantCodes}) {
     const [operator, setOperator] = useState(null);
@@ -255,7 +256,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                         <label>Phone</label>
                         <input
                             type="tel"
-                            value={phone}
+                            value={GrammarUtility.formatPhone(phone)}
                             onChange={(e) => setPhone(e.target.value)}
                             className="form-control"
                             placeholder="(555) 555-5555"

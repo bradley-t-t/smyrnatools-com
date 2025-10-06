@@ -19,7 +19,7 @@
     z-index: 1;
 }
 
-.operators-grid.search.results {
+.operators-grid.search-results {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 

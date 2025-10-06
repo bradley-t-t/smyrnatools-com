@@ -2,6 +2,7 @@ import React from 'react';
 import './styles/OperatorCard.css';
 import ThemeUtility from '../../utils/ThemeUtility';
 import formatUtility from '../../utils/FormatUtility';
+import GrammarUtility from '../../utils/GrammarUtility';
 
 function OperatorCard({
                           operator,
@@ -81,7 +82,7 @@ function OperatorCard({
                     </div>
                     <div className="detail-row">
                         <div className="detail-label">Phone</div>
-                        <div className="detail-value">{operator.phone || 'Not Set'}</div>
+                        <div className="detail-value">{operator.phone ? GrammarUtility.formatPhone(operator.phone) : 'Not Set'}</div>
                     </div>
                     {operator.status === 'Pending Start' && (
                         <div className="detail-row">
@@ -134,3 +135,4 @@ function OperatorCard({
 }
 
 export default OperatorCard;
+
