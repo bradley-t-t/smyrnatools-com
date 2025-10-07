@@ -53,13 +53,6 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     }, [])
 
     useEffect(() => {
-        if (!canBypassPlantRestriction && userPlantCode) {
-            setSelectedPlant(prev => prev || userPlantCode)
-            updateListFilter?.('selectedPlant', userPlantCode)
-        }
-    }, [canBypassPlantRestriction, userPlantCode, updateListFilter])
-
-    useEffect(() => {
         fetchAllData()
     }, [])
 
@@ -146,7 +139,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         const items = [...filteredItems]
         const dir = sortDir === 'desc' ? -1 : 1
         if (sortKey === 'description') items.sort((a, b) => ((a.description || '').localeCompare(b.description || '')) * dir)
-        else if (sortKey === 'plant') items.sort((a, b) => ((String(a.plant_code || '')).localeCompare(String(b.plant_code || ''))) * dir)
+        else if (sortKey === 'plant' ) items.sort((a, b) => ((String(a.plant_code || '')).localeCompare(String(b.plant_code || ''))) * dir)
         else if (sortKey === 'deadline') items.sort((a, b) => ((new Date(a.deadline).getTime() || 0) - (new Date(b.deadline).getTime() || 0)) * dir)
         else if (sortKey === 'completed_at') items.sort((a, b) => ((new Date(a.completed_at).getTime() || 0) - (new Date(b.completed_at).getTime() || 0)) * dir)
         else if (sortKey === 'creator') items.sort((a, b) => (ListService.getCreatorName(a.user_id).localeCompare(ListService.getCreatorName(b.user_id))) * dir)
@@ -232,9 +225,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
 
     const derivedVisiblePlants = (() => {
         if (!Array.isArray(plants)) return []
-        if (canBypassPlantRestriction) return plants
         if (regionPlantCodes && regionPlantCodes.size > 0) return plants.filter(p => regionPlantCodes.has(String(p.plant_code || '').trim().toUpperCase()))
-        if (userPlantCode) return plants.filter(p => String(p.plant_code || '').trim().toUpperCase() === String(userPlantCode || '').trim().toUpperCase())
         return plants
     })()
 
@@ -301,10 +292,10 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                         onReset={() => {
                             setSearchText('');
                             setSearchInput('');
-                            if (canBypassPlantRestriction) setSelectedPlant(''); else if (userPlantCode) setSelectedPlant(userPlantCode);
+                            setSelectedPlant('');
                             setStatusFilter('');
                             resetListFilters?.();
-                            if (!canBypassPlantRestriction && userPlantCode) updateListFilter?.('selectedPlant', userPlantCode);
+                            updateListFilter?.('selectedPlant', '');
                             if (onStatusFilterChange) onStatusFilterChange('')
                         }}
                         listHeaderLabels={viewMode === 'list' ? derivedListHeaderLabels : []}
