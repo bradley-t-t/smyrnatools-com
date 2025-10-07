@@ -738,17 +738,6 @@
     padding: 4px 0
 }
 
-.asset-issues-table {
-}
-
-.asset-issues-table th:nth-child(1),
-.asset-issues-table td:nth-child(1),
-.asset-issues-table th:nth-child(2),
-.asset-issues-table td:nth-child(2),
-.asset-issues-table th:nth-child(3),
-.asset-issues-table td:nth-child(3) {
-}
-
 @media (max-width: 600px) {
     .asset-issues-table th:nth-child(1),
     .asset-issues-table td:nth-child(1),
@@ -757,12 +746,6 @@
     .asset-issues-table th:nth-child(3),
     .asset-issues-table td:nth-child(3) {
     }
-}
-
-.asset-issues-table .issue-desc-col {
-}
-
-.asset-issues-table td.issue-desc {
 }
 
 .asset-issues-table .issue-desc {
