@@ -12,25 +12,6 @@
     z-index: 1
 }
 
-:root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f7fafc;
-    --accent: #2b6cb0;
-    --accent-dark: #2c5282;
-    --text-primary: #2d3748;
-    --text-secondary: #718096;
-    --text-light: #ffffff;
-    --border-light: #e2e8f0;
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --danger: #e53e3e;
-    --danger-bg: #fff5f5;
-    --success: #38a169;
-    --success-bg: #f0fff4;
-}
-
 * {
     margin: 0;
     padding: 0;
