@@ -1,3 +1,17 @@
+#site-particles {
+    z-index: -1
+}
+
+.login-container {
+    position: relative;
+    z-index: 1
+}
+
+.login-wrapper {
+    position: relative;
+    z-index: 1
+}
+
 :root {
     --bg-primary: #ffffff;
     --bg-secondary: #f7fafc;

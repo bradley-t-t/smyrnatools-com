@@ -58,7 +58,13 @@ const ReportUtility = {
     },
     formatVerboseDate(dateInput, locale) {
         if (!dateInput) return ''
-        const d = new Date(dateInput)
+        let d
+        if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+            const [y, m, da] = dateInput.split('-').map(Number)
+            d = new Date(y, m - 1, da)
+        } else {
+            d = new Date(dateInput)
+        }
         if (isNaN(d.getTime())) return ''
         return d.toLocaleDateString(locale, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'})
     },
