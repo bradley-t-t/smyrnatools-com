@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-import PickupTruck from '../config/models/pickup-trucks/PickupTruck'
+import PickupTruck from '../models/pickup-trucks/PickupTruck'
 import {UserService} from './UserService'
 import {ValidationUtility} from '../utils/ValidationUtility'
 

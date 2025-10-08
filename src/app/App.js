@@ -3,34 +3,34 @@ import PropTypes from 'prop-types'
 import './index.css'
 import './App.css'
 import {supabase} from '../services/DatabaseService'
-import MixersView from '../components/mixers/MixersView'
-import ManagersView from '../components/managers/ManagersView'
-import SettingsView from '../components/settings/SettingsView'
-import MixerDetailView from '../components/mixers/MixerDetailView'
-import OperatorsView from '../components/operators/OperatorsView'
-import LoginView from '../components/login/LoginView'
-import MyAccountView from '../components/myaccount/MyAccountView'
+import MixersView from '../components/pages/mixers/MixersView'
+import ManagersView from '../components/pages/managers/ManagersView'
+import SettingsView from '../components/pages/settings/SettingsView'
+import MixerDetailView from '../components/pages/mixers/MixerDetailView'
+import OperatorsView from '../components/pages/operators/OperatorsView'
+import LoginView from '../components/pages/login/LoginView'
+import MyAccountView from '../components/pages/myaccount/MyAccountView'
 import Navigation from "../components/common/Navigation"
-import ListView from '../components/list/ListView'
-import WebView from "../components/common/WebView"
+import ListView from '../components/pages/list/ListView'
+import WebOverlay from "../components/common/WebOverlay"
 import {UserService} from "../services/UserService"
 import OnlineUsersOverlay from '../components/common/OnlineUsersOverlay'
 import TipBanner from '../components/common/TipBanner'
-import ReportsView from '../components/reports/ReportsView'
-import TractorsView from '../components/tractors/TractorsView'
-import TrailersView from '../components/trailers/TrailersView'
-import EquipmentsView from '../components/equipment/EquipmentsView'
+import ReportsView from '../components/pages/reports/ReportsView'
+import TractorsView from '../components/pages/tractors/TractorsView'
+import TrailersView from '../components/pages/trailers/TrailersView'
+import EquipmentsView from '../components/pages/equipment/EquipmentsView'
 import '../styles/Theme.css'
 import '../styles/Global.css'
-import PlantsView from '../components/plants/PlantsView'
-import RegionsView from '../components/regions/RegionsView'
+import PlantsView from '../components/pages/plants/PlantsView'
+import RegionsView from '../components/pages/regions/RegionsView'
 import SmyrnaLogo from '../assets/images/SmyrnaLogo.png'
-import GuestView from '../components/guest/GuestView'
-import DesktopOnly from '../components/desktop-only/DesktopOnly'
-import PickupTrucksView from '../components/pickup-trucks/PickupTrucksView'
+import GuestOverlay from '../components/common/GuestOverlay'
+import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay'
+import PickupTrucksView from '../components/pages/pickup-trucks/PickupTrucksView'
 import ParticleBackground from '../components/common/ParticleBackground'
-import DashboardView from '../components/dashboard/DashboardView'
-import OfflineView from '../components/offline/OfflineView'
+import DashboardView from '../components/pages/dashboard/DashboardView'
+import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 
 function VersionPopup({version}) {
@@ -404,8 +404,8 @@ function AppContent() {
     const renderCurrentView = () => {
         if (!userId) return <LoginView/>
         if (!rolesLoaded) return null
-        if (isGuestOnly) return <GuestView/>
-        if (webViewURL) return <WebView url={webViewURL} onClose={() => setWebViewURL(null)}/>
+        if (isGuestOnly) return <GuestOverlay/>
+        if (webViewURL) return <WebOverlay url={webViewURL} onClose={() => setWebViewURL(null)}/>
         if (selectedView === 'Plants') return <PlantsView title="Plants"/>
         if (selectedView === 'Regions') return <RegionsView title="Regions"/>
         if (selectedView === 'Dashboard') return <DashboardView/>
@@ -512,13 +512,13 @@ function AppContent() {
         }
     }
 
-    if (isMobile) return <><ParticleBackground/><DesktopOnly/></>
-    if (offlineMode) return <><ParticleBackground/><OfflineView onRetry={handleRetryConnection}
-                                                                onReload={handleReloadIfOnline}/></>
+    if (isMobile) return <><ParticleBackground/><DesktopOnlyOverlay/></>
+    if (offlineMode) return <><ParticleBackground/><OfflineOverlay onRetry={handleRetryConnection}
+                                                                   onReload={handleReloadIfOnline}/></>
     if (updateMode) return <><ParticleBackground/><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
     if (!userId) return (<div className="App"><ParticleBackground/>{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
-    if (isGuestOnly) return (<div className="App"><ParticleBackground/><GuestView/></div>)
+    if (isGuestOnly) return (<div className="App"><ParticleBackground/><GuestOverlay/></div>)
 
     return (
         <div className="App">

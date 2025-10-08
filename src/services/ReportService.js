@@ -2,7 +2,7 @@ import {supabase} from './DatabaseService'
 import CacheUtility from '../utils/CacheUtility'
 import {UserService} from './UserService'
 import {RegionService} from './RegionService'
-import {reportTypes} from '../config/types/ReportTypes'
+import {reportTypes} from '../types/ReportTypes'
 import {ReportUtility} from '../utils/ReportUtility'
 
 const TTL_SHORT = 5 * 60 * 1000

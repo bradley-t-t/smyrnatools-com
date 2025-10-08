@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-import {Plant} from '../config/models/plants/Plant'
+import {Plant} from '../models/plants/Plant'
 
 const AUTH_FUNCTION = 'plant-service'
 

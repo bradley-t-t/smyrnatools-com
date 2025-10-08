@@ -17,11 +17,11 @@ import MyAccountPage from './pages/account/MyAccountPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import {PreferencesProvider} from './context/PreferencesContext';
 import {AccountProvider} from './context/AccountContext';
-import ListView from '../components/list/ListView';
-import GuestView from '../components/guest/GuestView';
-import DesktopOnly from '../components/desktop-only/DesktopOnly';
+import ListView from '../components/pages/list/ListView';
+import GuestOverlay from '../components/common/GuestOverlay';
+import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
 import ParticleBackground from '../components/common/ParticleBackground'
-import OfflineView from '../components/offline/OfflineView'
+import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 
 function App() {
@@ -79,7 +79,7 @@ function App() {
         <PreferencesProvider>
             <AccountProvider>
                 <ParticleBackground/>
-                <DesktopOnly/>
+                <DesktopOnlyOverlay/>
             </AccountProvider>
         </PreferencesProvider>
     );
@@ -88,7 +88,7 @@ function App() {
         <PreferencesProvider>
             <AccountProvider>
                 <ParticleBackground/>
-                <OfflineView onRetry={handleRetryConnection} onReload={handleReloadIfOnline}/>
+                <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline}/>
             </AccountProvider>
         </PreferencesProvider>
     )
@@ -107,7 +107,7 @@ function App() {
                             <Route path="/verify-email" element={<VerifyEmailPage/>}/>
                         </Route>
                         <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
-                            <Route path="/guest" element={<GuestView/>}/>
+                            <Route path="/guest" element={<GuestOverlay/>}/>
                             <Route path="/" element={<HomePage/>}/>
                             <Route path="/operators" element={<OperatorsPage/>}/>
                             <Route path="/operators/training" element={<TrainingHistoryPage/>}/>

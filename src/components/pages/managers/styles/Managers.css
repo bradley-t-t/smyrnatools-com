@@ -1,0 +1,778 @@
+.manager-role-badge {
+    background-color: var(--accent);
+    color: var(--text-light);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.manager-role-badge.admin {
+    background-color: var(--accent-dark);
+}
+
+.manager-role-badge.supervisor {
+    background-color: var(--success);
+}
+
+.manager-role-badge.manager {
+    background-color: var(--warning);
+}
+
+.manager-card {
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    cursor: pointer;
+    overflow: hidden;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-light);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+}
+
+.manager-card:hover {
+    transform: translateY(-4px);
+}
+
+.manager-card:active {
+    transform: translateY(0px);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bg-secondary);
+}
+
+.manager-card .card-content {
+    flex: 1;
+    padding: 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: var(--bg-primary);
+}
+
+.manager-card .card-status-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: var(--divider);
+    z-index: 1;
+}
+
+.manager-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--divider);
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: nowrap;
+}
+
+.manager-card .manager-name {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.manager-card .card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.manager-card .detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 4px 0;
+}
+
+.manager-card .detail-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.manager-card .detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+}
+
+.manager-card .manager-name {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.manager-card .detail-value {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--accent);
+}
+
+.manager-card:hover {
+    border-color: var(--border-light);
+    box-shadow: var(--shadow-hover);
+    color: var(--accent);
+    background: var(--card-bg);
+}
+
+.modal-body .form-group.role-selection {
+    margin-top: 16px;
+}
+
+.empty-roles-message {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.role-selection .role-options {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.role-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.role-option:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.role-option.selected {
+    border-color: var(--accent);
+    background-color: var(--accent-light-theme);
+    box-shadow: 0 0 0 2px var(--accent-border);
+}
+
+.role-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.role-option.selected .role-icon {
+    color: var(--accent);
+}
+
+.role-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.role-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 4px;
+}
+
+.status-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.status-item {
+    flex: 1 1 120px;
+    min-width: 120px;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: var(--bg-tertiary);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.status-count {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+    color: var(--accent);
+}
+
+.status-label {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.plant-distribution-table {
+    margin-top: 10px;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.distribution-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    background: transparent;
+}
+
+.distribution-table th,
+.distribution-table td {
+    padding: 8px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-light);
+    white-space: nowrap;
+}
+
+.distribution-table th {
+    background-color: var(--bg-tertiary);
+    font-weight: 500;
+}
+
+.distribution-table td.plant-name {
+    text-align: left;
+    font-weight: 500;
+}
+
+.distribution-table tr:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.full-width-role-breakdown {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding-left: 0;
+    padding-right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.horizontal-role-breakdown {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.horizontal-role-breakdown .status-item {
+    min-width: 120px;
+    flex: 1 1 120px;
+    margin-bottom: 0;
+}
+
+.managers-list-header-row {
+    grid-template-columns: 12% 28% 18% 18% 24%;
+}
+
+.managers-list-header-row > div {
+    padding: 10px 12px;
+    box-sizing: border-box;
+}
+
+.managers-view .managers-list-table-container {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+}
+
+@media (max-width: 800px) {
+    .status-item {
+        min-width: 90px;
+        padding: 0.5rem;
+    }
+
+    .distribution-table th,
+    .distribution-table td {
+        padding: 6px 4px;
+    }
+
+    .horizontal-role-breakdown {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .horizontal-role-breakdown .status-item {
+        min-width: 90px;
+        flex: 1 1 90px;
+    }
+}
+
+@media (max-width: 900px) {
+}
+
+.manager-detail-view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-secondary);
+    overflow-y: auto;
+    color: var(--text-primary);
+}
+
+.manager-detail-view .detail-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
+    justify-content: space-between;
+}
+
+.manager-detail-view .header-left {
+    display: flex;
+    align-items: center;
+    min-width: 140px;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+.manager-detail-view .back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin-right: 16px;
+    border-radius: 6px;
+    background-color: var(--accent);
+    color: var(--text-light);
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-all);
+}
+
+.manager-detail-view .back-button:hover {
+    background-color: var(--accent-dark);
+    transform: translateX(-2px);
+}
+
+.manager-detail-view .back-button i {
+    font-size: 16px;
+}
+
+.manager-detail-view .header-center {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.manager-detail-view .header-center h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.manager-detail-view .header-right {
+    min-width: 140px;
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.manager-detail-view .detail-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.manager-detail-view .manager-card-preview {
+    max-width: 100%;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.manager-detail-view .manager-card-preview .manager-card {
+    cursor: default;
+}
+
+.manager-detail-view .manager-card-preview .manager-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.manager-detail-view .detail-card {
+    background-color: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.manager-detail-view .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.manager-detail-view .detail-card h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.manager-detail-view .form-group {
+    margin-bottom: 16px;
+}
+
+.manager-detail-view .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.manager-detail-view .form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-secondary);
+    font-size: 15px;
+    color: var(--text-primary);
+    box-sizing: border-box;
+    transition: var(--transition-all);
+}
+
+.manager-detail-view .form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.manager-detail-view .form-control[readonly] {
+    background-color: var(--bg-tertiary);
+    cursor: not-allowed;
+}
+
+.manager-detail-view .password-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.manager-detail-view .text-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.manager-detail-view .text-button.small {
+    font-size: 12px;
+}
+
+.manager-detail-view .password-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.manager-detail-view .form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    gap: 16px;
+}
+
+.manager-detail-view .primary-button,
+.manager-detail-view .save-button {
+    background-color: var(--accent);
+    color: var(--text-light);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.manager-detail-view .primary-button:hover,
+.manager-detail-view .save-button:hover {
+    background-color: var(--accent-dark);
+}
+
+.manager-detail-view .danger-button {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.manager-detail-view .danger-button:hover {
+    background-color: var(--danger-bg-hover);
+}
+
+.manager-detail-view .cancel-button {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.manager-detail-view .cancel-button:hover {
+    background-color: var(--bg-hover);
+}
+
+.manager-detail-view .confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--modal-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    max-width: none;
+    min-width: 100%;
+}
+
+.manager-detail-view .confirmation-content {
+    background-color: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    color: var(--text-primary);
+    text-align: center;
+    margin: 0 auto;
+    position: relative;
+    box-sizing: border-box;
+    z-index: 1001;
+}
+
+.manager-detail-view .confirmation-content h2 {
+    margin-top: 0;
+    color: var(--text-primary);
+}
+
+.manager-detail-view .confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.manager-detail-view .metadata-info {
+    background-color: var(--bg-tertiary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.manager-detail-view .metadata-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.manager-detail-view .metadata-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.manager-detail-view .metadata-value {
+    color: var(--text-primary);
+    font-weight: 400;
+}
+
+.manager-detail-view .edit-instructions {
+    color: var(--edit-instructions-color) !important;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.manager-detail-view .saving-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--modal-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.manager-detail-view .saving-indicator {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--bg-secondary);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.manager-detail-view .content-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 16px;
+    gap: 16px;
+}
+
+.manager-detail-view .ios-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--divider);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px auto;
+}
+
+.manager-detail-view .error-message {
+    text-align: center;
+    padding: 32px;
+    color: var(--danger);
+}
+
+body.in-detail-view .managers-list-container {
+    display: none;
+}
+
+.manager-detail-view .message {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.manager-detail-view .message.success {
+    background-color: var(--success-bg);
+    color: var(--success);
+}
+
+.manager-detail-view .message.error {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+}
+
+.manager-detail-view .message.warning {
+    background-color: var(--warning-bg);
+    color: var(--warning);
+    display: flex;
+    align-items: center;
+}
+
+.manager-detail-view .disabled-field {
+    background-color: var(--bg-tertiary);
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.manager-detail-view .debug-info {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.manager-detail-view .debug-warning {
+    color: var(--danger);
+    margin-top: 4px;
+}

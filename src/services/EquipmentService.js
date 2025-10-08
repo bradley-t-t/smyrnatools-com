@@ -1,8 +1,8 @@
 import APIUtility from '../utils/APIUtility'
 import {UserService} from './UserService'
-import {Equipment} from '../config/models/equipment/Equipment'
-import {EquipmentHistory} from '../config/models/equipment/EquipmentHistory'
-import {EquipmentComment} from '../config/models/equipment/EquipmentComment'
+import {Equipment} from '../models/equipment/Equipment'
+import {EquipmentHistory} from '../models/equipment/EquipmentHistory'
+import {EquipmentComment} from '../models/equipment/EquipmentComment'
 import {ValidationUtility} from '../utils/ValidationUtility'
 
 class EquipmentServiceImpl {

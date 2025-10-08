@@ -1,5 +1,5 @@
 import React from 'react'
-import './styles/TopSection.css'
+import './styles/Top.css'
 
 function TopSection({
                         title,
@@ -35,7 +35,8 @@ function TopSection({
                         showCoverOverlay: _showCoverOverlay,
                         positionFilter,
                         positionOptions,
-                        onPositionFilterChange
+                        onPositionFilterChange,
+                        hideViewModeToggle = false
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
@@ -85,26 +86,28 @@ function TopSection({
                         )}
                     </div>
                     <div className="filters" role="group" aria-label="Filters and view options">
-                        <div className="view-toggle-icons" role="group" aria-label="View mode">
-                            <button
-                                className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-                                onClick={() => onViewModeChange && onViewModeChange('list')}
-                                aria-label="List view"
-                                aria-pressed={viewMode === 'list'}
-                                type="button"
-                            >
-                                <i className="fas fa-list" aria-hidden="true"></i>
-                            </button>
-                            <button
-                                className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
-                                onClick={() => onViewModeChange && onViewModeChange('grid')}
-                                aria-label="Grid view"
-                                aria-pressed={viewMode === 'grid'}
-                                type="button"
-                            >
-                                <i className="fas fa-th-large" aria-hidden="true"></i>
-                            </button>
-                        </div>
+                        {!hideViewModeToggle && (
+                            <div className="view-toggle-icons" role="group" aria-label="View mode">
+                                <button
+                                    className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
+                                    onClick={() => onViewModeChange && onViewModeChange('list')}
+                                    aria-label="List view"
+                                    aria-pressed={viewMode === 'list'}
+                                    type="button"
+                                >
+                                    <i className="fas fa-list" aria-hidden="true"></i>
+                                </button>
+                                <button
+                                    className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
+                                    onClick={() => onViewModeChange && onViewModeChange('grid')}
+                                    aria-label="Grid view"
+                                    aria-pressed={viewMode === 'grid'}
+                                    type="button"
+                                >
+                                    <i className="fas fa-th-large" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        )}
                         <div className="filter-wrapper">
                             <select
                                 className="ios-select"

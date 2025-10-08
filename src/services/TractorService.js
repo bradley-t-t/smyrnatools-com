@@ -1,9 +1,9 @@
 import APIUtility from '../utils/APIUtility'
-import {Tractor} from '../config/models/tractors/Tractor'
+import {Tractor} from '../models/tractors/Tractor'
 import {TractorUtility} from '../utils/TractorUtility'
-import {TractorHistory} from '../config/models/tractors/TractorHistory'
+import {TractorHistory} from '../models/tractors/TractorHistory'
 import {UserService} from './UserService'
-import {TractorComment} from '../config/models/tractors/TractorComment'
+import {TractorComment} from '../models/tractors/TractorComment'
 import {ValidationUtility} from '../utils/ValidationUtility'
 
 export class TractorService {

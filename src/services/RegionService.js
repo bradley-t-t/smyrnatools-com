@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-import Region from '../config/models/regions/Region'
+import Region from '../models/regions/Region'
 
 class RegionServiceImpl {
     allRegions = []

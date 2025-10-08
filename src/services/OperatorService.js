@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-import {Operator} from '../config/models/operators/Operator'
+import {Operator} from '../models/operators/Operator'
 import UserUtility from '../utils/UserUtility'
 
 class OperatorServiceImpl {

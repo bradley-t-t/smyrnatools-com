@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility';
-import Trailer from '../config/models/trailers/Trailer';
+import Trailer from '../models/trailers/Trailer';
 import {isValidUUID} from '../utils/UserUtility';
 import {UserService} from './UserService';
 

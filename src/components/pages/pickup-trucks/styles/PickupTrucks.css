@@ -1,0 +1,190 @@
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(1) {
+    width: 14%
+}
+
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(2) {
+    width: 14%
+}
+
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(3) {
+    width: 20%
+}
+
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(4) {
+    width: 10%
+}
+
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(5) {
+    width: 14%
+}
+
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(6) {
+    width: 14%
+}
+
+.pickup-trucks-view .mixers-list-table.pickup-trucks-columns col:nth-child(7) {
+    width: 14%
+}
+
+.mixers-list-header-row.pickup-trucks-columns {
+    grid-template-columns:14% 14% 20% 10% 14% 14% 14%
+}
+
+.pickup-trucks-view .clickable-row {
+    cursor: pointer;
+    transition: background .18s, color .18s
+}
+
+.pickup-trucks-view .mixers-list-table tbody tr.clickable-row:hover {
+    background: var(--accent-row-hover-bg)
+}
+
+.pickup-trucks-view .item-status-dot {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent)
+}
+
+.pickup-trucks-view .item-status-dot.active {
+    background: var(--status-active)
+}
+
+.pickup-trucks-view .item-status-dot.stationary {
+    background: var(--status-stationary)
+}
+
+.pickup-trucks-view .item-status-dot.spare {
+    background: var(--status-spare)
+}
+
+.pickup-trucks-view .item-status-dot.in-shop {
+    background: var(--status-inshop)
+}
+
+.pickup-trucks-view .item-status-dot.retired {
+    background: var(--status-retired)
+}
+
+.pickup-trucks-view .item-status-dot.sold {
+    background: var(--status-sold)
+}
+
+.pickup-trucks-view .cell-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px
+}
+
+.pickup-trucks-view .mileage-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px
+}
+
+.pickup-trucks-view .mileage-cell .warning-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center
+}
+
+.pickup-trucks-view .dashboard-actions .action-button i {
+    margin-right: 8px
+}
+
+.pickup-trucks-view {
+    overscroll-behavior-y: none;
+    padding-top: 0;
+    --sticky-cover-height: 14px;
+}
+
+.pickup-trucks-add {
+    max-width: 600px
+}
+
+.pickup-trucks-add .form-row {
+    gap: 14px
+}
+
+.pickup-trucks-add .form-group.wide textarea {
+    min-height: 96px
+}
+
+.pickup-trucks-add input[type=number].ios-input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+    font-variant-numeric: tabular-nums
+}
+
+.pickup-trucks-add input[type=number].ios-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0
+}
+
+.pickup-trucks-add input[type=number].ios-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0
+}
+
+.pickup-trucks-card {
+    position: relative
+}
+
+.pickup-trucks-card .status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent);
+    z-index: 10
+}
+
+.pickup-trucks-card .status-bar.active {
+    background: var(--status-active)
+}
+
+.pickup-trucks-card .status-bar.stationary {
+    background: var(--status-stationary)
+}
+
+.pickup-trucks-card .status-bar.spare {
+    background: var(--status-spare)
+}
+
+.pickup-trucks-card .status-bar.in-shop {
+    background: var(--status-inshop)
+}
+
+.pickup-trucks-card .status-bar.retired {
+    background: var(--status-retired)
+}
+
+.pickup-trucks-card .status-bar.sold {
+    background: var(--status-sold)
+}
+
+.pickup-trucks-detail .pickup-detail-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow: visible
+}
+
+.pickup-trucks-detail .pickup-form-sections {
+    display: grid;
+    grid-template-columns:1fr 1fr;
+    gap: 20px
+}
+
+@media (max-width: 900px) {
+    .pickup-trucks-detail .pickup-form-sections {
+        grid-template-columns:1fr
+    }
+}
+
+.pickup-trucks-detail .header-spacer-36 {
+    width: 36px
+}
