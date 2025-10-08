@@ -251,26 +251,25 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             <ListViewModeSection
                 filteredItems={filteredTrailers}
                 handleSelectItem={handleSelectTrailer}
-                headerLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'Verified', 'More']}
-                colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%', '8%']}
+                headerLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
+                colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const commentsCount = Number(item.commentsCount || 0);
                     const issuesCount = Number(item.openIssuesCount || 0);
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td>{item.assignedPlant ? item.assignedPlant : "---"}</td>
-                            <td>{item.trailerNumber ? item.trailerNumber : "---"}</td>
-                            <td><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status ? item.status : "---"}</td>
-                            <td>{item.trailerType ? item.trailerType : "---"}</td>
-                            <td>{(() => {
+                            <td style={{width: '12%'}}>{item.assignedPlant ? item.assignedPlant : "---"}</td>
+                            <td style={{width: '14%'}}>{item.trailerNumber ? item.trailerNumber : "---"}</td>
+                            <td style={{width: '12%'}}><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status ? item.status : "---"}</td>
+                            <td style={{width: '12%'}}>{item.trailerType ? item.trailerType : "---"}</td>
+                            <td style={{width: '14%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
-                            <td>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) && <span className="warning-badge"><i className="fas fa-exclamation-triangle"></i></span>}</td>
-                            <td>{item.vinNumber || item.vin || "---"}</td>
-                            <td>{item.isVerified() ? 'Yes' : 'No'}</td>
-                            <td>
+                            <td style={{width: '18%'}}>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) && <span className="warning-badge"><i className="fas fa-exclamation-triangle"></i></span>}</td>
+                            <td style={{width: '14%'}}>{item.vinNumber || item.vin || "---"}</td>
+                            <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
                                     <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.trailerNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{commentsCount}</span></button>
                                     <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.trailerNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{issuesCount}</span></button>
@@ -337,6 +336,8 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                 typeFilter: ''
                             })
                         }}
+                        listLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
+                        colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%']}
                         forwardedRef={headerRef}
                     />
                     <div className="global-content-container content-container">{content}</div>

@@ -312,25 +312,25 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                 operators={operators}
                 plants={plants}
                 handleSelectItem={handleSelectTractor}
-                headerLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
+                listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
                 colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td>{plant?.name || item.assignedPlant}</td>
-                            <td>{item.truckNumber}</td>
-                            <td><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status}</td>
-                            <td>{operator?.name || 'Not Assigned'}</td>
-                            <td>{(() => {
+                            <td style={{width: '10%'}}>{plant?.name || item.assignedPlant}</td>
+                            <td style={{width: '12%'}}>{item.truckNumber}</td>
+                            <td style={{width: '12%'}}><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status}</td>
+                            <td style={{width: '18%'}}>{operator?.name || 'Not Assigned'}</td>
+                            <td style={{width: '12%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
-                            <td>{item.vinNumber || item.vin}</td>
-                            <td>{item.isVerified() ? 'Yes' : 'No'}</td>
-                            <td>
+                            <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
+                            <td style={{width: '10%'}}>{item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>}</td>
+                            <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
                                     <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.commentsCount || 0}</span></button>
                                     <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.openIssuesCount || 0}</span></button>
@@ -399,6 +399,8 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                                 resetTractorFilters();
                                 setViewMode(viewMode)
                             }}
+                            listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
+                            colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
                             forwardedRef={headerRef}
                         />
                         <div className="global-content-container content-container">{content}</div>

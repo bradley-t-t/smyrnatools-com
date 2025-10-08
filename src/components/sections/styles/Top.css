@@ -315,15 +315,17 @@
     border-top-left-radius: 14px;
     border-top-right-radius: 14px;
     padding: 0;
-    gap: 0
+    gap: 0;
+    display: flex;
 }
 
 .list-headers.header-row > div {
-    padding: 10px 8px;
+    padding: 14px 8px;
     box-sizing: border-box;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis
+    text-overflow: ellipsis;
+    border-bottom: 2px solid var(--divider);
 }
 
 .list-headers > div {

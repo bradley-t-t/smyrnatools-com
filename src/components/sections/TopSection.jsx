@@ -24,9 +24,6 @@ function TopSection({
                         onFreightFilterChange,
                         showReset,
                         onReset,
-                        listHeaderLabels,
-                        showListHeader,
-                        listHeaderClassName,
                         forwardedRef,
                         sticky = true,
                         flush = true,
@@ -36,12 +33,15 @@ function TopSection({
                         positionFilter,
                         positionOptions,
                         onPositionFilterChange,
-                        hideViewModeToggle = false
+                        hideViewModeToggle = false,
+                        listLabels,
+                        colWidths
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
-    const safeListLabels = Array.isArray(listHeaderLabels) ? listHeaderLabels : []
     const safePositionOptions = Array.isArray(positionOptions) ? positionOptions : []
+    const safeListLabels = Array.isArray(listLabels) && listLabels.length > 0 ? listLabels : ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']
+    const safeColWidths = Array.isArray(colWidths) && colWidths.length > 0 ? colWidths : ['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']
     const effectiveFlush = typeof flushTop === 'boolean' ? flushTop : flush
     const classes = ['top-section']
     if (sticky) classes.push('top-section-sticky-header')
@@ -193,10 +193,10 @@ function TopSection({
                         )}
                     </div>
                 </div>
-                {showListHeader && safeListLabels.length > 0 && (
-                    <div className={`list-headers header-row ${listHeaderClassName || ''}`} role="row"
+                {viewMode === 'list' && safeListLabels.length > 0 && (
+                    <div className={`list-headers header-row`} role="row"
                          aria-label="List headers">
-                        {safeListLabels.map(l => <div key={l} role="columnheader">{l}</div>)}
+                        {safeListLabels.map((l, i) => <div key={l} style={{width: safeColWidths[i] || 'auto'}} role="columnheader">{l}</div>)}
                     </div>
                 )}
             </div>

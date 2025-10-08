@@ -6,11 +6,6 @@ function ListViewModeSection({filteredItems, operators, plants, handleSelectItem
         return (
             <div className={containerClassName || 'list-table-container'}>
                 <table className={tableClassName || 'list-table'}>
-                    <thead>
-                        <tr>
-                            {headerLabels.map((label, i) => <th key={i} style={{width: colWidths[i]}}>{label}</th>)}
-                        </tr>
-                    </thead>
                     <tbody>
                         {filteredItems && Array.isArray(filteredItems) && filteredItems.map(item => renderRow(item, handleSelectItem, onShowCommentModal, onShowIssueModal))}
                     </tbody>
@@ -21,11 +16,6 @@ function ListViewModeSection({filteredItems, operators, plants, handleSelectItem
     return (
         <div className={containerClassName || 'list-table-container'}>
             <table className={tableClassName || 'list-table'}>
-                <thead>
-                    <tr>
-                        {headerLabels.map((label, i) => <th key={i} style={{width: colWidths[i]}}>{label}</th>)}
-                    </tr>
-                </thead>
                 <tbody>
                     {filteredItems && Array.isArray(filteredItems) && filteredItems.map(item => {
                         const operator = operators.find(op => op.employeeId === item.assignedOperator);

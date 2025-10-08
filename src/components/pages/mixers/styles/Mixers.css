@@ -1,5 +1,9 @@
 @import url('../../../common/styles/UserLabel.css');
 
+.global-content-container {
+    margin-top: -11px;
+}
+
 .add-mixer-button {
     margin-left: auto;
     height: 40px;
@@ -1350,7 +1354,7 @@
 .error-message {
     text-align: center;
     padding: 30px 0;
-    color: #ff3b30;
+    color: var(--danger);
 }
 
 .history-table th {

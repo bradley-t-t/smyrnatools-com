@@ -11,7 +11,7 @@
     border: 1px solid var(--divider);
     display: block;
     position: sticky;
-    top: var(--top-section-height, 0px);
+    top: calc(var(--top-section-height, 0px) - 10px);
     left: 0;
     z-index: 1000;
     overscroll-behavior: none;

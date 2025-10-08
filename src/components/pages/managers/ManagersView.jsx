@@ -280,6 +280,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                             setRoleFilter('');
                             resetManagerFilters?.({keepViewMode: true, currentViewMode})
                         }}
+                        listLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
+                        colWidths={['12%', '28%', '18%', '18%', '24%']}
                         forwardedRef={headerRef}
                         sticky={true}
                     />
@@ -312,11 +314,11 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                                 colWidths={['12%', '28%', '18%', '18%', '24%']}
                                 renderRow={(manager, handleSelect) => (
                                     <tr key={manager.id} onClick={() => handleSelect(manager)} style={{cursor: 'pointer'}}>
-                                        <td>{manager.plantCode ? manager.plantCode : '---'}</td>
-                                        <td>{manager.email ? manager.email : '---'}</td>
-                                        <td>{manager.firstName ? manager.firstName : '---'}</td>
-                                        <td>{manager.lastName ? manager.lastName : '---'}</td>
-                                        <td>{manager.roleName ? manager.roleName : '---'}</td>
+                                        <td style={{width: '12%'}}>{manager.plantCode ? manager.plantCode : '---'}</td>
+                                        <td style={{width: '28%'}}>{manager.email ? manager.email : '---'}</td>
+                                        <td style={{width: '18%'}}>{manager.firstName ? manager.firstName : '---'}</td>
+                                        <td style={{width: '18%'}}>{manager.lastName ? manager.lastName : '---'}</td>
+                                        <td style={{width: '24%'}}>{manager.roleName ? manager.roleName : '---'}</td>
                                     </tr>
                                 )}
                                 containerClassName="list-table-container"

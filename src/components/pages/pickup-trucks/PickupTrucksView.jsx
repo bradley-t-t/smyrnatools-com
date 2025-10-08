@@ -217,13 +217,13 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                     const assignedKey = String(item.assigned || '').trim().toLowerCase()
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td>{item.assignedPlant || '---'}</td>
-                            <td><span className={`item-status-dot ${statusClass}`}></span>{item.status || '---'}</td>
-                            <td>{item.assigned ? <span className="cell-inline"><span>{item.assigned}</span>{duplicateAssigned.has(assignedKey) && <span className="warning-badge" title="Assigned to multiple pickups"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
-                            <td>{item.year || '---'}</td>
-                            <td>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
-                            <td>{item.vin ? <span className="cell-inline"><span>{item.vin}</span>{duplicateVINs.has(vinKey) && <span className="warning-badge" title="Duplicate VIN"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
-                            <td>{typeof item.mileage === 'number' ? <span className="mileage-cell"><span>{item.mileage.toLocaleString()}</span>{item.mileage > 300000 && <span className="warning-badge" title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                            <td style={{width: '15%'}}>{item.assignedPlant || '---'}</td>
+                            <td style={{width: '15%'}}><span className={`item-status-dot ${statusClass}`}></span>{item.status || '---'}</td>
+                            <td style={{width: '15%'}}>{item.assigned ? <span className="cell-inline"><span>{item.assigned}</span>{duplicateAssigned.has(assignedKey) && <span className="warning-badge" title="Assigned to multiple pickups"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                            <td style={{width: '10%'}}>{item.year || '---'}</td>
+                            <td style={{width: '20%'}}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
+                            <td style={{width: '15%'}}>{item.vin ? <span className="cell-inline"><span>{item.vin}</span>{duplicateVINs.has(vinKey) && <span className="warning-badge" title="Duplicate VIN"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                            <td style={{width: '10%'}}>{typeof item.mileage === 'number' ? <span className="mileage-cell"><span>{item.mileage.toLocaleString()}</span>{item.mileage > 300000 && <span className="warning-badge" title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
                         </tr>
                     )
                 }}
@@ -287,6 +287,8 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                             setSelectedPlant('');
                             setStatusFilter('All Statuses')
                         }}
+                        listLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
+                        colWidths={['15%', '15%', '15%', '10%', '20%', '15%', '10%']}
                     />
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}

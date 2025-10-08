@@ -358,6 +358,8 @@ function OperatorsView({
                         }}
                         showReset={showReset}
                         onReset={handleResetFilters}
+                        listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
+                        colWidths={['10%', '28%', '16%', '16%', '14%', '16%']}
                         sticky={true}
                     />
                     <div className="global-content-container content-container">
@@ -400,12 +402,12 @@ function OperatorsView({
                                     const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
                                     return (
                                         <tr key={operator.employeeId} onClick={() => handleSelect(operator)} style={{cursor: 'pointer'}}>
-                                            <td>{operator.plantCode || '\u2014'}</td>
-                                            <td><span className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span></td>
-                                            <td>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
-                                            <td>{operator.status || '\u2014'}</td>
-                                            <td>{renderStarsOrNA(operator)}</td>
-                                            <td>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                            <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
+                                            <td style={{width: '28%'}}><span className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span></td>
+                                            <td style={{width: '16%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
+                                            <td style={{width: '16%'}}>{operator.status || '\u2014'}</td>
+                                            <td style={{width: '14%'}}>{renderStarsOrNA(operator)}</td>
+                                            <td style={{width: '16%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
                                         </tr>
                                     )
                                 }}

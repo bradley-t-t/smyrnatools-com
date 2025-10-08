@@ -356,7 +356,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>{item.isVerified() ? 'Yes' : 'No'}</td>
+                            <td style={{width: '10%'}}>{item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
                                     <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.commentsCount || 0}</span></button>
@@ -441,6 +441,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                                 resetMixerFilters();
                                 setViewMode(viewMode)
                             }}
+                            listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
+                            colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
                             forwardedRef={headerRef}
                         />
                         <div className="global-content-container content-container">{content}</div>
