@@ -13,6 +13,8 @@ import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
 import {UserService} from '../../../services/UserService'
 import TopSection from '../../sections/TopSection'
+import GridViewModeSection from '../../sections/GridViewModeSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function PickupTrucksView({title = 'Pickup Trucks'}) {
     const {preferences} = usePreferences()
@@ -185,66 +187,49 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             </div>
         )
         if (viewMode === 'grid') return (
-            <div className={`global-grid mixers-grid ${searchText ? 'search-results' : ''}`}>
-                {filtered.map(p => {
-                    const vinKey = String(p.vin || '').trim().toUpperCase().replace(/\s+/g, '')
-                    const assignedKey = String(p.assigned || '').trim().toLowerCase()
-                    const isHighMileage = typeof p.mileage === 'number' && p.mileage > 300000
-                    return (
-                        <PickupTrucksCard
-                            key={p.id}
-                            pickup={p}
-                            onSelect={() => setSelectedId(p.id)}
-                            isDuplicateVin={duplicateVINs.has(vinKey)}
-                            isDuplicateAssigned={duplicateAssigned.has(assignedKey)}
-                            isHighMileage={isHighMileage}
-                        />
-                    )
-                })}
-            </div>
+            <GridViewModeSection
+                filteredItems={filtered}
+                getCardProps={(pickup) => {
+                    const vinKey = String(pickup.vin || '').trim().toUpperCase().replace(/\s+/g, '')
+                    const assignedKey = String(pickup.assigned || '').trim().toLowerCase()
+                    const isHighMileage = typeof pickup.mileage === 'number' && pickup.mileage > 300000
+                    return {
+                        isDuplicateVin: duplicateVINs.has(vinKey),
+                        isDuplicateAssigned: duplicateAssigned.has(assignedKey),
+                        isHighMileage
+                    }
+                }}
+                handleSelectItem={(id) => setSelectedId(id)}
+                cardComponent={PickupTrucksCard}
+                itemPropName="pickup"
+                gridClassName="grid"
+            />
         )
         return (
-            <div className="mixers-list-table-container">
-                <table className="mixers-list-table pickup-trucks-columns">
-                    <colgroup>
-                        <col/>
-                        <col/>
-                        <col/>
-                        <col/>
-                        <col/>
-                        <col/>
-                        <col/>
-                    </colgroup>
-                    <tbody>
-                    {filtered.map(p => {
-                        const statusClass = String(p.status || '').toLowerCase().replace(/\s+/g, '-')
-                        const vinKey = String(p.vin || '').trim().toUpperCase().replace(/\s+/g, '')
-                        const assignedKey = String(p.assigned || '').trim().toLowerCase()
-                        return (
-                            <tr key={p.id} className="clickable-row" onClick={() => setSelectedId(p.id)}>
-                                <td>{p.assignedPlant || '\u2014'}</td>
-                                <td><span className={`item-status-dot ${statusClass}`}></span>{p.status || '\u2014'}
-                                </td>
-                                <td>{p.assigned ? <span
-                                    className="cell-inline"><span>{p.assigned}</span>{duplicateAssigned.has(assignedKey) &&
-                                    <span className="warning-badge" title="Assigned to multiple pickups"><i
-                                        className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
-                                <td>{p.year || '\u2014'}</td>
-                                <td>{`${p.make || ''} ${p.model || ''}`.trim() || '\u2014'}</td>
-                                <td>{p.vin ?
-                                    <span className="cell-inline"><span>{p.vin}</span>{duplicateVINs.has(vinKey) &&
-                                        <span className="warning-badge" title="Duplicate VIN"><i
-                                            className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
-                                <td>{typeof p.mileage === 'number' ? <span
-                                    className="mileage-cell"><span>{p.mileage.toLocaleString()}</span>{p.mileage > 300000 &&
-                                    <span className="warning-badge" title="High mileage"><i
-                                        className="fas fa-exclamation-triangle"></i></span>}</span> : '\u2014'}</td>
-                            </tr>
-                        )
-                    })}
-                    </tbody>
-                </table>
-            </div>
+            <ListViewModeSection
+                filteredItems={filtered}
+                handleSelectItem={(id) => setSelectedId(id)}
+                headerLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
+                colWidths={['15%', '15%', '15%', '10%', '20%', '15%', '10%']}
+                renderRow={(item, handleSelect) => {
+                    const statusClass = String(item.status || '').toLowerCase().replace(/\s+/g, '-')
+                    const vinKey = String(item.vin || '').trim().toUpperCase().replace(/\s+/g, '')
+                    const assignedKey = String(item.assigned || '').trim().toLowerCase()
+                    return (
+                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
+                            <td>{item.assignedPlant || '---'}</td>
+                            <td><span className={`item-status-dot ${statusClass}`}></span>{item.status || '---'}</td>
+                            <td>{item.assigned ? <span className="cell-inline"><span>{item.assigned}</span>{duplicateAssigned.has(assignedKey) && <span className="warning-badge" title="Assigned to multiple pickups"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                            <td>{item.year || '---'}</td>
+                            <td>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
+                            <td>{item.vin ? <span className="cell-inline"><span>{item.vin}</span>{duplicateVINs.has(vinKey) && <span className="warning-badge" title="Duplicate VIN"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                            <td>{typeof item.mileage === 'number' ? <span className="mileage-cell"><span>{item.mileage.toLocaleString()}</span>{item.mileage > 300000 && <span className="warning-badge" title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                        </tr>
+                    )
+                }}
+                containerClassName="list-table-container"
+                tableClassName="list-table"
+            />
         )
     }, [isLoading, filtered, viewMode, searchText, selectedPlant, statusFilter, duplicateVINs, duplicateAssigned])
 
@@ -302,10 +287,6 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                             setSelectedPlant('');
                             setStatusFilter('All Statuses')
                         }}
-                        listHeaderLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
-                        showListHeader={viewMode === 'list'}
-                        listHeaderClassName="mixers-list-header-row pickup-trucks-columns"
-                        forwardedRef={headerRef}
                     />
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}

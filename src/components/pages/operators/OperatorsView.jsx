@@ -12,6 +12,8 @@ import FormatUtility from '../../../utils/FormatUtility'
 import {RegionService} from '../../../services/RegionService'
 import TopSection from '../../sections/TopSection'
 import GrammarUtility from '../../../utils/GrammarUtility'
+import GridViewModeSection from '../../sections/GridViewModeSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function OperatorsView({
                            title = 'Operator Roster',
@@ -356,9 +358,6 @@ function OperatorsView({
                         }}
                         showReset={showReset}
                         onReset={handleResetFilters}
-                        listHeaderLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
-                        showListHeader={viewMode === 'list'}
-                        listHeaderClassName={`operators-list-header-row${statusFilter === 'Pending Start' ? ' pending' : ''}`}
                         sticky={true}
                     />
                     <div className="global-content-container content-container">
@@ -375,54 +374,44 @@ function OperatorsView({
                                 </button>
                             </div>
                         ) : viewMode === 'grid' ? (
-                            <div className={`global-grid operators-grid ${searchText ? 'search-results' : ''}`}>
-                                {filteredOperators.map(operator => {
+                            <GridViewModeSection
+                                filteredItems={filteredOperators}
+                                handleSelectItem={handleSelectOperator}
+                                cardComponent={OperatorCard}
+                                itemPropName="operator"
+                                gridClassName="grid"
+                                getCardProps={(operator) => {
+                                    const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
+                                    const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
+                                    return {
+                                        trainerName: trainerObj ? trainerObj.name : '',
+                                        isDuplicateName: duplicate
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <ListViewModeSection
+                                filteredItems={filteredOperators}
+                                handleSelectItem={handleSelectOperator}
+                                headerLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
+                                colWidths={['10%', '28%', '16%', '16%', '14%', '16%']}
+                                renderRow={(operator, handleSelect) => {
                                     const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
                                     const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
                                     return (
-                                        <OperatorCard
-                                            key={operator.employeeId}
-                                            operator={operator}
-                                            trainerName={trainerObj ? trainerObj.name : ''}
-                                            duplicateName={duplicate}
-                                            onSelect={() => handleSelectOperator(operator)}
-                                            formatDate={formatDate}
-                                        />
+                                        <tr key={operator.employeeId} onClick={() => handleSelect(operator)} style={{cursor: 'pointer'}}>
+                                            <td>{operator.plantCode || '\u2014'}</td>
+                                            <td><span className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span></td>
+                                            <td>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
+                                            <td>{operator.status || '\u2014'}</td>
+                                            <td>{renderStarsOrNA(operator)}</td>
+                                            <td>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                        </tr>
                                     )
-                                })}
-                            </div>
-                        ) : (
-                            <div className="operators-list-table-container">
-                                <table className="operators-list-table">
-                                    <colgroup>
-                                        <col style={{width: '10%'}}/>
-                                        <col style={{width: '28%'}}/>
-                                        <col style={{width: '16%'}}/>
-                                        <col style={{width: '16%'}}/>
-                                        <col style={{width: '14%'}}/>
-                                        <col style={{width: '16%'}}/>
-                                    </colgroup>
-                                    <tbody>
-                                    {filteredOperators.map(operator => {
-                                        const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
-                                        const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
-                                        return (
-                                            <tr key={operator.employeeId} onClick={() => handleSelectOperator(operator)}
-                                                style={{cursor: 'pointer'}}>
-                                                <td>{operator.plantCode || '\u2014'}</td>
-                                                <td><span
-                                                    className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
-                                                </td>
-                                                <td>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
-                                                <td>{operator.status || '\u2014'}</td>
-                                                <td>{renderStarsOrNA(operator)}</td>
-                                                <td>{trainerObj ? trainerObj.name : '\u2014'}</td>
-                                            </tr>
-                                        )
-                                    })}
-                                    </tbody>
-                                </table>
-                            </div>
+                                }}
+                                containerClassName="list-table-container"
+                                tableClassName="list-table"
+                            />
                         )}
                     </div>
                     {showAddSheet && (

@@ -3,7 +3,7 @@ import {usePreferences} from '../../../app/context/PreferencesContext';
 import LoadingScreen from '../../common/LoadingScreen';
 import TrailerCard from './TrailerCard';
 import '../../../styles/FilterStyles.css';
-import './styles/TrailersView.css';
+import './styles/Trailers.css';
 import {TrailerService} from '../../../services/TrailerService';
 import {TrailerUtility} from '../../../utils/TrailerUtility';
 import {PlantService} from '../../../services/PlantService';
@@ -17,6 +17,8 @@ import AsyncUtility from '../../../utils/AsyncUtility'
 import LookupUtility from '../../../utils/LookupUtility'
 import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
+import GridViewModeSection from '../../sections/GridViewModeSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const {preferences, saveLastViewedFilters, updateTrailerFilter, updatePreferences} = usePreferences()
@@ -229,88 +231,60 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add Trailer
             </button>
         </div>
-        if (viewMode === 'grid') return <div
-            className={`global-grid trailers-grid ${searchText ? 'search-results' : ''}`}>{filteredTrailers.map(trailer =>
-            <TrailerCard key={trailer.id} trailer={trailer}
-                         tractorName={LookupUtility.getTractorTruckNumber(tractors, trailer.assignedTractor)}
-                         plantName={LookupUtility.getPlantName(plants, trailer.assignedPlant)}
-                         showTractorWarning={LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', trailer.assignedTractor)}
-                         onSelect={() => handleSelectTrailer(trailer.id)}/>)}</div>
-        if (viewMode === 'list') return <div className="trailers-list-table-container">
-            <table className="trailers-list-table">
-                <colgroup>
-                    <col style={{width: '12%'}}/>
-                    <col style={{width: '14%'}}/>
-                    <col style={{width: '12%'}}/>
-                    <col style={{width: '18%'}}/>
-                    <col style={{width: '14%'}}/>
-                    <col style={{width: '22%'}}/>
-                    <col style={{width: '8%'}}/>
-                </colgroup>
-                <tbody>{filteredTrailers.map(trailer => {
-                    const commentsCount = Number(trailer.commentsCount || 0);
-                    const issuesCount = Number(trailer.openIssuesCount || 0);
-                    return <tr key={trailer.id} onClick={() => handleSelectTrailer(trailer.id)}
-                               style={{cursor: 'pointer'}}>
-                        <td>{trailer.assignedPlant ? trailer.assignedPlant : "---"}</td>
-                        <td>{trailer.trailerNumber ? trailer.trailerNumber : "---"}</td>
-                        <td><span className="item-status-dot" style={{
-                            display: 'inline-block',
-                            verticalAlign: 'middle',
-                            marginRight: '8px',
-                            backgroundColor: trailer.status === 'Active' ? 'var(--status-active)' : trailer.status === 'Spare' ? 'var(--status-spare)' : trailer.status === 'In Shop' ? 'var(--status-inshop)' : trailer.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
-                        }}></span>{trailer.status ? trailer.status : "---"}</td>
-                        <td>{trailer.trailerType ? trailer.trailerType : "---"}</td>
-                        <td>{(() => {
-                            const rating = Math.round(trailer.cleanlinessRating || 0);
-                            const stars = rating > 0 ? rating : 1;
-                            return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                style={{color: 'var(--accent)'}}></i>)
-                        })()}</td>
-                        <td>{LookupUtility.getTractorTruckNumber(tractors, trailer.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, trailer.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', trailer.assignedTractor) &&
-                            <span className="warning-badge"><i className="fas fa-exclamation-triangle"></i></span>}</td>
-                        <td>
-                            <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-                                <button type="button" onClick={e => {
-                                    e.stopPropagation();
-                                    setModalTrailerId(trailer.id);
-                                    setModalTrailerNumber(trailer.trailerNumber || '');
-                                    setShowCommentModal(true)
-                                }} style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    padding: 0,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer'
-                                }} title="View comments"><i className="fas fa-comments" style={{
-                                    color: 'var(--accent)',
-                                    marginRight: 4
-                                }}></i><span>{commentsCount}</span></button>
-                                <button type="button" onClick={e => {
-                                    e.stopPropagation();
-                                    setModalTrailerId(trailer.id);
-                                    setModalTrailerNumber(trailer.trailerNumber || '');
-                                    setShowIssueModal(true)
-                                }} style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    padding: 0,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer',
-                                    marginLeft: 12
-                                }} title="View issues"><i className="fas fa-tools" style={{
-                                    color: 'var(--accent)',
-                                    marginRight: 4
-                                }}></i><span>{issuesCount}</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                })}</tbody>
-            </table>
-        </div>
-        return null
+        if (viewMode === 'grid') return (
+            <GridViewModeSection
+                filteredItems={filteredTrailers}
+                getCardProps={(trailer) => ({
+                    tractorName: LookupUtility.getTractorTruckNumber(tractors, trailer.assignedTractor),
+                    plantName: LookupUtility.getPlantName(plants, trailer.assignedPlant),
+                    showTractorWarning: LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', trailer.assignedTractor)
+                })}
+                handleSelectItem={handleSelectTrailer}
+                cardComponent={TrailerCard}
+                itemPropName="trailer"
+                onShowCommentModal={(id, number) => { setModalTrailerId(id); setModalTrailerNumber(number); setShowCommentModal(true); }}
+                onShowIssueModal={(id, number) => { setModalTrailerId(id); setModalTrailerNumber(number); setShowIssueModal(true); }}
+                gridClassName="grid"
+            />
+        )
+        return (
+            <ListViewModeSection
+                filteredItems={filteredTrailers}
+                handleSelectItem={handleSelectTrailer}
+                headerLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'Verified', 'More']}
+                colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%', '8%']}
+                renderRow={(item, handleSelect, onComment, onIssue) => {
+                    const commentsCount = Number(item.commentsCount || 0);
+                    const issuesCount = Number(item.openIssuesCount || 0);
+                    return (
+                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
+                            <td>{item.assignedPlant ? item.assignedPlant : "---"}</td>
+                            <td>{item.trailerNumber ? item.trailerNumber : "---"}</td>
+                            <td><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status ? item.status : "---"}</td>
+                            <td>{item.trailerType ? item.trailerType : "---"}</td>
+                            <td>{(() => {
+                                const rating = Math.round(item.cleanlinessRating || 0);
+                                const stars = rating > 0 ? rating : 1;
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                            })()}</td>
+                            <td>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) && <span className="warning-badge"><i className="fas fa-exclamation-triangle"></i></span>}</td>
+                            <td>{item.vinNumber || item.vin || "---"}</td>
+                            <td>{item.isVerified() ? 'Yes' : 'No'}</td>
+                            <td>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.trailerNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{commentsCount}</span></button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.trailerNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{issuesCount}</span></button>
+                                </div>
+                            </td>
+                        </tr>
+                    );
+                }}
+                onShowCommentModal={(id, number) => { setModalTrailerId(id); setModalTrailerNumber(number); setShowCommentModal(true); }}
+                onShowIssueModal={(id, number) => { setModalTrailerId(id); setModalTrailerNumber(number); setShowIssueModal(true); }}
+                containerClassName="list-table-container"
+                tableClassName="list-table"
+            />
+        )
     }, [isLoading, filteredTrailers, viewMode, searchText, selectedPlant, typeFilter, tractors, plants, trailers])
 
     const showReset = (searchText || selectedPlant || (typeFilter && typeFilter !== 'All Types'))
@@ -363,9 +337,6 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                 typeFilter: ''
                             })
                         }}
-                        listHeaderLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'More']}
-                        showListHeader={viewMode === 'list'}
-                        listHeaderClassName="trailers-list-header-row"
                         forwardedRef={headerRef}
                     />
                     <div className="global-content-container content-container">{content}</div>

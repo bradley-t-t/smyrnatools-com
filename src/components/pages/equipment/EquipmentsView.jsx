@@ -16,6 +16,8 @@ import {debounce} from '../../../utils/AsyncUtility'
 import {getPlantName as lookupGetPlantName} from '../../../utils/LookupUtility'
 import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
+import GridViewModeSection from '../../sections/GridViewModeSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const {preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters} = usePreferences();
@@ -231,92 +233,64 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 Equipment
             </button>
         </div>
-        if (viewMode === 'grid') return <div
-            className={`global-grid equipments-grid ${searchText ? 'search-results' : ''}`}>{filteredEquipments.map(equipment =>
-            <EquipmentCard key={equipment.id} equipment={equipment}
-                           plantName={lookupGetPlantName(plants, equipment.assignedPlant)}
-                           onSelect={() => handleSelectEquipment(equipment.id)}/>)}</div>
-        return <div className="equipments-list-table-container">
-            <table className="equipments-list-table">
-                <colgroup>
-                    <col style={{width: '12%'}}/>
-                    <col style={{width: '14%'}}/>
-                    <col style={{width: '12%'}}/>
-                    <col style={{width: '24%'}}/>
-                    <col style={{width: '14%'}}/>
-                    <col style={{width: '16%'}}/>
-                    <col style={{width: '8%'}}/>
-                </colgroup>
-                <tbody>{filteredEquipments.map(equipment => {
-                    const issuesCount = Number(equipment.openIssuesCount || 0);
-                    const commentsCount = Number(equipment.commentsCount || 0);
-                    return <tr key={equipment.id} onClick={() => handleSelectEquipment(equipment.id)}
-                               style={{cursor: 'pointer'}}>
-                        <td>{equipment.assignedPlant || '---'}</td>
-                        <td>{equipment.identifyingNumber || '---'}</td>
-                        <td><span className="item-status-dot" style={{
-                            display: 'inline-block',
-                            verticalAlign: 'middle',
-                            marginRight: '8px',
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '50%',
-                            backgroundColor: equipment.status === 'Active' ? 'var(--status-active)' : equipment.status === 'Spare' ? 'var(--status-spare)' : equipment.status === 'In Shop' ? 'var(--status-inshop)' : equipment.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
-                        }}></span>{equipment.status || '---'}</td>
-                        <td>{equipment.equipmentType || '---'}</td>
-                        <td>{(() => {
-                            const rating = Math.round(equipment.cleanlinessRating || 0);
-                            const stars = rating > 0 ? rating : 1;
-                            return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                style={{color: 'var(--accent)'}}></i>)
-                        })()}</td>
-                        <td>{(() => {
-                            const rating = Math.round(equipment.conditionRating || 0);
-                            const stars = rating > 0 ? rating : 1;
-                            return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                style={{color: 'var(--accent)'}}></i>)
-                        })()}</td>
-                        <td>
-                            <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-                                <button type="button" onClick={e => {
-                                    e.stopPropagation();
-                                    setModalEquipmentId(equipment.id);
-                                    setModalEquipmentNumber(equipment.identifyingNumber || '');
-                                    setShowIssueModal(true)
-                                }} style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    padding: 0,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer'
-                                }} title="View issues"><i className="fas fa-tools" style={{
-                                    color: 'var(--accent)',
-                                    marginRight: 4
-                                }}></i><span>{issuesCount}</span></button>
-                                <button type="button" onClick={e => {
-                                    e.stopPropagation();
-                                    setModalEquipmentId(equipment.id);
-                                    setModalEquipmentNumber(equipment.identifyingNumber || '');
-                                    setShowCommentModal(true)
-                                }} style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    padding: 0,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer'
-                                }} title="View comments"><i className="fas fa-comment" style={{
-                                    color: 'var(--accent)',
-                                    marginRight: 4
-                                }}></i><span>{commentsCount}</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                })}</tbody>
-            </table>
-        </div>
-    }, [isLoading, filteredEquipments, viewMode, searchText, selectedPlant, statusFilter, plants])
+        if (viewMode === 'grid') return (
+            <GridViewModeSection
+                filteredItems={filteredEquipments}
+                getCardProps={(equipment) => ({
+                    plantName: lookupGetPlantName(plants, equipment.assignedPlant),
+                    operatorName: undefined
+                })}
+                handleSelectItem={handleSelectEquipment}
+                cardComponent={EquipmentCard}
+                itemPropName="equipment"
+                onShowCommentModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowCommentModal(true); }}
+                onShowIssueModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowIssueModal(true); }}
+                gridClassName="grid"
+            />
+        )
+        return (
+            <ListViewModeSection
+                filteredItems={filteredEquipments}
+                operators={[]}
+                plants={plants}
+                handleSelectItem={handleSelectEquipment}
+                headerLabels={['Plant', 'Equipment #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
+                colWidths={['12%', '14%', '12%', '24%', '14%', '16%', '8%']}
+                renderRow={(item, handleSelect, onComment, onIssue) => {
+                    const issuesCount = Number(item.openIssuesCount || 0);
+                    const commentsCount = Number(item.commentsCount || 0);
+                    return (
+                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
+                            <td>{item.assignedPlant || '---'}</td>
+                            <td>{item.identifyingNumber || '---'}</td>
+                            <td><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status || '---'}</td>
+                            <td>{item.equipmentType || '---'}</td>
+                            <td>{(() => {
+                                const rating = Math.round(item.cleanlinessRating || 0);
+                                const stars = rating > 0 ? rating : 1;
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                            })()}</td>
+                            <td>{(() => {
+                                const rating = Math.round(item.conditionRating || 0);
+                                const stars = rating > 0 ? rating : 1;
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                            })()}</td>
+                            <td>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.identifyingNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{issuesCount}</span></button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.identifyingNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{commentsCount}</span></button>
+                                </div>
+                            </td>
+                        </tr>
+                    );
+                }}
+                onShowCommentModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowCommentModal(true); }}
+                onShowIssueModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowIssueModal(true); }}
+                containerClassName="list-table-container"
+                tableClassName="list-table"
+            />
+        )
+    }, [isLoading, filteredEquipments, viewMode, searchText, selectedPlant, statusFilter, plants, equipments])
 
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
 
@@ -365,9 +339,6 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             setStatusFilter('');
                             resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
                         }}
-                        listHeaderLabels={['Plant', 'Identifying #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
-                        showListHeader={viewMode === 'list'}
-                        listHeaderClassName="equipments-list-header-row"
                         forwardedRef={headerRef}
                         sticky={true}
                     />

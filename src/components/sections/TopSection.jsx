@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useLayoutEffect} from 'react';
 import './styles/Top.css'
 
 function TopSection({
@@ -48,6 +48,19 @@ function TopSection({
     if (effectiveFlush) classes.push('top-section-flush')
     if (tightTop) classes.push('top-section-tight')
     const className = classes.join(' ')
+    useLayoutEffect(() => {
+        if (forwardedRef?.current) {
+            const element = forwardedRef.current;
+            const updateHeight = () => {
+                const height = element.offsetHeight;
+                document.documentElement.style.setProperty('--top-section-height', `${height}px`);
+            };
+            updateHeight();
+            const resizeObserver = new ResizeObserver(updateHeight);
+            resizeObserver.observe(element);
+            return () => resizeObserver.disconnect();
+        }
+    }, [forwardedRef]);
     return (
         <div className={className} ref={forwardedRef} data-section="top" aria-label="Page controls">
             <div className="top-section-inner">

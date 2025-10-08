@@ -2,7 +2,7 @@ import React from 'react';
 import EquipmentUtility from '../../../utils/EquipmentUtility';
 import './styles/Equipment.css';
 
-function EquipmentCard({equipment, plantName, onSelect}) {
+function EquipmentCard({equipment, plantName, operatorName, onSelect, onShowCommentModal, onShowIssueModal}) {
     const isServiceOverdue = EquipmentUtility.isServiceOverdue(equipment.lastServiceDate);
     const openIssuesCount = Number(equipment.openIssuesCount || 0);
     const commentsCount = Number(equipment.commentsCount || 0);

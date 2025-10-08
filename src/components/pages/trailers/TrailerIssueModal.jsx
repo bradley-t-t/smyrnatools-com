@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import './styles/TrailersView.css';
+import './styles/Trailers.css';
 import {supabase} from '../../../services/DatabaseService';
 import LoadingScreen from '../../common/LoadingScreen';
 import TrailerService from '../../../services/TrailerService';

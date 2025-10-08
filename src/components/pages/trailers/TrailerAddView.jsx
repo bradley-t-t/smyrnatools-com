@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {TrailerService} from '../../../services/TrailerService';
 import Trailer from '../../../models/trailers/Trailer';
 import {AuthService} from '../../../services/AuthService';
-import './styles/TrailersView.css';
+import './styles/Trailers.css';
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
 

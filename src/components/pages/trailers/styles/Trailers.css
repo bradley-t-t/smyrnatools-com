@@ -87,34 +87,6 @@
     font-size: 14px;
 }
 
-.trailers-list-header-row {
-    display: grid;
-    grid-template-columns: 12% 14% 12% 18% 14% 22% 8%;
-    gap: 0;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0;
-}
-
-@media (max-width: 900px) {
-    .trailers-list-header-row {
-        grid-template-columns: 16% 14% 14% 20% 0 24% 8%;
-    }
-}
-
-.trailers-view .trailers-list-table-container {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: none;
-}
-
-.trailers-list-table-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 1rem;
-    overflow-x: auto;
-}
-
 .active-operators-section {
     margin-top: 32px;
     background: var(--card-bg);
@@ -245,7 +217,7 @@
     }
 }
 
-/* TractorSelectModal styles */
+i/* TractorSelectModal styles */
 .tractor-modal-overlay {
     position: fixed;
     top: 0;
@@ -477,7 +449,7 @@
     border: 1px solid var(--border-light);
 }
 
-.add-trailer-modal.enhanced {
+d.add-trailer-modal.enhanced {
     padding: 0;
 }
 

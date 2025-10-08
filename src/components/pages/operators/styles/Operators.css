@@ -19,42 +19,8 @@
     z-index: 1;
 }
 
-.operators-grid.search-results {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-}
-
 .overview-metrics {
     padding: var(--spacing-lg);
-}
-
-.operators-sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 200;
-    background: var(--background);
-    border-bottom: 1px solid var(--divider);
-    padding-top: 0;
-    padding-bottom: 10px;
-}
-
-.operators-list-header-row {
-    display: grid;
-    grid-template-columns: 10% 28% 16% 16% 14% 16%;
-    gap: 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.operators-list-header-row > div {
-    padding: 10px 12px;
-    box-sizing: border-box;
-    white-space: nowrap;
-}
-
-.operators-view .operators-list-table-container {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: none;
 }
 
 .duplicate-warning-icon {
@@ -878,7 +844,6 @@ body.in-detail-view .operators-list-container {
     .mixers-list-table-container,
     .tractors-list-table-container,
     .trailers-list-table-container,
-    .operators-list-table-container,
     .managers-list-table-container,
     .equipments-list-table-container {
         border-radius: 8px;
@@ -888,7 +853,6 @@ body.in-detail-view .operators-list-container {
     .mixers-list-table,
     .tractors-list-table,
     .trailers-list-table,
-    .operators-list-table,
     .managers-list-table,
     .equipments-list-table {
         font-size: 13px;
@@ -900,7 +864,6 @@ body.in-detail-view .operators-list-container {
     .mixers-list-table th,
     .tractors-list-table th,
     .trailers-list-table th,
-    .operators-list-table th,
     .managers-list-table th,
     .equipments-list-table th {
         padding: 10px 4px;
@@ -909,7 +872,6 @@ body.in-detail-view .operators-list-container {
     .mixers-list-table td,
     .tractors-list-table td,
     .trailers-list-table td,
-    .operators-list-table td,
     .managers-list-table td,
     .equipments-list-table td {
         padding: 8px 4px;
@@ -929,7 +891,6 @@ body.in-detail-view .operators-list-container {
     .mixers-list-table th,
     .tractors-list-table th,
     .trailers-list-table th,
-    .operators-list-table th,
     .managers-list-table th,
     .equipments-list-table th {
         font-size: 12px;
@@ -939,7 +900,6 @@ body.in-detail-view .operators-list-container {
     .mixers-list-table td,
     .tractors-list-table td,
     .trailers-list-table td,
-    .operators-list-table td,
     .managers-list-table td,
     .equipments-list-table td {
         font-size: 12px;

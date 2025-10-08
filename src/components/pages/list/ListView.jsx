@@ -9,9 +9,10 @@ import ListAddView from './ListAddView'
 import ListDetailView from './ListDetailView'
 import {RegionService} from '../../../services/RegionService'
 import TopSection from '../../sections/TopSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
-    const {updateListFilter, resetListFilters, preferences} = usePreferences()
+    const {preferences} = usePreferences()
     const headerRef = useRef(null)
     const searchInputRef = useRef(null)
     const [plants, setPlants] = useState([])
@@ -63,7 +64,6 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                 const sel = String(selectedPlant || '').trim().toUpperCase()
                 if (sel && !codes.has(sel)) {
                     setSelectedPlant('')
-                    updateListFilter?.('selectedPlant', '')
                 }
             } catch {
                 if (!cancelled) setRegionPlantCodes(null)
@@ -82,9 +82,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         const sel = String(selectedPlant || '').trim().toUpperCase()
         if (sel && !regionPlantCodes.has(sel)) {
             setSelectedPlant('')
-            updateListFilter?.('selectedPlant', '')
         }
-    }, [regionPlantCodes, selectedPlant, updateListFilter])
+    }, [regionPlantCodes, selectedPlant])
 
     async function fetchAllData() {
         setIsLoading(true)
@@ -240,28 +239,23 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                         onSearchInputChange={v => {
                             setSearchInput(v);
                             setSearchText(v);
-                            updateListFilter?.('searchText', v)
                         }}
                         onClearSearch={() => {
                             setSearchInput('');
                             setSearchText('');
-                            updateListFilter?.('searchText', '')
                         }}
                         searchPlaceholder="Search by description or comments..."
-                        hideViewModeToggle={true}
                         plants={derivedVisiblePlants.map(p => ({plantCode: p.plant_code, plantName: p.plant_name}))}
                         regionPlantCodes={regionPlantCodes}
                         selectedPlant={selectedPlant}
                         onSelectedPlantChange={v => {
                             setSelectedPlant(v);
-                            updateListFilter?.('selectedPlant', v)
                         }}
                         statusFilter={derivedStatusValueForTop}
                         statusOptions={derivedStatusOptions}
                         onStatusFilterChange={v => {
                             const mapped = v === 'All Status' ? '' : v.toLowerCase();
                             setStatusFilter(mapped);
-                            updateListFilter?.('statusFilter', mapped);
                             if (onStatusFilterChange) onStatusFilterChange(mapped)
                         }}
                         showReset={derivedShowReset}
@@ -270,15 +264,10 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                             setSearchInput('');
                             setSelectedPlant('');
                             setStatusFilter('');
-                            resetListFilters?.();
-                            updateListFilter?.('selectedPlant', '');
-                            if (onStatusFilterChange) onStatusFilterChange('')
                         }}
-                        listHeaderLabels={derivedListHeaderLabels}
-                        showListHeader={true}
-                        listHeaderClassName="list-list-header-row"
                         forwardedRef={headerRef}
                         sticky={true}
+                        hideViewModeToggle={true}
                     />
                     <div className="global-content-container global-view content-container">
                         {isLoading ? (
@@ -294,69 +283,75 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 </button>
                             </div>
                         ) : (
-                            <div className="mixers-list-table-container">
-                                <table className="mixers-list-table">
-                                    <colgroup>{(statusFilter === 'completed' ? ['5%', '34%', '14%', '12%', '16%', '11%', '8%'] : ['5%', '39%', '16%', '14%', '16%', '10%']).map((w, i) =>
-                                        <col key={i} style={{width: w}}/>)}</colgroup>
-                                    <tbody>
-                                    {sortedItems.map(item => (
-                                        <tr key={item.id}
-                                            className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`}
-                                            onClick={() => handleSelectItem(item)} style={{cursor: 'pointer'}}>
-                                            <td onClick={e => e.stopPropagation()}><input type="checkbox"
-                                                                                          checked={selectedIds.has(item.id)}
-                                                                                          onChange={() => toggleSelect(item.id)}
-                                                                                          aria-label="Select row"/></td>
-                                            <td title={item.description}><span className="item-status-dot" style={{
-                                                display: 'inline-block',
-                                                verticalAlign: 'middle',
-                                                marginRight: '8px',
-                                                width: '10px',
-                                                height: '10px',
-                                                borderRadius: '50%',
-                                                backgroundColor: item.completed ? 'var(--success)' : ListService.isOverdue(item) ? 'var(--error)' : 'var(--info)'
-                                            }}></span>{truncateText(item.description, 60)}</td>
-                                            <td title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
-                                            <td><span
-                                                className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span>
-                                            </td>
-                                            {statusFilter === 'completed' &&
-                                                <td>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
-                                            <td title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
-                                            <td>{item.completed ? <span
-                                                className="status-badge completed">Completed</span> : ListService.isOverdue(item) ?
-                                                <span className="status-badge overdue">Overdue</span> :
-                                                <span className="status-badge pending">Pending</span>}</td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <ListViewModeSection
+                                filteredItems={sortedItems}
+                                handleSelectItem={handleSelectItem}
+                                headerLabels={statusFilter === 'completed' ? ['', 'Description', 'Plant', 'Deadline', 'Completed', 'Creator', 'Status'] : ['', 'Description', 'Plant', 'Deadline', 'Creator', 'Status']}
+                                colWidths={statusFilter === 'completed' ? ['5%', '34%', '14%', '12%', '16%', '11%', '8%'] : ['5%', '39%', '16%', '14%', '16%', '10%']}
+                                renderRow={(item, handleSelect) => (
+                                    <tr key={item.id} className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`} onClick={() => handleSelect(item)} style={{cursor: 'pointer'}}>
+                                        <td onClick={e => e.stopPropagation()}><input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)} aria-label="Select row"/></td>
+                                        <td title={item.description}><span className="item-status-dot" style={{
+                                            display: 'inline-block',
+                                            verticalAlign: 'middle',
+                                            marginRight: '8px',
+                                            width: '10px',
+                                            height: '10px',
+                                            borderRadius: '50%',
+                                            backgroundColor: item.completed ? 'var(--success)' : ListService.isOverdue(item) ? 'var(--error)' : 'var(--info)'
+                                        }}></span>{truncateText(item.description, 60)}</td>
+                                        <td title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
+                                        <td><span className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span></td>
+                                        {statusFilter === 'completed' && <td>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
+                                        <td title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
+                                        <td>{item.completed ? <span className="status-badge completed">Completed</span> : ListService.isOverdue(item) ? <span className="status-badge overdue">Overdue</span> : <span className="status-badge pending">Pending</span>}</td>
+                                    </tr>
+                                )}
+                                containerClassName="list-table-container"
+                                tableClassName="list-table"
+                            />
                         )}
                     </div>
                     {hasBulkPopup && (
                         <div className="bulk-actions-popup">
-                            <div className="bulk-count"><i
-                                className="fas fa-check-square"></i> {selectedIds.size} selected
+                            <div className="bulk-actions-header">
+                                <div className="bulk-actions-title">
+                                    {selectedIds.size} item{selectedIds.size !== 1 ? 's' : ''} selected
+                                </div>
+                                <div className="bulk-actions-close" onClick={() => setSelectedIds(new Set())}>
+                                    &times;
+                                </div>
                             </div>
-                            <div className="bulk-actions">
-                                <button className="bulk-btn" onClick={() => bulkToggleCompletion(true)}><i
-                                    className="fas fa-check"></i> Complete
+                            <div className="bulk-actions-content">
+                                <button
+                                    className="bulk-action-button"
+                                    onClick={() => bulkToggleCompletion(true)}
+                                >
+                                    Mark as Completed
                                 </button>
-                                <button className="bulk-btn danger" onClick={bulkDelete}><i
-                                    className="fas fa-trash"></i> Delete
+                                <button
+                                    className="bulk-action-button"
+                                    onClick={() => bulkToggleCompletion(false)}
+                                >
+                                    Mark as Pending
+                                </button>
+                                <button
+                                    className="bulk-action-button delete"
+                                    onClick={bulkDelete}
+                                >
+                                    Delete
                                 </button>
                             </div>
                         </div>
                     )}
-                    {showAddSheet &&
-                        <ListAddView onClose={() => setShowAddSheet(false)} onItemAdded={() => fetchAllData()}
-                                     plants={derivedVisiblePlants}/>}
+                    {showAddSheet && (
+                        <ListAddView
+                            onClose={() => setShowAddSheet(false)}
+                            onItemAdded={fetchAllData}
+                        />
+                    )}
                 </>
             )}
-            {showDetailView && !selectedItem && null}
-            {showDetailView && selectedItem &&
-                <ListDetailView itemId={selectedItem?.id} onClose={() => setShowDetailView(false)}/>}
         </div>
     )
 }

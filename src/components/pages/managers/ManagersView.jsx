@@ -8,6 +8,8 @@ import ManagerCard from './ManagerCard';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import {RegionService} from '../../../services/RegionService'
 import TopSection from '../../sections/TopSection'
+import GridViewModeSection from '../../sections/GridViewModeSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function ManagersView({title = 'Managers', onSelectManager}) {
     const {preferences, updateManagerFilter, resetManagerFilters} = usePreferences()
@@ -278,9 +280,6 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                             setRoleFilter('');
                             resetManagerFilters?.({keepViewMode: true, currentViewMode})
                         }}
-                        listHeaderLabels={viewMode === 'list' ? ['Plant', 'Email', 'First Name', 'Last Name', 'Role'] : []}
-                        showListHeader={viewMode === 'list'}
-                        listHeaderClassName="managers-list-header-row"
                         forwardedRef={headerRef}
                         sticky={true}
                     />
@@ -295,37 +294,34 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                                 <p>{searchText || selectedPlant || roleFilter ? "No managers match your search criteria." : "There are no managers in the system yet."}</p>
                             </div>
                         ) : viewMode === 'grid' ? (
-                            <div className={`global-grid managers-grid ${searchText ? 'search-results' : ''}`}>
-                                {filteredManagers.map(manager => (
-                                    <ManagerCard key={manager.id} manager={manager}
-                                                 plantName={getPlantName(manager.plantCode)}
-                                                 onSelect={() => handleSelectManager(manager)}/>
-                                ))}
-                            </div>
+                            <GridViewModeSection
+                                filteredItems={filteredManagers}
+                                handleSelectItem={handleSelectManager}
+                                cardComponent={ManagerCard}
+                                itemPropName="manager"
+                                gridClassName="grid"
+                                getCardProps={(manager) => ({
+                                    plantName: getPlantName(manager.plantCode)
+                                })}
+                            />
                         ) : (
-                            <div className="managers-list-table-container">
-                                <table className="managers-list-table">
-                                    <colgroup>
-                                        <col style={{width: '12%'}}/>
-                                        <col style={{width: '28%'}}/>
-                                        <col style={{width: '18%'}}/>
-                                        <col style={{width: '18%'}}/>
-                                        <col style={{width: '24%'}}/>
-                                    </colgroup>
-                                    <tbody>
-                                    {filteredManagers.map(manager => (
-                                        <tr key={manager.id} onClick={() => handleSelectManager(manager)}
-                                            style={{cursor: 'pointer'}}>
-                                            <td>{manager.plantCode ? manager.plantCode : '---'}</td>
-                                            <td>{manager.email ? manager.email : '---'}</td>
-                                            <td>{manager.firstName ? manager.firstName : '---'}</td>
-                                            <td>{manager.lastName ? manager.lastName : '---'}</td>
-                                            <td>{manager.roleName ? manager.roleName : '---'}</td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <ListViewModeSection
+                                filteredItems={filteredManagers}
+                                handleSelectItem={handleSelectManager}
+                                headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
+                                colWidths={['12%', '28%', '18%', '18%', '24%']}
+                                renderRow={(manager, handleSelect) => (
+                                    <tr key={manager.id} onClick={() => handleSelect(manager)} style={{cursor: 'pointer'}}>
+                                        <td>{manager.plantCode ? manager.plantCode : '---'}</td>
+                                        <td>{manager.email ? manager.email : '---'}</td>
+                                        <td>{manager.firstName ? manager.firstName : '---'}</td>
+                                        <td>{manager.lastName ? manager.lastName : '---'}</td>
+                                        <td>{manager.roleName ? manager.roleName : '---'}</td>
+                                    </tr>
+                                )}
+                                containerClassName="list-table-container"
+                                tableClassName="list-table"
+                            />
                         )}
                     </div>
                 </>

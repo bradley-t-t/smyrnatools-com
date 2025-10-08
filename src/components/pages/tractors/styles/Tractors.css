@@ -8,18 +8,6 @@
     white-space: nowrap;
 }
 
-.tractors-content {
-    padding-top: 10px;
-}
-
-.tractors-grid.search.results {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    border-radius: var(--border-radius);
-    max-height: none;
-    position: relative;
-    z-index: 1;
-}
-
 .freight-select {
     width: 120px;
 }
@@ -47,33 +35,6 @@
     overscroll-behavior-y: none;
     padding-top: 0;
     --sticky-cover-height: 14px;
-}
-
-.tractors-list-header-row {
-    display: grid;
-    grid-template-columns: 10% 12% 12% 18% 12% 18% 10% 8%;
-    gap: 0;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0;
-}
-
-.tractors-list-header-row > div {
-    padding: 10px 8px;
-    box-sizing: border-box;
-    white-space: nowrap;
-}
-
-@media (max-width: 900px) {
-    .tractors-list-header-row {
-        grid-template-columns: 16% 14% 14% 22% 0 20% 14% 0;
-    }
-}
-
-.tractors-view .tractors-list-table-container {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: none;
 }
 
 .add-tractor-modal-backdrop {
@@ -2339,33 +2300,4 @@ input[type="date"].form-control {
     justify-content: center;
     width: 24px;
     height: 24px;
-}
-
-.error-dismiss-button:hover {
-    background-color: var(--error-bg);
-}
-
-@media (max-width: 768px) {
-    .tractor-issue-modal {
-        width: 95%;
-        max-height: 90vh;
-    }
-
-    .tractor-issue-modal-content {
-        padding: var(--spacing-md);
-        max-height: calc(90vh - 120px);
-    }
-
-    .issue-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-
-    .issue-actions {
-        margin-left: 0;
-        margin-top: var(--spacing-sm);
-        width: 100%;
-        justify-content: flex-end;
-    }
 }

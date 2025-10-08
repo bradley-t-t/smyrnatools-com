@@ -3,16 +3,6 @@
     padding-top: 0;
 }
 
-.equipments-list-header-row {
-    grid-template-columns:12% 14% 12% 24% 14% 16% 8%;
-}
-
-.equipments-view .equipments-list-table-container {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: none;
-}
-
 .add-equipment-modal-backdrop {
     position: fixed;
     top: 0;

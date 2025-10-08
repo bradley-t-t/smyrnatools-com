@@ -1,9 +1,8 @@
 import React from 'react';
 import MixerUtility from '../../../utils/MixerUtility';
 import {usePreferences} from '../../../app/context/PreferencesContext';
-import './styles/Mixers.css';
 
-function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelect}) {
+function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelect, onShowCommentModal, onShowIssueModal}) {
     const isServiceOverdue = MixerUtility.isServiceOverdue(mixer.lastServiceDate);
     const isChipOverdue = MixerUtility.isChipOverdue(mixer.lastChipDate);
     const isVerified = typeof mixer.isVerified === 'function'
@@ -40,7 +39,7 @@ function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelec
     else if (MixerUtility.isServiceOverdue(mixer.lastServiceDate)) statusColor = 'var(--error)';
 
     return (
-        <div className="mixer-card" {...cardProps}>
+        <div className="item-card" {...cardProps}>
             <div style={{
                 height: 4,
                 width: '100%',
@@ -58,8 +57,10 @@ function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelec
                         position: 'absolute',
                         top: '12px',
                         right: openIssuesCount > 0 ? '92px' : '42px',
-                        zIndex: 4
+                        zIndex: 4,
+                        cursor: 'pointer'
                     }}
+                    onClick={(e) => { e.stopPropagation(); onShowCommentModal(); }}
                     title={`${commentsCount} comment${commentsCount !== 1 ? 's' : ''}`}
                 >
                     <i className="fas fa-comments comment-icon"></i>
@@ -73,8 +74,10 @@ function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelec
                         position: 'absolute',
                         top: '12px',
                         right: '42px',
-                        zIndex: 4
+                        zIndex: 4,
+                        cursor: 'pointer'
                     }}
+                    onClick={(e) => { e.stopPropagation(); onShowIssueModal(); }}
                     title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}>
                     <i className="fas fa-tools" style={{marginRight: '4px', fontSize: '0.9rem'}}></i>
                     <span>{openIssuesCount}</span>
@@ -115,7 +118,7 @@ function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelec
             )}
             <div className="card-content">
                 <div className="card-header">
-                    <h3 className="mixer-name"
+                    <h3 className="item-name"
                         style={{color: accentColor}}>
                         Mixer #{mixer.truckNumber || 'Not Assigned'}
                     </h3>

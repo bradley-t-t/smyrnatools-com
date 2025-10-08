@@ -1,8 +1,11 @@
 import React from 'react';
 import {TrailerUtility} from '../../../utils/TrailerUtility';
-import './styles/TrailersView.css';
+import './styles/Trailers.css';
 
-function TrailerCard({trailer, tractorName, plantName, showTractorWarning, onSelect}) {
+function TrailerCard({trailer, tractorName, operatorName, plantName, showTractorWarning, showOperatorWarning, onSelect, onShowCommentModal, onShowIssueModal}) {
+    const actualTractorName = tractorName || operatorName;
+    const actualShowWarning = showTractorWarning || showOperatorWarning;
+
     const isServiceOverdue = TrailerUtility.isServiceOverdue(trailer.lastServiceDate);
     const openIssuesCount = Number(trailer.openIssuesCount || 0);
     const commentsCount = Number(trailer.commentsCount || 0);
@@ -72,8 +75,8 @@ function TrailerCard({trailer, tractorName, plantName, showTractorWarning, onSel
                     <div className="detail-row">
                         <div className="detail-label">Assigned Tractor</div>
                         <div className="detail-value">
-                            {tractorName}
-                            {showTractorWarning && (
+                            {actualTractorName}
+                            {actualShowWarning && (
                                 <span className="warning-badge" title="Assigned to multiple trailers">
                                     <i className="fas fa-exclamation-triangle"></i>
                                 </span>

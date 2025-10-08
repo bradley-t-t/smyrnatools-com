@@ -3,7 +3,7 @@ import {TrailerService} from '../../../services/TrailerService';
 import {TractorService} from '../../../services/TractorService';
 import LoadingScreen from '../../common/LoadingScreen';
 import UserLabel from '../../common/UserLabel';
-import './styles/TrailersView.css';
+import './styles/Trailers.css';
 import {FormatUtility} from '../../../utils/FormatUtility';
 import {HistoryUtility} from '../../../utils/HistoryUtility';
 import {supabase} from '../../../services/DatabaseService';

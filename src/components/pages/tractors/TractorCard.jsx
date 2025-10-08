@@ -3,7 +3,7 @@ import {TractorUtility} from '../../../utils/TractorUtility';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import './styles/Tractors.css';
 
-function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onSelect}) {
+function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onSelect, onShowCommentModal, onShowIssueModal}) {
     const isServiceOverdue = TractorUtility.isServiceOverdue(tractor.lastServiceDate);
     const isVerified = typeof tractor.isVerified === 'function'
         ? tractor.isVerified(tractor.latestHistoryDate)
@@ -52,9 +52,11 @@ function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onS
                         position: 'absolute',
                         top: '12px',
                         right: openIssuesCount > 0 ? '92px' : '42px',
-                        zIndex: 4
+                        zIndex: 4,
+                        cursor: 'pointer'
                     }}
                     title={`${commentsCount} comment${commentsCount !== 1 ? 's' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onShowCommentModal(); }}
                 >
                     <i className="fas fa-comments comment-icon"></i>
                     <span>{commentsCount}</span>
@@ -67,9 +69,12 @@ function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onS
                         position: 'absolute',
                         top: '12px',
                         right: '42px',
-                        zIndex: 4
+                        zIndex: 4,
+                        cursor: 'pointer'
                     }}
-                    title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}>
+                    title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onShowIssueModal(); }}
+                >
                     <i className="fas fa-tools" style={{marginRight: '4px', fontSize: '0.9rem'}}></i>
                     <span>{openIssuesCount}</span>
                 </div>

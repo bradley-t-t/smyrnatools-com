@@ -9,7 +9,7 @@ import {usePreferences} from '../../../app/context/PreferencesContext';
 import TrailerHistoryView from './TrailerHistoryView';
 import TrailerCommentModal from './TrailerCommentModal';
 import TrailerIssueModal from './TrailerIssueModal';
-import './styles/TrailersView.css';
+import './styles/Trailers.css';
 import LoadingScreen from '../../common/LoadingScreen';
 import TractorSelectModal from "./TractorSelectModal";
 import {RegionService} from '../../../services/RegionService';
