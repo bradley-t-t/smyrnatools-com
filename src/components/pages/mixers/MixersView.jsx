@@ -390,69 +390,71 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top mixers-view${selectedMixer ? ' detail-open' : ''}`}>
-            {selectedMixer ? (
-                <MixerDetailView mixerId={selectedMixer} onClose={() => setSelectedMixer(null)}/>
-            ) : (
-                <>
-                    {canShowUnassignedOverlay && (
-                        <div className="global-availability-overlay operators-availability-overlay">
-                            {unassignedActiveOperatorsCount} active
-                            operator{unassignedActiveOperatorsCount !== 1 ? 's' : ''} unassigned
-                        </div>
-                    )}
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Mixer"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchInput}
-                        onSearchInputChange={(v) => {
-                            setSearchInput(v);
-                            debouncedSetSearchText(v)
-                        }}
-                        onClearSearch={() => {
-                            setSearchInput('');
-                            debouncedSetSearchText('')
-                        }}
-                        searchPlaceholder="Search by truck or operator..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants}
-                        regionPlantCodes={regionPlantCodes}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={(v) => {
-                            setSelectedPlant(v);
-                            updateMixerFilter('selectedPlant', v)
-                        }}
-                        statusFilter={statusFilter}
-                        statusOptions={filterOptions}
-                        onStatusFilterChange={(v) => {
-                            setStatusFilter(v);
-                            updateMixerFilter('statusFilter', v)
-                        }}
-                        showReset={showReset}
-                        onReset={() => {
-                            setSearchText('');
-                            setSearchInput('');
-                            setSelectedPlant('');
-                            setStatusFilter('');
-                            resetMixerFilters();
-                            setViewMode(viewMode)
-                        }}
-                        forwardedRef={headerRef}
-                    />
-                    <div className="global-content-container global-view content-container">{content}</div>
-                    {showAddSheet &&
-                        <MixerAddView plants={plants} operators={operators} onClose={() => setShowAddSheet(false)}
-                                      onMixerAdded={newMixer => setMixers([...mixers, newMixer])}/>}
-                    {showCommentModal && <MixerCommentModal mixerId={modalMixerId} mixerNumber={modalMixerNumber}
-                                                            onClose={() => setShowCommentModal(false)}/>}
-                    {showIssueModal && <MixerIssueModal mixerId={modalMixerId} mixerNumber={modalMixerNumber}
-                                                        onClose={() => setShowIssueModal(false)}/>}
-                </>
+        <>
+            {canShowUnassignedOverlay && (
+                <div className="global-availability-overlay operators-availability-overlay">
+                    {unassignedActiveOperatorsCount} active
+                    operator{unassignedActiveOperatorsCount !== 1 ? 's' : ''} unassigned
+                </div>
             )}
-        </div>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top mixers-view${selectedMixer ? ' detail-open' : ''}`}>
+                {selectedMixer ? (
+                    <MixerDetailView mixerId={selectedMixer} onClose={() => setSelectedMixer(null)}/>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Mixer"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchInput}
+                            onSearchInputChange={(v) => {
+                                setSearchInput(v);
+                                debouncedSetSearchText(v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchInput('');
+                                debouncedSetSearchText('')
+                            }}
+                            searchPlaceholder="Search by truck or operator..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={(v) => {
+                                setSelectedPlant(v);
+                                updateMixerFilter('selectedPlant', v)
+                            }}
+                            statusFilter={statusFilter}
+                            statusOptions={filterOptions}
+                            onStatusFilterChange={(v) => {
+                                setStatusFilter(v);
+                                updateMixerFilter('statusFilter', v)
+                            }}
+                            showReset={showReset}
+                            onReset={() => {
+                                setSearchText('');
+                                setSearchInput('');
+                                setSelectedPlant('');
+                                setStatusFilter('');
+                                resetMixerFilters();
+                                setViewMode(viewMode)
+                            }}
+                            forwardedRef={headerRef}
+                        />
+                        <div className="global-content-container content-container">{content}</div>
+                        {showAddSheet &&
+                            <MixerAddView plants={plants} operators={operators} onClose={() => setShowAddSheet(false)}
+                                          onMixerAdded={newMixer => setMixers([...mixers, newMixer])}/>}
+                        {showCommentModal && <MixerCommentModal mixerId={modalMixerId} mixerNumber={modalMixerNumber}
+                                                                onClose={() => setShowCommentModal(false)}/>}
+                        {showIssueModal && <MixerIssueModal mixerId={modalMixerId} mixerNumber={modalMixerNumber}
+                                                            onClose={() => setShowIssueModal(false)}/>}
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 

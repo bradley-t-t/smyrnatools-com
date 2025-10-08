@@ -348,69 +348,71 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
     }, [isLoading, isRegionLoading, filteredTractors, viewMode, searchText, selectedPlant, statusFilter, operators, plants, tractors])
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
-            {selectedTractor ? (
-                <TractorDetailView tractorId={selectedTractor} onClose={() => setSelectedTractor(null)}/>
-            ) : (
-                <>
-                    {canShowUnassignedOverlay && (
-                        <div className="global-availability-overlay operators-availability-overlay">
-                            {unassignedActiveOperatorsCount} active
-                            operator{unassignedActiveOperatorsCount !== 1 ? 's' : ''} unassigned
-                        </div>
-                    )}
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Tractor"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchInput}
-                        onSearchInputChange={(v) => {
-                            setSearchInput(v);
-                            debouncedSetSearchText(v)
-                        }}
-                        onClearSearch={() => {
-                            setSearchInput('');
-                            debouncedSetSearchText('')
-                        }}
-                        searchPlaceholder="Search by truck or operator..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants}
-                        regionPlantCodes={regionPlantCodes}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={(v) => {
-                            setSelectedPlant(v);
-                            updateTractorFilter('selectedPlant', v)
-                        }}
-                        statusFilter={statusFilter}
-                        statusOptions={filterOptions}
-                        onStatusFilterChange={(v) => {
-                            setStatusFilter(v);
-                            updateTractorFilter('statusFilter', v)
-                        }}
-                        showReset={showReset}
-                        onReset={() => {
-                            setSearchText('');
-                            setSearchInput('');
-                            setSelectedPlant('');
-                            setStatusFilter('');
-                            resetTractorFilters();
-                            setViewMode(viewMode)
-                        }}
-                        forwardedRef={headerRef}
-                    />
-                    <div className="global-content-container global-view content-container">{content}</div>
-                    {showAddSheet &&
-                        <TractorAddView plants={plants} operators={operators} onClose={() => setShowAddSheet(false)}
-                                        onTractorAdded={newTractor => setTractors([...tractors, newTractor])}/>}
-                    {showCommentModal && <TractorCommentModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
-                                                            onClose={() => setShowCommentModal(false)}/>}
-                    {showIssueModal && <TractorIssueModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
-                                                        onClose={() => setShowIssueModal(false)}/>}
-                </>
+        <>
+            {canShowUnassignedOverlay && (
+                <div className="global-availability-overlay operators-availability-overlay">
+                    {unassignedActiveOperatorsCount} active
+                    operator{unassignedActiveOperatorsCount !== 1 ? 's' : ''} unassigned
+                </div>
             )}
-        </div>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
+                {selectedTractor ? (
+                    <TractorDetailView tractorId={selectedTractor} onClose={() => setSelectedTractor(null)}/>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Tractor"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchInput}
+                            onSearchInputChange={(v) => {
+                                setSearchInput(v);
+                                debouncedSetSearchText(v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchInput('');
+                                debouncedSetSearchText('')
+                            }}
+                            searchPlaceholder="Search by truck or operator..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={(v) => {
+                                setSelectedPlant(v);
+                                updateTractorFilter('selectedPlant', v)
+                            }}
+                            statusFilter={statusFilter}
+                            statusOptions={filterOptions}
+                            onStatusFilterChange={(v) => {
+                                setStatusFilter(v);
+                                updateTractorFilter('statusFilter', v)
+                            }}
+                            showReset={showReset}
+                            onReset={() => {
+                                setSearchText('');
+                                setSearchInput('');
+                                setSelectedPlant('');
+                                setStatusFilter('');
+                                resetTractorFilters();
+                                setViewMode(viewMode)
+                            }}
+                            forwardedRef={headerRef}
+                        />
+                        <div className="global-content-container content-container">{content}</div>
+                        {showAddSheet &&
+                            <TractorAddView plants={plants} operators={operators} onClose={() => setShowAddSheet(false)}
+                                            onTractorAdded={newTractor => setTractors([...tractors, newTractor])}/>}
+                        {showCommentModal && <TractorCommentModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
+                                                                onClose={() => setShowCommentModal(false)}/>}
+                        {showIssueModal && <TractorIssueModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
+                                                            onClose={() => setShowIssueModal(false)}/>}
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 
