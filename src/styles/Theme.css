@@ -77,6 +77,15 @@
     --radius-lg: 14px;
     --radius-xl: 20px;
     --radius-xxl: 28px;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    --border-radius: var(--radius-sm);
+    --border-radius-lg: var(--radius-lg);
+    --border-radius-full: 9999px;
     --gradient-accent: linear-gradient(120deg, var(--accent) 0%, var(--accent-light) 55%, var(--accent-secondary) 100%);
     --gradient-accent-soft: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.12) 0%, rgba(var(--accent-primary-rgb), 0.04) 100%);
     --gradient-surface: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-secondary) 180%);
@@ -261,8 +270,7 @@ button.primary:hover {
 
 .dark-mode .card,
 .dark-mode .modal-content,
-.dark-mode .search-filters,
-.dark-mode .mixer-card {
+.dark-mode .search-filters {
     background-color: var(--card-bg);
     border-color: var(--card-border);
     color: var(--text-primary);
@@ -296,7 +304,6 @@ button.primary:hover {
 }
 
 .dark-mode .dashboard-container,
-.dark-mode .mixers-content,
 .dark-mode .App {
     background-color: var(--background);
 }

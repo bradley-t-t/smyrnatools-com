@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react'
 import './styles/Operators.css'
 import '../../../styles/FilterStyles.css'
-import {supabase} from '../../../services/DatabaseService'
 import {UserService} from '../../../services/UserService'
 import LoadingScreen from '../../common/LoadingScreen'
 import OperatorDetailView from './OperatorDetailView'
@@ -10,6 +9,7 @@ import OperatorAddView from './OperatorAddView'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import FormatUtility from '../../../utils/FormatUtility'
 import {RegionService} from '../../../services/RegionService'
+import {OperatorService} from '../../../services/OperatorService'
 import TopSection from '../../sections/TopSection'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import GridViewModeSection from '../../sections/GridViewModeSection'
@@ -76,35 +76,15 @@ function OperatorsView({
     }, [initialStatusFilter])
 
     useEffect(() => {
-        const prefCode = preferences.selectedRegion?.code || ''
         let cancelled = false
 
         async function loadRegionPlants() {
-            let regionCode = prefCode
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    setRegionPlantCodes(null);
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) {
+                if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('');
                     updateOperatorFilter('selectedPlant', '')
                 }
@@ -131,27 +111,9 @@ function OperatorsView({
 
     const fetchOperators = async () => {
         try {
-            const {data, error} = await supabase.from('operators').select('*')
-            if (error) throw error
-            const formattedOperators = data.map(op => {
-                const rawPending = op.pending_start_date || ''
-                const normalizedPending = (typeof rawPending === 'string' && rawPending.includes('T')) ? rawPending.slice(0, 10) : rawPending
-                return {
-                    employeeId: op.employee_id,
-                    smyrnaId: op.smyrna_id || '',
-                    name: op.name,
-                    plantCode: op.plant_code,
-                    status: op.status,
-                    isTrainer: op.is_trainer,
-                    assignedTrainer: op.assigned_trainer,
-                    position: op.position,
-                    pendingStartDate: normalizedPending,
-                    rating: typeof op.rating === 'number' ? op.rating : Number(op.rating) || 0,
-                    phone: op.phone || ''
-                }
-            })
-            setOperators(formattedOperators)
-            localStorage.setItem('cachedOperators', JSON.stringify(formattedOperators))
+            const data = await OperatorService.fetchOperators()
+            setOperators(data)
+            localStorage.setItem('cachedOperators', JSON.stringify(data))
             localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
         } catch {
             const cachedData = localStorage.getItem('cachedOperators')
@@ -166,18 +128,17 @@ function OperatorsView({
 
     const fetchPlants = async () => {
         try {
-            const {data, error} = await supabase.from('plants').select('*');
-            if (error) throw error;
+            const data = await OperatorService.fetchPlants()
             setPlants(data)
         } catch {
+            setPlants([])
         }
     }
 
     const fetchTrainers = async () => {
         try {
-            const {data, error} = await supabase.from('operators').select('employee_id, name').eq('is_trainer', true);
-            if (error) throw error;
-            setTrainers(data.map(t => ({employeeId: t.employee_id, name: t.name})))
+            const data = await OperatorService.fetchTrainers()
+            setTrainers(data)
         } catch {
             setTrainers([])
         }
@@ -188,17 +149,7 @@ function OperatorsView({
     }
 
     const duplicateNamesSet = React.useMemo(() => {
-        const counts = new Map()
-        operators.forEach(op => {
-            const key = (op?.name || '').trim().toLowerCase();
-            if (!key) return;
-            counts.set(key, (counts.get(key) || 0) + 1)
-        })
-        const dups = new Set();
-        counts.forEach((count, key) => {
-            if (count > 1) dups.add(key)
-        });
-        return dups
+        return OperatorService.getDuplicateNames(operators)
     }, [operators])
 
     const filteredOperators = operators.filter(operator => {
@@ -242,10 +193,6 @@ function OperatorsView({
         } else {
             setShowDetailView(true)
         }
-    }
-
-    function formatDate(dateStr) {
-        return FormatUtility.formatDate(dateStr)
     }
 
     function handleViewModeChange(mode) {

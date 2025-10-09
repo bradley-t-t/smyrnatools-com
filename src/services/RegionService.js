@@ -1,5 +1,6 @@
 import APIUtility from '../utils/APIUtility'
 import Region from '../models/regions/Region'
+import {UserService} from './UserService'
 
 class RegionServiceImpl {
     allRegions = []
@@ -84,6 +85,27 @@ class RegionServiceImpl {
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch regions by plant code')
         const data = json?.data ?? []
         return data.map(row => Region.fromRow(row))
+    }
+
+    async getAllowedPlantCodes(selectedRegionCode) {
+        let regionCode = selectedRegionCode || ''
+        if (!regionCode) {
+            const user = await UserService.getCurrentUser()
+            const uid = user?.id || ''
+            if (uid) {
+                const profilePlant = await UserService.getUserPlant(uid)
+                const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
+                if (plantCode) {
+                    const regions = await this.fetchRegionsByPlantCode(plantCode)
+                    const r = Array.isArray(regions) && regions.length ? regions[0] : null
+                    regionCode = r ? (r.regionCode || r.region_code || '') : ''
+                }
+            }
+        }
+        if (!regionCode) return null
+        const regionPlants = await this.fetchRegionPlants(regionCode)
+        const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
+        return codes
     }
 }
 

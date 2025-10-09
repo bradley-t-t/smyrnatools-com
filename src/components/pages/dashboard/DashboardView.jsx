@@ -459,7 +459,8 @@ export default function DashboardView() {
                     setDashboardRegionCode(first.regionCode)
                     setDashboardRegionName(first.regionName)
                 }
-            } catch {
+            } catch (error) {
+                console.error('Error loading dashboard base data:', error)
                 if (!cancelled) setError('Failed to load dashboard data')
             } finally {
                 if (!cancelled) {
@@ -594,7 +595,8 @@ export default function DashboardView() {
                     }))
                 } catch {
                 }
-            } catch {
+            } catch (error) {
+                console.error('Error loading dashboard assets:', error)
                 if (!cancelled && !lastUpdated) setError('Failed to load dashboard data')
             } finally {
                 if (!cancelled) {

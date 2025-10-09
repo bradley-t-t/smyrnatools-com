@@ -65,31 +65,12 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         let cancelled = false
 
         async function loadAllowedPlants() {
-            let regionCode = preferences.selectedRegion?.code || ''
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    if (!cancelled) setRegionPlantCodes(new Set())
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) setSelectedPlant('')
+                if (sel && codes && !codes.has(sel)) setSelectedPlant('')
             } catch {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
@@ -146,31 +127,11 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     }, [pickups, searchText, selectedPlant, statusFilter, regionPlantCodes])
 
     const duplicateVINs = useMemo(() => {
-        const counts = new Map()
-        for (const p of pickups) {
-            const key = String(p.vin || '').trim().toUpperCase().replace(/\s+/g, '')
-            if (!key) continue
-            counts.set(key, (counts.get(key) || 0) + 1)
-        }
-        const dups = new Set()
-        counts.forEach((count, key) => {
-            if (count > 1) dups.add(key)
-        })
-        return dups
+        return PickupTruckService.getDuplicateVINs(pickups)
     }, [pickups])
 
     const duplicateAssigned = useMemo(() => {
-        const counts = new Map()
-        for (const p of pickups) {
-            const key = String(p.assigned || '').trim().toLowerCase()
-            if (!key) continue
-            counts.set(key, (counts.get(key) || 0) + 1)
-        }
-        const dups = new Set()
-        counts.forEach((count, key) => {
-            if (count > 1) dups.add(key)
-        })
-        return dups
+        return PickupTruckService.getDuplicateAssigned(pickups)
     }, [pickups])
 
     const content = useMemo(() => {

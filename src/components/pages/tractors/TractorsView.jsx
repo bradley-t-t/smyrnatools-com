@@ -14,9 +14,7 @@ import TractorDetailView from "./TractorDetailView";
 import TractorIssueModal from './TractorIssueModal'
 import TractorCommentModal from './TractorCommentModal'
 import {RegionService} from '../../../services/RegionService'
-import {UserService} from '../../../services/UserService'
 import AsyncUtility from '../../../utils/AsyncUtility'
-import LookupUtility from '../../../utils/LookupUtility'
 import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
@@ -95,32 +93,12 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
 
         async function loadAllowedPlants() {
             setIsRegionLoading(!!preferences.selectedRegion?.code)
-            let regionCode = preferences.selectedRegion?.code || ''
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    setRegionPlantCodes(null)
-                    setIsRegionLoading(false)
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) {
+                if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('')
                     updateTractorFilter('selectedPlant', '')
                 }
@@ -151,64 +129,18 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
 
     async function fetchTractors() {
         try {
-            const data = await TractorService.fetchTractors();
-            const processedData = data.map(tractor => {
-                const t = {...tractor}
-                t.vin = (t.vin || '').toUpperCase()
-                t.isVerified = () => TractorUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy, t.latestHistoryDate)
-                if (typeof t.openIssuesCount !== 'number') t.openIssuesCount = 0
-                if (typeof t.commentsCount !== 'number') t.commentsCount = 0
-                return t
-            })
-            setTractors(processedData)
+            const processedBase = await TractorService.fetchTractorsWithDetails()
+            setTractors(processedBase)
+            setAllTractors(processedBase)
             setTractorsLoaded(true)
             setTimeout(() => {
-                fixActiveTractorsWithoutOperator(processedData).catch(() => {
+                TractorService.ensureSpareIfNoOperator(processedBase).catch(() => {
                 })
             }, 0)
-            ;(async () => {
-                const items = processedData.slice()
-                let index = 0
-                const concurrency = 6
-
-                async function worker() {
-                    while (index < items.length) {
-                        const current = index++
-                        const tr = items[current]
-                        try {
-                            const [comments, issues] = await Promise.all([
-                                TractorService.fetchComments(tr.id).catch(() => []),
-                                TractorService.fetchIssues(tr.id).catch(() => [])
-                            ])
-                            const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
-                            const commentsCount = Array.isArray(comments) ? comments.length : 0
-                            setTractors(prev => {
-                                const arr = prev.slice()
-                                const idx = arr.findIndex(x => x.id === tr.id)
-                                if (idx >= 0) arr[idx] = {...arr[idx], comments, issues, openIssuesCount, commentsCount}
-                                return arr
-                            })
-                        } catch (e) {
-                        }
-                    }
-                }
-
-                await Promise.all(Array.from({length: concurrency}, () => worker()))
-            })()
         } catch (error) {
         }
     }
 
-    async function fixActiveTractorsWithoutOperator(list) {
-        const updates = list.filter(t => t.status === 'Active' && (!t.assignedOperator || t.assignedOperator === '0' || t.assignedOperator === '' || t.assignedOperator === null))
-        for (const tractor of updates) {
-            try {
-                await TractorService.updateTractor(tractor.id, {...tractor, status: 'Spare'}, undefined, tractor)
-                tractor.status = 'Spare'
-            } catch (e) {
-            }
-        }
-    }
 
     async function fetchOperators() {
         try {
@@ -416,11 +348,6 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
             </div>
         </>
     )
-}
-
-TractorsView.propTypes = {
-    title: PropTypes.string,
-    onSelectTractor: PropTypes.func
 }
 
 export default TractorsView;

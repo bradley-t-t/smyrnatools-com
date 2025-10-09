@@ -164,6 +164,43 @@ const TrailerService = {
         const {res, json} = await APIUtility.post('/trailer-service/delete-issue', {issueId});
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete issue');
         return true;
+    },
+
+    async fetchTrailersWithDetails() {
+        const base = await this.fetchTrailers().catch(() => [])
+        const processedBase = (Array.isArray(base) ? base : []).map(t => {
+            const trailer = {...t}
+            if (typeof trailer.openIssuesCount !== 'number') trailer.openIssuesCount = 0
+            if (typeof trailer.commentsCount !== 'number') trailer.commentsCount = 0
+            return trailer
+        })
+        const items = processedBase.slice()
+        let index = 0
+        const concurrency = 6
+
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const item = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        this.fetchComments(item.id).catch(() => []),
+                        this.fetchIssues(item.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    item.comments = comments
+                    item.issues = issues
+                    item.openIssuesCount = openIssuesCount
+                    item.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        return processedBase
     }
 };
 

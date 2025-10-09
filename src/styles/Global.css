@@ -12,7 +12,7 @@ body {
 }
 
 .global-content-area {
-    background: transparent !important;
+    background: transparent;
 }
 
 .global-button-primary {
@@ -265,23 +265,23 @@ td, th {
 .global-app {
     position: relative;
     z-index: 1;
-    background: transparent !important;
+    background: transparent;
 }
 
 .global-layout-container {
     position: relative;
     z-index: 1;
-    background: transparent !important;
+    background: transparent;
 }
 
 .global-app-container {
     position: relative;
     z-index: 1;
-    background: transparent !important;
+    background: transparent;
 }
 
 .global-reports-view {
-    background: transparent !important;
+    background: transparent;
 }
 
 .global-view {
@@ -607,29 +607,7 @@ td, th {
     box-shadow: var(--shadow-sm);
 }
 
-.global-primary-button {
-    background: var(--accent);
-    color: var(--text-light);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    transition: all 0.2s ease;
-    border: none;
-    box-shadow: var(--shadow-sm);
-}
-
 .global-ios-button:hover {
-    background: var(--accent-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
-}
-
-.global-primary-button:hover {
     background: var(--accent-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow);
@@ -640,24 +618,7 @@ td, th {
     box-shadow: var(--shadow-xs);
 }
 
-.global-primary-button:active {
-    transform: translateY(1px);
-    box-shadow: var(--shadow-xs);
-}
-
 .global-button-secondary {
-    background-color: var(--background);
-    color: var(--text-primary);
-    border: 1px solid var(--divider);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition);
-}
-
-.global-secondary-button {
     background-color: var(--background);
     color: var(--text-primary);
     border: 1px solid var(--divider);
@@ -687,12 +648,6 @@ td, th {
     box-shadow: var(--shadow-sm);
 }
 
-.global-secondary-button:hover {
-    background-color: var(--card-bg);
-    border-color: var(--text-light);
-    box-shadow: var(--shadow-sm);
-}
-
 .global-cancel-button:hover {
     background-color: var(--card-bg);
     border-color: var(--text-light);
@@ -707,33 +662,6 @@ td, th {
     height: 300px;
     color: var(--text-secondary);
     gap: var(--spacing-md);
-}
-
-.global-loading-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 300px;
-    color: var(--text-secondary);
-    gap: var(--spacing-md);
-}
-
-.global-equipments-loading-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 300px;
-    color: var(--text-secondary);
-    gap: var(--spacing-md);
-}
-
-.global-loading-indicator p {
-    font-weight: 500;
-    color: var(--text-secondary);
-    font-size: 16px;
-    animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
@@ -948,24 +876,6 @@ td, th {
 
 .global-close-button:hover {
     background: var(--bg-tertiary);
-}
-
-.global-cancel-button {
-    background: var(--background);
-    color: var(--text-primary);
-    border: 1px solid var(--divider);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition);
-}
-
-.global-cancel-button:hover {
-    background-color: var(--card-bg);
-    border-color: var(--text-light);
-    box-shadow: var(--shadow-sm);
 }
 
 .global-spinner {

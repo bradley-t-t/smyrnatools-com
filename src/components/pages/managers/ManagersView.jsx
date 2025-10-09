@@ -10,6 +10,7 @@ import {RegionService} from '../../../services/RegionService'
 import TopSection from '../../sections/TopSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
+import {PlantService} from '../../../services/PlantService'
 
 function ManagersView({title = 'Managers', onSelectManager}) {
     const {preferences, updateManagerFilter, resetManagerFilters} = usePreferences()
@@ -130,35 +131,7 @@ function ManagersView({title = 'Managers', onSelectManager}) {
 
     async function fetchManagers() {
         try {
-            const [{data: users, error: usersError}, {data: profiles, error: profilesError}, {
-                data: permissions,
-                error: permissionsError
-            }, {data: rolesList, error: rolesError}] = await Promise.all([
-                supabase.from('users').select('id, email, created_at, updated_at'),
-                supabase.from('users_profiles').select('id, first_name, last_name, plant_code, created_at, updated_at'),
-                supabase.from('users_permissions').select('user_id, role_id'),
-                supabase.from('users_roles').select('id, name, weight')
-            ])
-            if (usersError) throw usersError
-            if (profilesError) throw profilesError
-            if (permissionsError) throw permissionsError
-            if (rolesError) throw rolesError
-            const managersData = users.map(user => {
-                const profile = profiles.find(p => p.id === user.id) || {}
-                const permission = permissions.find(p => p.user_id === user.id) || {}
-                const role = permission.role_id ? rolesList.find(r => r.id === permission.role_id) : null
-                return {
-                    id: user.id,
-                    email: user.email,
-                    firstName: profile.first_name || '',
-                    lastName: profile.last_name || '',
-                    plantCode: profile.plant_code || '',
-                    roleName: role?.name || 'User',
-                    roleWeight: role?.weight || 0,
-                    createdAt: user.created_at,
-                    updatedAt: user.updated_at
-                }
-            })
+            const managersData = await UserService.getAllUsersWithProfilesAndRoles()
             setManagers(managersData)
             localStorage.setItem('cachedManagers', JSON.stringify(managersData))
             localStorage.setItem('cachedManagersDate', new Date().toISOString())
@@ -171,8 +144,7 @@ function ManagersView({title = 'Managers', onSelectManager}) {
 
     async function fetchPlants() {
         try {
-            const {data, error} = await supabase.from('plants').select('*');
-            if (error) throw error;
+            const data = await PlantService.fetchPlants()
             setPlants(data)
         } catch {
         }
@@ -180,14 +152,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
 
     async function fetchRoles() {
         try {
-            const rolesData = await DatabaseService.getAllRecords('users_roles')
-            if (rolesData?.length) {
-                setAvailableRoles(rolesData);
-                return
-            }
-            const {data, error} = await supabase.from('users_roles').select('*')
-            if (error) throw error
-            setAvailableRoles(data || [])
+            const data = await UserService.getAllRoles()
+            setAvailableRoles(data)
         } catch {
             setAvailableRoles([])
         }
@@ -200,15 +166,12 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(manager.plantCode || '').trim().toUpperCase())
         return matchesSearch && matchesPlant && matchesRole && matchesRegion
     }).sort((a, b) => {
-        const roleWeights = {'Admin': 4, 'Manager': 3, 'Supervisor': 2, 'User': 1}
-        const weightA = roleWeights[a.roleName] || 0
-        const weightB = roleWeights[b.roleName] || 0
-        return weightA !== weightB ? weightB - weightA : `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`)
+        return b.roleWeight - a.roleWeight || `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`)
     })
 
     const getPlantName = plantCode => {
-        const plant = plants.find(p => p.plant_code === plantCode);
-        return plant ? plant.plant_name : plantCode || 'No Plant'
+        const plant = plants.find(p => p.plantCode === plantCode);
+        return plant ? plant.plantName : plantCode || 'No Plant'
     }
     const handleSelectManager = manager => {
         setSelectedManager(manager);

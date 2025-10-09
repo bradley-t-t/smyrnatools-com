@@ -13,9 +13,7 @@ import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
 import MixerCommentModal from './MixerCommentModal'
 import {RegionService} from '../../../services/RegionService'
-import {UserService} from '../../../services/UserService'
 import AsyncUtility from '../../../utils/AsyncUtility'
-import LookupUtility from '../../../utils/LookupUtility'
 import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
@@ -91,32 +89,12 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
 
         async function loadAllowedPlants() {
             setIsRegionLoading(!!preferences.selectedRegion?.code)
-            let regionCode = preferences.selectedRegion?.code || ''
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    setRegionPlantCodes(null)
-                    setIsRegionLoading(false)
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) {
+                if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('')
                     updateMixerFilter('selectedPlant', '')
                 }
@@ -154,14 +132,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
 
     async function fetchMixersWithDetails() {
         try {
-            const base = await MixerService.getAllMixers().catch(() => [])
-            const processedBase = (Array.isArray(base) ? base : []).map(m => {
-                const mixer = {...m}
-                mixer.isVerified = () => MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
-                if (typeof mixer.openIssuesCount !== 'number') mixer.openIssuesCount = 0
-                if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
-                return mixer
-            })
+            const processedBase = await MixerService.fetchMixersWithDetails()
             setMixers(processedBase)
             setAllMixers(processedBase)
             setMixersLoaded(true)
@@ -169,41 +140,6 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                 MixerService.ensureSpareIfNoOperator(processedBase).catch(() => {
                 })
             }, 0)
-            ;(async () => {
-                const items = processedBase.slice()
-                let index = 0
-                const concurrency = 6
-
-                async function worker() {
-                    while (index < items.length) {
-                        const current = index++
-                        const m = items[current]
-                        try {
-                            const [comments, issues] = await Promise.all([
-                                MixerService.fetchComments(m.id).catch(() => []),
-                                MixerService.fetchIssues(m.id).catch(() => [])
-                            ])
-                            const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
-                            const commentsCount = Array.isArray(comments) ? comments.length : 0
-                            setMixers(prev => {
-                                const arr = prev.slice()
-                                const idx = arr.findIndex(x => x.id === m.id)
-                                if (idx >= 0) arr[idx] = {...arr[idx], comments, issues, openIssuesCount, commentsCount}
-                                return arr
-                            })
-                            setAllMixers(prev => {
-                                const arr = prev.slice()
-                                const idx = arr.findIndex(x => x.id === m.id)
-                                if (idx >= 0) arr[idx] = {...arr[idx], comments, issues, openIssuesCount, commentsCount}
-                                return arr
-                            })
-                        } catch (e) {
-                        }
-                    }
-                }
-
-                await Promise.all(Array.from({length: concurrency}, () => worker()))
-            })()
         } catch (error) {
         }
     }
@@ -235,14 +171,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
             if (normalizedSearch.length >= 17 && /^[a-z0-9]+$/i.test(normalizedSearch)) {
                 setIsLoading(true);
                 try {
-                    const vinMixers = await MixerService.searchMixersByVin(normalizedSearch);
-                    const processed = vinMixers.map(m => {
-                        m.isVerified = () => MixerUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy, m.latestHistoryDate)
-                        if (typeof m.openIssuesCount !== 'number') m.openIssuesCount = 0
-                        if (typeof m.commentsCount !== 'number') m.commentsCount = 0
-                        return m
-                    })
-                    setMixers(processed);
+                    const vinMixers = await MixerService.searchMixersByVinProcessed(normalizedSearch);
+                    setMixers(vinMixers);
                     setMixersLoaded(true)
                 } catch {
                 }

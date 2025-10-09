@@ -99,7 +99,7 @@ function TopSection({
                         )}
                     </div>
                     <div className="filters" role="group" aria-label="Filters and view options">
-                        {!hideViewModeToggle && (
+                        {viewMode && !hideViewModeToggle && (
                             <div className="view-toggle-icons" role="group" aria-label="View mode">
                                 <button
                                     className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}

@@ -123,6 +123,12 @@
     padding-bottom: 88px;
 }
 
+.bulk-actions-content {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
 .card-status-indicator {
     position: absolute;
     top: 0;
@@ -571,8 +577,6 @@ textarea.form-control {
 
 .warning-container {
     background-color: var(--error-bg);
-    border-radius: var(--radius-input);
-    padding: 1rem;
     margin-top: 1.25rem;
     border-left: 4px solid var(--error);
     color: var(--text-primary);
@@ -742,7 +746,7 @@ textarea.form-control {
 }
 
 .form-group label i {
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
 }
 
 .required {
@@ -1674,4 +1678,26 @@ textarea.form-control {
     .list-item-card .item-description {
         margin-bottom: 8px;
     }
+}
+
+.bulk-action-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--badge-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    min-width: 140px;
+}
+
+.bulk-action-button:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }

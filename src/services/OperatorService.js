@@ -1,6 +1,7 @@
 import APIUtility from '../utils/APIUtility'
 import {Operator} from '../models/operators/Operator'
 import UserUtility from '../utils/UserUtility'
+import {supabase} from './DatabaseService'
 
 class OperatorServiceImpl {
     async getAllOperators() {
@@ -71,9 +72,50 @@ class OperatorServiceImpl {
     }
 
     async fetchOperators() {
-        const {res, json} = await APIUtility.post('/operator-service/fetch-operators')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch operators')
-        return (json?.data ?? []).map(op => new Operator(op))
+        try {
+            const {data, error} = await supabase.from('operators').select('*')
+            if (error) throw error
+            const formattedOperators = data.map(op => {
+                const rawPending = op.pending_start_date || ''
+                const normalizedPending = (typeof rawPending === 'string' && rawPending.includes('T')) ? rawPending.slice(0, 10) : rawPending
+                return {
+                    employeeId: op.employee_id,
+                    smyrnaId: op.smyrna_id || '',
+                    name: op.name,
+                    plantCode: op.plant_code,
+                    status: op.status,
+                    isTrainer: op.is_trainer,
+                    assignedTrainer: op.assigned_trainer,
+                    position: op.position,
+                    pendingStartDate: normalizedPending,
+                    rating: typeof op.rating === 'number' ? op.rating : Number(op.rating) || 0,
+                    phone: op.phone || ''
+                }
+            })
+            return formattedOperators
+        } catch {
+            return []
+        }
+    }
+
+    async fetchPlants() {
+        try {
+            const {data, error} = await supabase.from('plants').select('*');
+            if (error) throw error;
+            return data
+        } catch {
+            return []
+        }
+    }
+
+    async fetchTrainers() {
+        try {
+            const {data, error} = await supabase.from('operators').select('employee_id, name').eq('is_trainer', true);
+            if (error) throw error;
+            return data.map(t => ({employeeId: t.employee_id, name: t.name}))
+        } catch {
+            return []
+        }
     }
 
     async fetchOperatorsWithAvailability(mixers = []) {
@@ -99,7 +141,22 @@ class OperatorServiceImpl {
         if (!res.ok) return null
         const data = json?.data || null
         if (!data) return null
+        data.smyrna_id = data.smyrna_id ?? ''
         return new Operator(data)
+    }
+
+    getDuplicateNames(operators) {
+        const counts = new Map()
+        operators.forEach(op => {
+            const key = (op?.name || '').trim().toLowerCase();
+            if (!key) return;
+            counts.set(key, (counts.get(key) || 0) + 1)
+        })
+        const dups = new Set();
+        counts.forEach((count, key) => {
+            if (count > 1) dups.add(key)
+        });
+        return dups
     }
 }
 

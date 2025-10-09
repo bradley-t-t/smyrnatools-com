@@ -255,4 +255,55 @@ export class TractorService {
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to complete issue')
         return true
     }
+
+    static async fetchTractorsWithDetails() {
+        const base = await this.getAllTractors().catch(() => [])
+        const processedBase = (Array.isArray(base) ? base : []).map(t => {
+            const tractor = {...t}
+            tractor.vin = (tractor.vin || '').toUpperCase()
+            tractor.isVerified = () => TractorUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy, tractor.latestHistoryDate)
+            if (typeof tractor.openIssuesCount !== 'number') tractor.openIssuesCount = 0
+            if (typeof tractor.commentsCount !== 'number') tractor.commentsCount = 0
+            return tractor
+        })
+        const items = processedBase.slice()
+        let index = 0
+        const concurrency = 6
+
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const tr = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        TractorService.fetchComments(tr.id).catch(() => []),
+                        TractorService.fetchIssues(tr.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    tr.comments = comments
+                    tr.issues = issues
+                    tr.openIssuesCount = openIssuesCount
+                    tr.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        return processedBase
+    }
+
+    static async ensureSpareIfNoOperator(tractorsList) {
+        const updates = (tractorsList || []).filter(t => t.status === 'Active' && (!t.assignedOperator || t.assignedOperator === '0' || t.assignedOperator === '' || t.assignedOperator === null))
+        for (const tractor of updates) {
+            try {
+                await this.updateTractor(tractor.id, {...tractor, status: 'Spare'}, undefined, tractor)
+                tractor.status = 'Spare'
+            } catch (e) {
+            }
+        }
+        return tractorsList
+    }
 }

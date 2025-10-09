@@ -83,8 +83,35 @@ class PickupTruckServiceImpl {
         if (!res.ok) throw new Error(json?.error || 'Failed to verify pickup truck')
         return PickupTruck.fromApiFormat(json?.data)
     }
+
+    static getDuplicateVINs(pickups) {
+        const counts = new Map()
+        for (const p of pickups) {
+            const key = String(p.vin || '').trim().toUpperCase().replace(/\s+/g, '')
+            if (!key) continue
+            counts.set(key, (counts.get(key) || 0) + 1)
+        }
+        const dups = new Set()
+        counts.forEach((count, key) => {
+            if (count > 1) dups.add(key)
+        })
+        return dups
+    }
+
+    static getDuplicateAssigned(pickups) {
+        const counts = new Map()
+        for (const p of pickups) {
+            const key = String(p.assigned || '').trim().toLowerCase()
+            if (!key) continue
+            counts.set(key, (counts.get(key) || 0) + 1)
+        }
+        const dups = new Set()
+        counts.forEach((count, key) => {
+            if (count > 1) dups.add(key)
+        })
+        return dups
+    }
 }
 
 export const PickupTruckService = PickupTruckServiceImpl
 export default PickupTruckServiceImpl
-

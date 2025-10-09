@@ -1,4 +1,5 @@
 import APIUtility from '../utils/APIUtility'
+import {supabase} from './DatabaseService'
 
 const USER_FUNCTION = '/user-service'
 
@@ -195,4 +196,37 @@ UserService.canEditMixerForPlant = async function (userId, mixerPlant) {
         allowed,
         reason: allowed ? '' : `You cannot edit or verify this mixer because it belongs to plant ${mixerPlant} and you are assigned to plant ${plantCode}.`
     }
+}
+
+UserService.getAllUsersWithProfilesAndRoles = async function () {
+    const [{data: users, error: usersError}, {data: profiles, error: profilesError}, {
+        data: permissions,
+        error: permissionsError
+    }, {data: rolesList, error: rolesError}] = await Promise.all([
+        supabase.from('users').select('id, email, created_at, updated_at'),
+        supabase.from('users_profiles').select('id, first_name, last_name, plant_code, created_at, updated_at'),
+        supabase.from('users_permissions').select('user_id, role_id'),
+        supabase.from('users_roles').select('id, name, weight')
+    ])
+    if (usersError) throw usersError
+    if (profilesError) throw profilesError
+    if (permissionsError) throw permissionsError
+    if (rolesError) throw rolesError
+    const managersData = users.map(user => {
+        const profile = profiles.find(p => p.id === user.id) || {}
+        const permission = permissions.find(p => p.user_id === user.id) || {}
+        const role = permission.role_id ? rolesList.find(r => r.id === permission.role_id) : null
+        return {
+            id: user.id,
+            email: user.email,
+            firstName: profile.first_name || '',
+            lastName: profile.last_name || '',
+            plantCode: profile.plant_code || '',
+            roleName: role?.name || 'User',
+            roleWeight: role?.weight || 0,
+            createdAt: user.created_at,
+            updatedAt: user.updated_at
+        }
+    })
+    return managersData
 }

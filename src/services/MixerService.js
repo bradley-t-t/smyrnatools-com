@@ -167,6 +167,16 @@ class MixerServiceImpl {
         return (json?.data ?? []).map(row => this._attachIsVerified(new Mixer(row)))
     }
 
+    static async searchMixersByVinProcessed(query) {
+        const vinMixers = await this.searchMixersByVin(query)
+        return vinMixers.map(m => {
+            m.isVerified = () => MixerUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy, m.latestHistoryDate)
+            if (typeof m.openIssuesCount !== 'number') m.openIssuesCount = 0
+            if (typeof m.commentsCount !== 'number') m.commentsCount = 0
+            return m
+        })
+    }
+
     static async getMixersNeedingService(dayThreshold = 30) {
         const {res, json} = await APIUtility.post('/mixer-service/fetch-needing-service', {dayThreshold})
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch mixers needing service')
@@ -285,16 +295,41 @@ class MixerServiceImpl {
     }
 
     static async fetchMixersWithDetails() {
-        const mixers = await this.getAllMixers()
-        const enriched = await Promise.all(mixers.map(async m => {
-            const [comments, issues] = await Promise.all([
-                this.fetchComments(m.id).catch(() => []),
-                this.fetchIssues(m.id).catch(() => [])
-            ])
-            const merged = {...m, comments, issues}
-            return this._attachIsVerified(merged)
-        }))
-        return enriched
+        const base = await this.getAllMixers().catch(() => [])
+        const processedBase = (Array.isArray(base) ? base : []).map(m => {
+            const mixer = {...m}
+            mixer.isVerified = () => MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
+            if (typeof mixer.openIssuesCount !== 'number') mixer.openIssuesCount = 0
+            if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
+            return mixer
+        })
+        const items = processedBase.slice()
+        let index = 0
+        const concurrency = 6
+
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const m = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        MixerService.fetchComments(m.id).catch(() => []),
+                        MixerService.fetchIssues(m.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    m.comments = comments
+                    m.issues = issues
+                    m.openIssuesCount = openIssuesCount
+                    m.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        return processedBase
     }
 
     static async ensureSpareIfNoOperator(mixersList) {
