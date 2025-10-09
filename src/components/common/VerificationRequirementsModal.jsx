@@ -40,11 +40,6 @@ export default function VerificationRequirementsModal({
                     <h3>{missingFields.length ? 'Missing Required Information' : 'Review Before Verifying'}</h3>
                     <p>{missingFields.length ? 'Provide the details below to continue verification.' : 'Confirm details before verifying.'}</p>
                 </div>
-                {!!missingFields.length && (
-                    <ul className="missing-list" aria-label="Missing fields list">
-                        {missingFields.map(f => <li key={f}>{f}</li>)}
-                    </ul>
-                )}
                 <div className="verification-fields">
                     {needsVin && (
                         <div className="form-group vin-group">

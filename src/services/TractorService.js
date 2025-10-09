@@ -179,6 +179,24 @@ export class TractorService {
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
+    static async searchTractorsByVin(query) {
+        if (!query?.trim()) throw new Error('Search query is required')
+        const upper = query.trim().toUpperCase()
+        const {res, json} = await APIUtility.post('/tractor-service/search-by-vin', {query: upper})
+        if (!res.ok) throw new Error(json?.error || 'Failed to search tractors by VIN')
+        return (json?.data ?? []).map(Tractor.fromApiFormat)
+    }
+
+    static async searchTractorsByVinProcessed(query) {
+        const vinTractors = await this.searchTractorsByVin(query)
+        return vinTractors.map(t => {
+            t.isVerified = () => TractorUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy, t.latestHistoryDate)
+            if (typeof t.openIssuesCount !== 'number') t.openIssuesCount = 0
+            if (typeof t.commentsCount !== 'number') t.commentsCount = 0
+            return t
+        })
+    }
+
     static async getTractorsNeedingService(dayThreshold = 30) {
         const {res, json} = await APIUtility.post('/tractor-service/fetch-needing-service', {dayThreshold})
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractors needing service')
@@ -266,32 +284,6 @@ export class TractorService {
             if (typeof tractor.commentsCount !== 'number') tractor.commentsCount = 0
             return tractor
         })
-        const items = processedBase.slice()
-        let index = 0
-        const concurrency = 6
-
-        async function worker() {
-            while (index < items.length) {
-                const current = index++
-                const tr = items[current]
-                try {
-                    const [comments, issues] = await Promise.all([
-                        TractorService.fetchComments(tr.id).catch(() => []),
-                        TractorService.fetchIssues(tr.id).catch(() => [])
-                    ])
-                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    tr.comments = comments
-                    tr.issues = issues
-                    tr.openIssuesCount = openIssuesCount
-                    tr.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
-            }
-        }
-
-        await Promise.all(Array.from({length: concurrency}, () => worker()))
         return processedBase
     }
 

@@ -135,6 +135,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
             setTractors(processedBase)
             setAllTractors(processedBase)
             setTractorsLoaded(true)
+            loadDetailsForTractors(processedBase)
             setTimeout(() => {
                 TractorService.ensureSpareIfNoOperator(processedBase).catch(() => {
                 })
@@ -172,7 +173,13 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
     }
 
     const filteredTractors = useMemo(() => tractors.filter(tractor => {
-        const matchesSearch = !searchText.trim() || tractor.truckNumber?.toLowerCase().includes(searchText.toLowerCase()) || (tractor.assignedOperator && operators.find(op => op.employeeId === tractor.assignedOperator)?.name.toLowerCase().includes(searchText.toLowerCase()))
+        const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
+        const truckMatch = (tractor.truckNumber || '').toLowerCase().includes(normalizedSearch)
+        const operatorMatch = tractor.assignedOperator && operators.find(op => op.employeeId === tractor.assignedOperator)?.name.toLowerCase().includes(normalizedSearch)
+        const vinRaw = (tractor.vinNumber || tractor.vin || '').toLowerCase()
+        const vinNoSpaces = vinRaw.replace(/\s+/g, '')
+        const vinMatch = vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
+        const matchesSearch = !normalizedSearch || truckMatch || operatorMatch || vinMatch
         const matchesPlant = !selectedPlant || tractor.assignedPlant === selectedPlant
         const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(tractor.assignedPlant || '').trim().toUpperCase())
         let matchesStatus = true
@@ -203,6 +210,30 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchInput, selectedPlant, statusFilter, freightFilter])
+
+    useEffect(() => {
+        async function searchByVin() {
+            const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '');
+            if (normalizedSearch.length >= 17 && /^[a-z0-9]+$/i.test(normalizedSearch)) {
+                setIsLoading(true);
+                try {
+                    const vinTractors = await TractorService.searchTractorsByVinProcessed(normalizedSearch);
+                    setTractors(vinTractors);
+                    setTractorsLoaded(true)
+                } catch {
+                }
+                setIsLoading(false);
+            } else {
+                setTractors(allTractors);
+            }
+        }
+
+        if (searchText.trim().length >= 1) {
+            searchByVin();
+        } else {
+            setTractors(allTractors);
+        }
+    }, [searchText, allTractors]);
 
     const content = useMemo(() => {
         if (isLoading || isRegionLoading) {
@@ -281,6 +312,36 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
             />
         )
     }, [isLoading, isRegionLoading, filteredTractors, viewMode, searchText, selectedPlant, statusFilter, freightFilter, operators, plants, tractors])
+
+    const loadDetailsForTractors = async (tractors) => {
+        const items = tractors.slice()
+        let index = 0
+        const concurrency = 20
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const t = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        TractorService.fetchComments(t.id).catch(() => []),
+                        TractorService.fetchIssues(t.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    t.comments = comments
+                    t.issues = issues
+                    t.openIssuesCount = openIssuesCount
+                    t.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        // Trigger re-render
+        setTractors([...tractors])
+        setAllTractors([...tractors])
+    }
 
     return (
         <>

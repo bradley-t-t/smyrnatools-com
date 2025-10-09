@@ -294,7 +294,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                         <div className="form-section vehicle-info">
                             <h3>Asset Details</h3>
                             <div className="form-group"><label>VIN</label><input type="text" value={vin}
-                                                                                 onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                                                                 onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))} maxLength="17"
                                                                                  className="form-control"/></div>
                             <div className="form-group"><label>Make</label><input type="text" value={make}
                                                                                   onChange={e => setMake(e.target.value)}

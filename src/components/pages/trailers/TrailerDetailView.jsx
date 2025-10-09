@@ -377,14 +377,14 @@ ${openIssues.length > 0
     if (isLoading) {
         return (
             <div className="trailer-detail-view">
-                <div className="trailer-detail-header">
-                    <button className="trailer-back-button" onClick={onClose}>
+                <div className="detail-header">
+                    <button className="back-button" onClick={onClose}>
                         <i className="fas fa-arrow-left"></i>
                     </button>
                     <h1>Trailer Details</h1>
                     <div style={{width: '36px'}}></div>
                 </div>
-                <div className="trailer-detail-content">
+                <div className="detail-content">
                     <LoadingScreen message="Loading trailer details..." inline={true}/>
                 </div>
             </div>
@@ -394,15 +394,15 @@ ${openIssues.length > 0
     if (!trailer) {
         return (
             <div className="trailer-detail-view">
-                <div className="trailer-detail-header">
-                    <button className="trailer-back-button" onClick={onClose}>
+                <div className="detail-header">
+                    <button className="back-button" onClick={onClose}>
                         <i className="fas fa-arrow-left"></i>
                     </button>
                     <h1>Trailer Not Found</h1>
                 </div>
-                <div className="trailer-error-message">
+                <div className="error-message">
                     <p>Could not find the requested trailer. It may have been deleted.</p>
-                    <button className="trailer-primary-button" onClick={onClose}>Return to Trailers</button>
+                    <button className="primary-button" onClick={onClose}>Return to Trailers</button>
                 </div>
             </div>
         );
@@ -417,77 +417,77 @@ ${openIssues.length > 0
             {showIssues && <TrailerIssueModal trailerId={trailer.id} trailerNumber={trailer?.trailerNumber}
                                               onClose={() => setShowIssues(false)}/>}
             {isSaving && (
-                <div className="trailer-saving-overlay">
-                    <div className="trailer-saving-indicator"></div>
+                <div className="saving-overlay">
+                    <div className="saving-indicator"></div>
                 </div>
             )}
-            <div className="trailer-detail-header">
-                <div className="trailer-header-left">
-                    <button className="trailer-back-button" onClick={handleBackClick} aria-label="Back to trailers">
+            <div className="detail-header">
+                <div className="header-left">
+                    <button className="back-button" onClick={handleBackClick} aria-label="Back to trailers">
                         <i className="fas fa-arrow-left"></i>
                         <span>Back</span>
                     </button>
                 </div>
                 <h1>Trailer #{trailer.trailerNumber || 'Not Assigned'}</h1>
-                <div className="trailer-header-actions">
-                    <button className="trailer-issues-button" onClick={handleExportEmail}>
+                <div className="header-actions">
+                    <button className="issues-button" onClick={handleExportEmail}>
                         <i className="fas fa-envelope"></i> Email
                     </button>
                     {canEditTrailer && (
                         <>
-                            <button className="trailer-issues-button" onClick={() => setShowIssues(true)}>
+                            <button className="issues-button" onClick={() => setShowIssues(true)}>
                                 <i className="fas fa-tools"></i> Issues
                             </button>
-                            <button className="trailer-comments-button" onClick={() => setShowComments(true)}>
+                            <button className="comments-button" onClick={() => setShowComments(true)}>
                                 <i className="fas fa-comments"></i> Comments
                             </button>
                         </>
                     )}
-                    <button className="trailer-history-button" onClick={() => setShowHistory(true)}>
+                    <button className="history-button" onClick={() => setShowHistory(true)}>
                         <i className="fas fa-history"></i>
                         <span>History</span>
                     </button>
                 </div>
             </div>
             {!canEditTrailer && (
-                <div className="trailer-plant-restriction-warning">
+                <div className="plant-restriction-warning">
                     <i className="fas fa-exclamation-triangle"></i>
                     <span>{plantRestrictionReason}</span>
                 </div>
             )}
-            <div className="trailer-detail-content">
+            <div className="detail-content" style={{maxWidth: '1000px', margin: '0 auto', overflow: 'visible'}}>
                 {message && (
-                    <div className={`trailer-message ${message.includes('Error') ? 'error' : 'success'}`}>
+                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
                         {message}
                     </div>
                 )}
-                <div className="trailer-detail-card">
-                    <div className="trailer-detail-card-header">
+                <div className="detail-card">
+                    <div className="card-header">
                         <h2>Trailer Information</h2>
                     </div>
-                    <p className="trailer-edit-instructions">{canEditTrailer ? "You can make changes below. Remember to save your changes." : "You are in read-only mode and cannot make changes to this trailer."}</p>
-                    <div className="trailer-form-sections">
-                        <div className="trailer-form-section basic-info">
+                    <p className="edit-instructions">{canEditTrailer ? "You can make changes below. Remember to save your changes." : "You are in read-only mode and cannot make changes to this trailer."}</p>
+                    <div className="form-sections">
+                        <div className="form-section basic-info">
                             <h3>Basic Information</h3>
-                            <div className="trailer-form-group">
+                            <div className="form-group">
                                 <label>Trailer Number</label>
                                 <input type="text" value={trailerNumber}
-                                       onChange={e => setTrailerNumber(e.target.value)} className="trailer-form-control"
+                                       onChange={e => setTrailerNumber(e.target.value)} className="form-control"
                                        readOnly={!canEditTrailer}/>
                             </div>
-                            <div className="trailer-form-group">
+                            <div className="form-group">
                                 <label>Trailer Type</label>
                                 <select value={trailerType} onChange={e => setTrailerType(e.target.value)}
-                                        disabled={!canEditTrailer} className="trailer-form-control">
+                                        disabled={!canEditTrailer} className="form-control">
                                     <option value="">Select Trailer Type</option>
                                     <option value="Cement">Cement</option>
                                     <option value="End Dump">End Dump</option>
                                 </select>
                             </div>
-                            <div className="trailer-form-group">
+                            <div className="form-group">
                                 <label>Assigned Plant</label>
                                 <select value={assignedPlant} onChange={e => setAssignedPlant(e.target.value)}
-                                        disabled={!canEditTrailer} className="trailer-form-control">
+                                        disabled={!canEditTrailer} className="form-control">
                                     <option value="">Select Plant</option>
                                     {!assignedPlantInRegion && assignedPlant &&
                                         <option value={assignedPlant}>{assignedPlant}</option>}
@@ -497,10 +497,10 @@ ${openIssues.length > 0
                                     ))}
                                 </select>
                             </div>
-                            <div className="trailer-form-group">
+                            <div className="form-group">
                                 <label>Active Status</label>
                                 <select value={status} onChange={e => setStatus(e.target.value)}
-                                        disabled={!canEditTrailer} className="trailer-form-control">
+                                        disabled={!canEditTrailer} className="form-control">
                                     <option value="">Select Status</option>
                                     <option value="Active"
                                             disabled={!assignedTractor}>Active{!assignedTractor ? ' (Cannot set without a tractor assigned)' : ''}</option>
@@ -509,11 +509,11 @@ ${openIssues.length > 0
                                     <option value="Retired">Retired</option>
                                 </select>
                             </div>
-                            <div className="trailer-form-group">
+                            <div className="form-group">
                                 <label>Assigned Tractor</label>
-                                <div className="trailer-operator-select-container">
+                                <div className="operator-select-container">
                                     <button
-                                        className="trailer-operator-select-button trailer-form-control"
+                                        className="operator-select-button form-control"
                                         onClick={async () => {
                                             if (canEditTrailer) {
                                                 await fetchTractorsForModal();
@@ -531,7 +531,7 @@ ${openIssues.length > 0
                                     {canEditTrailer && (
                                         assignedTractor ? (
                                             <button
-                                                className="trailer-unassign-operator-button"
+                                                className="unassign-operator-button"
                                                 title="Unassign Tractor"
                                                 onClick={async () => {
                                                     try {
@@ -583,7 +583,7 @@ ${openIssues.length > 0
                                         ) : (
                                             lastUnassignedTractorId && (
                                                 <button
-                                                    className="trailer-undo-operator-button trailer-unassign-operator-button"
+                                                    className="undo-operator-button unassign-operator-button"
                                                     title="Undo Unassign"
                                                     onClick={async () => {
                                                         try {
@@ -678,30 +678,30 @@ ${openIssues.length > 0
                                 )}
                             </div>
                         </div>
-                        <div className="trailer-form-section maintenance-info">
+                        <div className="form-section maintenance-info">
                             <h3>Maintenance Information</h3>
-                            <div className="trailer-form-group">
+                            <div className="form-group">
                                 <label>Cleanliness Rating</label>
-                                <div className="trailer-cleanliness-rating-editor">
-                                    <div className="trailer-star-input">
+                                <div className="cleanliness-rating-editor">
+                                    <div className="star-input">
                                         {[1, 2, 3, 4, 5].map(star => (
                                             <button
                                                 key={star}
                                                 type="button"
-                                                className={`trailer-star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditTrailer ? 'disabled' : ''}`}
+                                                className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditTrailer ? 'disabled' : ''}`}
                                                 onClick={() => canEditTrailer && setCleanlinessRating(star === cleanlinessRating ? 0 : star)}
                                                 aria-label={`Rate ${star} of 5 stars`}
                                                 disabled={!canEditTrailer}
                                             >
                                                 <i className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                   style={star <= cleanlinessRating ? {color: preferences.accentColor === 'red' ? '#b80017' : '#003896'} : {}}></i>
+                                                   style={star <= cleanlinessRating ? {color: 'var(--accent)'} : {}}></i>
                                             </button>
                                         ))}
                                     </div>
                                     {cleanlinessRating > 0 && (
-                                        <div className="trailer-rating-value-display">
+                                        <div className="rating-value-display">
                                             <span
-                                                className="trailer-rating-label">{[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][cleanlinessRating]}</span>
+                                                className="rating-label">{[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][cleanlinessRating]}</span>
                                         </div>
                                     )}
                                 </div>

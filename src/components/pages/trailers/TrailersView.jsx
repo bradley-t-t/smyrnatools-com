@@ -135,6 +135,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         try {
             const processedBase = await TrailerService.fetchTrailersWithDetails()
             setTrailers(processedBase)
+            loadDetailsForTrailers(processedBase)
         } catch {
         }
     }
@@ -174,7 +175,13 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     }, 300), [updatePreferences])
 
     const filteredTrailers = useMemo(() => trailers.filter(trailer => {
-        const matchesSearch = !searchText.trim() || trailer.trailerNumber?.toLowerCase().includes(searchText.toLowerCase()) || (trailer.assignedTractor && tractors.find(t => t.id === trailer.assignedTractor)?.truckNumber.toLowerCase().includes(searchText.toLowerCase()))
+        const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
+        const trailerMatch = (trailer.trailerNumber || '').toLowerCase().includes(normalizedSearch)
+        const tractorMatch = trailer.assignedTractor && tractors.find(t => t.id === trailer.assignedTractor)?.truckNumber.toLowerCase().includes(normalizedSearch)
+        const vinRaw = (trailer.vinNumber || trailer.vin || '').toLowerCase()
+        const vinNoSpaces = vinRaw.replace(/\s+/g, '')
+        const vinMatch = vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
+        const matchesSearch = !normalizedSearch || trailerMatch || tractorMatch || vinMatch
         const matchesPlant = !selectedPlant || trailer.assignedPlant === selectedPlant
         const matchesRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(trailer.assignedPlant)
         let matchesType = true
@@ -248,6 +255,58 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             />
         )
     }, [isLoading, filteredTrailers, viewMode, searchText, selectedPlant, typeFilter, tractors, plants, trailers])
+
+    useEffect(() => {
+        async function searchByVin() {
+            const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '');
+            if (normalizedSearch.length >= 17 && /^[a-z0-9]+$/i.test(normalizedSearch)) {
+                setIsLoading(true);
+                try {
+                    const vinTrailers = await TrailerService.searchTrailersByVinProcessed(normalizedSearch);
+                    setTrailers(vinTrailers);
+                } catch {
+                }
+                setIsLoading(false);
+            } else {
+                setTrailers(trailers);
+            }
+        }
+
+        if (searchText.trim().length >= 1) {
+            searchByVin();
+        } else {
+            setTrailers(trailers);
+        }
+    }, [searchText, trailers]);
+
+    const loadDetailsForTrailers = async (trailers) => {
+        const items = trailers.slice()
+        let index = 0
+        const concurrency = 20
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const t = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        TrailerService.fetchComments(t.id).catch(() => []),
+                        TrailerService.fetchIssues(t.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    t.comments = comments
+                    t.issues = issues
+                    t.openIssuesCount = openIssuesCount
+                    t.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        // Trigger re-render
+        setTrailers([...trailers])
+    }
 
     const showReset = (searchText || selectedPlant || (typeFilter && typeFilter !== 'All Types'))
 

@@ -681,13 +681,15 @@ function ReportsView() {
                                     >
                                         My Reports
                                     </button>
-                                    <button
-                                        className={tab === 'review' ? 'active' : ''}
-                                        onClick={() => setTab('review')}
-                                        type="button"
-                                    >
-                                        Review
-                                    </button>
+                                    {hasAnyReviewPermissionPrefix && (
+                                        <button
+                                            className={tab === 'review' ? 'active' : ''}
+                                            onClick={() => setTab('review')}
+                                            type="button"
+                                        >
+                                            Review
+                                        </button>
+                                    )}
                                     {hasAnyReviewPermissionPrefix && (
                                         <button
                                             className={tab === 'overdue' ? 'active' : ''}

@@ -104,6 +104,23 @@ const TrailerService = {
         return (json?.data ?? []).map(Trailer.fromApiFormat);
     },
 
+    async searchTrailersByVin(query) {
+        if (!query?.trim()) throw new Error('Search query is required');
+        const upper = query.trim().toUpperCase();
+        const {res, json} = await APIUtility.post('/trailer-service/search-by-vin', {query: upper});
+        if (!res.ok) throw new Error(json?.error || 'Failed to search trailers by VIN');
+        return (json?.data ?? []).map(Trailer.fromApiFormat);
+    },
+
+    async searchTrailersByVinProcessed(query) {
+        const vinTrailers = await this.searchTrailersByVin(query);
+        return vinTrailers.map(t => {
+            if (typeof t.openIssuesCount !== 'number') t.openIssuesCount = 0;
+            if (typeof t.commentsCount !== 'number') t.commentsCount = 0;
+            return t;
+        });
+    },
+
     async fetchComments(trailerId) {
         if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`);
         const {res, json} = await APIUtility.post('/trailer-service/fetch-comments', {trailerId});
@@ -174,32 +191,6 @@ const TrailerService = {
             if (typeof trailer.commentsCount !== 'number') trailer.commentsCount = 0
             return trailer
         })
-        const items = processedBase.slice()
-        let index = 0
-        const concurrency = 6
-
-        async function worker() {
-            while (index < items.length) {
-                const current = index++
-                const item = items[current]
-                try {
-                    const [comments, issues] = await Promise.all([
-                        this.fetchComments(item.id).catch(() => []),
-                        this.fetchIssues(item.id).catch(() => [])
-                    ])
-                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    item.comments = comments
-                    item.issues = issues
-                    item.openIssuesCount = openIssuesCount
-                    item.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
-            }
-        }
-
-        await Promise.all(Array.from({length: concurrency}, () => worker()))
         return processedBase
     }
 };

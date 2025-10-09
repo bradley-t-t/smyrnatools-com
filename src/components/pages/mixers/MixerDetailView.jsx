@@ -287,7 +287,7 @@ function MixerDetailView({mixerId, onClose}) {
     }
 
     async function handleVerifyMixer() {
-        const vinValid = !!mixer.vin && ValidationUtility.isVIN(mixer.vin)
+        const vinValid = !!vin && ValidationUtility.isVIN(vin)
         if (!vinValid || !mixer.make || !mixer.model || !mixer.year) {
             let missing = []
             if (!vinValid) missing.push('VIN')
@@ -935,8 +935,7 @@ function MixerDetailView({mixerId, onClose}) {
                             <div className="form-group">
                                 <label>VIN</label>
                                 <input type="text" value={vin} placeholder="VIN (no I, O, Q)"
-                                       onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
-                                       className="form-control" readOnly={!canEditMixer}/>
+                                       onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))} className="form-control" readOnly={!canEditMixer}/>
                             </div>
                             <div className="form-group">
                                 <label>Make</label>
