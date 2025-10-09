@@ -17,9 +17,6 @@
 }
 
 .filters .filter-wrapper select.ios-select.freight-select {
-    width: 110px !important;
-    min-width: 110px !important;
-    max-width: 140px;
     flex: 0 0 auto;
     box-sizing: border-box;
 }

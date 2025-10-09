@@ -33,6 +33,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
     const [searchInput, setSearchInput] = useState(preferences.tractorFilters?.searchText || '');
     const [selectedPlant, setSelectedPlant] = useState(preferences.tractorFilters?.selectedPlant || '');
     const [statusFilter, setStatusFilter] = useState(preferences.tractorFilters?.statusFilter || '');
+    const [freightFilter, setFreightFilter] = useState(preferences.tractorFilters?.freightFilter || '');
     const [showAddSheet, setShowAddSheet] = useState(false);
     const [selectedTractor, setSelectedTractor] = useState(null);
     const [viewMode, setViewMode] = useState(() => {
@@ -75,6 +76,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
             setSearchInput(preferences.tractorFilters.searchText || '')
             setSelectedPlant(preferences.tractorFilters.selectedPlant || '')
             setStatusFilter(preferences.tractorFilters.statusFilter || '')
+            setFreightFilter(preferences.tractorFilters.freightFilter || '')
             setViewMode(preferences.tractorFilters.viewMode !== undefined && preferences.tractorFilters.viewMode !== null ? preferences.tractorFilters.viewMode : preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null ? preferences.defaultViewMode : localStorage.getItem('tractors_last_view_mode') || 'grid')
         }
     }, [preferences])
@@ -177,8 +179,9 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         if (statusFilter && statusFilter !== 'All Statuses') {
             matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? tractor.status === statusFilter : statusFilter === 'Past Due Service' ? TractorUtility.isServiceOverdue(tractor.lastServiceDate) : statusFilter === 'Verified' ? tractor.isVerified() : statusFilter === 'Not Verified' ? !tractor.isVerified() : statusFilter === 'Open Issues' ? (Number(tractor.openIssuesCount || 0) > 0) : false
         }
-        return matchesSearch && matchesPlant && matchesRegion && matchesStatus
-    }).sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')), [tractors, operators, selectedPlant, searchText, statusFilter, regionPlantCodes])
+        const matchesFreight = !freightFilter || tractor.freight === freightFilter
+        return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
+    }).sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')), [tractors, operators, selectedPlant, searchText, statusFilter, freightFilter, regionPlantCodes])
 
     const debouncedSetSearchText = useCallback(AsyncUtility.debounce(value => {
         setSearchText(value);
@@ -186,7 +189,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
     }, 300), [updateTractorFilter])
 
     const canShowUnassignedOverlay = tractorsLoaded && operatorsLoaded && !isLoading && unassignedActiveOperatorsCount > 0
-    const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
+    const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || freightFilter)
 
     useEffect(() => {
         function updateStickyCoverHeight() {
@@ -199,7 +202,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
-    }, [viewMode, searchInput, selectedPlant, statusFilter])
+    }, [viewMode, searchInput, selectedPlant, statusFilter, freightFilter])
 
     const content = useMemo(() => {
         if (isLoading || isRegionLoading) {
@@ -216,7 +219,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                         <i className="fas fa-truck"></i>
                     </div>
                     <h3>No Tractors Found</h3>
-                    <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') ? "No tractors match your search criteria." : "There are no tractors in the system yet."}</p>
+                    <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || freightFilter ? "No tractors match your search criteria." : "There are no tractors in the system yet."}</p>
                     <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add
                         Tractor
                     </button>
@@ -277,7 +280,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                 tableClassName="list-table"
             />
         )
-    }, [isLoading, isRegionLoading, filteredTractors, viewMode, searchText, selectedPlant, statusFilter, operators, plants, tractors])
+    }, [isLoading, isRegionLoading, filteredTractors, viewMode, searchText, selectedPlant, statusFilter, freightFilter, operators, plants, tractors])
 
     return (
         <>
@@ -322,12 +325,19 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                                 setStatusFilter(v);
                                 updateTractorFilter('statusFilter', v)
                             }}
+                            freightFilter={freightFilter}
+                            freightOptions={['All Freight', 'Cement', 'Aggregate']}
+                            onFreightFilterChange={(v) => {
+                                setFreightFilter(v);
+                                updateTractorFilter('freightFilter', v)
+                            }}
                             showReset={showReset}
                             onReset={() => {
                                 setSearchText('');
                                 setSearchInput('');
                                 setSelectedPlant('');
                                 setStatusFilter('');
+                                setFreightFilter('');
                                 resetTractorFilters({keepViewMode: true, currentViewMode: viewMode})
                             }}
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
