@@ -13,6 +13,8 @@
     width: 100%;
     overflow-x: hidden;
     overflow-y: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 .coming-soon {

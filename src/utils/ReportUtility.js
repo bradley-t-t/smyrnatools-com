@@ -143,19 +143,19 @@ const ReportUtility = {
         let statusClass = ''
         let buttonLabel = ''
         if (completed) {
-            statusText = 'Completed'
+            statusText = 'Submitted'
             statusClass = 'success'
             buttonLabel = 'View'
         } else if (hasSavedData) {
-            statusText = 'Continue Editing'
+            statusText = 'Draft'
             statusClass = 'info'
             buttonLabel = 'Edit'
         } else if (saturday && saturday >= now) {
-            statusText = 'Current Week'
+            statusText = 'Active'
             statusClass = 'info'
             buttonLabel = 'Submit'
         } else {
-            statusText = 'Past Due'
+            statusText = 'Overdue'
             statusClass = 'error'
             buttonLabel = 'Submit'
         }

@@ -78,16 +78,14 @@
 
 .rpts-root {
     width: 100%;
-    max-width: 1050px;
-    margin: 40px auto 0 auto;
-    background: var(--card-bg);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
     padding: 0;
     display: flex;
     flex-direction: column;
-    min-height: 600px;
-    border: 1.5px solid var(--divider);
+    height: 100vh;
+    border: none;
     position: relative;
     z-index: 1;
 }
@@ -241,7 +239,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 0;
+    padding: 24px 0 10px 0;
+    z-index: 1;
 }
 
 .rpts-filters {
@@ -258,7 +257,7 @@
     font-size: 15px;
     padding: 6px 14px;
     color: var(--text-primary);
-    min-width: 180px;
+    width: 180px;
     box-shadow: var(--shadow-sm);
     outline: none;
     appearance: none;
@@ -268,6 +267,8 @@
     width: 100%;
     padding: 0;
     margin: 0;
+    flex: 1;
+    z-index: 1;
 }
 
 .rpts-week-header {
@@ -306,23 +307,33 @@
 }
 
 .rpts-status {
-    margin-left: 12px;
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0;
 }
 
 .rpts-status.success {
+    background: rgba(34, 197, 94, 0.1);
     color: var(--success);
 }
 
 .rpts-status.warning {
+    background: rgba(245, 158, 11, 0.1);
     color: var(--warning);
 }
 
 .rpts-status.error {
+    background: rgba(239, 68, 68, 0.1);
     color: var(--error);
 }
 
 .rpts-status.info {
+    background: rgba(59, 130, 246, 0.1);
     color: var(--info);
 }
 
@@ -335,9 +346,9 @@
 }
 
 .rpts-list-action {
-    background: var(--accent);
-    color: var(--text-light);
-    border: none;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
     border-radius: 8px;
     padding: 7px 18px;
     font-size: 15px;
@@ -348,7 +359,7 @@
 }
 
 .rpts-list-action:hover {
-    background: var(--accent-dark);
+    background: var(--divider);
 }
 
 .rpts-list-action:active {
@@ -510,7 +521,7 @@
 
 .rpts-modal-error {
     color: var(--error);
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 8px;
     margin-top: -8px;
 }
@@ -571,7 +582,7 @@
 .rpts-footer {
     width: 100%;
     text-align: center;
-    margin-top: 48px;
+    margin-top: 0;
     margin-bottom: 32px;
     font-weight: 600;
     color: var(--text-secondary);
@@ -635,7 +646,6 @@
     gap: 10px;
 }
 
-/* ReportsReviewView.css */
 .rpts-review-user-card {
     display: flex;
     align-items: center;
@@ -945,7 +955,6 @@
     margin-top: -8px;
 }
 
-/* ReportsSubmitView.css */
 .rpts-sbmt-root {
     width: 100%;
     display: flex;
@@ -1308,145 +1317,74 @@
     outline: none;
 }
 
-.rpts-sbmt-label {
-    font-weight: 700;
-    color: var(--text-primary);
-    font-size: 14px;
+.rpt-secondary-btn:hover {
+    background: var(--background);
 }
 
-.rpts-sbmt-op-card-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 24px 18px 24px;
+.mixers-list-table-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 0;
 }
 
-.rpts-sbmt-btn-secondary {
-    font-weight: 600;
-    font-size: 15px;
-    background: var(--divider);
-    color: var(--text-primary);
-    border: none;
-    border-radius: 6px;
-    padding: 6px 18px;
-    cursor: pointer;
-}
-
-.rpts-sbmt-btn-primary {
-    font-weight: 600;
-    font-size: 15px;
-    background: var(--accent);
-    color: var(--text-light);
-    border: none;
-    border-radius: 6px;
-    padding: 6px 18px;
-    cursor: pointer;
-}
-
-.rpts-sbmt-btn-primary:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.rpts-sbmt-operator-count {
-    font-weight: 600;
-    font-size: 15px;
-}
-
-.rpts-sbmt-w-120 {
-    width: 120px;
-    flex: 0 0 120px;
-}
-
-.rpts-sbmt-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.rpts-sbmt-modal-content {
+.mixers-list-table {
+    width: 100%;
+    border-collapse: collapse;
     background: var(--card-bg);
-    border-radius: 18px;
-    box-shadow: var(--shadow-lg);
-    width: 98%;
-    max-width: 650px;
-    max-height: 92vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid var(--divider);
-    padding: 24px;
-}
-
-.rpts-sbmt-modal-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-}
-
-.rpts-sbmt-modal-text {
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-}
-
-.rpts-sbmt-checkbox-label {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    margin: 8px 0;
-}
-
-.rpts-sbmt-modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 16px;
-}
-
-.rpts-sbmt-btn-confirm {
-    background: var(--accent);
-    color: var(--text-light);
-    border: none;
     border-radius: 8px;
-    padding: 10px 18px;
-    font-weight: 700;
-    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    font-size: 14px;
+    margin: 0;
 }
 
-.rpts-sbmt-edit-banner {
-    background: var(--accent-light-theme);
-    color: var(--text-primary);
-    border: 1px solid var(--accent-border);
-    border-radius: 10px;
-    padding: 8px 12px;
-    margin: 12px 16px 0 16px;
+.mixers-list-table th {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--divider);
+    background: var(--background);
+    color: var(--primary);
     font-weight: 700;
-}
-
-.rpts-export-button {
-    background: var(--accent);
-    color: var(--text-light);
-    border: none;
-    border-radius: 8px;
-    padding: 10px 22px;
     font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .18s, opacity .18s;
 }
 
-.rpts-export-button:disabled {
-    background: var(--divider);
-    color: var(--text-secondary);
-    cursor: not-allowed;
-    opacity: .6;
+.mixers-list-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--divider);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.mixers-list-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.mixers-list-table tbody tr.completed {
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.mixers-list-table tbody tr.completed td {
+    color: var(--success);
+}
+
+.rpt-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.rpt-status-dot.success {
+    background: var(--success);
+}
+
+.rpt-status-dot.error {
+    background: var(--error);
+}
+
+.rpt-status-dot.accent {
+    background: var(--accent);
 }
 
 @media (max-width: 1200px) {
@@ -1543,7 +1481,26 @@
     }
 }
 
-/* ReportTypes.css */
+@media (max-width: 1100px) {
+    .rpts-summary-metric-card {
+        min-width: 0;
+        max-width: 99vw;
+        padding: 12px 4vw 12px 4vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .rpts-summary-metric-card {
+        min-width: 0;
+        max-width: 99vw;
+        padding: 10px 2vw 10px 2vw;
+    }
+
+    .rpts-summary-content {
+        padding: 10px 0 0 0;
+    }
+}
+
 .rpt-section {
     margin-top: 32px;
     margin-bottom: 16px;
@@ -1723,9 +1680,7 @@
     overflow-x: auto;
     border: 1px solid var(--divider);
     border-radius: 10px;
-    background: var(--card-bg);
     box-shadow: var(--shadow-md);
-    max-height: 60vh;
     overflow-y: auto;
 }
 
@@ -1767,9 +1722,9 @@
     padding: 8px 10px;
     font-size: 12px;
     font-weight: 800;
-    color: var(--text-secondary);
+    color: var(--accent-header-text);
     border-bottom: 1px solid var(--divider);
-    background: var(--background);
+    background: var(--accent-header-bg);
     white-space: nowrap;
 }
 
@@ -1778,6 +1733,8 @@
 }
 
 .rpt-row {
+    position: relative;
+    z-index: 1;
     border-bottom: 1px solid var(--divider);
 }
 
@@ -1788,6 +1745,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    z-index: 1;
 }
 
 .rpt-td.secondary {
@@ -2344,22 +2302,10 @@
     box-shadow: 0 1px 4px var(--shadow-sm);
 }
 
-@media (max-width: 1100px) {
-    .rpts-summary-metric-card {
-        min-width: 0;
-        max-width: 99vw;
-        padding: 12px 4vw 12px 4vw;
-    }
+.rpts-reviewed-check {
+    color: var(--success);
 }
 
-@media (max-width: 600px) {
-    .rpts-summary-metric-card {
-        min-width: 0;
-        max-width: 99vw;
-        padding: 10px 2vw 10px 2vw;
-    }
-
-    .rpts-summary-content {
-        padding: 10px 0 0 0;
-    }
+.rpts-reviewed-flag {
+    color: var(--warning);
 }

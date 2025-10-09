@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {reportTypeMap, reportTypes} from '../../../types/ReportTypes'
-import './styles/ReportsView.css'
+import './styles/Reports.css'
 import ReportsSubmitView from './ReportsSubmitView'
 import ReportsReviewView from './ReportsReviewView'
 import {supabase} from '../../../services/DatabaseService'
@@ -13,6 +13,8 @@ import {ReportUtility} from '../../../utils/ReportUtility'
 
 const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
+
+const totalMyWeeks = ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, HARDCODED_TODAY)
 
 function ReportsView() {
     const [localReports, setLocalReports] = useState([])
@@ -31,8 +33,6 @@ function ReportsView() {
     const [filterPlant, setFilterPlant] = useState('')
     const [managerEditUser, setManagerEditUser] = useState(null)
 
-    const [myReportsVisibleWeeks, setMyReportsVisibleWeeks] = useState(2)
-    const [reviewVisibleWeeks, setReviewVisibleWeeks] = useState(2)
 
     const [isLoadingUser, setIsLoadingUser] = useState(true)
     const [isLoadingMy, setIsLoadingMy] = useState(true)
@@ -68,7 +68,7 @@ function ReportsView() {
         const isoList = weeks.map(w => new Date(w).toISOString())
         let query = supabase
             .from('reports')
-            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
+            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
             .in('week', isoList)
         if (scope === 'my') {
             const allowedMy = reportTypes.filter(rt => hasAssigned[rt.name]).map(rt => rt.name)
@@ -99,7 +99,8 @@ function ReportsView() {
                     userId: r.user_id,
                     week: r.week || r.data?.week || null,
                     report_date_range_start: r.report_date_range_start ? new Date(r.report_date_range_start) : null,
-                    report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null
+                    report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null,
+                    been_reviewed: !!r.been_reviewed
                 }))
             return [...prev, ...mapped]
         })
@@ -179,7 +180,7 @@ function ReportsView() {
 
     useEffect(() => {
         if (!user || isLoadingPermissions) return
-        const initialMyWeeks = ReportUtility.getLastNWeekIsos(2, HARDCODED_TODAY)
+        const initialMyWeeks = ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY)
 
         async function loadInitial() {
             setIsLoadingMy(true)
@@ -193,7 +194,7 @@ function ReportsView() {
 
     useEffect(() => {
         if (!user || isLoadingPermissions || tab !== 'review') return
-        const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(reviewVisibleWeeks, HARDCODED_TODAY))
+        const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(52, HARDCODED_TODAY))
         const toLoad = Array.from(desiredWeeks).filter(w => !reviewLoadedWeeks.has(w))
         if (toLoad.length === 0) {
             if (isLoadingReview) setIsLoadingReview(false)
@@ -212,30 +213,7 @@ function ReportsView() {
         return () => {
             cancelled = true
         }
-    }, [tab, user, isLoadingPermissions, reviewVisibleWeeks])
-
-    useEffect(() => {
-        if (!user || isLoadingPermissions) return
-        const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(myReportsVisibleWeeks, HARDCODED_TODAY))
-        const toLoad = Array.from(desiredWeeks).filter(w => !myLoadedWeeks.has(w))
-        if (toLoad.length === 0) {
-            if (isLoadingMy) setIsLoadingMy(false)
-            return
-        }
-        let cancelled = false
-
-        async function loadMoreMy() {
-            setIsLoadingMy(true)
-            await fetchReportsBatch({weeks: toLoad, scope: 'my'})
-            if (!cancelled) setMyLoadedWeeks(prev => new Set([...Array.from(prev), ...toLoad]))
-            setIsLoadingMy(false)
-        }
-
-        loadMoreMy()
-        return () => {
-            cancelled = true
-        }
-    }, [myReportsVisibleWeeks, user, isLoadingPermissions])
+    }, [tab, user, isLoadingPermissions])
 
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
@@ -276,7 +254,10 @@ function ReportsView() {
                 setLoadingReporterPlants(true)
                 const entries = await Promise.all(missing.map(async id => {
                     try {
-                        const plantCode = await UserService.getUserPlant(id)
+                        const plantCode = await Promise.race([
+                            UserService.getUserPlant(id),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                        ])
                         return [id, plantCode || '']
                     } catch {
                         return [id, '']
@@ -330,8 +311,7 @@ function ReportsView() {
         if (tab === 'overdue' && !hasAnyReviewPermissionPrefix) setTab('all')
     }, [tab, hasAnyReviewPermissionPrefix])
 
-    const totalMyWeeks = ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, HARDCODED_TODAY)
-    const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(Math.min(myReportsVisibleWeeks, totalMyWeeks), HARDCODED_TODAY), [myReportsVisibleWeeks, totalMyWeeks])
+    const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY), [totalMyWeeks])
 
     const myReportsByWeek = useMemo(() => {
         const grouped = {}
@@ -375,6 +355,8 @@ function ReportsView() {
     }, [reviewableReports])
 
     const sortedReviewWeeks = useMemo(() => Object.keys(reviewReportsByWeek).sort((a, b) => new Date(b) - new Date(a)), [reviewReportsByWeek])
+
+    const totalReviewWeeks = useMemo(() => Object.keys(reviewReportsByWeek).length, [reviewReportsByWeek])
 
     function getUserName(userId) {
         const profile = userProfiles[userId]
@@ -422,13 +404,13 @@ function ReportsView() {
                 .from('reports')
                 .update(upsertData)
                 .eq('id', existing.id)
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
                 .single()
         } else {
             response = await supabase
                 .from('reports')
                 .insert([upsertData])
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
                 .single()
         }
         const {data, error} = response
@@ -497,13 +479,13 @@ function ReportsView() {
                 .from('reports')
                 .update(upsertData)
                 .eq('id', existing.id)
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
                 .single()
         } else {
             response = await supabase
                 .from('reports')
                 .insert([upsertData])
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
                 .single()
         }
         const {data, error} = response
@@ -535,7 +517,15 @@ function ReportsView() {
         }
     }
 
-    function handleReview(report) {
+    async function handleReview(report) {
+        // Mark as reviewed
+        const {error} = await supabase
+            .from('reports')
+            .update({been_reviewed: true})
+            .eq('id', report.id)
+        if (!error) {
+            setLocalReports(prev => prev.map(r => r.id === report.id ? {...r, been_reviewed: true} : r))
+        }
         setReviewData(report)
         setShowReview(reportTypes.find(rt => rt.name === report.name))
     }
@@ -563,7 +553,7 @@ function ReportsView() {
         }
         const {data, error} = await supabase
             .from('reports')
-            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
+            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
             .eq('report_name', item.name)
             .eq('user_id', user.id)
             .eq('week', new Date(item.weekIso).toISOString())
@@ -589,7 +579,6 @@ function ReportsView() {
 
     const filteredMyWeeks = sortedMyWeeks
         .filter(weekIso => (myReportsByWeek[weekIso] || []).length > 0)
-        .slice(0, myReportsVisibleWeeks)
 
     const filteredReviewWeeks = useMemo(() => sortedReviewWeeks.filter(weekIso => {
         const weekReports = reviewReportsByWeek[weekIso] || []
@@ -599,16 +588,20 @@ function ReportsView() {
             const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
             return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
         })
-    }).slice(0, reviewVisibleWeeks), [sortedReviewWeeks, reportTypes, filterReportType, filterPlant, reviewVisibleWeeks, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
+    }), [sortedReviewWeeks, reportTypes, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
+
+    const reviewVisibleWeeks = filteredReviewWeeks
 
     const filteredOverdueItems = useMemo(() => {
-        return (overdueItems || []).filter(item => {
-            const matchType = !filterReportType || item.report_name === filterReportType
-            const reporterPlant = reporterPlantMap[item.userId] || ''
-            const matchPlant = !filterPlant || reporterPlant === filterPlant
-            const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
-            return matchType && matchPlant && matchRegion
-        })
+        return (overdueItems || [])
+            .filter(item => {
+                const matchType = !filterReportType || item.report_name === filterReportType
+                const reporterPlant = reporterPlantMap[item.userId] || ''
+                const matchPlant = !filterPlant || reporterPlant === filterPlant
+                const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
+                return matchType && matchPlant && matchRegion
+            })
+            .sort((a, b) => new Date(b.week) - new Date(a.week))
     }, [overdueItems, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
 
     const overdueByWeek = useMemo(() => {
@@ -631,17 +624,6 @@ function ReportsView() {
         return {total: items.length, completed, pending}
     }, [weeksToShow, myReportsByWeek])
 
-    const handleShowMoreMy = () => {
-        if (isLoadingMy) return
-        setIsLoadingMy(true)
-        setMyReportsVisibleWeeks(w => w + 2)
-    }
-
-    const handleShowMoreReview = () => {
-        if (isLoadingReview) return
-        setIsLoadingReview(true)
-        setReviewVisibleWeeks(w => w + 2)
-    }
 
     return (
         <>
@@ -655,24 +637,42 @@ function ReportsView() {
                                     <i className="fas fa-file-alt"></i>
                                     <span>Reports</span>
                                 </div>
-                                {tab === 'all' && (
-                                    <div className="rpts-metrics">
-                                        <div className="rpts-metric">
-                                            <div className="rpts-metric-value">{myCounts.completed}</div>
-                                            <div className="rpts-metric-label">Completed</div>
-                                        </div>
-                                        <div className="rpts-metric">
-                                            <div className="rpts-metric-value">{myCounts.pending}</div>
-                                            <div className="rpts-metric-label">Pending</div>
-                                        </div>
-                                        <div className="rpts-metric">
-                                            <div className="rpts-metric-value">{myCounts.total}</div>
-                                            <div className="rpts-metric-label">Total</div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                             <div className="rpts-toolbar-right">
+                                <div className="rpts-filters">
+                                    <select
+                                        value={filterReportType}
+                                        onChange={e => setFilterReportType(e.target.value)}
+                                        className="rpts-select-control"
+                                    >
+                                        <option value="">All Report Types</option>
+                                        {reportTypes
+                                            .filter(rt =>
+                                                tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]
+                                            )
+                                            .map(rt => (
+                                                <option key={rt.name} value={rt.name}>{rt.title}</option>
+                                            ))}
+                                    </select>
+                                    <select
+                                        value={filterPlant}
+                                        onChange={e => setFilterPlant(e.target.value)}
+                                        className="rpts-select-control"
+                                    >
+                                        <option value="">All Plants</option>
+                                        {plants
+                                            .filter(p => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code))
+                                            .sort((a, b) => {
+                                                const an = parseInt(String(a.plant_code || '').replace(/\D/g, '') || '0', 10)
+                                                const bn = parseInt(String(b.plant_code || '').replace(/\D/g, '') || '0', 10)
+                                                return an - bn || String(a.plant_code || '').localeCompare(String(b.plant_code || ''))
+                                            })
+                                            .map(p => (
+                                                <option key={p.plant_code}
+                                                        value={p.plant_code}>{p.plant_name}</option>
+                                            ))}
+                                    </select>
+                                </div>
                                 <div className="rpts-tabs">
                                     <button
                                         className={tab === 'all' ? 'active' : ''}
@@ -698,43 +698,6 @@ function ReportsView() {
                                         </button>
                                     )}
                                 </div>
-                                {tab !== 'all' && (
-                                    <div className="rpts-filters">
-                                        <select
-                                            value={filterReportType}
-                                            onChange={e => setFilterReportType(e.target.value)}
-                                            className="rpts-select-control"
-                                        >
-                                            <option value="">All Report Types</option>
-                                            {reportTypes
-                                                .filter(rt =>
-                                                    (tab === 'review' && hasReviewPermission[rt.name]) ||
-                                                    (tab === 'overdue' && hasReviewPermission[rt.name])
-                                                )
-                                                .map(rt => (
-                                                    <option key={rt.name} value={rt.name}>{rt.title}</option>
-                                                ))}
-                                        </select>
-                                        <select
-                                            value={filterPlant}
-                                            onChange={e => setFilterPlant(e.target.value)}
-                                            className="rpts-select-control"
-                                        >
-                                            <option value="">All Plants</option>
-                                            {plants
-                                                .filter(p => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code))
-                                                .sort((a, b) => {
-                                                    const an = parseInt(String(a.plant_code || '').replace(/\D/g, '') || '0', 10)
-                                                    const bn = parseInt(String(b.plant_code || '').replace(/\D/g, '') || '0', 10)
-                                                    return an - bn || String(a.plant_code || '').localeCompare(String(b.plant_code || ''))
-                                                })
-                                                .map(p => (
-                                                    <option key={p.plant_code}
-                                                            value={p.plant_code}>{p.plant_name}</option>
-                                                ))}
-                                        </select>
-                                    </div>
-                                )}
                             </div>
                         </div>
                         <div className="rpts-content">
@@ -753,173 +716,45 @@ function ReportsView() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    {filteredMyWeeks.map(weekIso => {
-                                                        const weekItemsAll = (myReportsByWeek[weekIso] || [])
-                                                        if (weekItemsAll.length === 0) return null
-                                                        const {
-                                                            monday: weekStart,
-                                                            saturday: weekEnd
-                                                        } = ReportUtility.getWeekDatesFromIso(weekIso)
-                                                        const weekRange = ReportService.getWeekRangeString(weekStart, weekEnd)
-                                                        const pmItem = weekItemsAll.find(i => i.name === 'plant_manager')
-                                                        const peItem = weekItemsAll.find(i => i.name === 'plant_production')
-                                                        const otherItems = weekItemsAll.filter(i => i.name !== 'plant_manager' && i.name !== 'plant_production')
-                                                        return (
-                                                            <div key={weekIso} className="rpts-week-group">
-                                                                <div className="rpts-week-header"
-                                                                     data-range={weekRange}>{weekRange}</div>
-                                                                {(pmItem || peItem) && (
-                                                                    <div className="rpts-pair">
-                                                                        <div className="rpts-pair-header">
-                                                                            <div>{[pmItem?.title, peItem?.title].filter(Boolean).join(' & ')}</div>
-                                                                            <div className="rpts-pair-meta">Week
-                                                                                of {weekStart.toLocaleDateString()}</div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`rpts-pair-cols ${(pmItem && peItem) ? '' : 'single'}`}>
-                                                                            {pmItem && (() => {
-                                                                                const today = new Date()
-                                                                                const hasSavedData = !!(pmItem.report && pmItem.report.data)
-                                                                                const {
-                                                                                    statusText,
-                                                                                    statusClass,
-                                                                                    buttonLabel
-                                                                                } = ReportUtility.computeMyReportStatus({
-                                                                                    completed: pmItem.completed,
-                                                                                    hasSavedData,
-                                                                                    weekIso: pmItem.weekIso,
-                                                                                    today
-                                                                                })
-                                                                                return (
-                                                                                    <div className="rpts-pair-tile">
-                                                                                        <div
-                                                                                            className="rpts-pair-title">
-                                                                                            <i className="fas fa-user-tie"></i>
-                                                                                            <span>{pmItem.title}</span>
-                                                                                            <span
-                                                                                                className={`rpts-status ${statusClass}`}>{statusText}</span>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            className="rpts-pair-actions">
-                                                                                            <button
-                                                                                                className="rpts-list-action"
-                                                                                                onClick={() => handleShowForm(pmItem)}>{buttonLabel}</button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )
-                                                                            })()}
-                                                                            {peItem && (() => {
-                                                                                const today = new Date()
-                                                                                const hasSavedData = !!(peItem.report && peItem.report.data)
-                                                                                const {
-                                                                                    statusText,
-                                                                                    statusClass,
-                                                                                    buttonLabel
-                                                                                } = ReportUtility.computeMyReportStatus({
-                                                                                    completed: peItem.completed,
-                                                                                    hasSavedData,
-                                                                                    weekIso: peItem.weekIso,
-                                                                                    today
-                                                                                })
-                                                                                return (
-                                                                                    <div className="rpts-pair-tile">
-                                                                                        <div
-                                                                                            className="rpts-pair-title">
-                                                                                            <i className="fas fa-industry"></i>
-                                                                                            <span>{peItem.title}</span>
-                                                                                            <span
-                                                                                                className={`rpts-status ${statusClass}`}>{statusText}</span>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            className="rpts-pair-actions">
-                                                                                            <button
-                                                                                                className="rpts-list-action"
-                                                                                                onClick={() => handleShowForm(peItem)}>{buttonLabel}</button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )
-                                                                            })()}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                                {otherItems.length > 0 && (
-                                                                    <div className="rpts-pair">
-                                                                        <div className="rpts-pair-header">
-                                                                            <div>{otherItems.map(i => i.title).join(' & ')}</div>
-                                                                            <div className="rpts-pair-meta">Week
-                                                                                of {weekStart.toLocaleDateString()}</div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`rpts-pair-cols ${otherItems.length === 1 ? 'single' : ''}`}>
-                                                                            {otherItems.map(item => {
-                                                                                const today = new Date()
-                                                                                const hasSavedData = !!(item.report && item.report.data)
-                                                                                const {
-                                                                                    statusText,
-                                                                                    statusClass,
-                                                                                    buttonLabel
-                                                                                } = ReportUtility.computeMyReportStatus({
-                                                                                    completed: item.completed,
-                                                                                    hasSavedData,
-                                                                                    weekIso: item.weekIso,
-                                                                                    today
-                                                                                })
-                                                                                return (
-                                                                                    <div className="rpts-pair-tile"
-                                                                                         key={item.name + item.weekIso}>
-                                                                                        <div
-                                                                                            className="rpts-pair-title">
-                                                                                            <i className="fas fa-file-alt"></i>
-                                                                                            <span>{item.title}</span>
-                                                                                            <span
-                                                                                                className={`rpts-status ${statusClass}`}>{statusText}</span>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            className="rpts-pair-actions">
-                                                                                            <button
-                                                                                                className="rpts-list-action"
-                                                                                                onClick={() => handleShowForm(item)}>
-                                                                                                {buttonLabel}
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )
-                                                                            })}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    })}
-                                                    {(myReportsVisibleWeeks < totalMyWeeks || myReportsVisibleWeeks > 2) && (
-                                                        <div className="rpts-cta-row">
-                                                            {myReportsVisibleWeeks < totalMyWeeks && (
-                                                                isLoadingMy ? (
-                                                                    <LoadingScreen message="Loading more reports..."
-                                                                                   inline/>
-                                                                ) : (
-                                                                    <button
-                                                                        type="button"
-                                                                        className="rpts-cta-primary"
-                                                                        onMouseDown={handleShowMoreMy}
-                                                                        onTouchStart={handleShowMoreMy}
-                                                                        onClick={handleShowMoreMy}
-                                                                    >
-                                                                        Show More
-                                                                    </button>
-                                                                )
-                                                            )}
-                                                            {myReportsVisibleWeeks > 2 && (
-                                                                <button
-                                                                    type="button"
-                                                                    className="rpts-cta-secondary"
-                                                                    onClick={() => setMyReportsVisibleWeeks(2)}
-                                                                >
-                                                                    Show Less
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                    <div className="rpt-table-wrapper">
+                                                        <table className="rpt-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th className="rpt-th">Week</th>
+                                                                    <th className="rpt-th">Report Type</th>
+                                                                    <th className="rpt-th">Status</th>
+                                                                    <th className="rpt-th">Due Date</th>
+                                                                    <th className="rpt-th right">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {filteredMyWeeks.flatMap(weekIso => {
+                                                                    const weekItems = myReportsByWeek[weekIso] || []
+                                                                    const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)
+                                                                    const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                    return weekItems.map(item => {
+                                                                        const today = new Date()
+                                                                        const hasSavedData = !!(item.report && item.report.data)
+                                                                        const {statusText, statusClass, buttonLabel} = ReportUtility.computeMyReportStatus({
+                                                                            completed: item.completed,
+                                                                            hasSavedData,
+                                                                            weekIso: item.weekIso,
+                                                                            today
+                                                                        })
+                                                                        return (
+                                                                            <tr key={item.name + item.weekIso} className="rpt-row">
+                                                                                <td className="rpt-td">{weekRange}</td>
+                                                                                <td className="rpt-td">{item.title}</td>
+                                                                                <td className="rpt-td"><span className={`rpts-status ${statusClass}`}>{statusText}</span></td>
+                                                                                <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                                <td className="rpt-td right"><button className="rpts-list-action" onClick={() => handleShowForm(item)}>{buttonLabel}</button></td>
+                                                                            </tr>
+                                                                        )
+                                                                    })
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </>
                                             )}
                                         </>
@@ -941,140 +776,44 @@ function ReportsView() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    {filteredReviewWeeks.map(weekIso => {
-                                                        const weekReportsAll = (reviewReportsByWeek[weekIso] || []).filter(report => {
-                                                            const reporterPlant = reporterPlantMap[report.userId] || ''
-                                                            const matchPlant = !filterPlant || reporterPlant === filterPlant
-                                                            const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
-                                                            return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
-                                                        })
-                                                        if (weekReportsAll.length === 0) return null
-                                                        const {
-                                                            monday: weekStart,
-                                                            saturday: weekEnd
-                                                        } = ReportUtility.getWeekDatesFromIso(weekIso)
-                                                        const weekRange = ReportService.getWeekRangeString(weekStart, weekEnd)
-                                                        const byUser = new Map()
-                                                        weekReportsAll.forEach(r => {
-                                                            const list = byUser.get(r.userId) || []
-                                                            list.push(r)
-                                                            byUser.set(r.userId, list)
-                                                        })
-                                                        const pairs = []
-                                                        const singles = []
-                                                        byUser.forEach(list => {
-                                                            const pm = list.find(r => r.name === 'plant_manager')
-                                                            const pe = list.find(r => r.name === 'plant_production')
-                                                            if (pm || pe) pairs.push({pm, pe})
-                                                            const remaining = list.filter(r => r.name !== 'plant_manager' && r.name !== 'plant_production')
-                                                            remaining.forEach(r => singles.push(r))
-                                                        })
-                                                        return (
-                                                            <div key={weekIso} className="rpts-week-group">
-                                                                <div className="rpts-week-header"
-                                                                     data-range={weekRange}>{weekRange}</div>
-                                                                {pairs.map((pair, idx) => (
-                                                                    <div className="rpts-pair"
-                                                                         key={`pair-${weekIso}-${idx}`}>
-                                                                        <div className="rpts-pair-header">
-                                                                            <div>{[pair.pm?.title, pair.pe?.title].filter(Boolean).join(' & ')}</div>
-                                                                            <div className="rpts-pair-meta">Completed
-                                                                                By {getUserName((pair.pm || pair.pe).userId)}</div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`rpts-pair-cols ${(pair.pm && pair.pe) ? '' : 'single'}`}>
-                                                                            {pair.pm && (
-                                                                                <div className="rpts-pair-tile">
-                                                                                    <div className="rpts-pair-title">
-                                                                                        <i className="fas fa-user-tie"></i>
-                                                                                        <span>{pair.pm.title}</span>
-                                                                                    </div>
-                                                                                    <div className="rpts-pair-actions">
-                                                                                        <button
-                                                                                            className="rpts-list-action"
-                                                                                            onClick={() => handleReview(pair.pm)}>Review
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                            {pair.pe && (
-                                                                                <div className="rpts-pair-tile">
-                                                                                    <div className="rpts-pair-title">
-                                                                                        <i className="fas fa-industry"></i>
-                                                                                        <span>{pair.pe.title}</span>
-                                                                                    </div>
-                                                                                    <div className="rpts-pair-actions">
-                                                                                        <button
-                                                                                            className="rpts-list-action"
-                                                                                            onClick={() => handleReview(pair.pe)}>Review
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                                {singles.length > 0 && (
-                                                                    <div className="rpts-pair">
-                                                                        <div className="rpts-pair-header">
-                                                                            <div>{Array.from(new Set(singles.map(r => r.title))).join(' & ')}</div>
-                                                                            <div className="rpts-pair-meta">Week
-                                                                                of {weekStart.toLocaleDateString()}</div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`rpts-pair-cols ${singles.length === 1 ? 'single' : ''}`}>
-                                                                            {singles.map(report => (
-                                                                                <div className="rpts-pair-tile"
-                                                                                     key={report.id}>
-                                                                                    <div className="rpts-pair-title">
-                                                                                        <i className="fas fa-file-alt"></i>
-                                                                                        <span>{report.title}</span>
-                                                                                        <span
-                                                                                            className="rpts-pair-meta">Completed By: {getUserName(report.userId)}</span>
-                                                                                    </div>
-                                                                                    <div className="rpts-pair-actions">
-                                                                                        <button
-                                                                                            className="rpts-list-action"
-                                                                                            onClick={() => handleReview(report)}>Review
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    })}
-                                                    {(reviewVisibleWeeks < totalMyWeeks || reviewVisibleWeeks > 2) && (
-                                                        <div className="rpts-cta-row">
-                                                            {reviewVisibleWeeks < totalMyWeeks && (
-                                                                isLoadingReview ? (
-                                                                    <LoadingScreen message="Loading more reports..."
-                                                                                   inline/>
-                                                                ) : (
-                                                                    <button
-                                                                        type="button"
-                                                                        className="rpts-cta-primary"
-                                                                        onMouseDown={handleShowMoreReview}
-                                                                        onTouchStart={handleShowMoreReview}
-                                                                        onClick={handleShowMoreReview}
-                                                                    >
-                                                                        Show More
-                                                                    </button>
-                                                                )
-                                                            )}
-                                                            {reviewVisibleWeeks > 2 && (
-                                                                <button
-                                                                    type="button"
-                                                                    className="rpts-cta-secondary"
-                                                                    onClick={() => setReviewVisibleWeeks(2)}
-                                                                >
-                                                                    Show Less
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                    <div className="rpt-table-wrapper">
+                                                        <table className="rpt-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th className="rpt-th">Week</th>
+                                                                    <th className="rpt-th">Report Type</th>
+                                                                    <th className="rpt-th">Submitted By</th>
+                                                                    <th className="rpt-th">Submitted Date</th>
+                                                                    <th className="rpt-th">Reviewed</th>
+                                                                    <th className="rpt-th right">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {reviewableReports
+                                                                    .filter(report => {
+                                                                        const reporterPlant = reporterPlantMap[report.userId] || ''
+                                                                        const matchPlant = !filterPlant || reporterPlant === filterPlant
+                                                                        const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
+                                                                        return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
+                                                                    })
+                                                                    .map(report => {
+                                                                        const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
+                                                                        const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)
+                                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                        return (
+                                                                            <tr key={report.id} className="rpt-row">
+                                                                                <td className="rpt-td">{weekRange}</td>
+                                                                                <td className="rpt-td">{report.title}</td>
+                                                                                <td className="rpt-td">{getUserName(report.userId)}</td>
+                                                                                <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
+                                                                                <td className="rpt-td">{report.been_reviewed ? <><i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed</> : <><i className="fas fa-flag rpts-reviewed-flag"></i> Not Reviewed</>}</td>
+                                                                                <td className="rpt-td right"><button className="rpts-list-action" onClick={() => handleReview(report)}>Review</button></td>
+                                                                            </tr>
+                                                                        )
+                                                                    })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </>
                                             )}
                                         </>
@@ -1096,91 +835,34 @@ function ReportsView() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    {sortedOverdueWeeks.map(weekIso => {
-                                                        const itemsAll = overdueByWeek[weekIso] || []
-                                                        if (itemsAll.length === 0) return null
-                                                        const {
-                                                            monday: weekStart,
-                                                            saturday: weekEnd
-                                                        } = ReportUtility.getWeekDatesFromIso(weekIso)
-                                                        const weekRange = ReportService.getWeekRangeString(weekStart, weekEnd)
-                                                        const byUser = new Map()
-                                                        itemsAll.forEach(i => {
-                                                            const list = byUser.get(i.userId) || []
-                                                            list.push(i)
-                                                            byUser.set(i.userId, list)
-                                                        })
-                                                        const pairs = []
-                                                        const singles = []
-                                                        byUser.forEach(list => {
-                                                            const pm = list.find(r => r.report_name === 'plant_manager')
-                                                            const pe = list.find(r => r.report_name === 'plant_production')
-                                                            if (pm || pe) pairs.push({pm, pe})
-                                                            const remaining = list.filter(r => r.report_name !== 'plant_manager' && r.report_name !== 'plant_production')
-                                                            remaining.forEach(r => singles.push(r))
-                                                        })
-                                                        return (
-                                                            <div key={weekIso} className="rpts-week-group">
-                                                                <div className="rpts-week-header"
-                                                                     data-range={weekRange}>{weekRange}</div>
-                                                                {pairs.map((pair, idx) => (
-                                                                    <div className="rpts-pair"
-                                                                         key={`od-pair-${weekIso}-${idx}`}>
-                                                                        <div className="rpts-pair-header">
-                                                                            <div>{[pair.pm ? (reportTypeMap[pair.pm.report_name]?.title || pair.pm.report_name) : null, pair.pe ? (reportTypeMap[pair.pe.report_name]?.title || pair.pe.report_name) : null].filter(Boolean).join(' & ')}</div>
-                                                                            <div className="rpts-pair-meta">Owed
-                                                                                By {(pair.pm || pair.pe) ? `${(pair.pm?.first_name || pair.pe?.first_name || '')} ${(pair.pm?.last_name || pair.pe?.last_name || '')}`.trim() : ''}</div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`rpts-pair-cols ${(pair.pm && pair.pe) ? '' : 'single'}`}>
-                                                                            {pair.pm && (
-                                                                                <div className="rpts-pair-tile">
-                                                                                    <div className="rpts-pair-title">
-                                                                                        <i className="fas fa-user-tie"></i>
-                                                                                        <span>{(reportTypeMap[pair.pm.report_name] || {}).title || pair.pm.report_name}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                            {pair.pe && (
-                                                                                <div className="rpts-pair-tile">
-                                                                                    <div className="rpts-pair-title">
-                                                                                        <i className="fas fa-industry"></i>
-                                                                                        <span>{(reportTypeMap[pair.pe.report_name] || {}).title || pair.pe.report_name}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                                {singles.length > 0 && (
-                                                                    <div className="rpts-pair">
-                                                                        <div className="rpts-pair-header">
-                                                                            <div>{Array.from(new Set(singles.map(item => (reportTypeMap[item.report_name]?.title || item.report_name)))).join(' & ')}</div>
-                                                                            <div className="rpts-pair-meta">Week
-                                                                                of {weekStart.toLocaleDateString()}</div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={`rpts-pair-cols ${singles.length === 1 ? 'single' : ''}`}>
-                                                                            {singles
-                                                                                .sort((a, b) => a.report_name.localeCompare(b.report_name))
-                                                                                .map((item, idx) => (
-                                                                                    <div className="rpts-pair-tile"
-                                                                                         key={`${item.userId}-${item.report_name}-${item.week}-${idx}`}>
-                                                                                        <div
-                                                                                            className="rpts-pair-title">
-                                                                                            <i className="fas fa-file-alt"></i>
-                                                                                            <span>{(reportTypeMap[item.report_name] || {}).title || item.report_name}</span>
-                                                                                            <span
-                                                                                                className="rpts-pair-meta">Owed By: {(item.first_name || '') + ' ' + (item.last_name || '')}</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    })}
+                                                    <div className="rpt-table-wrapper">
+                                                        <table className="rpt-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th className="rpt-th">Week</th>
+                                                                    <th className="rpt-th">Report Type</th>
+                                                                    <th className="rpt-th">Owed By</th>
+                                                                    <th className="rpt-th">Due Date</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {filteredOverdueItems.map(item => {
+                                                                    const weekIso = item.week
+                                                                    const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)
+                                                                    const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                    const title = (reportTypeMap[item.report_name] || {}).title || item.report_name
+                                                                    return (
+                                                                        <tr key={`${item.userId}-${item.report_name}-${item.week}`} className="rpt-row">
+                                                                            <td className="rpt-td">{weekRange}</td>
+                                                                            <td className="rpt-td">{title}</td>
+                                                                            <td className="rpt-td">{getUserName(item.userId)}</td>
+                                                                            <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                        </tr>
+                                                                    )
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </>
                                             )}
                                         </>
@@ -1227,9 +909,6 @@ function ReportsView() {
                         onManagerEdit={handleManagerEdit}
                     />
                 )}
-            </div>
-            <div className="rpts-footer">
-                Weekly Reports are due Saturday by end of day.
             </div>
         </>
     )

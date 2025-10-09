@@ -1,5 +1,5 @@
 import React from 'react'
-import '../styles/ReportsView.css'
+import '../styles/Reports.css'
 import {ReportUtility} from '../../../../utils/ReportUtility'
 
 export function DistrictManagerSubmitPlugin({maintenanceItems}) {
@@ -33,8 +33,9 @@ export function DistrictManagerSubmitPlugin({maintenanceItems}) {
                     {maintenanceItems.map(item => (
                         <tr key={item.id} className={item.completed ? 'completed' : ''}>
                             <td title={item.description}>
-                                <span
-                                    className={`rpt-status-dot ${item.completed ? 'success' : item.isOverdue ? 'error' : 'accent'}`}
+                                <i
+                                    className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} rpt-status-icon`}
+                                    style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
                                 />
                                 {truncateText(item.description, 60)}
                             </td>
@@ -87,8 +88,9 @@ export function DistrictManagerReviewPlugin({maintenanceItems}) {
                     {maintenanceItems.map(item => (
                         <tr key={item.id} className={item.completed ? 'completed' : ''}>
                             <td title={item.description}>
-                                <span
-                                    className={`rpt-status-dot ${item.completed ? 'success' : item.isOverdue ? 'error' : 'accent'}`}
+                                <i
+                                    className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} rpt-status-icon`}
+                                    style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
                                 />
                                 {truncateText(item.description, 60)}
                             </td>

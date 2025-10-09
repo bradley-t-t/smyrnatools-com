@@ -303,32 +303,6 @@ class MixerServiceImpl {
             if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
             return mixer
         })
-        const items = processedBase.slice()
-        let index = 0
-        const concurrency = 6
-
-        async function worker() {
-            while (index < items.length) {
-                const current = index++
-                const m = items[current]
-                try {
-                    const [comments, issues] = await Promise.all([
-                        MixerService.fetchComments(m.id).catch(() => []),
-                        MixerService.fetchIssues(m.id).catch(() => [])
-                    ])
-                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    m.comments = comments
-                    m.issues = issues
-                    m.openIssuesCount = openIssuesCount
-                    m.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
-            }
-        }
-
-        await Promise.all(Array.from({length: concurrency}, () => worker()))
         return processedBase
     }
 

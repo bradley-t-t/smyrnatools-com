@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react'
-import '../styles/ReportsView.css'
+import '../styles/Reports.css'
 import {ReportUtility} from '../../../../utils/ReportUtility'
 
 const TAG_OPTIONS = ['Accident', 'Injury', 'Non-DOT', 'DOT', 'Compliance', 'Environmental', 'Reprimand', 'Safety']

@@ -1,6 +1,6 @@
 import React from 'react'
 import {usePreferences} from '../../../../app/context/PreferencesContext';
-import '../styles/ReportsView.css'
+import '../styles/Reports.css'
 
 export function PlantManagerSubmitPlugin({
                                              yph,

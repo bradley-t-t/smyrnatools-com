@@ -1,5 +1,5 @@
 import React from 'react'
-import '../styles/ReportsView.css'
+import '../styles/Reports.css'
 import {supabase} from '../../../../services/DatabaseService'
 import {ReportService} from '../../../../services/ReportService'
 import {ReportUtility} from '../../../../utils/ReportUtility'

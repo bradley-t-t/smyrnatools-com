@@ -130,12 +130,43 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
         }
     }
 
+    const loadDetailsForMixers = async (mixers) => {
+        const items = mixers.slice()
+        let index = 0
+        const concurrency = 20
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const m = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        MixerService.fetchComments(m.id).catch(() => []),
+                        MixerService.fetchIssues(m.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    m.comments = comments
+                    m.issues = issues
+                    m.openIssuesCount = openIssuesCount
+                    m.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        // Trigger re-render
+        setMixers([...mixers])
+        setAllMixers([...mixers])
+    }
+
     async function fetchMixersWithDetails() {
         try {
             const processedBase = await MixerService.fetchMixersWithDetails()
             setMixers(processedBase)
             setAllMixers(processedBase)
             setMixersLoaded(true)
+            loadDetailsForMixers(processedBase)
             setTimeout(() => {
                 MixerService.ensureSpareIfNoOperator(processedBase).catch(() => {
                 })

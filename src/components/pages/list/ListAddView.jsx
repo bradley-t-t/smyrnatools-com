@@ -2,9 +2,13 @@ import React, {useEffect, useState} from 'react';
 import './styles/List.css';
 import {ListService} from '../../../services/ListService';
 import {UserService} from '../../../services/UserService';
+import {RegionService} from '../../../services/RegionService';
+import {PlantService} from '../../../services/PlantService';
+import {usePreferences} from '../../../app/context/PreferencesContext';
 import GrammarUtility from '../../../utils/GrammarUtility';
 
-function ListAddView({onClose, onItemAdded, item = null, plants = []}) {
+function ListAddView({onClose, onItemAdded, item = null}) {
+    const {preferences} = usePreferences();
     const [description, setDescription] = useState('');
     const [plantCode, setPlantCode] = useState('');
     const [deadline, setDeadline] = useState(() => {
@@ -17,8 +21,9 @@ function ListAddView({onClose, onItemAdded, item = null, plants = []}) {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [errors, setErrors] = useState({});
     const [userPlantCode, setUserPlantCode] = useState(null);
-    const [canBypassPlantRestriction, setCanBypassPlantRestriction] = useState(false);
+    const [canBypassPlantRestriction, setCanBypassPlantRestriction] = useState(null);
     const [plantRestrictionMessage, setPlantRestrictionMessage] = useState('');
+    const [plants, setPlants] = useState([]);
 
     useEffect(() => {
         async function fetchCurrentUser() {
@@ -42,6 +47,23 @@ function ListAddView({onClose, onItemAdded, item = null, plants = []}) {
         }
 
         fetchCurrentUser();
+    }, []);
+
+    useEffect(() => {
+        async function fetchPlants() {
+            const selectedRegionCode = preferences?.selectedRegion?.code || '';
+            const allowedCodes = await RegionService.getAllowedPlantCodes(selectedRegionCode);
+            if (allowedCodes) {
+                const allPlants = await PlantService.fetchAllPlants();
+                setPlants(allPlants.filter(p => allowedCodes.has(p.plantCode.toUpperCase())).map(p => ({ plant_code: p.plantCode, plant_name: p.plantName })));
+            }
+        }
+        if (canBypassPlantRestriction !== null || userPlantCode !== null) {
+            fetchPlants();
+        }
+    }, [canBypassPlantRestriction, userPlantCode, preferences]);
+
+    useEffect(() => {
         if (item) {
             setDescription(item.description || '');
             if (canBypassPlantRestriction || !userPlantCode || item.plantCode === userPlantCode) {
@@ -50,7 +72,7 @@ function ListAddView({onClose, onItemAdded, item = null, plants = []}) {
             setDeadline(item.deadline ? new Date(item.deadline).toISOString().slice(0, 16) : deadline);
             setComments(item.comments || '');
         }
-    }, [item, canBypassPlantRestriction, userPlantCode, deadline]);
+    }, [item, canBypassPlantRestriction, userPlantCode]);
 
     const validate = () => {
         const newErrors = {};

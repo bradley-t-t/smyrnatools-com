@@ -1,7 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {MixerService} from '../../../services/MixerService';
-import ErrorMessage from '../../common/ErrorMessage';
+import LoadingScreen from '../../common/LoadingScreen';
 import './styles/Mixers.css';
+
+const LOAD_ISSUES_ERROR = 'Failed to load issues. Please try again.';
+const ADD_ISSUE_ERROR = 'Failed to add issue. Please try again.';
+const DELETE_ISSUE_ERROR = 'Failed to delete issue. Please try again.';
+const COMPLETE_ISSUE_ERROR = 'Failed to complete issue. Please try again.';
 
 function MixerIssueModal({mixerId, mixerNumber, onClose}) {
     const [issues, setIssues] = useState([]);
@@ -15,115 +20,57 @@ function MixerIssueModal({mixerId, mixerNumber, onClose}) {
         fetchIssues();
     }, [mixerId]);
 
-    const sortedIssues = [...issues].sort((a, b) => {
-        return new Date(b.time_created) - new Date(a.time_created);
-    });
-
-    const openIssues = sortedIssues.filter(issue => !issue.time_completed);
-    const resolvedIssues = sortedIssues.filter(issue => issue.time_completed);
-
     const fetchIssues = async () => {
         setIsLoading(true);
         setError(null);
         try {
             const fetchedIssues = await MixerService.fetchIssues(mixerId);
-            setIssues(fetchedIssues);
+            setIssues(Array.isArray(fetchedIssues) ? fetchedIssues : []);
         } catch (err) {
-            setError('Failed to load maintenance issues. Please try again.');
+            setError(LOAD_ISSUES_ERROR);
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDeleteIssue = async (issueId) => {
-        if (!window.confirm('Are you sure you want to delete this maintenance issue?')) {
-            return;
-        }
         try {
             await MixerService.deleteIssue(issueId);
             fetchIssues();
         } catch (err) {
-            setError('Failed to delete issue. Please try again.');
+            setError(DELETE_ISSUE_ERROR);
         }
     };
 
     const handleCompleteIssue = async (issueId) => {
         try {
-            if (typeof MixerService.completeIssue === 'function') {
-                await MixerService.completeIssue(String(issueId));
-                fetchIssues();
-            } else {
-                setError('Failed to mark issue as completed. MixerService.completeIssue is not implemented.');
-            }
+            await MixerService.completeIssue(issueId);
+            fetchIssues();
         } catch (err) {
-            setError('Failed to mark issue as completed. ' + (err?.message || 'Please try again.'));
+            setError(COMPLETE_ISSUE_ERROR);
         }
     };
 
     const handleAddIssue = async (e) => {
         e.preventDefault();
-        if (!newIssue.trim()) {
-            setError('Please enter an issue description');
-            return;
-        }
+        if (!newIssue.trim()) return;
         setIsSubmitting(true);
         setError(null);
         try {
             await MixerService.addIssue(mixerId, newIssue, severity);
             setNewIssue('');
             setSeverity('Medium');
-            await fetchIssues();
+            fetchIssues();
         } catch (err) {
-            let errorMessage = 'Failed to add issue. ';
-            if (err.message.includes('violates foreign key constraint')) {
-                errorMessage += 'The mixer ID is invalid.';
-            } else if (err.message.includes('violates check constraint')) {
-                errorMessage += 'The severity value is invalid (must be Low, Medium, or High).';
-            } else if (err.message.includes('duplicate key')) {
-                errorMessage += 'A similar issue already exists.';
-            } else if (err.message.includes('Failed to add issue. Missing required field: ID')) {
-                errorMessage += 'Missing required field: ID';
-            } else if (err.message.includes('Could not find') && err.message.includes('column')) {
-                errorMessage += 'Database schema mismatch. ' + err.message;
-            } else {
-                errorMessage += err.message;
-            }
-            try {
-                localStorage.setItem('mixer_issue_error', JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    mixerId,
-                    error: err.message,
-                    errorObj: {
-                        message: err.message,
-                        code: err.originalError?.code,
-                        details: err.originalError?.details
-                    }
-                }));
-            } catch (e) {
-            }
-            setError(errorMessage);
+            setError(ADD_ISSUE_ERROR);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const formatDate = (dateString) => {
-        if (!dateString) return 'Not completed';
         const date = new Date(dateString);
         return date.toLocaleString();
-    };
-
-    const getSeverityClass = (severityLevel) => {
-        switch (severityLevel) {
-            case 'High':
-                return 'severity-high';
-            case 'Medium':
-                return 'severity-medium';
-            case 'Low':
-                return 'severity-low';
-            default:
-                return '';
-        }
     };
 
     const handleBackdropClick = (e) => {
@@ -135,25 +82,22 @@ function MixerIssueModal({mixerId, mixerNumber, onClose}) {
     return (
         <div className="issue-modal-backdrop" onClick={handleBackdropClick}>
             <div className="issue-modal">
-                <div className="issue-modal-header" style={{backgroundColor: 'var(--accent)'}}>
-                    <h2>Maintenance Issues for Mixer {mixerNumber || mixerId}</h2>
+                <div className="issue-modal-header">
+                    <h2>Issues for Mixer {mixerNumber || mixerId}</h2>
                     <button className="close-button" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
                 <div className="issue-modal-content">
-                    <ErrorMessage
-                        message={error}
-                        onDismiss={() => setError(null)}
-                    />
+                    {error && <div className="error-message">{error}</div>}
                     <div className="add-issue-section">
-                        <h3>Report New Issue</h3>
+                        <h3>Add New Issue</h3>
                         <form onSubmit={handleAddIssue}>
                             <textarea
                                 className="issue-textarea"
                                 value={newIssue}
                                 onChange={(e) => setNewIssue(e.target.value)}
-                                placeholder="Describe the maintenance issue..."
+                                placeholder="Describe the issue here..."
                                 disabled={isSubmitting}
                             ></textarea>
                             <div className="severity-selector">
@@ -172,91 +116,52 @@ function MixerIssueModal({mixerId, mixerNumber, onClose}) {
                                 type="submit"
                                 className="add-issue-button"
                                 disabled={isSubmitting || !newIssue.trim()}
-                                style={{backgroundColor: 'var(--accent)'}}
                             >
                                 {isSubmitting ? 'Adding...' : 'Add Issue'}
                             </button>
                         </form>
                     </div>
                     <div className="issues-list">
-                        <h3>Maintenance History</h3>
+                        <h3>Issues History</h3>
                         {isLoading ? (
                             <div className="loading-container">
-                                <div className="ios-spinner"></div>
-                                <p>Loading issues...</p>
+                                <LoadingScreen message="Loading issues..." inline={true}/>
                             </div>
                         ) : issues.length === 0 ? (
                             <div className="empty-issues">
                                 <i className="fas fa-tools empty-icon"></i>
-                                <p>No maintenance issues reported</p>
-                                <p className="empty-subtext">This mixer has no maintenance issues on record</p>
+                                <p>No issues yet</p>
+                                <p className="empty-subtext">Be the first to add an issue about this mixer</p>
                             </div>
                         ) : (
-                            <>
-                                <div className="issues-section">
-                                    <h4 className="issues-group-title">Open Issues ({openIssues.length})</h4>
-                                    {openIssues.length === 0 ? (
-                                        <div className="issues-section-empty">
-                                            <p>No open issues at this time</p>
+                            issues.map(issue => (
+                                <div key={issue.id} className="issue-item">
+                                    <div className="issue-header">
+                                        <span className="issue-severity">Severity: {issue.severity}</span>
+                                        <span className="issue-date">{formatDate(issue.time_created)}</span>
+                                        <div className="issue-actions">
+                                            <button className="delete-issue-button"
+                                                    onClick={() => handleDeleteIssue(issue.id)} title="Delete issue">
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                            {!issue.time_completed && (
+                                                <button className="complete-issue-button"
+                                                        onClick={() => handleCompleteIssue(issue.id)}
+                                                        title="Mark as completed">
+                                                    <i className="fas fa-check"></i>
+                                                </button>
+                                            )}
                                         </div>
-                                    ) : (
-                                        openIssues.map(issue => (
-                                            <div key={issue.id}
-                                                 className={`issue-item ${getSeverityClass(issue.severity)}`}>
-                                                <div className="issue-header">
-                                                    <span
-                                                        className={`issue-severity ${getSeverityClass(issue.severity)}`}>{issue.severity}</span>
-                                                    <span
-                                                        className="issue-date">Reported {formatDate(issue.time_created)}</span>
-                                                    <div className="issue-actions">
-                                                        <button className="complete-issue-button"
-                                                                onClick={() => handleCompleteIssue(issue.id)}
-                                                                title="Mark as completed">
-                                                            <i className="fas fa-check"></i>
-                                                        </button>
-                                                        <button className="delete-issue-button"
-                                                                onClick={() => handleDeleteIssue(issue.id)}
-                                                                title="Delete issue">
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="issue-text">{issue.description}</div>
-                                            </div>
-                                        ))
+                                    </div>
+                                    <div className="issue-text">{issue.issue}</div>
+                                    {issue.time_completed && (
+                                        <div className="issue-completed">
+                                            <i className="fas fa-check-circle"></i>
+                                            Completed on {formatDate(issue.time_completed)}
+                                        </div>
                                     )}
                                 </div>
-                                <div className="issues-section" style={{marginTop: '16px'}}>
-                                    <h4 className="issues-group-title">Resolved Issues ({resolvedIssues.length})</h4>
-                                    {resolvedIssues.length === 0 ? (
-                                        <div className="issues-section-empty">
-                                            <p>No resolved issues</p>
-                                        </div>
-                                    ) : (
-                                        resolvedIssues.map(issue => (
-                                            <div key={issue.id}
-                                                 className={`issue-item ${getSeverityClass(issue.severity)}`}>
-                                                <div className="issue-header">
-                                                    <span
-                                                        className={`issue-severity ${getSeverityClass(issue.severity)}`}>{issue.severity}</span>
-                                                    <span
-                                                        className="issue-date">Reported {formatDate(issue.time_created)}</span>
-                                                    <span
-                                                        className="issue-date">Completed {formatDate(issue.time_completed)}</span>
-                                                    <div className="issue-actions">
-                                                        <button className="delete-issue-button"
-                                                                onClick={() => handleDeleteIssue(issue.id)}
-                                                                title="Delete issue">
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="issue-text">{issue.description}</div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </>
+                            ))
                         )}
                     </div>
                 </div>
