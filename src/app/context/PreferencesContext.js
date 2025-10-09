@@ -221,8 +221,12 @@ export const PreferencesProvider = ({children}) => {
         updatePreferences('tractorFilters', newFilters)
     }
 
-    const resetTractorFilters = () => {
-        updatePreferences('tractorFilters', {...defaultPreferences.tractorFilters})
+    const resetTractorFilters = (options = {}) => {
+        let newFilters = {...defaultPreferences.tractorFilters}
+        if (options.keepViewMode && options.currentViewMode !== undefined) {
+            newFilters.viewMode = options.currentViewMode
+        }
+        updatePreferences('tractorFilters', newFilters)
     }
 
     const updateTrailerFilter = (key, value) => {
@@ -230,8 +234,12 @@ export const PreferencesProvider = ({children}) => {
         updatePreferences('trailerFilters', newFilters)
     }
 
-    const resetTrailerFilters = () => {
-        updatePreferences('trailerFilters', {...defaultPreferences.trailerFilters})
+    const resetTrailerFilters = (options = {}) => {
+        let newFilters = {...defaultPreferences.trailerFilters}
+        if (options.keepViewMode && options.currentViewMode !== undefined) {
+            newFilters.viewMode = options.currentViewMode
+        }
+        updatePreferences('trailerFilters', newFilters)
     }
 
     const updateEquipmentFilter = (key, value) => {

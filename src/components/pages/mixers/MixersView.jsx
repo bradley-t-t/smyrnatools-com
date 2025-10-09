@@ -368,8 +368,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                                 setSearchInput('');
                                 setSelectedPlant('');
                                 setStatusFilter('');
-                                resetMixerFilters();
-                                setViewMode(viewMode)
+                                resetMixerFilters({keepViewMode: true, currentViewMode: viewMode})
                             }}
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
                             colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}

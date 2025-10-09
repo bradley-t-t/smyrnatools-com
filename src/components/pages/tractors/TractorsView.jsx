@@ -328,8 +328,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                                 setSearchInput('');
                                 setSelectedPlant('');
                                 setStatusFilter('');
-                                resetTractorFilters();
-                                setViewMode(viewMode)
+                                resetTractorFilters({keepViewMode: true, currentViewMode: viewMode})
                             }}
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
                             colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}

@@ -38,31 +38,12 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         let cancelled = false
 
         async function loadRegionPlants() {
-            let regionCode = preferences?.selectedRegion?.code || ''
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    if (!cancelled) setRegionPlantCodes(null)
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const codes = await RegionService.getAllowedPlantCodes(preferences?.selectedRegion?.code || '')
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) {
+                if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('')
                 }
             } catch {
@@ -205,15 +186,15 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         return plants
     })()
 
-    const derivedStatusOptions = ['All Status', 'Pending', 'Completed', 'Overdue']
+    const derivedStatusOptions = ['All Statuses', 'Pending', 'Completed', 'Overdue']
 
     const derivedStatusValueForTop = (() => {
-        if (!statusFilter) return 'All Status'
+        if (!statusFilter) return 'All Statuses'
         const v = String(statusFilter).toLowerCase()
         if (v === 'completed') return 'Completed'
         if (v === 'overdue') return 'Overdue'
         if (v === 'pending') return 'Pending'
-        return 'All Status'
+        return 'All Statuses'
     })()
 
     const derivedListHeaderLabels = statusFilter === 'completed'

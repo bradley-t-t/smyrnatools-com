@@ -64,40 +64,21 @@ function ManagersView({title = 'Managers', onSelectManager}) {
     }, [preferences.managerFilters?.viewMode, preferences.defaultViewMode])
 
     useEffect(() => {
-        const prefCode = preferences.selectedRegion?.code || ''
+        const code = preferences.selectedRegion?.code || ''
         let cancelled = false
 
         async function loadRegionPlants() {
-            let regionCode = prefCode
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    setRegionPlantCodes(null);
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const codes = await RegionService.getAllowedPlantCodes(code)
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) {
+                if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('');
                     updateManagerFilter('selectedPlant', '')
                 }
             } catch {
-                if (!cancelled) setRegionPlantCodes(null)
+                setRegionPlantCodes(new Set())
             }
         }
 
@@ -221,7 +202,7 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                         searchPlaceholder="Search by name or email..."
                         viewMode={viewMode}
                         onViewModeChange={handleViewModeChange}
-                        plants={plants.map(p => ({...p, plantCode: p.plant_code, plantName: p.plant_name}))}
+                        plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
                         regionPlantCodes={regionPlantCodes}
                         selectedPlant={selectedPlant}
                         onSelectedPlantChange={v => {

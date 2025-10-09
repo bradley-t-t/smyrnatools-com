@@ -7,9 +7,9 @@ import OperatorDetailView from './OperatorDetailView'
 import OperatorCard from './OperatorCard'
 import OperatorAddView from './OperatorAddView'
 import {usePreferences} from '../../../app/context/PreferencesContext'
-import FormatUtility from '../../../utils/FormatUtility'
 import {RegionService} from '../../../services/RegionService'
 import {OperatorService} from '../../../services/OperatorService'
+import {PlantService} from '../../../services/PlantService'
 import TopSection from '../../sections/TopSection'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import GridViewModeSection from '../../sections/GridViewModeSection'
@@ -128,7 +128,7 @@ function OperatorsView({
 
     const fetchPlants = async () => {
         try {
-            const data = await OperatorService.fetchPlants()
+            const data = await PlantService.fetchPlants()
             setPlants(data)
         } catch {
             setPlants([])
@@ -284,7 +284,7 @@ function OperatorsView({
                         searchPlaceholder="Search by name or ID..."
                         viewMode={viewMode}
                         onViewModeChange={handleViewModeChange}
-                        plants={plants.map(p => ({...p, plantCode: p.plant_code, plantName: p.plant_name}))}
+                        plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
                         regionPlantCodes={regionPlantCodes}
                         selectedPlant={selectedPlant}
                         onSelectedPlantChange={value => {
