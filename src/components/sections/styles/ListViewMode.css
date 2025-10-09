@@ -4,16 +4,11 @@
     margin: 0;
     padding: 0;
     overflow: auto;
-    max-height: calc(100vh - var(--top-section-height, 0px) - 50px);
     background: var(--card-bg);
     box-shadow: var(--shadow-md);
     border-radius: 14px;
     border: 1px solid var(--divider);
     display: block;
-    position: sticky;
-    top: calc(var(--top-section-height, 0px) - 10px);
-    left: 0;
-    z-index: 1000;
     overscroll-behavior: none;
 }
 
