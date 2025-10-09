@@ -103,7 +103,7 @@ function TopSection({
                             <div className="view-toggle-icons" role="group" aria-label="View mode">
                                 <button
                                     className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-                                    onClick={() => onViewModeChange && onViewModeChange('list')}
+                                    onClick={() => onViewModeChange && viewMode !== 'list' && onViewModeChange('list')}
                                     aria-label="List view"
                                     aria-pressed={viewMode === 'list'}
                                     type="button"
@@ -112,7 +112,7 @@ function TopSection({
                                 </button>
                                 <button
                                     className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
-                                    onClick={() => onViewModeChange && onViewModeChange('grid')}
+                                    onClick={() => onViewModeChange && viewMode !== 'grid' && onViewModeChange('grid')}
                                     aria-label="Grid view"
                                     aria-pressed={viewMode === 'grid'}
                                     type="button"

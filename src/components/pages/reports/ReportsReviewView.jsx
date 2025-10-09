@@ -152,7 +152,6 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     const isSubmitted = !!initialData?.completed
 
     let statusText = isSubmitted ? 'Submitted' : 'Saved (Draft)'
-    let statusClass = isSubmitted ? 'rpts-status-success' : 'rpts-status-warning'
 
     const tabOptions = [
         {key: 'review', label: 'Review'},
@@ -215,7 +214,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                         </button>
                     )}
                     {hasManagerEditPermission && showManagerEditButton && (
-                        <button type="button" className="rpts-manager-edit-button" onClick={onManagerEdit}>
+                        <button type="button" className="rpts-manager-edit-button" onClick={() => onManagerEdit(report, initialData)}>
                             Manager Edit
                         </button>
                     )}
