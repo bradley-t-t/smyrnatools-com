@@ -187,52 +187,10 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     return (
         <div className="rpts-reports-review-view">
             <div className="rpts-reports-review-container">
-                <div className="rpts-reports-review-header">
+                <div className="rpts-review-top-bar">
                     <button className="rpts-report-form-back" onClick={onBack} type="button">
                         <i className="fas fa-arrow-left"></i> Back
                     </button>
-                    <div className="rpts-reports-review-actions">
-                        {report.name === 'general_manager' && (
-                            <button type="button" className="rpts-manager-edit-button" disabled={exporting}
-                                    onClick={handleExport}>
-                                {exporting ? 'Exporting...' : 'Export'}
-                            </button>
-                        )}
-                        {hasManagerEditPermission && showManagerEditButton && (
-                            <button
-                                type="button"
-                                className="rpts-manager-edit-button"
-                                onClick={() => {
-                                    if (onManagerEdit) onManagerEdit(report, initialData)
-                                }}
-                            >
-                                Manager Edit
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div className="rpts-reports-review-status">
-                    <div className={`rpts-status-text ${statusClass}`}>
-                        {statusText}
-                    </div>
-                    {(report.name === 'plant_manager' || report.name === 'district_manager' || report.name === 'plant_production') && (
-                        <div className="rpts-owner-info">
-                            <div className="rpts-owner-name">
-                                {ownerName}
-                            </div>
-                            <div className="rpts-assigned-plant">
-                                Assigned Plant: {assignedPlant}
-                            </div>
-                        </div>
-                    )}
-                    {submittedAt && (
-                        <div className="rpts-submitted-at">
-                            {isSubmitted ? 'Submitted at' : 'Last saved'}: {submittedAt}
-                        </div>
-                    )}
-                </div>
-                {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
-                <div className="rpts-form-header-row">
                     <div className="rpts-form-title">
                         {reportTitle}
                     </div>
@@ -249,14 +207,32 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                                 <span>{reportDateVerbose}</span>
                             </div>
                         ) : null}
-                        {(report.name === 'plant_production' && plantCode) ? (
-                            <div className="rpts-context-chip">
-                                <i className="fas fa-industry"></i>
-                                <span>Plant {plantCode}</span>
-                            </div>
-                        ) : null}
                     </div>
+                    {report.name === 'general_manager' && (
+                        <button type="button" className="rpts-manager-edit-button" disabled={exporting}
+                                onClick={handleExport}>
+                            {exporting ? 'Exporting...' : 'Export'}
+                        </button>
+                    )}
+                    {hasManagerEditPermission && showManagerEditButton && (
+                        <button type="button" className="rpts-manager-edit-button" onClick={onManagerEdit}>
+                            Manager Edit
+                        </button>
+                    )}
                 </div>
+                <div className="rpts-reports-review-status">
+                    <div className="rpts-status-badges">
+                        <div className="rpts-context-chip">{statusText}</div>
+                        <div className="rpts-context-chip">{ownerName}</div>
+                        <div className="rpts-context-chip">Assigned Plant: {assignedPlant}</div>
+                    </div>
+                    {submittedAt && (
+                        <div className="rpts-submitted-at">
+                            {isSubmitted ? 'Submitted at' : 'Last saved'}: {submittedAt}
+                        </div>
+                    )}
+                </div>
+                {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
                 <div className="rpts-form-body-wide">
                     <>
                         {report.name === 'plant_production' || report.name === 'general_manager' ? null : (

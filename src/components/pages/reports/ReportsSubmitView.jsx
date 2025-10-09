@@ -416,18 +416,10 @@ function ReportsSubmitView({
                         Editing {editingUserName}s Report
                     </div>
                 )}
-                <div className="rpts-sbmt-toolbar">
+                <div className="rpts-sbmt-top-bar">
                     <button className="rpts-sbmt-back" onClick={handleBackClick} type="button">
                         <i className="fas fa-arrow-left"></i> Back
                     </button>
-                    {isGM && (
-                        <button type="button" className="rpts-export-button" onClick={handleExport}
-                                disabled={exporting}>
-                            {exporting ? 'Exporting...' : 'Export'}
-                        </button>
-                    )}
-                </div>
-                <div className="rpts-sbmt-header-row">
                     <div className="rpts-sbmt-title">
                         {report.title || ''}
                     </div>
@@ -451,6 +443,12 @@ function ReportsSubmitView({
                             </div>
                         ) : null}
                     </div>
+                    {isGM && (
+                        <button type="button" className="rpts-export-button" onClick={handleExport}
+                                disabled={exporting}>
+                            {exporting ? 'Exporting...' : 'Export'}
+                        </button>
+                    )}
                 </div>
                 {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
                 <form className="rpts-sbmt-body" onSubmit={handleSubmit}>
