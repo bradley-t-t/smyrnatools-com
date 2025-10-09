@@ -101,92 +101,100 @@ function ListAddView({onClose, onItemAdded, item = null, plants = []}) {
     };
 
     return (
-        <div className="modal-backdrop">
-            <div className="modal-content list-add-modal">
-                <div className="modal-header">
+        <div className="add-list-modal-backdrop">
+            <div className="add-list-modal enhanced">
+                <div className="add-list-header sticky">
                     <h2>{item ? 'Edit List Item' : 'Add New List Item'}</h2>
-                    <button className="close-button" onClick={onClose}>
-                        <i className="fas fa-times"></i>
-                    </button>
+                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
                 </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                        <div className={`form-group ${errors.description ? 'has-error' : ''}`}>
-                            <label>Description</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={description}
-                                onChange={e => setDescription(e.target.value)}
-                                onBlur={() => setDescription(GrammarUtility.cleanDescription(description))}
-                                placeholder="Enter item description"
-                                required
-                            />
-                            {errors.description && <div className="error-message">{errors.description}</div>}
-                        </div>
-                        <div className={`form-group ${errors.plantCode ? 'has-error' : ''}`}>
-                            <label>Plant</label>
-                            {plantRestrictionMessage && (
-                                <div className="plant-restriction-notice">
-                                    <i className="fas fa-info-circle"></i> {plantRestrictionMessage}
+                <div className="add-list-content-scrollable">
+                    <div className="add-list-content">
+                        {plantRestrictionMessage && (
+                            <div className="plant-restriction-notice">
+                                <i className="fas fa-info-circle"></i> {plantRestrictionMessage}
+                            </div>
+                        )}
+                        <form onSubmit={handleSubmit} autoComplete="off">
+                            <div className="form-section">
+                                <div className="form-row">
+                                    <div className="form-group wide">
+                                        <label htmlFor="description">Description*</label>
+                                        <input
+                                            id="description"
+                                            type="text"
+                                            className="ios-input"
+                                            value={description}
+                                            onChange={e => setDescription(e.target.value)}
+                                            onBlur={() => setDescription(GrammarUtility.cleanDescription(description))}
+                                            placeholder="Enter item description"
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
                                 </div>
-                            )}
-                            <select
-                                className="form-control"
-                                value={plantCode}
-                                onChange={e => setPlantCode(e.target.value)}
-                                required
-                            >
-                                <option value="" disabled={!canBypassPlantRestriction && userPlantCode}>Select a plant
-                                </option>
-                                {plants.map(plant => (
-                                    <option
-                                        key={plant.plant_code}
-                                        value={plant.plant_code}
-                                        disabled={!canBypassPlantRestriction && userPlantCode && plant.plant_code !== userPlantCode}
-                                    >
-                                        {plant.plant_name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.plantCode && <div className="error-message">{errors.plantCode}</div>}
-                        </div>
-                        <div className={`form-group ${errors.deadline ? 'has-error' : ''}`}>
-                            <label>Deadline</label>
-                            <input
-                                type="datetime-local"
-                                className="form-control"
-                                value={deadline}
-                                onChange={e => setDeadline(e.target.value)}
-                                required
-                            />
-                            {errors.deadline && <div className="error-message">{errors.deadline}</div>}
-                        </div>
-                        <div className="form-group">
-                            <label>Comments</label>
-                            <textarea
-                                className="form-control"
-                                value={comments}
-                                onChange={e => setComments(e.target.value)}
-                                onBlur={() => setComments(GrammarUtility.cleanComments(comments))}
-                                placeholder="Enter any additional comments"
-                                rows={4}
-                            />
-                        </div>
+                            </div>
+                            <div className="form-section">
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="plantCode">Plant*</label>
+                                        <select
+                                            id="plantCode"
+                                            className="ios-select"
+                                            value={plantCode}
+                                            onChange={e => setPlantCode(e.target.value)}
+                                            required
+                                        >
+                                            <option value="" disabled={!canBypassPlantRestriction && userPlantCode}>Select Plant
+                                            </option>
+                                            {plants.map(plant => (
+                                                <option
+                                                    key={plant.plant_code}
+                                                    value={plant.plant_code}
+                                                    disabled={!canBypassPlantRestriction && userPlantCode && plant.plant_code !== userPlantCode}
+                                                >
+                                                    ({plant.plant_code}) {plant.plant_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="deadline">Deadline*</label>
+                                        <input
+                                            id="deadline"
+                                            type="datetime-local"
+                                            className="ios-input"
+                                            value={deadline}
+                                            onChange={e => setDeadline(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-section">
+                                <div className="form-row">
+                                    <div className="form-group wide">
+                                        <label htmlFor="comments">Comments</label>
+                                        <textarea
+                                            id="comments"
+                                            className="ios-input"
+                                            value={comments}
+                                            onChange={e => setComments(e.target.value)}
+                                            placeholder="Enter any additional comments"
+                                            rows="3"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-actions">
+                                <button type="submit" className="ios-button-primary" disabled={isSaving}>
+                                    {isSaving ? 'Saving...' : item ? 'Update Item' : 'Add Item'}
+                                </button>
+                            </div>
+                        </form>
+                        {errors.description && <div className="error-message">{errors.description}</div>}
+                        {errors.plantCode && <div className="error-message">{errors.plantCode}</div>}
                     </div>
-                    <div className="modal-footer">
-                        <button
-                            type="button"
-                            className="cancel-button"
-                            onClick={onClose}
-                        >
-                            Cancel
-                        </button>
-                        <button type="submit" className="primary-button" disabled={isSaving}>
-                            {isSaving ? 'Saving...' : (item ? 'Update Item' : 'Add Item')}
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     );
