@@ -423,6 +423,12 @@ input:checked + .slider:before {
     font-weight: 500;
 }
 
+.settings-toggle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
 @media (max-width: 768px) {
     .settings-container {
         padding: 1rem;

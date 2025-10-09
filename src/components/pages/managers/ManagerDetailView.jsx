@@ -122,18 +122,12 @@ function ManagerDetailView({managerId, onClose}) {
             const rolesData = await DatabaseService.getAllRecords('users_roles');
             if (rolesData?.length) {
                 setAvailableRoles(rolesData);
-                if (!rolesData.some(r => r.name === roleName) && rolesData.length) {
-                    setRoleName(rolesData[0].name);
-                }
                 return;
             }
 
             const {data, error} = await supabase.from('users_roles').select('*');
             if (error) throw error;
             setAvailableRoles(data || []);
-            if (data?.length && !data.some(r => r.name === roleName)) {
-                setRoleName(data[0].name);
-            }
         } catch {
             setAvailableRoles([]);
         }

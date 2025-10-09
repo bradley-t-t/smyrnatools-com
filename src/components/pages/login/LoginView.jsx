@@ -27,15 +27,6 @@ function LoginView() {
     const [showRecovery, setShowRecovery] = useState(false);
 
     useEffect(() => {
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-            document.documentElement.style.overflow = '';
-        };
-    }, []);
-
-    useEffect(() => {
         const handleAuthSuccess = () => {
             setTimeout(forceReload, 500);
         };
@@ -47,8 +38,20 @@ function LoginView() {
     }, []);
 
     useEffect(() => {
-        if (password && isSignUp) setPasswordStrength(AuthUtility.passwordStrength(password));
-        else setPasswordStrength({value: '', color: ''});
+        const updateStrength = async () => {
+            if (password && isSignUp) {
+                const strengthValue = await AuthUtility.passwordStrength(password);
+                let color = '';
+                if (strengthValue === 'weak') color = 'red';
+                else if (strengthValue === 'medium') color = 'orange';
+                else if (strengthValue === 'strong') color = 'green';
+                const capitalizedValue = strengthValue.charAt(0).toUpperCase() + strengthValue.slice(1);
+                setPasswordStrength({value: capitalizedValue, color});
+            } else {
+                setPasswordStrength({value: '', color: ''});
+            }
+        };
+        updateStrength();
     }, [password, isSignUp]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
