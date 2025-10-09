@@ -416,35 +416,35 @@ function ReportsSubmitView({
                         Editing {editingUserName}s Report
                     </div>
                 )}
-                <div className="rpts-sbmt-top-bar">
-                    <button className="rpts-sbmt-back" onClick={handleBackClick} type="button">
+                <div className="rpts-review-top-bar">
+                    <button className="rpts-report-form-back" onClick={handleBackClick} type="button">
                         <i className="fas fa-arrow-left"></i> Back
                     </button>
-                    <div className="rpts-sbmt-title">
+                    <div className="rpts-form-title">
                         {report.title || ''}
                     </div>
-                    <div className="rpts-sbmt-context">
+                    <div className="rpts-context">
                         {weekVerbose ? (
-                            <div className="rpts-sbmt-context-chip">
+                            <div className="rpts-context-chip">
                                 <i className="far fa-calendar-alt"></i>
                                 <span>{weekVerbose}</span>
                             </div>
                         ) : null}
                         {reportDateVerbose ? (
-                            <div className="rpts-sbmt-context-chip">
+                            <div className="rpts-context-chip">
                                 <i className="far fa-calendar-check"></i>
                                 <span>{reportDateVerbose}</span>
                             </div>
                         ) : null}
                         {(report.name === 'plant_production' && form.plant) ? (
-                            <div className="rpts-sbmt-context-chip">
+                            <div className="rpts-context-chip">
                                 <i className="fas fa-industry"></i>
                                 <span>Plant {form.plant}</span>
                             </div>
                         ) : null}
                     </div>
                     {isGM && (
-                        <button type="button" className="rpts-export-button" onClick={handleExport}
+                        <button type="button" className="rpts-manager-edit-button" onClick={handleExport}
                                 disabled={exporting}>
                             {exporting ? 'Exporting...' : 'Export'}
                         </button>
