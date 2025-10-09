@@ -49,6 +49,9 @@
     overscroll-behavior-y: none;
     padding-top: 0;
     --sticky-cover-height: 14px;
+    position: relative;
+    z-index: 1;
+    background: transparent;
 }
 
 .mixers-list-header-row {
@@ -1353,7 +1356,7 @@
 
 .error-message {
     text-align: center;
-    padding: 30px 0;
+    padding: 32px;
     color: var(--danger);
 }
 

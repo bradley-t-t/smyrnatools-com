@@ -3,6 +3,10 @@
     padding-top: 0;
 }
 
+.equipments-dashboard-container {
+    background: transparent;
+}
+
 .add-equipment-modal-backdrop {
     position: fixed;
     top: 0;
