@@ -56,7 +56,7 @@ const defaultPreferences = {
         viewMode: 'grid'
     },
     lastViewedFilters: null,
-    selectedRegion: {code: '', name: ''},
+    selectedRegion: {code: '', name: '', type: ''},
     regionOverlayMinimized: true,
     acceptReportSubmittedEmails: true
 }
@@ -157,7 +157,7 @@ export const PreferencesProvider = ({children}) => {
                 viewMode: data.equipment_filters.viewMode || 'grid'
             } : {...defaultPreferences.equipmentFilters},
             lastViewedFilters: data.last_viewed_filters,
-            selectedRegion: data.selected_region || defaultPreferences.selectedRegion,
+            selectedRegion: data.selected_region ? {...defaultPreferences.selectedRegion, ...data.selected_region} : defaultPreferences.selectedRegion,
             regionOverlayMinimized: data.region_overlay_minimized === undefined ? defaultPreferences.regionOverlayMinimized : data.region_overlay_minimized,
             acceptReportSubmittedEmails: data.accept_report_submitted_emails === undefined ? true : data.accept_report_submitted_emails
         }
@@ -189,6 +189,7 @@ export const PreferencesProvider = ({children}) => {
                 trailer_filters: updatedPreferences.trailerFilters,
                 equipment_filters: updatedPreferences.equipmentFilters,
                 last_viewed_filters: updatedPreferences.lastViewedFilters,
+                selected_region: updatedPreferences.selectedRegion,
                 accept_report_submitted_emails: updatedPreferences.acceptReportSubmittedEmails,
                 updated_at: now,
                 created_at: now
@@ -281,8 +282,8 @@ export const PreferencesProvider = ({children}) => {
         updatePreferences('operatorFilters', newFilters)
     }
 
-    const setSelectedRegion = (code, name = '') => {
-        updatePreferences('selectedRegion', {code: code || '', name: name || ''})
+    const setSelectedRegion = (code, name = '', type = '') => {
+        updatePreferences('selectedRegion', {code: code || '', name: name || '', type: type || ''})
     }
 
     const setRegionOverlayMinimized = minimized => {

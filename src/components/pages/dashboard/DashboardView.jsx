@@ -12,8 +12,10 @@ import {supabase} from '../../../services/DatabaseService'
 import VerifiedUtility from '../../../utils/VerifiedUtility'
 import {UserService} from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
+import {usePreferences} from '../../../app/context/PreferencesContext'
 
 export default function DashboardView() {
+    const {preferences} = usePreferences()
     const [loading, setLoading] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState('')
@@ -21,6 +23,10 @@ export default function DashboardView() {
     const [hasAllRegionsPermission, setHasAllRegionsPermission] = useState(false)
     const [regionPlants, setRegionPlants] = useState([])
     const [allPlantsCount, setAllPlantsCount] = useState(0)
+    const [allPlants, setAllPlants] = useState([])
+    const [totalRegionsExcludingOffice, setTotalRegionsExcludingOffice] = useState(0)
+    const [totalPlantsExcludingAggregate, setTotalPlantsExcludingAggregate] = useState(0)
+    const [totalAggregateLocations, setTotalAggregateLocations] = useState(0)
     const [dashboardRegionCode, setDashboardRegionCode] = useState('')
     const [dashboardRegionName, setDashboardRegionName] = useState('')
     const [dashboardPlant, setDashboardPlant] = useState('')
@@ -141,12 +147,21 @@ export default function DashboardView() {
     }
 
     const computeStats = useCallback(() => {
+        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const isOffice = region?.type === 'Office'
         const plantSet = new Set()
-        if (dashboardPlant) plantSet.add(String(dashboardPlant).trim())
-        else (regionPlants || []).forEach(p => {
-            const c = p.plantCode || p.plant_code
-            if (c) plantSet.add(String(c).trim())
-        })
+        if (isOffice) {
+            allPlants.forEach(p => {
+                const c = p.plantCode || p.plant_code
+                if (c) plantSet.add(String(c).trim())
+            })
+        } else {
+            if (dashboardPlant) plantSet.add(String(dashboardPlant).trim())
+            else (regionPlants || []).forEach(p => {
+                const c = p.plantCode || p.plant_code
+                if (c) plantSet.add(String(c).trim())
+            })
+        }
         plantSetRef.current = plantSet
         const filterActive = plantSet.size > 0
         let mixersTotals = {total: 0, active: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0}
@@ -283,7 +298,7 @@ export default function DashboardView() {
             overallAllocationPercent
         }))
         prevSnapshotRef.current = {fleet: fleetTotal}
-    }, [dashboardPlant, regionPlants])
+    }, [dashboardPlant, regionPlants, allPlants])
 
     const applyFilters = useCallback(() => {
         if (loading) {
@@ -420,6 +435,7 @@ export default function DashboardView() {
                 const allPlants = await ReportService.fetchPlantsSorted().catch(() => [])
                 if (cancelled) return
                 setAllPlantsCount(Array.isArray(allPlants) ? allPlants.length : 0)
+                setAllPlants(allPlants)
                 const {data: sessionData} = await supabase.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 let allPerm = false
@@ -454,10 +470,23 @@ export default function DashboardView() {
                 if ((!regionsList || !regionsList.length) && allFetched.length) regionsList = allFetched
                 if (cancelled) return
                 setPermittedRegions(regionsList)
+                setTotalRegionsExcludingOffice(allFetched.filter(r => r.type !== 'Office').length)
+                const aggregateRegions = allFetched.filter(r => r.type === 'Aggregate')
+                const aggregatePlantsPromises = aggregateRegions.map(r => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
+                const aggregatePlantsArrays = await Promise.all(aggregatePlantsPromises)
+                const totalAggregateLocations = aggregatePlantsArrays.flat().length
+                setTotalAggregateLocations(totalAggregateLocations)
+                setTotalPlantsExcludingAggregate(allPlantsCount - totalAggregateLocations)
                 if (!dashboardRegionCode && regionsList.length) {
-                    const first = regionsList[0]
-                    setDashboardRegionCode(first.regionCode)
-                    setDashboardRegionName(first.regionName)
+                    const selectedCode = preferences.selectedRegion?.code
+                    if (selectedCode) {
+                        setDashboardRegionCode(selectedCode)
+                        setDashboardRegionName(preferences.selectedRegion?.name || '')
+                    } else {
+                        const first = regionsList[0]
+                        setDashboardRegionCode(first.regionCode)
+                        setDashboardRegionName(first.regionName)
+                    }
                 }
             } catch (error) {
                 console.error('Error loading dashboard base data:', error)
@@ -649,7 +678,18 @@ export default function DashboardView() {
         }
     }, [stats.fleetTotal, dashboardPlant, regionPlants, loading])
 
-    const regionDisplayName = dashboardRegionCode ? (dashboardRegionName || dashboardRegionCode) : (hasAllRegionsPermission ? 'All Regions' : (permittedRegions[0]?.regionName || 'Region'))
+    const regionDisplayName = (() => {
+        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const isOffice = region?.type === 'Office'
+        return isOffice ? 'Home Office' : (dashboardRegionCode ? (dashboardRegionName || dashboardRegionCode) : (hasAllRegionsPermission ? 'All Regions' : (permittedRegions[0]?.regionName || 'Region')))
+    })()
+    const heroRegionSub = (() => {
+        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const isOffice = region?.type === 'Office'
+        if (isOffice) return `${totalRegionsExcludingOffice} Region${totalRegionsExcludingOffice !== 1 ? 's' : ''}, ${totalPlantsExcludingAggregate} Plant${totalPlantsExcludingAggregate !== 1 ? 's' : ''}, ${totalAggregateLocations} Aggregate Location${totalAggregateLocations !== 1 ? 's' : ''}`
+        const plantLabel = region?.type === 'Aggregate' ? 'Aggregate Location' : 'Plant'
+        return dashboardPlant ? `${plantLabel} ${dashboardPlant}` : (dashboardRegionCode ? `${regionPlants.length} ${plantLabel}${regionPlants.length !== 1 ? 's' : ''}` : `${allPlantsCount} ${plantLabel}${allPlantsCount !== 1 ? 's' : ''}`)
+    })()
     const diffBadge = current => {
         const prev = prevSnapshotRef.current?.fleet
         if (prev == null) return null
@@ -726,6 +766,8 @@ export default function DashboardView() {
         return list.sort((a, b) => a.type.localeCompare(b.type) || String(a.identifier).localeCompare(String(b.identifier)) || String(a.assetId).localeCompare(String(b.assetId)))
     }, [assetIssueDetails, dashboardPlant, regionPlants, refreshKey])
 
+    const selectedRegion = RegionService.getRegionByCode(dashboardRegionCode)
+
     return (
         <div className="global-dashboard-container dashboard-container" data-filtering={isFiltering || undefined}>
             <div className="dashboard-header">
@@ -741,7 +783,7 @@ export default function DashboardView() {
                             {permittedRegions.map(r => <option key={r.regionCode}
                                                                value={r.regionCode}>{r.regionName} ({r.regionCode})</option>)}
                         </select>
-                        {dashboardRegionCode && (
+                        {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
                             <select className="ios-select" value={dashboardPlant} onChange={onPlantChange}
                                     disabled={refreshing} aria-label="Plant">
                                 <option value="">All Plants</option>
@@ -772,7 +814,7 @@ export default function DashboardView() {
                     <div className="hero-region">
                         <div className="hero-region-name">{regionDisplayName}</div>
                         <div
-                            className="hero-region-sub">{dashboardPlant ? `Plant ${dashboardPlant}` : (dashboardRegionCode ? `${regionPlants.length} Plants` : `${allPlantsCount} Plants`)}</div>
+                            className="hero-region-sub">{heroRegionSub}</div>
                     </div>
                     <div className="hero-metrics compact">
                         <div className="hero-metric">
@@ -1081,6 +1123,61 @@ export default function DashboardView() {
                                     )
                                 )}
                             </div>
+                        </div>
+                        <div className="group-section">
+                            <div className="section-title">Regions</div>
+                            <div className="dashboard-grid inner-grid">
+                                <div className="kpi-card">
+                                    <div className="kpi-title">Total Regions</div>
+                                    <div className="kpi-value">{totalRegionsExcludingOffice}</div>
+                                    <div className="kpi-sub">Excluding Office</div>
+                                </div>
+                                <div className="kpi-card">
+                                    <div className="kpi-title">Total Plants</div>
+                                    <div className="kpi-value">{totalPlantsExcludingAggregate}</div>
+                                    <div className="kpi-sub">Excluding Aggregate</div>
+                                </div>
+                                <div className="kpi-card">
+                                    <div className="kpi-title">Aggregate Locations</div>
+                                    <div className="kpi-value">{totalAggregateLocations}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="training-table-wrapper">
+                            <div className="training-table-header">
+                                <div className="training-table-title">Asset Issues ({assetIssuesRows.length})</div>
+                                <button type="button" className="training-toggle" aria-expanded={!issuesCollapsed}
+                                        onClick={() => setIssuesCollapsed(v => !v)}
+                                        disabled={!assetIssuesRows.length}>{issuesCollapsed ? 'Expand' : 'Collapse'}</button>
+                            </div>
+                            {!issuesCollapsed && (
+                                assetIssuesRows.length > 0 ? (
+                                    <div className="training-table-scroll">
+                                        <table className="training-table asset-issues-table">
+                                            <thead>
+                                            <tr>
+                                                <th>Asset Type</th>
+                                                <th>Truck/VIN</th>
+                                                <th>Plant</th>
+                                                <th className="issue-desc-col">Issue</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {assetIssuesRows.map(r => <tr
+                                                key={r.type + ':' + r.assetId + ':' + r.description.slice(0, 30)}>
+                                                <td>{r.type}</td>
+                                                <td>{r.identifier || '-'}</td>
+                                                <td>{r.plant || '-'}</td>
+                                                <td className="issue-desc"
+                                                    title={r.description || 'Issue'}>{r.description || 'Issue'}</td>
+                                            </tr>)}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="training-empty">None</div>
+                                )
+                            )}
                         </div>
                     </div>
                 )}

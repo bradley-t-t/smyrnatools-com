@@ -103,9 +103,12 @@ function ManagerDetailView({managerId, onClose}) {
     }, [preferences.selectedRegion?.code, plantCode]);
 
     const filteredPlants = useMemo(() => {
-        if (!regionPlantCodes || regionPlantCodes.size === 0) return plants.slice().sort((a, b) => parseInt(a.plant_code?.replace(/\D/g, '') || '0') - parseInt(b.plant_code?.replace(/\D/g, '') || '0'));
+        const regionType = preferences.selectedRegion?.type
+        const allPlants = plants.slice().sort((a, b) => parseInt(a.plant_code?.replace(/\D/g, '') || '0') - parseInt(b.plant_code?.replace(/\D/g, '') || '0'));
+        if (regionType === 'Office') return allPlants;
+        if (!regionPlantCodes || regionPlantCodes.size === 0) return allPlants;
         return plants.filter(p => regionPlantCodes.has(String(p.plant_code || '').trim().toUpperCase())).sort((a, b) => parseInt(a.plant_code?.replace(/\D/g, '') || '0') - parseInt(b.plant_code?.replace(/\D/g, '') || '0'));
-    }, [plants, regionPlantCodes]);
+    }, [plants, regionPlantCodes, preferences.selectedRegion?.type]);
 
     async function fetchCurrentUserRole() {
         try {

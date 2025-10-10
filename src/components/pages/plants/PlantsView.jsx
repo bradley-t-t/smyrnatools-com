@@ -1,30 +1,54 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {PlantService} from '../../../services/PlantService'
+import {RegionService} from '../../../services/RegionService'
 import LoadingScreen from '../../common/LoadingScreen'
 import '../../../styles/FilterStyles.css'
 import './styles/Plants.css'
 import PlantsDetailView from './PlantsDetailView'
 import PlantsAddView from './PlantsAddView'
+import TopSection from '../../sections/TopSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function PlantsView({title = 'Plants'}) {
     const [plants, setPlants] = useState([])
+    const [regions, setRegions] = useState([])
+    const [plantRegionMap, setPlantRegionMap] = useState({})
     const [isLoading, setIsLoading] = useState(true)
     const [searchText, setSearchText] = useState('')
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [selectedPlant, setSelectedPlant] = useState(null)
+    const [selectedRegion, setSelectedRegion] = useState('')
+    const [selectedPlantType, setSelectedPlantType] = useState('')
+    const headerRef = useRef(null)
 
     useEffect(() => {
-        async function fetchPlants() {
+        async function fetchData() {
             setIsLoading(true)
             try {
-                const data = await PlantService.fetchPlants()
-                setPlants(data)
+                const [plantsData, regionsData] = await Promise.all([
+                    PlantService.fetchPlants(),
+                    RegionService.fetchRegions()
+                ])
+                setPlants(plantsData)
+                setRegions(regionsData)
+
+                // Fetch plant-region mappings
+                const regionPlantsPromises = regionsData.map(r => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
+                const regionPlantsResults = await Promise.all(regionPlantsPromises)
+                const map = {}
+                regionsData.forEach((region, index) => {
+                    const plantsForRegion = regionPlantsResults[index] || []
+                    plantsForRegion.forEach(p => {
+                        map[p.plantCode] = region
+                    })
+                })
+                setPlantRegionMap(map)
             } finally {
                 setIsLoading(false)
             }
         }
 
-        fetchPlants()
+        fetchData()
     }, [])
 
     function handleSelectPlant(plantCode) {
@@ -49,10 +73,58 @@ function PlantsView({title = 'Plants'}) {
 
     const filteredPlants = plants.filter(plant => {
         const normalizedSearch = searchText.trim().toLowerCase()
-        return !normalizedSearch ||
+        const searchMatch = !normalizedSearch ||
             (plant.plant_name || plant.plantName || '').toLowerCase().includes(normalizedSearch) ||
             (plant.plant_code || plant.plantCode || '').toLowerCase().includes(normalizedSearch)
+        const region = plantRegionMap[plant.plant_code || plant.plantCode]
+        const regionMatch = !selectedRegion || selectedRegion === 'All Regions' || region?.regionCode === selectedRegion
+        const plantType = region?.type === 'Concrete' ? 'Concrete Plant' : region?.type === 'Aggregate' ? 'Aggregate Location' : region?.type === 'Office' ? 'Office Location' : 'N/A'
+        const plantTypeMatch = !selectedPlantType || selectedPlantType === 'All Types' || plantType === selectedPlantType
+        return searchMatch && regionMatch && plantTypeMatch
     })
+
+    const headerLabels = ['Plant Code', 'Name', 'Region', 'Plant Type']
+    const colWidths = ['20%', '30%', '25%', '25%']
+
+    const customFilters = (
+        <>
+            <div className="filter-wrapper">
+                <select
+                    className="ios-select"
+                    value={selectedRegion}
+                    onChange={e => setSelectedRegion(e.target.value)}
+                    aria-label="Filter by region"
+                >
+                    <option value="">All Regions</option>
+                    {regions.map(r => (
+                        <option key={r.regionCode} value={r.regionCode}>
+                            {r.regionName}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div className="filter-wrapper">
+                <select
+                    className="ios-select"
+                    value={selectedPlantType}
+                    onChange={e => setSelectedPlantType(e.target.value)}
+                    aria-label="Filter by Location Type"
+                >
+                    <option value="">All Location Types</option>
+                    <option value="Concrete Plant">Concrete Plant</option>
+                    <option value="Aggregate Location">Aggregate Location</option>
+                    <option value="Office Location">Office Location</option>
+                </select>
+            </div>
+        </>
+    )
+
+    const showReset = !!(searchText || selectedRegion || selectedPlantType)
+    const onReset = () => {
+        setSearchText('')
+        setSelectedRegion('')
+        setSelectedPlantType('')
+    }
 
     return (
         <div className="global-dashboard-container dashboard-container plants-view">
@@ -65,34 +137,24 @@ function PlantsView({title = 'Plants'}) {
                 />
             ) : (
                 <>
-                    <div className="dashboard-header">
-                        <h1>{title}</h1>
-                        <div className="dashboard-actions">
-                            <button
-                                className="global-action-button action-button primary rectangular-button"
-                                onClick={() => setShowAddSheet(true)}
-                                style={{height: '44px', lineHeight: '1'}}
-                            >
-                                <i className="fas fa-plus" style={{marginRight: '8px'}}></i> Add Plant
-                            </button>
-                        </div>
-                    </div>
-                    <div className="search-filters">
-                        <div className="search-bar">
-                            <input
-                                type="text"
-                                className="ios-search-input"
-                                placeholder="Search by plant name or code..."
-                                value={searchText}
-                                onChange={e => setSearchText(e.target.value)}
-                            />
-                            {searchText && (
-                                <button className="clear" onClick={() => setSearchText('')}>
-                                    <i className="fas fa-times"></i>
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    <TopSection
+                        title={title}
+                        addButtonLabel="Add Plant"
+                        onAddClick={() => setShowAddSheet(true)}
+                        searchInput={searchText}
+                        onSearchInputChange={setSearchText}
+                        onClearSearch={() => setSearchText('')}
+                        searchPlaceholder="Search by plant name or code..."
+                        forwardedRef={headerRef}
+                        hideViewModeToggle={true}
+                        viewMode="list"
+                        listLabels={headerLabels}
+                        colWidths={colWidths}
+                        customFilters={customFilters}
+                        showReset={showReset}
+                        onReset={onReset}
+                        hidePlantFilter={true}
+                    />
                     <div className="global-content-container content-container">
                         {isLoading ? (
                             <div className="global-loading-container loading-container">
@@ -110,46 +172,27 @@ function PlantsView({title = 'Plants'}) {
                                 </button>
                             </div>
                         ) : (
-                            <div className="mixers-list-table-container">
-                                <table className="mixers-list-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Plant Code</th>
-                                        <th>Name</th>
-                                        <th>Status</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {filteredPlants.map(plant => (
-                                        <tr key={plant.plant_code || plant.plantCode} style={{cursor: 'pointer'}}
-                                            onClick={() => handleSelectPlant(plant.plant_code || plant.plantCode)}>
-                                            <td>{plant.plant_code || plant.plantCode}</td>
-                                            <td>{plant.plant_name || plant.plantName}</td>
-                                            <td>
-                                                    <span
-                                                        className="item-status-dot"
-                                                        style={{
-                                                            display: 'inline-block',
-                                                            verticalAlign: 'middle',
-                                                            marginRight: '8px',
-                                                            width: '10px',
-                                                            height: '10px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor:
-                                                                plant.status === 'Active' ? 'var(--status-active)' :
-                                                                    plant.status === 'Spare' ? 'var(--status-spare)' :
-                                                                        plant.status === 'In Shop' ? 'var(--status-inshop)' :
-                                                                            plant.status === 'Retired' ? 'var(--status-retired)' :
-                                                                                'var(--accent)'
-                                                        }}
-                                                    ></span>
-                                                {plant.status || 'Active'}
-                                            </td>
+                            <ListViewModeSection
+                                filteredItems={filteredPlants}
+                                handleSelectItem={handleSelectPlant}
+                                headerLabels={headerLabels}
+                                colWidths={colWidths}
+                                renderRow={(plant) => {
+                                    const region = plantRegionMap[plant.plant_code || plant.plantCode]
+                                    const regionName = region?.regionName || 'N/A'
+                                    const plantType = region?.type === 'Concrete' ? 'Concrete Plant' : region?.type === 'Aggregate' ? 'Aggregate Location' : region?.type === 'Office' ? 'Office Location' : 'N/A'
+                                    return (
+                                        <tr key={plant.plant_code || plant.plantCode} style={{cursor: 'pointer'}} onClick={() => handleSelectPlant(plant.plant_code || plant.plantCode)}>
+                                            <td style={{width: '20%'}}>{plant.plant_code || plant.plantCode}</td>
+                                            <td style={{width: '30%'}}>{plant.plant_name || plant.plantName}</td>
+                                            <td style={{width: '25%'}}>{regionName}</td>
+                                            <td style={{width: '25%'}}>{plantType}</td>
                                         </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    )
+                                }}
+                                containerClassName="plants-list-table-container"
+                                tableClassName="plants-list-table"
+                            />
                         )}
                     </div>
                     {showAddSheet && (

@@ -1,10 +1,12 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useRef} from 'react'
 import {RegionService} from '../../../services/RegionService'
 import LoadingScreen from '../../common/LoadingScreen'
 import '../../../styles/FilterStyles.css'
 import './styles/Regions.css'
 import RegionsDetailView from './RegionsDetailView'
 import RegionsAddView from './RegionsAddView'
+import TopSection from '../../sections/TopSection'
+import ListViewModeSection from '../../sections/ListViewModeSection'
 
 function RegionsView({title = 'Regions'}) {
     const [regions, setRegions] = useState([])
@@ -12,6 +14,8 @@ function RegionsView({title = 'Regions'}) {
     const [searchText, setSearchText] = useState('')
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [selectedRegion, setSelectedRegion] = useState(null)
+    const [selectedType, setSelectedType] = useState('')
+    const headerRef = useRef(null)
 
     useEffect(() => {
         async function fetchRegions() {
@@ -52,8 +56,35 @@ function RegionsView({title = 'Regions'}) {
         const name = (region.region_name || region.regionName || '').toLowerCase()
         const code = (region.region_code || region.regionCode || '').toLowerCase()
         const type = (region.type || region.region_type || '').toLowerCase()
-        return !normalizedSearch || name.includes(normalizedSearch) || code.includes(normalizedSearch) || type.includes(normalizedSearch)
+        const searchMatch = !normalizedSearch || name.includes(normalizedSearch) || code.includes(normalizedSearch) || type.includes(normalizedSearch)
+        const typeMatch = !selectedType || selectedType === 'All Types' || region.type === selectedType
+        return searchMatch && typeMatch
     })
+
+    const headerLabels = ['Region Code', 'Name', 'Type']
+    const colWidths = ['25%', '50%', '25%']
+
+    const customFilters = (
+        <div className="filter-wrapper">
+            <select
+                className="ios-select"
+                value={selectedType}
+                onChange={e => setSelectedType(e.target.value)}
+                aria-label="Filter by region type"
+            >
+                <option value="">All Types</option>
+                <option value="Concrete">Concrete</option>
+                <option value="Aggregate">Aggregate</option>
+                <option value="Office">Office</option>
+            </select>
+        </div>
+    )
+
+    const showReset = !!(searchText || selectedType)
+    const onReset = () => {
+        setSearchText('')
+        setSelectedType('')
+    }
 
     return (
         <div className="global-dashboard-container dashboard-container regions-view">
@@ -66,34 +97,24 @@ function RegionsView({title = 'Regions'}) {
                 />
             ) : (
                 <>
-                    <div className="dashboard-header">
-                        <h1>{title}</h1>
-                        <div className="dashboard-actions">
-                            <button
-                                className="global-action-button action-button primary rectangular-button"
-                                onClick={() => setShowAddSheet(true)}
-                                style={{height: '44px', lineHeight: '1'}}
-                            >
-                                <i className="fas fa-plus" style={{marginRight: '8px'}}></i> Add Region
-                            </button>
-                        </div>
-                    </div>
-                    <div className="search-filters">
-                        <div className="search-bar">
-                            <input
-                                type="text"
-                                className="ios-search-input"
-                                placeholder="Search by region name, code, or type..."
-                                value={searchText}
-                                onChange={e => setSearchText(e.target.value)}
-                            />
-                            {searchText && (
-                                <button className="clear" onClick={() => setSearchText('')}>
-                                    <i className="fas fa-times"></i>
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    <TopSection
+                        title={title}
+                        addButtonLabel="Add Region"
+                        onAddClick={() => setShowAddSheet(true)}
+                        searchInput={searchText}
+                        onSearchInputChange={setSearchText}
+                        onClearSearch={() => setSearchText('')}
+                        searchPlaceholder="Search by region name, code, or type..."
+                        forwardedRef={headerRef}
+                        hideViewModeToggle={true}
+                        viewMode="list"
+                        listLabels={headerLabels}
+                        colWidths={colWidths}
+                        customFilters={customFilters}
+                        showReset={showReset}
+                        onReset={onReset}
+                        hidePlantFilter={true}
+                    />
                     <div className="global-content-container content-container">
                         {isLoading ? (
                             <div className="global-loading-container loading-container">
@@ -111,27 +132,21 @@ function RegionsView({title = 'Regions'}) {
                                 </button>
                             </div>
                         ) : (
-                            <div className="mixers-list-table-container">
-                                <table className="mixers-list-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Region Code</th>
-                                        <th>Name</th>
-                                        <th>Type</th>
+                            <ListViewModeSection
+                                filteredItems={filteredRegions}
+                                handleSelectItem={handleSelectRegion}
+                                headerLabels={headerLabels}
+                                colWidths={colWidths}
+                                renderRow={(region) => (
+                                    <tr key={region.region_code || region.regionCode} style={{cursor: 'pointer'}} onClick={() => handleSelectRegion(region.region_code || region.regionCode)}>
+                                        <td style={{width: '25%'}}>{region.region_code || region.regionCode}</td>
+                                        <td style={{width: '50%'}}>{region.region_name || region.regionName}</td>
+                                        <td style={{width: '25%'}}>{region.type || region.region_type || ''}</td>
                                     </tr>
-                                    </thead>
-                                    <tbody>
-                                    {filteredRegions.map(region => (
-                                        <tr key={region.region_code || region.regionCode} style={{cursor: 'pointer'}}
-                                            onClick={() => handleSelectRegion(region.region_code || region.regionCode)}>
-                                            <td>{region.region_code || region.regionCode}</td>
-                                            <td>{region.region_name || region.regionName}</td>
-                                            <td>{region.type || region.region_type || ''}</td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                )}
+                                containerClassName="regions-list-table-container"
+                                tableClassName="regions-list-table"
+                            />
                         )}
                     </div>
                     {showAddSheet && (

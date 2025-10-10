@@ -35,7 +35,9 @@ function TopSection({
                         onPositionFilterChange,
                         hideViewModeToggle = false,
                         listLabels,
-                        colWidths
+                        colWidths,
+                        customFilters,
+                        hidePlantFilter = false
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
@@ -122,26 +124,28 @@ function TopSection({
                             </div>
                         )}
                         <div className="filter-wrapper">
-                            <select
-                                className="ios-select"
-                                value={selectedPlant || ''}
-                                onChange={e => onSelectedPlantChange && onSelectedPlantChange(e.target.value)}
-                                aria-label="Filter by plant"
-                            >
-                                <option value="">All Plants</option>
-                                {safePlants
-                                    .filter(p => {
-                                        const code = String(p.plantCode || p.plant_code || '').trim().toUpperCase()
-                                        return regionPlantCodes && regionPlantCodes.size > 0 ? regionPlantCodes.has(code) : true
-                                    })
-                                    .sort((a, b) => parseInt((a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt((b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
-                                    .map(plant => (
-                                        <option key={plant.plantCode || plant.plant_code}
-                                                value={plant.plantCode || plant.plant_code}>
-                                            ({plant.plantCode || plant.plant_code}) {plant.plantName || plant.plant_name}
-                                        </option>
-                                    ))}
-                            </select>
+                            {!hidePlantFilter && (
+                                <select
+                                    className="ios-select"
+                                    value={selectedPlant || ''}
+                                    onChange={e => onSelectedPlantChange && onSelectedPlantChange(e.target.value)}
+                                    aria-label="Filter by plant"
+                                >
+                                    <option value="">All Plants</option>
+                                    {safePlants
+                                        .filter(p => {
+                                            const code = String(p.plantCode || p.plant_code || '').trim().toUpperCase()
+                                            return regionPlantCodes && regionPlantCodes.size > 0 ? regionPlantCodes.has(code) : true
+                                        })
+                                        .sort((a, b) => parseInt((a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt((b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
+                                        .map(plant => (
+                                            <option key={plant.plantCode || plant.plant_code}
+                                                    value={plant.plantCode || plant.plant_code}>
+                                                ({plant.plantCode || plant.plant_code}) {plant.plantName || plant.plant_name}
+                                            </option>
+                                        ))}
+                                </select>
+                            )}
                         </div>
                         {safeStatusOptions.length > 0 && (
                             <div className="filter-wrapper">
@@ -185,6 +189,7 @@ function TopSection({
                                 </select>
                             </div>
                         )}
+                        {customFilters}
                         {showReset && onReset && (
                             <button className="filter-reset-button" onClick={onReset} type="button"
                                     aria-label="Reset filters">

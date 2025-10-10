@@ -144,7 +144,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         const matchesSearch = !searchText.trim() || `${manager.firstName} ${manager.lastName}`.toLowerCase().includes(searchText.toLowerCase()) || manager.email.toLowerCase().includes(searchText.toLowerCase())
         const matchesPlant = !selectedPlant || manager.plantCode === selectedPlant
         const matchesRole = !roleFilter || (manager.roleName && manager.roleName.toLowerCase() === roleFilter.toLowerCase())
-        const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(manager.plantCode || '').trim().toUpperCase())
+        const regionType = preferences.selectedRegion?.type
+        const matchesRegion = regionType === 'Office' || !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(manager.plantCode || '').trim().toUpperCase())
         return matchesSearch && matchesPlant && matchesRole && matchesRegion
     }).sort((a, b) => {
         return b.roleWeight - a.roleWeight || `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`)

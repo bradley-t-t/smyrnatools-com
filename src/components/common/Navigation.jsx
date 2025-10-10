@@ -112,7 +112,7 @@ export default function Navigation({
                     if (item.permission) return permissions.includes(item.permission)
                     return false
                 })
-                if (regionType === 'Office') filtered = filtered.filter(item => item.id === 'Reports' || item.id === 'Dashboard')
+                if (regionType === 'Office') filtered = filtered.filter(item => item.id === 'Reports' || item.id === 'Dashboard' || item.id === 'Managers' || item.id === 'Plants' || item.id === 'Regions')
                 else if (regionType === 'Aggregate') filtered = filtered.filter(item => !['Mixers', 'List', 'Tractors', 'Trailers'].includes(item.id))
                 setVisibleMenuItems(filtered)
                 lastMenuItemsRef.current = filtered

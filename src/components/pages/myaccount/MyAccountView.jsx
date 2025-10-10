@@ -363,7 +363,6 @@ function MyAccountView({userId}) {
                                         background: 'var(--bg-secondary)',
                                         color: 'var(--text-primary)'
                                     }}>
-                                        <option value="">Select a region</option>
                                         {permittedRegions.map(r => <option key={r.regionCode || r.region_code}
                                                                            value={r.regionCode || r.region_code}>{r.regionName || r.region_name || ''}</option>)}
                                     </select>

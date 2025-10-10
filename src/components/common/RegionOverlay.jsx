@@ -47,14 +47,24 @@ function RegionOverlay() {
                             const r = regions[0]
                             defaultRegion = {
                                 code: r.regionCode || r.region_code || '',
-                                name: r.regionName || r.region_name || ''
+                                name: r.regionName || r.region_name || '',
+                                type: r.type || r.region_type || ''
                             }
                         }
                     } catch {
                     }
                 }
                 if (!preferences.selectedRegion?.code && defaultRegion.code) {
-                    setSelectedRegion(defaultRegion.code, defaultRegion.name)
+                    setSelectedRegion(defaultRegion.code, defaultRegion.name, defaultRegion.type)
+                }
+                if (preferences.selectedRegion?.code && !preferences.selectedRegion?.type) {
+                    try {
+                        const region = await RegionService.fetchRegionByCode(preferences.selectedRegion.code)
+                        if (region && region.type) {
+                            setSelectedRegion(preferences.selectedRegion.code, preferences.selectedRegion.name, region.type)
+                        }
+                    } catch {
+                    }
                 }
                 try {
                     const regions = await RegionService.fetchRegions()
@@ -75,12 +85,13 @@ function RegionOverlay() {
     const handleChangeRegion = e => {
         const code = e.target.value
         if (!code) {
-            setSelectedRegion('', '')
+            setSelectedRegion('', '', '')
             return
         }
         const r = allRegions.find(x => (x.region_code || x.regionCode) === code)
         const name = r ? (r.region_name || r.regionName || '') : ''
-        setSelectedRegion(code, name)
+        const type = r ? (r.type || r.region_type || '') : ''
+        setSelectedRegion(code, name, type)
     }
 
     const toggleMinimize = () => setRegionOverlayMinimized(!isMinimized)

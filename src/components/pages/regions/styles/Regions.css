@@ -54,9 +54,8 @@
 
 .regions-list-table-container {
     width: 100%;
-    max-width: 1000px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0;
 }
 
 .regions-list-table {
@@ -67,6 +66,7 @@
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     font-size: 15px;
+    table-layout: fixed;
 }
 
 .regions-list-table th,
