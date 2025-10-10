@@ -4,6 +4,7 @@ import './styles/Top.css'
 function TopSection({
                         title,
                         badge,
+                        onBadgeClick,
                         onToggleSidebar,
                         addButtonLabel,
                         onAddClick,
@@ -68,7 +69,9 @@ function TopSection({
         <div className={className} ref={forwardedRef} data-section="top" aria-label="Page controls">
             <div className="top-section-inner">
                 <div className="top-row primary-row">
-                    <h1 className="top-title">{title} {badge && <span className="top-badge">{badge}</span>}</h1>
+                    <h1 className="top-title">{title} {badge && (onBadgeClick ?
+                        <button className="top-badge" onClick={onBadgeClick}>{badge}</button> :
+                        <span className="top-badge">{badge}</span>)}</h1>
                     <div className="action-cluster" role="group" aria-label="Primary actions">
                         {onToggleSidebar && (
                             <button className="action-button subtle" onClick={onToggleSidebar} type="button"
@@ -198,7 +201,8 @@ function TopSection({
                 {viewMode === 'list' && safeListLabels.length > 0 && (
                     <div className={`list-headers header-row`} role="row"
                          aria-label="List headers">
-                        {safeListLabels.map((l, i) => <div key={l} style={{width: safeColWidths[i] || 'auto'}} role="columnheader">{l}</div>)}
+                        {safeListLabels.map((l, i) => <div key={l} style={{width: safeColWidths[i] || 'auto'}}
+                                                           role="columnheader">{l}</div>)}
                     </div>
                 )}
             </div>

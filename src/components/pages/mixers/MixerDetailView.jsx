@@ -940,7 +940,8 @@ function MixerDetailView({mixerId, onClose}) {
                             <div className="form-group">
                                 <label>VIN</label>
                                 <input type="text" value={vin} placeholder="VIN (no I, O, Q)"
-                                       onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))} className="form-control" readOnly={!canEditMixer}/>
+                                       onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                       className="form-control" readOnly={!canEditMixer}/>
                             </div>
                             <div className="form-group">
                                 <label>Make</label>

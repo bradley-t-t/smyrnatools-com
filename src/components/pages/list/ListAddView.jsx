@@ -55,9 +55,13 @@ function ListAddView({onClose, onItemAdded, item = null}) {
             const allowedCodes = await RegionService.getAllowedPlantCodes(selectedRegionCode);
             if (allowedCodes) {
                 const allPlants = await PlantService.fetchAllPlants();
-                setPlants(allPlants.filter(p => allowedCodes.has(p.plantCode.toUpperCase())).map(p => ({ plant_code: p.plantCode, plant_name: p.plantName })));
+                setPlants(allPlants.filter(p => allowedCodes.has(p.plantCode.toUpperCase())).map(p => ({
+                    plant_code: p.plantCode,
+                    plant_name: p.plantName
+                })));
             }
         }
+
         if (canBypassPlantRestriction !== null || userPlantCode !== null) {
             fetchPlants();
         }
@@ -166,7 +170,8 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                             onChange={e => setPlantCode(e.target.value)}
                                             required
                                         >
-                                            <option value="" disabled={!canBypassPlantRestriction && userPlantCode}>Select Plant
+                                            <option value=""
+                                                    disabled={!canBypassPlantRestriction && userPlantCode}>Select Plant
                                             </option>
                                             {plants.map(plant => (
                                                 <option

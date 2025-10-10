@@ -1,7 +1,17 @@
 import React from 'react';
 import './styles/GridViewMode.css';
 
-function GridViewModeSection({filteredItems, operators, plants, handleSelectItem, gridClassName, cardComponent, itemPropName, onShowCommentModal, onShowIssueModal}) {
+function GridViewModeSection({
+                                 filteredItems,
+                                 operators,
+                                 plants,
+                                 handleSelectItem,
+                                 gridClassName,
+                                 cardComponent,
+                                 itemPropName,
+                                 onShowCommentModal,
+                                 onShowIssueModal
+                             }) {
     operators = operators || [];
     plants = plants || [];
     return (

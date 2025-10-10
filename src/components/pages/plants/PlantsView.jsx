@@ -182,7 +182,8 @@ function PlantsView({title = 'Plants'}) {
                                     const regionName = region?.regionName || 'N/A'
                                     const plantType = region?.type === 'Concrete' ? 'Concrete Plant' : region?.type === 'Aggregate' ? 'Aggregate Location' : region?.type === 'Office' ? 'Office Location' : 'N/A'
                                     return (
-                                        <tr key={plant.plant_code || plant.plantCode} style={{cursor: 'pointer'}} onClick={() => handleSelectPlant(plant.plant_code || plant.plantCode)}>
+                                        <tr key={plant.plant_code || plant.plantCode} style={{cursor: 'pointer'}}
+                                            onClick={() => handleSelectPlant(plant.plant_code || plant.plantCode)}>
                                             <td style={{width: '20%'}}>{plant.plant_code || plant.plantCode}</td>
                                             <td style={{width: '30%'}}>{plant.plant_name || plant.plantName}</td>
                                             <td style={{width: '25%'}}>{regionName}</td>

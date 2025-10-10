@@ -3,7 +3,15 @@ import {TractorUtility} from '../../../utils/TractorUtility';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import './styles/Tractors.css';
 
-function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onSelect, onShowCommentModal, onShowIssueModal}) {
+function TractorCard({
+                         tractor,
+                         operatorName,
+                         plantName,
+                         showOperatorWarning,
+                         onSelect,
+                         onShowCommentModal,
+                         onShowIssueModal
+                     }) {
     const isServiceOverdue = TractorUtility.isServiceOverdue(tractor.lastServiceDate);
     const isVerified = typeof tractor.isVerified === 'function'
         ? tractor.isVerified(tractor.latestHistoryDate)
@@ -56,7 +64,10 @@ function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onS
                         cursor: 'pointer'
                     }}
                     title={`${commentsCount} comment${commentsCount !== 1 ? 's' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); onShowCommentModal(); }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onShowCommentModal();
+                    }}
                 >
                     <i className="fas fa-comments comment-icon"></i>
                     <span>{commentsCount}</span>
@@ -73,7 +84,10 @@ function TractorCard({tractor, operatorName, plantName, showOperatorWarning, onS
                         cursor: 'pointer'
                     }}
                     title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); onShowIssueModal(); }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onShowIssueModal();
+                    }}
                 >
                     <i className="fas fa-tools" style={{marginRight: '4px', fontSize: '0.9rem'}}></i>
                     <span>{openIssuesCount}</span>

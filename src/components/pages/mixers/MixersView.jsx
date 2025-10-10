@@ -19,8 +19,14 @@ import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 
-function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
-    const {preferences, updateMixerFilter, resetMixerFilters, saveLastViewedFilters} = usePreferences();
+function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
+    const {
+        preferences,
+        updateMixerFilter,
+        resetMixerFilters,
+        saveLastViewedFilters,
+        updateOperatorFilter
+    } = usePreferences();
     const headerRef = useRef(null)
     const [mixers, setMixers] = useState([]);
     const [allMixers, setAllMixers] = useState([]);
@@ -52,10 +58,11 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
     const unassignedActiveOperatorsCount = useMemo(() => FleetUtility.countUnassignedActiveOperators(mixers, operators, searchText, {
         position: 'Mixer Operator',
         selectedPlant,
+        regionPlantCodes,
         operatorIdField: 'employeeId',
         assignedOperatorField: 'assignedOperator',
         assignedPlantField: 'assignedPlant'
-    }), [operators, mixers, selectedPlant, searchText])
+    }), [operators, mixers, selectedPlant, searchText, regionPlantCodes])
 
     useEffect(() => {
         async function fetchAllData() {
@@ -136,6 +143,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
         const items = mixers.slice()
         let index = 0
         const concurrency = 20
+
         async function worker() {
             while (index < items.length) {
                 const current = index++
@@ -156,6 +164,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                 }
             }
         }
+
         await Promise.all(Array.from({length: concurrency}, () => worker()))
         // Trigger re-render
         setMixers([...mixers])
@@ -293,8 +302,16 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                     handleSelectItem={handleSelectMixer}
                     cardComponent={MixerCard}
                     itemPropName="mixer"
-                    onShowCommentModal={(id, number) => { setModalMixerId(id); setModalMixerNumber(number); setShowCommentModal(true); }}
-                    onShowIssueModal={(id, number) => { setModalMixerId(id); setModalMixerNumber(number); setShowIssueModal(true); }}
+                    onShowCommentModal={(id, number) => {
+                        setModalMixerId(id);
+                        setModalMixerNumber(number);
+                        setShowCommentModal(true);
+                    }}
+                    onShowIssueModal={(id, number) => {
+                        setModalMixerId(id);
+                        setModalMixerNumber(number);
+                        setShowIssueModal(true);
+                    }}
                     gridClassName="grid"
                 />
             )
@@ -312,26 +329,68 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
                             <td style={{width: '10%'}}>{plant?.name || item.assignedPlant}</td>
                             <td style={{width: '12%'}}>{item.truckNumber}</td>
-                            <td style={{width: '12%'}}><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status}</td>
+                            <td style={{width: '12%'}}><span className="item-status-dot" style={{
+                                display: 'inline-block',
+                                verticalAlign: 'middle',
+                                marginRight: '8px',
+                                backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
+                            }}></span>{item.status}</td>
                             <td style={{width: '18%'}}>{operator?.name || 'Not Assigned'}</td>
                             <td style={{width: '12%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
-                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
+                                                                                    style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
+                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ?
+                                <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
+                                <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.commentsCount || 0}</span></button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.openIssuesCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.truckNumber);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View comments"><i className="fas fa-comments" style={{
+                                        color: 'var(--accent)',
+                                        marginRight: 4
+                                    }}></i><span>{item.commentsCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.truckNumber);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View issues"><i className="fas fa-tools" style={{
+                                        color: 'var(--accent)',
+                                        marginRight: 4
+                                    }}></i><span>{item.openIssuesCount || 0}</span></button>
                                 </div>
                             </td>
                         </tr>
                     );
                 }}
-                onShowCommentModal={(id, number) => { setModalMixerId(id); setModalMixerNumber(number); setShowCommentModal(true); }}
-                onShowIssueModal={(id, number) => { setModalMixerId(id); setModalMixerNumber(number); setShowIssueModal(true); }}
+                onShowCommentModal={(id, number) => {
+                    setModalMixerId(id);
+                    setModalMixerNumber(number);
+                    setShowCommentModal(true);
+                }}
+                onShowIssueModal={(id, number) => {
+                    setModalMixerId(id);
+                    setModalMixerNumber(number);
+                    setShowIssueModal(true);
+                }}
                 containerClassName="list-table-container"
                 tableClassName="list-table"
             />
@@ -364,6 +423,12 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                         <TopSection
                             title={title}
                             badge={canShowUnassignedOverlay ? `${unassignedActiveOperatorsCount} Unassigned Active Operator${unassignedActiveOperatorsCount !== 1 ? 's' : ''}` : null}
+                            onBadgeClick={canShowUnassignedOverlay ? () => {
+                                setSelectedView('Operators', 'Unassigned Active', selectedPlant, 'Mixer');
+                                updateOperatorFilter('selectedPlant', selectedPlant);
+                                updateOperatorFilter('positionFilter', 'Mixer');
+                                updateOperatorFilter('statusFilter', 'Unassigned Active');
+                            } : null}
                             addButtonLabel="Add Mixer"
                             onAddClick={() => setShowAddSheet(true)}
                             searchInput={searchInput}

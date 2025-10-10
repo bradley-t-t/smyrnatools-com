@@ -2,7 +2,15 @@ import React from 'react';
 import MixerUtility from '../../../utils/MixerUtility';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 
-function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelect, onShowCommentModal, onShowIssueModal}) {
+function MixerCard({
+                       mixer,
+                       operatorName,
+                       plantName,
+                       showOperatorWarning,
+                       onSelect,
+                       onShowCommentModal,
+                       onShowIssueModal
+                   }) {
     const isServiceOverdue = MixerUtility.isServiceOverdue(mixer.lastServiceDate);
     const isChipOverdue = MixerUtility.isChipOverdue(mixer.lastChipDate);
     const isVerified = typeof mixer.isVerified === 'function'
@@ -60,7 +68,10 @@ function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelec
                         zIndex: 4,
                         cursor: 'pointer'
                     }}
-                    onClick={(e) => { e.stopPropagation(); onShowCommentModal(); }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onShowCommentModal();
+                    }}
                     title={`${commentsCount} comment${commentsCount !== 1 ? 's' : ''}`}
                 >
                     <i className="fas fa-comments comment-icon"></i>
@@ -77,7 +88,10 @@ function MixerCard({mixer, operatorName, plantName, showOperatorWarning, onSelec
                         zIndex: 4,
                         cursor: 'pointer'
                     }}
-                    onClick={(e) => { e.stopPropagation(); onShowIssueModal(); }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onShowIssueModal();
+                    }}
                     title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}>
                     <i className="fas fa-tools" style={{marginRight: '4px', fontSize: '0.9rem'}}></i>
                     <span>{openIssuesCount}</span>

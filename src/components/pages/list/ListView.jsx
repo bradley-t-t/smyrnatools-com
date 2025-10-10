@@ -277,14 +277,28 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 headerLabels={derivedListHeaderLabels}
                                 colWidths={derivedColWidths}
                                 renderRow={(item, handleSelect) => (
-                                    <tr key={item.id} className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`} onClick={() => handleSelect(item)} style={{cursor: 'pointer'}}>
-                                        <td style={{width: derivedColWidths[0]}} onClick={e => e.stopPropagation()}><input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)} aria-label="Select row"/></td>
-                                        <td style={{width: derivedColWidths[1], textAlign: 'left'}} title={item.description}>{truncateText(item.description, 60)}</td>
-                                        <td style={{width: derivedColWidths[2]}} title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
-                                        <td style={{width: derivedColWidths[3]}}><span className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span></td>
-                                        {statusFilter === 'completed' && <td style={{width: derivedColWidths[4]}}>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
-                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 5 : 4]}} title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
-                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 6 : 5]}}>{item.completed ? <span className="list-status-badge completed">COMPLETED</span> : ListService.isOverdue(item) ? <span className="list-status-badge overdue">OVERDUE</span> : <span className="list-status-badge pending">PENDING</span>}</td>
+                                    <tr key={item.id}
+                                        className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`}
+                                        onClick={() => handleSelect(item)} style={{cursor: 'pointer'}}>
+                                        <td style={{width: derivedColWidths[0]}} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={selectedIds.has(item.id)}
+                                                   onChange={() => toggleSelect(item.id)} aria-label="Select row"/></td>
+                                        <td style={{width: derivedColWidths[1], textAlign: 'left'}}
+                                            title={item.description}>{truncateText(item.description, 60)}</td>
+                                        <td style={{width: derivedColWidths[2]}}
+                                            title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
+                                        <td style={{width: derivedColWidths[3]}}><span
+                                            className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span>
+                                        </td>
+                                        {statusFilter === 'completed' &&
+                                            <td style={{width: derivedColWidths[4]}}>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
+                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 5 : 4]}}
+                                            title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
+                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 6 : 5]}}>{item.completed ?
+                                            <span
+                                                className="list-status-badge completed">COMPLETED</span> : ListService.isOverdue(item) ?
+                                                <span className="list-status-badge overdue">OVERDUE</span> :
+                                                <span className="list-status-badge pending">PENDING</span>}</td>
                                     </tr>
                                 )}
                                 containerClassName="list-table-container"

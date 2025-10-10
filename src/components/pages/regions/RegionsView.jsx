@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {RegionService} from '../../../services/RegionService'
 import LoadingScreen from '../../common/LoadingScreen'
 import '../../../styles/FilterStyles.css'
@@ -138,7 +138,8 @@ function RegionsView({title = 'Regions'}) {
                                 headerLabels={headerLabels}
                                 colWidths={colWidths}
                                 renderRow={(region) => (
-                                    <tr key={region.region_code || region.regionCode} style={{cursor: 'pointer'}} onClick={() => handleSelectRegion(region.region_code || region.regionCode)}>
+                                    <tr key={region.region_code || region.regionCode} style={{cursor: 'pointer'}}
+                                        onClick={() => handleSelectRegion(region.region_code || region.regionCode)}>
                                         <td style={{width: '25%'}}>{region.region_code || region.regionCode}</td>
                                         <td style={{width: '50%'}}>{region.region_name || region.regionName}</td>
                                         <td style={{width: '25%'}}>{region.type || region.region_type || ''}</td>

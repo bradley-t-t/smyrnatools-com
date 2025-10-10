@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import LoadingScreen from '../../common/LoadingScreen';
 import TractorCard from './TractorCard';
@@ -20,8 +19,14 @@ import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 
-function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
-    const {preferences, updateTractorFilter, resetTractorFilters, saveLastViewedFilters} = usePreferences();
+function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView}) {
+    const {
+        preferences,
+        updateTractorFilter,
+        resetTractorFilters,
+        saveLastViewedFilters,
+        updateOperatorFilter
+    } = usePreferences();
     const headerRef = useRef(null)
     const [tractors, setTractors] = useState([]);
     const [allTractors, setAllTractors] = useState([]);
@@ -54,10 +59,11 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
     const unassignedActiveOperatorsCount = useMemo(() => FleetUtility.countUnassignedActiveOperators(tractors, operators, searchText, {
         position: 'Tractor Operator',
         selectedPlant,
+        regionPlantCodes,
         operatorIdField: 'employeeId',
         assignedOperatorField: 'assignedOperator',
         assignedPlantField: 'assignedPlant'
-    }), [operators, tractors, selectedPlant, searchText])
+    }), [operators, tractors, selectedPlant, searchText, regionPlantCodes])
 
     useEffect(() => {
         async function fetchAllData() {
@@ -275,8 +281,16 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                     handleSelectItem={handleSelectTractor}
                     cardComponent={TractorCard}
                     itemPropName="tractor"
-                    onShowCommentModal={(id, number) => { setModalTractorId(id); setModalTractorNumber(number); setShowCommentModal(true); }}
-                    onShowIssueModal={(id, number) => { setModalTractorId(id); setModalTractorNumber(number); setShowIssueModal(true); }}
+                    onShowCommentModal={(id, number) => {
+                        setModalTractorId(id);
+                        setModalTractorNumber(number);
+                        setShowCommentModal(true);
+                    }}
+                    onShowIssueModal={(id, number) => {
+                        setModalTractorId(id);
+                        setModalTractorNumber(number);
+                        setShowIssueModal(true);
+                    }}
                     gridClassName="grid"
                 />
             )
@@ -296,26 +310,68 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
                             <td style={{width: '10%'}}>{plant?.name || item.assignedPlant}</td>
                             <td style={{width: '12%'}}>{item.truckNumber}</td>
-                            <td style={{width: '12%'}}><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status}</td>
+                            <td style={{width: '12%'}}><span className="item-status-dot" style={{
+                                display: 'inline-block',
+                                verticalAlign: 'middle',
+                                marginRight: '8px',
+                                backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
+                            }}></span>{item.status}</td>
                             <td style={{width: '18%'}}>{operator?.name || 'Not Assigned'}</td>
                             <td style={{width: '12%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
-                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
+                                                                                    style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
+                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ?
+                                <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
+                                <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.commentsCount || 0}</span></button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.openIssuesCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.truckNumber);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View comments"><i className="fas fa-comments" style={{
+                                        color: 'var(--accent)',
+                                        marginRight: 4
+                                    }}></i><span>{item.commentsCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.truckNumber);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View issues"><i className="fas fa-tools" style={{
+                                        color: 'var(--accent)',
+                                        marginRight: 4
+                                    }}></i><span>{item.openIssuesCount || 0}</span></button>
                                 </div>
                             </td>
                         </tr>
                     );
                 }}
-                onShowCommentModal={(id, number) => { setModalTractorId(id); setModalTractorNumber(number); setShowCommentModal(true); }}
-                onShowIssueModal={(id, number) => { setModalTractorId(id); setModalTractorNumber(number); setShowIssueModal(true); }}
+                onShowCommentModal={(id, number) => {
+                    setModalTractorId(id);
+                    setModalTractorNumber(number);
+                    setShowCommentModal(true);
+                }}
+                onShowIssueModal={(id, number) => {
+                    setModalTractorId(id);
+                    setModalTractorNumber(number);
+                    setShowIssueModal(true);
+                }}
                 containerClassName="list-table-container"
                 tableClassName="list-table"
             />
@@ -326,6 +382,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         const items = tractors.slice()
         let index = 0
         const concurrency = 20
+
         async function worker() {
             while (index < items.length) {
                 const current = index++
@@ -346,6 +403,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                 }
             }
         }
+
         await Promise.all(Array.from({length: concurrency}, () => worker()))
         // Trigger re-render
         setTractors([...tractors])
@@ -363,6 +421,12 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                         <TopSection
                             title={title}
                             badge={canShowUnassignedOverlay ? `${unassignedActiveOperatorsCount} Unassigned Active Operator${unassignedActiveOperatorsCount !== 1 ? 's' : ''}` : null}
+                            onBadgeClick={canShowUnassignedOverlay ? () => {
+                                setSelectedView('Operators', 'Unassigned Active', selectedPlant, 'Tractor');
+                                updateOperatorFilter('selectedPlant', selectedPlant);
+                                updateOperatorFilter('positionFilter', 'Tractor');
+                                updateOperatorFilter('statusFilter', 'Unassigned Active');
+                            } : null}
                             addButtonLabel="Add Tractor"
                             onAddClick={() => setShowAddSheet(true)}
                             searchInput={searchInput}
@@ -413,10 +477,12 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                         {showAddSheet &&
                             <TractorAddView plants={plants} operators={operators} onClose={() => setShowAddSheet(false)}
                                             onTractorAdded={newTractor => setTractors([...tractors, newTractor])}/>}
-                        {showCommentModal && <TractorCommentModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
-                                                                onClose={() => setShowCommentModal(false)}/>}
-                        {showIssueModal && <TractorIssueModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
-                                                            onClose={() => setShowIssueModal(false)}/>}
+                        {showCommentModal &&
+                            <TractorCommentModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
+                                                 onClose={() => setShowCommentModal(false)}/>}
+                        {showIssueModal &&
+                            <TractorIssueModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
+                                               onClose={() => setShowIssueModal(false)}/>}
                     </>
                 )}
             </div>

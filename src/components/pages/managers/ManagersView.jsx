@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
 import './styles/Managers.css';
-import {DatabaseService, supabase} from '../../../services/DatabaseService';
 import {UserService} from '../../../services/UserService';
 import LoadingScreen from '../../common/LoadingScreen';
 import ManagerDetailView from './ManagerDetailView';
@@ -258,7 +257,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                                 headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
                                 colWidths={['12%', '28%', '18%', '18%', '24%']}
                                 renderRow={(manager, handleSelect) => (
-                                    <tr key={manager.id} onClick={() => handleSelect(manager)} style={{cursor: 'pointer'}}>
+                                    <tr key={manager.id} onClick={() => handleSelect(manager)}
+                                        style={{cursor: 'pointer'}}>
                                         <td style={{width: '12%'}}>{manager.plantCode ? manager.plantCode : '---'}</td>
                                         <td style={{width: '28%'}}>{manager.email ? manager.email : '---'}</td>
                                         <td style={{width: '18%'}}>{manager.firstName ? manager.firstName : '---'}</td>

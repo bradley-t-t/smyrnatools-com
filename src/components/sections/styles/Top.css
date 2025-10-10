@@ -62,7 +62,7 @@
     margin-left: 12px;
     padding: 4px 8px;
     border-radius: 12px;
-    background: var(--warning);
+    background: var(--error);
     color: var(--text-light);
     font-size: 12px;
     font-weight: 600;

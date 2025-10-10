@@ -121,6 +121,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         const items = equipments.slice()
         let index = 0
         const concurrency = 20
+
         async function worker() {
             while (index < items.length) {
                 const current = index++
@@ -141,6 +142,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 }
             }
         }
+
         await Promise.all(Array.from({length: concurrency}, () => worker()))
         // Trigger re-render
         setEquipments([...equipments])
@@ -239,8 +241,16 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 handleSelectItem={handleSelectEquipment}
                 cardComponent={EquipmentCard}
                 itemPropName="equipment"
-                onShowCommentModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowCommentModal(true); }}
-                onShowIssueModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowIssueModal(true); }}
+                onShowCommentModal={(id, number) => {
+                    setModalEquipmentId(id);
+                    setModalEquipmentNumber(number);
+                    setShowCommentModal(true);
+                }}
+                onShowIssueModal={(id, number) => {
+                    setModalEquipmentId(id);
+                    setModalEquipmentNumber(number);
+                    setShowIssueModal(true);
+                }}
                 gridClassName="grid"
             />
         )
@@ -259,29 +269,70 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
                             <td style={{width: '12%'}}>{item.assignedPlant || '---'}</td>
                             <td style={{width: '14%'}}>{item.identifyingNumber || '---'}</td>
-                            <td style={{width: '12%'}}><span className="item-status-dot" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'}}></span>{item.status || '---'}</td>
+                            <td style={{width: '12%'}}><span className="item-status-dot" style={{
+                                display: 'inline-block',
+                                verticalAlign: 'middle',
+                                marginRight: '8px',
+                                backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
+                            }}></span>{item.status || '---'}</td>
                             <td style={{width: '24%'}}>{item.equipmentType || '---'}</td>
                             <td style={{width: '14%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
-                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
+                                                                                    style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '16%'}}>{(() => {
                                 const rating = Math.round(item.conditionRating || 0);
                                 const stars = rating > 0 ? rating : 1;
-                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
+                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
+                                                                                    style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.identifyingNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View issues"><i className="fas fa-tools" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{issuesCount}</span></button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.identifyingNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{commentsCount}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.identifyingNumber);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View issues"><i className="fas fa-tools" style={{
+                                        color: 'var(--accent)',
+                                        marginRight: 4
+                                    }}></i><span>{issuesCount}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.identifyingNumber);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View comments"><i className="fas fa-comments" style={{
+                                        color: 'var(--accent)',
+                                        marginRight: 4
+                                    }}></i><span>{commentsCount}</span></button>
                                 </div>
                             </td>
                         </tr>
                     );
                 }}
-                onShowCommentModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowCommentModal(true); }}
-                onShowIssueModal={(id, number) => { setModalEquipmentId(id); setModalEquipmentNumber(number); setShowIssueModal(true); }}
+                onShowCommentModal={(id, number) => {
+                    setModalEquipmentId(id);
+                    setModalEquipmentNumber(number);
+                    setShowCommentModal(true);
+                }}
+                onShowIssueModal={(id, number) => {
+                    setModalEquipmentId(id);
+                    setModalEquipmentNumber(number);
+                    setShowIssueModal(true);
+                }}
                 containerClassName="list-table-container"
                 tableClassName="list-table"
             />

@@ -214,7 +214,8 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                         </button>
                     )}
                     {hasManagerEditPermission && showManagerEditButton && (
-                        <button type="button" className="rpts-manager-edit-button" onClick={() => onManagerEdit(report, initialData)}>
+                        <button type="button" className="rpts-manager-edit-button"
+                                onClick={() => onManagerEdit(report, initialData)}>
                             Manager Edit
                         </button>
                     )}

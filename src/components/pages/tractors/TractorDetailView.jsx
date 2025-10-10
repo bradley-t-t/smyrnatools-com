@@ -808,7 +808,9 @@ function TractorDetailView({tractorId, onClose}) {
                         <div className="form-section vehicle-info">
                             <h3>Asset Details</h3>
                             <div className="form-group"><label>VIN</label><input type="text" value={vin}
-                                                                                 onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))} className="form-control" readOnly={!canEditTractor}/></div>
+                                                                                 onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                                                                 className="form-control"
+                                                                                 readOnly={!canEditTractor}/></div>
                             <div className="form-group"><label>Make</label><input type="text" value={make}
                                                                                   onChange={e => setMake(e.target.value)}
                                                                                   className="form-control"

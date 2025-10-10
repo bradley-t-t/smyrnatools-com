@@ -149,7 +149,7 @@ ScheduledUpdateBanner.propTypes = {
 
 function AppContent() {
     const [userId, setUserId] = useState(null)
-    const [selectedView, setSelectedView] = useState('Dashboard')
+    const [selectedView, setSelectedView] = useState({view: 'Dashboard', initialStatusFilter: null})
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [title, setTitle] = useState('Dashboard')
     const [selectedMixer, setSelectedMixer] = useState(null)
@@ -271,7 +271,7 @@ function AppContent() {
     useEffect(() => {
         const handleSignOut = () => {
             setUserId(null)
-            setSelectedView('Dashboard')
+            setSelectedView({view: 'Dashboard', initialStatusFilter: null})
             setIsGuestOnly(false)
             setRolesLoaded(false)
         }
@@ -323,7 +323,7 @@ function AppContent() {
                 const guestOnly = roles.length > 0 && roles.every(r => (r?.name || '').toLowerCase() === 'guest')
                 setIsGuestOnly(guestOnly)
                 setRolesLoaded(true)
-                if (guestOnly) setSelectedView('Guest')
+                if (guestOnly) setSelectedView({view: 'Guest', initialStatusFilter: null})
             } catch {
                 if (!cancelled) {
                     setIsGuestOnly(false);
@@ -382,7 +382,7 @@ function AppContent() {
 
     const handleViewSelection = (viewId) => {
         if (isGuestOnly && viewId !== 'Guest') return
-        setSelectedView(viewId)
+        setSelectedView({view: viewId, initialStatusFilter: null})
         if (viewId === 'Guest') setTitle('Access Pending')
         else setTitle(viewId)
         if (viewId === 'MyAccount') {
@@ -399,6 +399,13 @@ function AppContent() {
         if (selectedTractor && viewId !== 'Tractors') setSelectedTractor(null)
     }
 
+    const handleSetSelectedView = (view, initialStatusFilter = null, initialSelectedPlant = null, initialPositionFilter = null) => setSelectedView({
+        view,
+        initialStatusFilter,
+        initialSelectedPlant,
+        initialPositionFilter
+    })
+
     const handleExternalLink = (url) => setWebViewURL(url)
 
     const renderCurrentView = () => {
@@ -406,10 +413,10 @@ function AppContent() {
         if (!rolesLoaded) return null
         if (isGuestOnly) return <GuestOverlay/>
         if (webViewURL) return <WebOverlay url={webViewURL} onClose={() => setWebViewURL(null)}/>
-        if (selectedView === 'Plants') return <PlantsView title="Plants"/>
-        if (selectedView === 'Regions') return <RegionsView title="Regions"/>
-        if (selectedView === 'Dashboard') return <DashboardView/>
-        switch (selectedView) {
+        if (selectedView.view === 'Plants') return <PlantsView title="Plants"/>
+        if (selectedView.view === 'Regions') return <RegionsView title="Regions"/>
+        if (selectedView.view === 'Dashboard') return <DashboardView/>
+        switch (selectedView.view) {
             case 'Dashboard':
                 return <DashboardView/>
             case 'Mixers': {
@@ -429,10 +436,12 @@ function AppContent() {
                         setSelectedMixer(mixerId);
                         setTitle('Mixer Details')
                     }
-                }}/>
+                }} setSelectedView={handleSetSelectedView}/>
             }
             case 'Operators':
-                return <OperatorsView title={title}/>
+                return <OperatorsView title={title} initialStatusFilter={selectedView.initialStatusFilter}
+                                      initialSelectedPlant={selectedView.initialSelectedPlant}
+                                      initialPositionFilter={selectedView.initialPositionFilter}/>
             case 'Managers':
                 return <ManagersView title={title}/>
             case 'List':
@@ -448,7 +457,8 @@ function AppContent() {
             case 'Reports':
                 return <ReportsView/>
             case 'Tractors':
-                return <TractorsView title="Tractor Fleet" onSelectTractor={setSelectedTractor}/>
+                return <TractorsView title="Tractor Fleet" onSelectTractor={setSelectedTractor}
+                                     setSelectedView={handleSetSelectedView}/>
             case 'Trailers':
                 return <TrailersView title="Trailer Fleet" onSelectTrailer={() => {
                 }}/>
@@ -458,7 +468,8 @@ function AppContent() {
                 return <EquipmentsView title="Equipment Fleet" onSelectEquipment={() => {
                 }}/>
             default:
-                return <div className="coming-soon"><h2>{selectedView} view is coming soon!</h2><p>This feature is under
+                return <div className="coming-soon"><h2>{selectedView.view} view is coming soon!</h2><p>This feature is
+                    under
                     development.</p></div>
         }
     }
@@ -524,7 +535,7 @@ function AppContent() {
         <div className="App">
             <ParticleBackground/>
             <Navigation
-                selectedView={selectedView}
+                selectedView={selectedView.view}
                 onSelectView={handleViewSelection}
                 onExternalLink={handleExternalLink}
                 userName={userDisplayName}

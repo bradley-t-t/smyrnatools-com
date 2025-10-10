@@ -2,7 +2,17 @@ import React from 'react';
 import {TrailerUtility} from '../../../utils/TrailerUtility';
 import './styles/Trailers.css';
 
-function TrailerCard({trailer, tractorName, operatorName, plantName, showTractorWarning, showOperatorWarning, onSelect, onShowCommentModal, onShowIssueModal}) {
+function TrailerCard({
+                         trailer,
+                         tractorName,
+                         operatorName,
+                         plantName,
+                         showTractorWarning,
+                         showOperatorWarning,
+                         onSelect,
+                         onShowCommentModal,
+                         onShowIssueModal
+                     }) {
     const actualTractorName = tractorName || operatorName;
     const actualShowWarning = showTractorWarning || showOperatorWarning;
 

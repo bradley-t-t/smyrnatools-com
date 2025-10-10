@@ -717,7 +717,11 @@ export default function DashboardView() {
         if (r) {
             setDashboardRegionCode(r.regionCode || r.region_code)
             setDashboardRegionName(r.regionName || r.region_name || '')
-            updatePreferences('selectedRegion', {code: r.regionCode || r.region_code, name: r.regionName || r.region_name || '', type: r.type || r.region_type || ''})
+            updatePreferences('selectedRegion', {
+                code: r.regionCode || r.region_code,
+                name: r.regionName || r.region_name || '',
+                type: r.type || r.region_type || ''
+            })
         }
         setDashboardPlant('')
     }
@@ -876,19 +880,19 @@ export default function DashboardView() {
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
                                 {!isAggregate && (
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Mixers</div>
-                                    <div className="kpi-value">{stats.mixers.total}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Active {stats.mixers.active}</div>
-                                        <div className="kpi-pill">In Shop {stats.mixers.shop}</div>
-                                        <div className="kpi-pill">Verified {stats.mixers.verifiedPercent}%</div>
-                                        <div className="kpi-pill">Asset Allocation {stats.mixers.allocationPercent}%
+                                    <div className="kpi-card">
+                                        <div className="kpi-title">Mixers</div>
+                                        <div className="kpi-value">{stats.mixers.total}</div>
+                                        <div className="kpi-row">
+                                            <div className="kpi-pill">Active {stats.mixers.active}</div>
+                                            <div className="kpi-pill">In Shop {stats.mixers.shop}</div>
+                                            <div className="kpi-pill">Verified {stats.mixers.verifiedPercent}%</div>
+                                            <div className="kpi-pill">Asset Allocation {stats.mixers.allocationPercent}%
+                                            </div>
+                                            <div className="kpi-pill">Issues {stats.mixers.issues}</div>
+                                            <div className="kpi-pill">Comments {stats.mixers.comments}</div>
                                         </div>
-                                        <div className="kpi-pill">Issues {stats.mixers.issues}</div>
-                                        <div className="kpi-pill">Comments {stats.mixers.comments}</div>
                                     </div>
-                                </div>
                                 )}
                                 <div className="kpi-card">
                                     <div className="kpi-title">Tractors</div>
@@ -956,7 +960,8 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Active {stats.operators.active}</div>
                                         <div className="kpi-pill">Light Duty {stats.operators.lightDuty}</div>
                                         <div className="kpi-pill">Assigned {stats.operators.assigned}</div>
-                                        {!isAggregate && <div className="kpi-pill">Mixers Assigned {stats.operators.mixerAssigned}</div>}
+                                        {!isAggregate && <div className="kpi-pill">Mixers
+                                            Assigned {stats.operators.mixerAssigned}</div>}
                                         <div className="kpi-pill">Tractors
                                             Assigned {stats.operators.tractorAssigned}</div>
                                         <div className="kpi-pill">Unassigned {stats.operators.unassigned}</div>

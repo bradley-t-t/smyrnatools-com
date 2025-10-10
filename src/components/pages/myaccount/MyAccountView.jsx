@@ -5,7 +5,6 @@ import {UserService} from "../../../services/UserService";
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import './styles/MyAccount.css';
 import LoadingScreen from "../../common/LoadingScreen";
-import {RegionService} from '../../../services/RegionService'
 
 function MyAccountView({userId}) {
     const {preferences, updatePreferences} = usePreferences();

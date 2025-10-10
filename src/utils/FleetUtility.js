@@ -12,6 +12,7 @@ export function compareByStatusThenNumber(a, b, statusField = 'status', numberFi
 export function countUnassignedActiveOperators(items, operators, searchText, {
     position,
     selectedPlant,
+    regionPlantCodes,
     operatorIdField = 'employeeId',
     assignedOperatorField = 'assignedOperator',
     assignedPlantField = 'assignedPlant'
@@ -21,12 +22,13 @@ export function countUnassignedActiveOperators(items, operators, searchText, {
         if (op?.status !== 'Active') return false;
         if (position && op?.position !== position) return false;
         if (selectedPlant && op?.plantCode !== selectedPlant) return false;
+        if (regionPlantCodes && !regionPlantCodes.has(op?.plantCode)) return false;
         if (!normalized) return true;
         const nameNoSpace = String(op?.name || '').toLowerCase().replace(/\s+/g, '');
         const smyrna = String(op?.smyrnaId || '').toLowerCase();
         return nameNoSpace.includes(normalized) || smyrna.includes(normalized);
     });
-    const active = (items || []).filter(it => it?.status === 'Active' && (!selectedPlant || it?.[assignedPlantField] === selectedPlant));
+    const active = (items || []).filter(it => it?.status === 'Active' && (!selectedPlant || it?.[assignedPlantField] === selectedPlant) && (!regionPlantCodes || regionPlantCodes.has(it?.[assignedPlantField])));
     let count = 0;
     for (const op of ops) {
         const isAssigned = active.some(it => it?.[assignedOperatorField] === op?.[operatorIdField]);

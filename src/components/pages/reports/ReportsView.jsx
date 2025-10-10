@@ -736,39 +736,52 @@ function ReportsView() {
                                                     <div className="rpt-table-wrapper">
                                                         <table className="rpt-table">
                                                             <thead>
-                                                                <tr>
-                                                                    <th className="rpt-th">Week</th>
-                                                                    <th className="rpt-th">Report Type</th>
-                                                                    <th className="rpt-th">Status</th>
-                                                                    <th className="rpt-th">Due Date</th>
-                                                                    <th className="rpt-th right">Actions</th>
-                                                                </tr>
+                                                            <tr>
+                                                                <th className="rpt-th">Week</th>
+                                                                <th className="rpt-th">Report Type</th>
+                                                                <th className="rpt-th">Status</th>
+                                                                <th className="rpt-th">Due Date</th>
+                                                                <th className="rpt-th right">Actions</th>
+                                                            </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {filteredMyWeeks.flatMap(weekIso => {
-                                                                    const weekItems = myReportsByWeek[weekIso] || []
-                                                                    const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)
-                                                                    const weekRange = ReportService.getWeekRangeString(monday, saturday)
-                                                                    return weekItems.map(item => {
-                                                                        const today = new Date()
-                                                                        const hasSavedData = !!(item.report && item.report.data)
-                                                                        const {statusText, statusClass, buttonLabel} = ReportUtility.computeMyReportStatus({
-                                                                            completed: item.completed,
-                                                                            hasSavedData,
-                                                                            weekIso: item.weekIso,
-                                                                            today
-                                                                        })
-                                                                        return (
-                                                                            <tr key={item.name + item.weekIso} className="rpt-row">
-                                                                                <td className="rpt-td">{weekRange}</td>
-                                                                                <td className="rpt-td">{item.title}</td>
-                                                                                <td className="rpt-td"><span className={`rpts-status ${statusClass}`}>{statusText}</span></td>
-                                                                                <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                                                <td className="rpt-td right"><button className="rpts-list-action" onClick={() => handleShowForm(item)}>{buttonLabel}</button></td>
-                                                                            </tr>
-                                                                        )
+                                                            {filteredMyWeeks.flatMap(weekIso => {
+                                                                const weekItems = myReportsByWeek[weekIso] || []
+                                                                const {
+                                                                    monday,
+                                                                    saturday
+                                                                } = ReportUtility.getWeekDatesFromIso(weekIso)
+                                                                const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                return weekItems.map(item => {
+                                                                    const today = new Date()
+                                                                    const hasSavedData = !!(item.report && item.report.data)
+                                                                    const {
+                                                                        statusText,
+                                                                        statusClass,
+                                                                        buttonLabel
+                                                                    } = ReportUtility.computeMyReportStatus({
+                                                                        completed: item.completed,
+                                                                        hasSavedData,
+                                                                        weekIso: item.weekIso,
+                                                                        today
                                                                     })
-                                                                })}
+                                                                    return (
+                                                                        <tr key={item.name + item.weekIso}
+                                                                            className="rpt-row">
+                                                                            <td className="rpt-td">{weekRange}</td>
+                                                                            <td className="rpt-td">{item.title}</td>
+                                                                            <td className="rpt-td"><span
+                                                                                className={`rpts-status ${statusClass}`}>{statusText}</span>
+                                                                            </td>
+                                                                            <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                            <td className="rpt-td right">
+                                                                                <button className="rpts-list-action"
+                                                                                        onClick={() => handleShowForm(item)}>{buttonLabel}</button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    )
+                                                                })
+                                                            })}
                                                             </tbody>
                                                         </table>
                                                     </div>
@@ -796,32 +809,42 @@ function ReportsView() {
                                                     <div className="rpt-table-wrapper">
                                                         <table className="rpt-table">
                                                             <thead>
-                                                                <tr>
-                                                                    <th className="rpt-th">Week</th>
-                                                                    <th className="rpt-th">Report Type</th>
-                                                                    <th className="rpt-th">Submitted By</th>
-                                                                    <th className="rpt-th">Submitted Date</th>
-                                                                    <th className="rpt-th">Reviewed</th>
-                                                                    <th className="rpt-th right">Actions</th>
-                                                                </tr>
+                                                            <tr>
+                                                                <th className="rpt-th">Week</th>
+                                                                <th className="rpt-th">Report Type</th>
+                                                                <th className="rpt-th">Submitted By</th>
+                                                                <th className="rpt-th">Submitted Date</th>
+                                                                <th className="rpt-th">Reviewed</th>
+                                                                <th className="rpt-th right">Actions</th>
+                                                            </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {visibleReviewReports
-                                                                    .map(report => {
-                                                                        const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
-                                                                        const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)
-                                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday)
-                                                                        return (
-                                                                            <tr key={report.id} className="rpt-row">
-                                                                                <td className="rpt-td">{weekRange}</td>
-                                                                                <td className="rpt-td">{report.title}</td>
-                                                                                <td className="rpt-td">{getUserName(report.userId)}</td>
-                                                                                <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
-                                                                                <td className="rpt-td">{report.been_reviewed ? <><i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed</> : <><i className="fas fa-flag rpts-reviewed-flag"></i> Not Reviewed</>}</td>
-                                                                                <td className="rpt-td right"><button className="rpts-list-action" onClick={() => handleReview(report)}>Review</button></td>
-                                                                            </tr>
-                                                                        )
-                                                                    })}
+                                                            {visibleReviewReports
+                                                                .map(report => {
+                                                                    const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
+                                                                    const {
+                                                                        monday,
+                                                                        saturday
+                                                                    } = ReportUtility.getWeekDatesFromIso(weekIso)
+                                                                    const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                    return (
+                                                                        <tr key={report.id} className="rpt-row">
+                                                                            <td className="rpt-td">{weekRange}</td>
+                                                                            <td className="rpt-td">{report.title}</td>
+                                                                            <td className="rpt-td">{getUserName(report.userId)}</td>
+                                                                            <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
+                                                                            <td className="rpt-td">{report.been_reviewed ? <>
+                                                                                <i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed</> : <>
+                                                                                <i className="fas fa-flag rpts-reviewed-flag"></i> Not
+                                                                                Reviewed</>}</td>
+                                                                            <td className="rpt-td right">
+                                                                                <button className="rpts-list-action"
+                                                                                        onClick={() => handleReview(report)}>Review
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    )
+                                                                })}
                                                             </tbody>
                                                         </table>
                                                     </div>
@@ -849,28 +872,32 @@ function ReportsView() {
                                                     <div className="rpt-table-wrapper">
                                                         <table className="rpt-table">
                                                             <thead>
-                                                                <tr>
-                                                                    <th className="rpt-th">Week</th>
-                                                                    <th className="rpt-th">Report Type</th>
-                                                                    <th className="rpt-th">Owed By</th>
-                                                                    <th className="rpt-th">Due Date</th>
-                                                                </tr>
+                                                            <tr>
+                                                                <th className="rpt-th">Week</th>
+                                                                <th className="rpt-th">Report Type</th>
+                                                                <th className="rpt-th">Owed By</th>
+                                                                <th className="rpt-th">Due Date</th>
+                                                            </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {filteredOverdueItems.map(item => {
-                                                                    const weekIso = item.week
-                                                                    const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)
-                                                                    const weekRange = ReportService.getWeekRangeString(monday, saturday)
-                                                                    const title = (reportTypeMap[item.report_name] || {}).title || item.report_name
-                                                                    return (
-                                                                        <tr key={`${item.userId}-${item.report_name}-${item.week}`} className="rpt-row">
-                                                                            <td className="rpt-td">{weekRange}</td>
-                                                                            <td className="rpt-td">{title}</td>
-                                                                            <td className="rpt-td">{getUserName(item.userId)}</td>
-                                                                            <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                                        </tr>
-                                                                    )
-                                                                })}
+                                                            {filteredOverdueItems.map(item => {
+                                                                const weekIso = item.week
+                                                                const {
+                                                                    monday,
+                                                                    saturday
+                                                                } = ReportUtility.getWeekDatesFromIso(weekIso)
+                                                                const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                const title = (reportTypeMap[item.report_name] || {}).title || item.report_name
+                                                                return (
+                                                                    <tr key={`${item.userId}-${item.report_name}-${item.week}`}
+                                                                        className="rpt-row">
+                                                                        <td className="rpt-td">{weekRange}</td>
+                                                                        <td className="rpt-td">{title}</td>
+                                                                        <td className="rpt-td">{getUserName(item.userId)}</td>
+                                                                        <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                    </tr>
+                                                                )
+                                                            })}
                                                             </tbody>
                                                         </table>
                                                     </div>

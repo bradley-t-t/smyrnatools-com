@@ -10,6 +10,8 @@ import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
 import {OperatorService} from '../../../services/OperatorService'
 import {PlantService} from '../../../services/PlantService'
+import {MixerService} from '../../../services/MixerService'
+import {TractorService} from '../../../services/TractorService'
 import TopSection from '../../sections/TopSection'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import GridViewModeSection from '../../sections/GridViewModeSection'
@@ -18,7 +20,9 @@ import ListViewModeSection from '../../sections/ListViewModeSection'
 function OperatorsView({
                            title = 'Operator Roster',
                            onSelectOperator,
-                           initialStatusFilter
+                           initialStatusFilter,
+                           initialSelectedPlant,
+                           initialPositionFilter
                        }) {
     const {preferences, updateOperatorFilter, resetOperatorFilters} = usePreferences()
     const headerRef = useRef(null)
@@ -35,6 +39,8 @@ function OperatorsView({
     const [, setCurrentUserId] = useState(null)
     const [trainers, setTrainers] = useState([])
     const [reloadFlag] = useState(false)
+    const [mixers, setMixers] = useState([])
+    const [tractors, setTractors] = useState([])
     const [viewMode, setViewMode] = useState(() => {
         if (preferences.operatorFilters?.viewMode !== undefined && preferences.operatorFilters?.viewMode !== null) return preferences.operatorFilters.viewMode
         if (preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null) return preferences.defaultViewMode
@@ -44,7 +50,7 @@ function OperatorsView({
     const statuses = ['Active', 'Light Duty', 'Pending Start', 'Training', 'Terminated', 'No Hire']
     const filterOptions = [
         'All Statuses', 'Active', 'Light Duty', 'Pending Start', 'Training', 'Terminated', 'No Hire',
-        'Trainer', 'Not Trainer'
+        'Trainer', 'Not Trainer', 'Unassigned Active'
     ]
     const positionOptions = ['All Positions', 'Mixer', 'Tractor']
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
@@ -72,8 +78,26 @@ function OperatorsView({
     }, [preferences.operatorFilters, preferences.defaultViewMode])
 
     useEffect(() => {
-        if (initialStatusFilter) setStatusFilter(initialStatusFilter)
+        if (initialStatusFilter !== undefined) setStatusFilter(initialStatusFilter)
     }, [initialStatusFilter])
+
+    useEffect(() => {
+        if (initialSelectedPlant !== undefined) {
+            const timeout = setTimeout(() => {
+                setSelectedPlant(initialSelectedPlant)
+            }, 1000)
+            return () => clearTimeout(timeout)
+        }
+    }, [initialSelectedPlant])
+
+    useEffect(() => {
+        if (initialPositionFilter !== undefined) {
+            const timeout = setTimeout(() => {
+                setPositionFilter(initialPositionFilter)
+            }, 1000)
+            return () => clearTimeout(timeout)
+        }
+    }, [initialPositionFilter])
 
     useEffect(() => {
         let cancelled = false
@@ -97,14 +121,21 @@ function OperatorsView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code])
+    }, [preferences.selectedRegion?.code, selectedPlant])
+
+    useEffect(() => {
+        if (selectedPlant && plants.length > 0 && !plants.some(p => p.plantCode === selectedPlant)) {
+            setSelectedPlant('')
+            updateOperatorFilter('selectedPlant', '')
+        }
+    }, [plants, selectedPlant])
 
     const fetchAllData = async () => {
         setIsLoading(true)
         try {
             const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
             setRegionPlantCodes(codes)
-            await Promise.all([fetchOperators(codes), fetchPlants(codes), fetchTrainers()])
+            await Promise.all([fetchOperators(codes), fetchPlants(codes), fetchTrainers(), fetchMixers(codes), fetchTractors(codes)])
         } catch {
         } finally {
             setIsLoading(false)
@@ -146,6 +177,24 @@ function OperatorsView({
         }
     }
 
+    const fetchMixers = async (codes) => {
+        try {
+            const data = await MixerService.fetchMixers(codes)
+            setMixers(data)
+        } catch {
+            setMixers([])
+        }
+    }
+
+    const fetchTractors = async (codes) => {
+        try {
+            const data = await TractorService.fetchTractors(codes)
+            setTractors(data)
+        } catch {
+            setTractors([])
+        }
+    }
+
     const reloadAll = async () => {
         await fetchAllData()
     }
@@ -153,6 +202,18 @@ function OperatorsView({
     const duplicateNamesSet = React.useMemo(() => {
         return OperatorService.getDuplicateNames(operators)
     }, [operators])
+
+    const assignedOperatorsSet = React.useMemo(() => {
+        const assigned = new Set()
+        let eqs = []
+        if (positionFilter === 'Mixer') eqs = mixers
+        else if (positionFilter === 'Tractor') eqs = tractors
+        else eqs = mixers.concat(tractors)
+        eqs.filter(eq => eq.status === 'Active' && (!selectedPlant || eq.assignedPlant === selectedPlant)).forEach(eq => {
+            if (eq.assignedOperator) assigned.add(eq.assignedOperator)
+        })
+        return assigned
+    }, [mixers, tractors, selectedPlant, positionFilter])
 
     const filteredOperators = operators.filter(operator => {
         const matchesSearch = searchText.trim() === '' || operator.name.toLowerCase().includes(searchText.toLowerCase()) || operator.employeeId.toLowerCase().includes(searchText.toLowerCase())
@@ -163,6 +224,7 @@ function OperatorsView({
             if (statuses.includes(statusFilter)) matchesStatus = operator.status === statusFilter
             else if (statusFilter === 'Trainer') matchesStatus = operator.isTrainer === true || String(operator.isTrainer).toLowerCase() === 'true'
             else if (statusFilter === 'Not Trainer') matchesStatus = operator.isTrainer !== true && String(operator.isTrainer).toLowerCase() !== 'true'
+            else if (statusFilter === 'Unassigned Active') matchesStatus = operator.status === 'Active' && !assignedOperatorsSet.has(operator.employeeId)
         }
         let matchesPosition = true
         if (positionFilter) {
@@ -310,6 +372,7 @@ function OperatorsView({
                         listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
                         colWidths={['10%', '28%', '16%', '16%', '14%', '16%']}
                         sticky={true}
+                        hidePlantFilter={plants.length === 0}
                     />
                     <div className="global-content-container content-container">
                         {isLoading ? (
@@ -350,9 +413,12 @@ function OperatorsView({
                                     const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
                                     const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
                                     return (
-                                        <tr key={operator.employeeId} onClick={() => handleSelect(operator)} style={{cursor: 'pointer'}}>
+                                        <tr key={operator.employeeId} onClick={() => handleSelect(operator)}
+                                            style={{cursor: 'pointer'}}>
                                             <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
-                                            <td style={{width: '28%'}}><span className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span></td>
+                                            <td style={{width: '28%'}}><span
+                                                className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
+                                            </td>
                                             <td style={{width: '16%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
                                             <td style={{width: '16%'}}>{operator.status || '\u2014'}</td>
                                             <td style={{width: '14%'}}>{renderStarsOrNA(operator)}</td>
