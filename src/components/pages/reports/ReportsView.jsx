@@ -32,6 +32,7 @@ function ReportsView() {
     const [filterReportType, setFilterReportType] = useState('')
     const [filterPlant, setFilterPlant] = useState('')
     const [managerEditUser, setManagerEditUser] = useState(null)
+    const [regionType, setRegionType] = useState(null)
 
 
     const [isLoadingUser, setIsLoadingUser] = useState(true)
@@ -71,11 +72,11 @@ function ReportsView() {
             .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
             .in('week', isoList)
         if (scope === 'my') {
-            const allowedMy = reportTypes.filter(rt => hasAssigned[rt.name]).map(rt => rt.name)
+            const allowedMy = regionType === 'office' ? (hasAssigned['general_manager'] ? ['general_manager'] : []) : reportTypes.filter(rt => hasAssigned[rt.name]).map(rt => rt.name)
             query = query.eq('user_id', user.id)
             if (allowedMy.length > 0) query = query.in('report_name', allowedMy)
         } else if (scope === 'review') {
-            const allowedReview = reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
+            const allowedReview = regionType === 'office' ? (hasReviewPermission['general_manager'] ? ['general_manager'] : []) : reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
             query = query.neq('user_id', user.id).eq('completed', true)
             if (allowedReview.length > 0) query = query.in('report_name', allowedReview)
         }
@@ -190,7 +191,7 @@ function ReportsView() {
         }
 
         loadInitial()
-    }, [user, isLoadingPermissions, hasAssigned])
+    }, [user, isLoadingPermissions, hasAssigned, regionType])
 
     useEffect(() => {
         if (!user || isLoadingPermissions || tab !== 'review') return
@@ -205,7 +206,7 @@ function ReportsView() {
         async function loadReview() {
             setIsLoadingReview(true)
             await fetchReportsBatch({weeks: toLoad, scope: 'review'})
-            if (!cancelled) setReviewLoadedWeeks(prev => new Set([...Array.from(prev), ...toLoad]))
+            if (!cancelled) setReviewLoadedWeeks(prev => new Set([...toLoad, ...prev]))
             setIsLoadingReview(false)
         }
 
@@ -213,18 +214,21 @@ function ReportsView() {
         return () => {
             cancelled = true
         }
-    }, [tab, user, isLoadingPermissions])
+    }, [tab, user, isLoadingPermissions, regionType])
 
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
 
-        async function loadRegionPlants() {
+        async function loadRegion() {
             if (!code) {
                 setRegionPlantCodes(null)
+                setRegionType(null)
                 return
             }
             try {
+                const region = await RegionService.fetchRegionByCode(code)
+                setRegionType(region?.type || null)
                 const list = await RegionService.fetchRegionPlants(code)
                 if (cancelled) return
                 const codes = new Set(list.map(p => p.plantCode))
@@ -232,10 +236,11 @@ function ReportsView() {
                 if (filterPlant && !codes.has(filterPlant)) setFilterPlant('')
             } catch {
                 setRegionPlantCodes(new Set())
+                setRegionType(null)
             }
         }
 
-        loadRegionPlants()
+        loadRegion()
         return () => {
             cancelled = true
         }
@@ -289,7 +294,7 @@ function ReportsView() {
         async function loadOverdue() {
             setIsLoadingOverdue(true)
             try {
-                const allowedReview = reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
+                const allowedReview = regionType === 'office' ? (hasReviewPermission['general_manager'] ? ['general_manager'] : []) : reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
                 const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, {force: true, allowedReview})
                 if (!cancelled) setOverdueItems(items || [])
                 const ids = Array.from(new Set((items || []).map(i => i.userId).filter(Boolean)))
@@ -305,7 +310,7 @@ function ReportsView() {
         return () => {
             cancelled = true
         }
-    }, [tab, isLoadingPermissions, hasReviewPermission])
+    }, [tab, isLoadingPermissions, hasReviewPermission, regionType])
 
     useEffect(() => {
         if (tab === 'overdue' && !hasAnyReviewPermissionPrefix) setTab('all')
@@ -318,6 +323,7 @@ function ReportsView() {
         weeksToShow.forEach(weekIso => {
             reportTypes.forEach(rt => {
                 if (!user || !hasAssigned[rt.name]) return
+                if (regionType === 'office' && rt.name !== 'general_manager') return
                 const existing = localReports.find(r =>
                     r.name === rt.name &&
                     r.userId === user.id &&
@@ -334,15 +340,15 @@ function ReportsView() {
             })
         })
         return grouped
-    }, [weeksToShow, reportTypes, user, hasAssigned, localReports])
+    }, [weeksToShow, reportTypes, user, hasAssigned, localReports, regionType])
 
     const sortedMyWeeks = weeksToShow
 
     const reviewableReports = useMemo(() => (
         localReports
-            .filter(r => r.completed && r.week && hasReviewPermission[r.name] && r.userId !== user?.id)
+            .filter(r => r.completed && r.week && hasReviewPermission[r.name] && r.userId !== user?.id && (regionType !== 'office' || r.name === 'general_manager'))
             .sort((a, b) => new Date(b.completedDate).getTime() - new Date(a.completedDate).getTime())
-    ), [localReports, hasReviewPermission, user])
+    ), [localReports, hasReviewPermission, user, regionType])
 
     const reviewReportsByWeek = useMemo(() => {
         const grouped = {}
@@ -585,24 +591,29 @@ function ReportsView() {
         return weekReports.some(report => {
             const reporterPlant = reporterPlantMap[report.userId] || ''
             const matchPlant = !filterPlant || reporterPlant === filterPlant
-            const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
+            const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant) || report.name === 'general_manager'
             return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
         })
     }), [sortedReviewWeeks, reportTypes, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
 
-    const reviewVisibleWeeks = filteredReviewWeeks
+    const visibleReviewReports = useMemo(() => reviewableReports.filter(report => {
+        const reporterPlant = reporterPlantMap[report.userId] || ''
+        const matchPlant = !filterPlant || reporterPlant === filterPlant
+        const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant) || report.name === 'general_manager'
+        return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
+    }), [reviewableReports, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
 
     const filteredOverdueItems = useMemo(() => {
         return (overdueItems || [])
             .filter(item => {
-                const matchType = !filterReportType || item.report_name === filterReportType
+                const matchType = (!filterReportType || item.report_name === filterReportType) && (regionType !== 'office' || item.report_name === 'general_manager')
                 const reporterPlant = reporterPlantMap[item.userId] || ''
                 const matchPlant = !filterPlant || reporterPlant === filterPlant
                 const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
                 return matchType && matchPlant && matchRegion
             })
             .sort((a, b) => new Date(b.week) - new Date(a.week))
-    }, [overdueItems, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
+    }, [overdueItems, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap, regionType])
 
     const overdueByWeek = useMemo(() => {
         const grouped = {}
@@ -648,7 +659,8 @@ function ReportsView() {
                                         <option value="">All Report Types</option>
                                         {reportTypes
                                             .filter(rt =>
-                                                tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]
+                                                (tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]) &&
+                                                (regionType !== 'office' || rt.name === 'general_manager')
                                             )
                                             .map(rt => (
                                                 <option key={rt.name} value={rt.name}>{rt.title}</option>
@@ -765,13 +777,13 @@ function ReportsView() {
                             )}
                             {tab === 'review' && (
                                 <div className="rpts-list">
-                                    {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || (isLoadingReview && filteredReviewWeeks.length === 0)) ? (
+                                    {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || (isLoadingReview && visibleReviewReports.length === 0)) ? (
                                         <div className="rpts-loading">
                                             <LoadingScreen message="Loading reports to review..." inline/>
                                         </div>
                                     ) : (
                                         <>
-                                            {filteredReviewWeeks.length === 0 ? (
+                                            {visibleReviewReports.length === 0 ? (
                                                 <div className="rpts-empty">
                                                     <i className="fas fa-user-check"></i>
                                                     <div>No reports to review</div>
@@ -791,13 +803,7 @@ function ReportsView() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {reviewableReports
-                                                                    .filter(report => {
-                                                                        const reporterPlant = reporterPlantMap[report.userId] || ''
-                                                                        const matchPlant = !filterPlant || reporterPlant === filterPlant
-                                                                        const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant)
-                                                                        return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
-                                                                    })
+                                                                {visibleReviewReports
                                                                     .map(report => {
                                                                         const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
                                                                         const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso)

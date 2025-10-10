@@ -369,6 +369,10 @@
 .rpts-empty {
     color: var(--text-secondary);
     font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .rpts-empty i {
@@ -1908,6 +1912,10 @@
 .rpt-empty {
     color: var(--text-secondary);
     font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .rpt-card {

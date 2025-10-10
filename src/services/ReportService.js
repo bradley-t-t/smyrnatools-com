@@ -507,3 +507,4 @@ class ReportServiceImpl {
 }
 
 export const ReportService = new ReportServiceImpl()
+
