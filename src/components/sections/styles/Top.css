@@ -58,6 +58,20 @@
     color: var(--text-primary)
 }
 
+.top-badge {
+    margin-left: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: var(--warning);
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 .action-cluster {
     display: flex;
     gap: 12px;

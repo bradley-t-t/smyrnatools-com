@@ -35,14 +35,16 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     const fetchAllPickups = useCallback(async () => {
         setIsLoading(true)
         try {
-            const data = await PickupTruckService.fetchAll()
+            const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+            setRegionPlantCodes(codes)
+            const data = await PickupTruckService.fetchAll(codes)
             setPickups(Array.isArray(data) ? data : [])
         } catch {
             setPickups([])
         } finally {
             setIsLoading(false)
         }
-    }, [])
+    }, [preferences.selectedRegion?.code])
 
     useEffect(() => {
         fetchAllPickups()
@@ -51,7 +53,7 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     useEffect(() => {
         async function loadPlants() {
             try {
-                const data = await PlantService.fetchPlants()
+                const data = await PlantService.fetchPlants(regionPlantCodes)
                 setPlants(Array.isArray(data) ? data : [])
             } catch {
                 setPlants([])
@@ -59,7 +61,7 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         }
 
         loadPlants()
-    }, [])
+    }, [regionPlantCodes])
 
     useEffect(() => {
         let cancelled = false

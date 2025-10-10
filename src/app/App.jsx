@@ -25,14 +25,9 @@ import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 
 function App() {
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isBot = /bot|crawl|spider|googlebot|bingbot|yandexbot/i.test(navigator.userAgent);
     const [offlineMode, setOfflineMode] = useState(false)
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     useEffect(() => {
         let intervalId
@@ -75,7 +70,7 @@ function App() {
         }
     }
 
-    if (isMobile) return (
+    if (isMobile && !isBot) return (
         <PreferencesProvider>
             <AccountProvider>
                 <ParticleBackground/>

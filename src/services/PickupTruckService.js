@@ -11,8 +11,12 @@ class PickupTruckServiceImpl {
         return data.map(PickupTruck.fromApiFormat)
     }
 
-    static async fetchAll() {
-        return this.getAll()
+    static async fetchAll(regionCodes = null) {
+        const data = await this.getAll()
+        if (regionCodes) {
+            return data.filter(p => regionCodes.has(String(p.assignedPlant || '').trim().toUpperCase()))
+        }
+        return data
     }
 
     static async getById(id) {

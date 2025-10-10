@@ -183,7 +183,7 @@ const TrailerService = {
         return true;
     },
 
-    async fetchTrailersWithDetails() {
+    async fetchTrailersWithDetails(regionCodes = null) {
         const base = await this.fetchTrailers().catch(() => [])
         const processedBase = (Array.isArray(base) ? base : []).map(t => {
             const trailer = {...t}
@@ -191,6 +191,9 @@ const TrailerService = {
             if (typeof trailer.commentsCount !== 'number') trailer.commentsCount = 0
             return trailer
         })
+        if (regionCodes) {
+            return processedBase.filter(t => regionCodes.has(String(t.assignedPlant || '').trim().toUpperCase()))
+        }
         return processedBase
     }
 };

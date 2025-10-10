@@ -287,6 +287,11 @@ function MixerDetailView({mixerId, onClose}) {
     }
 
     async function handleVerifyMixer() {
+        if (status === 'Retired') {
+            setMessage('Cannot verify: Retired mixers cannot be verified.')
+            setTimeout(() => setMessage(''), 4000)
+            return
+        }
         const vinValid = !!vin && ValidationUtility.isVIN(vin)
         if (!vinValid || !mixer.make || !mixer.model || !mixer.year) {
             let missing = []

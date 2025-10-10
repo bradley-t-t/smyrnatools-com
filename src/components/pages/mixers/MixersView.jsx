@@ -61,7 +61,9 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
         async function fetchAllData() {
             setIsLoading(true);
             try {
-                await Promise.all([fetchMixersWithDetails(), fetchOperators(), fetchPlants()]);
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                setRegionPlantCodes(codes)
+                await Promise.all([fetchMixersWithDetails(codes), fetchOperators(), fetchPlants(codes)]);
             } finally {
                 setIsLoading(false);
             }
@@ -122,9 +124,9 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
         }
     }
 
-    async function fetchPlants() {
+    async function fetchPlants(codes) {
         try {
-            const data = await PlantService.fetchPlants();
+            const data = await PlantService.fetchPlants(codes);
             setPlants(data);
         } catch (error) {
         }
@@ -160,9 +162,9 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
         setAllMixers([...mixers])
     }
 
-    async function fetchMixersWithDetails() {
+    async function fetchMixersWithDetails(codes) {
         try {
-            const processedBase = await MixerService.fetchMixersWithDetails()
+            const processedBase = await MixerService.fetchMixersWithDetails(codes)
             setMixers(processedBase)
             setAllMixers(processedBase)
             setMixersLoaded(true)
@@ -203,7 +205,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                 setIsLoading(true);
                 try {
                     const vinMixers = await MixerService.searchMixersByVinProcessed(normalizedSearch);
-                    setMixers(vinMixers);
+                    const filteredVinMixers = regionPlantCodes ? vinMixers.filter(m => regionPlantCodes.has(String(m.assignedPlant || '').trim().toUpperCase())) : vinMixers
+                    setMixers(filteredVinMixers);
                     setMixersLoaded(true)
                 } catch {
                 }
@@ -218,7 +221,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
         } else {
             setMixers(allMixers);
         }
-    }, [searchText, allMixers]);
+    }, [searchText, allMixers, regionPlantCodes]);
 
     const filteredMixers = useMemo(() => {
         return mixers
@@ -237,7 +240,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                     matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? mixer.status === statusFilter :
                         statusFilter === 'Past Due Service' ? MixerUtility.isServiceOverdue(mixer.lastServiceDate) :
                             statusFilter === 'Verified' ? mixer.isVerified() :
-                                statusFilter === 'Not Verified' ? !mixer.isVerified() :
+                                statusFilter === 'Not Verified' ? (!mixer.isVerified() && mixer.status !== 'Retired') :
                                     statusFilter === 'Open Issues' ? (Number(mixer.openIssuesCount || 0) > 0) : false
                 }
                 return matchesSearch && matchesPlant && matchesRegion && matchesStatus
@@ -317,7 +320,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>{item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>}</td>
+                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
                                     <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.commentsCount || 0}</span></button>
@@ -352,12 +355,6 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
 
     return (
         <>
-            {canShowUnassignedOverlay && (
-                <div className="global-availability-overlay operators-availability-overlay">
-                    {unassignedActiveOperatorsCount} active
-                    operator{unassignedActiveOperatorsCount !== 1 ? 's' : ''} unassigned
-                </div>
-            )}
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top mixers-view${selectedMixer ? ' detail-open' : ''}`}>
                 {selectedMixer ? (
@@ -366,6 +363,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer}) {
                     <>
                         <TopSection
                             title={title}
+                            badge={canShowUnassignedOverlay ? `${unassignedActiveOperatorsCount} Unassigned Active Operator${unassignedActiveOperatorsCount !== 1 ? 's' : ''}` : null}
                             addButtonLabel="Add Mixer"
                             onAddClick={() => setShowAddSheet(true)}
                             searchInput={searchInput}

@@ -274,7 +274,7 @@ export class TractorService {
         return true
     }
 
-    static async fetchTractorsWithDetails() {
+    static async fetchTractorsWithDetails(regionCodes = null) {
         const base = await this.getAllTractors().catch(() => [])
         const processedBase = (Array.isArray(base) ? base : []).map(t => {
             const tractor = {...t}
@@ -284,6 +284,9 @@ export class TractorService {
             if (typeof tractor.commentsCount !== 'number') tractor.commentsCount = 0
             return tractor
         })
+        if (regionCodes) {
+            return processedBase.filter(t => regionCodes.has(String(t.assignedPlant || '').trim().toUpperCase()))
+        }
         return processedBase
     }
 

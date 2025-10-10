@@ -49,21 +49,30 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
 
     useEffect(() => {
         async function fetchAllData() {
-            setIsLoading(true)
+            setIsLoading(true);
             try {
-                await Promise.all([fetchTrailers(), fetchTractors(), fetchPlants()])
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                setRegionPlantCodes(codes)
+                await Promise.all([fetchTrailers(codes), fetchTractors(), fetchPlants(codes)]);
             } finally {
-                setIsLoading(false)
+                setIsLoading(false);
             }
         }
 
-        fetchAllData()
+        fetchAllData();
         if (preferences?.trailerFilters) {
-            setSearchText(preferences.trailerFilters.searchText || '')
-            setSearchInput(preferences.trailerFilters.searchText || '')
-            setSelectedPlant(preferences.trailerFilters.selectedPlant || '')
-            setTypeFilter(preferences.trailerFilters.typeFilter || '')
-            setViewMode(preferences.trailerFilters.viewMode || preferences.defaultViewMode || 'grid')
+            setSearchText(preferences.trailerFilters.searchText || '');
+            setSearchInput(preferences.trailerFilters.searchText || '');
+            setSelectedPlant(preferences.trailerFilters.selectedPlant || '');
+            setTypeFilter(preferences.trailerFilters.typeFilter || '');
+        }
+        if (preferences.trailerFilters?.viewMode !== undefined && preferences.trailerFilters?.viewMode !== null) {
+            setViewMode(preferences.trailerFilters.viewMode)
+        } else if (preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null) {
+            setViewMode(preferences.defaultViewMode)
+        } else {
+            const lastUsed = localStorage.getItem('trailers_last_view_mode')
+            if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences, reloadTrailers])
 
@@ -131,9 +140,9 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         }
     }
 
-    async function fetchTrailers() {
+    async function fetchTrailers(codes) {
         try {
-            const processedBase = await TrailerService.fetchTrailersWithDetails()
+            const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
             setTrailers(processedBase)
             loadDetailsForTrailers(processedBase)
         } catch {
@@ -149,9 +158,9 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         }
     }
 
-    async function fetchPlants() {
+    async function fetchPlants(codes) {
         try {
-            const data = await PlantService.fetchPlants();
+            const data = await PlantService.fetchPlants(codes);
             setPlants(data);
         } catch {
         }
@@ -263,7 +272,8 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                 setIsLoading(true);
                 try {
                     const vinTrailers = await TrailerService.searchTrailersByVinProcessed(normalizedSearch);
-                    setTrailers(vinTrailers);
+                    const filteredVinTrailers = regionPlantCodes ? vinTrailers.filter(t => regionPlantCodes.has(String(t.assignedPlant || '').trim().toUpperCase())) : vinTrailers
+                    setTrailers(filteredVinTrailers);
                 } catch {
                 }
                 setIsLoading(false);
@@ -277,7 +287,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         } else {
             setTrailers(trailers);
         }
-    }, [searchText, trailers]);
+    }, [searchText, trailers, regionPlantCodes]);
 
     const loadDetailsForTrailers = async (trailers) => {
         const items = trailers.slice()

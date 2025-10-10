@@ -52,7 +52,9 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             setIsLoading(true);
             setEquipmentsLoaded(false);
             try {
-                await Promise.all([fetchEquipments(), fetchPlants()]);
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                setRegionPlantCodes(codes)
+                await Promise.all([fetchEquipments(codes), fetchPlants(codes)]);
             } finally {
                 setIsLoading(false);
             }
@@ -107,9 +109,9 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         }
     }
 
-    async function fetchPlants() {
+    async function fetchPlants(codes) {
         try {
-            const data = await PlantService.fetchPlants();
+            const data = await PlantService.fetchPlants(codes);
             setPlants(data);
         } catch {
         }

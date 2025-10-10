@@ -217,7 +217,7 @@ class EquipmentServiceImpl {
         return true
     }
 
-    static async fetchEquipmentsWithDetails() {
+    static async fetchEquipmentsWithDetails(regionCodes = null) {
         const base = await this.getAllEquipments().catch(() => [])
         const processedBase = (Array.isArray(base) ? base : []).map(e => {
             const equipment = {...e}
@@ -225,6 +225,9 @@ class EquipmentServiceImpl {
             if (typeof equipment.commentsCount !== 'number') equipment.commentsCount = 0
             return equipment
         })
+        if (regionCodes) {
+            return processedBase.filter(e => regionCodes.has(String(e.assignedPlant || '').trim().toUpperCase()))
+        }
         return processedBase
     }
 }

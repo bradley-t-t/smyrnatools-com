@@ -61,23 +61,31 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
 
     useEffect(() => {
         async function fetchAllData() {
-            setIsLoading(true)
+            setIsLoading(true);
             try {
-                await Promise.all([fetchTractors(), fetchOperators(), fetchPlants()])
-            } catch (error) {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                setRegionPlantCodes(codes)
+                await Promise.all([fetchTractors(codes), fetchOperators(), fetchPlants(codes)]);
             } finally {
-                setIsLoading(false)
+                setIsLoading(false);
             }
         }
 
-        fetchAllData()
+        fetchAllData();
         if (preferences?.tractorFilters) {
-            setSearchText(preferences.tractorFilters.searchText || '')
-            setSearchInput(preferences.tractorFilters.searchText || '')
-            setSelectedPlant(preferences.tractorFilters.selectedPlant || '')
-            setStatusFilter(preferences.tractorFilters.statusFilter || '')
-            setFreightFilter(preferences.tractorFilters.freightFilter || '')
-            setViewMode(preferences.tractorFilters.viewMode !== undefined && preferences.tractorFilters.viewMode !== null ? preferences.tractorFilters.viewMode : preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null ? preferences.defaultViewMode : localStorage.getItem('tractors_last_view_mode') || 'grid')
+            setSearchText(preferences.tractorFilters.searchText || '');
+            setSearchInput(preferences.tractorFilters.searchText || '');
+            setSelectedPlant(preferences.tractorFilters.selectedPlant || '');
+            setStatusFilter(preferences.tractorFilters.statusFilter || '');
+            setFreightFilter(preferences.tractorFilters.freightFilter || '');
+        }
+        if (preferences.tractorFilters?.viewMode !== undefined && preferences.tractorFilters?.viewMode !== null) {
+            setViewMode(preferences.tractorFilters.viewMode)
+        } else if (preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null) {
+            setViewMode(preferences.defaultViewMode)
+        } else {
+            const lastUsed = localStorage.getItem('tractors_last_view_mode')
+            if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences])
 
@@ -129,9 +137,9 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         }
     }
 
-    async function fetchTractors() {
+    async function fetchTractors(codes) {
         try {
-            const processedBase = await TractorService.fetchTractorsWithDetails()
+            const processedBase = await TractorService.fetchTractorsWithDetails(codes)
             setTractors(processedBase)
             setAllTractors(processedBase)
             setTractorsLoaded(true)
@@ -155,9 +163,9 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         }
     }
 
-    async function fetchPlants() {
+    async function fetchPlants(codes) {
         try {
-            const data = await PlantService.fetchPlants();
+            const data = await PlantService.fetchPlants(codes);
             setPlants(data);
         } catch (error) {
         }
@@ -184,7 +192,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(tractor.assignedPlant || '').trim().toUpperCase())
         let matchesStatus = true
         if (statusFilter && statusFilter !== 'All Statuses') {
-            matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? tractor.status === statusFilter : statusFilter === 'Past Due Service' ? TractorUtility.isServiceOverdue(tractor.lastServiceDate) : statusFilter === 'Verified' ? tractor.isVerified() : statusFilter === 'Not Verified' ? !tractor.isVerified() : statusFilter === 'Open Issues' ? (Number(tractor.openIssuesCount || 0) > 0) : false
+            matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? tractor.status === statusFilter : statusFilter === 'Past Due Service' ? TractorUtility.isServiceOverdue(tractor.lastServiceDate) : statusFilter === 'Verified' ? tractor.isVerified() : statusFilter === 'Not Verified' ? (!tractor.isVerified() && tractor.status !== 'Retired') : statusFilter === 'Open Issues' ? (Number(tractor.openIssuesCount || 0) > 0) : false
         }
         const matchesFreight = !freightFilter || tractor.freight === freightFilter
         return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
@@ -218,7 +226,8 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                 setIsLoading(true);
                 try {
                     const vinTractors = await TractorService.searchTractorsByVinProcessed(normalizedSearch);
-                    setTractors(vinTractors);
+                    const filteredVinTractors = regionPlantCodes ? vinTractors.filter(t => regionPlantCodes.has(String(t.assignedPlant || '').trim().toUpperCase())) : vinTractors
+                    setTractors(filteredVinTractors);
                     setTractorsLoaded(true)
                 } catch {
                 }
@@ -233,7 +242,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
         } else {
             setTractors(allTractors);
         }
-    }, [searchText, allTractors]);
+    }, [searchText, allTractors, regionPlantCodes]);
 
     const content = useMemo(() => {
         if (isLoading || isRegionLoading) {
@@ -295,7 +304,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>{item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>}</td>
+                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ? <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> : <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
                                     <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={{background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', cursor: 'pointer'}} title="View comments"><i className="fas fa-comments" style={{color: 'var(--accent)', marginRight: 4}}></i><span>{item.commentsCount || 0}</span></button>
@@ -345,12 +354,6 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
 
     return (
         <>
-            {canShowUnassignedOverlay && (
-                <div className="global-availability-overlay operators-availability-overlay">
-                    {unassignedActiveOperatorsCount} active
-                    operator{unassignedActiveOperatorsCount !== 1 ? 's' : ''} unassigned
-                </div>
-            )}
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
                 {selectedTractor ? (
@@ -359,6 +362,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor}) {
                     <>
                         <TopSection
                             title={title}
+                            badge={canShowUnassignedOverlay ? `${unassignedActiveOperatorsCount} Unassigned Active Operator${unassignedActiveOperatorsCount !== 1 ? 's' : ''}` : null}
                             addButtonLabel="Add Tractor"
                             onAddClick={() => setShowAddSheet(true)}
                             searchInput={searchInput}

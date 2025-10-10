@@ -71,7 +71,7 @@ class OperatorServiceImpl {
         return (json?.data ?? []).map(op => new Operator(op))
     }
 
-    async fetchOperators() {
+    async fetchOperators(regionCodes = null) {
         try {
             const {data, error} = await supabase.from('operators').select('*')
             if (error) throw error
@@ -92,6 +92,9 @@ class OperatorServiceImpl {
                     phone: op.phone || ''
                 }
             })
+            if (regionCodes) {
+                return formattedOperators.filter(op => regionCodes.has(String(op.plantCode || '').trim().toUpperCase()))
+            }
             return formattedOperators
         } catch {
             return []

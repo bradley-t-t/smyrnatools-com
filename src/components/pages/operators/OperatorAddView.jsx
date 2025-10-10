@@ -3,8 +3,11 @@ import {OperatorService} from '../../../services/OperatorService';
 import {UserService} from '../../../services/UserService';
 import UserUtility from '../../../utils/UserUtility';
 import './styles/Operators.css';
+import {usePreferences} from '../../../app/context/PreferencesContext'
+import {RegionService} from '../../../services/RegionService'
 
 function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allowedPlantCodes}) {
+    const {preferences} = usePreferences()
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
@@ -16,6 +19,7 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [hasTrainingPermission, setHasTrainingPermission] = useState(false);
+    const [regionPlantCodes, setRegionPlantCodes] = useState(null)
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -37,14 +41,40 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
         checkPermission();
     }, []);
 
+    useEffect(() => {
+        const code = preferences.selectedRegion?.code || ''
+        let cancelled = false
+
+        async function loadRegionPlants() {
+            if (!code) {
+                setRegionPlantCodes(null)
+                return
+            }
+            try {
+                const regionPlants = await RegionService.fetchRegionPlants(code)
+                if (cancelled) return
+                const codes = new Set(regionPlants.map(p => p.plantCode))
+                setRegionPlantCodes(codes)
+                if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
+            } catch {
+                setRegionPlantCodes(new Set())
+            }
+        }
+
+        loadRegionPlants()
+        return () => {
+            cancelled = true
+        }
+    }, [preferences.selectedRegion?.code, assignedPlant])
+
     const filteredPlants = plants
         .filter(p => {
-            const code = String(p.plant_code || '').trim().toUpperCase();
-            return allowedPlantCodes && allowedPlantCodes.size > 0 ? allowedPlantCodes.has(code) : false;
+            const code = String(p.plantCode || '').trim().toUpperCase();
+            return regionPlantCodes && regionPlantCodes.size > 0 ? regionPlantCodes.has(code) : false;
         })
         .sort((a, b) => {
-            const aCode = parseInt(a.plant_code?.replace(/\D/g, '') || '0');
-            const bCode = parseInt(b.plant_code?.replace(/\D/g, '') || '0');
+            const aCode = parseInt(a.plantCode?.replace(/\D/g, '') || '0');
+            const bCode = parseInt(b.plantCode?.replace(/\D/g, '') || '0');
             return aCode - bCode;
         });
 
@@ -131,8 +161,8 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                                         onChange={(e) => setAssignedPlant(e.target.value)} required>
                                     <option value="">Select Plant</option>
                                     {filteredPlants.map(plant => (
-                                        <option key={plant.plant_code}
-                                                value={plant.plant_code}>({plant.plant_code}) {plant.plant_name}</option>
+                                        <option key={plant.plantCode}
+                                                value={plant.plantCode}>({plant.plantCode}) {plant.plantName}</option>
                                     ))}
                                 </select>
                             </div>

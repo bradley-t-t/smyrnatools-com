@@ -2356,7 +2356,7 @@
 }
 
 .rpts-reviewed-flag {
-    color: var(--warning);
+    color: var(--error);
 }
 
 .rpts-sbmt-top-bar {

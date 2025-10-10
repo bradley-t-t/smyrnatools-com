@@ -193,7 +193,7 @@ export default function DashboardView() {
                 if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'In Shop') mixersTotals.shop++
                 if (m.status !== 'Retired') mixersAvailable++
                 if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
-                if (VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
+                if (m.status !== 'Retired' && VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
                 if (m.assignedOperator) mixerAssignedIds.add(m.assignedOperator)
                 const mc = counts.mixers[m.id]
                 if (mc) {
@@ -261,8 +261,8 @@ export default function DashboardView() {
             } else if (o.status === 'Pending Start') operatorsTotals.pending++
             else if (o.status === 'Light Duty') operatorsTotals.lightDuty++
         }
-        const mixersVerifiedPercent = mixersTotals.total ? Math.round((mixersTotals.verified / mixersTotals.total) * 100) : 0
-        const tractorsVerifiedPercent = tractorsTotals.total ? Math.round((tractorsTotals.verified / tractorsTotals.total) * 100) : 0
+        const mixersVerifiedPercent = mixersAvailable ? Math.round((mixersTotals.verified / mixersAvailable) * 100) : 0
+        const tractorsVerifiedPercent = tractorsAvailable ? Math.round((tractorsTotals.verified / tractorsAvailable) * 100) : 0
         const verifiedValues = []
         if (!isAggregate && mixersTotals.total) verifiedValues.push(mixersVerifiedPercent)
         if (tractorsTotals.total) verifiedValues.push(tractorsVerifiedPercent)

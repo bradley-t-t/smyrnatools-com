@@ -304,6 +304,11 @@ function TractorDetailView({tractorId, onClose}) {
     }
 
     async function handleVerifyTractor() {
+        if (status === 'Retired') {
+            setMessage('Cannot verify: Retired tractors cannot be verified.')
+            setTimeout(() => setMessage(''), 4000)
+            return
+        }
         const vinValid = !!vin && ValidationUtility.isVIN(vin)
         if (!vinValid || !tractor.make || !tractor.model || !tractor.year) {
             let missing = [];

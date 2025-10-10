@@ -102,16 +102,18 @@ function OperatorsView({
     const fetchAllData = async () => {
         setIsLoading(true)
         try {
-            await Promise.all([fetchOperators(), fetchPlants(), fetchTrainers()])
+            const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+            setRegionPlantCodes(codes)
+            await Promise.all([fetchOperators(codes), fetchPlants(codes), fetchTrainers()])
         } catch {
         } finally {
             setIsLoading(false)
         }
     }
 
-    const fetchOperators = async () => {
+    const fetchOperators = async (codes) => {
         try {
-            const data = await OperatorService.fetchOperators()
+            const data = await OperatorService.fetchOperators(codes)
             setOperators(data)
             localStorage.setItem('cachedOperators', JSON.stringify(data))
             localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
@@ -126,9 +128,9 @@ function OperatorsView({
         }
     }
 
-    const fetchPlants = async () => {
+    const fetchPlants = async (codes) => {
         try {
-            const data = await PlantService.fetchPlants()
+            const data = await PlantService.fetchPlants(codes)
             setPlants(data)
         } catch {
             setPlants([])

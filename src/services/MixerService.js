@@ -294,7 +294,7 @@ class MixerServiceImpl {
         return true
     }
 
-    static async fetchMixersWithDetails() {
+    static async fetchMixersWithDetails(regionCodes = null) {
         const base = await this.getAllMixers().catch(() => [])
         const processedBase = (Array.isArray(base) ? base : []).map(m => {
             const mixer = {...m}
@@ -303,6 +303,9 @@ class MixerServiceImpl {
             if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
             return mixer
         })
+        if (regionCodes) {
+            return processedBase.filter(m => regionCodes.has(String(m.assignedPlant || '').trim().toUpperCase()))
+        }
         return processedBase
     }
 

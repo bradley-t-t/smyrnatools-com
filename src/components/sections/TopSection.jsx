@@ -3,6 +3,7 @@ import './styles/Top.css'
 
 function TopSection({
                         title,
+                        badge,
                         onToggleSidebar,
                         addButtonLabel,
                         onAddClick,
@@ -67,7 +68,7 @@ function TopSection({
         <div className={className} ref={forwardedRef} data-section="top" aria-label="Page controls">
             <div className="top-section-inner">
                 <div className="top-row primary-row">
-                    <h1 className="top-title">{title}</h1>
+                    <h1 className="top-title">{title} {badge && <span className="top-badge">{badge}</span>}</h1>
                     <div className="action-cluster" role="group" aria-label="Primary actions">
                         {onToggleSidebar && (
                             <button className="action-button subtle" onClick={onToggleSidebar} type="button"
@@ -133,10 +134,6 @@ function TopSection({
                                 >
                                     <option value="">All Plants</option>
                                     {safePlants
-                                        .filter(p => {
-                                            const code = String(p.plantCode || p.plant_code || '').trim().toUpperCase()
-                                            return regionPlantCodes && regionPlantCodes.size > 0 ? regionPlantCodes.has(code) : true
-                                        })
                                         .sort((a, b) => parseInt((a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt((b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
                                         .map(plant => (
                                             <option key={plant.plantCode || plant.plant_code}

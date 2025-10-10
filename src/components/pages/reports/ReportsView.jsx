@@ -144,6 +144,7 @@ function ReportsView() {
             const review = {}
             await Promise.all(reportTypes.map(async rt => {
                 const a = await UserService.hasAnyPermission(user.id, rt.assignment)
+                console.log(`hasAssigned for ${rt.name}: ${a}, permissions: ${rt.assignment.join(', ')}`)
                 assigned[rt.name] = !!a
                 review[rt.name] = false
                 const checks = await Promise.all(rt.review.map(perm => UserService.hasPermission(user.id, perm)))
@@ -524,13 +525,15 @@ function ReportsView() {
     }
 
     async function handleReview(report) {
-        // Mark as reviewed
-        const {error} = await supabase
-            .from('reports')
-            .update({been_reviewed: true})
-            .eq('id', report.id)
-        if (!error) {
-            setLocalReports(prev => prev.map(r => r.id === report.id ? {...r, been_reviewed: true} : r))
+        // Mark as reviewed only if not reviewing own report
+        if (report.userId !== user.id) {
+            const {error} = await supabase
+                .from('reports')
+                .update({been_reviewed: true})
+                .eq('id', report.id)
+            if (!error) {
+                setLocalReports(prev => prev.map(r => r.id === report.id ? {...r, been_reviewed: true} : r))
+            }
         }
         setReviewData(report)
         setShowReview(reportTypes.find(rt => rt.name === report.name))

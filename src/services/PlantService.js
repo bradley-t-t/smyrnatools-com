@@ -14,8 +14,12 @@ class PlantServiceImpl {
         return data.map(row => Plant.fromRow(row))
     }
 
-    async fetchPlants() {
-        return this.fetchAllPlants()
+    async fetchPlants(regionCodes = null) {
+        const all = await this.fetchAllPlants();
+        if (regionCodes && regionCodes.size > 0) {
+            return all.filter(p => regionCodes.has(String(p.plantCode || '').trim().toUpperCase()));
+        }
+        return all;
     }
 
     async fetchPlantByCode(plantCode) {

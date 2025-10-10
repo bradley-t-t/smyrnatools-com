@@ -56,9 +56,9 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
     const fetchTrainers = async () => {
         const {data} = await supabase
             .from('operators')
-            .select('employee_id, name, is_trainer')
+            .select('employee_id, name, is_trainer, plant_code')
             .eq('is_trainer', true);
-        setTrainers((data || []).map(trainer => ({
+        setTrainers((data || []).filter(trainer => allowedPlantCodes && allowedPlantCodes.size > 0 ? allowedPlantCodes.has(String(trainer.plant_code || '').trim().toUpperCase()) : false).map(trainer => ({
             employeeId: trainer.employee_id,
             name: trainer.name
         })));
