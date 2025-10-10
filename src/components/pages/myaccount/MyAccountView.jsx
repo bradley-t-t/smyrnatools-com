@@ -63,11 +63,10 @@ function MyAccountView({userId}) {
                 ])
                 if (highestRole?.name) setUserRole(highestRole.name)
                 let regionsList = []
-                if (allPerm) {
-                    try {
-                        regionsList = await RegionService.fetchRegions()
-                    } catch {
-                    }
+                try {
+                    regionsList = await UserService.getPermittedRegions(uid)
+                } catch {
+                    regionsList = []
                 }
                 if (profileData) {
                     setUser({...profileData})
@@ -75,23 +74,6 @@ function MyAccountView({userId}) {
                     if (profileData.last_name) setLastName(profileData.last_name)
                     const pc = profileData.plant_code || ''
                     setPlantCode(pc)
-                    if (!allPerm) {
-                        const regionCodes = Array.isArray(profileData.regions) ? profileData.regions.filter(r => typeof r === 'string' && r.trim()) : []
-                        if (regionCodes.length) {
-                            try {
-                                const all = await RegionService.fetchRegions();
-                                const codeSet = new Set(regionCodes.map(c => c.toLowerCase()));
-                                regionsList = all.filter(r => codeSet.has((r.regionCode || '').toLowerCase()))
-                            } catch {
-                            }
-                        }
-                        if (!regionsList.length && pc) {
-                            try {
-                                regionsList = await RegionService.fetchRegionsByPlantCode(pc)
-                            } catch {
-                            }
-                        }
-                    }
                 } else if (!regionsList.length && !allPerm && usersData?.profiles) {
                     if (usersData.profiles.first_name) setFirstName(usersData.profiles.first_name)
                     if (usersData.profiles.last_name) setLastName(usersData.profiles.last_name)

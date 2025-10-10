@@ -15,7 +15,7 @@ import GrammarUtility from '../../../utils/GrammarUtility'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 
 export default function DashboardView() {
-    const {preferences} = usePreferences()
+    const {preferences, updatePreferences} = usePreferences()
     const [loading, setLoading] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState('')
@@ -149,6 +149,7 @@ export default function DashboardView() {
     const computeStats = useCallback(() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
         const isOffice = region?.type === 'Office'
+        const isAggregate = region?.type === 'Aggregate'
         const plantSet = new Set()
         if (isOffice) {
             allPlants.forEach(p => {
@@ -185,18 +186,20 @@ export default function DashboardView() {
         const counts = countsRef.current
         let mixersAvailable = 0, tractorsAvailable = 0, trailersAvailable = 0, equipmentAvailable = 0,
             pickupsAvailable = 0
-        for (const m of allMixersRef.current) {
-            if (!consider(m.plantCode)) continue
-            mixersTotals.total++
-            if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'In Shop') mixersTotals.shop++
-            if (m.status !== 'Retired') mixersAvailable++
-            if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
-            if (VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
-            if (m.assignedOperator) mixerAssignedIds.add(m.assignedOperator)
-            const mc = counts.mixers[m.id]
-            if (mc) {
-                mixersTotals.issues += mc.issues || 0;
-                mixersTotals.comments += mc.comments || 0
+        if (!isAggregate) {
+            for (const m of allMixersRef.current) {
+                if (!consider(m.plantCode)) continue
+                mixersTotals.total++
+                if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'In Shop') mixersTotals.shop++
+                if (m.status !== 'Retired') mixersAvailable++
+                if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
+                if (VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
+                if (m.assignedOperator) mixerAssignedIds.add(m.assignedOperator)
+                const mc = counts.mixers[m.id]
+                if (mc) {
+                    mixersTotals.issues += mc.issues || 0;
+                    mixersTotals.comments += mc.comments || 0
+                }
             }
         }
         for (const t of allTractorsRef.current) {
@@ -261,19 +264,29 @@ export default function DashboardView() {
         const mixersVerifiedPercent = mixersTotals.total ? Math.round((mixersTotals.verified / mixersTotals.total) * 100) : 0
         const tractorsVerifiedPercent = tractorsTotals.total ? Math.round((tractorsTotals.verified / tractorsTotals.total) * 100) : 0
         const verifiedValues = []
-        if (mixersTotals.total) verifiedValues.push(mixersVerifiedPercent)
+        if (!isAggregate && mixersTotals.total) verifiedValues.push(mixersVerifiedPercent)
         if (tractorsTotals.total) verifiedValues.push(tractorsVerifiedPercent)
         const verificationAvg = verifiedValues.length ? Math.round(verifiedValues.reduce((a, b) => a + b, 0) / verifiedValues.length) : 0
-        const openIssuesTotal = mixersTotals.issues + tractorsTotals.issues + trailersTotals.issues + equipmentTotals.issues
-        const overdueTotal = mixersTotals.overdue + tractorsTotals.overdue + trailersTotals.overdue + equipmentTotals.overdue
-        const fleetTotal = mixersTotals.total + tractorsTotals.total + trailersTotals.total + equipmentTotals.total + pickupsTotals.total
+        let openIssuesTotal = 0
+        if (!isAggregate) openIssuesTotal += mixersTotals.issues
+        openIssuesTotal += tractorsTotals.issues + trailersTotals.issues + equipmentTotals.issues
+        let overdueTotal = 0
+        if (!isAggregate) overdueTotal += mixersTotals.overdue
+        overdueTotal += tractorsTotals.overdue + trailersTotals.overdue + equipmentTotals.overdue
+        let fleetTotal = 0
+        if (!isAggregate) fleetTotal += mixersTotals.total
+        fleetTotal += tractorsTotals.total + trailersTotals.total + equipmentTotals.total + pickupsTotals.total
         const mixersAllocationPercent = mixersAvailable ? Math.round((mixersTotals.active / mixersAvailable) * 100) : 0
         const tractorsAllocationPercent = tractorsAvailable ? Math.round((tractorsTotals.active / tractorsAvailable) * 100) : 0
         const trailersAllocationPercent = trailersAvailable ? Math.round((trailersTotals.active / trailersAvailable) * 100) : 0
         const equipmentAllocationPercent = equipmentAvailable ? Math.round((equipmentTotals.active / equipmentAvailable) * 100) : 0
         const pickupsAllocationPercent = pickupsAvailable ? Math.round(((pickupsTotals.active + pickupsTotals.stationary) / pickupsAvailable) * 100) : 0
-        const overallAvailable = mixersAvailable + tractorsAvailable + trailersAvailable + equipmentAvailable + pickupsAvailable
-        const overallActiveNumerator = mixersTotals.active + tractorsTotals.active + trailersTotals.active + equipmentTotals.active + pickupsTotals.active + pickupsTotals.stationary
+        let overallAvailable = 0
+        if (!isAggregate) overallAvailable += mixersAvailable
+        overallAvailable += tractorsAvailable + trailersAvailable + equipmentAvailable + pickupsAvailable
+        let overallActiveNumerator = 0
+        if (!isAggregate) overallActiveNumerator += mixersTotals.active
+        overallActiveNumerator += tractorsTotals.active + trailersTotals.active + equipmentTotals.active + pickupsTotals.active + pickupsTotals.stationary
         const overallAllocationPercent = overallAvailable ? Math.round((overallActiveNumerator / overallAvailable) * 100) : 0
         setStats(s => ({
             mixers: {
@@ -452,20 +465,10 @@ export default function DashboardView() {
                     allFetched = []
                 }
                 let regionsList = []
-                if (allPerm) regionsList = allFetched
-                else {
-                    const {data: profile} = await supabase.from('users_profiles').select('plant_code, regions').eq('id', uid).maybeSingle()
-                    const profileRegions = Array.isArray(profile?.regions) ? profile.regions.filter(r => typeof r === 'string' && r.trim()) : []
-                    if (profileRegions.length) {
-                        const codeSet = new Set(profileRegions.map(c => c.toLowerCase()))
-                        regionsList = allFetched.filter(r => codeSet.has(String((r.regionCode || '').toLowerCase())))
-                    }
-                    if ((!regionsList || !regionsList.length) && profile?.plant_code) {
-                        try {
-                            regionsList = await RegionService.fetchRegionsByPlantCode(profile.plant_code).catch(() => [])
-                        } catch {
-                        }
-                    }
+                try {
+                    regionsList = await UserService.getPermittedRegions(uid)
+                } catch {
+                    regionsList = []
                 }
                 if ((!regionsList || !regionsList.length) && allFetched.length) regionsList = allFetched
                 if (cancelled) return
@@ -686,8 +689,8 @@ export default function DashboardView() {
     const heroRegionSub = (() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
         const isOffice = region?.type === 'Office'
-        if (isOffice) return `${totalRegionsExcludingOffice} Region${totalRegionsExcludingOffice !== 1 ? 's' : ''}, ${totalPlantsExcludingAggregate} Plant${totalPlantsExcludingAggregate !== 1 ? 's' : ''}, ${totalAggregateLocations} Aggregate Location${totalAggregateLocations !== 1 ? 's' : ''}`
-        const plantLabel = region?.type === 'Aggregate' ? 'Aggregate Location' : 'Plant'
+        if (isOffice) return `${totalRegionsExcludingOffice} Region${totalRegionsExcludingOffice !== 1 ? 's' : ''}, ${totalPlantsExcludingAggregate} Concrete Plant${totalPlantsExcludingAggregate !== 1 ? 's' : ''}, ${totalAggregateLocations} Aggregate Location${totalAggregateLocations !== 1 ? 's' : ''}`
+        const plantLabel = region?.type === 'Aggregate' ? 'Aggregate Location' : 'Concrete Plant'
         return dashboardPlant ? `${plantLabel} ${dashboardPlant}` : (dashboardRegionCode ? `${regionPlants.length} ${plantLabel}${regionPlants.length !== 1 ? 's' : ''}` : `${allPlantsCount} ${plantLabel}${allPlantsCount !== 1 ? 's' : ''}`)
     })()
     const diffBadge = current => {
@@ -707,12 +710,14 @@ export default function DashboardView() {
             setDashboardRegionCode('')
             setDashboardRegionName('')
             setDashboardPlant('')
+            updatePreferences('selectedRegion', {code: '', name: '', type: ''})
             return
         }
         const r = permittedRegions.find(x => (x.regionCode || x.region_code) === code)
         if (r) {
             setDashboardRegionCode(r.regionCode || r.region_code)
             setDashboardRegionName(r.regionName || r.region_name || '')
+            updatePreferences('selectedRegion', {code: r.regionCode || r.region_code, name: r.regionName || r.region_name || '', type: r.type || r.region_type || ''})
         }
         setDashboardPlant('')
     }
@@ -759,14 +764,20 @@ export default function DashboardView() {
     const assetIssuesRows = useMemo(() => {
         const plantSet = plantSetRef.current
         const filterActive = plantSet.size > 0
-        const list = assetIssueDetails.filter(r => !filterActive || plantSet.has(String(r.plant || '').trim()))
+        let list = assetIssueDetails.filter(r => !filterActive || plantSet.has(String(r.plant || '').trim()))
+        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const isAggregate = region?.type === 'Aggregate'
+        if (isAggregate) {
+            list = list.filter(r => r.type !== 'Mixer')
+        }
         list.forEach(r => {
             if (!r.identifier) r.identifier = '-'
         })
         return list.sort((a, b) => a.type.localeCompare(b.type) || String(a.identifier).localeCompare(String(b.identifier)) || String(a.assetId).localeCompare(String(b.assetId)))
-    }, [assetIssueDetails, dashboardPlant, regionPlants, refreshKey])
+    }, [assetIssueDetails, dashboardPlant, regionPlants, refreshKey, dashboardRegionCode])
 
     const selectedRegion = RegionService.getRegionByCode(dashboardRegionCode)
+    const isAggregate = selectedRegion?.type === 'Aggregate'
 
     return (
         <div className="global-dashboard-container dashboard-container" data-filtering={isFiltering || undefined}>
@@ -864,6 +875,7 @@ export default function DashboardView() {
                         <div className="group-section">
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
+                                {!isAggregate && (
                                 <div className="kpi-card">
                                     <div className="kpi-title">Mixers</div>
                                     <div className="kpi-value">{stats.mixers.total}</div>
@@ -877,6 +889,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Comments {stats.mixers.comments}</div>
                                     </div>
                                 </div>
+                                )}
                                 <div className="kpi-card">
                                     <div className="kpi-title">Tractors</div>
                                     <div className="kpi-value">{stats.tractors.total}</div>
@@ -943,7 +956,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Active {stats.operators.active}</div>
                                         <div className="kpi-pill">Light Duty {stats.operators.lightDuty}</div>
                                         <div className="kpi-pill">Assigned {stats.operators.assigned}</div>
-                                        <div className="kpi-pill">Mixers Assigned {stats.operators.mixerAssigned}</div>
+                                        {!isAggregate && <div className="kpi-pill">Mixers Assigned {stats.operators.mixerAssigned}</div>}
                                         <div className="kpi-pill">Tractors
                                             Assigned {stats.operators.tractorAssigned}</div>
                                         <div className="kpi-pill">Unassigned {stats.operators.unassigned}</div>
@@ -1124,64 +1137,10 @@ export default function DashboardView() {
                                 )}
                             </div>
                         </div>
-                        <div className="group-section">
-                            <div className="section-title">Regions</div>
-                            <div className="dashboard-grid inner-grid">
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Total Regions</div>
-                                    <div className="kpi-value">{totalRegionsExcludingOffice}</div>
-                                    <div className="kpi-sub">Excluding Office</div>
-                                </div>
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Total Plants</div>
-                                    <div className="kpi-value">{totalPlantsExcludingAggregate}</div>
-                                    <div className="kpi-sub">Excluding Aggregate</div>
-                                </div>
-                                <div className="kpi-card">
-                                    <div className="kpi-title">Aggregate Locations</div>
-                                    <div className="kpi-value">{totalAggregateLocations}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="training-table-wrapper">
-                            <div className="training-table-header">
-                                <div className="training-table-title">Asset Issues ({assetIssuesRows.length})</div>
-                                <button type="button" className="training-toggle" aria-expanded={!issuesCollapsed}
-                                        onClick={() => setIssuesCollapsed(v => !v)}
-                                        disabled={!assetIssuesRows.length}>{issuesCollapsed ? 'Expand' : 'Collapse'}</button>
-                            </div>
-                            {!issuesCollapsed && (
-                                assetIssuesRows.length > 0 ? (
-                                    <div className="training-table-scroll">
-                                        <table className="training-table asset-issues-table">
-                                            <thead>
-                                            <tr>
-                                                <th>Asset Type</th>
-                                                <th>Truck/VIN</th>
-                                                <th>Plant</th>
-                                                <th className="issue-desc-col">Issue</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {assetIssuesRows.map(r => <tr
-                                                key={r.type + ':' + r.assetId + ':' + r.description.slice(0, 30)}>
-                                                <td>{r.type}</td>
-                                                <td>{r.identifier || '-'}</td>
-                                                <td>{r.plant || '-'}</td>
-                                                <td className="issue-desc"
-                                                    title={r.description || 'Issue'}>{r.description || 'Issue'}</td>
-                                            </tr>)}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ) : (
-                                    <div className="training-empty">None</div>
-                                )
-                            )}
-                        </div>
                     </div>
                 )}
             </div>
         </div>
     )
 }
+

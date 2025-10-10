@@ -225,32 +225,6 @@ class EquipmentServiceImpl {
             if (typeof equipment.commentsCount !== 'number') equipment.commentsCount = 0
             return equipment
         })
-        const items = processedBase.slice()
-        let index = 0
-        const concurrency = 6
-
-        async function worker() {
-            while (index < items.length) {
-                const current = index++
-                const item = items[current]
-                try {
-                    const [comments, issues] = await Promise.all([
-                        EquipmentService.fetchComments(item.id).catch(() => []),
-                        EquipmentService.fetchIssues(item.id).catch(() => [])
-                    ])
-                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    item.comments = comments
-                    item.issues = issues
-                    item.openIssuesCount = openIssuesCount
-                    item.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
-            }
-        }
-
-        await Promise.all(Array.from({length: concurrency}, () => worker()))
         return processedBase
     }
 }

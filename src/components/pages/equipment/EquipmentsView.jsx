@@ -43,12 +43,14 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [modalEquipmentId, setModalEquipmentId] = useState(null)
     const [modalEquipmentNumber, setModalEquipmentNumber] = useState('')
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [equipmentsLoaded, setEquipmentsLoaded] = useState(false)
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Open Issues'];
     const headerRef = useRef(null)
 
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true);
+            setEquipmentsLoaded(false);
             try {
                 await Promise.all([fetchEquipments(), fetchPlants()]);
             } finally {
@@ -98,6 +100,8 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         try {
             const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
             setEquipments(processedBase)
+            setEquipmentsLoaded(true)
+            loadDetailsForEquipments(processedBase)
         } catch {
             setEquipments([]);
         }
@@ -109,6 +113,35 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             setPlants(data);
         } catch {
         }
+    }
+
+    const loadDetailsForEquipments = async (equipments) => {
+        const items = equipments.slice()
+        let index = 0
+        const concurrency = 20
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const e = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        EquipmentService.fetchComments(e.id).catch(() => []),
+                        EquipmentService.fetchIssues(e.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter(i => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    e.comments = comments
+                    e.issues = issues
+                    e.openIssuesCount = openIssuesCount
+                    e.commentsCount = commentsCount
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+        await Promise.all(Array.from({length: concurrency}, () => worker()))
+        // Trigger re-render
+        setEquipments([...equipments])
     }
 
     function handleDetailViewSaved(updated) {

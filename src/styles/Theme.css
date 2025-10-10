@@ -73,6 +73,12 @@
     --bg-content: var(--background);
     --bg-navbar-hover: var(--badge-bg-hover);
     --status-badge-text: #000000;
+    --status-completed-bg: var(--success);
+    --status-overdue-bg: var(--error);
+    --status-pending-bg: var(--warning);
+    --status-completed-bg: #28a745;
+    --status-overdue-bg: #dc3545;
+    --status-pending-bg: #ffc107;
     --radius-sm: 6px;
     --radius-lg: 14px;
     --radius-xl: 20px;
@@ -167,6 +173,12 @@
     --bg-content: var(--background);
     --bg-navbar-hover: var(--bg-secondary);
     --status-badge-text: #ffffff;
+    --status-completed-bg: var(--success);
+    --status-overdue-bg: var(--error);
+    --status-pending-bg: var(--warning);
+    --status-completed-bg: #28a745;
+    --status-overdue-bg: #dc3545;
+    --status-pending-bg: #ffc107;
     --gradient-accent: linear-gradient(120deg, var(--accent-dark) 0%, var(--accent) 55%, var(--accent-light) 100%);
     --gradient-accent-soft: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.3) 0%, rgba(var(--accent-primary-rgb), 0.08) 100%);
     --gradient-surface: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-secondary) 140%);

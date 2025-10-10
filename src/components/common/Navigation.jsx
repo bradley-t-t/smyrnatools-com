@@ -113,7 +113,8 @@ export default function Navigation({
                     return false
                 })
                 if (regionType === 'Office') filtered = filtered.filter(item => item.id === 'Reports' || item.id === 'Dashboard' || item.id === 'Managers' || item.id === 'Plants' || item.id === 'Regions')
-                else if (regionType === 'Aggregate') filtered = filtered.filter(item => !['Mixers', 'List', 'Tractors', 'Trailers'].includes(item.id))
+                else if (regionType === 'Aggregate') filtered = filtered.filter(item => !['Mixers', 'Plants', 'Regions'].includes(item.id))
+                else filtered = filtered.filter(item => !['Plants', 'Regions'].includes(item.id))
                 setVisibleMenuItems(filtered)
                 lastMenuItemsRef.current = filtered
             } catch (error) {

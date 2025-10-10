@@ -1,5 +1,6 @@
 import APIUtility from '../utils/APIUtility'
 import {supabase} from './DatabaseService'
+import {RegionService} from './RegionService'
 
 const USER_FUNCTION = '/user-service'
 
@@ -229,4 +230,55 @@ UserService.getAllUsersWithProfilesAndRoles = async function () {
         }
     })
     return managersData
+}
+
+UserService.getPermittedRegions = async function (userId) {
+    if (!userId) return []
+    const id = typeof userId === 'object' && userId.id ? userId.id : userId
+    const allPerm = await this.hasPermission(id, 'regions.select.all').catch(() => false)
+    if (allPerm) {
+        try {
+            return await RegionService.fetchRegions()
+        } catch {
+            return []
+        }
+    }
+    const {data: profile} = await supabase.from('users_profiles').select('plant_code, regions').eq('id', id).maybeSingle()
+    const profileRegions = Array.isArray(profile?.regions) ? profile.regions.filter(r => typeof r === 'string' && r.trim()) : []
+    if (!profileRegions.length) {
+        if (profile?.plant_code) {
+            try {
+                return await RegionService.fetchRegionsByPlantCode(profile.plant_code)
+            } catch {
+                return []
+            }
+        }
+        return []
+    }
+    try {
+        const allFetched = await RegionService.fetchRegions()
+        const permitted = []
+        const addedCodes = new Set()
+        for (const pr of profileRegions) {
+            const lowerPr = pr.toLowerCase().trim()
+            for (const r of allFetched) {
+                const code = String((r.regionCode || '')).toLowerCase().trim()
+                const name = String((r.regionName || '')).toLowerCase().trim()
+                if (code === lowerPr || name === lowerPr) {
+                    if (!addedCodes.has(r.regionCode)) {
+                        permitted.push(r)
+                        addedCodes.add(r.regionCode)
+                    }
+                    break
+                }
+            }
+        }
+        if (permitted.length) return permitted
+        if (profile?.plant_code) {
+            return await RegionService.fetchRegionsByPlantCode(profile.plant_code)
+        }
+        return []
+    } catch {
+        return []
+    }
 }

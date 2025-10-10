@@ -33,11 +33,11 @@
 }
 
 .list-list-header-row {
-    grid-template-columns: 5% 39% 16% 14% 16% 10%;
+    grid-template-columns: 2% 42% 16% 14% 16% 10%;
 }
 
 .list-list-header-row.completed {
-    grid-template-columns: 5% 34% 14% 12% 16% 11% 8%;
+    grid-template-columns: 2% 37% 14% 12% 16% 11% 8%;
 }
 
 .list-list-header-row > div[role="button"] {
@@ -48,6 +48,32 @@
 .list-view {
     overscroll-behavior-y: none;
     padding-top: 0;
+}
+
+.list-status-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0;
+}
+
+.list-status-badge.completed {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+}
+
+.list-status-badge.overdue {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.list-status-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
 }
 
 .bulk-actions-bar {
@@ -922,9 +948,9 @@ textarea.form-control {
     align-items: center;
     gap: 6px;
     margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
 }
 
 .form-group label i {
@@ -1882,4 +1908,35 @@ textarea.form-control {
     background: var(--bg-secondary);
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
+}
+
+.rpts-status {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0;
+}
+
+.rpts-status.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+}
+
+.rpts-status.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.rpts-status.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.rpts-status.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
 }
