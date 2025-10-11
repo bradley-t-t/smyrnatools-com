@@ -5,6 +5,7 @@ import {AuthService} from '../../../services/AuthService';
 import './styles/Trailers.css';
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function TrailerAddView({plants, onClose, onTrailerAdded}) {
     const {preferences} = usePreferences()
@@ -15,6 +16,7 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
     const [error, setError] = useState('');
     const [cleanlinessRating, setCleanlinessRating] = useState(1);
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
         async function loadTrailers() {
@@ -58,6 +60,9 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
         const filtered = !preferences.selectedRegion?.code || !regionPlantCodes ? list : list.filter(p => regionPlantCodes.has(p.plantCode))
         return filtered.slice().sort((a, b) => parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0'))
     }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
+
+    const selectedPlantObj = visiblePlants.find(p => p.plantCode === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}` : 'Select Plant';
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -134,20 +139,14 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label htmlFor="assignedPlant">Assigned Plant*</label>
-                                        <select
-                                            id="assignedPlant"
+                                        <button
+                                            type="button"
                                             className="ios-select"
-                                            value={assignedPlant}
-                                            onChange={e => setAssignedPlant(e.target.value)}
-                                            required
+                                            onClick={() => setIsPlantModalOpen(true)}
+                                            aria-label="Select assigned plant"
                                         >
-                                            <option value="">Select Plant</option>
-                                            {visiblePlants?.length ? visiblePlants.map(plant => (
-                                                <option key={plant.plantCode} value={plant.plantCode}>
-                                                    ({plant.plantCode}) {plant.plantName}
-                                                </option>
-                                            )) : <option disabled>Loading plants...</option>}
-                                        </select>
+                                            {plantDisplayText}
+                                        </button>
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="trailerType">Trailer Type</label>
@@ -187,6 +186,19 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
                                 </button>
                             </div>
                         </form>
+                        {isPlantModalOpen && (
+                            <PlantDropdownModal
+                                isOpen={isPlantModalOpen}
+                                onClose={() => setIsPlantModalOpen(false)}
+                                onPlantSelected={plant => {
+                                    setAssignedPlant(plant.plantCode);
+                                    setIsPlantModalOpen(false);
+                                }}
+                                selectedPlantCode={assignedPlant}
+                                regionCode={preferences.selectedRegion?.code}
+                                showRegionPlantsOnly={true}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

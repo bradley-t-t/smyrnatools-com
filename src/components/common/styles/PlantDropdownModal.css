@@ -1,0 +1,100 @@
+.plant-dropdown-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--modal-bg);
+    z-index: 1000;
+    transition: opacity 0.2s ease;
+}
+
+.plant-dropdown-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--spacing-lg);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+}
+
+.plant-dropdown-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--divider);
+}
+
+.plant-dropdown-modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.plant-dropdown-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease;
+}
+
+.plant-dropdown-modal-close:hover {
+    background: var(--bg-secondary);
+}
+
+.plant-dropdown-modal-search-wrapper {
+    position: relative;
+    margin-bottom: var(--spacing-md);
+}
+
+.plant-dropdown-modal-search {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.plant-dropdown-modal-search-icon {
+    position: absolute;
+    right: var(--spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.plant-dropdown-modal-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.plant-option {
+    padding: var(--spacing-sm);
+    cursor: pointer;
+    border-bottom: 1px solid var(--divider);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease;
+}
+
+.plant-option:hover {
+    background: var(--bg-secondary);
+}
+
+.plant-option:last-child {
+    border-bottom: none;
+}

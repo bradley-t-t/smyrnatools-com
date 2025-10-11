@@ -1,7 +1,8 @@
 import supabase, {DatabaseService} from '../../../services/DatabaseService';
 import './styles/Operators.css';
 import GrammarUtility from '../../../utils/GrammarUtility';
-import {useEffect, useState} from "react";
+import {useEffect, useState, useMemo} from "react";
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onScheduledOffSaved, allowedPlantCodes}) {
     const [operator, setOperator] = useState(null);
@@ -25,6 +26,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
     const [_scheduledOffDays, setScheduledOffDays] = useState([]);
     const [rating, setRating] = useState(0);
     const [phone, setPhone] = useState('');
+    const [showPlantModal, setShowPlantModal] = useState(false);
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -64,16 +66,21 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
         })));
     };
 
-    const filteredPlants = plants
-        .filter(p => {
-            const code = String(p.plant_code || '').trim().toUpperCase();
-            return allowedPlantCodes && allowedPlantCodes.size > 0 ? allowedPlantCodes.has(code) : false;
-        })
-        .sort((a, b) => {
-            const aCode = parseInt(a.plant_code?.replace(/\D/g, '') || '0');
-            const bCode = parseInt(b.plant_code?.replace(/\D/g, '') || '0');
-            return aCode - bCode;
-        });
+    const filteredPlants = useMemo(() => {
+        return plants
+            .filter(p => {
+                const code = String(p.plant_code || '').trim().toUpperCase();
+                return allowedPlantCodes && allowedPlantCodes.size > 0 ? allowedPlantCodes.has(code) : false;
+            })
+            .sort((a, b) => {
+                const aCode = parseInt(a.plant_code?.replace(/\D/g, '') || '0');
+                const bCode = parseInt(b.plant_code?.replace(/\D/g, '') || '0');
+                return aCode - bCode;
+            });
+    }, [plants, allowedPlantCodes]);
+
+    const selectedPlantObj = plants.find(p => p.plant_code === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -294,18 +301,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                     )}
                     <div className="form-group">
                         <label>Assigned Plant</label>
-                        <select
-                            value={assignedPlant}
-                            onChange={(e) => setAssignedPlant(e.target.value)}
-                            className="form-control"
-                        >
-                            <option value="">Select Plant</option>
-                            {filteredPlants.map(plant => (
-                                <option key={plant.plant_code} value={plant.plant_code}>
-                                    ({plant.plant_code}) {plant.plant_name}
-                                </option>
-                            ))}
-                        </select>
+                        <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)} type="button"><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button>
                     </div>
                     <div className="form-group">
                         <label>Position</label>
@@ -417,6 +413,15 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                         </div>
                     </div>
                 </div>
+            )}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
             )}
         </div>
     );

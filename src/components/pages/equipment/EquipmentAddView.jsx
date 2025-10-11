@@ -1,9 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {EquipmentService} from '../../../services/EquipmentService';
+import Equipment from '../../../models/equipment/Equipment';
 import {AuthService} from '../../../services/AuthService';
 import './styles/Equipment.css';
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
     const {preferences} = usePreferences()
@@ -14,6 +16,7 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
@@ -46,6 +49,9 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
         const filtered = !preferences.selectedRegion?.code || !regionPlantCodes ? list : list.filter(p => regionPlantCodes.has(p.plantCode))
         return filtered.slice().sort((a, b) => parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0'))
     }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
+
+    const selectedPlantObj = visiblePlants.find(p => p.plantCode === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}` : 'Select Plant';
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -110,20 +116,14 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label htmlFor="assignedPlant">Assigned Plant*</label>
-                                        <select
-                                            id="assignedPlant"
+                                        <button
+                                            type="button"
                                             className="ios-select"
-                                            value={assignedPlant}
-                                            onChange={e => setAssignedPlant(e.target.value)}
-                                            required
+                                            onClick={() => setIsPlantModalOpen(true)}
+                                            aria-label="Select assigned plant"
                                         >
-                                            <option value="">Select Plant</option>
-                                            {visiblePlants?.length ? visiblePlants.map(plant => (
-                                                <option key={plant.plantCode} value={plant.plantCode}>
-                                                    ({plant.plantCode}) {plant.plantName}
-                                                </option>
-                                            )) : <option disabled>Loading plants...</option>}
-                                        </select>
+                                            {plantDisplayText}
+                                        </button>
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="equipmentType">Equipment Type*</label>
@@ -169,6 +169,17 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                     </div>
                 </div>
             </div>
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
+                    onClose={() => setIsPlantModalOpen(false)}
+                    onPlantSelected={plant => {
+                        setAssignedPlant(plant.plantCode);
+                        setIsPlantModalOpen(false);
+                    }}
+                    plants={visiblePlants}
+                />
+            )}
         </div>
     );
 }

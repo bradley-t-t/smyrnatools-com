@@ -14,8 +14,9 @@ import OperatorSelectModal from "../mixers/OperatorSelectModal";
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import {RegionService} from '../../../services/RegionService';
 import {ValidationUtility} from '../../../utils/ValidationUtility'
-import VerificationRequirementsModal from '../../common/VerificationRequirementsModal';
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 import ThemeUtility from '../../../utils/ThemeUtility';
+import VerificationRequirementsModal from "../../common/VerificationRequirementsModal";
 
 function TractorDetailView({tractorId, onClose}) {
     const {preferences} = usePreferences()
@@ -55,6 +56,7 @@ function TractorDetailView({tractorId, onClose}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
     const [missingFields, setMissingFields] = useState([]);
+    const [showPlantModal, setShowPlantModal] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -157,6 +159,9 @@ function TractorDetailView({tractorId, onClose}) {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()))
     }, [plants, regionPlantCodes])
+
+    const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
     useEffect(() => {
         async function checkPlantRestriction() {
@@ -641,16 +646,7 @@ function TractorDetailView({tractorId, onClose}) {
                                 <option value="In Shop">In Shop</option>
                                 <option value="Retired">Retired</option>
                             </select></div>
-                            <div className="form-group"><label>Assigned Plant</label><select value={assignedPlant}
-                                                                                             onChange={e => setAssignedPlant(e.target.value)}
-                                                                                             disabled={!canEditTractor}
-                                                                                             className="form-control">
-                                <option value="">Select Plant</option>
-                                {!assignedPlantInRegion && assignedPlant && <option
-                                    value={assignedPlant}>{assignedPlant}</option>}{filteredPlants.map(plant => (
-                                <option key={plant.plantCode || plant.plant_code}
-                                        value={plant.plantCode || plant.plant_code}>{plant.plantName || plant.plant_name}</option>))}
-                            </select></div>
+                            <div className="form-group"><label>Assigned Plant</label><button className="operator-select-button form-control" onClick={() => canEditTractor && setShowPlantModal(true)} type="button" disabled={!canEditTractor} style={!canEditTractor ? { cursor: 'not-allowed', opacity: 0.8, backgroundColor: 'var(--card-bg)' } : {}}><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button></div>
                             <div className="form-group"><label>Assigned Operator</label>
                                 <div className="operator-select-container">
                                     <button className="operator-select-button form-control" onClick={async () => {
@@ -858,6 +854,15 @@ function TractorDetailView({tractorId, onClose}) {
                     </div>
                 </div>
             </div>)}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
+            )}
         </div>
     );
 }

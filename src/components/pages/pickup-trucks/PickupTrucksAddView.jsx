@@ -6,6 +6,7 @@ import {usePreferences} from '../../../app/context/PreferencesContext'
 import {PlantService} from '../../../services/PlantService'
 import {RegionService} from '../../../services/RegionService'
 import {UserService} from '../../../services/UserService'
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function PickupTrucksAddView({onClose, onAdded}) {
     const {preferences} = usePreferences()
@@ -22,6 +23,7 @@ function PickupTrucksAddView({onClose, onAdded}) {
     const [error, setError] = useState('')
     const [plants, setPlants] = useState([])
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
         let cancelled = false
@@ -90,6 +92,9 @@ function PickupTrucksAddView({onClose, onAdded}) {
         return filteredPlants.slice().sort((a, b) => parseInt(String(a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt(String(b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
     }, [filteredPlants])
 
+    const selectedPlantObj = sortedFilteredPlants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name}` : 'Select Plant';
+
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
@@ -138,16 +143,14 @@ function PickupTrucksAddView({onClose, onAdded}) {
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label>Plant*</label>
-                                        <select className="ios-select" value={assignedPlant}
-                                                onChange={e => setAssignedPlant(e.target.value)} required>
-                                            <option value="">Select Plant</option>
-                                            {!regionPlantCodes.has(String(assignedPlant || '').trim().toUpperCase()) && assignedPlant &&
-                                                <option value={assignedPlant}>{assignedPlant}</option>}
-                                            {sortedFilteredPlants.map(p => (
-                                                <option key={p.plantCode || p.plant_code}
-                                                        value={p.plantCode || p.plant_code}>{(p.plantCode || p.plant_code) + ' ' + (p.plantName || p.plant_name)}</option>
-                                            ))}
-                                        </select>
+                                        <button
+                                            type="button"
+                                            className="ios-select"
+                                            onClick={() => setIsPlantModalOpen(true)}
+                                            aria-label="Select plant"
+                                        >
+                                            {plantDisplayText}
+                                        </button>
                                     </div>
                                     <div className="form-group">
                                         <label>Status</label>
@@ -216,6 +219,17 @@ function PickupTrucksAddView({onClose, onAdded}) {
                     </div>
                 </div>
             </div>
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    onClose={() => setIsPlantModalOpen(false)}
+                    onSelect={plant => {
+                        setAssignedPlant(plant?.plantCode || plant?.plant_code || '')
+                        setIsPlantModalOpen(false)
+                    }}
+                    selectedPlantCode={assignedPlant}
+                    allowClear={false}
+                />
+            )}
         </div>
     )
 }

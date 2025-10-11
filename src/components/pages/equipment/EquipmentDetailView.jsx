@@ -12,6 +12,7 @@ import './styles/Equipment.css';
 import LoadingScreen from '../../common/LoadingScreen';
 import {RegionService} from '../../../services/RegionService';
 import ThemeUtility from '../../../utils/ThemeUtility';
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const {preferences} = usePreferences();
@@ -42,6 +43,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const [comments, setComments] = useState([]);
     const [issues, setIssues] = useState([]);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
+    const [showPlantModal, setShowPlantModal] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -364,6 +366,9 @@ ${openIssues.length > 0
 
     const assignedPlantInRegion = assignedPlant && regionPlantCodes.has(String(assignedPlant).trim().toUpperCase());
 
+    const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
+
     return (
         <div className="equipment-detail-view">
             {showComments &&
@@ -449,16 +454,9 @@ ${openIssues.length > 0
                             </div>
                             <div className="form-group">
                                 <label>Assigned Plant</label>
-                                <select value={assignedPlant} onChange={e => setAssignedPlant(e.target.value)}
-                                        disabled={!canEditEquipment} className="form-control">
-                                    <option value="">Select Plant</option>
-                                    {!assignedPlantInRegion && assignedPlant &&
-                                        <option value={assignedPlant}>{assignedPlant}</option>}
-                                    {filteredPlants.map(plant => (
-                                        <option key={plant.plantCode || plant.plant_code}
-                                                value={plant.plantCode || plant.plant_code}>{plant.plantName || plant.plant_name}</option>
-                                    ))}
-                                </select>
+                                <button className="operator-select-button form-control" onClick={() => canEditEquipment && setShowPlantModal(true)} type="button" disabled={!canEditEquipment} style={!canEditEquipment ? { cursor: 'not-allowed', opacity: 0.8, backgroundColor: 'var(--card-bg)' } : {}}>
+                                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span>
+                                </button>
                             </div>
                             <div className="form-group">
                                 <label>Equipment Type</label>
@@ -601,6 +599,15 @@ ${openIssues.length > 0
                         </div>
                     </div>
                 </div>
+            )}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
             )}
         </div>
     );

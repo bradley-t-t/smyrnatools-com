@@ -14,8 +14,9 @@ import {Mixer} from "../../../models/mixers/Mixer"
 import LoadingScreen from "../../common/LoadingScreen"
 import {RegionService} from '../../../services/RegionService'
 import {ValidationUtility} from '../../../utils/ValidationUtility'
-import VerificationRequirementsModal from '../../common/VerificationRequirementsModal'
+import PlantDropdownModal from '../../common/PlantDropdownModal'
 import ThemeUtility from '../../../utils/ThemeUtility'
+import VerificationRequirementsModal from "../../common/VerificationRequirementsModal";
 
 function MixerDetailView({mixerId, onClose}) {
     const {preferences} = usePreferences()
@@ -54,6 +55,7 @@ function MixerDetailView({mixerId, onClose}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false)
     const [missingFields, setMissingFields] = useState([])
+    const [showPlantModal, setShowPlantModal] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -552,6 +554,9 @@ function MixerDetailView({mixerId, onClose}) {
 
     const assignedPlantInRegion = assignedPlant && regionPlantCodes.has(String(assignedPlant).trim().toUpperCase())
 
+    const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
+
     return (
         <div className="mixer-detail-view">
             {showComments && <MixerCommentModal mixerId={mixerId} mixerNumber={mixer?.truckNumber}
@@ -736,15 +741,9 @@ function MixerDetailView({mixerId, onClose}) {
                             </div>
                             <div className="form-group">
                                 <label>Assigned Plant</label>
-                                <select value={assignedPlant} onChange={e => setAssignedPlant(e.target.value)}
-                                        disabled={!canEditMixer} className="form-control">
-                                    <option value="">Select Plant</option>
-                                    {!assignedPlantInRegion && assignedPlant &&
-                                        <option value={assignedPlant}>{assignedPlant}</option>}
-                                    {filteredPlants.map(plant => (
-                                        <option key={plant.plantCode} value={plant.plantCode}>{plant.plantName}</option>
-                                    ))}
-                                </select>
+                                <button className="operator-select-button form-control" onClick={() => canEditMixer && setShowPlantModal(true)} type="button" disabled={!canEditMixer} style={!canEditMixer ? { cursor: 'not-allowed', opacity: 0.8, backgroundColor: 'var(--card-bg)' } : {}}>
+                                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span>
+                                </button>
                             </div>
                             <div className="form-group">
                                 <label>Assigned Operator</label>
@@ -999,8 +998,18 @@ function MixerDetailView({mixerId, onClose}) {
                     </div>
                 </div>
             )}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
+            )}
         </div>
     )
 }
 
 export default MixerDetailView
+

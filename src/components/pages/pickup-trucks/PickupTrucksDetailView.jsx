@@ -6,6 +6,7 @@ import {PlantService} from '../../../services/PlantService'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
 import {UserService} from '../../../services/UserService'
+import PlantDropdownModal from '../../common/PlantDropdownModal'
 
 function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const {preferences} = usePreferences()
@@ -26,6 +27,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [originalValues, setOriginalValues] = useState(null)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+    const [showPlantModal, setShowPlantModal] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -118,6 +120,9 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()))
     }, [plants, regionPlantCodes])
+
+    const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
     useEffect(() => {
         if (!originalValues) return
@@ -264,15 +269,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     <div className="form-sections pickup-form-sections">
                         <div className="form-section basic-info">
                             <h3>Basic Information</h3>
-                            <div className="form-group"><label>Assigned Plant</label><select value={assignedPlant}
-                                                                                             onChange={e => setAssignedPlant(e.target.value)}
-                                                                                             className="form-control">
-                                <option value="">Select Plant</option>
-                                {!assignedPlantInRegion && assignedPlant &&
-                                    <option value={assignedPlant}>{assignedPlant}</option>}
-                                {filteredPlants.map(p => (<option key={p.plantCode || p.plant_code}
-                                                                  value={p.plantCode || p.plant_code}>{(p.plantCode || p.plant_code) + ' ' + (p.plantName || p.plant_name)}</option>))}
-                            </select></div>
+                            <div className="form-group"><label>Assigned Plant</label><button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)} type="button"><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button></div>
                             <div className="form-group"><label>Status</label><select value={status}
                                                                                      onChange={e => setStatus(e.target.value)}
                                                                                      className="form-control">
@@ -319,6 +316,15 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     <button className="danger-button" onClick={handleDelete} disabled={isSaving}>Delete Pickup</button>
                 </div>
             </div>
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
+            )}
         </div>
     )
 }
