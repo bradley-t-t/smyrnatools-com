@@ -28,7 +28,6 @@ import SmyrnaLogo from '../assets/images/SmyrnaLogo.png'
 import GuestOverlay from '../components/common/GuestOverlay'
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay'
 import PickupTrucksView from '../components/pages/pickup-trucks/PickupTrucksView'
-import ParticleBackground from '../components/common/ParticleBackground'
 import DashboardView from '../components/pages/dashboard/DashboardView'
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
@@ -523,17 +522,16 @@ function AppContent() {
         }
     }
 
-    if (isMobile) return <><ParticleBackground/><DesktopOnlyOverlay/></>
-    if (offlineMode) return <><ParticleBackground/><OfflineOverlay onRetry={handleRetryConnection}
+    if (isMobile) return <><DesktopOnlyOverlay/></>
+    if (offlineMode) return <><OfflineOverlay onRetry={handleRetryConnection}
                                                                    onReload={handleReloadIfOnline}/></>
-    if (updateMode) return <><ParticleBackground/><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
-    if (!userId) return (<div className="App"><ParticleBackground/>{renderCurrentView()}</div>)
+    if (updateMode) return <><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
+    if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
-    if (isGuestOnly) return (<div className="App"><ParticleBackground/><GuestOverlay/></div>)
+    if (isGuestOnly) return (<div className="App"><GuestOverlay/></div>)
 
     return (
         <div className="App">
-            <ParticleBackground/>
             <Navigation
                 selectedView={selectedView.view}
                 onSelectView={handleViewSelection}

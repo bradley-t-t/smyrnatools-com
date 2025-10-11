@@ -36,6 +36,7 @@ export default function DashboardView() {
         mixers: {
             total: 0,
             active: 0,
+            spare: 0,
             shop: 0,
             verified: 0,
             verifiedPercent: 0,
@@ -47,6 +48,7 @@ export default function DashboardView() {
         tractors: {
             total: 0,
             active: 0,
+            spare: 0,
             shop: 0,
             verified: 0,
             verifiedPercent: 0,
@@ -55,8 +57,8 @@ export default function DashboardView() {
             overdue: 0,
             allocationPercent: 0
         },
-        trailers: {total: 0, active: 0, shop: 0, issues: 0, comments: 0, overdue: 0, allocationPercent: 0},
-        equipment: {total: 0, active: 0, shop: 0, issues: 0, comments: 0, overdue: 0, allocationPercent: 0},
+        trailers: {total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0, allocationPercent: 0},
+        equipment: {total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0, allocationPercent: 0},
         pickups: {total: 0, active: 0, shop: 0, stationary: 0, spare: 0, sold: 0, retired: 0, allocationPercent: 0},
         operators: {
             total: 0,
@@ -165,10 +167,10 @@ export default function DashboardView() {
         }
         plantSetRef.current = plantSet
         const filterActive = plantSet.size > 0
-        let mixersTotals = {total: 0, active: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0}
-        let tractorsTotals = {total: 0, active: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0}
-        let trailersTotals = {total: 0, active: 0, shop: 0, issues: 0, comments: 0, overdue: 0}
-        let equipmentTotals = {total: 0, active: 0, shop: 0, issues: 0, comments: 0, overdue: 0}
+        let mixersTotals = {total: 0, active: 0, spare: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0}
+        let tractorsTotals = {total: 0, active: 0, spare: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0}
+        let trailersTotals = {total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0}
+        let equipmentTotals = {total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0}
         let pickupsTotals = {total: 0, active: 0, shop: 0, stationary: 0, spare: 0, sold: 0, retired: 0}
         let operatorsTotals = {
             total: 0,
@@ -190,7 +192,7 @@ export default function DashboardView() {
             for (const m of allMixersRef.current) {
                 if (!consider(m.plantCode)) continue
                 mixersTotals.total++
-                if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'In Shop') mixersTotals.shop++
+                if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'Spare') mixersTotals.spare++; else if (m.status === 'In Shop') mixersTotals.shop++
                 if (m.status !== 'Retired') mixersAvailable++
                 if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
                 if (m.status !== 'Retired' && VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
@@ -205,7 +207,7 @@ export default function DashboardView() {
         for (const t of allTractorsRef.current) {
             if (!consider(t.plantCode)) continue
             tractorsTotals.total++
-            if (t.status === 'Active') tractorsTotals.active++; else if (t.status === 'In Shop') tractorsTotals.shop++
+            if (t.status === 'Active') tractorsTotals.active++; else if (t.status === 'Spare') tractorsTotals.spare++; else if (t.status === 'In Shop') tractorsTotals.shop++
             if (t.status !== 'Retired') tractorsAvailable++
             if (isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
             if (VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy)) tractorsTotals.verified++
@@ -219,7 +221,7 @@ export default function DashboardView() {
         for (const r of allTrailersRef.current) {
             if (!consider(r.plantCode)) continue
             trailersTotals.total++
-            if (r.status === 'Active') trailersTotals.active++; else if (r.status === 'In Shop') trailersTotals.shop++
+            if (r.status === 'Active') trailersTotals.active++; else if (r.status === 'Spare') trailersTotals.spare++; else if (r.status === 'In Shop') trailersTotals.shop++
             if (r.status !== 'Retired') trailersAvailable++
             if (isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
             const rc = counts.trailers[r.id]
@@ -231,7 +233,7 @@ export default function DashboardView() {
         for (const e of allEquipmentRef.current) {
             if (!consider(e.plantCode)) continue
             equipmentTotals.total++
-            if (e.status === 'Active') equipmentTotals.active++; else if (e.status === 'In Shop') equipmentTotals.shop++
+            if (e.status === 'Active') equipmentTotals.active++; else if (e.status === 'Spare') equipmentTotals.spare++; else if (e.status === 'In Shop') equipmentTotals.shop++
             if (e.status !== 'Retired') equipmentAvailable++
             if (isServiceOverdue(e.lastServiceDate)) equipmentTotals.overdue++
             const ec = counts.equipment[e.id]
@@ -885,6 +887,7 @@ export default function DashboardView() {
                                         <div className="kpi-value">{stats.mixers.total}</div>
                                         <div className="kpi-row">
                                             <div className="kpi-pill">Active {stats.mixers.active}</div>
+                                            <div className="kpi-pill">Spare {stats.mixers.spare}</div>
                                             <div className="kpi-pill">In Shop {stats.mixers.shop}</div>
                                             <div className="kpi-pill">Verified {stats.mixers.verifiedPercent}%</div>
                                             <div className="kpi-pill">Asset Allocation {stats.mixers.allocationPercent}%
@@ -899,6 +902,7 @@ export default function DashboardView() {
                                     <div className="kpi-value">{stats.tractors.total}</div>
                                     <div className="kpi-row">
                                         <div className="kpi-pill">Active {stats.tractors.active}</div>
+                                        <div className="kpi-pill">Spare {stats.tractors.spare}</div>
                                         <div className="kpi-pill">In Shop {stats.tractors.shop}</div>
                                         <div className="kpi-pill">Verified {stats.tractors.verifiedPercent}%</div>
                                         <div className="kpi-pill">Asset Allocation {stats.tractors.allocationPercent}%
@@ -912,11 +916,11 @@ export default function DashboardView() {
                                     <div className="kpi-value">{stats.trailers.total}</div>
                                     <div className="kpi-row">
                                         <div className="kpi-pill">Active {stats.trailers.active}</div>
+                                        <div className="kpi-pill">Spare {stats.trailers.spare}</div>
                                         <div className="kpi-pill">In Shop {stats.trailers.shop}</div>
                                         <div className="kpi-pill">Asset Allocation {stats.trailers.allocationPercent}%
                                         </div>
                                         <div className="kpi-pill">Issues {stats.trailers.issues}</div>
-                                        <div className="kpi-pill">Overdue {stats.trailers.overdue}</div>
                                         <div className="kpi-pill">Comments {stats.trailers.comments}</div>
                                     </div>
                                 </div>
@@ -925,12 +929,12 @@ export default function DashboardView() {
                                     <div className="kpi-value">{stats.equipment.total}</div>
                                     <div className="kpi-row">
                                         <div className="kpi-pill">Active {stats.equipment.active}</div>
+                                        <div className="kpi-pill">Spare {stats.equipment.spare}</div>
                                         <div className="kpi-pill">In Shop {stats.equipment.shop}</div>
                                         <div className="kpi-pill">Asset
                                             Allocation {stats.equipment.allocationPercent}%
                                         </div>
                                         <div className="kpi-pill">Issues {stats.equipment.issues}</div>
-                                        <div className="kpi-pill">Overdue {stats.equipment.overdue}</div>
                                         <div className="kpi-pill">Comments {stats.equipment.comments}</div>
                                     </div>
                                 </div>
@@ -965,7 +969,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Tractors
                                             Assigned {stats.operators.tractorAssigned}</div>
                                         <div className="kpi-pill">Unassigned {stats.operators.unassigned}</div>
-                                        <div className="kpi-pill">Pending {stats.operators.pending}</div>
+                                        <div className="kpi-pill">Pending Start {stats.operators.pending}</div>
                                     </div>
                                 </div>
                                 <div className="kpi-card">

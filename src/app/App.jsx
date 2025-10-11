@@ -20,7 +20,6 @@ import {AccountProvider} from './context/AccountContext';
 import ListView from '../components/pages/list/ListView';
 import GuestOverlay from '../components/common/GuestOverlay';
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
-import ParticleBackground from '../components/common/ParticleBackground'
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 
@@ -73,7 +72,6 @@ function App() {
     if (isMobile && !isBot) return (
         <PreferencesProvider>
             <AccountProvider>
-                <ParticleBackground/>
                 <DesktopOnlyOverlay/>
             </AccountProvider>
         </PreferencesProvider>
@@ -82,7 +80,6 @@ function App() {
     if (offlineMode) return (
         <PreferencesProvider>
             <AccountProvider>
-                <ParticleBackground/>
                 <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline}/>
             </AccountProvider>
         </PreferencesProvider>
@@ -91,7 +88,6 @@ function App() {
     return (
         <PreferencesProvider>
             <AccountProvider>
-                <ParticleBackground/>
                 <BrowserRouter>
                     <Routes>
                         <Route element={<AuthLayout/>}>
