@@ -13,7 +13,6 @@ import VerifiedUtility from '../../../utils/VerifiedUtility'
 import {UserService} from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import {usePreferences} from '../../../app/context/PreferencesContext'
-import ThemeUtility from '../../../utils/ThemeUtility'
 
 export default function DashboardView() {
     const {preferences, updatePreferences} = usePreferences()
@@ -852,17 +851,17 @@ export default function DashboardView() {
                         </div>
                         <div className="hero-metric">
                             <div className="metric-label">Asset Allocation</div>
-                            <div className="metric-value accent">{stats.overallAllocationPercent}%</div>
+                            <div className="metric-value">{stats.overallAllocationPercent}%</div>
                             <div className="metric-sub">Overall Asset Allocation</div>
                         </div>
                         <div className="hero-metric">
                             <div className="metric-label">Overdue</div>
-                            <div className="metric-value warn">{stats.overdueTotal}</div>
+                            <div className="metric-value">{stats.overdueTotal}</div>
                             <div className="metric-sub">Service Overdue</div>
                         </div>
                         <div className="hero-metric wide">
                             <div className="metric-label">Verified</div>
-                            <div className="metric-value accent">{stats.verificationAverage}%</div>
+                            <div className="metric-value">{stats.verificationAverage}%</div>
                             <div className="metric-sub">Overall Verification</div>
                         </div>
                     </div>
@@ -894,8 +893,7 @@ export default function DashboardView() {
                             <div className="dashboard-grid inner-grid">
                                 {!isAggregate && (
                                     <div
-                                        className={`kpi-card ${selectedRegion?.type === 'Concrete' ? 'prominent' : ''}`}
-                                        style={selectedRegion?.type === 'Concrete' ? {backgroundColor: ThemeUtility.accent[ThemeUtility.getOtherAccentColor(preferences.accentColor)].light} : {}}>
+                                        className={`kpi-card ${selectedRegion?.type === 'Concrete' ? 'prominent' : ''}`}>
                                         <div className="kpi-title">Mixers</div>
                                         <div className="kpi-value">{stats.mixers.total}</div>
                                         <div className="kpi-row">
@@ -910,8 +908,7 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                 )}
-                                <div className={`kpi-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}
-                                     style={selectedRegion?.type === 'Aggregate' ? {backgroundColor: ThemeUtility.accent[ThemeUtility.getOtherAccentColor(preferences.accentColor)].light} : {}}>
+                                <div className={`kpi-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}>
                                     <div className="kpi-title">Tractors</div>
                                     <div className="kpi-value">{stats.tractors.total}</div>
                                     <div className="kpi-row">
@@ -1104,7 +1101,7 @@ export default function DashboardView() {
                             <div className="dashboard-grid inner-grid">
                                 <div className="kpi-card">
                                     <div className="kpi-title">Service Overdue</div>
-                                    <div className="kpi-value warn">{stats.overdueTotal}</div>
+                                    <div className="kpi-value">{stats.overdueTotal}</div>
                                     <div className="kpi-row">
                                         <div className="kpi-pill">Mixers {stats.mixers.overdue}</div>
                                         <div className="kpi-pill">Tractors {stats.tractors.overdue}</div>

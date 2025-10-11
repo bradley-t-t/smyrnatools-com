@@ -94,7 +94,12 @@
     border-color: var(--card-border-hover)
 }
 
-.kpi-card.prominent {
+.kpi-card.prominent .kpi-title {
+    color: var(--text-primary);
+}
+
+.kpi-card.prominent .kpi-value {
+    color: var(--text-primary);
 }
 
 [data-filtering] .kpi-card {
@@ -118,7 +123,7 @@
     font-size: 34px;
     line-height: 1.1;
     font-weight: 800;
-    color: var(--accent)
+    color: var(--text-primary)
 }
 
 .kpi-row {

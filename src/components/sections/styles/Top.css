@@ -63,7 +63,7 @@
     margin-left: 12px;
     padding: 4px 8px;
     border-radius: 12px;
-    background: var(--error);
+    background: var(--warning);
     color: var(--text-light);
     font-size: 12px;
     font-weight: 600;
@@ -71,6 +71,12 @@
     letter-spacing: 0.5px;
     display: inline-block;
     vertical-align: middle;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.top-badge:hover {
+    background: var(--warning-hover);
 }
 
 .action-cluster {
