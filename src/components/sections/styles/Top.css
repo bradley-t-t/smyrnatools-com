@@ -2,7 +2,8 @@
     width: 100%;
     position: relative;
     box-sizing: border-box;
-    margin-top: 0
+    margin-top: 0;
+    z-index: -100;
 }
 
 .top-section-sticky-header {
