@@ -16,6 +16,7 @@ import TopSection from '../../sections/TopSection'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
+import ThemeUtility from '../../../utils/ThemeUtility'
 
 function OperatorsView({
                            title = 'Operator Roster',
@@ -301,7 +302,8 @@ function OperatorsView({
         return (
             <span>
                 {Array.from({length: count}).map((_, i) => (
-                    <i key={i} className="fas fa-star" style={{color: 'var(--accent)'}}></i>
+                    <i key={i} className="fas fa-star"
+                       style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>
                 ))}
             </span>
         )

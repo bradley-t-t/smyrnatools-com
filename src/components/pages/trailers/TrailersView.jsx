@@ -19,6 +19,7 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
+import ThemeUtility from '../../../utils/ThemeUtility'
 
 function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const {preferences, saveLastViewedFilters, updateTrailerFilter, updatePreferences} = usePreferences()
@@ -258,7 +259,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                    style={{color: 'var(--accent)'}}></i>)
+                                                                                    style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) &&
                                 <span className="warning-badge"><i
@@ -277,7 +278,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                         alignItems: 'center',
                                         cursor: 'pointer'
                                     }} title="View comments"><i className="fas fa-comments" style={{
-                                        color: 'var(--accent)',
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{commentsCount}</span></button>
                                     <button type="button" onClick={e => {
@@ -291,7 +292,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                         alignItems: 'center',
                                         cursor: 'pointer'
                                     }} title="View issues"><i className="fas fa-tools" style={{
-                                        color: 'var(--accent)',
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{issuesCount}</span></button>
                                 </div>

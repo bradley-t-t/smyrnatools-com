@@ -18,6 +18,7 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
+import ThemeUtility from '../../../utils/ThemeUtility'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const {preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters} = usePreferences();
@@ -280,13 +281,13 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                    style={{color: 'var(--accent)'}}></i>)
+                                                                                    style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
                             <td style={{width: '16%'}}>{(() => {
                                 const rating = Math.round(item.conditionRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                    style={{color: 'var(--accent)'}}></i>)
+                                                                                    style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
                             <td style={{width: '8%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
@@ -301,7 +302,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                         alignItems: 'center',
                                         cursor: 'pointer'
                                     }} title="View issues"><i className="fas fa-tools" style={{
-                                        color: 'var(--accent)',
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{issuesCount}</span></button>
                                     <button type="button" onClick={e => {
@@ -315,7 +316,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                         alignItems: 'center',
                                         cursor: 'pointer'
                                     }} title="View comments"><i className="fas fa-comments" style={{
-                                        color: 'var(--accent)',
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{commentsCount}</span></button>
                                 </div>

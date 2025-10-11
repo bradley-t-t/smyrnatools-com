@@ -18,6 +18,7 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
+import ThemeUtility from '../../../utils/ThemeUtility'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -340,7 +341,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                    style={{color: 'var(--accent)'}}></i>)
+                                                                                    style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
                             <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
                             <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ?
@@ -359,7 +360,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                         alignItems: 'center',
                                         cursor: 'pointer'
                                     }} title="View comments"><i className="fas fa-comments" style={{
-                                        color: 'var(--accent)',
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{item.commentsCount || 0}</span></button>
                                     <button type="button" onClick={e => {
@@ -373,7 +374,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                         alignItems: 'center',
                                         cursor: 'pointer'
                                     }} title="View issues"><i className="fas fa-tools" style={{
-                                        color: 'var(--accent)',
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{item.openIssuesCount || 0}</span></button>
                                 </div>
@@ -411,6 +412,10 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     }, [viewMode, searchInput, selectedPlant, statusFilter])
 
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
+
+    useEffect(() => {
+        document.documentElement.style.setProperty('--star-color', ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)));
+    }, [preferences.accentColor]);
 
     return (
         <>

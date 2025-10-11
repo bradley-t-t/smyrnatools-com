@@ -1,11 +1,14 @@
 import React from 'react';
 import EquipmentUtility from '../../../utils/EquipmentUtility';
 import './styles/Equipment.css';
+import {usePreferences} from '../../../app/context/PreferencesContext';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function EquipmentCard({equipment, plantName, operatorName, onSelect, onShowCommentModal, onShowIssueModal}) {
     const isServiceOverdue = EquipmentUtility.isServiceOverdue(equipment.lastServiceDate);
     const openIssuesCount = Number(equipment.openIssuesCount || 0);
     const commentsCount = Number(equipment.commentsCount || 0);
+    const {preferences} = usePreferences();
 
     const handleCardClick = () => {
         if (onSelect && typeof onSelect === 'function') {
@@ -15,7 +18,7 @@ function EquipmentCard({equipment, plantName, operatorName, onSelect, onShowComm
 
     const cardProps = onSelect ? {onClick: handleCardClick} : {};
 
-    const accentColor = 'var(--accent)';
+    const accentColor = ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor));
 
     let statusColor = 'var(--accent)';
     if (equipment.status === 'Active') statusColor = 'var(--status-active)';

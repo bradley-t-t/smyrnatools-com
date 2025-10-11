@@ -1,6 +1,8 @@
 import React from 'react';
 import {TrailerUtility} from '../../../utils/TrailerUtility';
 import './styles/Trailers.css';
+import {usePreferences} from '../../../app/context/PreferencesContext';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function TrailerCard({
                          trailer,
@@ -19,13 +21,8 @@ function TrailerCard({
     const isServiceOverdue = TrailerUtility.isServiceOverdue(trailer.lastServiceDate);
     const openIssuesCount = Number(trailer.openIssuesCount || 0);
     const commentsCount = Number(trailer.commentsCount || 0);
-
-    const handleCardClick = () => {
-        if (onSelect && typeof onSelect === 'function') onSelect(trailer.id);
-    };
-
-    const cardProps = onSelect ? {onClick: handleCardClick} : {};
-    const accentColor = 'var(--accent)';
+    const {preferences} = usePreferences();
+    const accentColor = ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor));
 
     let statusColor = 'var(--accent)';
     if (trailer.status === 'Active') statusColor = 'var(--status-active)';
@@ -35,7 +32,7 @@ function TrailerCard({
     else if (TrailerUtility.isServiceOverdue(trailer.lastServiceDate)) statusColor = 'var(--error)';
 
     return (
-        <div className="tractor-card" {...cardProps}>
+        <div className="tractor-card" onClick={onSelect ? () => onSelect(trailer.id) : undefined}>
             <div style={{
                 height: 4,
                 width: '100%',

@@ -15,6 +15,7 @@ import LoadingScreen from "../../common/LoadingScreen"
 import {RegionService} from '../../../services/RegionService'
 import {ValidationUtility} from '../../../utils/ValidationUtility'
 import VerificationRequirementsModal from '../../common/VerificationRequirementsModal'
+import ThemeUtility from '../../../utils/ThemeUtility'
 
 function MixerDetailView({mixerId, onClose}) {
     const {preferences} = usePreferences()
@@ -920,7 +921,7 @@ function MixerDetailView({mixerId, onClose}) {
                                                     onClick={() => canEditMixer && setCleanlinessRating(star === cleanlinessRating ? 0 : star)}
                                                     aria-label={`Rate ${star} of 5 stars`} disabled={!canEditMixer}>
                                                 <i className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                   style={star <= cleanlinessRating ? {color: 'var(--accent)'} : {}}></i>
+                                                   style={star <= cleanlinessRating ? {color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))} : {}}></i>
                                             </button>
                                         ))}
                                     </div>

@@ -524,7 +524,7 @@ function AppContent() {
 
     if (isMobile) return <><DesktopOnlyOverlay/></>
     if (offlineMode) return <><OfflineOverlay onRetry={handleRetryConnection}
-                                                                   onReload={handleReloadIfOnline}/></>
+                                              onReload={handleReloadIfOnline}/></>
     if (updateMode) return <><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
     if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null

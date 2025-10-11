@@ -2018,7 +2018,7 @@
 }
 
 .star-button .fa-star.filled {
-    color: var(--accent);
+    color: var(--star-color);
 }
 
 .star-button {

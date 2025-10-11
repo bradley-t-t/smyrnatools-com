@@ -2,6 +2,7 @@ import React from 'react';
 import {TractorUtility} from '../../../utils/TractorUtility';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import './styles/Tractors.css';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function TractorCard({
                          tractor,
@@ -28,11 +29,7 @@ function TractorCard({
 
     const cardProps = onSelect ? {onClick: handleCardClick} : {};
 
-    const accentColor = preferences.accentColor === 'red'
-        ? 'var(--accent)'
-        : preferences.accentColor === 'darkgrey'
-            ? 'var(--accent)'
-            : 'var(--accent)';
+    const accentColor = ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor));
 
     let statusColor = 'var(--accent)';
     if (tractor.status === 'Active') statusColor = 'var(--status-active)';

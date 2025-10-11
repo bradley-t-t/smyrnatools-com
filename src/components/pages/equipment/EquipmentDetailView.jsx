@@ -11,6 +11,7 @@ import EquipmentHistoryView from './EquipmentHistoryView';
 import './styles/Equipment.css';
 import LoadingScreen from '../../common/LoadingScreen';
 import {RegionService} from '../../../services/RegionService';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const {preferences} = usePreferences();
@@ -504,7 +505,7 @@ ${openIssues.length > 0
                                                 disabled={!canEditEquipment}
                                             >
                                                 <i className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                   style={star <= cleanlinessRating ? {color: preferences.accentColor === 'red' ? '#b80017' : '#003896'} : {}}></i>
+                                                   style={star <= cleanlinessRating ? {color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))} : {}}></i>
                                             </button>
                                         ))}
                                     </div>
@@ -530,7 +531,7 @@ ${openIssues.length > 0
                                                 disabled={!canEditEquipment}
                                             >
                                                 <i className={`fas fa-star ${star <= conditionRating ? 'filled' : ''}`}
-                                                   style={star <= conditionRating ? {color: preferences.accentColor === 'red' ? '#b80017' : '#003896'} : {}}></i>
+                                                   style={star <= conditionRating ? {color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))} : {}}></i>
                                             </button>
                                         ))}
                                     </div>

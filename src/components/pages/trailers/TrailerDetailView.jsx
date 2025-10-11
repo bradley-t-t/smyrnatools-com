@@ -13,6 +13,7 @@ import './styles/Trailers.css';
 import LoadingScreen from '../../common/LoadingScreen';
 import TractorSelectModal from "./TractorSelectModal";
 import {RegionService} from '../../../services/RegionService';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const {preferences} = usePreferences();
@@ -694,7 +695,7 @@ ${openIssues.length > 0
                                                 disabled={!canEditTrailer}
                                             >
                                                 <i className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                   style={star <= cleanlinessRating ? {color: 'var(--accent)'} : {}}></i>
+                                                   style={star <= cleanlinessRating ? {color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))} : {}}></i>
                                             </button>
                                         ))}
                                     </div>

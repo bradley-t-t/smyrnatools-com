@@ -1,6 +1,7 @@
 import React from 'react';
 import MixerUtility from '../../../utils/MixerUtility';
 import {usePreferences} from '../../../app/context/PreferencesContext';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function MixerCard({
                        mixer,
@@ -37,7 +38,7 @@ function MixerCard({
     };
     getDaysSince(mixer.lastServiceDate);
     getDaysSince(mixer.lastChipDate);
-    const accentColor = 'var(--accent)';
+    const accentColor = ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor));
 
     let statusColor = 'var(--accent)';
     if (mixer.status === 'Active') statusColor = 'var(--status-active)';

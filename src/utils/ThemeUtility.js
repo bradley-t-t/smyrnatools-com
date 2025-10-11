@@ -106,6 +106,10 @@ const ThemeUtility = {
         return accentColors[selection.toLowerCase()] ?? accentColors.blue;
     },
 
+    getOtherAccentColor(currentAccent) {
+        return currentAccent === 'red' ? 'blue' : 'red';
+    },
+
     statusColor(status) {
         return this.statusColors[status] ?? this.statusColors.default;
     },

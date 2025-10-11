@@ -15,6 +15,7 @@ import {usePreferences} from '../../../app/context/PreferencesContext';
 import {RegionService} from '../../../services/RegionService';
 import {ValidationUtility} from '../../../utils/ValidationUtility'
 import VerificationRequirementsModal from '../../common/VerificationRequirementsModal';
+import ThemeUtility from '../../../utils/ThemeUtility';
 
 function TractorDetailView({tractorId, onClose}) {
     const {preferences} = usePreferences()
@@ -796,7 +797,7 @@ function TractorDetailView({tractorId, onClose}) {
                                                 onClick={() => canEditTractor && setCleanlinessRating(star === cleanlinessRating ? 0 : star)}
                                                 aria-label={`Rate ${star} of 5 stars`} disabled={!canEditTractor}><i
                                             className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                            style={star <= cleanlinessRating ? {color: 'var(--accent)'} : {}}></i>
+                                            style={star <= cleanlinessRating ? {color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))} : {}}></i>
                                         </button>))}</div>
                                     {cleanlinessRating > 0 && (<div className="rating-value-display"><span
                                         className="rating-label">{[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][cleanlinessRating]}</span>

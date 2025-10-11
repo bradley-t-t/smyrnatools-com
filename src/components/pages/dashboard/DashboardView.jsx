@@ -13,6 +13,7 @@ import VerifiedUtility from '../../../utils/VerifiedUtility'
 import {UserService} from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import {usePreferences} from '../../../app/context/PreferencesContext'
+import ThemeUtility from '../../../utils/ThemeUtility'
 
 export default function DashboardView() {
     const {preferences, updatePreferences} = usePreferences()
@@ -191,9 +192,11 @@ export default function DashboardView() {
         if (!isAggregate) {
             for (const m of allMixersRef.current) {
                 if (!consider(m.plantCode)) continue
-                mixersTotals.total++
+                if (m.status !== 'Retired') {
+                    mixersTotals.total++
+                    mixersAvailable++
+                }
                 if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'Spare') mixersTotals.spare++; else if (m.status === 'In Shop') mixersTotals.shop++
-                if (m.status !== 'Retired') mixersAvailable++
                 if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
                 if (m.status !== 'Retired' && VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
                 if (m.assignedOperator) mixerAssignedIds.add(m.assignedOperator)
@@ -206,11 +209,13 @@ export default function DashboardView() {
         }
         for (const t of allTractorsRef.current) {
             if (!consider(t.plantCode)) continue
-            tractorsTotals.total++
+            if (t.status !== 'Retired') {
+                tractorsTotals.total++
+                tractorsAvailable++
+            }
             if (t.status === 'Active') tractorsTotals.active++; else if (t.status === 'Spare') tractorsTotals.spare++; else if (t.status === 'In Shop') tractorsTotals.shop++
-            if (t.status !== 'Retired') tractorsAvailable++
             if (isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
-            if (VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy)) tractorsTotals.verified++
+            if (t.status !== 'Retired' && VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy)) tractorsTotals.verified++
             if (t.assignedOperator) tractorAssignedIds.add(t.assignedOperator)
             const tc = counts.tractors[t.id]
             if (tc) {
@@ -220,9 +225,11 @@ export default function DashboardView() {
         }
         for (const r of allTrailersRef.current) {
             if (!consider(r.plantCode)) continue
-            trailersTotals.total++
+            if (r.status !== 'Retired') {
+                trailersTotals.total++
+                trailersAvailable++
+            }
             if (r.status === 'Active') trailersTotals.active++; else if (r.status === 'Spare') trailersTotals.spare++; else if (r.status === 'In Shop') trailersTotals.shop++
-            if (r.status !== 'Retired') trailersAvailable++
             if (isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
             const rc = counts.trailers[r.id]
             if (rc) {
@@ -232,9 +239,11 @@ export default function DashboardView() {
         }
         for (const e of allEquipmentRef.current) {
             if (!consider(e.plantCode)) continue
-            equipmentTotals.total++
+            if (e.status !== 'Retired') {
+                equipmentTotals.total++
+                equipmentAvailable++
+            }
             if (e.status === 'Active') equipmentTotals.active++; else if (e.status === 'Spare') equipmentTotals.spare++; else if (e.status === 'In Shop') equipmentTotals.shop++
-            if (e.status !== 'Retired') equipmentAvailable++
             if (isServiceOverdue(e.lastServiceDate)) equipmentTotals.overdue++
             const ec = counts.equipment[e.id]
             if (ec) {
@@ -244,9 +253,11 @@ export default function DashboardView() {
         }
         for (const p of allPickupsRef.current) {
             if (!consider(p.plantCode)) continue
-            pickupsTotals.total++
+            if (p.status !== 'Retired') {
+                pickupsTotals.total++
+                pickupsAvailable++
+            }
             if (p.status === 'Active') pickupsTotals.active++; else if (p.status === 'In Shop') pickupsTotals.shop++; else if (p.status === 'Stationary') pickupsTotals.stationary++; else if (p.status === 'Spare') pickupsTotals.spare++; else if (p.status === 'Sold') pickupsTotals.sold++; else if (p.status === 'Retired') pickupsTotals.retired++
-            if (p.status !== 'Retired') pickupsAvailable++
         }
         for (const o of allOperatorsRef.current) {
             if (!consider(o.plantCode)) continue
@@ -882,7 +893,9 @@ export default function DashboardView() {
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
                                 {!isAggregate && (
-                                    <div className="kpi-card">
+                                    <div
+                                        className={`kpi-card ${selectedRegion?.type === 'Concrete' ? 'prominent' : ''}`}
+                                        style={selectedRegion?.type === 'Concrete' ? {backgroundColor: ThemeUtility.accent[ThemeUtility.getOtherAccentColor(preferences.accentColor)].light} : {}}>
                                         <div className="kpi-title">Mixers</div>
                                         <div className="kpi-value">{stats.mixers.total}</div>
                                         <div className="kpi-row">
@@ -897,7 +910,8 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                 )}
-                                <div className="kpi-card">
+                                <div className={`kpi-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}
+                                     style={selectedRegion?.type === 'Aggregate' ? {backgroundColor: ThemeUtility.accent[ThemeUtility.getOtherAccentColor(preferences.accentColor)].light} : {}}>
                                     <div className="kpi-title">Tractors</div>
                                     <div className="kpi-value">{stats.tractors.total}</div>
                                     <div className="kpi-row">
