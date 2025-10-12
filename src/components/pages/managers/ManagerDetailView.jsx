@@ -7,6 +7,7 @@ import './styles/Managers.css';
 import {UserService} from '../../../services/UserService';
 import {AuthUtility} from '../../../utils/AuthUtility';
 import {RegionService} from '../../../services/RegionService';
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function ManagerDetailView({managerId, onClose}) {
     const {preferences} = usePreferences();
@@ -30,6 +31,7 @@ function ManagerDetailView({managerId, onClose}) {
     const [password, setPassword] = useState('');
     const [showPasswordField, setShowPasswordField] = useState(false);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
+    const [showPlantModal, setShowPlantModal] = useState(false);
 
     useEffect(() => {
         document.body.classList.add('in-detail-view');
@@ -317,6 +319,9 @@ function ManagerDetailView({managerId, onClose}) {
         return plant ? plant.plant_name : plantCode || 'No Plant';
     };
 
+    const selectedPlantObj = plants.find(p => p.plant_code === plantCode);
+    const plantDisplayText = plantCode ? `(${selectedPlantObj?.plant_code || plantCode}) ${selectedPlantObj?.plant_name || ''}` : 'Select Plant';
+
     if (isLoading) {
         return (
             <div className="manager-detail-view">
@@ -430,21 +435,14 @@ function ManagerDetailView({managerId, onClose}) {
                     </div>
                     <div className="form-group">
                         <label>Plant</label>
-                        <select
-                            value={plantCode}
-                            onChange={e => setPlantCode(e.target.value)}
-                            className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                            disabled={isReadOnly}
-                        >
-                            <option value="">Select Plant</option>
-                            {!regionPlantCodes.has(String(plantCode || '').trim().toUpperCase()) && plantCode &&
-                                <option value={plantCode}>{plantCode}</option>}
-                            {filteredPlants.map(plant => (
-                                <option key={plant.plant_code} value={plant.plant_code}>
-                                    ({plant.plant_code}) {plant.plant_name}
-                                </option>
-                            ))}
-                        </select>
+                        <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                                type="button">
+                            <span style={{
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>{plantDisplayText}</span>
+                        </button>
                     </div>
                     <div className="form-group">
                         <label>Role</label>
@@ -519,6 +517,18 @@ function ManagerDetailView({managerId, onClose}) {
                         </div>
                     </div>
                 </div>
+            )}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={code => {
+                        setPlantCode(code);
+                        setShowPlantModal(false);
+                    }}
+                    searchPlaceholder="Search plants..."
+                />
             )}
         </div>
     );

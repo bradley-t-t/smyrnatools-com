@@ -490,7 +490,17 @@ ${openIssues.length > 0
                             </div>
                             <div className="form-group">
                                 <label>Assigned Plant</label>
-                                <button className="operator-select-button form-control" onClick={() => canEditTrailer && setShowPlantModal(true)} type="button" disabled={!canEditTrailer} style={!canEditTrailer ? { cursor: 'not-allowed', opacity: 0.8, backgroundColor: 'var(--card-bg)' } : {}}><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button>
+                                <button className="operator-select-button form-control"
+                                        onClick={() => canEditTrailer && setShowPlantModal(true)} type="button"
+                                        disabled={!canEditTrailer} style={!canEditTrailer ? {
+                                    cursor: 'not-allowed',
+                                    opacity: 0.8,
+                                    backgroundColor: 'var(--card-bg)'
+                                } : {}}><span style={{
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}>{plantDisplayText}</span></button>
                             </div>
                             <div className="form-group">
                                 <label>Active Status</label>

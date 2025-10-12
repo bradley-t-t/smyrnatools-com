@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './styles/PlantDropdownModal.css';
 
-function PlantDropdownModal({ isOpen, onClose, plants, onSelect, searchPlaceholder = "Search plants..." }) {
+function PlantDropdownModal({isOpen, onClose, plants, onSelect, searchPlaceholder = "Search plants...", showAllPlants = false}) {
     const [search, setSearch] = useState('');
 
     const filteredPlants = plants.filter(plant => {
@@ -32,14 +32,23 @@ function PlantDropdownModal({ isOpen, onClose, plants, onSelect, searchPlacehold
                     <i className="fas fa-search plant-dropdown-modal-search-icon" aria-hidden="true"></i>
                 </div>
                 <div className="plant-dropdown-modal-list">
-                    <div className="plant-option" onClick={() => { onSelect(''); onClose(); }}>All Plants</div>
+                    {showAllPlants && (
+                        <div className="plant-option" onClick={() => {
+                            onSelect('');
+                            onClose();
+                        }}>All Plants
+                        </div>
+                    )}
                     {filteredPlants
                         .sort((a, b) => parseInt((a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt((b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
                         .map(plant => (
-                        <div key={plant.plantCode || plant.plant_code} className="plant-option" onClick={() => { onSelect(plant.plantCode || plant.plant_code); onClose(); }}>
-                            ({plant.plantCode || plant.plant_code}) {plant.plantName || plant.plant_name}
-                        </div>
-                    ))}
+                            <div key={plant.plantCode || plant.plant_code} className="plant-option" onClick={() => {
+                                onSelect(plant.plantCode || plant.plant_code);
+                                onClose();
+                            }}>
+                                ({plant.plantCode || plant.plant_code}) {plant.plantName || plant.plant_name}
+                            </div>
+                        ))}
                 </div>
             </div>
         </div>

@@ -1,27 +1,3 @@
-.list-view h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1.2;
-}
-
-.list-view-header {
-    display: flex;
-    background: var(--accent-header-bg);
-    color: var(--accent-header-text);
-    font-weight: 700;
-    font-size: 15px;
-    padding: 14px 8px;
-    border-bottom: 2px solid var(--divider);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    text-align: left;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-
 .item-status-dot {
     width: 10px;
     height: 10px;
@@ -30,24 +6,6 @@
     margin-right: 10px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--divider);
-}
-
-.list-list-header-row {
-    grid-template-columns: 2% 42% 16% 14% 16% 10%;
-}
-
-.list-list-header-row.completed {
-    grid-template-columns: 2% 37% 14% 12% 16% 11% 8%;
-}
-
-.list-list-header-row > div[role="button"] {
-    cursor: pointer;
-    user-select: none;
-}
-
-.list-view {
-    overscroll-behavior-y: none;
-    padding-top: 0;
 }
 
 .list-status-badge {
@@ -76,49 +34,6 @@
     color: var(--warning);
 }
 
-.bulk-actions-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 10px;
-    background: var(--card-bg);
-    border-left: 1px solid var(--divider);
-    border-right: 1px solid var(--divider);
-    border-bottom: 1px solid var(--divider);
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
-}
-
-.bulk-actions-bar .bulk-count {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.bulk-actions .bulk-btn {
-    background: var(--badge-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--divider);
-    border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    margin-left: 8px;
-}
-
-.bulk-actions .bulk-btn.danger {
-    background: var(--error-bg);
-    color: var(--text-primary);
-}
-
-.mixers-list-table tbody tr.is-selected {
-    background: var(--badge-bg);
-}
-
-.list-view .mixers-list-table-container {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: none;
-}
-
 .bulk-actions-popup {
     position: fixed;
     left: 50%;
@@ -143,10 +58,6 @@
 
 .bulk-actions-popup .bulk-count {
     font-weight: 600;
-}
-
-.list-view.has-bulk-popup .content-container {
-    padding-bottom: 88px;
 }
 
 .bulk-actions-content {

@@ -3,10 +3,6 @@
     padding-top: 0;
 }
 
-.equipments-dashboard-container {
-    background: transparent;
-}
-
 .add-equipment-modal-backdrop {
     position: fixed;
     top: 0;
@@ -263,71 +259,11 @@
     border-color: var(--card-border-hover);
 }
 
-.equipment-card-content {
-    padding: 16px;
-    background-color: var(--card-bg);
-}
-
-.equipment-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-light);
-    flex-wrap: wrap;
-    max-width: 60%;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
 .equipment-name {
     margin: 0;
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text-primary);
-}
-
-.equipment-status-dot {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid var(--bg-primary);
-    box-shadow: var(--shadow-sm);
-    z-index: 2;
-}
-
-.equipment-card-details {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.equipment-detail-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    padding: 4px 0;
-    align-items: center;
-}
-
-.equipment-detail-label {
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.equipment-detail-value {
-    color: var(--text-primary);
-    font-weight: 600;
-    text-align: right;
-}
-
-.equipment-detail-value.overdue {
-    color: var(--danger);
-    font-weight: 600;
 }
 
 .equipment-comments-badge {
@@ -371,21 +307,6 @@
 .equipment-issues-badge i {
     margin-right: 4px;
     font-size: 0.9rem;
-}
-
-.equipment-stars-container {
-    display: inline-flex;
-    align-items: center;
-}
-
-.equipment-filled-star {
-    color: var(--accent);
-    margin-right: 2px;
-}
-
-.equipment-empty-star {
-    color: var(--divider);
-    margin-right: 2px;
 }
 
 .equipment-comment-modal-backdrop {
@@ -638,39 +559,10 @@
     opacity: 0.7;
 }
 
-.equipment-loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px 0;
-    color: var(--text-secondary);
-}
-
-.equipment-ios-spinner {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 3px solid var(--border-light);
-    border-top-color: var(--accent);
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 16px;
-}
-
 @keyframes spin {
     to {
         transform: rotate(360deg);
     }
-}
-
-.equipment-error-message {
-    background-color: var(--danger-bg);
-    color: var(--danger);
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-bottom: 16px;
-    font-size: 14px;
-    border-left: 4px solid var(--danger);
 }
 
 .equipment-delete-comment-button {
@@ -1260,12 +1152,6 @@ input[type="date"].equipment-form-control {
     border-radius: 50%;
     border-top-color: var(--accent);
     animation: spin 1s linear infinite;
-}
-
-.equipment-error-message {
-    text-align: center;
-    padding: 32px;
-    color: var(--danger);
 }
 
 .form-section.basic-info .form-group {

@@ -646,7 +646,19 @@ function TractorDetailView({tractorId, onClose}) {
                                 <option value="In Shop">In Shop</option>
                                 <option value="Retired">Retired</option>
                             </select></div>
-                            <div className="form-group"><label>Assigned Plant</label><button className="operator-select-button form-control" onClick={() => canEditTractor && setShowPlantModal(true)} type="button" disabled={!canEditTractor} style={!canEditTractor ? { cursor: 'not-allowed', opacity: 0.8, backgroundColor: 'var(--card-bg)' } : {}}><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button></div>
+                            <div className="form-group"><label>Assigned Plant</label>
+                                <button className="operator-select-button form-control"
+                                        onClick={() => canEditTractor && setShowPlantModal(true)} type="button"
+                                        disabled={!canEditTractor} style={!canEditTractor ? {
+                                    cursor: 'not-allowed',
+                                    opacity: 0.8,
+                                    backgroundColor: 'var(--card-bg)'
+                                } : {}}><span style={{
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}>{plantDisplayText}</span></button>
+                            </div>
                             <div className="form-group"><label>Assigned Operator</label>
                                 <div className="operator-select-container">
                                     <button className="operator-select-button form-control" onClick={async () => {

@@ -1,7 +1,7 @@
 import supabase, {DatabaseService} from '../../../services/DatabaseService';
 import './styles/Operators.css';
 import GrammarUtility from '../../../utils/GrammarUtility';
-import {useEffect, useState, useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onScheduledOffSaved, allowedPlantCodes}) {
@@ -301,7 +301,12 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                     )}
                     <div className="form-group">
                         <label>Assigned Plant</label>
-                        <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)} type="button"><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button>
+                        <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                                type="button"><span style={{
+                            display: 'block',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>{plantDisplayText}</span></button>
                     </div>
                     <div className="form-group">
                         <label>Position</label>

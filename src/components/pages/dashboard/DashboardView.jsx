@@ -13,6 +13,7 @@ import VerifiedUtility from '../../../utils/VerifiedUtility'
 import {UserService} from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import {usePreferences} from '../../../app/context/PreferencesContext'
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 export default function DashboardView() {
     const {preferences, updatePreferences} = usePreferences()
@@ -32,6 +33,7 @@ export default function DashboardView() {
     const [dashboardPlant, setDashboardPlant] = useState('')
     const [lastUpdated, setLastUpdated] = useState(null)
     const [refreshKey, setRefreshKey] = useState(0)
+    const [plantModalOpen, setPlantModalOpen] = useState(false)
     const [stats, setStats] = useState({
         mixers: {
             total: 0,
@@ -811,21 +813,9 @@ export default function DashboardView() {
                                                                value={r.regionCode}>{r.regionName} ({r.regionCode})</option>)}
                         </select>
                         {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
-                            <select className="ios-select" value={dashboardPlant} onChange={onPlantChange}
-                                    disabled={refreshing} aria-label="Plant">
-                                <option value="">All Plants</option>
-                                {regionPlants.slice().sort((a, b) => {
-                                    const ac = String(a.plantCode || a.plant_code || '').replace(/\D/g, '')
-                                    const bc = String(b.plantCode || b.plant_code || '').replace(/\D/g, '')
-                                    const an = ac ? parseInt(ac, 10) : 0
-                                    const bn = bc ? parseInt(bc, 10) : 0
-                                    return an - bn || String(a.plantCode || a.plant_code || '').localeCompare(String(b.plantCode || b.plant_code || ''))
-                                }).map(p => {
-                                    const code = p.plantCode || p.plant_code
-                                    const name = p.plantName || p.plant_name || code
-                                    return <option key={code} value={code}>{name} ({code})</option>
-                                })}
-                            </select>
+                            <button className="ios-select" onClick={() => setPlantModalOpen(true)} disabled={refreshing} aria-label="Plant">
+                                {dashboardPlant ? regionPlants.find(p => (p.plantCode || p.plant_code) === dashboardPlant)?.plantName || dashboardPlant : 'All Plants'}
+                            </button>
                         )}
                     </div>
                     <div className="toolbar-group">
@@ -1160,6 +1150,7 @@ export default function DashboardView() {
                     </div>
                 )}
             </div>
+            <PlantDropdownModal isOpen={plantModalOpen} onClose={() => setPlantModalOpen(false)} plants={regionPlants} onSelect={(plantCode) => setDashboardPlant(plantCode)} showAllPlants={true} />
         </div>
     )
 }

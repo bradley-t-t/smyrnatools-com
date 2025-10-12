@@ -741,8 +741,18 @@ function MixerDetailView({mixerId, onClose}) {
                             </div>
                             <div className="form-group">
                                 <label>Assigned Plant</label>
-                                <button className="operator-select-button form-control" onClick={() => canEditMixer && setShowPlantModal(true)} type="button" disabled={!canEditMixer} style={!canEditMixer ? { cursor: 'not-allowed', opacity: 0.8, backgroundColor: 'var(--card-bg)' } : {}}>
-                                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span>
+                                <button className="operator-select-button form-control"
+                                        onClick={() => canEditMixer && setShowPlantModal(true)} type="button"
+                                        disabled={!canEditMixer} style={!canEditMixer ? {
+                                    cursor: 'not-allowed',
+                                    opacity: 0.8,
+                                    backgroundColor: 'var(--card-bg)'
+                                } : {}}>
+                                    <span style={{
+                                        display: 'block',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}>{plantDisplayText}</span>
                                 </button>
                             </div>
                             <div className="form-group">

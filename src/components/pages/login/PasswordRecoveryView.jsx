@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import SmyrnaLogo from '../../../assets/images/SmyrnaLogo.png';
 import BG from '../../../assets/images/BG.png';
-import './styles/Login.css';
+import './styles/PasswordRecoveryView.css';
 import APIUtility from '../../../utils/APIUtility';
 
 function PasswordRecoveryView({onBackToLogin}) {
@@ -27,17 +27,13 @@ function PasswordRecoveryView({onBackToLogin}) {
                 origin: window.location.origin,
                 href: window.location.href
             };
-            console.debug('PasswordRecovery: submit', {email});
-            console.debug('PasswordRecovery: env', envInfo);
             const {res, json} = await APIUtility.post('/auth-context/reset-password', {email});
-            console.debug('PasswordRecovery: edge result', {ok: res.ok, status: res.status, json});
             if (res.ok) {
                 setMessage('If an account exists for this email, a new password has been sent.');
             } else {
                 setError('An error occurred. Please try again.');
             }
         } catch (err) {
-            console.debug('PasswordRecovery: exception', {error: err && (err.message || String(err))});
             setError('An error occurred. Please try again.');
         } finally {
             setSubmitting(false);

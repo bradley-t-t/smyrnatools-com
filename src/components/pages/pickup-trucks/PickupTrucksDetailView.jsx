@@ -269,7 +269,14 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     <div className="form-sections pickup-form-sections">
                         <div className="form-section basic-info">
                             <h3>Basic Information</h3>
-                            <div className="form-group"><label>Assigned Plant</label><button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)} type="button"><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>{plantDisplayText}</span></button></div>
+                            <div className="form-group"><label>Assigned Plant</label>
+                                <button className="operator-select-button form-control"
+                                        onClick={() => setShowPlantModal(true)} type="button"><span style={{
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}>{plantDisplayText}</span></button>
+                            </div>
                             <div className="form-group"><label>Status</label><select value={status}
                                                                                      onChange={e => setStatus(e.target.value)}
                                                                                      className="form-control">

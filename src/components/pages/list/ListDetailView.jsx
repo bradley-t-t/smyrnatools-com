@@ -6,6 +6,7 @@ import LoadingScreen from '../../common/LoadingScreen';
 import GrammarUtility from '../../../utils/GrammarUtility';
 import './styles/List.css';
 import {RegionService} from '../../../services/RegionService';
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function ListDetailView({itemId, onClose}) {
     const {preferences} = usePreferences();
@@ -20,6 +21,7 @@ function ListDetailView({itemId, onClose}) {
     const [plants, setPlants] = useState([]);
     const [message, setMessage] = useState({text: '', type: ''});
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
+    const [showPlantModal, setShowPlantModal] = useState(false);
 
     useEffect(() => {
         if (itemId) {
@@ -275,22 +277,14 @@ function ListDetailView({itemId, onClose}) {
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label htmlFor="plantCode">Plant</label>
-                                            <select
-                                                id="plantCode"
-                                                name="plantCode"
-                                                value={formData.plantCode}
-                                                onChange={handleChange}
-                                                className="form-control"
-                                            >
-                                                <option value="">Select a plant</option>
-                                                {!regionPlantCodes.has(String(formData.plantCode || '').trim().toUpperCase()) && formData.plantCode && (
-                                                    <option value={formData.plantCode}>{formData.plantCode}</option>
-                                                )}
-                                                {filteredPlants.map(p => (
-                                                    <option key={p.plant_code}
-                                                            value={p.plant_code}>({p.plant_code}) {p.plant_name}</option>
-                                                ))}
-                                            </select>
+                                            <button className="operator-select-button form-control"
+                                                    onClick={() => setShowPlantModal(true)} type="button">
+                                                <span style={{
+                                                    display: 'block',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis'
+                                                }}>{formData.plantCode ? `(${filteredPlants.find(p => p.plant_code === formData.plantCode)?.plant_code || formData.plantCode}) ${filteredPlants.find(p => p.plant_code === formData.plantCode)?.plant_name || ''}` : 'Select Plant'}</span>
+                                            </button>
                                         </div>
                                         <div className="form-group">
                                             <label htmlFor="deadline">Deadline <span
@@ -452,6 +446,18 @@ function ListDetailView({itemId, onClose}) {
                             </div>
                         </div>
                     </div>
+                )}
+                {showPlantModal && (
+                    <PlantDropdownModal
+                        isOpen={showPlantModal}
+                        onClose={() => setShowPlantModal(false)}
+                        plants={filteredPlants}
+                        onSelect={code => {
+                            setFormData(prev => ({...prev, plantCode: code}));
+                            setShowPlantModal(false);
+                        }}
+                        searchPlaceholder="Search plants..."
+                    />
                 )}
             </div>
         </div>

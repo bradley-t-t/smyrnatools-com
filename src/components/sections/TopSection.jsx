@@ -1,4 +1,4 @@
-import React, {useState, useLayoutEffect} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import './styles/Top.css'
 import PlantDropdownModal from '../common/PlantDropdownModal';
 
@@ -105,7 +105,8 @@ function TopSection({
                                 aria-label="Search"
                             />
                             {searchInput && onClearSearch && (
-                                <button className="clear" onClick={onClearSearch} type="button" aria-label="Clear search">
+                                <button className="clear" onClick={onClearSearch} type="button"
+                                        aria-label="Clear search">
                                     <i className="fas fa-times" aria-hidden="true"></i>
                                 </button>
                             )}
@@ -210,6 +211,7 @@ function TopSection({
                     onClose={() => setIsPlantModalOpen(false)}
                     plants={safePlants}
                     onSelect={onSelectedPlantChange}
+                    showAllPlants={true}
                 />
             )}
         </>

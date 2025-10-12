@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {EquipmentService} from '../../../services/EquipmentService';
-import Equipment from '../../../models/equipment/Equipment';
 import {AuthService} from '../../../services/AuthService';
 import './styles/Equipment.css';
 import {usePreferences} from '../../../app/context/PreferencesContext'
