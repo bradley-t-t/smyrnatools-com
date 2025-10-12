@@ -179,12 +179,15 @@ function AppContent() {
         let intervalId
 
         function pollVersion() {
-            fetch('/version.json', {cache: 'no-store'}).then(res => res.json()).then(data => {
+            fetch(`/version.json?t=${Date.now()}`, {cache: 'no-store'}).then(res => res.json()).then(data => {
+                console.log('Polled version:', data.version, 'Current version:', currentVersion)
                 if (data.version && currentVersion && compareVersions(data.version, currentVersion) > 0) {
+                    console.log('New version detected:', data.version)
                     setLatestVersion(data.version)
                     if (!updateMode && !showUpdateWarning && !scheduledAt) setShowUpdateWarning(true)
                 }
-            }).catch(() => {
+            }).catch((error) => {
+                console.error('Failed to poll version:', error)
             })
         }
 
