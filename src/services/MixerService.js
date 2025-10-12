@@ -96,6 +96,12 @@ class MixerServiceImpl {
         }
         if (!userId) throw new Error('User ID is required')
         if (mixer && typeof mixer === 'object') mixer.vin = (mixer.vin || '').toUpperCase()
+
+        // If transferring to a different plant, unassign the operator
+        if (_prevMixerState && _prevMixerState.assignedPlant !== mixer.assignedPlant) {
+            mixer.assignedOperator = null
+        }
+
         const {res, json} = await APIUtility.post('/mixer-service/update', {id, mixer, userId})
         if (!res.ok) throw new Error(json?.error || 'Failed to update mixer')
         return new Mixer(json?.data)

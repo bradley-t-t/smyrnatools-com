@@ -1,7 +1,9 @@
-import APIUtility from '../utils/APIUtility'
 import {Operator} from '../models/operators/Operator'
 import UserUtility from '../utils/UserUtility'
 import {supabase} from './DatabaseService'
+import APIUtility from '../utils/APIUtility'
+import {MixerService} from './MixerService'
+import {TractorService} from './TractorService'
 
 class OperatorServiceImpl {
     async getAllOperators() {
@@ -53,6 +55,26 @@ class OperatorServiceImpl {
         const op = operator instanceof Operator ? operator : new Operator(operator)
         const update = op.toApiFormat()
         delete update.created_at
+
+        // If transferring to a different plant, unassign from all equipment and set equipment to spare
+        const currentOperator = await this.getOperatorByEmployeeId(operator.employeeId)
+        if (currentOperator && currentOperator.plantCode !== op.plantCode) {
+            // Get mixers assigned to this operator
+            const assignedMixers = await MixerService.getMixersByOperator(operator.employeeId)
+            for (const mixer of assignedMixers) {
+                if (mixer.status === 'Active') {
+                    await MixerService.updateMixer(mixer.id, {...mixer, assignedOperator: null, status: 'Spare'})
+                }
+            }
+            // Get tractors assigned to this operator
+            const assignedTractors = await TractorService.getTractorsByOperator(operator.employeeId)
+            for (const tractor of assignedTractors) {
+                if (tractor.status === 'Active') {
+                    await TractorService.updateTractor(tractor.id, {...tractor, assignedOperator: null, status: 'Spare'})
+                }
+            }
+        }
+
         const {res, json} = await APIUtility.post('/operator-service/update', {operator: update})
         if (!res.ok) throw new Error(json?.error || 'Failed to update operator')
         return new Operator(json?.data)

@@ -3,6 +3,8 @@ import './styles/Operators.css';
 import GrammarUtility from '../../../utils/GrammarUtility';
 import {useEffect, useMemo, useState} from "react";
 import PlantDropdownModal from '../../common/PlantDropdownModal';
+import {MixerService} from '../../../services/MixerService';
+import {TractorService} from '../../../services/TractorService';
 
 function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onScheduledOffSaved, allowedPlantCodes}) {
     const [operator, setOperator] = useState(null);
@@ -150,6 +152,24 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
             phone: phone || null
         };
         try {
+            // If transferring to a different plant, unassign from all equipment and set equipment to spare
+            if (operator && operator.plant_code !== assignedPlant) {
+                // Get mixers assigned to this operator
+                const assignedMixers = await MixerService.getMixersByOperator(operatorId);
+                for (const mixer of assignedMixers) {
+                    if (mixer.status === 'Active') {
+                        await MixerService.updateMixer(mixer.id, {...mixer, assignedOperator: null, status: 'Spare'});
+                    }
+                }
+                // Get tractors assigned to this operator
+                const assignedTractors = await TractorService.getTractorsByOperator(operatorId);
+                for (const tractor of assignedTractors) {
+                    if (tractor.status === 'Active') {
+                        await TractorService.updateTractor(tractor.id, {...tractor, assignedOperator: null, status: 'Spare'});
+                    }
+                }
+            }
+
             const {error} = await supabase
                 .from('operators')
                 .update(updateObj)

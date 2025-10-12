@@ -87,6 +87,12 @@ export class TractorService {
         }
         if (!userId) throw new Error('User ID is required')
         if (tractor && typeof tractor === 'object') tractor.vin = (tractor.vin || '').toUpperCase()
+
+        // If transferring to a different plant, unassign the operator
+        if (_prevTractorState && _prevTractorState.assignedPlant !== tractor.assignedPlant) {
+            tractor.assignedOperator = null
+        }
+
         const {res, json} = await APIUtility.post('/tractor-service/update', {id, tractor, userId})
         if (!res.ok) throw new Error(json?.error || 'Failed to update tractor')
         return Tractor.fromApiFormat(json?.data)
