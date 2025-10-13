@@ -9,6 +9,7 @@ import {GeneralManagerSubmitPlugin} from './types/WeeklyGeneralManagerReport'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {EmailUtility} from '../../../utils/EmailUtility'
 import {exportGeneralManagerReport} from '../../../utils/ExportUtility'
+import {DateUtility} from '../../../utils/DateUtility'
 
 const plugins = {
     plant_manager: PlantManagerSubmitPlugin,
@@ -30,6 +31,26 @@ function ReportsSubmitView({
                                userProfiles
                            }) {
     const isGM = (report?.name === 'general_manager') || (/general manager/i.test(report?.title || ''))
+
+    const forcedReportDate = React.useMemo(() => {
+        if (report.name !== 'plant_production') return ''
+        const sunday = new Date(report.weekIso)
+        const monday = new Date(sunday)
+        const week = DateUtility.getISOWeek(sunday)
+        const dayIndex = (week + 1) % 6
+        const dayOfWeek = dayIndex + 1
+        const forcedDate = new Date(monday)
+        forcedDate.setDate(monday.getDate() + (dayOfWeek - 1))
+        return forcedDate.toISOString().slice(0, 10)
+    }, [report.name, report.weekIso])
+
+    const nextForcedReportDate = React.useMemo(() => {
+        if (report.name !== 'plant_production' || !forcedReportDate) return ''
+        const nextDate = new Date(forcedReportDate)
+        const addDays = new Date(forcedReportDate).getDay() === 6 ? 10 : 9
+        nextDate.setDate(nextDate.getDate() + addDays)
+        return nextDate.toISOString().slice(0, 10)
+    }, [report.name, forcedReportDate])
 
     const [form, setForm] = useState(() => {
         if (initialData) {
@@ -289,7 +310,8 @@ function ReportsSubmitView({
 
     useEffect(() => {
         if (report.name === 'plant_production' && !form.plant && user && plants.length > 0) {
-            setForm(f => ({...f, plant: plants[0]?.plant_code || ''}))
+            const userPlant = user?.plant_code && plants.some(p => p.plant_code === user.plant_code) ? user.plant_code : plants[0]?.plant_code || ''
+            setForm(f => ({...f, plant: userPlant}))
         }
     }, [report.name, form.plant, user, plants])
 
@@ -397,6 +419,12 @@ function ReportsSubmitView({
         }
     }, [report.name, user])
 
+    useEffect(() => {
+        if (report.name === 'plant_production' && forcedReportDate) {
+            setForm(f => ({...f, report_date: forcedReportDate}))
+        }
+    }, [report.name, forcedReportDate])
+
     let editingUserName = ''
     if (managerEditUser && userProfiles && userProfiles[managerEditUser]) {
         const profile = userProfiles[managerEditUser]
@@ -486,11 +514,15 @@ function ReportsSubmitView({
                                         <input
                                             type="date"
                                             value={form.report_date ?? ''}
-                                            onChange={e => setForm(f => ({...f, report_date: e.target.value}))}
                                             required
-                                            disabled={readOnly}
+                                            disabled={readOnly || report.name === 'plant_production'}
                                             className="rpts-sbmt-input rpts-sbmt-date"
                                         />
+                                        {report.name === 'plant_production' && (
+                                            <div style={{background: '#e3f2fd', border: '1px solid #2196f3', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '14px', color: '#0d47a1'}}>
+                                                Next Report {ReportUtility.formatDate(nextForcedReportDate)}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="rpts-sbmt-field-wide rpts-sbmt-grid-col-span-all">

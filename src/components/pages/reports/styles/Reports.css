@@ -1221,6 +1221,7 @@
     display: flex;
     flex-direction: column;
     gap: 18px;
+    flex: 1;
 }
 
 .rpts-sbmt-pp-row {
@@ -1232,6 +1233,9 @@
 
 .rpts-sbmt-col {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
 .rpts-sbmt-input {
