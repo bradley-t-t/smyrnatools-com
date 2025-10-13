@@ -220,6 +220,11 @@ function ManagerDetailView({managerId, onClose}) {
             throw new Error('Cannot save manager with undefined ID');
         }
 
+        if (!plantCode || !plantCode.trim()) {
+            setMessage('Plant must be assigned before saving.');
+            return;
+        }
+
         setIsSaving(true);
         try {
             const {data: checkManager} = await supabase.from('users_profiles').select('id').eq('id', manager.id).single();

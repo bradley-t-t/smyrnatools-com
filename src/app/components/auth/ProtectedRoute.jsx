@@ -7,6 +7,7 @@ function ProtectedRoute({children}) {
     const {user, loading, isAuthenticated} = useAuth()
     const location = useLocation()
     const [roles, setRoles] = useState(null)
+    const [hasPlant, setHasPlant] = useState(null)
 
     useEffect(() => {
         let active = true
@@ -21,18 +22,33 @@ function ProtectedRoute({children}) {
             }
         }
 
+        async function checkPlant() {
+            if (!user) return
+            try {
+                const plant = await UserService.getUserPlant(user.id)
+                const plantCode = (typeof plant === 'string' ? plant : (plant?.plant_code || plant?.plantCode || '')).trim()
+                if (active) setHasPlant(!!plantCode)
+            } catch {
+                if (active) setHasPlant(false)
+            }
+        }
+
         if (user && roles === null) loadRoles()
+        if (user && hasPlant === null) checkPlant()
         return () => {
             active = false
         }
-    }, [user, roles])
+    }, [user, roles, hasPlant])
 
     if (loading) return null
     if (!isAuthenticated || !user) return <Navigate to="/login" replace state={{from: location.pathname}}/>
-    if (roles === null) return null
+    if (roles === null || hasPlant === null) return null
     const guestOnly = roles.length > 0 && roles.every(r => (r?.name || '').toLowerCase() === 'guest')
     const onGuestRoute = location.pathname === '/guest'
-    if (guestOnly && !onGuestRoute) return <Navigate to="/guest" replace/>
+    if (guestOnly && !onGuestRoute) {
+        const reason = 'pending'
+        return <Navigate to="/guest" replace state={{reason}}/>
+    }
     if (!guestOnly && onGuestRoute) return <Navigate to="/" replace/>
     return children
 }

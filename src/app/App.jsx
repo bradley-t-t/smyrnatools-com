@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
+import {Navigate, Route, Routes, useLocation} from 'react-router-dom';
 import './App.css';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
@@ -22,11 +22,16 @@ import GuestOverlay from '../components/common/GuestOverlay';
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
+import {useAuth} from './context/AuthContext';
+import {UserService} from '../services/UserService'
 
 function App() {
     const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isBot = /bot|crawl|spider|googlebot|bingbot|yandexbot/i.test(navigator.userAgent);
     const [offlineMode, setOfflineMode] = useState(false)
+    const {user, isAuthenticated} = useAuth()
+    const [hasPlant, setHasPlant] = useState(false)
+    const location = useLocation()
 
     useEffect(() => {
         let intervalId
@@ -53,6 +58,28 @@ function App() {
         }
     }, [])
 
+    useEffect(() => {
+        let active = true
+        async function checkPlant() {
+            if (!user) return
+            try {
+                const plant = await UserService.getUserPlant(user.id)
+                const plantCode = (typeof plant === 'string' ? plant : (plant?.plant_code || plant?.plantCode || '')).trim()
+                if (active) setHasPlant(!!plantCode)
+            } catch {
+                if (active) setHasPlant(false)
+            }
+        }
+        if (user) checkPlant()
+        const interval = setInterval(() => {
+            if (user) checkPlant()
+        }, 60000)
+        return () => {
+            clearInterval(interval)
+            active = false
+        }
+    }, [user])
+
     const handleRetryConnection = async () => {
         const ok = await NetworkUtility.checkConnection()
         if (ok) {
@@ -68,6 +95,12 @@ function App() {
             window.location.reload()
         }
     }
+
+    useEffect(() => {
+        const showOverlay = isAuthenticated && hasPlant === false && location.pathname !== '/guest'
+        document.body.style.overflow = showOverlay ? 'hidden' : 'auto'
+        document.body.style.pointerEvents = showOverlay ? 'none' : 'auto'
+    }, [isAuthenticated, hasPlant, location.pathname])
 
     if (isMobile && !isBot) return (
         <PreferencesProvider>
@@ -88,28 +121,27 @@ function App() {
     return (
         <PreferencesProvider>
             <AccountProvider>
-                <BrowserRouter>
-                    <Routes>
-                        <Route element={<AuthLayout/>}>
-                            <Route path="/login" element={<LoginPage/>}/>
-                            <Route path="/register" element={<RegistrationPage/>}/>
-                            <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
-                            <Route path="/reset-password" element={<ResetPasswordPage/>}/>
-                            <Route path="/verify-email" element={<VerifyEmailPage/>}/>
-                        </Route>
-                        <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
-                            <Route path="/guest" element={<GuestOverlay/>}/>
-                            <Route path="/" element={<HomePage/>}/>
-                            <Route path="/operators" element={<OperatorsPage/>}/>
-                            <Route path="/operators/training" element={<TrainingHistoryPage/>}/>
-                            <Route path="/tasks" element={<TasksPage/>}/>
-                            <Route path="/settings" element={<SettingsPage/>}/>
-                            <Route path="/account" element={<MyAccountPage/>}/>
-                            <Route path="/list" element={<ListView/>}/>
-                        </Route>
-                        <Route path="*" element={<Navigate to="/" replace/>}/>
-                    </Routes>
-                </BrowserRouter>
+                <Routes>
+                    <Route element={<AuthLayout/>}>
+                        <Route path="/login" element={<LoginPage/>}/>
+                        <Route path="/register" element={<RegistrationPage/>}/>
+                        <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+                        <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+                        <Route path="/verify-email" element={<VerifyEmailPage/>}/>
+                    </Route>
+                    <Route path="/guest" element={<GuestOverlay/>}/>
+                    <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
+                        <Route path="/" element={<HomePage/>}/>
+                        <Route path="/operators" element={<OperatorsPage/>}/>
+                        <Route path="/operators/training" element={<TrainingHistoryPage/>}/>
+                        <Route path="/tasks" element={<TasksPage/>}/>
+                        <Route path="/settings" element={<SettingsPage/>}/>
+                        <Route path="/account" element={<MyAccountPage/>}/>
+                        <Route path="/list" element={<ListView/>}/>
+                    </Route>
+                    <Route path="*" element={<Navigate to="/" replace/>}/>
+                </Routes>
+                {isAuthenticated && hasPlant === false && location.pathname !== '/guest' && <GuestOverlay reason="no-plant" />}
             </AccountProvider>
         </PreferencesProvider>
     );
