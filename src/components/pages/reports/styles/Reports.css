@@ -233,17 +233,17 @@
 
 .rpts-badge-this-week {
     background: rgba(34, 197, 94, 0.1);
-    color: var(--success);
+    color: #22c55e !important;
 }
 
 .rpts-badge-last-week {
     background: rgba(59, 130, 246, 0.1);
-    color: var(--info);
+    color: #3b82f6 !important;
 }
 
 .rpts-badge-older {
     background: rgba(128, 0, 0, 0.1);
-    color: #800000;
+    color: #800000 !important;
 }
 
 .rpts-content {
@@ -2338,11 +2338,6 @@
     color: var(--primary);
 }
 
-.dark-mode .rpts-summary-metric-title,
-.dark-mode .rpts-summary-metric-value,
-.dark-mode .rpts-summary-metric-grade {
-    color: var(--text-light);
-}
 
 .rpts-summary-metric-scale {
     display: flex;
