@@ -235,7 +235,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                 {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
                 <div className="rpts-form-body-wide">
                     <>
-                        {report.name === 'plant_production' || report.name === 'general_manager' ? null : (
+                        {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' ? null : (
                             <div className="rpts-form-fields-grid">
                                 {report.fields.map(field => (
                                     (report.name === 'safety_manager' && field.name === 'issues') ? null : (
@@ -282,6 +282,26 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                                 plants={plants}
                                 weekIso={report.weekIso || initialData?.week}
                             />
+                        )}
+                        {report.name === 'aggregate_production' && (
+                            <div className="rpt-table-wrapper">
+                                <table className="rpt-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Material</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {report.fields.map(field => (
+                                            <tr key={field.name}>
+                                                <td>{field.label}</td>
+                                                <td>{form[field.name] || 0}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
                     </>
                 </div>

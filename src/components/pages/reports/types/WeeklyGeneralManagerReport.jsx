@@ -533,13 +533,23 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                             <div className="rpt-card-title">Aggregate Production</div>
                         </div>
                         {aggReport ? (
-                            <div className="rpt-stats">
-                                {reportTypeMap.aggregate_production.fields.map(f => (
-                                    <div className="rpt-stat-card" key={f.name}>
-                                        <div className="rpt-stat-label">{f.label}</div>
-                                        <div className="rpt-stat-value">{aggReport.data?.[f.name] ?? 0}</div>
-                                    </div>
-                                ))}
+                            <div className="rpt-table-wrapper">
+                                <table className="rpt-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Material</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportTypeMap.aggregate_production.fields.map(f => (
+                                            <tr key={f.name}>
+                                                <td>{f.label}</td>
+                                                <td>{aggReport.data?.[f.name] ?? 0}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) : (
                             <div className="rpt-empty">No aggregate production report found.</div>
@@ -989,11 +999,28 @@ export function GeneralManagerReviewPlugin({form, plants = [], weekIso}) {
                         <div className="rpt-card-header">
                             <div className="rpt-card-title">Aggregate Production</div>
                         </div>
-                        {aggReport ? (<div className="rpt-stats">{reportTypeMap.aggregate_production.fields.map(f => (
-                            <div className="rpt-stat-card" key={f.name}>
-                                <div className="rpt-stat-label">{f.label}</div>
-                                <div className="rpt-stat-value">{aggReport.data?.[f.name] ?? 0}</div>
-                            </div>))}</div>) : (<div className="rpt-empty">No aggregate production report found.</div>)}
+                        {aggReport ? (
+                            <div className="rpt-table-wrapper">
+                                <table className="rpt-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Material</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportTypeMap.aggregate_production.fields.map(f => (
+                                            <tr key={f.name}>
+                                                <td>{f.label}</td>
+                                                <td>{aggReport.data?.[f.name] ?? 0}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="rpt-empty">No aggregate production report found.</div>
+                        )}
                     </div>
                 </div>
             )}
