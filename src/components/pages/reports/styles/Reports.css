@@ -1416,6 +1416,11 @@
     background: var(--accent);
 }
 
+.rpt-table-accent th {
+    background: var(--accent);
+    color: var(--text-light);
+}
+
 @media (max-width: 1200px) {
     .rpts-main-content {
         flex-direction: column;
@@ -1732,14 +1737,16 @@
     padding: 12px 16px;
     border-bottom: 1px solid var(--divider);
     color: var(--text-primary);
+    text-align: left;
 }
 
 .rpt-table tbody tr:hover {
     background: var(--card-bg);
 }
 
-.rpt-table td:nth-child(2) {
-    text-align: right;
+.rpt-table-accent th {
+    background: var(--accent);
+    color: var(--text-light);
 }
 
 .rpt-col-operator {
@@ -1800,10 +1807,12 @@
     text-overflow: ellipsis;
     z-index: 1;
     vertical-align: middle;
+    text-align: left;
 }
 
 .rpt-td.secondary {
     color: var(--text-secondary);
+    text-align: left;
 }
 
 .rpt-td.right {
@@ -2500,7 +2509,7 @@
     padding: 4px 8px;
     border: 1px solid var(--divider);
     background: var(--background);
-    color: var(--text);
+    color: var(--text-primary);
     border-radius: 4px;
     cursor: pointer;
 }

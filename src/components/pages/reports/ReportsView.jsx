@@ -770,7 +770,7 @@ function ReportsView() {
                                             ) : (
                                                 <>
                                                     <div className="rpt-table-wrapper">
-                                                        <table className="rpt-table">
+                                                        <table className="rpt-table rpt-table-accent">
                                                             <thead>
                                                             <tr>
                                                                 <th className="rpt-th">Week</th>
@@ -858,7 +858,7 @@ function ReportsView() {
                                             ) : (
                                                 <>
                                                     <div className="rpt-table-wrapper">
-                                                        <table className="rpt-table">
+                                                        <table className="rpt-table rpt-table-accent">
                                                             <thead>
                                                             <tr>
                                                                 <th className="rpt-th">Week</th>
@@ -936,7 +936,7 @@ function ReportsView() {
                                             ) : (
                                                 <>
                                                     <div className="rpt-table-wrapper">
-                                                        <table className="rpt-table">
+                                                        <table className="rpt-table rpt-table-accent">
                                                             <thead>
                                                             <tr>
                                                                 <th className="rpt-th">Week</th>
