@@ -7,7 +7,6 @@ import {ReportUtility} from '../utils/ReportUtility'
 
 const TTL_SHORT = 5 * 60 * 1000
 const TTL_MED = 10 * 60 * 1000
-const REPORTS_START_DATE = new Date('2025-07-20')
 
 function sortPlants(plants) {
     return (plants || []).filter(p => p.plant_code && p.plant_name).sort((a, b) => {
@@ -344,11 +343,11 @@ class ReportServiceImpl {
         const cacheKey = `overdue:${today.toISOString().slice(0, 10)}:${(allowedReview || []).join(',')}`
         const cached = !force ? CacheUtility.get(cacheKey) : null
         if (cached) return cached
-        const candidateWeeks = ReportUtility.getLastNWeekIsos(3, today)
+        const candidateWeeks = ReportUtility.getLastNWeekIsos(52, today)
         const weekIsos = candidateWeeks.filter(iso => {
             const {saturday} = ReportUtility.getWeekDatesFromIso(iso)
             return saturday && saturday < today
-        }).slice(0, 2)
+        })
         if (weekIsos.length === 0) {
             CacheUtility.set(cacheKey, [], TTL_SHORT)
             return []
@@ -507,4 +506,3 @@ class ReportServiceImpl {
 }
 
 export const ReportService = new ReportServiceImpl()
-

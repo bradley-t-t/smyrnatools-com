@@ -56,6 +56,13 @@ function ReportsView() {
 
     const [isRefreshing, setIsRefreshing] = useState(false)
 
+    const [myPageSize, setMyPageSize] = useState(10)
+    const [myCurrentPage, setMyCurrentPage] = useState(1)
+    const [reviewPageSize, setReviewPageSize] = useState(10)
+    const [reviewCurrentPage, setReviewCurrentPage] = useState(1)
+    const [overduePageSize, setOverduePageSize] = useState(10)
+    const [overdueCurrentPage, setOverdueCurrentPage] = useState(1)
+
     async function fetchProfilesFor(userIds) {
         const missing = userIds.filter(id => !userProfiles[id])
         if (missing.length === 0) return
@@ -327,6 +334,18 @@ function ReportsView() {
         }, 5 * 60 * 1000)
         return () => clearInterval(interval)
     }, [])
+
+    useEffect(() => {
+        setMyCurrentPage(1)
+    }, [filterReportType, filterPlant])
+
+    useEffect(() => {
+        setReviewCurrentPage(1)
+    }, [filterReportType, filterPlant])
+
+    useEffect(() => {
+        setOverdueCurrentPage(1)
+    }, [filterReportType, filterPlant])
 
     const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY), [totalMyWeeks])
 
@@ -617,6 +636,15 @@ function ReportsView() {
         return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
     }), [reviewableReports, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap])
 
+
+    const allMyItems = useMemo(() => Object.values(myReportsByWeek).flat(), [myReportsByWeek])
+
+    const myTotalPages = useMemo(() => Math.ceil(allMyItems.length / myPageSize), [allMyItems.length, myPageSize])
+    const myPaginatedItems = useMemo(() => allMyItems.slice((myCurrentPage - 1) * myPageSize, myCurrentPage * myPageSize), [allMyItems, myCurrentPage, myPageSize])
+
+    const reviewTotalPages = useMemo(() => Math.ceil(visibleReviewReports.length / reviewPageSize), [visibleReviewReports.length, reviewPageSize])
+    const reviewPaginatedItems = useMemo(() => visibleReviewReports.slice((reviewCurrentPage - 1) * reviewPageSize, reviewCurrentPage * reviewPageSize), [visibleReviewReports, reviewCurrentPage, reviewPageSize])
+
     const filteredOverdueItems = useMemo(() => {
         return (overdueItems || [])
             .filter(item => {
@@ -629,26 +657,20 @@ function ReportsView() {
             .sort((a, b) => new Date(b.week) - new Date(a.week))
     }, [overdueItems, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap, regionType])
 
-    const overdueByWeek = useMemo(() => {
-        const grouped = {}
-        filteredOverdueItems.forEach(item => {
-            const key = item.week
-            if (!grouped[key]) grouped[key] = []
-            grouped[key].push(item)
-        })
-        return grouped
-    }, [filteredOverdueItems])
+    const overdueTotalPages = useMemo(() => Math.ceil(filteredOverdueItems.length / overduePageSize), [filteredOverdueItems.length, overduePageSize])
+    const overduePaginatedItems = useMemo(() => filteredOverdueItems.slice((overdueCurrentPage - 1) * overduePageSize, overdueCurrentPage * overduePageSize), [filteredOverdueItems, overdueCurrentPage, overduePageSize])
 
-    const sortedOverdueWeeks = useMemo(() => Object.keys(overdueByWeek).sort((a, b) => new Date(b) - new Date(a)), [overdueByWeek])
+    function handleMyPageChange(newPage) {
+        setMyCurrentPage(newPage)
+    }
 
-    const myCounts = useMemo(() => {
-        const items = []
-        weeksToShow.forEach(w => (myReportsByWeek[w] || []).forEach(i => items.push(i)))
-        const completed = items.filter(i => i.completed).length
-        const pending = items.filter(i => !i.completed).length
-        return {total: items.length, completed, pending}
-    }, [weeksToShow, myReportsByWeek])
+    function handleReviewPageChange(newPage) {
+        setReviewCurrentPage(newPage)
+    }
 
+    function handleOverduePageChange(newPage) {
+        setOverdueCurrentPage(newPage)
+    }
 
     return (
         <>
@@ -763,47 +785,60 @@ function ReportsView() {
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {filteredMyWeeks.flatMap(weekIso => {
-                                                                const weekItems = myReportsByWeek[weekIso] || []
+                                                            {myPaginatedItems.map(item => {
+                                                                const weekIso = item.weekIso
                                                                 const {
                                                                     monday,
                                                                     saturday
                                                                 } = ReportUtility.getWeekDatesFromIso(weekIso)
                                                                 const weekRange = ReportService.getWeekRangeString(monday, saturday)
-                                                                return weekItems.map(item => {
-                                                                    const today = new Date()
-                                                                    const hasSavedData = !!(item.report && item.report.data)
-                                                                    const {
-                                                                        statusText,
-                                                                        statusClass,
-                                                                        buttonLabel
-                                                                    } = ReportUtility.computeMyReportStatus({
-                                                                        completed: item.completed,
-                                                                        hasSavedData,
-                                                                        weekIso: item.weekIso,
-                                                                        today
-                                                                    })
-                                                                    const badge = ReportUtility.getWeekBadge(weekIso)
-                                                                    const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : ''
-                                                                    return (
-                                                                        <tr key={item.name + item.weekIso}
-                                                                            className="rpt-row">
-                                                                            <td className="rpt-td rpt-week-td"><span className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}</td>
-                                                                            <td className="rpt-td">{item.title}</td>
-                                                                            <td className="rpt-td"><span
-                                                                                className={`rpts-status ${statusClass}`}>{statusText}</span>
-                                                                            </td>
-                                                                            <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                                            <td className="rpt-td right">
-                                                                                <button className="rpts-list-action"
-                                                                                        onClick={() => handleShowForm(item)}>{buttonLabel}</button>
-                                                                            </td>
-                                                                        </tr>
-                                                                    )
+                                                                const today = new Date()
+                                                                const hasSavedData = !!(item.report && item.report.data)
+                                                                const {
+                                                                    statusText,
+                                                                    statusClass,
+                                                                    buttonLabel
+                                                                } = ReportUtility.computeMyReportStatus({
+                                                                    completed: item.completed,
+                                                                    hasSavedData,
+                                                                    weekIso: item.weekIso,
+                                                                    today
                                                                 })
+                                                                const badge = ReportUtility.getWeekBadge(weekIso)
+                                                                const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : ''
+                                                                return (
+                                                                    <tr key={item.name + item.weekIso}
+                                                                        className="rpt-row">
+                                                                        <td className="rpt-td rpt-week-td"><span className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}</td>
+                                                                        <td className="rpt-td">{item.title}</td>
+                                                                        <td className="rpt-td"><span
+                                                                            className={`rpts-status ${statusClass}`}>{statusText}</span>
+                                                                        </td>
+                                                                        <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                        <td className="rpt-td right">
+                                                                            <button className="rpts-list-action"
+                                                                                    onClick={() => handleShowForm(item)}>{buttonLabel}</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                )
                                                             })}
                                                             </tbody>
                                                         </table>
+                                                    </div>
+                                                    <div className="rpts-pagination">
+                                                        <div className="rpts-page-size">
+                                                            <label>Show:</label>
+                                                            <select value={myPageSize} onChange={e => {setMyPageSize(Number(e.target.value)); setMyCurrentPage(1)}}>
+                                                                <option value={10}>10</option>
+                                                                <option value={25}>25</option>
+                                                                <option value={50}>50</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="rpts-page-controls">
+                                                            <button onClick={() => setMyCurrentPage(Math.max(1, myCurrentPage - 1))} disabled={myCurrentPage === 1}>Previous</button>
+                                                            <span>Page {myCurrentPage} of {myTotalPages}</span>
+                                                            <button onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))} disabled={myCurrentPage === myTotalPages}>Next</button>
+                                                        </div>
                                                     </div>
                                                 </>
                                             )}
@@ -839,7 +874,7 @@ function ReportsView() {
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {visibleReviewReports
+                                                            {reviewPaginatedItems
                                                                 .map(report => {
                                                                     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
                                                                     const {
@@ -867,6 +902,21 @@ function ReportsView() {
                                                                 })}
                                                             </tbody>
                                                         </table>
+                                                    </div>
+                                                    <div className="rpts-pagination">
+                                                        <div className="rpts-page-size">
+                                                            <label>Show:</label>
+                                                            <select value={reviewPageSize} onChange={e => {setReviewPageSize(Number(e.target.value)); setReviewCurrentPage(1)}}>
+                                                                <option value={10}>10</option>
+                                                                <option value={25}>25</option>
+                                                                <option value={50}>50</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="rpts-page-controls">
+                                                            <button onClick={() => setReviewCurrentPage(Math.max(1, reviewCurrentPage - 1))} disabled={reviewCurrentPage === 1}>Previous</button>
+                                                            <span>Page {reviewCurrentPage} of {reviewTotalPages}</span>
+                                                            <button onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))} disabled={reviewCurrentPage === reviewTotalPages}>Next</button>
+                                                        </div>
                                                     </div>
                                                 </>
                                             )}
@@ -900,7 +950,7 @@ function ReportsView() {
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {filteredOverdueItems.map(item => {
+                                                            {overduePaginatedItems.map(item => {
                                                                 const weekIso = item.week
                                                                 const {
                                                                     monday,
@@ -920,6 +970,21 @@ function ReportsView() {
                                                             })}
                                                             </tbody>
                                                         </table>
+                                                    </div>
+                                                    <div className="rpts-pagination">
+                                                        <div className="rpts-page-size">
+                                                            <label>Show:</label>
+                                                            <select value={overduePageSize} onChange={e => {setOverduePageSize(Number(e.target.value)); setOverdueCurrentPage(1)}}>
+                                                                <option value={10}>10</option>
+                                                                <option value={25}>25</option>
+                                                                <option value={50}>50</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="rpts-page-controls">
+                                                            <button onClick={() => setOverdueCurrentPage(Math.max(1, overdueCurrentPage - 1))} disabled={overdueCurrentPage === 1}>Previous</button>
+                                                            <span>Page {overdueCurrentPage} of {overdueTotalPages}</span>
+                                                            <button onClick={() => setOverdueCurrentPage(Math.min(overdueTotalPages, overdueCurrentPage + 1))} disabled={overdueCurrentPage === overdueTotalPages}>Next</button>
+                                                        </div>
                                                     </div>
                                                 </>
                                             )}
