@@ -3,19 +3,15 @@ import {TrailerService} from '../../../services/TrailerService';
 import Trailer from '../../../models/trailers/Trailer';
 import {AuthService} from '../../../services/AuthService';
 import './styles/Trailers.css';
-import {usePreferences} from '../../../app/context/PreferencesContext'
-import {RegionService} from '../../../services/RegionService'
 import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function TrailerAddView({plants, onClose, onTrailerAdded}) {
-    const {preferences} = usePreferences()
     const [trailerNumber, setTrailerNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
     const [trailerType, setTrailerType] = useState('Cement');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [cleanlinessRating, setCleanlinessRating] = useState(1);
-    const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
@@ -29,37 +25,10 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
         loadTrailers();
     }, []);
 
-    useEffect(() => {
-        const code = preferences.selectedRegion?.code || ''
-        let cancelled = false
-
-        async function loadRegionPlants() {
-            if (!code) {
-                setRegionPlantCodes(null)
-                return
-            }
-            try {
-                const regionPlants = await RegionService.fetchRegionPlants(code)
-                if (cancelled) return
-                const codes = new Set(regionPlants.map(p => p.plantCode))
-                setRegionPlantCodes(codes)
-                if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
-            } catch {
-                setRegionPlantCodes(new Set())
-            }
-        }
-
-        loadRegionPlants()
-        return () => {
-            cancelled = true
-        }
-    }, [preferences.selectedRegion?.code, assignedPlant])
-
     const visiblePlants = useMemo(() => {
         const list = Array.isArray(plants) ? plants : []
-        const filtered = !preferences.selectedRegion?.code || !regionPlantCodes ? list : list.filter(p => regionPlantCodes.has(p.plantCode))
-        return filtered.slice().sort((a, b) => parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0'))
-    }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
+        return list.slice().sort((a, b) => parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0'))
+    }, [plants])
 
     const selectedPlantObj = visiblePlants.find(p => p.plantCode === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}` : 'Select Plant';
@@ -190,13 +159,11 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
                             <PlantDropdownModal
                                 isOpen={isPlantModalOpen}
                                 onClose={() => setIsPlantModalOpen(false)}
-                                onPlantSelected={plant => {
-                                    setAssignedPlant(plant.plantCode);
+                                onSelect={code => {
+                                    setAssignedPlant(code);
                                     setIsPlantModalOpen(false);
                                 }}
-                                selectedPlantCode={assignedPlant}
-                                regionCode={preferences.selectedRegion?.code}
-                                showRegionPlantsOnly={true}
+                                plants={visiblePlants}
                             />
                         )}
                     </div>

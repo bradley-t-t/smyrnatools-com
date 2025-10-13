@@ -44,6 +44,9 @@
     --status-inshop: #2563eb;
     --status-retired: #7c1d1d;
     --status-sold: #6b7280;
+    --badge-this-week: #90EE90;
+    --badge-last-week: #2563eb;
+    --badge-older: #FFA500;
     --comments-badge-bg: #ffe066;
     --comments-badge-text: #fff;
     --comments-badge-icon: #fff;
@@ -450,4 +453,3 @@ button.primary:hover {
 .rating-label {
     color: #fff !important;
 }
-

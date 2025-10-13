@@ -208,12 +208,11 @@ function TractorAddView({plants, onClose, onTractorAdded}) {
                             <PlantDropdownModal
                                 isOpen={isPlantModalOpen}
                                 onClose={() => setIsPlantModalOpen(false)}
-                                onPlantSelected={plant => {
-                                    setAssignedPlant(plant.plantCode);
+                                onSelect={code => {
+                                    setAssignedPlant(code);
                                     setIsPlantModalOpen(false);
                                 }}
-                                selectedPlantCode={assignedPlant}
-                                regionCode={preferences.selectedRegion?.code}
+                                plants={visiblePlants}
                             />
                         )}
                     </div>

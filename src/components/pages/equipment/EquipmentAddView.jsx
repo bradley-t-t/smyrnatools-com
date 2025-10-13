@@ -45,9 +45,8 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
 
     const visiblePlants = useMemo(() => {
         const list = Array.isArray(plants) ? plants : []
-        const filtered = !preferences.selectedRegion?.code || !regionPlantCodes ? list : list.filter(p => regionPlantCodes.has(p.plantCode))
-        return filtered.slice().sort((a, b) => parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0'))
-    }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
+        return list.slice().sort((a, b) => parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0'))
+    }, [plants])
 
     const selectedPlantObj = visiblePlants.find(p => p.plantCode === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}` : 'Select Plant';
@@ -172,8 +171,8 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
                     onClose={() => setIsPlantModalOpen(false)}
-                    onPlantSelected={plant => {
-                        setAssignedPlant(plant.plantCode);
+                    onSelect={code => {
+                        setAssignedPlant(code);
                         setIsPlantModalOpen(false);
                     }}
                     plants={visiblePlants}

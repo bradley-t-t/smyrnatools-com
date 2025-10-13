@@ -52,6 +52,10 @@ function ReportsView() {
 
     const [hasAnyReviewPermissionPrefix, setHasAnyReviewPermissionPrefix] = useState(false)
 
+    const [refreshKey, setRefreshKey] = useState(0)
+
+    const [isRefreshing, setIsRefreshing] = useState(false)
+
     async function fetchProfilesFor(userIds) {
         const missing = userIds.filter(id => !userProfiles[id])
         if (missing.length === 0) return
@@ -192,7 +196,7 @@ function ReportsView() {
         }
 
         loadInitial()
-    }, [user, isLoadingPermissions, hasAssigned, regionType])
+    }, [user, isLoadingPermissions, hasAssigned, regionType, refreshKey])
 
     useEffect(() => {
         if (!user || isLoadingPermissions || tab !== 'review') return
@@ -215,7 +219,7 @@ function ReportsView() {
         return () => {
             cancelled = true
         }
-    }, [tab, user, isLoadingPermissions, regionType])
+    }, [tab, user, isLoadingPermissions, regionType, refreshKey])
 
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
@@ -311,11 +315,18 @@ function ReportsView() {
         return () => {
             cancelled = true
         }
-    }, [tab, isLoadingPermissions, hasReviewPermission, regionType])
+    }, [tab, isLoadingPermissions, hasReviewPermission, regionType, refreshKey])
 
     useEffect(() => {
         if (tab === 'overdue' && !hasAnyReviewPermissionPrefix) setTab('all')
     }, [tab, hasAnyReviewPermissionPrefix])
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setRefreshKey(prev => prev + 1)
+        }, 5 * 60 * 1000)
+        return () => clearInterval(interval)
+    }, [])
 
     const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY), [totalMyWeeks])
 
@@ -348,7 +359,7 @@ function ReportsView() {
     const reviewableReports = useMemo(() => (
         localReports
             .filter(r => r.completed && r.week && hasReviewPermission[r.name] && r.userId !== user?.id && (regionType !== 'office' || r.name === 'general_manager'))
-            .sort((a, b) => new Date(b.completedDate).getTime() - new Date(a.completedDate).getTime())
+            .sort((a, b) => new Date(b.week).getTime() - new Date(a.week).getTime())
     ), [localReports, hasReviewPermission, user, regionType])
 
     const reviewReportsByWeek = useMemo(() => {
@@ -653,6 +664,13 @@ function ReportsView() {
                                 </div>
                             </div>
                             <div className="rpts-toolbar-right">
+                                <button className="rpts-refresh-btn" onClick={() => {
+                                    setIsRefreshing(true);
+                                    setRefreshKey(prev => prev + 1);
+                                    setTimeout(() => setIsRefreshing(false), 1000);
+                                }} type="button">
+                                    <i className={`fas fa-sync ${isRefreshing ? 'spinning' : ''}`}></i> Refresh
+                                </button>
                                 <div className="rpts-filters">
                                     <select
                                         value={filterReportType}
@@ -765,10 +783,12 @@ function ReportsView() {
                                                                         weekIso: item.weekIso,
                                                                         today
                                                                     })
+                                                                    const badge = ReportUtility.getWeekBadge(weekIso)
+                                                                    const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : ''
                                                                     return (
                                                                         <tr key={item.name + item.weekIso}
                                                                             className="rpt-row">
-                                                                            <td className="rpt-td">{weekRange}</td>
+                                                                            <td className="rpt-td rpt-week-td"><span className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}</td>
                                                                             <td className="rpt-td">{item.title}</td>
                                                                             <td className="rpt-td"><span
                                                                                 className={`rpts-status ${statusClass}`}>{statusText}</span>
@@ -829,7 +849,7 @@ function ReportsView() {
                                                                     const weekRange = ReportService.getWeekRangeString(monday, saturday)
                                                                     return (
                                                                         <tr key={report.id} className="rpt-row">
-                                                                            <td className="rpt-td">{weekRange}</td>
+                                                                            <td className="rpt-td rpt-week-td"><span className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>{ReportUtility.getWeekBadge(weekIso)}</span> {weekRange}</td>
                                                                             <td className="rpt-td">{report.title}</td>
                                                                             <td className="rpt-td">{getUserName(report.userId)}</td>
                                                                             <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
@@ -891,7 +911,7 @@ function ReportsView() {
                                                                 return (
                                                                     <tr key={`${item.userId}-${item.report_name}-${item.week}`}
                                                                         className="rpt-row">
-                                                                        <td className="rpt-td">{weekRange}</td>
+                                                                        <td className="rpt-td rpt-week-td"><span className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>{ReportUtility.getWeekBadge(weekIso)}</span> {weekRange}</td>
                                                                         <td className="rpt-td">{title}</td>
                                                                         <td className="rpt-td">{getUserName(item.userId)}</td>
                                                                         <td className="rpt-td">{saturday.toLocaleDateString()}</td>

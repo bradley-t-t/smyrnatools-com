@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './styles/PlantDropdownModal.css';
 
-function PlantDropdownModal({isOpen, onClose, plants, onSelect, searchPlaceholder = "Search plants...", showAllPlants = false}) {
+function PlantDropdownModal({isOpen, onClose, plants = [], onSelect, searchPlaceholder = "Search plants...", showAllPlants = false}) {
     const [search, setSearch] = useState('');
 
     const filteredPlants = plants.filter(plant => {

@@ -221,18 +221,29 @@
 }
 
 .rpts-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: var(--accent-dark);
-    color: var(--text-light);
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0;
+}
+
+.rpts-badge-this-week {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+}
+
+.rpts-badge-last-week {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+}
+
+.rpts-badge-older {
+    background: rgba(128, 0, 0, 0.1);
+    color: #800000;
 }
 
 .rpts-content {
@@ -1732,7 +1743,7 @@
 .rpt-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 .rpt-col-operator {
@@ -1807,6 +1818,10 @@
 
 .rpt-td.emphasis {
     font-weight: 600;
+}
+
+.rpt-week-td {
+    min-width: 150px;
 }
 
 .rpt-icon-btn {
@@ -2428,4 +2443,37 @@
     gap: 8px;
     margin-left: auto;
     margin-right: 30px;
+}
+
+.rpts-refresh-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 7px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: var(--shadow-sm);
+}
+
+.rpts-refresh-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.02);
+}
+
+.rpts-refresh-btn:active {
+    transform: scale(0.98);
+}
+
+.spinning {
+    animation: spin 1s linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

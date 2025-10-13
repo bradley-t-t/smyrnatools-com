@@ -160,6 +160,17 @@ const ReportUtility = {
             buttonLabel = 'Submit'
         }
         return {statusText, statusClass, buttonLabel}
+    },
+    getWeekBadge(weekIso, today = new Date()) {
+        const currentMonday = this.mondayOf(today)
+        if (!currentMonday) return ''
+        const weekMonday = new Date(weekIso)
+        if (isNaN(weekMonday.getTime())) return ''
+        const diffWeeks = Math.floor((currentMonday - weekMonday) / (7 * 24 * 60 * 60 * 1000))
+        if (diffWeeks === 0) return 'This Week'
+        if (diffWeeks === 1) return 'Last Week'
+        if (diffWeeks > 1) return 'Older'
+        return ''
     }
 }
 

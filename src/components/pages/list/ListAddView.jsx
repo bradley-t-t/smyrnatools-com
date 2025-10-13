@@ -6,6 +6,7 @@ import {RegionService} from '../../../services/RegionService';
 import {PlantService} from '../../../services/PlantService';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import GrammarUtility from '../../../utils/GrammarUtility';
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function ListAddView({onClose, onItemAdded, item = null}) {
     const {preferences} = usePreferences();
@@ -24,6 +25,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     const [canBypassPlantRestriction, setCanBypassPlantRestriction] = useState(null);
     const [plantRestrictionMessage, setPlantRestrictionMessage] = useState('');
     const [plants, setPlants] = useState([]);
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
         async function fetchCurrentUser() {
@@ -77,6 +79,10 @@ function ListAddView({onClose, onItemAdded, item = null}) {
             setComments(item.comments || '');
         }
     }, [item, canBypassPlantRestriction, userPlantCode]);
+
+    const visiblePlants = plants.filter(p => canBypassPlantRestriction || !userPlantCode || p.plant_code === userPlantCode);
+    const selectedPlantObj = visiblePlants.find(p => p.plant_code === plantCode);
+    const plantDisplayText = plantCode ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'Select Plant';
 
     const validate = () => {
         const newErrors = {};
@@ -163,26 +169,14 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label htmlFor="plantCode">Plant*</label>
-                                        <select
-                                            id="plantCode"
+                                        <button
+                                            type="button"
                                             className="ios-select"
-                                            value={plantCode}
-                                            onChange={e => setPlantCode(e.target.value)}
-                                            required
+                                            onClick={() => setIsPlantModalOpen(true)}
+                                            aria-label="Select plant"
                                         >
-                                            <option value=""
-                                                    disabled={!canBypassPlantRestriction && userPlantCode}>Select Plant
-                                            </option>
-                                            {plants.map(plant => (
-                                                <option
-                                                    key={plant.plant_code}
-                                                    value={plant.plant_code}
-                                                    disabled={!canBypassPlantRestriction && userPlantCode && plant.plant_code !== userPlantCode}
-                                                >
-                                                    ({plant.plant_code}) {plant.plant_name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            {plantDisplayText}
+                                        </button>
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="deadline">Deadline*</label>
@@ -223,6 +217,17 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                     </div>
                 </div>
             </div>
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
+                    onClose={() => setIsPlantModalOpen(false)}
+                    onSelect={code => {
+                        setPlantCode(code);
+                        setIsPlantModalOpen(false);
+                    }}
+                    plants={visiblePlants}
+                />
+            )}
         </div>
     );
 }

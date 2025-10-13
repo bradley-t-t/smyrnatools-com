@@ -176,8 +176,8 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
                     onClose={() => setIsPlantModalOpen(false)}
-                    onPlantSelected={plant => {
-                        setAssignedPlant(plant.plantCode);
+                    onSelect={code => {
+                        setAssignedPlant(code);
                         setIsPlantModalOpen(false);
                     }}
                     plants={visiblePlants}

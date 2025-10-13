@@ -5,6 +5,7 @@ import UserUtility from '../../../utils/UserUtility';
 import './styles/Operators.css';
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
+import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allowedPlantCodes}) {
     const {preferences} = usePreferences()
@@ -20,6 +21,7 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
     const [error, setError] = useState('');
     const [hasTrainingPermission, setHasTrainingPermission] = useState(false);
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -77,6 +79,9 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
             const bCode = parseInt(b.plantCode?.replace(/\D/g, '') || '0');
             return aCode - bCode;
         });
+
+    const selectedPlantObj = filteredPlants.find(p => p.plantCode === assignedPlant);
+    const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}` : 'Select Plant';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -157,14 +162,14 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                         <div className="form-row-horizontal">
                             <div className="form-group">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
-                                <select id="assignedPlant" className="ios-select" value={assignedPlant}
-                                        onChange={(e) => setAssignedPlant(e.target.value)} required>
-                                    <option value="">Select Plant</option>
-                                    {filteredPlants.map(plant => (
-                                        <option key={plant.plantCode}
-                                                value={plant.plantCode}>({plant.plantCode}) {plant.plantName}</option>
-                                    ))}
-                                </select>
+                                <button
+                                    type="button"
+                                    className="ios-select"
+                                    onClick={() => setIsPlantModalOpen(true)}
+                                    aria-label="Select assigned plant"
+                                >
+                                    {plantDisplayText}
+                                </button>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="status">Status</label>
@@ -234,6 +239,17 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                     </form>
                 </div>
             </div>
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
+                    onClose={() => setIsPlantModalOpen(false)}
+                    onSelect={code => {
+                        setAssignedPlant(code);
+                        setIsPlantModalOpen(false);
+                    }}
+                    plants={filteredPlants}
+                />
+            )}
         </div>
     );
 }

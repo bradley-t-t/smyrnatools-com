@@ -22,7 +22,7 @@ function PickupTrucksAddView({onClose, onAdded}) {
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState('')
     const [plants, setPlants] = useState([])
-    const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
+    const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
     useEffect(() => {
@@ -44,53 +44,36 @@ function PickupTrucksAddView({onClose, onAdded}) {
     }, [])
 
     useEffect(() => {
+        const code = preferences.selectedRegion?.code || ''
         let cancelled = false
 
-        async function loadAllowedPlants() {
-            let regionCode = preferences.selectedRegion?.code || ''
+        async function loadRegionPlants() {
+            if (!code) {
+                setRegionPlantCodes(null)
+                return
+            }
             try {
-                if (!regionCode) {
-                    const user = await UserService.getCurrentUser()
-                    const uid = user?.id || ''
-                    if (uid) {
-                        const profilePlant = await UserService.getUserPlant(uid)
-                        const plantCode = typeof profilePlant === 'string' ? profilePlant : (profilePlant?.plant_code || profilePlant?.plantCode || '')
-                        if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
-                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                            regionCode = r ? (r.regionCode || r.region_code || '') : ''
-                        }
-                    }
-                }
-                if (!regionCode) {
-                    if (!cancelled) setRegionPlantCodes(new Set())
-                    return
-                }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await RegionService.fetchRegionPlants(code)
                 if (cancelled) return
-                const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean))
+                const codes = new Set(regionPlants.map(p => p.plantCode))
                 setRegionPlantCodes(codes)
-                const sel = String(assignedPlant || '').trim().toUpperCase()
-                if (sel && !codes.has(sel)) setAssignedPlant('')
+                if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
             } catch {
-                if (!cancelled) setRegionPlantCodes(new Set())
+                setRegionPlantCodes(new Set())
             }
         }
 
-        loadAllowedPlants()
+        loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, assignedPlant])
 
-    const filteredPlants = useMemo(() => {
-        if (!regionPlantCodes || regionPlantCodes.size === 0) return []
-        return plants.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()))
-    }, [plants, regionPlantCodes])
-
     const sortedFilteredPlants = useMemo(() => {
-        return filteredPlants.slice().sort((a, b) => parseInt(String(a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt(String(b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
-    }, [filteredPlants])
+        const list = plants
+        const filtered = !preferences.selectedRegion?.code || !regionPlantCodes ? list : list.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()))
+        return filtered.slice().sort((a, b) => parseInt(String(a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') - parseInt(String(b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0'))
+    }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
 
     const selectedPlantObj = sortedFilteredPlants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name}` : 'Select Plant';
@@ -221,13 +204,13 @@ function PickupTrucksAddView({onClose, onAdded}) {
             </div>
             {isPlantModalOpen && (
                 <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
                     onClose={() => setIsPlantModalOpen(false)}
-                    onSelect={plant => {
-                        setAssignedPlant(plant?.plantCode || plant?.plant_code || '')
-                        setIsPlantModalOpen(false)
+                    onSelect={code => {
+                        setAssignedPlant(code);
+                        setIsPlantModalOpen(false);
                     }}
-                    selectedPlantCode={assignedPlant}
-                    allowClear={false}
+                    plants={sortedFilteredPlants}
                 />
             )}
         </div>
