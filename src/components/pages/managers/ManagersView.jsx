@@ -30,6 +30,15 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         return lastUsed || 'grid'
     })
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
+    const sortMappings = {
+        'Plant': 'plantCode',
+        'Email': 'email',
+        'First Name': 'firstName',
+        'Last Name': 'lastName',
+        'Role': 'roleName'
+    }
     const headerRef = useRef(null)
 
     useEffect(() => {
@@ -99,6 +108,15 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         }
     }
 
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
     async function fetchAllData() {
         setIsLoading(true)
         try {
@@ -147,7 +165,22 @@ function ManagersView({title = 'Managers', onSelectManager}) {
         const matchesRegion = regionType === 'Office' || !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(manager.plantCode || '').trim().toUpperCase())
         return matchesSearch && matchesPlant && matchesRole && matchesRegion
     }).sort((a, b) => {
-        return b.roleWeight - a.roleWeight || `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`)
+        if (!sortKey) {
+            return b.roleWeight - a.roleWeight || `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`)
+        }
+        const prop = sortMappings[sortKey]
+        if (!prop) return 0;
+        let aVal = a[prop]
+        let bVal = b[prop]
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        } else {
+            aVal = String(aVal || '').toLowerCase()
+            bVal = String(bVal || '').toLowerCase()
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        }
     })
 
     const getPlantName = plantCode => {
@@ -228,6 +261,9 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                         colWidths={['12%', '28%', '18%', '18%', '24%']}
                         forwardedRef={headerRef}
                         sticky={true}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
                     />
                     <div className="global-content-container content-container">
                         {isLoading ? (

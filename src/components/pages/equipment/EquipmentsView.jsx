@@ -31,6 +31,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [searchInput, setSearchInput] = useState(preferences.equipmentFilters?.searchText || '');
     const [selectedPlant, setSelectedPlant] = useState(preferences.equipmentFilters?.selectedPlant || '');
     const [statusFilter, setStatusFilter] = useState(preferences.equipmentFilters?.statusFilter || '');
+    const [equipmentTypeFilter, setEquipmentTypeFilter] = useState(preferences.equipmentFilters?.equipmentTypeFilter || '');
     const [showAddSheet, setShowAddSheet] = useState(false);
     const [selectedEquipment, setSelectedEquipment] = useState(null);
     const [viewMode, setViewMode] = useState(() => {
@@ -44,14 +45,25 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [modalEquipmentId, setModalEquipmentId] = useState(null)
     const [modalEquipmentNumber, setModalEquipmentNumber] = useState('')
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
-    const [equipmentsLoaded, setEquipmentsLoaded] = useState(false)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
+
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Open Issues'];
+    const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Skid Steer', 'Forklift', 'Manlift', 'Other', 'Dozer', 'Water/Trash Pump', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Unknown'];
     const headerRef = useRef(null)
+    const sortMappings = {
+        'Plant': 'assignedPlant',
+        'Equipment #': 'identifyingNumber',
+        'Status': 'status',
+        'Type': 'equipmentType',
+        'Cleanliness': 'cleanlinessRating',
+        'Condition': 'conditionRating',
+        'More': null
+    }
 
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true);
-            setEquipmentsLoaded(false);
             try {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 setRegionPlantCodes(codes)
@@ -67,6 +79,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             setSearchInput(preferences.equipmentFilters.searchText || '');
             setSelectedPlant(preferences.equipmentFilters.selectedPlant || '');
             setStatusFilter(preferences.equipmentFilters.statusFilter || '');
+            setEquipmentTypeFilter(preferences.equipmentFilters.equipmentTypeFilter || '');
             setViewMode(preferences.equipmentFilters.viewMode || preferences.defaultViewMode || 'grid');
         }
     }, [preferences]);
@@ -103,7 +116,6 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         try {
             const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
             setEquipments(processedBase)
-            setEquipmentsLoaded(true)
             loadDetailsForEquipments(processedBase)
         } catch {
             setEquipments([]);
@@ -184,8 +196,26 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         if (statusFilter && statusFilter !== 'All Statuses') {
             matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? equipment.status === statusFilter : statusFilter === 'Past Due Service' ? EquipmentUtility.isServiceOverdue(equipment.lastServiceDate) : statusFilter === 'Open Issues' ? Number(equipment.openIssuesCount || 0) > 0 : false
         }
-        return matchesSearch && matchesPlant && matchesRegion && matchesStatus;
-    }).sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')), [equipments, selectedPlant, searchText, statusFilter, preferences.selectedRegion?.code, regionPlantCodes]);
+        const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter;
+        return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType;
+    }).sort((a, b) => {
+        if (!sortKey) {
+            return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
+        }
+        const prop = sortMappings[sortKey]
+        if (!prop) return 0;
+        let aVal = a[prop]
+        let bVal = b[prop]
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        } else {
+            aVal = String(aVal || '').toLowerCase()
+            bVal = String(bVal || '').toLowerCase()
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        }
+    }), [equipments, selectedPlant, searchText, statusFilter, equipmentTypeFilter, preferences.selectedRegion?.code, regionPlantCodes, sortKey, sortDirection]);
 
     useEffect(() => {
         if (preferences.equipmentFilters?.viewMode !== undefined && preferences.equipmentFilters?.viewMode !== null) setViewMode(preferences.equipmentFilters.viewMode)
@@ -208,6 +238,15 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         }
     }
 
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -219,7 +258,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
-    }, [viewMode, searchInput, selectedPlant, statusFilter])
+    }, [viewMode, searchInput, selectedPlant, statusFilter, equipmentTypeFilter])
 
     const content = useMemo(() => {
         if (isLoading) return <div className="global-loading-container loading-container"><LoadingScreen
@@ -227,7 +266,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         if (filteredEquipments.length === 0) return <div className="global-no-results-container no-results-container">
             <div className="no-results-icon"><i className="fas fa-truck-loading"></i></div>
             <h3>No Equipment Found</h3>
-            <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') ? "No equipment matches your search criteria." : "There is no equipment in the system yet."}</p>
+            <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || equipmentTypeFilter ? "No equipment matches your search criteria." : "There is no equipment in the system yet."}</p>
             <button className="global-primary-button primary-button" onClick={() => setShowAddSheet(true)}>Add
                 Equipment
             </button>
@@ -338,9 +377,9 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 tableClassName="list-table"
             />
         )
-    }, [isLoading, filteredEquipments, viewMode, searchText, selectedPlant, statusFilter, plants, equipments])
+    }, [isLoading, filteredEquipments, viewMode, searchText, selectedPlant, statusFilter, equipmentTypeFilter, plants, equipments])
 
-    const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
+    const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || equipmentTypeFilter)
 
     return (
         <div
@@ -379,18 +418,23 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             setStatusFilter(v);
                             safeUpdateEquipmentFilter('statusFilter', v)
                         }}
+                        customFilters={<div className="filter-wrapper"><select className="ios-select" value={equipmentTypeFilter} onChange={e => { setEquipmentTypeFilter(e.target.value); safeUpdateEquipmentFilter('equipmentTypeFilter', e.target.value); }} aria-label="Equipment type filter"><option value="">All Types</option>{equipmentTypeOptions.slice(1).map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>}
                         showReset={showReset}
                         onReset={() => {
                             setSearchText('');
                             setSearchInput('');
                             setSelectedPlant('');
                             setStatusFilter('');
+                            setEquipmentTypeFilter('');
                             resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
                         }}
                         listLabels={['Plant', 'Equipment #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
                         colWidths={['12%', '14%', '12%', '24%', '14%', '16%', '8%']}
                         forwardedRef={headerRef}
                         sticky={true}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
                     />
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <EquipmentAddView plants={plants} onClose={() => setShowAddSheet(false)}

@@ -55,7 +55,19 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [tractorsLoaded, setTractorsLoaded] = useState(false)
     const [operatorsLoaded, setOperatorsLoaded] = useState(false)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues']
+    const sortMappings = {
+        'Plant': 'assignedPlant',
+        'Truck #': 'truckNumber',
+        'Status': 'status',
+        'Operator': 'assignedOperator',
+        'Cleanliness': 'cleanlinessRating',
+        'VIN': 'vinNumber',
+        'Verified': null,
+        'More': null
+    }
 
     const unassignedActiveOperatorsCount = useMemo(() => FleetUtility.countUnassignedActiveOperators(tractors, operators, searchText, {
         position: 'Tractor Operator',
@@ -144,6 +156,15 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
         }
     }
 
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
     async function fetchTractors(codes) {
         try {
             const processedBase = await TractorService.fetchTractorsWithDetails(codes)
@@ -203,7 +224,39 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
         }
         const matchesFreight = !freightFilter || tractor.freight === freightFilter
         return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
-    }).sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')), [tractors, operators, selectedPlant, searchText, statusFilter, freightFilter, regionPlantCodes])
+    }).sort((a, b) => {
+        if (!sortKey) {
+            return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
+        }
+        const prop = sortMappings[sortKey]
+        if (!prop) return 0;
+        let aVal, bVal;
+        if (sortKey === 'Verified') {
+            aVal = a.isVerified() ? 1 : 0
+            bVal = b.isVerified() ? 1 : 0
+        } else if (sortKey === 'Operator') {
+            aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
+            bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
+        } else if (sortKey === 'Plant') {
+            aVal = plants.find(p => p.code === a.assignedPlant)?.name || a.assignedPlant
+            bVal = plants.find(p => p.code === b.assignedPlant)?.name || b.assignedPlant
+        } else if (sortKey === 'Truck #') {
+            aVal = parseFloat(a.truckNumber) || 0
+            bVal = parseFloat(b.truckNumber) || 0
+        } else {
+            aVal = a[prop]
+            bVal = b[prop]
+        }
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        } else {
+            aVal = String(aVal || '').toLowerCase()
+            bVal = String(bVal || '').toLowerCase()
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        }
+    }), [tractors, operators, selectedPlant, searchText, statusFilter, freightFilter, regionPlantCodes, sortKey, sortDirection, plants])
 
     const debouncedSetSearchText = useCallback(AsyncUtility.debounce(value => {
         setSearchText(value);
@@ -473,6 +526,9 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
                             colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
                             forwardedRef={headerRef}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
                         />
                         <div className="global-content-container content-container">{content}</div>
                         {showAddSheet &&

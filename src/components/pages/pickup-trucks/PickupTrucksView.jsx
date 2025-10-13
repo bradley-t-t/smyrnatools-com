@@ -29,7 +29,18 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     const [selectedPlant, setSelectedPlant] = useState('')
     const [statusFilter, setStatusFilter] = useState('All Statuses')
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
     const statusOptions = ['All Statuses', 'Active', 'Stationary', 'Spare', 'In Shop', 'Retired', 'Sold', 'Over 300k Miles']
+    const sortMappings = {
+        'Plant': 'assignedPlant',
+        'Status': 'status',
+        'Assigned': 'assigned',
+        'Year': 'year',
+        'Make & Model': null,
+        'VIN': 'vin',
+        'Mileage': 'mileage'
+    }
 
     const fetchAllPickups = useCallback(async () => {
         setIsLoading(true)
@@ -93,6 +104,15 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         }
     }
 
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -124,8 +144,31 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             const inRegion = regionPlantCodes.size === 0 || regionPlantCodes.has(String(p.assignedPlant || '').trim().toUpperCase())
             return matchesSearch && matchesPlant && matchesStatus && inRegion
         })
-        return list.sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'assigned'))
-    }, [pickups, searchText, selectedPlant, statusFilter, regionPlantCodes])
+        return list.sort((a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'assigned')
+            }
+            const prop = sortMappings[sortKey]
+            if (!prop) return 0;
+            let aVal, bVal;
+            if (sortKey === 'Assigned') {
+                aVal = parseFloat(a.assigned) || 0
+                bVal = parseFloat(b.assigned) || 0
+            } else {
+                aVal = a[prop]
+                bVal = b[prop]
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        })
+    }, [pickups, searchText, selectedPlant, statusFilter, regionPlantCodes, sortKey, sortDirection])
 
     const duplicateVINs = useMemo(() => {
         return PickupTruckService.getDuplicateVINs(pickups)
@@ -261,6 +304,9 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                         }}
                         listLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
                         colWidths={['15%', '15%', '15%', '10%', '20%', '15%', '10%']}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
                     />
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}

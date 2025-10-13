@@ -26,8 +26,27 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const [selectedItem, setSelectedItem] = useState(null)
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [selectedIds, setSelectedIds] = useState(new Set())
-    const [sortKey, _setSortKey] = useState('')
-    const [sortDir, _setSortDir] = useState('asc')
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
+    const sortMappings = {
+        'Plant': 'plant_code',
+        'Truck #': 'truck_number',
+        'Status': 'status',
+        'Operator': 'operator_name',
+        'Cleanliness': 'cleanliness_rating',
+        'VIN': 'vin',
+        'Verified': 'verified',
+        'More': null
+    }
+
+    const labelToSortKey = {
+        'Description': 'description',
+        'Plant': 'plant',
+        'Deadline': 'deadline',
+        'Completed': 'completed_at',
+        'Creator': 'creator',
+        'Status': 'status'
+    }
 
 
     useEffect(() => {
@@ -94,13 +113,14 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const sortedItems = (() => {
         if (!sortKey) return filteredItems
         const items = [...filteredItems]
-        const dir = sortDir === 'desc' ? -1 : 1
-        if (sortKey === 'description') items.sort((a, b) => ((a.description || '').localeCompare(b.description || '')) * dir)
-        else if (sortKey === 'plant') items.sort((a, b) => ((String(a.plant_code || '')).localeCompare(String(b.plant_code || ''))) * dir)
-        else if (sortKey === 'deadline') items.sort((a, b) => ((new Date(a.deadline).getTime() || 0) - (new Date(b.deadline).getTime() || 0)) * dir)
-        else if (sortKey === 'completed_at') items.sort((a, b) => ((new Date(a.completed_at).getTime() || 0) - (new Date(b.completed_at).getTime() || 0)) * dir)
-        else if (sortKey === 'creator') items.sort((a, b) => (ListService.getCreatorName(a.user_id).localeCompare(ListService.getCreatorName(b.user_id))) * dir)
-        else if (sortKey === 'status') items.sort((a, b) => ((a.completed === b.completed) ? 0 : a.completed ? 1 : -1) * dir)
+        const dir = sortDirection === 'desc' ? -1 : 1
+        const key = labelToSortKey[sortKey]
+        if (key === 'description') items.sort((a, b) => ((a.description || '').localeCompare(b.description || '')) * dir)
+        else if (key === 'plant') items.sort((a, b) => ((String(a.plant_code || '')).localeCompare(String(b.plant_code || ''))) * dir)
+        else if (key === 'deadline') items.sort((a, b) => ((new Date(a.deadline).getTime() || 0) - (new Date(b.deadline).getTime() || 0)) * dir)
+        else if (key === 'completed_at') items.sort((a, b) => ((new Date(a.completed_at).getTime() || 0) - (new Date(b.completed_at).getTime() || 0)) * dir)
+        else if (key === 'creator') items.sort((a, b) => (ListService.getCreatorName(a.user_id).localeCompare(ListService.getCreatorName(b.user_id))) * dir)
+        else if (key === 'status') items.sort((a, b) => ((a.completed === b.completed) ? 0 : a.completed ? 1 : -1) * dir)
         return items
     })()
 
@@ -117,6 +137,15 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         if (next.has(id)) next.delete(id)
         else next.add(id)
         setSelectedIds(next)
+    }
+
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
     }
 
     async function bulkToggleCompletion(markComplete) {
@@ -256,6 +285,9 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                         hideViewModeToggle={true}
                         listLabels={derivedListHeaderLabels}
                         colWidths={derivedColWidths}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
                     />
                     <div className="global-content-container content-container">
                         {isLoading ? (

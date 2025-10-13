@@ -54,7 +54,19 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [mixersLoaded, setMixersLoaded] = useState(false)
     const [operatorsLoaded, setOperatorsLoaded] = useState(false)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues'];
+    const sortMappings = {
+        'Plant': 'assignedPlant',
+        'Truck #': 'status',
+        'Status': 'status',
+        'Operator': 'assignedOperator',
+        'Cleanliness': 'cleanlinessRating',
+        'VIN': 'vinNumber',
+        'Verified': null,
+        'More': null
+    }
 
     const unassignedActiveOperatorsCount = useMemo(() => FleetUtility.countUnassignedActiveOperators(mixers, operators, searchText, {
         position: 'Mixer Operator',
@@ -208,6 +220,15 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         }
     }
 
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '');
@@ -255,8 +276,40 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 }
                 return matchesSearch && matchesPlant && matchesRegion && matchesStatus
             })
-            .sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber'))
-    }, [mixers, operators, selectedPlant, searchText, statusFilter, regionPlantCodes])
+            .sort((a, b) => {
+                if (!sortKey) {
+                    return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
+                }
+                const prop = sortMappings[sortKey]
+                if (!prop) return 0;
+                let aVal, bVal;
+                if (sortKey === 'Verified') {
+                    aVal = a.isVerified() ? 1 : 0
+                    bVal = b.isVerified() ? 1 : 0
+                } else if (sortKey === 'Operator') {
+                    aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
+                    bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
+                } else if (sortKey === 'Plant') {
+                    aVal = plants.find(p => p.code === a.assignedPlant)?.name || a.assignedPlant
+                    bVal = plants.find(p => p.code === b.assignedPlant)?.name || b.assignedPlant
+                } else if (sortKey === 'Truck #') {
+                    aVal = parseFloat(a.truckNumber) || 0
+                    bVal = parseFloat(b.truckNumber) || 0
+                } else {
+                    aVal = a[prop]
+                    bVal = b[prop]
+                }
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+                } else {
+                    aVal = String(aVal || '').toLowerCase()
+                    bVal = String(bVal || '').toLowerCase()
+                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                    return 0
+                }
+            })
+    }, [mixers, operators, selectedPlant, searchText, statusFilter, regionPlantCodes, sortKey, sortDirection, plants])
 
     const debouncedSetSearchText = useCallback(AsyncUtility.debounce((value) => {
         setSearchText(value);
@@ -472,6 +525,9 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
                             colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
                             forwardedRef={headerRef}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
                         />
                         <div className="global-content-container content-container">{content}</div>
                         {showAddSheet &&

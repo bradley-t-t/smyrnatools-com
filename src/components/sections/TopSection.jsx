@@ -32,7 +32,6 @@ function TopSection({
                         flush = true,
                         tightTop = false,
                         flushTop,
-                        showCoverOverlay: _showCoverOverlay,
                         positionFilter,
                         positionOptions,
                         onPositionFilterChange,
@@ -40,7 +39,10 @@ function TopSection({
                         listLabels,
                         colWidths,
                         customFilters,
-                        hidePlantFilter = false
+                        hidePlantFilter = false,
+                        onHeaderClick,
+                        sortKey,
+                        sortDirection
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
@@ -199,8 +201,8 @@ function TopSection({
                     {viewMode === 'list' && safeListLabels.length > 0 && (
                         <div className={`list-headers header-row`} role="row"
                              aria-label="List headers">
-                            {safeListLabels.map((l, i) => <div key={l} style={{width: safeColWidths[i] || 'auto'}}
-                                                               role="columnheader">{l}</div>)}
+                            {safeListLabels.map((l, i) => <div key={l} style={{width: safeColWidths[i] || 'auto', cursor: 'pointer'}}
+                                                               role="columnheader" onClick={() => onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
                         </div>
                     )}
                 </div>

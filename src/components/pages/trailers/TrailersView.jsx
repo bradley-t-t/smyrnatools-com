@@ -45,7 +45,19 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const [modalTrailerId, setModalTrailerId] = useState(null)
     const [modalTrailerNumber, setModalTrailerNumber] = useState('')
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
     const filterOptions = ['All Types', 'Cement', 'End Dump', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues']
+    const sortMappings = {
+        'Plant': 'assignedPlant',
+        'Trailer #': 'trailerNumber',
+        'Status': 'status',
+        'Type': 'trailerType',
+        'Cleanliness': 'cleanlinessRating',
+        'Tractor': null,
+        'VIN': 'vinNumber',
+        'More': null
+    }
     const headerRef = useRef(null)
 
     useEffect(() => {
@@ -141,6 +153,15 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         }
     }
 
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
     async function fetchTrailers(codes) {
         try {
             const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
@@ -199,7 +220,30 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             matchesType = ['Cement', 'End Dump'].includes(typeFilter) ? trailer.trailerType === typeFilter : typeFilter === 'Past Due Service' ? TrailerUtility.isServiceOverdue(trailer.lastServiceDate) : typeFilter === 'Verified' ? trailer.isVerified() : typeFilter === 'Not Verified' ? !trailer.isVerified() : typeFilter === 'Open Issues' ? (Number(trailer.openIssuesCount || 0) > 0) : false
         }
         return matchesSearch && matchesPlant && matchesRegion && matchesType
-    }).sort((a, b) => FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')), [trailers, tractors, selectedPlant, searchText, typeFilter, preferences.selectedRegion?.code, regionPlantCodes])
+    }).sort((a, b) => {
+        if (!sortKey) {
+            return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
+        }
+        const prop = sortMappings[sortKey]
+        if (!prop) return 0;
+        let aVal, bVal;
+        if (sortKey === 'Trailer #') {
+            aVal = parseFloat(a.trailerNumber) || 0
+            bVal = parseFloat(b.trailerNumber) || 0
+        } else {
+            aVal = a[prop]
+            bVal = b[prop]
+        }
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        } else {
+            aVal = String(aVal || '').toLowerCase()
+            bVal = String(bVal || '').toLowerCase()
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        }
+    }), [trailers, tractors, selectedPlant, searchText, typeFilter, preferences.selectedRegion?.code, regionPlantCodes, sortKey, sortDirection])
 
     const content = useMemo(() => {
         if (isLoading) return <div className="global-loading-container loading-container"><LoadingScreen
@@ -424,6 +468,9 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                         listLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
                         colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%']}
                         forwardedRef={headerRef}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
                     />
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <TrailerAddView plants={plants} onClose={() => setShowAddSheet(false)}

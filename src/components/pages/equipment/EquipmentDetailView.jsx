@@ -480,6 +480,14 @@ ${openIssues.length > 0
                                     <option value="Forklift">Forklift</option>
                                     <option value="Manlift">Manlift</option>
                                     <option value="Other">Other</option>
+                                    <option value="Dozer">Dozer</option>
+                                    <option value="Water/Trash Pump">Water/Trash Pump</option>
+                                    <option value="Trailer">Trailer</option>
+                                    <option value="Portable Compressor">Portable Compressor</option>
+                                    <option value="Portable Conveyor">Portable Conveyor</option>
+                                    <option value="Crusher">Crusher</option>
+                                    <option value="Ice Conveyor">Ice Conveyor</option>
+                                    <option value="Unknown">Unknown</option>
                                 </select>
                             </div>
                         </div>

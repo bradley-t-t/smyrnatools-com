@@ -49,12 +49,22 @@ function OperatorsView({
         return lastUsed || 'grid'
     })
     const statuses = ['Active', 'Light Duty', 'Pending Start', 'Training', 'Terminated', 'No Hire']
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
     const filterOptions = [
         'All Statuses', 'Active', 'Light Duty', 'Pending Start', 'Training', 'Terminated', 'No Hire',
         'Trainer', 'Not Trainer', 'Unassigned Active'
     ]
     const positionOptions = ['All Positions', 'Mixer', 'Tractor']
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const sortMappings = {
+        'Plant': 'plantCode',
+        'Name': 'name',
+        'Phone': 'phone',
+        'Status': 'status',
+        'Rating': 'rating',
+        'Trainer': null
+    }
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -235,20 +245,41 @@ function OperatorsView({
         }
         return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesPosition
     }).sort((a, b) => {
-        if (a.status === 'Active' && b.status !== 'Active') return -1
-        if (a.status !== 'Active' && b.status === 'Active') return 1
-        if (a.status === 'Training' && b.status !== 'Training') return -1
-        if (a.status !== 'Training' && b.status === 'Training') return 1
-        if (a.status === 'Pending Start' && b.status !== 'Pending Start') return -1
-        if (a.status !== 'Pending Start' && b.status === 'Pending Start') return 1
-        if (a.status === 'Terminated' && b.status !== 'Terminated') return 1
-        if (a.status !== 'Terminated' && b.status === 'Terminated') return -1
-        if (a.status === 'No Hire' && b.status !== 'No Hire') return 1
-        if (a.status !== 'No Hire' && b.status === 'No Hire') return -1
-        if (a.status !== b.status) return a.status.localeCompare(b.status)
-        const nameA = a.name.split(' ').pop().toLowerCase()
-        const nameB = b.name.split(' ').pop().toLowerCase()
-        return nameA.localeCompare(nameB)
+        if (!sortKey) {
+            if (a.status === 'Active' && b.status !== 'Active') return -1
+            if (a.status !== 'Active' && b.status === 'Active') return 1
+            if (a.status === 'Training' && b.status !== 'Training') return -1
+            if (a.status !== 'Training' && b.status === 'Training') return 1
+            if (a.status === 'Pending Start' && b.status !== 'Pending Start') return -1
+            if (a.status !== 'Pending Start' && b.status === 'Pending Start') return 1
+            if (a.status === 'Terminated' && b.status !== 'Terminated') return 1
+            if (a.status !== 'Terminated' && b.status === 'Terminated') return -1
+            if (a.status === 'No Hire' && b.status !== 'No Hire') return 1
+            if (a.status !== 'No Hire' && b.status === 'No Hire') return -1
+            if (a.status !== b.status) return a.status.localeCompare(b.status)
+            const nameA = a.name.split(' ').pop().toLowerCase()
+            const nameB = b.name.split(' ').pop().toLowerCase()
+            return nameA.localeCompare(nameB)
+        }
+        const prop = sortMappings[sortKey]
+        if (!prop) return 0;
+        let aVal, bVal;
+        if (sortKey === 'Trainer') {
+            aVal = trainers.find(t => t.employeeId === a.assignedTrainer)?.name || ''
+            bVal = trainers.find(t => t.employeeId === b.assignedTrainer)?.name || ''
+        } else {
+            aVal = a[prop]
+            bVal = b[prop]
+        }
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        } else {
+            aVal = String(aVal || '').toLowerCase()
+            bVal = String(bVal || '').toLowerCase()
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        }
     })
 
     const handleSelectOperator = (operator) => {
@@ -269,6 +300,15 @@ function OperatorsView({
             setViewMode(mode);
             updateOperatorFilter('viewMode', mode);
             localStorage.setItem('operators_last_view_mode', mode)
+        }
+    }
+
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
         }
     }
 
@@ -375,6 +415,9 @@ function OperatorsView({
                         colWidths={['10%', '28%', '16%', '16%', '14%', '16%']}
                         sticky={true}
                         hidePlantFilter={plants.length === 0}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
                     />
                     <div className="global-content-container content-container">
                         {isLoading ? (
