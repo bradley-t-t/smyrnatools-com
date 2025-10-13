@@ -741,7 +741,11 @@ export default function DashboardView() {
     }
     const onPlantChange = e => setDashboardPlant(e.target.value)
     const onRetry = () => setRefreshKey(v => v + 1)
-    const onRefresh = () => setRefreshKey(v => v + 1)
+    const onRefresh = () => {
+        setRefreshing(true);
+        setRefreshKey(prev => prev + 1);
+        setTimeout(() => setRefreshing(false), 1000);
+    }
     const timeAgo = d => {
         if (!d) return ''
         const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000)
@@ -803,9 +807,9 @@ export default function DashboardView() {
                 <h1>Dashboard</h1>
                 <div className="dashboard-actions">
                     <div className="toolbar-group">
-                        <div className="updated-at"><span
-                            className="live-dot"></span><span>{lastUpdated ? `Updated ${timeAgo(lastUpdated)}` : 'Never updated'}</span>
-                        </div>
+                        <button className="dashboard-refresh-btn" onClick={onRefresh} disabled={refreshing} aria-label="Refresh">
+                            <i className={`fas fa-sync ${refreshing ? 'spinning' : ''}`}></i> Refresh
+                        </button>
                         <select className="ios-select" value={dashboardRegionCode} onChange={onRegionChange}
                                 disabled={refreshing} aria-label="Region">
                             {hasAllRegionsPermission && <option value="">All Regions</option>}
@@ -819,9 +823,6 @@ export default function DashboardView() {
                         )}
                     </div>
                     <div className="toolbar-group">
-                        <button className="btn ghost" onClick={onRefresh} disabled={refreshing}
-                                aria-label="Refresh">{refreshing ?
-                            <span className="mini-loader"/> : null}<span>Refresh</span></button>
                         {isFiltering && <div className="filtering-indicator">Filtering</div>}
                     </div>
                 </div>

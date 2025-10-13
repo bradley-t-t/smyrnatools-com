@@ -765,3 +765,36 @@
     white-space: nowrap;
     display: block;
 }
+
+.dashboard-refresh-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 13px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-refresh-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.02);
+}
+
+.dashboard-refresh-btn:active {
+    transform: scale(0.98);
+}
+
+.spinning {
+    animation: spin 1s linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

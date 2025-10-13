@@ -10,6 +10,7 @@ import LoadingScreen from '../../common/LoadingScreen'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
 import {ReportUtility} from '../../../utils/ReportUtility'
+import PlantDropdownModal from '../../common/PlantDropdownModal'
 
 const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
@@ -62,6 +63,8 @@ function ReportsView() {
     const [reviewCurrentPage, setReviewCurrentPage] = useState(1)
     const [overduePageSize, setOverduePageSize] = useState(10)
     const [overdueCurrentPage, setOverdueCurrentPage] = useState(1)
+
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
 
     async function fetchProfilesFor(userIds) {
         const missing = userIds.filter(id => !userProfiles[id])
@@ -307,7 +310,7 @@ function ReportsView() {
             setIsLoadingOverdue(true)
             try {
                 const allowedReview = regionType === 'office' ? (hasReviewPermission['general_manager'] ? ['general_manager'] : []) : reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
-                const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, {force: true, allowedReview})
+                const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, {force: false, allowedReview})
                 if (!cancelled) setOverdueItems(items || [])
                 const ids = Array.from(new Set((items || []).map(i => i.userId).filter(Boolean)))
                 if (ids.length > 0) await fetchProfilesFor(ids)
@@ -672,6 +675,10 @@ function ReportsView() {
         setOverdueCurrentPage(newPage)
     }
 
+    const regionalPlants = plants.filter(p => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code));
+    const selectedPlantObj = regionalPlants.find(p => p.plant_code === filterPlant);
+    const plantDisplayText = filterPlant ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'All Plants';
+
     return (
         <>
             <div className="rpts-root">
@@ -709,24 +716,13 @@ function ReportsView() {
                                                 <option key={rt.name} value={rt.name}>{rt.title}</option>
                                             ))}
                                     </select>
-                                    <select
-                                        value={filterPlant}
-                                        onChange={e => setFilterPlant(e.target.value)}
+                                    <button
                                         className="rpts-select-control"
+                                        onClick={() => setIsPlantModalOpen(true)}
+                                        type="button"
                                     >
-                                        <option value="">All Plants</option>
-                                        {plants
-                                            .filter(p => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code))
-                                            .sort((a, b) => {
-                                                const an = parseInt(String(a.plant_code || '').replace(/\D/g, '') || '0', 10)
-                                                const bn = parseInt(String(b.plant_code || '').replace(/\D/g, '') || '0', 10)
-                                                return an - bn || String(a.plant_code || '').localeCompare(String(b.plant_code || ''))
-                                            })
-                                            .map(p => (
-                                                <option key={p.plant_code}
-                                                        value={p.plant_code}>{p.plant_name}</option>
-                                            ))}
-                                    </select>
+                                        {plantDisplayText}
+                                    </button>
                                 </div>
                                 <div className="rpts-tabs">
                                     <button
@@ -1030,6 +1026,18 @@ function ReportsView() {
                         user={user}
                         completedByUser={reviewData?.userId ? userProfiles[reviewData.userId] : undefined}
                         onManagerEdit={handleManagerEdit}
+                    />
+                )}
+                {isPlantModalOpen && (
+                    <PlantDropdownModal
+                        isOpen={isPlantModalOpen}
+                        onClose={() => setIsPlantModalOpen(false)}
+                        plants={regionalPlants}
+                        onSelect={(plantCode) => {
+                            setFilterPlant(plantCode);
+                            setIsPlantModalOpen(false);
+                        }}
+                        showAllPlants={true}
                     />
                 )}
             </div>
