@@ -107,6 +107,13 @@ const ReportUtility = {
             if (loadsVal === undefined || loadsVal === null || String(loadsVal) === '') return `${label}: Total Loads is required.`
             const loadsNum = Number(loadsVal)
             if (!Number.isFinite(loadsNum) || loadsNum < 0 || !Number.isInteger(loadsNum)) return `${label}: Total Loads must be a non-negative whole number.`
+            const dStart = start !== null && first !== null ? first - start : null
+            const dEnd = eod !== null && punch !== null ? punch - eod : null
+            const hours = start !== null && punch !== null ? (punch - start) / 60 : null
+            const hasRedValue = (dStart !== null && dStart > 15) || (dEnd !== null && dEnd > 20) || (loadsNum < 3) || (hours !== null && hours > 14)
+            if (hasRedValue && (!r.comments || String(r.comments).trim() === '')) {
+                return `${label}: Comments are required when there are performance issues (e.g., delayed start/load, low loads, or excessive hours).`
+            }
         }
         return ''
     },
