@@ -1319,7 +1319,6 @@
     font-weight: 500;
 }
 
-.history-button,
 .issues-button,
 .comments-button {
     background-color: var(--accent);
@@ -1338,7 +1337,6 @@
     font-weight: 500;
 }
 
-.history-button:hover,
 .issues-button:hover,
 .comments-button:hover {
     background-color: var(--accent-dark);
@@ -1363,60 +1361,13 @@
     border-bottom: 1px solid var(--border-light);
 }
 
-.trailer-history-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 16px;
-    box-shadow: var(--shadow-sm);
-    border-radius: 8px;
-    overflow: hidden;
-}
 
-.trailer-history-table th {
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    font-weight: 600;
-    padding: 12px 16px;
-    text-align: left;
-}
 
-.trailer-history-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text-primary);
-}
 
-.trailer-history-table tr:last-child td {
-    border-bottom: none;
-}
 
-.trailer-history-table tr:hover {
-    background-color: var(--bg-hover);
-}
 
-.trailer-history-table th span {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-}
 
-.trailer-history-retry-button {
-    background-color: var(--error);
-    color: var(--text-light);
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    margin-top: 16px;
-    font-size: 14px;
-    cursor: pointer;
-}
 
-.trailer-empty-history {
-    text-align: center;
-    padding: 40px 0;
-    color: var(--text-secondary);
-}
 
 .trailer-empty-icon {
     font-size: 48px;
@@ -1429,11 +1380,6 @@
     margin-top: 8px;
 }
 
-.trailer-history-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
 
 .detail-card {
     background-color: var(--bg-primary);

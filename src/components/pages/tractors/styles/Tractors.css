@@ -1005,7 +1005,6 @@ label {
     font-weight: 500;
 }
 
-.history-button,
 .issues-button,
 .comments-button {
     background-color: var(--accent);
@@ -1024,7 +1023,6 @@ label {
     font-weight: 500;
 }
 
-.history-button:hover,
 .issues-button:hover,
 .comments-button:hover {
     background-color: var(--accent-dark);
@@ -1061,50 +1059,14 @@ label {
     border-bottom: 1px solid var(--border-light);
 }
 
-.history-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: var(--spacing-md);
-    box-shadow: var(--shadow-sm);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-}
 
-.history-table th {
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    font-weight: 600;
-    padding: var(--spacing-md) var(--spacing-lg);
-    text-align: left;
-}
 
-.history-table td {
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text-primary);
-}
 
-.history-table tr:last-child td {
-    border-bottom: none;
-}
 
-.history-table tr:hover {
-    background-color: var(--bg-hover);
-}
 
 @media (max-width: 768px) {
-    .history-table-container {
-        overflow-x: auto;
-        width: 100%;
-    }
 }
 
-.history-table-container {
-    margin-bottom: var(--spacing-lg);
-    margin-top: var(--spacing-md);
-    width: 100%;
-    overflow-x: auto;
-}
 
 .verification-card {
     background-color: var(--bg-primary);
@@ -1778,15 +1740,6 @@ input[type="date"].form-control {
     }
 }
 
-.empty-history {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    text-align: center;
-    color: var(--text-secondary);
-}
 
 .empty-icon {
     font-size: 48px;
@@ -1800,72 +1753,15 @@ input[type="date"].form-control {
     margin-top: var(--spacing-sm);
 }
 
-.history-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
 
-.history-item {
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform var(--transition), box-shadow var(--transition);
-    border-left: 4px solid var(--accent);
-    background-color: var(--bg-secondary);
-}
 
-.history-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
 
-.history-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background-color: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-light);
-}
 
-.history-field-name {
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text-primary);
-}
 
-.history-timestamp {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
 
-.history-change {
-    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) var(--spacing-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
 
-.history-old-value, .history-new-value {
-    font-size: 14px;
-    color: var(--text-primary);
-}
 
-.history-arrow {
-    align-self: center;
-    color: var(--text-secondary);
-    font-size: 18px;
-    margin: 4px 0;
-}
 
-.history-user {
-    padding: 6px 12px 12px 12px;
-    display: flex;
-    align-items: center;
-    border-top: 1px solid var(--border-light);
-    margin-top: 6px;
-}
 
 @import url('../../../common/styles/UserLabel.css');
 
@@ -1875,24 +1771,10 @@ input[type="date"].form-control {
     margin-right: 6px;
 }
 
-.history-new-value {
-    font-weight: 500;
-    color: var(--text-primary);
-}
 
 @media (min-width: 768px) {
-    .history-change {
-        flex-direction: row;
-        align-items: center;
-    }
 
-    .history-old-value, .history-new-value {
-        flex: 1;
-    }
 
-    .history-arrow {
-        margin: 0 12px;
-    }
 }
 
 
