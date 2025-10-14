@@ -76,7 +76,12 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
             onEquipmentAdded(savedEquipment);
             onClose();
         } catch (error) {
-            setError(`Failed to add equipment: ${error.message || 'Unknown error'}`);
+            const errorMessage = error.message || 'Unknown error';
+            if (errorMessage.toLowerCase().includes('duplicate') || errorMessage.toLowerCase().includes('unique constraint') || errorMessage.toLowerCase().includes('already exists')) {
+                setError('This identifying number is already in use. Please use a different identifying number.');
+            } else {
+                setError(`Failed to add equipment: ${errorMessage}`);
+            }
         } finally {
             setIsSaving(false);
         }
@@ -136,10 +141,25 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                                             <option value="Front-End Loader">Front-End Loader</option>
                                             <option value="Excavator">Excavator</option>
                                             <option value="Mini-Excavator">Mini-Excavator</option>
+                                            <option value="Backhoe">Backhoe</option>
                                             <option value="Skid Steer">Skid Steer</option>
                                             <option value="Forklift">Forklift</option>
                                             <option value="Manlift">Manlift</option>
+                                            <option value="Dozer">Dozer</option>
+                                            <option value="Off-Road Dump Truck">Off-Road Dump Truck</option>
+                                            <option value="Water/Trash Pump">Water/Trash Pump</option>
+                                            <option value="Water Truck">Water Truck</option>
+                                            <option value="Trailer">Trailer</option>
+                                            <option value="Portable Compressor">Portable Compressor</option>
+                                            <option value="Portable Conveyor">Portable Conveyor</option>
+                                            <option value="Crusher">Crusher</option>
+                                            <option value="Ice Conveyor">Ice Conveyor</option>
+                                            <option value="Rotary Mixer">Rotary Mixer</option>
+                                            <option value="Road Reclaimer">Road Reclaimer</option>
+                                            <option value="Maintainer">Maintainer</option>
+                                            <option value="Sweeper">Sweeper</option>
                                             <option value="Other">Other</option>
+                                            <option value="Unknown">Unknown</option>
                                         </select>
                                     </div>
                                     <div className="form-group">

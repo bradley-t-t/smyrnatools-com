@@ -476,17 +476,24 @@ ${openIssues.length > 0
                                     <option value="Front-End Loader">Front-End Loader</option>
                                     <option value="Excavator">Excavator</option>
                                     <option value="Mini-Excavator">Mini-Excavator</option>
+                                    <option value="Backhoe">Backhoe</option>
                                     <option value="Skid Steer">Skid Steer</option>
                                     <option value="Forklift">Forklift</option>
                                     <option value="Manlift">Manlift</option>
-                                    <option value="Other">Other</option>
                                     <option value="Dozer">Dozer</option>
+                                    <option value="Off-Road Dump Truck">Off-Road Dump Truck</option>
                                     <option value="Water/Trash Pump">Water/Trash Pump</option>
+                                    <option value="Water Truck">Water Truck</option>
                                     <option value="Trailer">Trailer</option>
                                     <option value="Portable Compressor">Portable Compressor</option>
                                     <option value="Portable Conveyor">Portable Conveyor</option>
                                     <option value="Crusher">Crusher</option>
                                     <option value="Ice Conveyor">Ice Conveyor</option>
+                                    <option value="Rotary Mixer">Rotary Mixer</option>
+                                    <option value="Road Reclaimer">Road Reclaimer</option>
+                                    <option value="Maintainer">Maintainer</option>
+                                    <option value="Sweeper">Sweeper</option>
+                                    <option value="Other">Other</option>
                                     <option value="Unknown">Unknown</option>
                                 </select>
                             </div>

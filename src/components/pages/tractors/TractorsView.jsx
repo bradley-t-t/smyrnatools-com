@@ -487,7 +487,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
                 {selectedTractor ? (
-                    <TractorDetailView tractorId={selectedTractor} onClose={() => setSelectedTractor(null)}/>
+                    <TractorDetailView tractorId={selectedTractor} onClose={() => { setSelectedTractor(null); setIsLoading(true); RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code).then(codes => fetchTractors(codes).finally(() => setIsLoading(false))); }}/>
                 ) : (
                     <>
                         <TopSection

@@ -52,7 +52,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [selectedEquipmentForHistory, setSelectedEquipmentForHistory] = useState(null)
 
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Open Issues'];
-    const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Skid Steer', 'Forklift', 'Manlift', 'Other', 'Dozer', 'Water/Trash Pump', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Unknown'];
+    const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Backhoe', 'Skid Steer', 'Forklift', 'Manlift', 'Dozer', 'Off-Road Dump Truck', 'Water/Trash Pump', 'Water Truck', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Rotary Mixer', 'Road Reclaimer', 'Maintainer', 'Sweeper', 'Other', 'Unknown'];
     const headerRef = useRef(null)
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -303,14 +303,15 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 operators={[]}
                 plants={plants}
                 handleSelectItem={handleSelectEquipment}
-                headerLabels={['Plant', 'Equipment #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
-                colWidths={['12%', '14%', '12%', '22%', '14%', '16%', '10%']}
+                headerLabels={['Plant', 'Type', 'Equipment #', 'Status', 'Cleanliness', 'Condition', 'More']}
+                colWidths={['12%', '22%', '14%', '12%', '14%', '16%', '10%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const issuesCount = Number(item.openIssuesCount || 0);
                     const commentsCount = Number(item.commentsCount || 0);
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
                             <td style={{width: '12%'}}>{item.assignedPlant || '---'}</td>
+                            <td style={{width: '22%'}}>{item.equipmentType || '---'}</td>
                             <td style={{width: '14%'}}>{item.identifyingNumber || '---'}</td>
                             <td style={{width: '12%'}}><span className="item-status-dot" style={{
                                 display: 'inline-block',
@@ -318,7 +319,6 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                 marginRight: '8px',
                                 backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
                             }}></span>{item.status || '---'}</td>
-                            <td style={{width: '22%'}}>{item.equipmentType || '---'}</td>
                             <td style={{width: '14%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
@@ -454,8 +454,8 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             setEquipmentTypeFilter('');
                             resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
                         }}
-                        listLabels={['Plant', 'Equipment #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
-                        colWidths={['12%', '14%', '12%', '22%', '14%', '16%', '10%']}
+                        listLabels={['Plant', 'Type', 'Equipment #', 'Status', 'Cleanliness', 'Condition', 'More']}
+                        colWidths={['12%', '22%', '14%', '12%', '14%', '16%', '10%']}
                         forwardedRef={headerRef}
                         sticky={true}
                         onHeaderClick={handleHeaderClick}

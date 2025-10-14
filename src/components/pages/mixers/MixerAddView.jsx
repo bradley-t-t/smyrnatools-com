@@ -11,7 +11,7 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
     const {preferences} = usePreferences()
     const [truckNumber, setTruckNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
-    const [status, setStatus] = useState('Active');
+    const [status, setStatus] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
@@ -155,7 +155,7 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                                             value={status}
                                             onChange={e => setStatus(e.target.value)}
                                         >
-                                            <option value="Active">Active</option>
+                                            <option value="">Select status</option>
                                             <option value="Spare">Spare</option>
                                             <option value="In Shop">In Shop</option>
                                             <option value="Retired">Retired</option>

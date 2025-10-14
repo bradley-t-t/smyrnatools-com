@@ -267,7 +267,6 @@ function TractorDetailView({tractorId, onClose}) {
                 updatedLast: tractor.updatedLast
             };
             await TractorService.updateTractor(updatedTractor.id, updatedTractor, undefined, tractorForHistory);
-            // Log history for operators if assignedOperator changed
             if (tractorForHistory.assignedOperator !== updatedTractor.assignedOperator) {
                 if (tractorForHistory.assignedOperator) {
                     await OperatorService.createHistoryEntry(tractorForHistory.assignedOperator, "assigned_tractor", updatedTractor.truckNumber, null, userId)

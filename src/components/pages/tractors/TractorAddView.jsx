@@ -11,7 +11,7 @@ function TractorAddView({plants, onClose, onTractorAdded}) {
     const {preferences} = usePreferences()
     const [truckNumber, setTruckNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
-    const [status, setStatus] = useState('Active');
+    const [status, setStatus] = useState('');
     const [hasBlower, setHasBlower] = useState(false);
     const [freight, setFreight] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -160,7 +160,7 @@ function TractorAddView({plants, onClose, onTractorAdded}) {
                                             value={status}
                                             onChange={e => setStatus(e.target.value)}
                                         >
-                                            <option value="Active">Active</option>
+                                            <option value="">Select Status</option>
                                             <option value="Spare">Spare</option>
                                             <option value="In Shop">In Shop</option>
                                             <option value="Retired">Retired</option>
