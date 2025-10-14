@@ -15,8 +15,6 @@ export class OperatorHistory {
         let oldValue = data.old_value;
         let newValue = data.new_value;
 
-        // Add any specific formatting if needed, similar to others
-
         return new OperatorHistory({
             id: data.id,
             operator_id: data.operator_id,
@@ -53,9 +51,6 @@ export class OperatorHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return '';
 
-        // Add specific formatting for operator fields if needed
-        // For example, dates, statuses, etc.
-
         if (['hire_date', 'termination_date'].includes(fieldName)) {
             try {
                 const date = new Date(value);
@@ -67,7 +62,6 @@ export class OperatorHistoryUtils {
         if (fieldName === 'status') {
             if (value === 'active') return 'Active';
             if (value === 'inactive') return 'Inactive';
-            // etc.
         }
 
         return value;

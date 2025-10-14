@@ -470,14 +470,11 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                     t.issues = issues
                     t.openIssuesCount = openIssuesCount
                     t.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) {}
             }
         }
 
         await Promise.all(Array.from({length: concurrency}, () => worker()))
-        // Trigger re-render
         setTractors([...tractors])
         setAllTractors([...tractors])
     }

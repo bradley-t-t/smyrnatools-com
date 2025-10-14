@@ -561,7 +561,6 @@ function ReportsView() {
     }
 
     async function handleReview(report) {
-        // Mark as reviewed only if not reviewing own report
         if (report.userId !== user.id) {
             const {error} = await supabase
                 .from('reports')

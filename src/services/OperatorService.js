@@ -57,17 +57,14 @@ class OperatorServiceImpl {
         const update = op.toApiFormat()
         delete update.created_at
 
-        // If transferring to a different plant, unassign from all equipment and set equipment to spare
         const currentOperator = await this.getOperatorByEmployeeId(operator.employeeId)
         if (currentOperator && currentOperator.plantCode !== op.plantCode) {
-            // Get mixers assigned to this operator
             const assignedMixers = await MixerService.getMixersByOperator(operator.employeeId)
             for (const mixer of assignedMixers) {
                 if (mixer.status === 'Active') {
                     await MixerService.updateMixer(mixer.id, {...mixer, assignedOperator: null, status: 'Spare'})
                 }
             }
-            // Get tractors assigned to this operator
             const assignedTractors = await TractorService.getTractorsByOperator(operator.employeeId)
             for (const tractor of assignedTractors) {
                 if (tractor.status === 'Active') {

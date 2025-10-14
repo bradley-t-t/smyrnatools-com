@@ -1,4 +1,3 @@
-// TractorComment.js
 export class TractorComment {
     constructor(data = {}) {
         this.id = data.id ?? null;

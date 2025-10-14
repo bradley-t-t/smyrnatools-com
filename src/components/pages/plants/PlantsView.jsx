@@ -32,7 +32,6 @@ function PlantsView({title = 'Plants'}) {
                 setPlants(plantsData)
                 setRegions(regionsData)
 
-                // Fetch plant-region mappings
                 const regionPlantsPromises = regionsData.map(r => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
                 const regionPlantsResults = await Promise.all(regionPlantsPromises)
                 const map = {}

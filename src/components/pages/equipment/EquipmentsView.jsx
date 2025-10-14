@@ -153,14 +153,11 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                     e.issues = issues
                     e.openIssuesCount = openIssuesCount
                     e.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) {}
             }
         }
 
         await Promise.all(Array.from({length: concurrency}, () => worker()))
-        // Trigger re-render
         setEquipments([...equipments])
     }
 

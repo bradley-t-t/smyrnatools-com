@@ -251,7 +251,6 @@ function MixerDetailView({mixerId, onClose}) {
                 undefined,
                 mixerForHistory
             )
-            // Log history for operators if assignedOperator changed
             if (mixerForHistory.assignedOperator !== updatedMixer.assignedOperator) {
                 if (mixerForHistory.assignedOperator) {
                     await OperatorService.createHistoryEntry(mixerForHistory.assignedOperator, "assigned_mixer", updatedMixer.truckNumber, null, userId)

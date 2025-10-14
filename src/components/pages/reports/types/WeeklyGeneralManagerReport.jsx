@@ -206,7 +206,6 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
             const setN = new Set(codes.map(normN))
             let {data: prod} = await supabase.from('reports').select('id,data,week,submitted_at,report_date_range_start,completed').eq('report_name', 'plant_production').gte('week', qStart).lt('week', qEnd)
             if (!Array.isArray(prod)) prod = []
-            // also pull by report_date_range_start if empty
             if (prod.length === 0) {
                 const resp = await supabase.from('reports').select('id,data,week,submitted_at,report_date_range_start,completed').eq('report_name', 'plant_production').gte('report_date_range_start', qStart).lt('report_date_range_start', qEnd);
                 if (Array.isArray(resp.data)) prod = resp.data
@@ -259,7 +258,6 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                 })));
                 setEffIdx(0)
             }
-            // aggregate
             let {data: agg} = await supabase.from('reports').select('id,data,week,report_date_range_start,completed,submitted_at').eq('report_name', 'aggregate_production').gte('week', qStart).lt('week', qEnd)
             if (!Array.isArray(agg)) agg = []
             if (agg.length === 0) {

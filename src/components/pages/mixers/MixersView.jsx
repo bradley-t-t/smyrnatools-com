@@ -175,14 +175,11 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     m.issues = issues
                     m.openIssuesCount = openIssuesCount
                     m.commentsCount = commentsCount
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) {}
             }
         }
 
         await Promise.all(Array.from({length: concurrency}, () => worker()))
-        // Trigger re-render
         setMixers([...mixers])
         setAllMixers([...mixers])
     }

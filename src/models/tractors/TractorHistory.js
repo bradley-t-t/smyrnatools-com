@@ -1,4 +1,3 @@
-// TractorHistory.js
 export class TractorHistory {
     constructor(data = {}) {
         this.id = data.id ?? null;

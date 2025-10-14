@@ -97,7 +97,6 @@ class MixerServiceImpl {
         if (!userId) throw new Error('User ID is required')
         if (mixer && typeof mixer === 'object') mixer.vin = (mixer.vin || '').toUpperCase()
 
-        // If transferring to a different plant, unassign the operator
         if (_prevMixerState && _prevMixerState.assignedPlant !== mixer.assignedPlant) {
             mixer.assignedOperator = null
         }

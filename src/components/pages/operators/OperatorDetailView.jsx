@@ -148,16 +148,13 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             phone: phone || null
         };
         try {
-            // If transferring to a different plant, unassign from all equipment and set equipment to spare
             if (operator && operator.plant_code !== assignedPlant) {
-                // Get mixers assigned to this operator
                 const assignedMixers = await MixerService.getMixersByOperator(operatorId);
                 for (const mixer of assignedMixers) {
                     if (mixer.status === 'Active') {
                         await MixerService.updateMixer(mixer.id, {...mixer, assignedOperator: null, status: 'Spare'});
                     }
                 }
-                // Get tractors assigned to this operator
                 const assignedTractors = await TractorService.getTractorsByOperator(operatorId);
                 for (const tractor of assignedTractors) {
                     if (tractor.status === 'Active') {
@@ -197,7 +194,6 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             } else {
                 setMessage('Changes saved successfully!');
                 fetchData();
-                // Log history
                 try {
                     const currentUser = await UserService.getCurrentUser();
                     const changedBy = currentUser?.id || 'system';

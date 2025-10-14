@@ -88,7 +88,6 @@ export class TractorService {
         if (!userId) throw new Error('User ID is required')
         if (tractor && typeof tractor === 'object') tractor.vin = (tractor.vin || '').toUpperCase()
 
-        // If transferring to a different plant, unassign the operator
         if (_prevTractorState && _prevTractorState.assignedPlant !== tractor.assignedPlant) {
             tractor.assignedOperator = null
         }
