@@ -418,7 +418,15 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             setStatusFilter(v);
                             safeUpdateEquipmentFilter('statusFilter', v)
                         }}
-                        customFilters={<div className="filter-wrapper"><select className="ios-select" value={equipmentTypeFilter} onChange={e => { setEquipmentTypeFilter(e.target.value); safeUpdateEquipmentFilter('equipmentTypeFilter', e.target.value); }} aria-label="Equipment type filter"><option value="">All Types</option>{equipmentTypeOptions.slice(1).map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>}
+                        customFilters={<div className="filter-wrapper"><select className="ios-select"
+                                                                               value={equipmentTypeFilter}
+                                                                               onChange={e => {
+                                                                                   setEquipmentTypeFilter(e.target.value);
+                                                                                   safeUpdateEquipmentFilter('equipmentTypeFilter', e.target.value);
+                                                                               }} aria-label="Equipment type filter">
+                            <option value="">All Types</option>
+                            {equipmentTypeOptions.slice(1).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select></div>}
                         showReset={showReset}
                         onReset={() => {
                             setSearchText('');

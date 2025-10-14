@@ -140,6 +140,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     }
 
     function handleHeaderClick(label) {
+        if (!label || label === '') return
         if (sortKey === label) {
             setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
         } else {

@@ -536,18 +536,18 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                             <div className="rpt-table-wrapper">
                                 <table className="rpt-table">
                                     <thead>
-                                        <tr>
-                                            <th>Material</th>
-                                            <th>Amount</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Amount</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {reportTypeMap.aggregate_production.fields.map(f => (
-                                            <tr key={f.name}>
-                                                <td>{f.label}</td>
-                                                <td>{aggReport.data?.[f.name] ?? 0}</td>
-                                            </tr>
-                                        ))}
+                                    {reportTypeMap.aggregate_production.fields.map(f => (
+                                        <tr key={f.name}>
+                                            <td>{f.label}</td>
+                                            <td>{aggReport.data?.[f.name] ?? 0}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1003,18 +1003,18 @@ export function GeneralManagerReviewPlugin({form, plants = [], weekIso}) {
                             <div className="rpt-table-wrapper">
                                 <table className="rpt-table">
                                     <thead>
-                                        <tr>
-                                            <th>Material</th>
-                                            <th>Amount</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Amount</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {reportTypeMap.aggregate_production.fields.map(f => (
-                                            <tr key={f.name}>
-                                                <td>{f.label}</td>
-                                                <td>{aggReport.data?.[f.name] ?? 0}</td>
-                                            </tr>
-                                        ))}
+                                    {reportTypeMap.aggregate_production.fields.map(f => (
+                                        <tr key={f.name}>
+                                            <td>{f.label}</td>
+                                            <td>{aggReport.data?.[f.name] ?? 0}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>

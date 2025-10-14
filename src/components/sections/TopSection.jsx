@@ -201,8 +201,11 @@ function TopSection({
                     {viewMode === 'list' && safeListLabels.length > 0 && (
                         <div className={`list-headers header-row`} role="row"
                              aria-label="List headers">
-                            {safeListLabels.map((l, i) => <div key={l} style={{width: safeColWidths[i] || 'auto', cursor: 'pointer'}}
-                                                               role="columnheader" onClick={() => onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
+                            {safeListLabels.map((l, i) => <div key={l} style={{
+                                width: safeColWidths[i] || 'auto',
+                                cursor: l ? 'pointer' : 'default'
+                            }} role="columnheader"
+                                                               onClick={() => onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
                         </div>
                     )}
                 </div>

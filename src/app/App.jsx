@@ -60,6 +60,7 @@ function App() {
 
     useEffect(() => {
         let active = true
+
         async function checkPlant() {
             if (!user) return
             try {
@@ -70,6 +71,7 @@ function App() {
                 if (active) setHasPlant(false)
             }
         }
+
         if (user) checkPlant()
         const interval = setInterval(() => {
             if (user) checkPlant()
@@ -141,7 +143,8 @@ function App() {
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace/>}/>
                 </Routes>
-                {isAuthenticated && hasPlant === false && location.pathname !== '/guest' && <GuestOverlay reason="no-plant" />}
+                {isAuthenticated && hasPlant === false && location.pathname !== '/guest' &&
+                    <GuestOverlay reason="no-plant"/>}
             </AccountProvider>
         </PreferencesProvider>
     );

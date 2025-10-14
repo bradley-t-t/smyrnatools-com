@@ -4,6 +4,7 @@ import {supabase} from './DatabaseService'
 import APIUtility from '../utils/APIUtility'
 import {MixerService} from './MixerService'
 import {TractorService} from './TractorService'
+import {OperatorHistory} from "../models/operators/OperatorHistory";
 
 class OperatorServiceImpl {
     async getAllOperators() {
@@ -70,7 +71,11 @@ class OperatorServiceImpl {
             const assignedTractors = await TractorService.getTractorsByOperator(operator.employeeId)
             for (const tractor of assignedTractors) {
                 if (tractor.status === 'Active') {
-                    await TractorService.updateTractor(tractor.id, {...tractor, assignedOperator: null, status: 'Spare'})
+                    await TractorService.updateTractor(tractor.id, {
+                        ...tractor,
+                        assignedOperator: null,
+                        status: 'Spare'
+                    })
                 }
             }
         }
@@ -182,6 +187,20 @@ class OperatorServiceImpl {
             if (count > 1) dups.add(key)
         });
         return dups
+    }
+
+    async getOperatorHistory(operatorId, limit = null) {
+        const payload = {operatorId, limit}
+        const {res, json} = await APIUtility.post('/operator-service/fetch-history', payload)
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch operator history')
+        return (json?.data ?? []).map(entry => new OperatorHistory(entry))
+    }
+
+    async createHistoryEntry(operatorId, fieldName, oldValue, newValue, changedBy) {
+        const payload = {operatorId, fieldName, oldValue, newValue, changedBy}
+        const {res, json} = await APIUtility.post('/operator-service/add-history', payload)
+        if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
+        return json?.data
     }
 }
 

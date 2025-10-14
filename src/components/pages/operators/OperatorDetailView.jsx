@@ -5,8 +5,11 @@ import {useEffect, useMemo, useState} from "react";
 import PlantDropdownModal from '../../common/PlantDropdownModal';
 import {MixerService} from '../../../services/MixerService';
 import {TractorService} from '../../../services/TractorService';
+import OperatorHistoryView from './OperatorHistoryView';
+import {UserService} from '../../../services/UserService';
+import {OperatorService} from '../../../services/OperatorService';
 
-function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onScheduledOffSaved, allowedPlantCodes}) {
+function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [operator, setOperator] = useState(null);
     const [plants, setPlants] = useState([]);
     const [trainers, setTrainers] = useState([]);
@@ -25,10 +28,10 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
     const [updatedByEmail] = useState('');
     const [_showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [_hasUnsavedChanges, _setHasUnsavedChanges] = useState(false);
-    const [_scheduledOffDays, setScheduledOffDays] = useState([]);
     const [rating, setRating] = useState(0);
     const [phone, setPhone] = useState('');
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -47,7 +50,6 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
 
     useEffect(() => {
         fetchData();
-        fetchScheduledOff();
         fetchPlants();
         fetchTrainers();
     }, [operatorId]);
@@ -92,7 +94,11 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                 .select('*')
                 .eq('employee_id', operatorId)
                 .single();
-            setOperator(data);
+            setOperator({
+                ...data,
+                id: data.employee_id,
+                employeeId: data.employee_id
+            });
             setSmyrnaId(data.smyrna_id || '');
             setName(data.name || '');
             setStatus(data.status || '');
@@ -109,16 +115,6 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
         } catch (error) {
         }
         setIsLoading(false);
-    };
-
-    const fetchScheduledOff = async () => {
-        if (!operatorId) return;
-        const {data} = await supabase
-            .from('operators_scheduled_off')
-            .select('days_off')
-            .eq('id', operatorId)
-            .single();
-        setScheduledOffDays(data && data.days_off ? data.days_off : []);
     };
 
     const handleBackClick = async () => {
@@ -165,7 +161,11 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                 const assignedTractors = await TractorService.getTractorsByOperator(operatorId);
                 for (const tractor of assignedTractors) {
                     if (tractor.status === 'Active') {
-                        await TractorService.updateTractor(tractor.id, {...tractor, assignedOperator: null, status: 'Spare'});
+                        await TractorService.updateTractor(tractor.id, {
+                            ...tractor,
+                            assignedOperator: null,
+                            status: 'Spare'
+                        });
                     }
                 }
             }
@@ -197,6 +197,21 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
             } else {
                 setMessage('Changes saved successfully!');
                 fetchData();
+                // Log history
+                try {
+                    const currentUser = await UserService.getCurrentUser();
+                    const changedBy = currentUser?.id || 'system';
+                    const fieldsToCheck = ['smyrna_id', 'name', 'status', 'plant_code', 'position', 'is_trainer', 'assigned_trainer', 'pending_start_date', 'rating', 'phone'];
+                    for (const field of fieldsToCheck) {
+                        const oldValue = operator[field];
+                        const newValue = updateObj[field];
+                        if (oldValue !== newValue) {
+                            await OperatorService.createHistoryEntry(operatorId, field, oldValue, newValue, changedBy);
+                        }
+                    }
+                } catch (historyError) {
+                    console.error('Failed to log history:', historyError);
+                }
             }
         } catch (e) {
             setMessage('Error saving changes. Please try again.');
@@ -229,6 +244,10 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                     <h1>{operator && operator.name ? operator.name : 'Operator Details'}</h1>
                 </div>
                 <div className="header-right">
+                    <button className="history-button" onClick={() => setShowHistory(true)}>
+                        <i className="fas fa-history"></i>
+                        <span>History</span>
+                    </button>
                 </div>
             </div>
             <div className="detail-content">
@@ -448,6 +467,7 @@ function OperatorDetailView({operatorId, onClose, onScheduledOffSaved: _onSchedu
                     searchPlaceholder="Search plants..."
                 />
             )}
+            {showHistory && <OperatorHistoryView operator={operator} onClose={() => setShowHistory(false)}/>}
         </div>
     );
 }

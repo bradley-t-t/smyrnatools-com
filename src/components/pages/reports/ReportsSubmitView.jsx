@@ -519,7 +519,15 @@ function ReportsSubmitView({
                                             className="rpts-sbmt-input rpts-sbmt-date"
                                         />
                                         {report.name === 'plant_production' && (
-                                            <div style={{background: '#e3f2fd', border: '1px solid #2196f3', borderRadius: '8px', padding: '8px 12px', marginTop: '8px', fontSize: '14px', color: '#0d47a1'}}>
+                                            <div style={{
+                                                background: '#e3f2fd',
+                                                border: '1px solid #2196f3',
+                                                borderRadius: '8px',
+                                                padding: '8px 12px',
+                                                marginTop: '8px',
+                                                fontSize: '14px',
+                                                color: '#0d47a1'
+                                            }}>
                                                 Next Report {ReportUtility.formatDate(nextForcedReportDate)}
                                             </div>
                                         )}

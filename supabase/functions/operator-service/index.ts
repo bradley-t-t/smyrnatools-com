@@ -230,6 +230,72 @@ Deno.serve(async (req) => {
                 });
                 return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
             }
+            case "fetch-history": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    body = {};
+                }
+                const operatorId = typeof body?.operatorId === "string" && body.operatorId !== "undefined" ? body.operatorId : null;
+                const limit = Number.isInteger(body?.limit) ? body.limit : null;
+                if (!operatorId) return new Response(JSON.stringify({error: "Operator ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                let query = supabase.from("operators_history").select("*").eq("operator_id", operatorId).order("changed_at", {ascending: false});
+                if (limit && limit > 0) query = query.limit(limit);
+                const {data, error} = await query;
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({data: data ?? []}), {headers: corsHeaders});
+            }
+            case "add-history": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                const operatorId = typeof body?.operatorId === "string" && body.operatorId !== "undefined" ? body.operatorId : null;
+                const fieldName = typeof body?.fieldName === "string" ? body.fieldName : null;
+                const oldValue = body?.oldValue == null ? null : String(body.oldValue);
+                const newValue = body?.newValue == null ? null : String(body.newValue);
+                const changedBy = typeof body?.changedBy === "string" && body.changedBy ? body.changedBy : null;
+                if (!operatorId) return new Response(JSON.stringify({error: "Operator ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (!fieldName) return new Response(JSON.stringify({error: "Field name required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                // For operators, no special normalization needed, but can add if required
+                const b = oldValue;
+                const a = newValue;
+                if (b === a) return new Response(JSON.stringify({data: null, skipped: true}), {headers: corsHeaders});
+                let userId = changedBy;
+                if (!userId) userId = (req.headers.get("X-User-Id") || "00000000-0000-0000-0000-000000000000");
+                const record = {
+                    operator_id: operatorId,
+                    field_name: fieldName,
+                    old_value: b,
+                    new_value: a,
+                    changed_at: new Date().toISOString(),
+                    changed_by: userId
+                };
+                const {data, error} = await supabase.from("operators_history").insert(record).select().maybeSingle();
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({data}), {headers: corsHeaders});
+            }
             default:
                 return new Response(JSON.stringify({error: "Invalid endpoint", path: url.pathname}), {
                     status: 404,

@@ -807,7 +807,8 @@ export default function DashboardView() {
                 <h1>Dashboard</h1>
                 <div className="dashboard-actions">
                     <div className="toolbar-group">
-                        <button className="dashboard-refresh-btn" onClick={onRefresh} disabled={refreshing} aria-label="Refresh">
+                        <button className="dashboard-refresh-btn" onClick={onRefresh} disabled={refreshing}
+                                aria-label="Refresh">
                             <i className={`fas fa-sync ${refreshing ? 'spinning' : ''}`}></i> Refresh
                         </button>
                         <select className="ios-select" value={dashboardRegionCode} onChange={onRegionChange}
@@ -817,7 +818,8 @@ export default function DashboardView() {
                                                                value={r.regionCode}>{r.regionName} ({r.regionCode})</option>)}
                         </select>
                         {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
-                            <button className="ios-select" onClick={() => setPlantModalOpen(true)} disabled={refreshing} aria-label="Plant">
+                            <button className="ios-select" onClick={() => setPlantModalOpen(true)} disabled={refreshing}
+                                    aria-label="Plant">
                                 {dashboardPlant ? regionPlants.find(p => (p.plantCode || p.plant_code) === dashboardPlant)?.plantName || dashboardPlant : 'All Plants'}
                             </button>
                         )}
@@ -1151,7 +1153,8 @@ export default function DashboardView() {
                     </div>
                 )}
             </div>
-            <PlantDropdownModal isOpen={plantModalOpen} onClose={() => setPlantModalOpen(false)} plants={regionPlants} onSelect={(plantCode) => setDashboardPlant(plantCode)} showAllPlants={true} />
+            <PlantDropdownModal isOpen={plantModalOpen} onClose={() => setPlantModalOpen(false)} plants={regionPlants}
+                                onSelect={(plantCode) => setDashboardPlant(plantCode)} showAllPlants={true}/>
         </div>
     )
 }

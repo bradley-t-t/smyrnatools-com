@@ -128,7 +128,11 @@ export const PreferencesProvider = ({children}) => {
                             const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
                             if (regions && regions.length > 0) {
                                 const region = regions[0]
-                                prefs.selectedRegion = {code: region.regionCode || region.region_code, name: region.regionName || region.region_name, type: region.type}
+                                prefs.selectedRegion = {
+                                    code: region.regionCode || region.region_code,
+                                    name: region.regionName || region.region_name,
+                                    type: region.type
+                                }
                             }
                         }
                     } catch (e) {

@@ -287,18 +287,18 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                             <div className="rpt-table-wrapper">
                                 <table className="rpt-table">
                                     <thead>
-                                        <tr>
-                                            <th>Material</th>
-                                            <th>Amount</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Amount</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {report.fields.map(field => (
-                                            <tr key={field.name}>
-                                                <td>{field.label}</td>
-                                                <td>{form[field.name] || 0}</td>
-                                            </tr>
-                                        ))}
+                                    {report.fields.map(field => (
+                                        <tr key={field.name}>
+                                            <td>{field.label}</td>
+                                            <td>{form[field.name] || 0}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>

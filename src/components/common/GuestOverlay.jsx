@@ -4,7 +4,7 @@ import {useLocation} from 'react-router-dom';
 import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
 import './styles/GuestOverlay.css';
 
-function GuestOverlay({ reason }) {
+function GuestOverlay({reason}) {
     const {signOut} = useAuth();
     const location = useLocation();
     const reasonToUse = reason || location.state?.reason || 'pending';
@@ -32,7 +32,8 @@ function GuestOverlay({ reason }) {
     };
 
     return (
-        <div className="guest-view-container" onClick={() => {}}>
+        <div className="guest-view-container" onClick={() => {
+        }}>
             <div className="guest-view-content">
                 <img src={SmyrnaLogo} alt="Smyrna Logo" className="guest-logo"/>
                 <h1>{getTitle()}</h1>

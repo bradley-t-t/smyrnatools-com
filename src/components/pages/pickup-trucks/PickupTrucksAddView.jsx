@@ -5,7 +5,6 @@ import './styles/PickupTrucks.css'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {PlantService} from '../../../services/PlantService'
 import {RegionService} from '../../../services/RegionService'
-import {UserService} from '../../../services/UserService'
 import PlantDropdownModal from '../../common/PlantDropdownModal';
 
 function PickupTrucksAddView({onClose, onAdded}) {
