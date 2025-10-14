@@ -201,14 +201,6 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
         else onClose?.()
     }
 
-    function handleExportEmail() {
-        if (!pickup) return
-        const summary = `Pickup Truck Summary\n\nBasic Information\nAssigned: ${assigned || ''}\nAssigned Plant: ${assignedPlant || ''}\nStatus: ${status || ''}\nVIN: ${vin || ''}\nMake: ${make || ''}\nModel: ${model || ''}\nYear: ${year || ''}\nMileage: ${mileage || ''}\n\nComments\n${comments || 'No comments.'}\n`
-        const subject = encodeURIComponent('Pickup Truck Summary')
-        const body = encodeURIComponent(summary)
-        window.location.href = `mailto:?subject=${subject}&body=${body}`
-    }
-
     if (isLoading) {
         return (
             <div className="mixer-detail-view pickup-trucks-detail">
@@ -248,17 +240,11 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     <div className="saving-indicator"></div>
                 </div>
             )}
-            <div className="detail-header themed">
-                <div className="header-left">
-                    <button className="back-button" onClick={handleBackClick} aria-label="Back"><i
-                        className="fas fa-arrow-left"></i><span>Back</span></button>
-                </div>
-                <h1>Pickup {assigned ? `- ${assigned}` : ''}</h1>
-                <div className="header-actions">
-                    <button className="issues-button no-right-margin" onClick={handleExportEmail}><i
-                        className="fas fa-envelope"></i> Email
-                    </button>
-                </div>
+            <div className="detail-header themed" style={{display: 'flex', alignItems: 'center'}}>
+                <button className="back-button" onClick={handleBackClick} aria-label="Back"><i
+                    className="fas fa-arrow-left"></i><span>Back</span></button>
+                <h1 style={{flex: 1, textAlign: 'center'}}>Pickup {assigned ? `- ${assigned}` : ''}</h1>
+                <div style={{width: '36px'}}></div>
             </div>
             <div className="detail-content pickup-detail-content">
                 {message && (<div

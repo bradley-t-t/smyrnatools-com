@@ -465,16 +465,6 @@ function TractorDetailView({tractorId, onClose}) {
         fetchCommentsAndIssues()
     }, [tractorId]);
 
-    function handleExportEmail() {
-        if (!tractor) return;
-        const hasComments = comments && comments.length > 0;
-        const openIssues = (issues || []).filter(issue => !issue.time_completed);
-        let summary = `Tractor Summary for Truck #${tractor.truckNumber || ''}\n\nBasic Information\nStatus: ${tractor.status || ''}\nAssigned Plant: ${getPlantName(tractor.assignedPlant)}\nAssigned Operator: ${getOperatorName(tractor.assignedOperator)}\nFreight: ${tractor.freight || ''}\nCleanliness Rating: ${tractor.cleanlinessRating || 'N/A'}\nLast Service Date: ${tractor.lastServiceDate ? new Date(tractor.lastServiceDate).toLocaleDateString() : 'N/A'}\nHas Blower: ${tractor.hasBlower ? 'Yes' : 'No'}\nVIN: ${(tractor.vin || '').toUpperCase()}\nMake: ${tractor.make || ''}\nModel: ${tractor.model || ''}\nYear: ${tractor.year || ''}\n\nComments\n${hasComments ? comments.map(c => `- ${c.author || 'Unknown'}: ${c.comment || c.text} (${new Date(c.created_at || c.createdAt).toLocaleString()})`).join('\n') : 'No comments.'}\n\nIssues (${openIssues.length})\n${openIssues.length > 0 ? openIssues.map(i => `- ${i.issue || i.title || i.description || ''} (${new Date(i.time_created || i.created_at).toLocaleString()})`).join('\n') : 'No open issues.'}\n`;
-        const subject = encodeURIComponent(`Tractor Summary for Truck #${tractor.truckNumber || ''}`);
-        const body = encodeURIComponent(summary);
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    }
-
     if (isLoading) {
         return (<div className="operator-detail-view">
             <div className="detail-header" style={{
@@ -525,19 +515,16 @@ function TractorDetailView({tractorId, onClose}) {
                 </div>
                 <h1>Truck #{tractor.truckNumber || 'Not Assigned'}</h1>
                 <div className="header-actions">
-                    <button className="issues-button" style={{marginRight: 0}} onClick={handleExportEmail}><i
-                        className="fas fa-envelope"></i> Email
+                    <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                        <i className="fas fa-tools"></i> Issues
                     </button>
-                    {canEditTractor && (<>
-                        <button className="issues-button" onClick={() => setShowIssues(true)}><i
-                            className="fas fa-tools"></i> Issues
-                        </button>
-                        <button className="comments-button" onClick={() => setShowComments(true)}><i
-                            className="fas fa-comments"></i> Comments
-                        </button>
-                    </>)}
-                    <button className="history-button" onClick={() => setShowHistory(true)}><i
-                        className="fas fa-history"></i><span>History</span></button>
+                    <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                        <i className="fas fa-comments"></i> Comments
+                    </button>
+                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                        <i className="fas fa-history"></i>
+                        <span>History</span>
+                    </button>
                 </div>
             </div>
             {!canEditTractor && (<div className="plant-restriction-warning"><i

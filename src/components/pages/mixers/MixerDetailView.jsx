@@ -586,20 +586,13 @@ function MixerDetailView({mixerId, onClose}) {
                 </div>
                 <h1>Truck #{mixer.truckNumber || 'Not Assigned'}</h1>
                 <div className="header-actions">
-                    <button className="issues-button" style={{marginRight: 0}} onClick={handleExportEmail}>
-                        <i className="fas fa-envelope"></i> Email
+                    <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                        <i className="fas fa-tools"></i> Issues
                     </button>
-                    {canEditMixer && (
-                        <>
-                            <button className="issues-button" onClick={() => setShowIssues(true)}>
-                                <i className="fas fa-tools"></i> Issues
-                            </button>
-                            <button className="comments-button" onClick={() => setShowComments(true)}>
-                                <i className="fas fa-comments"></i> Comments
-                            </button>
-                        </>
-                    )}
-                    <button className="history-button" onClick={() => setShowHistory(true)}>
+                    <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                        <i className="fas fa-comments"></i> Comments
+                    </button>
+                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
                         <i className="fas fa-history"></i>
                         <span>History</span>
                     </button>

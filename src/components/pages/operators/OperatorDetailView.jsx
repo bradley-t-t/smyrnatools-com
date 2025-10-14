@@ -236,11 +236,9 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                         <span>Back</span>
                     </button>
                 </div>
-                <div className="header-center">
-                    <h1>{operator && operator.name ? operator.name : 'Operator Details'}</h1>
-                </div>
-                <div className="header-right">
-                    <button className="history-button" onClick={() => setShowHistory(true)}>
+                <h1>{operator && operator.name ? operator.name : 'Operator Details'}</h1>
+                <div className="header-actions">
+                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
                         <i className="fas fa-history"></i>
                         <span>History</span>
                     </button>

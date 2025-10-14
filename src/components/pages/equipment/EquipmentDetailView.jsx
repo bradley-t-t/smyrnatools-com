@@ -285,43 +285,6 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
         fetchCommentsAndIssues();
     }, [equipmentId]);
 
-    function handleExportEmail() {
-        if (!equipment) return;
-        const hasComments = comments && comments.length > 0;
-        const openIssues = (issues || []).filter(issue => !issue.time_completed);
-        let summary = `Equipment Summary for ${equipment.equipmentType} #${equipment.identifyingNumber || ''}
-
-Basic Information
-Status: ${equipment.status || ''}
-Assigned Plant: ${getPlantName(equipment.assignedPlant)}
-Equipment Type: ${equipment.equipmentType || ''}
-Cleanliness Rating: ${equipment.cleanlinessRating || 'N/A'}
-Condition Rating: ${equipment.conditionRating || 'N/A'}
-Last Service Date: ${equipment.lastServiceDate ? new Date(equipment.lastServiceDate).toLocaleDateString() : 'N/A'}
-Hours/Mileage: ${equipment.hoursMileage || 'N/A'}
-Make: ${equipment.equipmentMake || ''}
-Model: ${equipment.equipmentModel || ''}
-Year: ${equipment.yearMade || ''}
-
-Comments
-${hasComments
-            ? comments.map(c =>
-                `- ${c.author || 'Unknown'}: ${c.comment || c.text} (${new Date(c.created_at || c.createdAt).toLocaleString()})`
-            ).join('\n')
-            : 'No comments.'}
-
-Issues (${openIssues.length})
-${openIssues.length > 0
-            ? openIssues.map(i =>
-                `- ${i.issue || i.title || i.description || ''} (${new Date(i.time_created || i.created_at).toLocaleString()})`
-            ).join('\n')
-            : 'No open issues.'}
-`;
-        const subject = encodeURIComponent(`Equipment Summary for ${equipment.equipmentType} #${equipment.identifyingNumber || ''}`);
-        const body = encodeURIComponent(summary);
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    }
-
     if (isLoading) {
         return (
             <div className="equipment-detail-view">
@@ -397,18 +360,15 @@ ${openIssues.length > 0
                 </div>
                 <h1>{equipment.equipmentType} #{equipment.identifyingNumber || 'Not Assigned'}</h1>
                 <div className="header-actions">
-                    <button className="issues-button" style={{marginRight: 0}} onClick={handleExportEmail}>
-                        <i className="fas fa-envelope"></i> Email
-                    </button>
                     {canEditEquipment && (
                         <>
-                            <button className="issues-button" onClick={() => setShowIssues(true)}>
+                            <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
                                 <i className="fas fa-tools"></i> Issues
                             </button>
-                            <button className="comments-button" onClick={() => setShowComments(true)}>
+                            <button className="global-button-secondary" onClick={() => setShowComments(true)}>
                                 <i className="fas fa-comments"></i> Comments
                             </button>
-                            <button className="history-button" onClick={() => setShowHistory(true)}>
+                            <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
                                 <i className="fas fa-history"></i> History
                             </button>
                         </>
