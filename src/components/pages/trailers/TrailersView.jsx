@@ -19,7 +19,8 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
-import ThemeUtility from '../../../utils/ThemeUtility'
+import HistoryViewSection from '../../sections/HistoryViewSection'
+import ThemeUtility from "../../../utils/ThemeUtility";
 
 function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const {preferences, saveLastViewedFilters, updateTrailerFilter, updatePreferences} = usePreferences()
@@ -47,6 +48,8 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [selectedTrailerForHistory, setSelectedTrailerForHistory] = useState(null)
     const filterOptions = ['All Types', 'Cement', 'End Dump', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues']
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -284,7 +287,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                 filteredItems={filteredTrailers}
                 handleSelectItem={handleSelectTrailer}
                 headerLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
-                colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%']}
+                colWidths={['12%', '14%', '12%', '10%', '14%', '16%', '12%', '10%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const commentsCount = Number(item.commentsCount || 0);
                     const issuesCount = Number(item.openIssuesCount || 0);
@@ -298,19 +301,19 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                 marginRight: '8px',
                                 backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
                             }}></span>{item.status ? item.status : "---"}</td>
-                            <td style={{width: '12%'}}>{item.trailerType ? item.trailerType : "---"}</td>
+                            <td style={{width: '10%'}}>{item.trailerType ? item.trailerType : "---"}</td>
                             <td style={{width: '14%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '18%'}}>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) &&
+                            <td style={{width: '16%'}}>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) &&
                                 <span className="warning-badge"><i
                                     className="fas fa-exclamation-triangle"></i></span>}</td>
-                            <td style={{width: '14%'}}>{item.vinNumber || item.vin || "---"}</td>
-                            <td style={{width: '8%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                            <td style={{width: '12%'}}>{item.vinNumber || item.vin || "---"}</td>
+                            <td style={{width: '10%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
                                         e.stopPropagation();
                                         onComment(item.id, item.trailerNumber);
@@ -339,6 +342,21 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                         color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{issuesCount}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedTrailerForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View history"><i className="fas fa-history" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -466,7 +484,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                             })
                         }}
                         listLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
-                        colWidths={['12%', '14%', '12%', '12%', '14%', '18%', '14%', '8%']}
+                        colWidths={['12%', '14%', '12%', '10%', '14%', '16%', '12%', '10%']}
                         forwardedRef={headerRef}
                         onHeaderClick={handleHeaderClick}
                         sortKey={sortKey}
@@ -480,6 +498,13 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                                              onClose={() => setShowCommentModal(false)}/>}
                     {showIssueModal && <TrailerIssueModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
                                                           onClose={() => setShowIssueModal(false)}/>}
+                    {showHistoryModal && selectedTrailerForHistory && (
+                        <HistoryViewSection
+                            item={selectedTrailerForHistory}
+                            type="trailer"
+                            onClose={() => setShowHistoryModal(false)}
+                        />
+                    )}
                 </>
             )}
         </div>

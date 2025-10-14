@@ -18,6 +18,7 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
+import HistoryViewSection from '../../sections/HistoryViewSection'
 import ThemeUtility from '../../../utils/ThemeUtility'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
@@ -47,6 +48,8 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [selectedEquipmentForHistory, setSelectedEquipmentForHistory] = useState(null)
 
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Open Issues'];
     const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Skid Steer', 'Forklift', 'Manlift', 'Other', 'Dozer', 'Water/Trash Pump', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Unknown'];
@@ -301,7 +304,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 plants={plants}
                 handleSelectItem={handleSelectEquipment}
                 headerLabels={['Plant', 'Equipment #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
-                colWidths={['12%', '14%', '12%', '24%', '14%', '16%', '8%']}
+                colWidths={['12%', '14%', '12%', '22%', '14%', '16%', '10%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const issuesCount = Number(item.openIssuesCount || 0);
                     const commentsCount = Number(item.commentsCount || 0);
@@ -315,7 +318,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                 marginRight: '8px',
                                 backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
                             }}></span>{item.status || '---'}</td>
-                            <td style={{width: '24%'}}>{item.equipmentType || '---'}</td>
+                            <td style={{width: '22%'}}>{item.equipmentType || '---'}</td>
                             <td style={{width: '14%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
@@ -328,8 +331,8 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '8%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                            <td style={{width: '10%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
                                         e.stopPropagation();
                                         onIssue(item.id, item.identifyingNumber);
@@ -358,6 +361,21 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                         color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{commentsCount}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedEquipmentForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View history"><i className="fas fa-history" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -437,7 +455,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
                         }}
                         listLabels={['Plant', 'Equipment #', 'Status', 'Type', 'Cleanliness', 'Condition', 'More']}
-                        colWidths={['12%', '14%', '12%', '24%', '14%', '16%', '8%']}
+                        colWidths={['12%', '14%', '12%', '22%', '14%', '16%', '10%']}
                         forwardedRef={headerRef}
                         sticky={true}
                         onHeaderClick={handleHeaderClick}
@@ -453,6 +471,13 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                     {showIssueModal &&
                         <EquipmentIssueModal equipmentId={modalEquipmentId} equipmentNumber={modalEquipmentNumber}
                                              onClose={() => setShowIssueModal(false)}/>}
+                    {showHistoryModal && selectedEquipmentForHistory && (
+                        <HistoryViewSection
+                            item={selectedEquipmentForHistory}
+                            type="equipment"
+                            onClose={() => setShowHistoryModal(false)}
+                        />
+                    )}
                 </>
             )}
         </div>

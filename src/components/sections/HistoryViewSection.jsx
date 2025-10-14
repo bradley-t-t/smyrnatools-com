@@ -98,6 +98,10 @@ function HistoryViewSection({item, type, onClose}) {
         if (type === 'tractor') {
             commonFields['has_blower'] = 'Has Blower';
         }
+        if (type === 'operator') {
+            commonFields['assigned_mixer'] = 'Assigned Mixer';
+            commonFields['assigned_tractor'] = 'Assigned Tractor';
+        }
         return commonFields[snakeCaseField] || snakeCaseField.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
 

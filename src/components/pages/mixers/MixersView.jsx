@@ -18,6 +18,7 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
+import HistoryViewSection from '../../sections/HistoryViewSection'
 import ThemeUtility from '../../../utils/ThemeUtility'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
@@ -56,6 +57,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const [operatorsLoaded, setOperatorsLoaded] = useState(false)
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [selectedMixerForHistory, setSelectedMixerForHistory] = useState(null)
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues'];
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -375,7 +378,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 filteredItems={filteredMixers}
                 handleSelectItem={handleSelectMixer}
                 headerLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
-                colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
+                colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
@@ -396,12 +399,12 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
+                            <td style={{width: '16%'}}>{item.vinNumber || item.vin}</td>
                             <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ?
                                 <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
                                 <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
-                            <td style={{width: '8%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                            <td style={{width: '10%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
                                         e.stopPropagation();
                                         onComment(item.id, item.truckNumber);
@@ -430,6 +433,21 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                         color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{item.openIssuesCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedMixerForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View history"><i className="fas fa-history" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -523,7 +541,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 resetMixerFilters({keepViewMode: true, currentViewMode: viewMode})
                             }}
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
-                            colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
+                            colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
                             forwardedRef={headerRef}
                             onHeaderClick={handleHeaderClick}
                             sortKey={sortKey}
@@ -537,6 +555,13 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                                                 onClose={() => setShowCommentModal(false)}/>}
                         {showIssueModal && <MixerIssueModal mixerId={modalMixerId} mixerNumber={modalMixerNumber}
                                                             onClose={() => setShowIssueModal(false)}/>}
+                        {showHistoryModal && selectedMixerForHistory && (
+                            <HistoryViewSection
+                                item={selectedMixerForHistory}
+                                type="mixer"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
                     </>
                 )}
             </div>

@@ -18,6 +18,7 @@ import FleetUtility from '../../../utils/FleetUtility'
 import TopSection from '../../sections/TopSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
 import GridViewModeSection from '../../sections/GridViewModeSection'
+import HistoryViewSection from '../../sections/HistoryViewSection'
 import ThemeUtility from '../../../utils/ThemeUtility'
 
 function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView}) {
@@ -57,6 +58,8 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
     const [operatorsLoaded, setOperatorsLoaded] = useState(false)
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [selectedTractorForHistory, setSelectedTractorForHistory] = useState(null)
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues']
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -356,7 +359,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                 plants={plants}
                 handleSelectItem={handleSelectTractor}
                 listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
-                colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
+                colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
@@ -377,12 +380,12 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '18%'}}>{item.vinNumber || item.vin}</td>
+                            <td style={{width: '16%'}}>{item.vinNumber || item.vin}</td>
                             <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ?
                                 <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
                                 <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
-                            <td style={{width: '8%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                            <td style={{width: '10%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
                                         e.stopPropagation();
                                         onComment(item.id, item.truckNumber);
@@ -411,6 +414,21 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                                         color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
                                         marginRight: 4
                                     }}></i><span>{item.openIssuesCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedTractorForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View history"><i className="fas fa-history" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -524,7 +542,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                                 resetTractorFilters({keepViewMode: true, currentViewMode: viewMode})
                             }}
                             listLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
-                            colWidths={['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']}
+                            colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
                             forwardedRef={headerRef}
                             onHeaderClick={handleHeaderClick}
                             sortKey={sortKey}
@@ -540,6 +558,13 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                         {showIssueModal &&
                             <TractorIssueModal tractorId={modalTractorId} tractorNumber={modalTractorNumber}
                                                onClose={() => setShowIssueModal(false)}/>}
+                        {showHistoryModal && selectedTractorForHistory && (
+                            <HistoryViewSection
+                                item={selectedTractorForHistory}
+                                type="tractor"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
                     </>
                 )}
             </div>

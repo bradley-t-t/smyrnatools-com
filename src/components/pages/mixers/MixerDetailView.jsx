@@ -251,6 +251,15 @@ function MixerDetailView({mixerId, onClose}) {
                 undefined,
                 mixerForHistory
             )
+            // Log history for operators if assignedOperator changed
+            if (mixerForHistory.assignedOperator !== updatedMixer.assignedOperator) {
+                if (mixerForHistory.assignedOperator) {
+                    await OperatorService.createHistoryEntry(mixerForHistory.assignedOperator, "assigned_mixer", updatedMixer.truckNumber, null, userId)
+                }
+                if (updatedMixer.assignedOperator) {
+                    await OperatorService.createHistoryEntry(updatedMixer.assignedOperator, "assigned_mixer", null, updatedMixer.truckNumber, userId)
+                }
+            }
             setMixer(updatedMixer)
             setMessage('Changes saved successfully! Mixer needs verification.')
             setTimeout(() => setMessage(''), 5000)

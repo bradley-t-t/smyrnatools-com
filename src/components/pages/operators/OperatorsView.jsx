@@ -16,6 +16,7 @@ import TopSection from '../../sections/TopSection'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import GridViewModeSection from '../../sections/GridViewModeSection'
 import ListViewModeSection from '../../sections/ListViewModeSection'
+import HistoryViewSection from '../../sections/HistoryViewSection'
 import ThemeUtility from '../../../utils/ThemeUtility'
 
 function OperatorsView({
@@ -65,6 +66,8 @@ function OperatorsView({
         'Rating': 'rating',
         'Trainer': null
     }
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [selectedOperatorForHistory, setSelectedOperatorForHistory] = useState(null)
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -411,8 +414,8 @@ function OperatorsView({
                         }}
                         showReset={showReset}
                         onReset={handleResetFilters}
-                        listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
-                        colWidths={['10%', '28%', '16%', '16%', '14%', '16%']}
+                        listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
+                        colWidths={['10%', '23%', '14%', '14%', '12%', '12%', '15%']}
                         sticky={true}
                         hidePlantFilter={plants.length === 0}
                         onHeaderClick={handleHeaderClick}
@@ -452,8 +455,8 @@ function OperatorsView({
                             <ListViewModeSection
                                 filteredItems={filteredOperators}
                                 handleSelectItem={handleSelectOperator}
-                                headerLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer']}
-                                colWidths={['10%', '28%', '16%', '16%', '14%', '16%']}
+                                headerLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
+                                colWidths={['10%', '23%', '14%', '14%', '12%', '12%', '15%']}
                                 renderRow={(operator, handleSelect) => {
                                     const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
                                     const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
@@ -461,13 +464,32 @@ function OperatorsView({
                                         <tr key={operator.employeeId} onClick={() => handleSelect(operator)}
                                             style={{cursor: 'pointer'}}>
                                             <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
-                                            <td style={{width: '28%'}}><span
+                                            <td style={{width: '23%'}}><span
                                                 className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
                                             </td>
-                                            <td style={{width: '16%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
-                                            <td style={{width: '16%'}}>{operator.status || '\u2014'}</td>
-                                            <td style={{width: '14%'}}>{renderStarsOrNA(operator)}</td>
-                                            <td style={{width: '16%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                            <td style={{width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
+                                            <td style={{width: '14%'}}>{operator.status || '\u2014'}</td>
+                                            <td style={{width: '12%'}}>{renderStarsOrNA(operator)}</td>
+                                            <td style={{width: '12%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                            <td style={{width: '15%'}}>
+                                                <button onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedOperatorForHistory(operator);
+                                                    setShowHistoryModal(true);
+                                                }} title="View history" style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: 0,
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    cursor: 'pointer'
+                                                }}>
+                                                    <i className="fas fa-history" style={{
+                                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                                        marginRight: 4
+                                                    }}></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     )
                                 }}
@@ -484,6 +506,13 @@ function OperatorsView({
                             plants={plants}
                             operators={operators}
                             allowedPlantCodes={regionPlantCodes}
+                        />
+                    )}
+                    {showHistoryModal && selectedOperatorForHistory && (
+                        <HistoryViewSection
+                            item={selectedOperatorForHistory}
+                            type="operator"
+                            onClose={() => setShowHistoryModal(false)}
                         />
                     )}
                 </>
