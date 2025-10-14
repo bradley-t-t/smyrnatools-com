@@ -2,7 +2,7 @@ import React from 'react'
 import './styles/PickupTrucks.css'
 
 function PickupTrucksCard({pickup, onSelect, isDuplicateVin, isDuplicateAssigned, isHighMileage}) {
-    const cardProps = onSelect ? {onClick: onSelect} : {}
+    const cardProps = onSelect ? {onClick: () => onSelect(pickup.id)} : {}
     const statusClass = String(pickup.status || '').toLowerCase().replace(/\s+/g, '-') || 'default'
     const assignedLabel = pickup.assigned ? `- ${pickup.assigned}` : ''
     return (
