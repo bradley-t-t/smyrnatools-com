@@ -1647,8 +1647,8 @@
     margin: 0 20px 16px;
     padding: 12px 16px;
     border-radius: 8px;
-    background: var(--gradient-accent-soft);
-    border-left: 3px solid var(--accent);
+    background-color: var(--other-accent);
+    border-left: 3px solid var(--other-accent);
 }
 
 .verification-notice i {
@@ -1661,11 +1661,11 @@
     margin: 0;
     font-size: 13px;
     line-height: 1.5;
-    color: var(--text-secondary);
+    color: var(--text-light);
 }
 
 .verification-notice strong {
-    color: var(--text-primary);
+    color: var(--text-light);
     font-weight: 600;
 }
 
