@@ -88,6 +88,7 @@ function ReportsSubmitView({
     const [exportError, setExportError] = useState('')
 
     const PluginComponent = plugins[report.name]
+    const targetUserId = managerEditUser || user?.id
 
     function handleChange(e, name, idx, colName) {
         if (report.name === 'plant_production' && name === 'rows') {
@@ -723,6 +724,8 @@ function ReportsSubmitView({
                             setForm={setForm}
                             plants={plants}
                             readOnly={readOnly}
+                            user={user}
+                            userId={targetUserId}
                         />
                     )}
                     {error && <div className="rpts-sbmt-error">{error}</div>}

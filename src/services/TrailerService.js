@@ -155,7 +155,7 @@ const TrailerService = {
         return json?.data ?? [];
     },
 
-    async addIssue(trailerId, issueText, severity) {
+    async addIssue(trailerId, issueText, severity, createdBy = null) {
         if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`);
         if (!issueText?.trim()) throw new Error('Issue description is required');
         const allowed = ['Low', 'Medium', 'High'];
@@ -163,7 +163,8 @@ const TrailerService = {
         const {res, json} = await APIUtility.post('/trailer-service/add-issue', {
             trailerId,
             issue: issueText.trim(),
-            severity: finalSeverity
+            severity: finalSeverity,
+            userId: createdBy
         });
         if (!res.ok) throw new Error(json?.error || 'Failed to add issue');
         return json?.data ?? null;

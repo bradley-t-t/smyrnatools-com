@@ -283,11 +283,16 @@ class MixerServiceImpl {
         return true
     }
 
-    static async addIssue(mixerId, issue, severity) {
+    static async addIssue(mixerId, issue, severity, createdBy = null) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
         if (!issue?.trim()) throw new Error('Issue description is required')
         if (!['Low', 'Medium', 'High'].includes(severity)) throw new Error('Severity must be Low, Medium, or High')
-        const {res, json} = await APIUtility.post('/mixer-service/add-issue', {mixerId, issue: issue.trim(), severity})
+        const {res, json} = await APIUtility.post('/mixer-service/add-issue', {
+            mixerId,
+            issue: issue.trim(),
+            severity,
+            userId: createdBy
+        })
         if (!res.ok) throw new Error(json?.error || 'Failed to add issue')
         return json?.data
     }

@@ -251,7 +251,7 @@ export class TractorService {
         return json?.data ?? []
     }
 
-    static async addIssue(tractorId, issueText, severity) {
+    static async addIssue(tractorId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!issueText?.trim()) throw new Error('Issue description is required')
         const validSeverities = ['Low', 'Medium', 'High']
@@ -259,7 +259,8 @@ export class TractorService {
         const {res, json} = await APIUtility.post('/tractor-service/add-issue', {
             tractorId,
             issue: issueText.trim(),
-            severity: finalSeverity
+            severity: finalSeverity,
+            userId: createdBy
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to add issue')
         return json?.data

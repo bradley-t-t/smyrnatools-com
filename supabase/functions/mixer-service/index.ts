@@ -558,6 +558,7 @@ Deno.serve(async (req) => {
                 const mixerId = typeof body?.mixerId === "string" ? body.mixerId : null;
                 const issue = typeof body?.issue === "string" ? body.issue.trim() : "";
                 const severity = typeof body?.severity === "string" ? body.severity : "";
+                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
                 if (!mixerId) return new Response(JSON.stringify({error: "Mixer ID is required"}), {
                     status: 400,
                     headers: corsHeaders
@@ -570,13 +571,18 @@ Deno.serve(async (req) => {
                     status: 400,
                     headers: corsHeaders
                 });
+                if (!userId) return new Response(JSON.stringify({error: "User ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
                 const id = crypto.randomUUID();
                 const {data, error} = await supabase.from("mixers_maintenance").insert({
                     id,
                     mixer_id: mixerId,
                     issue,
                     severity,
-                    time_created: nowIso()
+                    time_created: nowIso(),
+                    created_by: userId
                 }).select().maybeSingle();
                 if (error) return new Response(JSON.stringify({error: error.message}), {
                     status: 400,

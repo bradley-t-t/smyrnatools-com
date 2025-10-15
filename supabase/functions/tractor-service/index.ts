@@ -488,11 +488,16 @@ Deno.serve(async (req) => {
                 const tractorId = typeof body?.tractorId === "string" ? body.tractorId : null;
                 const issue = typeof body?.issue === "string" ? body.issue.trim() : "";
                 const severityIn = typeof body?.severity === "string" ? body.severity : "";
+                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
                 if (!tractorId) return new Response(JSON.stringify({error: "Tractor ID is required"}), {
                     status: 400,
                     headers: corsHeaders
                 });
                 if (!issue) return new Response(JSON.stringify({error: "Issue description is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (!userId) return new Response(JSON.stringify({error: "User ID is required"}), {
                     status: 400,
                     headers: corsHeaders
                 });
@@ -504,7 +509,8 @@ Deno.serve(async (req) => {
                     tractor_id: tractorId,
                     issue,
                     severity,
-                    time_created: nowIso()
+                    time_created: nowIso(),
+                    created_by: userId
                 }).select().maybeSingle();
                 if (error) return new Response(JSON.stringify({error: error.message}), {
                     status: 400,

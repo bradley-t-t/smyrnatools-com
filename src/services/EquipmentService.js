@@ -189,7 +189,7 @@ class EquipmentServiceImpl {
         return json?.data ?? []
     }
 
-    static async addIssue(equipmentId, issueText, severity) {
+    static async addIssue(equipmentId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
         if (!issueText?.trim()) throw new Error('Issue description is required')
         const validSeverities = ['Low', 'Medium', 'High']
@@ -197,7 +197,8 @@ class EquipmentServiceImpl {
         const {res, json} = await APIUtility.post('/equipment-service/add-issue', {
             equipmentId,
             issue: issueText.trim(),
-            severity: finalSeverity
+            severity: finalSeverity,
+            userId: createdBy
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to add issue')
         return json?.data
