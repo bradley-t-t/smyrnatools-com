@@ -12,14 +12,19 @@ function HistoryViewSection({item, type, onClose}) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [operators, setOperators] = useState([]);
+    const [users, setUsers] = useState([]);
     const [sortConfig] = useState({
         key: 'changedAt',
         direction: 'descending'
     });
 
     useEffect(() => {
-        fetchHistory();
-        fetchOperators();
+        const loadData = async () => {
+            setIsLoading(true);
+            await Promise.all([fetchHistory(), fetchOperators(), fetchUsers()]);
+            setIsLoading(false);
+        };
+        loadData();
     }, [item.id]);
 
     const fetchOperators = async () => {
@@ -30,8 +35,15 @@ function HistoryViewSection({item, type, onClose}) {
         }
     };
 
+    const fetchUsers = async () => {
+        try {
+            const {data} = await supabase.from('profiles').select('id, name, email');
+            setUsers(data || []);
+        } catch (err) {
+        }
+    };
+
     const fetchHistory = async () => {
-        setIsLoading(true);
         const serviceMap = {
             mixer: {service: 'MixerService', method: 'getMixerHistory'},
             tractor: {service: 'TractorService', method: 'getTractorHistory'},
@@ -78,8 +90,6 @@ function HistoryViewSection({item, type, onClose}) {
             } catch (_) {
                 setError('Failed to load history. Please try again.');
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -101,6 +111,7 @@ function HistoryViewSection({item, type, onClose}) {
         if (type === 'operator') {
             commonFields['assigned_mixer'] = 'Assigned Mixer';
             commonFields['assigned_tractor'] = 'Assigned Tractor';
+            commonFields['assigned_trainer'] = 'Assigned Trainer';
         }
         return commonFields[snakeCaseField] || snakeCaseField.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
@@ -114,6 +125,14 @@ function HistoryViewSection({item, type, onClose}) {
         if (!operatorId || operatorId === '0') return 'None';
         const operator = operators.find(op => op.employeeId === operatorId);
         return operator ? operator.name : 'Unknown';
+    };
+
+    const getUserName = (userId) => {
+        if (!userId) return 'Unknown';
+        const operator = operators.find(op => op.employeeId === userId);
+        if (operator) return operator.name;
+        const user = users.find(u => u.id === userId);
+        return user ? user.name : 'Unknown';
     };
 
     const formatValue = (fieldName, value) => {
@@ -131,6 +150,12 @@ function HistoryViewSection({item, type, onClose}) {
         }
         if (type === 'tractor' && key === 'has_blower') {
             return value ? 'Yes' : 'No';
+        }
+        if (key.includes('date') && value) {
+            return FormatUtility.formatDate(value);
+        }
+        if (key === 'assigned_trainer') {
+            return getUserName(value);
         }
         return value;
     };
@@ -222,8 +247,7 @@ function HistoryViewSection({item, type, onClose}) {
                                     </div>
 
                                     <div className="history-user">
-                                        <UserLabel userId={entry.changedBy || entry.changed_by}
-                                                   showInitials={type === 'tractor'}/>
+                                        <UserLabel userId={entry.changedBy || entry.changed_by}/>
                                     </div>
                                 </div>
                             ))}
