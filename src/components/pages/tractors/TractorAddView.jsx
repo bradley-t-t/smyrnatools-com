@@ -194,6 +194,7 @@ function TractorAddView({plants, onClose, onTractorAdded}) {
                                             <option value="">Select Freight</option>
                                             <option value="Cement">Cement</option>
                                             <option value="Aggregate">Aggregate</option>
+                                            <option value="Dump Truck">Dump Truck</option>
                                         </select>
                                     </div>
                                 </div>

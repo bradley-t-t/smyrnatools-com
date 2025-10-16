@@ -529,7 +529,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                                 updateTractorFilter('statusFilter', v)
                             }}
                             freightFilter={freightFilter}
-                            freightOptions={['All Freight', 'Cement', 'Aggregate']}
+                            freightOptions={['All Freight', 'Cement', 'Aggregate', 'Dump Truck']}
                             onFreightFilterChange={(v) => {
                                 setFreightFilter(v);
                                 updateTractorFilter('freightFilter', v)

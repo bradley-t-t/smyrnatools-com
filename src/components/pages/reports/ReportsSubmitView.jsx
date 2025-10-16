@@ -6,6 +6,7 @@ import {DistrictManagerSubmitPlugin} from './types/WeeklyDistrictManagerReport'
 import {EfficiencySubmitPlugin} from './types/WeeklyEfficiencyReport'
 import {SafetyManagerSubmitPlugin} from './types/WeeklySafetyManagerReport'
 import {GeneralManagerSubmitPlugin} from './types/WeeklyGeneralManagerReport'
+import {AggregateProductionSubmitPlugin} from './types/WeeklyAggregateProductionReport'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {EmailUtility} from '../../../utils/EmailUtility'
 import {exportGeneralManagerReport} from '../../../utils/ExportUtility'
@@ -16,7 +17,8 @@ const plugins = {
     district_manager: DistrictManagerSubmitPlugin,
     plant_production: EfficiencySubmitPlugin,
     safety_manager: SafetyManagerSubmitPlugin,
-    general_manager: GeneralManagerSubmitPlugin
+    general_manager: GeneralManagerSubmitPlugin,
+    aggregate_production: AggregateProductionSubmitPlugin
 }
 
 function ReportsSubmitView({
@@ -132,7 +134,7 @@ function ReportsSubmitView({
                 return
             }
         }
-        if (report.name !== 'general_manager') {
+        if (report.name !== 'general_manager' && report.name !== 'aggregate_production') {
             for (const field of report.fields) {
                 const val = form[field.name]
                 if (field.required && (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0))) {
@@ -676,7 +678,7 @@ function ReportsSubmitView({
                                     </div>
                                 </div>
                             </>
-                        ) : report.name === 'general_manager' ? null : report.name === 'safety_manager' ? null : (
+                        ) : report.name === 'general_manager' ? null : report.name === 'aggregate_production' ? null : report.name === 'safety_manager' ? null : (
                             report.fields.map(field => (
                                 field.name === 'issues' ? null : (
                                     <div key={field.name} className="rpts-sbmt-field-wide">
@@ -720,7 +722,7 @@ function ReportsSubmitView({
                             operatorOptions={operatorOptions}
                             setDebugMsg={setDebugMsg}
                             allReports={report.name === 'general_manager' ? allReports : undefined}
-                            weekIso={report.name === 'general_manager' ? report.weekIso : undefined}
+                            weekIso={(report.name === 'general_manager' || report.name === 'aggregate_production') ? report.weekIso : undefined}
                             setForm={setForm}
                             plants={plants}
                             readOnly={readOnly}

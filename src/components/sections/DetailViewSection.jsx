@@ -59,7 +59,7 @@ function DetailViewSection({
                         const isSamePlant = plantCode === itemAssignedPlant
                         setInternalCanEdit(isSamePlant)
                         if (!isSamePlant) {
-                            setInternalRestrictionWarning(`You cannot this because it belongs to plant ${itemAssignedPlant} and you are assigned to plant ${plantCode}.`)
+                            setInternalRestrictionWarning(`You cannot edit this because it belongs to plant ${itemAssignedPlant} and you are assigned to plant ${plantCode}.`)
                         } else {
                             setInternalRestrictionWarning(null)
                         }

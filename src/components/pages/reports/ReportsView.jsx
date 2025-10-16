@@ -90,7 +90,9 @@ function ReportsView() {
             query = query.eq('user_id', user.id)
             if (allowedMy.length > 0) query = query.in('report_name', allowedMy)
         } else if (scope === 'review') {
-            const allowedReview = regionType === 'office' ? (hasReviewPermission['general_manager'] ? ['general_manager'] : []) : reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
+            const allowedReview = regionType === 'office'
+                ? (hasReviewPermission['general_manager'] ? ['general_manager'] : [])
+                : reportTypes.filter(rt => hasReviewPermission[rt.name] && rt.name !== 'general_manager').map(rt => rt.name)
             query = query.neq('user_id', user.id).eq('completed', true)
             if (allowedReview.length > 0) query = query.in('report_name', allowedReview)
         }
@@ -150,7 +152,6 @@ function ReportsView() {
             if (!user || !user.id) {
                 setHasAssigned({})
                 setHasReviewPermission({})
-                setHasAnyReviewPermissionPrefix(false)
                 setIsLoadingPermissions(false)
                 return
             }
@@ -166,18 +167,20 @@ function ReportsView() {
             }))
             setHasAssigned(assigned)
             setHasReviewPermission(review)
-            try {
-                const permissions = await UserService.getUserPermissions(user.id)
-                const anyReview = Array.isArray(permissions) && permissions.some(p => typeof p === 'string' && p.startsWith('reports.review.'))
-                setHasAnyReviewPermissionPrefix(!!anyReview)
-            } catch {
-                setHasAnyReviewPermissionPrefix(false)
-            }
             setIsLoadingPermissions(false)
         }
 
         checkAssignedAndReview()
     }, [user])
+
+    useEffect(() => {
+        if (isLoadingPermissions) return
+        const allowedReviewTypes = regionType === 'office'
+            ? (hasReviewPermission['general_manager'] ? ['general_manager'] : [])
+            : reportTypes.filter(rt => hasReviewPermission[rt.name] && rt.name !== 'general_manager').map(rt => rt.name)
+        const hasAnyValidReview = allowedReviewTypes.length > 0
+        setHasAnyReviewPermissionPrefix(hasAnyValidReview)
+    }, [hasReviewPermission, regionType, isLoadingPermissions])
 
     useEffect(() => {
         async function fetchPlants() {
@@ -309,7 +312,9 @@ function ReportsView() {
         async function loadOverdue() {
             setIsLoadingOverdue(true)
             try {
-                const allowedReview = regionType === 'office' ? (hasReviewPermission['general_manager'] ? ['general_manager'] : []) : reportTypes.filter(rt => hasReviewPermission[rt.name]).map(rt => rt.name)
+                const allowedReview = regionType === 'office'
+                    ? (hasReviewPermission['general_manager'] ? ['general_manager'] : [])
+                    : reportTypes.filter(rt => hasReviewPermission[rt.name] && rt.name !== 'general_manager').map(rt => rt.name)
                 const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, {
                     force: false,
                     allowedReview
@@ -383,7 +388,12 @@ function ReportsView() {
 
     const reviewableReports = useMemo(() => (
         localReports
-            .filter(r => r.completed && r.week && hasReviewPermission[r.name] && r.userId !== user?.id && (regionType !== 'office' || r.name === 'general_manager'))
+            .filter(r => {
+                if (!r.completed || !r.week || !r.userId || r.userId === user?.id) return false
+                if (!hasReviewPermission[r.name]) return false
+                if (regionType === 'office' && r.name !== 'general_manager') return false
+                return true
+            })
             .sort((a, b) => new Date(b.week).getTime() - new Date(a.week).getTime())
     ), [localReports, hasReviewPermission, user, regionType])
 
