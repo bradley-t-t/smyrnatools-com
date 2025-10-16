@@ -9,12 +9,11 @@ import {usePreferences} from '../../../app/context/PreferencesContext';
 import TrailerHistoryView from './TrailerHistoryView';
 import TrailerCommentModal from './TrailerCommentModal';
 import TrailerIssueModal from './TrailerIssueModal';
-import './styles/Trailers.css';
-import LoadingScreen from '../../common/LoadingScreen';
 import TractorSelectModal from "./TractorSelectModal";
 import {RegionService} from '../../../services/RegionService';
 import ThemeUtility from '../../../utils/ThemeUtility';
 import PlantDropdownModal from '../../common/PlantDropdownModal';
+import DetailViewSection from "../../sections/DetailViewSection"
 
 function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const {preferences} = usePreferences();
@@ -32,9 +31,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const [, setUpdatedByEmail] = useState(null);
     const [message, setMessage] = useState('');
     const [showTractorModal, setShowTractorModal] = useState(false);
-    const [, setUserProfile] = useState(null);
-    const [canEditTrailer, setCanEditTrailer] = useState(true);
-    const [plantRestrictionReason, setPlantRestrictionReason] = useState('');
+    const [canEditTrailer, setCanEditTrailer] = useState(false);
     const [originalValues, setOriginalValues] = useState({});
     const [trailerNumber, setTrailerNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
@@ -149,31 +146,6 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
-    useEffect(() => {
-        async function checkPlantRestriction() {
-            if (isLoading || !trailer) return;
-            try {
-                const userId = await UserService.getCurrentUser();
-                if (!userId) return;
-                const hasPermission = await UserService.hasPermission(userId, 'trailers.bypass.plantrestriction');
-                if (hasPermission) return setCanEditTrailer(true);
-                const {data: profileData} = await supabase.from('users_profiles').select('plant_code').eq('id', userId).single();
-                setUserProfile(profileData);
-                if (profileData && trailer) {
-                    const isSamePlant = profileData.plant_code === trailer.assignedPlant;
-                    setCanEditTrailer(isSamePlant);
-                    if (!isSamePlant) {
-                        setPlantRestrictionReason(
-                            `You cannot edit or verify this trailer because it belongs to plant ${trailer.assignedPlant} and you are assigned to plant ${profileData.plant_code}.`
-                        );
-                    }
-                }
-            } catch (error) {
-            }
-        }
-
-        checkPlantRestriction();
-    }, [trailer, isLoading]);
 
     useEffect(() => {
         if (!originalValues.trailerNumber || isLoading) return;
@@ -260,7 +232,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
             setAssignedTractor(updatedTrailer.assignedTractor || '');
             setCleanlinessRating(updatedTrailer.cleanlinessRating || 0);
             setStatus(updatedTrailer.status || '');
-            setMessage('Changes saved successfully! Trailer needs verification.');
+            setMessage('Changes saved successfully!');
             setTimeout(() => setMessage(''), 5000);
             setOriginalValues({
                 trailerNumber: updatedTrailer.trailerNumber,
@@ -382,82 +354,142 @@ ${openIssues.length > 0
 
     if (isLoading) {
         return (
-            <div className="trailer-detail-view">
-                <div className="detail-header">
-                    <button className="back-button" onClick={onClose}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1>Trailer Details</h1>
-                    <div style={{width: '36px'}}></div>
-                </div>
-                <div className="detail-content">
-                    <LoadingScreen message="Loading trailer details..." inline={true}/>
-                </div>
-            </div>
+            <DetailViewSection
+                title="Trailer Details"
+                onClose={onClose}
+                isLoading={true}
+                loadingMessage="Loading trailer details..."
+            />
         );
     }
 
     if (!trailer) {
         return (
-            <div className="trailer-detail-view">
-                <div className="detail-header">
-                    <button className="back-button" onClick={onClose}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1>Trailer Not Found</h1>
-                </div>
-                <div className="error-message">
-                    <p>Could not find the requested trailer. It may have been deleted.</p>
-                    <button className="primary-button" onClick={onClose}>Return to Trailers</button>
-                </div>
-            </div>
+            <DetailViewSection
+                title="Trailer Not Found"
+                onClose={onClose}
+                notFound={true}
+                notFoundMessage="Trailer Not Found"
+                notFoundDescription="Could not find the requested trailer. It may have been deleted."
+            />
         );
     }
 
     return (
-        <div className="trailer-detail-view">
+        <>
             {showComments && <TrailerCommentModal trailerId={trailer.id} trailerNumber={trailer?.trailerNumber}
                                                   onClose={() => setShowComments(false)}/>}
             {showIssues && <TrailerIssueModal trailerId={trailer.id} trailerNumber={trailer?.trailerNumber}
                                               onClose={() => setShowIssues(false)}/>}
-            {isSaving && (
-                <div className="saving-overlay">
-                    <div className="saving-indicator"></div>
-                </div>
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
             )}
-            <div className="detail-header">
-                <div className="header-left">
-                    <button className="back-button" onClick={handleBackClick} aria-label="Back to trailers">
-                        <i className="fas fa-arrow-left"></i>
-                        <span>Back</span>
-                    </button>
-                </div>
-                <h1>Trailer #{trailer.trailerNumber || 'Not Assigned'}</h1>
-                <div className="header-actions">
-                    <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
-                        <i className="fas fa-tools"></i> Issues
-                    </button>
-                    <button className="global-button-secondary" onClick={() => setShowComments(true)}>
-                        <i className="fas fa-comments"></i> Comments
-                    </button>
-                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
-                        <i className="fas fa-history"></i>
-                        <span>History</span>
-                    </button>
-                </div>
-            </div>
-            {!canEditTrailer && (
-                <div className="plant-restriction-warning">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <span>{plantRestrictionReason}</span>
-                </div>
+            {showTractorModal && (
+                <TractorSelectModal
+                    isOpen={showTractorModal}
+                    onClose={() => setShowTractorModal(false)}
+                    onSelect={async tractorId => {
+                        const newTractor = tractorId === '0' ? '' : tractorId;
+                        setShowTractorModal(false);
+                        if (newTractor !== assignedTractor) {
+                            try {
+                                await handleSave({
+                                    assignedTractor: newTractor
+                                });
+                                setAssignedTractor(newTractor);
+                                setLastUnassignedTractorId(null);
+                                await refreshTractors();
+                                const updatedTrailer = await TrailerService.fetchTrailerById(trailerId);
+                                setTrailer(updatedTrailer);
+                                setTrailerNumber(updatedTrailer.trailerNumber || '');
+                                setAssignedPlant(updatedTrailer.assignedPlant || '');
+                                setTrailerType(updatedTrailer.trailerType || '');
+                                setCleanlinessRating(updatedTrailer.cleanlinessRating || 0);
+                                setStatus(updatedTrailer.status || '');
+                                setOriginalValues({
+                                    trailerNumber: updatedTrailer.trailerNumber,
+                                    assignedPlant: updatedTrailer.assignedPlant,
+                                    trailerType: updatedTrailer.trailerType,
+                                    assignedTractor: updatedTrailer.assignedTractor,
+                                    cleanlinessRating: updatedTrailer.cleanlinessRating,
+                                    status: updatedTrailer.status
+                                });
+                                setHasUnsavedChanges(false);
+                                setMessage('Tractor assigned');
+                                setTimeout(() => setMessage(''), 3000);
+                            } catch (error) {
+                                setMessage('Error assigning tractor. Please try again.');
+                                setTimeout(() => setMessage(''), 3000);
+                            }
+                        }
+                    }}
+                    currentValue={assignedTractor}
+                    trailers={trailers}
+                    assignedPlant={assignedPlant}
+                    readOnly={!canEditTrailer}
+                    tractors={tractorModalTractors}
+                    onRefresh={async () => {
+                        await fetchTractorsForModal();
+                    }}
+                    trailerId={trailerId}
+                />
             )}
-            <div className="detail-content" style={{maxWidth: '1000px', margin: '0 auto', overflow: 'visible'}}>
-                {message && (
-                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                        {message}
-                    </div>
-                )}
+            {showHistory && <TrailerHistoryView trailer={trailer} onClose={() => setShowHistory(false)}/>}
+            <DetailViewSection
+                title={`Trailer #${trailer.trailerNumber || 'Not Assigned'}`}
+                onClose={handleBackClick}
+                isSaving={isSaving}
+                message={message}
+                itemAssignedPlant={trailer?.assignedPlant}
+                onCanEditChange={setCanEditTrailer}
+                isLoading={false}
+                showDeleteConfirmation={showDeleteConfirmation}
+                onDeleteConfirm={handleDelete}
+                onDeleteCancel={() => setShowDeleteConfirmation(false)}
+                deleteTitle="Confirm Delete"
+                deleteMessage={`Are you sure you want to delete Trailer #${trailer.trailerNumber}? This action cannot be undone.`}
+                headerActions={
+                    <>
+                        <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                            <i className="fas fa-tools"></i> Issues
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                            <i className="fas fa-comments"></i> Comments
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                            <i className="fas fa-history"></i>
+                            <span>History</span>
+                        </button>
+                    </>
+                }
+                footerActions={
+                    <>
+                        {canEditTrailer && (
+                            <>
+                                <button
+                                    className="primary-button save-button"
+                                    onClick={async () => {
+                                        await handleSave();
+                                        setHasUnsavedChanges(false);
+                                    }}
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? 'Saving...' : 'Save Changes'}
+                                </button>
+                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                        disabled={isSaving}>Delete Trailer
+                                </button>
+                            </>
+                        )}
+                    </>
+                }
+            >
                 <div className="detail-card">
                     <div className="card-header">
                         <h2>Trailer Information</h2>
@@ -624,56 +656,6 @@ ${openIssues.length > 0
                                             )
                                         ))}
                                 </div>
-                                {showTractorModal && (
-                                    <TractorSelectModal
-                                        isOpen={showTractorModal}
-                                        onClose={() => setShowTractorModal(false)}
-                                        onSelect={async tractorId => {
-                                            const newTractor = tractorId === '0' ? '' : tractorId;
-                                            setShowTractorModal(false);
-                                            if (newTractor !== assignedTractor) {
-                                                try {
-                                                    await handleSave({
-                                                        assignedTractor: newTractor
-                                                    });
-                                                    setAssignedTractor(newTractor);
-                                                    setLastUnassignedTractorId(null);
-                                                    await refreshTractors();
-                                                    const updatedTrailer = await TrailerService.fetchTrailerById(trailerId);
-                                                    setTrailer(updatedTrailer);
-                                                    setTrailerNumber(updatedTrailer.trailerNumber || '');
-                                                    setAssignedPlant(updatedTrailer.assignedPlant || '');
-                                                    setTrailerType(updatedTrailer.trailerType || '');
-                                                    setCleanlinessRating(updatedTrailer.cleanlinessRating || 0);
-                                                    setStatus(updatedTrailer.status || '');
-                                                    setOriginalValues({
-                                                        trailerNumber: updatedTrailer.trailerNumber,
-                                                        assignedPlant: updatedTrailer.assignedPlant,
-                                                        trailerType: updatedTrailer.trailerType,
-                                                        assignedTractor: updatedTrailer.assignedTractor,
-                                                        cleanlinessRating: updatedTrailer.cleanlinessRating,
-                                                        status: updatedTrailer.status
-                                                    });
-                                                    setHasUnsavedChanges(false);
-                                                    setMessage('Tractor assigned');
-                                                    setTimeout(() => setMessage(''), 3000);
-                                                } catch (error) {
-                                                    setMessage('Error assigning tractor. Please try again.');
-                                                    setTimeout(() => setMessage(''), 3000);
-                                                }
-                                            }
-                                        }}
-                                        currentValue={assignedTractor}
-                                        trailers={trailers}
-                                        assignedPlant={assignedPlant}
-                                        readOnly={!canEditTrailer}
-                                        tractors={tractorModalTractors}
-                                        onRefresh={async () => {
-                                            await fetchTractorsForModal();
-                                        }}
-                                        trailerId={trailerId}
-                                    />
-                                )}
                             </div>
                         </div>
                         <div className="form-section maintenance-info">
@@ -707,52 +689,8 @@ ${openIssues.length > 0
                         </div>
                     </div>
                 </div>
-                <div className="form-actions">
-                    {canEditTrailer && (
-                        <>
-                            <button
-                                className="primary-button save-button"
-                                onClick={async () => {
-                                    await handleSave();
-                                    setHasUnsavedChanges(false);
-                                }}
-                                disabled={isSaving}
-                            >
-                                {isSaving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                    disabled={isSaving}>Delete Trailer
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-            {showHistory && <TrailerHistoryView trailer={trailer} onClose={() => setShowHistory(false)}/>}
-            {showDeleteConfirmation && (
-                <div className="confirmation-modal">
-                    <div className="confirmation-content">
-                        <h2>Confirm Delete</h2>
-                        <p>Are you sure you want to delete Trailer #{trailer.trailerNumber}? This action cannot be
-                            undone.</p>
-                        <div className="confirmation-actions">
-                            <button className="cancel-button"
-                                    onClick={() => setShowDeleteConfirmation(false)}>Cancel
-                            </button>
-                            <button className="danger-button" onClick={handleDelete}>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={setAssignedPlant}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
-        </div>
+            </DetailViewSection>
+        </>
     );
 }
 

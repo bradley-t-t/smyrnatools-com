@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import './styles/Trailers.css';
+import '../../sections/styles/DetailView.css';
 
 function TractorSelectModal({
                                 isOpen,

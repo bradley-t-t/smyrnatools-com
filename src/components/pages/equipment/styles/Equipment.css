@@ -1206,8 +1206,6 @@ input[type="date"].equipment-form-control {
 }
 
 
-
-
 .retry-button {
     background-color: var(--danger);
     color: var(--text-light);

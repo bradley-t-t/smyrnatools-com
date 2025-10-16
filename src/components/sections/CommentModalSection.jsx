@@ -5,12 +5,12 @@ import {UserService} from '../../services/UserService';
 import './styles/CommentModal.css';
 
 function CommentModalSection({
-    itemId,
-    itemNumber,
-    itemType,
-    onClose,
-    service
-}) {
+                                 itemId,
+                                 itemNumber,
+                                 itemType,
+                                 onClose,
+                                 service
+                             }) {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -160,7 +160,8 @@ function CommentModalSection({
                             <div className="comment-modal-empty">
                                 <i className="fas fa-comments comment-modal-empty-icon"></i>
                                 <p>No comments yet</p>
-                                <p className="comment-modal-empty-subtext">Be the first to add a comment about this {itemType.toLowerCase()}</p>
+                                <p className="comment-modal-empty-subtext">Be the first to add a comment about
+                                    this {itemType.toLowerCase()}</p>
                             </div>
                         ) : (
                             <div className="comment-modal-section">

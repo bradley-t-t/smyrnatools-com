@@ -422,7 +422,8 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                     t.issues = issues
                     t.openIssuesCount = openIssuesCount
                     t.commentsCount = commentsCount
-                } catch (e) {}
+                } catch (e) {
+                }
             }
         }
 

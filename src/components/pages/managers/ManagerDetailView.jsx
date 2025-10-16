@@ -1,13 +1,12 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {DatabaseService, supabase} from '../../../services/DatabaseService';
 import {usePreferences} from '../../../app/context/PreferencesContext';
-import LoadingScreen from '../../common/LoadingScreen';
 import {useAuth} from '../../../app/context/AuthContext';
-import './styles/Managers.css';
 import {UserService} from '../../../services/UserService';
 import {AuthUtility} from '../../../utils/AuthUtility';
 import {RegionService} from '../../../services/RegionService';
 import PlantDropdownModal from '../../common/PlantDropdownModal';
+import DetailViewSection from '../../sections/DetailViewSection';
 
 function ManagerDetailView({managerId, onClose}) {
     const {preferences} = usePreferences();
@@ -32,6 +31,7 @@ function ManagerDetailView({managerId, onClose}) {
     const [showPasswordField, setShowPasswordField] = useState(false);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [canEditManager, setCanEditManager] = useState(false);
 
     useEffect(() => {
         document.body.classList.add('in-detail-view');
@@ -327,203 +327,37 @@ function ManagerDetailView({managerId, onClose}) {
     const selectedPlantObj = plants.find(p => p.plant_code === plantCode);
     const plantDisplayText = plantCode ? `(${selectedPlantObj?.plant_code || plantCode}) ${selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
-    if (isLoading) {
-        return (
-            <div className="manager-detail-view">
-                <div className="detail-header">
-                    <div className="header-left">
-                        <button className="back-button" onClick={onClose}>
-                            <i className="fas fa-arrow-left"></i>
-                        </button>
-                    </div>
-                    <div className="header-center">
-                        <h1>Manager Details</h1>
-                    </div>
-                    <div className="header-right"></div>
-                </div>
-                <div className="detail-content">
-                    <LoadingScreen message="Loading manager details..." inline={true}/>
-                </div>
-            </div>
-        );
-    }
-
-    if (!manager) {
-        return (
-            <div className="manager-detail-view">
-                <div className="detail-header">
-                    <div className="header-left">
-                        <button className="back-button" onClick={onClose}>
-                            <i className="fas fa-arrow-left"></i>
-                        </button>
-                    </div>
-                    <div className="header-center">
-                        <h1>Manager Not Found</h1>
-                    </div>
-                    <div className="header-right"></div>
-                </div>
-                <div className="error-message">
-                    <p>Could not find the requested manager. They may have been deleted.</p>
-                    <button className="primary-button" onClick={onClose}>
-                        Return to Managers
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="manager-detail-view">
-            {isSaving && (
-                <div className="saving-overlay">
-                    <div className="saving-indicator"></div>
-                </div>
-            )}
-            <div className="detail-header">
-                <div className="header-left">
-                    <button className="back-button" onClick={handleBackClick} aria-label="Back to managers">
-                        <i className="fas fa-arrow-left"></i>
-                        <span>Back</span>
+        <DetailViewSection
+            title={manager ? `${manager.firstName} ${manager.lastName || 'Manager Details'}` : 'Manager Details'}
+            onClose={onClose}
+            onBack={handleBackClick}
+            isSaving={isSaving}
+            message={message}
+            itemAssignedPlant={manager?.plantCode}
+            onCanEditChange={setCanEditManager}
+            isLoading={isLoading}
+            loadingMessage="Loading manager details..."
+            notFound={!manager && !isLoading}
+            notFoundMessage="Manager Not Found"
+            notFoundDescription="Could not find the requested manager. They may have been deleted."
+            footerActions={!isReadOnly && canEditManager ? (
+                <>
+                    <button className="primary-button save-button" onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
-                </div>
-                <div className="header-center">
-                    <h1>{manager.firstName} {manager.lastName || 'Manager Details'}</h1>
-                </div>
-                <div className="header-right"></div>
-            </div>
-            <div className="detail-content">
-                {message && (
-                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                        {message}
-                    </div>
-                )}
-                {isReadOnly && (
-                    <div className="message warning">
-                        <i className="fas fa-lock"></i>
-                        View-Only Mode | You can&apos;t edit this manager.
-                    </div>
-                )}
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Edit Information</h2>
-                    </div>
-                    <p className="edit-instructions">Make changes below and click Save when finished.</p>
-                    <div className="form-group">
-                        <label>First Name</label>
-                        <input
-                            type="text"
-                            value={firstName}
-                            onChange={e => setFirstName(e.target.value)}
-                            className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                            readOnly={isReadOnly}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Last Name</label>
-                        <input
-                            type="text"
-                            value={lastName}
-                            onChange={e => setLastName(e.target.value)}
-                            className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                            readOnly={isReadOnly}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                            readOnly={isReadOnly}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Plant</label>
-                        <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
-                                type="button">
-                            <span style={{
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>{plantDisplayText}</span>
-                        </button>
-                    </div>
-                    <div className="form-group">
-                        <label>Role</label>
-                        <select
-                            value={roleName}
-                            onChange={e => setRoleName(e.target.value)}
-                            className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                            disabled={isReadOnly}
-                        >
-                            {availableRoles.length ? availableRoles.map(role => (
-                                <option key={role.id} value={role.name}>{role.name}</option>
-                            )) : (
-                                <option value="">Loading roles...</option>
-                            )}
-                        </select>
-                        <div className="debug-info">
-                            {availableRoles.length ? `Found ${availableRoles.length} roles in database` : 'No roles found. Click refresh button above.'}
-                            {isReadOnly && (
-                                <div className="debug-warning">You cannot edit this manager.</div>
-                            )}
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <div className="password-header">
-                            <label>Password</label>
-                            {!showPasswordField && !isReadOnly && (
-                                <button className="text-button" onClick={() => setShowPasswordField(true)}>Change
-                                    Password</button>
-                            )}
-                        </div>
-                        {showPasswordField && (
-                            <div className="password-fields">
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    placeholder="Enter new password"
-                                    className="form-control"
-                                />
-                                <button className="text-button small" onClick={() => {
-                                    setShowPasswordField(false);
-                                    setPassword('');
-                                }}>
-                                    Cancel
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                {!isReadOnly && (
-                    <div className="form-actions">
-                        <button className="primary-button save-button" onClick={handleSave} disabled={isSaving}>
-                            {isSaving ? 'Saving...' : 'Save Changes'}
-                        </button>
-                        <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                disabled={isSaving}>
-                            Delete Manager
-                        </button>
-                    </div>
-                )}
-            </div>
-            {showDeleteConfirmation && (
-                <div className="confirmation-modal">
-                    <div className="confirmation-content">
-                        <h2>Confirm Delete</h2>
-                        <p>Are you sure you want to delete {manager.firstName} {manager.lastName}? This action cannot be
-                            undone.</p>
-                        <div className="confirmation-actions">
-                            <button className="cancel-button" onClick={() => setShowDeleteConfirmation(false)}>Cancel
-                            </button>
-                            <button className="danger-button" onClick={handleDelete}>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {showPlantModal && (
+                    <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                            disabled={isSaving}>
+                        Delete Manager
+                    </button>
+                </>
+            ) : null}
+            showDeleteConfirmation={showDeleteConfirmation}
+            onDeleteConfirm={handleDelete}
+            onDeleteCancel={() => setShowDeleteConfirmation(false)}
+            deleteTitle="Confirm Delete"
+            deleteMessage={manager ? `Are you sure you want to delete ${manager.firstName} ${manager.lastName}? This action cannot be undone.` : 'Are you sure you want to delete this manager? This action cannot be undone.'}
+            modals={showPlantModal && (
                 <PlantDropdownModal
                     isOpen={showPlantModal}
                     onClose={() => setShowPlantModal(false)}
@@ -535,7 +369,109 @@ function ManagerDetailView({managerId, onClose}) {
                     searchPlaceholder="Search plants..."
                 />
             )}
-        </div>
+        >
+            {isReadOnly && (
+                <div className="message warning">
+                    <i className="fas fa-lock"></i>
+                    View-Only Mode | You can&apos;t edit this manager.
+                </div>
+            )}
+            <div className="detail-card">
+                <div className="card-header">
+                    <h2>Edit Information</h2>
+                </div>
+                <p className="edit-instructions">{canEditManager ? 'Make changes below and click Save when finished.' : 'You are in read-only mode and cannot make changes to this manager.'}</p>
+                <div className="form-group">
+                    <label>First Name</label>
+                    <input
+                        type="text"
+                        value={firstName}
+                        onChange={e => setFirstName(e.target.value)}
+                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                        readOnly={isReadOnly || !canEditManager}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                        type="text"
+                        value={lastName}
+                        onChange={e => setLastName(e.target.value)}
+                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                        readOnly={isReadOnly || !canEditManager}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                        readOnly={isReadOnly || !canEditManager}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Plant</label>
+                    <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                            type="button" disabled={!canEditManager}>
+                        <span style={{
+                            display: 'block',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>{plantDisplayText}</span>
+                    </button>
+                </div>
+                <div className="form-group">
+                    <label>Role</label>
+                    <select
+                        value={roleName}
+                        onChange={e => setRoleName(e.target.value)}
+                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                        disabled={isReadOnly || !canEditManager}
+                    >
+                        {availableRoles.length ? availableRoles.map(role => (
+                            <option key={role.id} value={role.name}>{role.name}</option>
+                        )) : (
+                            <option value="">Loading roles...</option>
+                        )}
+                    </select>
+                    <div className="debug-info">
+                        {availableRoles.length ? `Found ${availableRoles.length} roles in database` : 'No roles found. Click refresh button above.'}
+                        {isReadOnly && (
+                            <div className="debug-warning">You cannot edit this manager.</div>
+                        )}
+                    </div>
+                </div>
+                <div className="form-group">
+                    <div className="password-header">
+                        <label>Password</label>
+                        {!showPasswordField && !isReadOnly && canEditManager && (
+                            <button className="text-button" onClick={() => setShowPasswordField(true)}>Change
+                                Password</button>
+                        )}
+                    </div>
+                    {showPasswordField && (
+                        <div className="password-fields">
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                placeholder="Enter new password"
+                                className="form-control"
+                                disabled={!canEditManager}
+                            />
+                            <button className="text-button small" onClick={() => {
+                                setShowPasswordField(false);
+                                setPassword('');
+                            }}>
+                                Cancel
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </DetailViewSection>
     );
 }
 

@@ -2,19 +2,18 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {EquipmentService} from '../../../services/EquipmentService';
 import {PlantService} from '../../../services/PlantService';
 import {UserService} from '../../../services/UserService';
-import {supabase} from '../../../services/DatabaseService';
 import {usePreferences} from '../../../app/context/PreferencesContext';
 import EquipmentCommentModal from './EquipmentCommentModal';
 import EquipmentIssueModal from './EquipmentIssueModal';
 import EquipmentUtility from '../../../utils/EquipmentUtility';
 import EquipmentHistoryView from './EquipmentHistoryView';
 import './styles/Equipment.css';
-import LoadingScreen from '../../common/LoadingScreen';
 import {RegionService} from '../../../services/RegionService';
 import ThemeUtility from '../../../utils/ThemeUtility';
 import PlantDropdownModal from '../../common/PlantDropdownModal';
+import DetailViewSection from '../../sections/DetailViewSection';
 
-function EquipmentDetailView({equipmentId, onClose, onSaved}) {
+function EquipmentDetailView({equipmentId, onClose}) {
     const {preferences} = usePreferences();
     const [equipment, setEquipment] = useState(null);
     const [plants, setPlants] = useState([]);
@@ -26,8 +25,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [message, setMessage] = useState('');
-    const [canEditEquipment, setCanEditEquipment] = useState(true);
-    const [plantRestrictionReason, setPlantRestrictionReason] = useState('');
+    const [canEditEquipment, setCanEditEquipment] = useState(false);
     const [originalValues, setOriginalValues] = useState({});
     const [identifyingNumber, setIdentifyingNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
@@ -40,8 +38,8 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const [make, setMake] = useState('');
     const [model, setModel] = useState('');
     const [year, setYear] = useState('');
-    const [comments, setComments] = useState([]);
-    const [issues, setIssues] = useState([]);
+    const [_comments, setComments] = useState([]);
+    const [_issues, setIssues] = useState([]);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
 
@@ -85,14 +83,17 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 });
             } catch (error) {
                 setMessage('Error loading equipment details');
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         }
 
         fetchData();
     }, [equipmentId]);
 
     useEffect(() => {
+        let cancelled = false;
+
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || '';
             try {
@@ -110,52 +111,28 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                     }
                 }
                 if (!regionCode) {
-                    setRegionPlantCodes(new Set());
+                    if (!cancelled) setRegionPlantCodes(new Set());
                     return;
                 }
                 const regionPlants = await RegionService.fetchRegionPlants(regionCode);
+                if (cancelled) return;
                 const codes = new Set(regionPlants.map(p => String(p.plantCode || p.plant_code || '').trim().toUpperCase()).filter(Boolean));
                 setRegionPlantCodes(codes);
-            } catch (e) {
-                setRegionPlantCodes(new Set());
+            } catch {
+                if (!cancelled) setRegionPlantCodes(new Set());
             }
         }
 
         loadAllowedPlants();
+        return () => {
+            cancelled = true;
+        };
     }, [preferences.selectedRegion?.code]);
 
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return [];
         return plants.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()));
     }, [plants, regionPlantCodes]);
-
-    useEffect(() => {
-        async function checkPlantRestriction() {
-            if (isLoading || !equipment) return;
-
-            try {
-                const userId = await UserService.getCurrentUser();
-                if (!userId) return;
-
-                const hasPermission = await UserService.hasPermission(userId, 'equipments.bypass.plantrestriction');
-                if (hasPermission) return setCanEditEquipment(true);
-
-                const {data: profileData} = await supabase.from('users_profiles').select('plant_code').eq('id', userId).single();
-                if (profileData && equipment) {
-                    const isSamePlant = profileData.plant_code === equipment.assignedPlant;
-                    setCanEditEquipment(isSamePlant);
-                    if (!isSamePlant) {
-                        setPlantRestrictionReason(
-                            `You cannot edit this equipment because it belongs to plant ${equipment.assignedPlant} and you are assigned to plant ${profileData.plant_code}.`
-                        );
-                    }
-                }
-            } catch (error) {
-            }
-        }
-
-        checkPlantRestriction();
-    }, [equipment, isLoading]);
 
     useEffect(() => {
         if (!originalValues.identifyingNumber || isLoading) return;
@@ -170,9 +147,9 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
             conditionRating !== originalValues.conditionRating ||
             formatDateForComparison(lastServiceDate) !== formatDateForComparison(originalValues.lastServiceDate) ||
             hoursMileage !== originalValues.hoursMileage ||
-            make !== originalValues.make ||
-            model !== originalValues.model ||
-            year !== originalValues.year;
+            make !== originalValues.equipmentMake ||
+            model !== originalValues.equipmentModel ||
+            year !== originalValues.yearMade;
 
         setHasUnsavedChanges(hasChanges);
     }, [identifyingNumber, assignedPlant, equipmentType, status, cleanlinessRating, conditionRating, lastServiceDate, hoursMileage, make, model, year, originalValues, isLoading]);
@@ -221,6 +198,20 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
             await EquipmentService.updateEquipment(updatedEquipment.id, updatedEquipment, userId);
             setEquipment(updatedEquipment);
             setMessage('Changes saved successfully!');
+            setTimeout(() => setMessage(''), 5000);
+            setOriginalValues({
+                identifyingNumber: updatedEquipment.identifyingNumber,
+                assignedPlant: updatedEquipment.assignedPlant,
+                equipmentType: updatedEquipment.equipmentType,
+                status: updatedEquipment.status,
+                cleanlinessRating: updatedEquipment.cleanlinessRating,
+                conditionRating: updatedEquipment.conditionRating,
+                lastServiceDate: updatedEquipment.lastServiceDate,
+                hoursMileage: updatedEquipment.hoursMileage ? updatedEquipment.hoursMileage.toString() : '',
+                equipmentMake: updatedEquipment.equipmentMake,
+                equipmentModel: updatedEquipment.equipmentModel,
+                yearMade: updatedEquipment.yearMade ? updatedEquipment.yearMade.toString() : ''
+            });
             setHasUnsavedChanges(false);
             return updatedEquipment;
         } catch (error) {
@@ -246,21 +237,11 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
         }
     }
 
-    async function handleBackClick() {
+    function handleBackClick() {
         if (hasUnsavedChanges) {
-            const updated = await handleSave();
-            if (!updated) return;
-            if (typeof onSaved === 'function') onSaved(updated);
-            else onClose();
-            return;
+            handleSave();
         }
-        if (typeof onSaved === 'function') onSaved();
-        else onClose();
-    }
-
-    function getPlantName(plantCode) {
-        const plant = plants.find(p => p.plantCode === plantCode);
-        return plant ? plant.plantName : plantCode;
+        onClose();
     }
 
     function formatDate(date) {
@@ -286,107 +267,61 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     }, [equipmentId]);
 
     if (isLoading) {
-        return (
-            <div className="equipment-detail-view">
-                <div className="detail-header" style={{
-                    backgroundColor: 'var(--detail-header-bg)',
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 8px'
-                }}>
-                    <button className="back-button" onClick={onClose} style={{marginRight: '8px'}}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1 style={{color: 'var(--text-primary)', textAlign: 'center', flex: 1, margin: '0 auto'}}>Equipment
-                        Details</h1>
-                    <div style={{width: '36px'}}></div>
-                </div>
-                <div className="detail-content">
-                    <LoadingScreen message="Loading equipment details..." inline={true}/>
-                </div>
-            </div>
-        );
+        return null;
     }
 
     if (!equipment) {
         return (
-            <div className="equipment-detail-view">
-                <div className="detail-header"
-                     style={{backgroundColor: 'var(--detail-header-bg)', color: 'var(--text-primary)'}}>
-                    <button className="back-button" onClick={onClose}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1>Equipment Not Found</h1>
-                </div>
-                <div className="error-message">
-                    <p>Could not find the requested equipment. It may have been deleted.</p>
-                    <button className="primary-button" onClick={onClose}>Return to Equipment</button>
-                </div>
-            </div>
+            <DetailViewSection
+                title="Equipment Not Found"
+                onClose={onClose}
+                notFound={true}
+                notFoundMessage="Equipment Not Found"
+                notFoundDescription="Could not find the requested equipment. It may have been deleted."
+            />
         );
     }
-
-    const assignedPlantInRegion = assignedPlant && regionPlantCodes.has(String(assignedPlant).trim().toUpperCase());
 
     const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
     return (
-        <div className="equipment-detail-view">
-            {showComments &&
-                <EquipmentCommentModal equipmentId={equipmentId} equipmentNumber={equipment?.identifyingNumber}
-                                       onClose={() => setShowComments(false)}/>}
-            {showIssues && <EquipmentIssueModal equipmentId={equipmentId} equipmentNumber={equipment?.identifyingNumber}
-                                                onClose={() => setShowIssues(false)}/>}
+        <>
             {showHistory && (
                 <EquipmentHistoryView
                     equipment={equipment}
                     onClose={() => setShowHistory(false)}
                 />
             )}
-            {isSaving && (
-                <div className="saving-overlay">
-                    <div className="saving-indicator"></div>
-                </div>
+            {showComments &&
+                <EquipmentCommentModal equipmentId={equipmentId} equipmentNumber={equipment?.identifyingNumber}
+                                       onClose={() => setShowComments(false)}/>}
+            {showIssues && <EquipmentIssueModal equipmentId={equipmentId} equipmentNumber={equipment?.identifyingNumber}
+                                                onClose={() => setShowIssues(false)}/>}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
             )}
-            <div className="detail-header"
-                 style={{backgroundColor: 'var(--detail-header-bg)', color: 'var(--text-primary)'}}>
-                <div className="header-left">
-                    <button className="back-button" onClick={() => handleBackClick()} aria-label="Back to equipment">
-                        <i className="fas fa-arrow-left"></i>
-                        <span>Back</span>
-                    </button>
-                </div>
-                <h1>{equipment.equipmentType} #{equipment.identifyingNumber || 'Not Assigned'}</h1>
-                <div className="header-actions">
-                    {canEditEquipment && (
-                        <>
-                            <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
-                                <i className="fas fa-tools"></i> Issues
-                            </button>
-                            <button className="global-button-secondary" onClick={() => setShowComments(true)}>
-                                <i className="fas fa-comments"></i> Comments
-                            </button>
-                            <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
-                                <i className="fas fa-history"></i> History
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-            {!canEditEquipment && (
-                <div className="plant-restriction-warning">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <span>{plantRestrictionReason}</span>
-                </div>
-            )}
-            <div className="detail-content" style={{maxWidth: '1000px', margin: '0 auto', overflow: 'visible'}}>
-                {message && (
-                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                        {message}
-                    </div>
-                )}
+            <DetailViewSection
+                title={`${equipment.equipmentType} #${equipment.identifyingNumber || 'Not Assigned'}`}
+                onClose={handleBackClick}
+                isSaving={isSaving}
+                message={message}
+                canEdit={canEditEquipment}
+                isLoading={false}
+                showDeleteConfirmation={showDeleteConfirmation}
+                onDeleteConfirm={handleDelete}
+                onDeleteCancel={() => setShowDeleteConfirmation(false)}
+                deleteTitle="Confirm Delete"
+                deleteMessage={`Are you sure you want to delete ${equipment.equipmentType} #${equipment.identifyingNumber}? This action cannot be undone.`}
+                itemAssignedPlant={assignedPlant}
+                onCanEditChange={setCanEditEquipment}
+            >
                 <div className="detail-card">
                     <div className="card-header">
                         <h2>Equipment Information</h2>
@@ -527,6 +462,8 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div className="form-sections">
                         <div className="form-section vehicle-info">
                             <h3>Asset Details</h3>
                             <div className="form-group">
@@ -548,55 +485,9 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                         </div>
                     </div>
                 </div>
-                <div className="form-actions">
-                    {canEditEquipment && (
-                        <>
-                            <button className="primary-button save-button" onClick={handleSave}
-                                    disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                    disabled={isSaving}>Delete Equipment
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-            {showDeleteConfirmation && (
-                <div className="confirmation-modal" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 9999
-                }}>
-                    <div className="confirmation-content" style={{width: '90%', maxWidth: '500px', margin: '0 auto'}}>
-                        <h2>Confirm Delete</h2>
-                        <p>Are you sure you want to delete {equipment.equipmentType} #{equipment.identifyingNumber}?
-                            This action cannot be undone.</p>
-                        <div className="confirmation-actions"
-                             style={{display: 'flex', justifyContent: 'center', gap: '12px'}}>
-                            <button className="cancel-button" onClick={() => setShowDeleteConfirmation(false)}>Cancel
-                            </button>
-                            <button className="danger-button" onClick={handleDelete}>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={setAssignedPlant}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
-        </div>
+            </DetailViewSection>
+        </>
     );
 }
 
 export default EquipmentDetailView;
-

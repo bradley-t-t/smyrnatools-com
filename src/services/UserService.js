@@ -185,20 +185,6 @@ UserService.getUserPlant = async function (userId) {
     return json ?? null
 }
 
-UserService.canEditMixerForPlant = async function (userId, mixerPlant) {
-    if (!userId || !mixerPlant) return {allowed: true, reason: ''}
-    const bypass = await this.hasPermission(userId, 'mixers.bypass.plantrestriction')
-    if (bypass) return {allowed: true, reason: ''}
-    const profile = await this.getUserPlant(userId)
-    const plantCode = typeof profile === 'string' ? profile : (profile?.plant_code || profile?.plantCode || null)
-    if (!plantCode) return {allowed: false, reason: 'Missing plant assignment for your profile.'}
-    const allowed = plantCode === mixerPlant
-    return {
-        allowed,
-        reason: allowed ? '' : `You cannot edit or verify this mixer because it belongs to plant ${mixerPlant} and you are assigned to plant ${plantCode}.`
-    }
-}
-
 UserService.getAllUsersWithProfilesAndRoles = async function () {
     const [{data: users, error: usersError}, {data: profiles, error: profilesError}, {
         data: permissions,

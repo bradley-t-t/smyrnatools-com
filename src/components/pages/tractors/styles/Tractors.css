@@ -1060,10 +1060,6 @@ label {
 }
 
 
-
-
-
-
 @media (max-width: 768px) {
 }
 
@@ -1752,15 +1748,6 @@ input[type="date"].form-control {
     opacity: 0.7;
     margin-top: var(--spacing-sm);
 }
-
-
-
-
-
-
-
-
-
 
 
 @import url('../../../common/styles/UserLabel.css');

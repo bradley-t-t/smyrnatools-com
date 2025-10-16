@@ -5,12 +5,12 @@ import {UserService} from '../../services/UserService';
 import './styles/IssueModal.css';
 
 function IssueModalSection({
-    itemId,
-    itemNumber,
-    itemType,
-    onClose,
-    service
-}) {
+                               itemId,
+                               itemNumber,
+                               itemType,
+                               onClose,
+                               service
+                           }) {
     const [issues, setIssues] = useState([]);
     const [newIssue, setNewIssue] = useState('');
     const [severity, setSeverity] = useState('Medium');
@@ -197,7 +197,8 @@ function IssueModalSection({
                             <div className="issue-modal-empty">
                                 <i className="fas fa-tools issue-modal-empty-icon"></i>
                                 <p>No issues yet</p>
-                                <p className="issue-modal-empty-subtext">Be the first to add an issue about this {itemType.toLowerCase()}</p>
+                                <p className="issue-modal-empty-subtext">Be the first to add an issue about
+                                    this {itemType.toLowerCase()}</p>
                             </div>
                         ) : (
                             <>
@@ -207,7 +208,8 @@ function IssueModalSection({
                                         {openIssues.map(issue => (
                                             <div key={issue.id} className="issue-modal-item">
                                                 <div className="issue-modal-item-header">
-                                                    <span className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
+                                                    <span
+                                                        className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     <span className="issue-modal-date">
@@ -243,11 +245,13 @@ function IssueModalSection({
                                 )}
                                 {resolvedIssues.length > 0 && (
                                     <div className="issue-modal-section">
-                                        <h4 className="issue-modal-section-title">Resolved Issues ({resolvedIssues.length})</h4>
+                                        <h4 className="issue-modal-section-title">Resolved Issues
+                                            ({resolvedIssues.length})</h4>
                                         {resolvedIssues.map(issue => (
                                             <div key={issue.id} className="issue-modal-item issue-modal-item-resolved">
                                                 <div className="issue-modal-item-header">
-                                                    <span className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
+                                                    <span
+                                                        className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     <span className="issue-modal-date">

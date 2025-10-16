@@ -1,12 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {PickupTruckService} from '../../../services/PickupTruckService'
-import './styles/PickupTrucks.css'
-import LoadingScreen from '../../common/LoadingScreen'
 import {PlantService} from '../../../services/PlantService'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
 import {UserService} from '../../../services/UserService'
 import PlantDropdownModal from '../../common/PlantDropdownModal'
+import DetailViewSection from '../../sections/DetailViewSection'
 
 function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const {preferences} = usePreferences()
@@ -28,6 +27,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const [originalValues, setOriginalValues] = useState(null)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
     const [showPlantModal, setShowPlantModal] = useState(false)
+    const [canEditPickup, setCanEditPickup] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -201,115 +201,32 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
         else onClose?.()
     }
 
-    if (isLoading) {
-        return (
-            <div className="mixer-detail-view pickup-trucks-detail">
-                <div className="detail-header themed">
-                    <button className="back-button" onClick={onClose}><i className="fas fa-arrow-left"></i></button>
-                    <h1>Pickup Details</h1>
-                    <div className="header-spacer-36"></div>
-                </div>
-                <div className="detail-content">
-                    <LoadingScreen message="Loading pickup details..." inline={true}/>
-                </div>
-            </div>
-        )
-    }
-
-    if (!pickup) {
-        return (
-            <div className="mixer-detail-view pickup-trucks-detail">
-                <div className="detail-header themed">
-                    <button className="back-button" onClick={onClose}><i className="fas fa-arrow-left"></i></button>
-                    <h1>Pickup Not Found</h1>
-                </div>
-                <div className="error-message">
-                    <p>Could not find the requested pickup.</p>
-                    <button className="primary-button" onClick={onClose}>Return</button>
-                </div>
-            </div>
-        )
-    }
-
-    const assignedPlantInRegion = assignedPlant && regionPlantCodes.has(String(assignedPlant).trim().toUpperCase())
-
     return (
-        <div className="mixer-detail-view pickup-trucks-detail">
-            {isSaving && (
-                <div className="saving-overlay">
-                    <div className="saving-indicator"></div>
-                </div>
-            )}
-            <div className="detail-header themed" style={{display: 'flex', alignItems: 'center'}}>
-                <button className="back-button" onClick={handleBackClick} aria-label="Back"><i
-                    className="fas fa-arrow-left"></i><span>Back</span></button>
-                <h1 style={{flex: 1, textAlign: 'center'}}>Pickup {assigned ? `- ${assigned}` : ''}</h1>
-                <div style={{width: '36px'}}></div>
-            </div>
-            <div className="detail-content pickup-detail-content">
-                {message && (<div
-                    className={`message ${message.toLowerCase().includes('error') ? 'error' : 'success'}`}>{message}</div>)}
-                <div className="detail-card">
-                    <div className="card-header"><h2>Pickup Information</h2></div>
-                    <p className="edit-instructions">You can make changes below. Remember to save your changes.</p>
-                    <div className="form-sections pickup-form-sections">
-                        <div className="form-section basic-info">
-                            <h3>Basic Information</h3>
-                            <div className="form-group"><label>Assigned Plant</label>
-                                <button className="operator-select-button form-control"
-                                        onClick={() => setShowPlantModal(true)} type="button"><span style={{
-                                    display: 'block',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }}>{plantDisplayText}</span></button>
-                            </div>
-                            <div className="form-group"><label>Status</label><select value={status}
-                                                                                     onChange={e => setStatus(e.target.value)}
-                                                                                     className="form-control">
-                                <option value="">Select Status</option>
-                                <option value="Active">Active</option>
-                                <option value="Stationary">Stationary</option>
-                                <option value="Spare">Spare</option>
-                                <option value="In Shop">In Shop</option>
-                                <option value="Retired">Retired</option>
-                                <option value="Sold">Sold</option>
-                            </select></div>
-                            <div className="form-group"><label>Assigned</label><input type="text" value={assigned}
-                                                                                      onChange={e => setAssigned(e.target.value)}
-                                                                                      className="form-control"/></div>
-                            <div className="form-group"><label>Mileage</label><input type="number" value={mileage}
-                                                                                     onChange={e => setMileage(e.target.value)}
-                                                                                     className="form-control"/></div>
-                        </div>
-                        <div className="form-section vehicle-info">
-                            <h3>Asset Details</h3>
-                            <div className="form-group"><label>VIN</label><input type="text" value={vin}
-                                                                                 onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
-                                                                                 maxLength="17"
-                                                                                 className="form-control"/></div>
-                            <div className="form-group"><label>Make</label><input type="text" value={make}
-                                                                                  onChange={e => setMake(e.target.value)}
-                                                                                  className="form-control"/></div>
-                            <div className="form-group"><label>Model</label><input type="text" value={model}
-                                                                                   onChange={e => setModel(e.target.value)}
-                                                                                   className="form-control"/></div>
-                            <div className="form-group"><label>Year</label><input type="text" value={year}
-                                                                                  onChange={e => setYear(e.target.value)}
-                                                                                  className="form-control"/></div>
-                            <div className="form-group"><label>Comments</label><textarea value={comments}
-                                                                                         onChange={e => setComments(e.target.value)}
-                                                                                         className="form-control"
-                                                                                         rows={3}/></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="form-actions">
-                    <button className="primary-button save-button" onClick={handleSave}
-                            disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                    <button className="danger-button" onClick={handleDelete} disabled={isSaving}>Delete Pickup</button>
-                </div>
-            </div>
-            {showPlantModal && (
+        <DetailViewSection
+            title={`Pickup ${assigned ? `- ${assigned}` : ''}`}
+            onClose={onClose}
+            onBack={handleBackClick}
+            isSaving={isSaving}
+            message={message}
+            itemAssignedPlant={pickup?.assignedPlant}
+            onCanEditChange={setCanEditPickup}
+            isLoading={isLoading}
+            loadingMessage="Loading pickup details..."
+            notFound={!pickup && !isLoading}
+            notFoundMessage="Pickup Not Found"
+            notFoundDescription="Could not find the requested pickup."
+            footerActions={
+                canEditPickup && (
+                    <>
+                        <button className="primary-button save-button" onClick={handleSave}
+                                disabled={isSaving || !canEditPickup}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
+                        <button className="danger-button" onClick={handleDelete}
+                                disabled={isSaving || !canEditPickup}>Delete Pickup
+                        </button>
+                    </>
+                )
+            }
+            modals={showPlantModal && (
                 <PlantDropdownModal
                     isOpen={showPlantModal}
                     onClose={() => setShowPlantModal(false)}
@@ -318,7 +235,71 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     searchPlaceholder="Search plants..."
                 />
             )}
-        </div>
+        >
+            <div className="detail-card">
+                <div className="card-header"><h2>Pickup Information</h2></div>
+                <p className="edit-instructions">{canEditPickup ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this pickup.'}</p>
+                <div className="form-sections pickup-form-sections">
+                    <div className="form-section basic-info">
+                        <h3>Basic Information</h3>
+                        <div className="form-group"><label>Assigned Plant</label>
+                            <button className="operator-select-button form-control"
+                                    onClick={() => setShowPlantModal(true)} type="button"
+                                    disabled={!canEditPickup}><span style={{
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>{plantDisplayText}</span></button>
+                        </div>
+                        <div className="form-group"><label>Status</label><select value={status}
+                                                                                 onChange={e => setStatus(e.target.value)}
+                                                                                 className="form-control"
+                                                                                 disabled={!canEditPickup}>
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Stationary">Stationary</option>
+                            <option value="Spare">Spare</option>
+                            <option value="In Shop">In Shop</option>
+                            <option value="Retired">Retired</option>
+                            <option value="Sold">Sold</option>
+                        </select></div>
+                        <div className="form-group"><label>Assigned</label><input type="text" value={assigned}
+                                                                                  onChange={e => setAssigned(e.target.value)}
+                                                                                  className="form-control"
+                                                                                  disabled={!canEditPickup}/></div>
+                        <div className="form-group"><label>Mileage</label><input type="number" value={mileage}
+                                                                                 onChange={e => setMileage(e.target.value)}
+                                                                                 className="form-control"
+                                                                                 disabled={!canEditPickup}/></div>
+                    </div>
+                    <div className="form-section vehicle-info">
+                        <h3>Asset Details</h3>
+                        <div className="form-group"><label>VIN</label><input type="text" value={vin}
+                                                                             onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                                                             maxLength="17"
+                                                                             className="form-control"
+                                                                             disabled={!canEditPickup}/></div>
+                        <div className="form-group"><label>Make</label><input type="text" value={make}
+                                                                              onChange={e => setMake(e.target.value)}
+                                                                              className="form-control"
+                                                                              disabled={!canEditPickup}/></div>
+                        <div className="form-group"><label>Model</label><input type="text" value={model}
+                                                                               onChange={e => setModel(e.target.value)}
+                                                                               className="form-control"
+                                                                               disabled={!canEditPickup}/></div>
+                        <div className="form-group"><label>Year</label><input type="text" value={year}
+                                                                              onChange={e => setYear(e.target.value)}
+                                                                              className="form-control"
+                                                                              disabled={!canEditPickup}/></div>
+                        <div className="form-group"><label>Comments</label><textarea value={comments}
+                                                                                     onChange={e => setComments(e.target.value)}
+                                                                                     className="form-control"
+                                                                                     rows={3}
+                                                                                     disabled={!canEditPickup}/></div>
+                    </div>
+                </div>
+            </div>
+        </DetailViewSection>
     )
 }
 

@@ -31,6 +31,7 @@ import PickupTrucksView from '../components/pages/pickup-trucks/PickupTrucksView
 import DashboardView from '../components/pages/dashboard/DashboardView'
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
+import ListDetailView from '../components/pages/list/ListDetailView'
 
 function VersionPopup({version}) {
     if (!version) return null
@@ -170,6 +171,7 @@ function AppContent() {
     const onlineStreakRef = useRef(0)
     const offlineStreakRef = useRef(0)
     const offlineSinceRef = useRef(null)
+    const [selectedItem, setSelectedItem] = useState(null)
 
     useEffect(() => {
         fetch('/version.json', {cache: 'no-store'}).then(res => res.json()).then(data => setCurrentVersion(data.version || '')).catch(() => setCurrentVersion(''))
@@ -399,6 +401,7 @@ function AppContent() {
         }
         if (selectedMixer && viewId !== 'Mixers') setSelectedMixer(null)
         if (selectedTractor && viewId !== 'Tractors') setSelectedTractor(null)
+        if (selectedItem && viewId !== 'List') setSelectedItem(null)
     }
 
     const handleSetSelectedView = (view, initialStatusFilter = null, initialSelectedPlant = null, initialPositionFilter = null) => setSelectedView({
@@ -446,8 +449,12 @@ function AppContent() {
                                       initialPositionFilter={selectedView.initialPositionFilter}/>
             case 'Managers':
                 return <ManagersView title={title}/>
-            case 'List':
-                return <ListView title="Tasks List"/>
+            case 'List': {
+                if (selectedItem) {
+                    return <ListDetailView itemId={selectedItem} onClose={() => setSelectedItem(null)}/>
+                }
+                return <ListView title="Tasks List" onSelectItem={setSelectedItem}/>
+            }
             case 'Archive':
                 return <ListView title="Archived Items" showArchived/>
             case 'MyAccount': {

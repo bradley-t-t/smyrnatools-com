@@ -470,7 +470,8 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                     t.issues = issues
                     t.openIssuesCount = openIssuesCount
                     t.commentsCount = commentsCount
-                } catch (e) {}
+                } catch (e) {
+                }
             }
         }
 
@@ -484,7 +485,11 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
                 {selectedTractor ? (
-                    <TractorDetailView tractorId={selectedTractor} onClose={() => { setSelectedTractor(null); setIsLoading(true); RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code).then(codes => fetchTractors(codes).finally(() => setIsLoading(false))); }}/>
+                    <TractorDetailView tractorId={selectedTractor} onClose={() => {
+                        setSelectedTractor(null);
+                        setIsLoading(true);
+                        RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code).then(codes => fetchTractors(codes).finally(() => setIsLoading(false)));
+                    }}/>
                 ) : (
                     <>
                         <TopSection

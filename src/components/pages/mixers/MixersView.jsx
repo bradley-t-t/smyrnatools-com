@@ -175,7 +175,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     m.issues = issues
                     m.openIssuesCount = openIssuesCount
                     m.commentsCount = commentsCount
-                } catch (e) {}
+                } catch (e) {
+                }
             }
         }
 

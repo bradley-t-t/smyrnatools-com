@@ -153,7 +153,8 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                     e.issues = issues
                     e.openIssuesCount = openIssuesCount
                     e.commentsCount = commentsCount
-                } catch (e) {}
+                } catch (e) {
+                }
             }
         }
 

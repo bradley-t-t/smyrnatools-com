@@ -1,5 +1,4 @@
 import supabase, {DatabaseService} from '../../../services/DatabaseService';
-import './styles/Operators.css';
 import GrammarUtility from '../../../utils/GrammarUtility';
 import {useEffect, useMemo, useState} from "react";
 import PlantDropdownModal from '../../common/PlantDropdownModal';
@@ -8,6 +7,7 @@ import {TractorService} from '../../../services/TractorService';
 import OperatorHistoryView from './OperatorHistoryView';
 import {UserService} from '../../../services/UserService';
 import {OperatorService} from '../../../services/OperatorService';
+import DetailViewSection from '../../sections/DetailViewSection';
 
 function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [operator, setOperator] = useState(null);
@@ -25,13 +25,13 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [isTrainer, setIsTrainer] = useState(false);
     const [assignedTrainer, setAssignedTrainer] = useState('');
     const [hasTrainingPermission, setHasTrainingPermission] = useState(false);
-    const [updatedByEmail] = useState('');
     const [_showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [_hasUnsavedChanges, _setHasUnsavedChanges] = useState(false);
     const [rating, setRating] = useState(0);
     const [phone, setPhone] = useState('');
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [canEditOperator, setCanEditOperator] = useState(false);
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -216,253 +216,226 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
         setTimeout(() => setMessage(''), 3000);
     };
 
-    if (isLoading) {
-    }
-
-    if (!operator) {
-    }
-
     return (
-        <div className="operator-detail-view">
-            {isSaving && (
-                <div className="saving-overlay">
-                    <div className="saving-indicator"></div>
+        <DetailViewSection
+            title={operator && operator.name ? operator.name : 'Operator Details'}
+            onClose={onClose}
+            onBack={handleBackClick}
+            headerActions={
+                <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                    <i className="fas fa-history"></i>
+                    <span>History</span>
+                </button>
+            }
+            isSaving={isSaving}
+            message={message}
+            itemAssignedPlant={operator?.plant_code}
+            onCanEditChange={setCanEditOperator}
+            isLoading={isLoading}
+            loadingMessage="Loading operator details..."
+            notFound={!operator && !isLoading}
+            notFoundMessage="Operator Not Found"
+            notFoundDescription="Could not find the requested operator."
+            footerActions={
+                canEditOperator && (
+                    <>
+                        <button
+                            className="primary-button save-button"
+                            onClick={handleSave}
+                            disabled={isSaving || !canEditOperator}
+                        >
+                            {isSaving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                        <button
+                            className="danger-button"
+                            onClick={() => setShowDeleteConfirmation(true)}
+                            disabled={isSaving || !canEditOperator}
+                        >
+                            Delete Operator
+                        </button>
+                    </>
+                )
+            }
+            showDeleteConfirmation={_showDeleteConfirmation}
+            onDeleteConfirm={handleDelete}
+            onDeleteCancel={() => setShowDeleteConfirmation(false)}
+            deleteTitle="Confirm Delete"
+            deleteMessage={`Are you sure you want to delete ${operator && operator.name}? This action cannot be undone.`}
+            modals={
+                <>
+                    {showPlantModal && (
+                        <PlantDropdownModal
+                            isOpen={showPlantModal}
+                            onClose={() => setShowPlantModal(false)}
+                            plants={filteredPlants}
+                            onSelect={setAssignedPlant}
+                            searchPlaceholder="Search plants..."
+                        />
+                    )}
+                    {showHistory && <OperatorHistoryView operator={operator} onClose={() => setShowHistory(false)}/>}
+                </>
+            }
+        >
+            <div className="detail-card">
+                <div className="card-header">
+                    <h2>Edit Information</h2>
                 </div>
-            )}
-            <div className="detail-header">
-                <div className="header-left">
-                    <button className="back-button" onClick={handleBackClick} aria-label="Back to operators">
-                        <i className="fas fa-arrow-left"></i>
-                        <span>Back</span>
-                    </button>
+                <p className="edit-instructions">{canEditOperator ? 'Make changes below and click Save when finished.' : 'You are in read-only mode and cannot make changes to this operator.'}</p>
+                <style>{`.form-group { margin-bottom: 25px !important; }`}</style>
+                <div className="form-group">
+                    <label>Employee ID</label>
+                    <input
+                        type="text"
+                        value={smyrnaId}
+                        onChange={(e) => setSmyrnaId(e.target.value)}
+                        className="form-control"
+                        disabled={!canEditOperator}
+                    />
                 </div>
-                <h1>{operator && operator.name ? operator.name : 'Operator Details'}</h1>
-                <div className="header-actions">
-                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
-                        <i className="fas fa-history"></i>
-                        <span>History</span>
-                    </button>
+                <div className="form-group">
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="form-control"
+                        disabled={!canEditOperator}
+                    />
                 </div>
-            </div>
-            <div className="detail-content">
-                {message && (
-                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                        {message}
+                <div className="form-group">
+                    <label>Phone</label>
+                    <input
+                        type="tel"
+                        value={GrammarUtility.formatPhone(phone)}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="form-control"
+                        placeholder="(555) 555-5555"
+                        disabled={!canEditOperator}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Status</label>
+                    <select
+                        value={status}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setStatus(value);
+                            if (value === 'Active') setAssignedTrainer('');
+                        }}
+                        className="form-control"
+                        disabled={!canEditOperator}
+                    >
+                        <option value="Active">Active</option>
+                        <option value="Light Duty">Light Duty</option>
+                        <option value="Terminated">Terminated</option>
+                        {hasTrainingPermission && <option value="Pending Start">Pending Start</option>}
+                        {hasTrainingPermission && <option value="Training">Training</option>}
+                        <option value="No Hire">No Hire</option>
+                    </select>
+                </div>
+                {status === 'Pending Start' && (
+                    <div className="form-group">
+                        <label>Pending Start Date</label>
+                        <input
+                            type="date"
+                            value={pendingStartDate || ''}
+                            onChange={e => setPendingStartDate(e.target.value)}
+                            className="form-control"
+                            disabled={!canEditOperator}
+                        />
                     </div>
                 )}
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Edit Information</h2>
-                    </div>
-                    <p className="edit-instructions">Make changes below and click Save when finished.</p>
-                    <style>{`.form-group { margin-bottom: 25px !important; }`}</style>
-                    <div className="metadata-info" style={{display: 'none'}}>
-                        <div className="metadata-row">
-                            <span className="metadata-label">Created:</span>
+                <div className="form-group">
+                    <label>Assigned Plant</label>
+                    <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                            type="button" disabled={!canEditOperator}><span style={{
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                    }}>{plantDisplayText}</span></button>
+                </div>
+                <div className="form-group">
+                    <label>Position</label>
+                    <select
+                        value={position}
+                        onChange={(e) => setPosition(e.target.value)}
+                        className="form-control"
+                        disabled={!canEditOperator}
+                    >
+                        <option value="">Select Position</option>
+                        <option value="Mixer Operator">Mixer Operator</option>
+                        <option value="Tractor Operator">Tractor Operator</option>
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Rating</label>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                        {[1, 2, 3, 4, 5].map(star => (
                             <span
-                                className="metadata-value">{operator && operator.createdAt ? new Date(operator.createdAt).toLocaleString() : 'Not Assigned'}</span>
-                        </div>
-                        <div className="metadata-row">
-                            <span className="metadata-label">Last Updated:</span>
-                            <span
-                                className="metadata-value">{operator && operator.updatedAt ? new Date(operator.updatedAt).toLocaleString() : 'Not Assigned'}</span>
-                        </div>
-                        {operator && operator.updatedBy && (
-                            <div className="metadata-row">
-                                <span className="metadata-label">Updated By:</span>
-                                <span className="metadata-value">{updatedByEmail || 'Unknown User'}</span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="form-group">
-                        <label>Employee ID</label>
-                        <input
-                            type="text"
-                            value={smyrnaId}
-                            onChange={(e) => setSmyrnaId(e.target.value)}
-                            className="form-control"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="form-control"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Phone</label>
-                        <input
-                            type="tel"
-                            value={GrammarUtility.formatPhone(phone)}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="form-control"
-                            placeholder="(555) 555-5555"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Status</label>
-                        <select
-                            value={status}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setStatus(value);
-                                if (value === 'Active') setAssignedTrainer('');
-                            }}
-                            className="form-control"
-                        >
-                            <option value="Active">Active</option>
-                            <option value="Light Duty">Light Duty</option>
-                            <option value="Terminated">Terminated</option>
-                            {hasTrainingPermission && <option value="Pending Start">Pending Start</option>}
-                            {hasTrainingPermission && <option value="Training">Training</option>}
-                            <option value="No Hire">No Hire</option>
-                        </select>
-                    </div>
-                    {status === 'Pending Start' && (
-                        <div className="form-group">
-                            <label>Pending Start Date</label>
-                            <input
-                                type="date"
-                                value={pendingStartDate || ''}
-                                onChange={e => setPendingStartDate(e.target.value)}
-                                className="form-control"
-                            />
-                        </div>
-                    )}
-                    <div className="form-group">
-                        <label>Assigned Plant</label>
-                        <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
-                                type="button"><span style={{
-                            display: 'block',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                        }}>{plantDisplayText}</span></button>
-                    </div>
-                    <div className="form-group">
-                        <label>Position</label>
-                        <select
-                            value={position}
-                            onChange={(e) => setPosition(e.target.value)}
-                            className="form-control"
-                        >
-                            <option value="">Select Position</option>
-                            <option value="Mixer Operator">Mixer Operator</option>
-                            <option value="Tractor Operator">Tractor Operator</option>
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label>Rating</label>
-                        <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                            {[1, 2, 3, 4, 5].map(star => (
-                                <span
-                                    key={star}
-                                    style={{
-                                        cursor: 'pointer',
-                                        fontSize: 24,
-                                        lineHeight: 1,
-                                        userSelect: 'none'
-                                    }}
-                                    onClick={() => setRating(star)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') setRating(star);
-                                    }}
-                                    tabIndex={0}
-                                    aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
-                                    role="button"
-                                >
-                                    {star <= rating ? '★' : '☆'}
-                                </span>
-                            ))}
-                            <span style={{marginLeft: 8}}>{rating > 0 ? `${rating} / 5` : 'Not Rated'}</span>
-                        </div>
+                                key={star}
+                                style={{
+                                    cursor: canEditOperator ? 'pointer' : 'not-allowed',
+                                    fontSize: 24,
+                                    lineHeight: 1,
+                                    userSelect: 'none'
+                                }}
+                                onClick={canEditOperator ? () => setRating(star) : undefined}
+                                onKeyDown={canEditOperator ? (e => {
+                                    if (e.key === 'Enter') setRating(star);
+                                }) : undefined}
+                                tabIndex={canEditOperator ? 0 : -1}
+                                aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
+                                role="button"
+                            >
+                                {star <= rating ? '★' : '☆'}
+                            </span>
+                        ))}
+                        <span style={{marginLeft: 8}}>{rating > 0 ? `${rating} / 5` : 'Not Rated'}</span>
                     </div>
                 </div>
-                {hasTrainingPermission && (
-                    <div className="detail-card">
-                        <h2>Training Information</h2>
+            </div>
+            {hasTrainingPermission && (
+                <div className="detail-card">
+                    <h2>Training Information</h2>
+                    <div className="form-group">
+                        <label>Trainer Status</label>
+                        <select
+                            id="trainer-status"
+                            className="form-control"
+                            value={isTrainer ? "true" : "false"}
+                            onChange={(e) => {
+                                const isTrainerValue = e.target.value === "true";
+                                setIsTrainer(isTrainerValue);
+                                if (isTrainerValue) {
+                                    setAssignedTrainer(null);
+                                }
+                            }}
+                        >
+                            <option value="false">Not a Trainer</option>
+                            <option value="true">Trainer</option>
+                        </select>
+                    </div>
+                    {(status === 'Training' || status === 'Pending Start') && (
                         <div className="form-group">
-                            <label>Trainer Status</label>
+                            <label>Assigned Trainer</label>
                             <select
-                                id="trainer-status"
+                                value={assignedTrainer}
+                                onChange={(e) => setAssignedTrainer(e.target.value)}
                                 className="form-control"
-                                value={isTrainer ? "true" : "false"}
-                                onChange={(e) => {
-                                    const isTrainerValue = e.target.value === "true";
-                                    setIsTrainer(isTrainerValue);
-                                    if (isTrainerValue) {
-                                        setAssignedTrainer(null);
-                                    }
-                                }}
+                                disabled={isTrainer}
                             >
-                                <option value="false">Not a Trainer</option>
-                                <option value="true">Trainer</option>
+                                <option value="">None</option>
+                                {trainers.map(trainer => (
+                                    <option key={trainer.employeeId} value={trainer.employeeId}>
+                                        {trainer.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
-                        {(status === 'Training' || status === 'Pending Start') && (
-                            <div className="form-group">
-                                <label>Assigned Trainer</label>
-                                <select
-                                    value={assignedTrainer}
-                                    onChange={(e) => setAssignedTrainer(e.target.value)}
-                                    className="form-control"
-                                    disabled={isTrainer}
-                                >
-                                    <option value="">None</option>
-                                    {trainers.map(trainer => (
-                                        <option key={trainer.employeeId} value={trainer.employeeId}>
-                                            {trainer.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-                )}
-                <div className="form-actions">
-                    <button
-                        className="primary-button save-button"
-                        onClick={handleSave}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    <button
-                        className="danger-button"
-                        onClick={() => setShowDeleteConfirmation(true)}
-                        disabled={isSaving}
-                    >
-                        Delete Operator
-                    </button>
-                </div>
-            </div>
-            {_showDeleteConfirmation && (
-                <div className="confirmation-modal">
-                    <div className="confirmation-content">
-                        <h2>Confirm Delete</h2>
-                        <p>Are you sure you want to delete {operator && operator.name}? This action cannot be
-                            undone.</p>
-                        <div className="confirmation-actions">
-                            <button className="cancel-button" onClick={() => setShowDeleteConfirmation(false)}>Cancel
-                            </button>
-                            <button className="danger-button" onClick={handleDelete}>Delete</button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             )}
-            {showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={setAssignedPlant}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
-            {showHistory && <OperatorHistoryView operator={operator} onClose={() => setShowHistory(false)}/>}
-        </div>
+        </DetailViewSection>
     );
 }
 

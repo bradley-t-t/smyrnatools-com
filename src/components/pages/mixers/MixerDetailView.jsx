@@ -8,15 +8,15 @@ import MixerHistoryView from './MixerHistoryView'
 import MixerCommentModal from './MixerCommentModal'
 import MixerIssueModal from './MixerIssueModal'
 import OperatorSelectModal from './OperatorSelectModal'
-import './styles/Mixers.css'
 import MixerUtility from '../../../utils/MixerUtility'
 import {Mixer} from "../../../models/mixers/Mixer"
-import LoadingScreen from "../../common/LoadingScreen"
 import {RegionService} from '../../../services/RegionService'
 import {ValidationUtility} from '../../../utils/ValidationUtility'
 import PlantDropdownModal from '../../common/PlantDropdownModal'
 import ThemeUtility from '../../../utils/ThemeUtility'
-import VerificationRequirementsModal from "../../common/VerificationRequirementsModal";
+import VerificationRequirementsModal from "../../common/VerificationRequirementsModal"
+import DetailViewSection from "../../sections/DetailViewSection"
+import VerificationCardSection from "../../sections/VerificationCardSection"
 
 function MixerDetailView({mixerId, onClose}) {
     const {preferences} = usePreferences()
@@ -34,8 +34,7 @@ function MixerDetailView({mixerId, onClose}) {
     const [updatedByEmail, setUpdatedByEmail] = useState(null)
     const [message, setMessage] = useState('')
     const [showOperatorModal, setShowOperatorModal] = useState(false)
-    const [canEditMixer, setCanEditMixer] = useState(true)
-    const [plantRestrictionReason, setPlantRestrictionReason] = useState('')
+    const [canEditMixer, setCanEditMixer] = useState(false)
     const [originalValues, setOriginalValues] = useState({})
     const [truckNumber, setTruckNumber] = useState('')
     const [assignedOperator, setAssignedOperator] = useState('')
@@ -50,8 +49,8 @@ function MixerDetailView({mixerId, onClose}) {
     const [year, setYear] = useState('')
     const [operatorModalOperators, setOperatorModalOperators] = useState([])
     const [lastUnassignedOperatorId, setLastUnassignedOperatorId] = useState(null)
-    const [comments, setComments] = useState([])
-    const [issues, setIssues] = useState([])
+    const [_comments, setComments] = useState([])
+    const [_issues, setIssues] = useState([])
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false)
     const [missingFields, setMissingFields] = useState([])
@@ -158,23 +157,6 @@ function MixerDetailView({mixerId, onClose}) {
     }, [plants, regionPlantCodes])
 
     useEffect(() => {
-        async function checkPlantRestriction() {
-            if (isLoading || !mixer) return
-            try {
-                const user = await UserService.getCurrentUser()
-                const userId = typeof user === 'object' && user?.id ? user.id : user
-                if (!userId) return
-                const {allowed, reason} = await UserService.canEditMixerForPlant(userId, mixer.assignedPlant)
-                setCanEditMixer(!!allowed)
-                setPlantRestrictionReason(reason || '')
-            } catch (error) {
-            }
-        }
-
-        checkPlantRestriction()
-    }, [mixer, isLoading])
-
-    useEffect(() => {
         if (!originalValues.truckNumber || isLoading) return
         const formatDateForComparison = date => date ? (date instanceof Date ? date.toISOString() : date) : ''
         const hasChanges =
@@ -190,6 +172,17 @@ function MixerDetailView({mixerId, onClose}) {
             year !== originalValues.year
         setHasUnsavedChanges(hasChanges)
     }, [truckNumber, assignedPlant, status, cleanlinessRating, lastServiceDate, lastChipDate, vin, make, model, year, originalValues, isLoading])
+
+    useEffect(() => {
+        const handleBeforeUnload = e => {
+            if (hasUnsavedChanges) {
+                e.preventDefault()
+                e.returnValue = ''
+            }
+        }
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }, [hasUnsavedChanges])
 
     async function handleSave(overrideValues = {}) {
         if (!mixer?.id) {
@@ -436,9 +429,9 @@ function MixerDetailView({mixerId, onClose}) {
         }
     }
 
-    async function handleBackClick() {
+    function handleBackClick() {
         if (hasUnsavedChanges) {
-            await handleSave()
+            handleSave()
         }
         onClose()
     }
@@ -447,11 +440,6 @@ function MixerDetailView({mixerId, onClose}) {
         if (!operatorId || operatorId === '0') return 'None'
         const operator = operators.find(op => op.employeeId === operatorId)
         return operator ? (operator.position ? `${operator.name} (${operator.position})` : operator.name) : 'Unknown'
-    }
-
-    function getPlantName(plantCode) {
-        const plant = plants.find(p => p.plantCode === plantCode)
-        return plant ? plant.plantName : plantCode
     }
 
     function formatDate(date) {
@@ -500,202 +488,183 @@ function MixerDetailView({mixerId, onClose}) {
         fetchCommentsAndIssues()
     }, [mixerId])
 
-    function handleExportEmail() {
-        if (!mixer) return
-        const hasComments = comments && comments.length > 0
-        const openIssues = (issues || []).filter(issue => !issue.time_completed)
-        let summary = `Mixer Summary for Truck #${mixer.truckNumber || ''}\n\nBasic Information\nStatus: ${mixer.status || ''}\nAssigned Plant: ${getPlantName(mixer.assignedPlant)}\nAssigned Operator: ${getOperatorName(mixer.assignedOperator)}\nCleanliness Rating: ${mixer.cleanlinessRating || 'N/A'}\nLast Service Date: ${mixer.lastServiceDate ? new Date(mixer.lastServiceDate).toLocaleDateString() : 'N/A'}\nLast Chip Date: ${mixer.lastChipDate ? new Date(mixer.lastChipDate).toLocaleDateString() : 'N/A'}\nVIN: ${(mixer.vin || '').toUpperCase()}\nMake: ${mixer.make || ''}\nModel: ${mixer.model || ''}\nYear: ${mixer.year || ''}\n\nComments\n${hasComments
-            ? comments.map(c =>
-                `- ${c.author || 'Unknown'}: ${c.text || ''} (${new Date(c.created_at).toLocaleString()})`
-            ).join('\n')
-            : 'No comments.'}\n\nIssues (${openIssues.length})\n${openIssues.length > 0
-            ? openIssues.map(i =>
-                `- ${i.issue || i.title || i.description || ''} (${new Date(i.time_created || i.created_at).toLocaleString()})`
-            ).join('\n')
-            : 'No open issues.'}\n`
-        const subject = encodeURIComponent(`Mixer Summary for Truck #${mixer.truckNumber || ''}`)
-        const body = encodeURIComponent(summary)
-        window.location.href = `mailto:?subject=${subject}&body=${body}`
-    }
-
     if (isLoading) {
-        return (
-            <div className="operator-detail-view">
-                <div className="detail-header" style={{
-                    backgroundColor: 'var(--detail-header-bg)',
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 8px'
-                }}>
-                    <button className="back-button" onClick={onClose} style={{marginRight: '8px'}}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1 style={{color: 'var(--text-primary)', textAlign: 'center', flex: 1, margin: '0 auto'}}>Mixer
-                        Details</h1>
-                    <div style={{width: '36px'}}></div>
-                </div>
-                <div className="detail-content">
-                    <LoadingScreen message="Loading mixer details..." inline={true}/>
-                </div>
-            </div>
-        )
+        return null
     }
 
     if (!mixer) {
         return (
-            <div className="mixer-detail-view">
-                <div className="detail-header"
-                     style={{backgroundColor: 'var(--detail-header-bg)', color: 'var(--text-primary)'}}>
-                    <button className="back-button" onClick={onClose}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1>Mixer Not Found</h1>
-                </div>
-                <div className="error-message">
-                    <p>Could not find the requested mixer. It may have been deleted.</p>
-                    <button className="primary-button" onClick={onClose}>Return to Mixers</button>
-                </div>
-            </div>
+            <DetailViewSection
+                title="Mixer Not Found"
+                onClose={onClose}
+                notFound={true}
+                notFoundMessage="Mixer Not Found"
+                notFoundDescription="Could not find the requested mixer. It may have been deleted."
+            />
         )
     }
-
-    const assignedPlantInRegion = assignedPlant && regionPlantCodes.has(String(assignedPlant).trim().toUpperCase())
 
     const selectedPlantObj = plants.find(p => (p.plantCode || p.plant_code) === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}` : 'Select Plant';
 
+    const verificationItems = [
+        {
+            icon: 'fas fa-calendar-plus',
+            label: 'Created',
+            value: mixer.createdAt ? new Date(mixer.createdAt).toLocaleString() : 'Not Assigned'
+        },
+        {
+            icon: 'fas fa-calendar-check',
+            label: 'Last Verified',
+            value: mixer.updatedLast
+                ? `${new Date(mixer.updatedLast).toLocaleString()}${!Mixer.ensureInstance(mixer).isVerified() ? (new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
+                : 'Never verified',
+            style: {
+                color: mixer.updatedLast
+                    ? (Mixer.ensureInstance(mixer).isVerified() ? 'var(--success)' : new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? 'var(--error)' : 'var(--warning)')
+                    : 'var(--error)'
+            },
+            iconStyle: {
+                color: mixer.updatedLast
+                    ? (Mixer.ensureInstance(mixer).isVerified() ? 'var(--success)' : new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? 'var(--error)' : 'var(--warning)')
+                    : 'var(--error)'
+            },
+            valueStyle: {
+                color: mixer.updatedLast
+                    ? (Mixer.ensureInstance(mixer).isVerified() ? 'inherit' : new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? 'var(--error)' : 'var(--warning)')
+                    : 'var(--error)'
+            }
+        },
+        {
+            icon: 'fas fa-user-check',
+            label: 'Verified By',
+            value: mixer.updatedBy ? (updatedByEmail || 'Unknown User') : 'No verification record',
+            title: `Last Updated: ${new Date(mixer.updatedAt).toLocaleString()}`,
+            iconStyle: {
+                color: mixer.updatedBy ? 'var(--success)' : 'var(--error)'
+            },
+            valueStyle: {
+                color: mixer.updatedBy ? 'inherit' : 'var(--error)'
+            }
+        }
+    ]
+
     return (
-        <div className="mixer-detail-view">
+        <>
+            {showHistory && <MixerHistoryView mixer={mixer} onClose={() => setShowHistory(false)}/>}
             {showComments && <MixerCommentModal mixerId={mixerId} mixerNumber={mixer?.truckNumber}
                                                 onClose={() => setShowComments(false)}/>}
             {showIssues && <MixerIssueModal mixerId={mixerId} mixerNumber={mixer?.truckNumber}
                                             onClose={() => setShowIssues(false)}/>}
-            {isSaving && (
-                <div className="saving-overlay">
-                    <div className="saving-indicator"></div>
-                </div>
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
             )}
-            <div className="detail-header"
-                 style={{backgroundColor: 'var(--detail-header-bg)', color: 'var(--text-primary)'}}>
-                <div className="header-left">
-                    <button className="back-button" onClick={handleBackClick} aria-label="Back to mixers">
-                        <i className="fas fa-arrow-left"></i>
-                        <span>Back</span>
-                    </button>
-                </div>
-                <h1>Truck #{mixer.truckNumber || 'Not Assigned'}</h1>
-                <div className="header-actions">
-                    <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
-                        <i className="fas fa-tools"></i> Issues
-                    </button>
-                    <button className="global-button-secondary" onClick={() => setShowComments(true)}>
-                        <i className="fas fa-comments"></i> Comments
-                    </button>
-                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
-                        <i className="fas fa-history"></i>
-                        <span>History</span>
-                    </button>
-                </div>
-            </div>
-            {!canEditMixer && (
-                <div className="plant-restriction-warning">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <span>{plantRestrictionReason}</span>
-                </div>
-            )}
-            <div className="detail-content" style={{maxWidth: '1000px', margin: '0 auto', overflow: 'visible'}}>
-                {message && (
-                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                        {message}
-                    </div>
-                )}
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Verification Status</h2>
-                    </div>
-                    <div className="verification-card">
-                        <div className="verification-card-header">
-                            <i className="fas fa-clipboard-check"></i>
-                            {Mixer.ensureInstance(mixer).isVerified() ? (
-                                <div className="verification-badge verified">
-                                    <i className="fas fa-check-circle"></i>
-                                    <span>Verified</span>
-                                </div>
-                            ) : (
-                                <div className="verification-badge needs-verification">
-                                    <i className="fas fa-exclamation-circle"></i>
-                                    <span>{!mixer.updatedLast || !mixer.updatedBy ? 'Needs Verification' : 'Verification Outdated'}</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="verification-details">
-                            <div className="verification-item">
-                                <div className="verification-icon">
-                                    <i className="fas fa-calendar-plus"></i>
-                                </div>
-                                <div className="verification-info">
-                                    <span className="verification-label">Created</span>
-                                    <span
-                                        className="verification-value">{mixer.createdAt ? new Date(mixer.createdAt).toLocaleString() : 'Not Assigned'}</span>
-                                </div>
-                            </div>
-                            <div className="verification-item"
-                                 style={{color: mixer.updatedLast ? (Mixer.ensureInstance(mixer).isVerified() ? 'var(--success)' : new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? 'var(--error)' : 'var(--warning)') : 'var(--error)'}}>
-                                <div className="verification-icon"
-                                     style={{color: mixer.updatedLast ? (Mixer.ensureInstance(mixer).isVerified() ? 'var(--success)' : new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? 'var(--error)' : 'var(--warning)') : 'var(--error)'}}>
-                                    <i className="fas fa-calendar-check"></i>
-                                </div>
-                                <div className="verification-info">
-                                    <span className="verification-label">Last Verified</span>
-                                    <span className="verification-value"
-                                          style={{color: mixer.updatedLast ? (Mixer.ensureInstance(mixer).isVerified() ? 'inherit' : new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? 'var(--error)' : 'var(--warning)') : 'var(--error)'}}>
-                                        {mixer.updatedLast ? `${new Date(mixer.updatedLast).toLocaleString()}${!Mixer.ensureInstance(mixer).isVerified() ? (new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}` : 'Never verified'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="verification-item"
-                                 title={`Last Updated: ${new Date(mixer.updatedAt).toLocaleString()}`}>
-                                <div className="verification-icon"
-                                     style={{color: mixer.updatedBy ? 'var(--success)' : 'var(--error)'}}>
-                                    <i className="fas fa-user-check"></i>
-                                </div>
-                                <div className="verification-info">
-                                    <span className="verification-label">Verified By</span>
-                                    <span className="verification-value"
-                                          style={{color: mixer.updatedBy ? 'inherit' : 'var(--error)'}}>{mixer.updatedBy ? (updatedByEmail || 'Unknown User') : 'No verification record'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button className="verify-now-button" onClick={handleVerifyMixer} disabled={!canEditMixer}>
-                            <i className="fas fa-check-circle"></i> Verify Now
+            <DetailViewSection
+                title={`Truck #${mixer.truckNumber || 'Not Assigned'}`}
+                onClose={handleBackClick}
+                isSaving={isSaving}
+                message={message}
+                itemAssignedPlant={mixer?.assignedPlant}
+                onCanEditChange={setCanEditMixer}
+                isLoading={false}
+                showDeleteConfirmation={showDeleteConfirmation}
+                onDeleteConfirm={handleDelete}
+                onDeleteCancel={() => setShowDeleteConfirmation(false)}
+                deleteTitle="Confirm Delete"
+                deleteMessage={`Are you sure you want to delete Truck #${mixer.truckNumber}? This action cannot be undone.`}
+                headerActions={
+                    <>
+                        <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                            <i className="fas fa-tools"></i> Issues
                         </button>
-                        <VerificationRequirementsModal
-                            open={showMissingFieldsModal}
-                            onClose={() => setShowMissingFieldsModal(false)}
-                            onSaveAndVerify={handleSaveMissingFields}
-                            missingFields={missingFields}
-                            vin={vin}
-                            make={make}
-                            model={model}
-                            year={year}
-                            lastServiceDate={lastServiceDate}
-                            lastChipDate={lastChipDate}
-                            setVin={setVin}
-                            setMake={setMake}
-                            setModel={setModel}
-                            setYear={setYear}
-                            setLastServiceDate={setLastServiceDate}
-                            setLastChipDate={setLastChipDate}
-                            isServiceOverdue={MixerUtility.isServiceOverdue}
-                        />
-                        <div className="verification-notice">
-                            <i className="fas fa-info-circle"></i>
-                            <p>Assets require verification after any changes are made and are reset weekly. <strong>Due:
-                                Every Friday at 10:00 AM.</strong> Resets on Mondays at 5pm.</p>
-                        </div>
-                    </div>
-                </div>
+                        <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                            <i className="fas fa-comments"></i> Comments
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                            <i className="fas fa-history"></i>
+                            <span>History</span>
+                        </button>
+                    </>
+                }
+                verificationCard={
+                    <VerificationCardSection
+                        isVerified={Mixer.ensureInstance(mixer).isVerified()}
+                        verificationLabel={!mixer.updatedLast || !mixer.updatedBy ? 'Needs Verification' : 'Verification Outdated'}
+                        verificationItems={verificationItems}
+                        onVerify={handleVerifyMixer}
+                        canEdit={canEditMixer}
+                        noticeText='Assets require verification after any changes are made and are reset weekly. <strong>Due: Every Friday at 10:00 AM.</strong> Resets on Mondays at 5pm.'
+                    />
+                }
+                footerActions={
+                    canEditMixer && (
+                        <>
+                            <button className="primary-button save-button" onClick={handleSave}
+                                    disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
+                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                    disabled={isSaving}>Delete Mixer
+                            </button>
+                        </>
+                    )
+                }
+                modals={
+                    <>
+                        {showOperatorModal && (
+                            <OperatorSelectModal
+                                isOpen={showOperatorModal}
+                                onClose={() => setShowOperatorModal(false)}
+                                onSelect={async operatorId => {
+                                    const newOperator = operatorId === '0' ? '' : operatorId
+                                    const newStatus = newOperator ? 'Active' : status
+                                    setShowOperatorModal(false)
+                                    if (newOperator) {
+                                        try {
+                                            await handleSave({
+                                                assignedOperator: newOperator,
+                                                status: newStatus
+                                            })
+                                            setAssignedOperator(newOperator)
+                                            setStatus(newStatus)
+                                            setLastUnassignedOperatorId(null)
+                                            await refreshOperators()
+                                            const updatedMixer = await MixerService.fetchMixerById(mixerId)
+                                            setMixer(updatedMixer)
+                                            setMessage('Operator assigned and status set to Active')
+                                            setTimeout(() => setMessage(''), 3000)
+                                            setHasUnsavedChanges(false)
+                                        } catch (error) {
+                                            setMessage('Error assigning operator. Please try again.')
+                                            setTimeout(() => setMessage(''), 3000)
+                                        }
+                                    }
+                                }}
+                                currentValue={assignedOperator}
+                                mixers={mixers}
+                                assignedPlant={assignedPlant}
+                                readOnly={!canEditMixer}
+                                operators={operatorModalOperators}
+                                onRefresh={async () => {
+                                    await fetchOperatorsForModal()
+                                }}
+                            />
+                        )}
+                        {showMissingFieldsModal && (
+                            <VerificationRequirementsModal
+                                isOpen={showMissingFieldsModal}
+                                onClose={() => setShowMissingFieldsModal(false)}
+                                missingFields={missingFields}
+                                onSave={handleSaveMissingFields}
+                            />
+                        )}
+                    </>
+                }
+            >
                 <div className="detail-card">
                     <div className="card-header">
                         <h2>Mixer Information</h2>
@@ -862,45 +831,6 @@ function MixerDetailView({mixerId, onClose}) {
                                         )
                                     )}
                                 </div>
-                                {showOperatorModal && (
-                                    <OperatorSelectModal
-                                        isOpen={showOperatorModal}
-                                        onClose={() => setShowOperatorModal(false)}
-                                        onSelect={async operatorId => {
-                                            const newOperator = operatorId === '0' ? '' : operatorId
-                                            const newStatus = newOperator ? 'Active' : status
-                                            setShowOperatorModal(false)
-                                            if (newOperator) {
-                                                try {
-                                                    await handleSave({
-                                                        assignedOperator: newOperator,
-                                                        status: newStatus
-                                                    })
-                                                    setAssignedOperator(newOperator)
-                                                    setStatus(newStatus)
-                                                    setLastUnassignedOperatorId(null)
-                                                    await refreshOperators()
-                                                    const updatedMixer = await MixerService.fetchMixerById(mixerId)
-                                                    setMixer(updatedMixer)
-                                                    setMessage('Operator assigned and status set to Active')
-                                                    setTimeout(() => setMessage(''), 3000)
-                                                    setHasUnsavedChanges(false)
-                                                } catch (error) {
-                                                    setMessage('Error assigning operator. Please try again.')
-                                                    setTimeout(() => setMessage(''), 3000)
-                                                }
-                                            }
-                                        }}
-                                        currentValue={assignedOperator}
-                                        mixers={mixers}
-                                        assignedPlant={assignedPlant}
-                                        readOnly={!canEditMixer}
-                                        operators={operatorModalOperators}
-                                        onRefresh={async () => {
-                                            await fetchOperatorsForModal()
-                                        }}
-                                    />
-                                )}
                             </div>
                         </div>
                         <div className="form-section maintenance-info">
@@ -972,53 +902,8 @@ function MixerDetailView({mixerId, onClose}) {
                         </div>
                     </div>
                 </div>
-                <div className="form-actions">
-                    {canEditMixer && (
-                        <>
-                            <button className="primary-button save-button" onClick={handleSave}
-                                    disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                    disabled={isSaving}>Delete Mixer
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-            {showHistory && <MixerHistoryView mixer={mixer} onClose={() => setShowHistory(false)}/>}
-            {showDeleteConfirmation && (
-                <div className="confirmation-modal" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 9999
-                }}>
-                    <div className="confirmation-content" style={{width: '90%', maxWidth: '500px', margin: '0 auto'}}>
-                        <h2>Confirm Delete</h2>
-                        <p>Are you sure you want to delete Truck #{mixer.truckNumber}? This action cannot be undone.</p>
-                        <div className="confirmation-actions"
-                             style={{display: 'flex', justifyContent: 'center', gap: '12px'}}>
-                            <button className="cancel-button" onClick={() => setShowDeleteConfirmation(false)}>Cancel
-                            </button>
-                            <button className="danger-button" onClick={handleDelete}>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={setAssignedPlant}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
-        </div>
+            </DetailViewSection>
+        </>
     )
 }
 
