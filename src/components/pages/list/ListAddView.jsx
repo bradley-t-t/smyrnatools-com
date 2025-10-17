@@ -35,15 +35,11 @@ function ListAddView({onClose, onItemAdded, item = null}) {
             const hasPermission = await UserService.hasPermission(user.id, 'list.bypass.plantrestriction');
             setCanBypassPlantRestriction(hasPermission);
             if (!hasPermission) {
-                const {data: profileData} = await ListService.supabase
-                    .from('users_profiles')
-                    .select('plant_code')
-                    .eq('id', user.id)
-                    .single();
-                if (profileData?.plant_code) {
-                    setUserPlantCode(profileData.plant_code);
-                    setPlantCode(profileData.plant_code);
-                    setPlantRestrictionMessage(`You can only create items for your assigned plant (${profileData.plant_code}).`);
+                const plantData = await UserService.getUserPlant(user.id);
+                if (plantData?.plant_code) {
+                    setUserPlantCode(plantData.plant_code);
+                    setPlantCode(plantData.plant_code);
+                    setPlantRestrictionMessage(`You can only create items for your assigned plant (${plantData.plant_code}).`);
                 }
             }
         }
