@@ -26,6 +26,7 @@ import PlantsView from '../components/pages/plants/PlantsView'
 import RegionsView from '../components/pages/regions/RegionsView'
 import SmyrnaLogo from '../assets/images/SmyrnaLogo.png'
 import GuestOverlay from '../components/common/GuestOverlay'
+import TerminatedOverlay from '../components/common/TerminatedOverlay'
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay'
 import PickupTrucksView from '../components/pages/pickup-trucks/PickupTrucksView'
 import DashboardView from '../components/pages/dashboard/DashboardView'
@@ -168,6 +169,7 @@ function AppContent() {
     const [showScheduledBanner, setShowScheduledBanner] = useState(false)
     const [remainingMs, setRemainingMs] = useState(0)
     const [offlineMode, setOfflineMode] = useState(false)
+    const [terminatedMode, setTerminatedMode] = useState(false)
     const onlineStreakRef = useRef(0)
     const offlineStreakRef = useRef(0)
     const offlineSinceRef = useRef(null)
@@ -322,13 +324,26 @@ function AppContent() {
         async function loadRoles() {
             if (!userId) return
             try {
+                UserService.userRolesCache.delete(userId)
                 const roles = await UserService.getUserRoles(userId)
+                console.log('[TerminatedCheck] User roles:', roles)
                 if (cancelled) return
+
+                const isTerminated = roles && roles.some(r => (r?.name || '').toLowerCase() === 'terminated')
+                console.log('[TerminatedCheck] Is terminated:', isTerminated)
+
+                if (isTerminated) {
+                    setTerminatedMode(true)
+                    setRolesLoaded(true)
+                    return
+                }
+
                 const guestOnly = roles.length > 0 && roles.every(r => (r?.name || '').toLowerCase() === 'guest')
                 setIsGuestOnly(guestOnly)
                 setRolesLoaded(true)
                 if (guestOnly) setSelectedView({view: 'Guest', initialStatusFilter: null})
-            } catch {
+            } catch (error) {
+                console.error('[TerminatedCheck] Error loading roles:', error)
                 if (!cancelled) {
                     setIsGuestOnly(false);
                     setRolesLoaded(true)
@@ -532,6 +547,7 @@ function AppContent() {
         }
     }
 
+    if (terminatedMode) return <><TerminatedOverlay/></>
     if (isMobile) return <><DesktopOnlyOverlay/></>
     if (offlineMode) return <><OfflineOverlay onRetry={handleRetryConnection}
                                               onReload={handleReloadIfOnline}/></>

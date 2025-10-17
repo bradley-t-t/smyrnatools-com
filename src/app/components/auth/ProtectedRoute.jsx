@@ -15,6 +15,7 @@ function ProtectedRoute({children}) {
         async function loadRoles() {
             if (!user) return
             try {
+                UserService.userRolesCache.delete(user.id)
                 const r = await UserService.getUserRoles(user.id)
                 if (active) setRoles(r || [])
             } catch {
@@ -43,6 +44,10 @@ function ProtectedRoute({children}) {
     if (loading) return null
     if (!isAuthenticated || !user) return <Navigate to="/login" replace state={{from: location.pathname}}/>
     if (roles === null || hasPlant === null) return null
+
+    const isTerminated = roles.some(r => (r?.name || '').toLowerCase() === 'terminated')
+    if (isTerminated) return null
+
     const guestOnly = roles.length > 0 && roles.every(r => (r?.name || '').toLowerCase() === 'guest')
     const onGuestRoute = location.pathname === '/guest'
     if (guestOnly && !onGuestRoute) {

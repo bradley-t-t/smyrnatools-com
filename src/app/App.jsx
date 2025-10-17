@@ -19,6 +19,7 @@ import {PreferencesProvider} from './context/PreferencesContext';
 import {AccountProvider} from './context/AccountContext';
 import ListView from '../components/pages/list/ListView';
 import GuestOverlay from '../components/common/GuestOverlay';
+import TerminatedOverlay from '../components/common/TerminatedOverlay';
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
@@ -31,6 +32,8 @@ function App() {
     const [offlineMode, setOfflineMode] = useState(false)
     const {user, isAuthenticated} = useAuth()
     const [hasPlant, setHasPlant] = useState(false)
+    const [isTerminated, setIsTerminated] = useState(false)
+    const [rolesChecked, setRolesChecked] = useState(false)
     const location = useLocation()
 
     useEffect(() => {
@@ -82,6 +85,63 @@ function App() {
         }
     }, [user])
 
+    useEffect(() => {
+        let active = true
+        let intervalId
+
+        async function checkTerminated() {
+            if (!user) {
+                if (active) {
+                    setIsTerminated(false)
+                    setRolesChecked(true)
+                }
+                return
+            }
+            try {
+                UserService.userRolesCache.delete(user.id)
+                const roles = await UserService.getUserRoles(user.id)
+                console.log('[TerminatedCheck] Raw user roles:', JSON.stringify(roles, null, 2))
+                console.log('[TerminatedCheck] Roles array length:', roles?.length)
+
+                if (roles && roles.length > 0) {
+                    roles.forEach((r, index) => {
+                        console.log(`[TerminatedCheck] Role ${index}:`, r)
+                        console.log(`[TerminatedCheck] Role ${index} name:`, r?.name)
+                        console.log(`[TerminatedCheck] Role ${index} name lowercase:`, (r?.name || '').toLowerCase())
+                    })
+                }
+
+                const hasTerminated = roles && roles.some(r => {
+                    const roleName = (r?.name || '').toLowerCase()
+                    const isMatch = roleName === 'terminated'
+                    console.log(`[TerminatedCheck] Checking role "${r?.name}" -> "${roleName}" -> isTerminated: ${isMatch}`)
+                    return isMatch
+                })
+                console.log('[TerminatedCheck] Final is terminated:', hasTerminated)
+                if (active) {
+                    setIsTerminated(hasTerminated)
+                    setRolesChecked(true)
+                }
+            } catch (error) {
+                console.error('[TerminatedCheck] Error checking roles:', error)
+                if (active) {
+                    setIsTerminated(false)
+                    setRolesChecked(true)
+                }
+            }
+        }
+
+        checkTerminated()
+        intervalId = setInterval(() => {
+            if (user) checkTerminated()
+        }, 30000)
+
+        return () => {
+            active = false
+            if (intervalId) clearInterval(intervalId)
+        }
+    }, [user])
+
     const handleRetryConnection = async () => {
         const ok = await NetworkUtility.checkConnection()
         if (ok) {
@@ -99,10 +159,11 @@ function App() {
     }
 
     useEffect(() => {
-        const showOverlay = isAuthenticated && hasPlant === false && location.pathname !== '/guest'
+        const showOverlay = (isAuthenticated && hasPlant === false && location.pathname !== '/guest') || isTerminated
+        console.log('[App] Overlay state - isTerminated:', isTerminated, 'showOverlay:', showOverlay)
         document.body.style.overflow = showOverlay ? 'hidden' : 'auto'
         document.body.style.pointerEvents = showOverlay ? 'none' : 'auto'
-    }, [isAuthenticated, hasPlant, location.pathname])
+    }, [isAuthenticated, hasPlant, location.pathname, isTerminated])
 
     if (isMobile && !isBot) return (
         <PreferencesProvider>
@@ -119,6 +180,22 @@ function App() {
             </AccountProvider>
         </PreferencesProvider>
     )
+
+    if (isAuthenticated && !rolesChecked) {
+        console.log('[App] Waiting for roles check...')
+        return null
+    }
+
+    if (isTerminated) {
+        console.log('[App] User is terminated, showing TerminatedOverlay')
+        return (
+            <PreferencesProvider>
+                <AccountProvider>
+                    <TerminatedOverlay/>
+                </AccountProvider>
+            </PreferencesProvider>
+        )
+    }
 
     return (
         <PreferencesProvider>
