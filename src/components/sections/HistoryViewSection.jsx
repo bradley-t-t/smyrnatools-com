@@ -296,12 +296,12 @@ function HistoryViewSection({item, type, onClose}) {
 
             return {
                 date: new Date(entry.changedAt || entry.changed_at),
-                serviceDate: serviceDate ? new Date(serviceDate) : null,
+                serviceDate: serviceDate,
                 serviceType: key === 'last_chip_date' ? 'Chip' : 'Service',
                 timestamp: entry.changedAt || entry.changed_at,
                 changedBy: entry.changedBy || entry.changed_by
             };
-        }).filter(entry => entry.serviceDate && !isNaN(entry.serviceDate.getTime()));
+        }).filter(entry => entry.serviceDate);
     }, [history]);
 
     const plantData = useMemo(() => {
@@ -630,14 +630,17 @@ function HistoryViewSection({item, type, onClose}) {
             if (services.length < 2) return null;
             const intervals = [];
             for (let i = 1; i < services.length; i++) {
-                const days = Math.round((services[i].serviceDate - services[i - 1].serviceDate) / (1000 * 60 * 60 * 24));
+                const date1 = new Date(services[i - 1].serviceDate);
+                const date2 = new Date(services[i].serviceDate);
+                const days = Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
                 if (days > 0) intervals.push(days);
             }
             return intervals.length > 0 ? Math.round(intervals.reduce((sum, d) => sum + d, 0) / intervals.length) : null;
         };
 
-        const lastService = serviceData.length > 0 ? serviceData[serviceData.length - 1] : null;
-        const daysSinceLastService = lastService ? Math.round((new Date() - lastService.serviceDate) / (1000 * 60 * 60 * 24)) : null;
+        const actualServices = serviceData.filter(s => s.serviceType === 'Service');
+        const lastService = actualServices.length > 0 ? actualServices[actualServices.length - 1] : null;
+        const daysSinceLastService = lastService ? Math.round((new Date() - new Date(lastService.serviceDate)) / (1000 * 60 * 60 * 24)) : null;
         const avgDaysService = calculateAverageDays(servicesByType['Service'] || []);
 
         const combinedTimeline = [];
@@ -655,19 +658,23 @@ function HistoryViewSection({item, type, onClose}) {
         issues.forEach(issue => {
             combinedTimeline.push({
                 type: 'issue',
-                date: new Date(issue.time_created),
+                date: issue.time_created,
                 timestamp: issue.time_created,
                 issue: issue,
                 isCompleted: !!issue.time_completed,
-                completedDate: issue.time_completed ? new Date(issue.time_completed) : null
+                completedDate: issue.time_completed
             });
         });
 
-        combinedTimeline.sort((a, b) => b.date - a.date);
+        combinedTimeline.sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateB - dateA;
+        });
 
         return (
             <div className="chart-container">
-                {serviceData.length > 0 && (
+                {actualServices.length > 0 && (
                     <div className="operator-summary-cards">
                         <div className="summary-card">
                             <div className="summary-label">Last Service</div>
@@ -679,7 +686,7 @@ function HistoryViewSection({item, type, onClose}) {
                         </div>
                         <div className="summary-card">
                             <div className="summary-label">Total Services</div>
-                            <div className="summary-value">{serviceData.length}</div>
+                            <div className="summary-value">{actualServices.length}</div>
                         </div>
                         {avgDaysService && (
                             <div className="summary-card">
@@ -690,7 +697,7 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                 )}
 
-                <div className="operator-summary-cards" style={{marginTop: serviceData.length > 0 ? '1rem' : '0'}}>
+                <div className="operator-summary-cards" style={{marginTop: actualServices.length > 0 ? '1rem' : '0'}}>
                     <div className="summary-card">
                         <div className="summary-label">Open Issues</div>
                         <div className="summary-value">{openIssues.length}</div>
@@ -776,11 +783,11 @@ function HistoryViewSection({item, type, onClose}) {
                                         </div>
                                         <div className="timeline-card-meta" style={{display: 'flex', flexDirection: 'column', gap: '0.25rem'}}>
                                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                                                <span className="timeline-date">
-                                                    <i className="fas fa-calendar-plus"></i> Created: {formatDate(issue.time_created)}
-                                                </span>
-                                                <span style={{fontSize: '0.85rem', opacity: 0.7}}>
+                                                <span style={{fontSize: '0.85rem', opacity: 0.9}}>
                                                     <i className="fas fa-user"></i> {getCreatorName(issue)}
+                                                </span>
+                                                <span className="timeline-date">
+                                                    <i className="fas fa-calendar-plus"></i> {formatDate(issue.time_created)}
                                                 </span>
                                             </div>
                                             {entry.isCompleted && entry.completedDate && (
@@ -1483,8 +1490,7 @@ function HistoryViewSection({item, type, onClose}) {
 
     const formatDate = (dateString) => {
         if (!dateString) return 'Not completed';
-        const date = new Date(dateString);
-        return date.toLocaleString();
+        return FormatUtility.formatDateTime(dateString);
     };
 
     return (

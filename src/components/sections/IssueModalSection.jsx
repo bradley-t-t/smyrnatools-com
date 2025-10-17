@@ -212,11 +212,11 @@ function IssueModalSection({
                                                         className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
-                                                    <span className="issue-modal-date">
-                                                        {formatDate(issue.time_created)}
-                                                    </span>
                                                     <span className="issue-modal-creator">
                                                         <i className="fas fa-user"></i> {getCreatorName(issue)}
+                                                    </span>
+                                                    <span className="issue-modal-date">
+                                                        {formatDate(issue.time_created)}
                                                     </span>
                                                     <div className="issue-modal-actions">
                                                         <button
@@ -254,11 +254,11 @@ function IssueModalSection({
                                                         className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
-                                                    <span className="issue-modal-date">
-                                                        {formatDate(issue.time_created)}
-                                                    </span>
                                                     <span className="issue-modal-creator">
                                                         <i className="fas fa-user"></i> {getCreatorName(issue)}
+                                                    </span>
+                                                    <span className="issue-modal-date">
+                                                        {formatDate(issue.time_created)}
                                                     </span>
                                                     <div className="issue-modal-actions">
                                                         <button

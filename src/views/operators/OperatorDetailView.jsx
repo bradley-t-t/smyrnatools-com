@@ -5,6 +5,7 @@ import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import {MixerService} from '../../services/MixerService';
 import {TractorService} from '../../services/TractorService';
 import OperatorHistoryView from './OperatorHistoryView';
+import OperatorCommentModal from './OperatorCommentModal';
 import {UserService} from '../../services/UserService';
 import {OperatorService} from '../../services/OperatorService';
 import DetailViewSection from '../../components/sections/DetailViewSection';
@@ -34,6 +35,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [phone, setPhone] = useState('');
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [showComments, setShowComments] = useState(false);
     const [canEditOperator, setCanEditOperator] = useState(false);
     const [canDeleteOperator, setCanDeleteOperator] = useState(false);
 
@@ -244,10 +246,16 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             onClose={onClose}
             onBack={handleBackClick}
             headerActions={
-                <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
-                    <i className="fas fa-history"></i>
-                    <span>History</span>
-                </button>
+                <>
+                    <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                        <i className="fas fa-comments"></i>
+                        <span>Comments</span>
+                    </button>
+                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                        <i className="fas fa-history"></i>
+                        <span>History</span>
+                    </button>
+                </>
             }
             isSaving={isSaving}
             message={message}
@@ -297,6 +305,13 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                         />
                     )}
                     {showHistory && <OperatorHistoryView operator={operator} onClose={() => setShowHistory(false)}/>}
+                    {showComments && operator && (
+                        <OperatorCommentModal
+                            operatorId={operatorId}
+                            operatorName={operator.name}
+                            onClose={() => setShowComments(false)}
+                        />
+                    )}
                 </>
             }
         >

@@ -199,6 +199,33 @@ class OperatorServiceImpl {
         if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
         return json?.data
     }
+
+    async fetchComments(operatorId) {
+        if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
+        const {res, json} = await APIUtility.post('/operator-service/fetch-comments', {operatorId})
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch comments')
+        return json?.data ?? []
+    }
+
+    async addComment(operatorId, text, userId) {
+        if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
+        if (!text || !text.trim()) throw new Error('Comment text is required')
+        if (!userId || !UserUtility.isValidUUID(userId)) throw new Error('Invalid User ID')
+        const {res, json} = await APIUtility.post('/operator-service/add-comment', {
+            operatorId,
+            text: text.trim(),
+            userId
+        })
+        if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
+        return json?.data
+    }
+
+    async deleteComment(commentId) {
+        if (!commentId || !UserUtility.isValidUUID(commentId)) throw new Error('Invalid Comment ID')
+        const {res, json} = await APIUtility.post('/operator-service/delete-comment', {commentId})
+        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete comment')
+        return true
+    }
 }
 
 export const OperatorService = new OperatorServiceImpl()

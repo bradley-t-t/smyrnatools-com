@@ -17,6 +17,7 @@ import ThemeUtility from '../../utils/ThemeUtility'
 import VerificationRequirementsModal from "../../components/common/VerificationRequirementsModal"
 import DetailViewSection from "../../components/sections/DetailViewSection"
 import VerificationCardSection from "../../components/sections/VerificationCardSection"
+import {DateUtility} from "../../utils/DateUtility"
 
 function MixerDetailView({mixerId, onClose}) {
     const {preferences} = usePreferences()
@@ -76,8 +77,8 @@ function MixerDetailView({mixerId, onClose}) {
                 setAssignedPlant(mixerData.assignedPlant || '')
                 setStatus(mixerData.status || '')
                 setCleanlinessRating(mixerData.cleanlinessRating || 0)
-                setLastServiceDate(mixerData.lastServiceDate ? new Date(mixerData.lastServiceDate) : null)
-                setLastChipDate(mixerData.lastChipDate ? new Date(mixerData.lastChipDate) : null)
+                setLastServiceDate(mixerData.lastServiceDate ? DateUtility.parseLocalDate(mixerData.lastServiceDate) : null)
+                setLastChipDate(mixerData.lastChipDate ? DateUtility.parseLocalDate(mixerData.lastChipDate) : null)
                 setVin((mixerData.vin || '').toUpperCase())
                 setMake(mixerData.make || '')
                 setModel(mixerData.model || '')
@@ -212,12 +213,6 @@ function MixerDetailView({mixerId, onClose}) {
         try {
             let userObj = await UserService.getCurrentUser()
             let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-            const formatDate = date => {
-                if (!date) return null
-                const parsedDate = date instanceof Date ? date : new Date(date)
-                if (isNaN(parsedDate.getTime())) return null
-                return `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')} ${String(parsedDate.getHours()).padStart(2, '0')}:${String(parsedDate.getMinutes()).padStart(2, '0')}:${String(parsedDate.getSeconds()).padStart(2, '0')}+00`
-            }
             let assignedOperatorValue = Object.prototype.hasOwnProperty.call(overrideValues, 'assignedOperator')
                 ? overrideValues.assignedOperator
                 : assignedOperator
@@ -247,8 +242,8 @@ function MixerDetailView({mixerId, onClose}) {
                 assignedPlant: overrideValues.assignedPlant ?? assignedPlant,
                 status: statusValue,
                 cleanlinessRating: (overrideValues.cleanlinessRating ?? cleanlinessRating) || null,
-                lastServiceDate: formatDate(overrideValues.lastServiceDate ?? lastServiceDate),
-                lastChipDate: formatDate(overrideValues.lastChipDate ?? lastChipDate),
+                lastServiceDate: DateUtility.toDbDate(overrideValues.lastServiceDate ?? lastServiceDate),
+                lastChipDate: DateUtility.toDbDate(overrideValues.lastChipDate ?? lastChipDate),
                 vin: ((overrideValues.vin ?? vin) || '').toUpperCase(),
                 make: overrideValues.make ?? make,
                 model: overrideValues.model ?? model,
@@ -282,8 +277,8 @@ function MixerDetailView({mixerId, onClose}) {
                 assignedPlant: updatedMixer.assignedPlant,
                 status: updatedMixer.status,
                 cleanlinessRating: updatedMixer.cleanlinessRating,
-                lastServiceDate: updatedMixer.lastServiceDate ? new Date(updatedMixer.lastServiceDate) : null,
-                lastChipDate: updatedMixer.lastChipDate ? new Date(updatedMixer.lastChipDate) : null,
+                lastServiceDate: updatedMixer.lastServiceDate ? DateUtility.parseLocalDate(updatedMixer.lastServiceDate) : null,
+                lastChipDate: updatedMixer.lastChipDate ? DateUtility.parseLocalDate(updatedMixer.lastChipDate) : null,
                 vin: updatedMixer.vin,
                 make: updatedMixer.make,
                 model: updatedMixer.model,
@@ -468,7 +463,7 @@ function MixerDetailView({mixerId, onClose}) {
 
     function formatDate(date) {
         if (!date) return ''
-        return date instanceof Date ? date.toISOString().split('T')[0] : date
+        return DateUtility.toLocalDateString(date)
     }
 
     async function fetchOperatorsForModal() {
@@ -885,7 +880,7 @@ function MixerDetailView({mixerId, onClose}) {
                             <div className="form-group">
                                 <label>Last Chip Date</label>
                                 <input type="date" value={lastChipDate ? formatDate(lastChipDate) : ''}
-                                       onChange={e => setLastChipDate(e.target.value ? new Date(e.target.value) : null)}
+                                       onChange={e => setLastChipDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
                                        className="form-control" readOnly={!canEditMixer}/>
                                 {lastChipDate && MixerUtility.isChipOverdue(lastChipDate) &&
                                     <div className="warning-text">Chip overdue</div>}

@@ -44,7 +44,7 @@ export class Tractor {
             truck_number: this.truckNumber,
             assigned_plant: this.assignedPlant,
             assigned_operator: this.assignedOperator || null,
-            last_service_date: DateUtility.toDbTimestamp(this.lastServiceDate),
+            last_service_date: DateUtility.toDbDate(this.lastServiceDate),
             cleanliness_rating: this.cleanlinessRating,
             status: this.status,
             has_blower: this.hasBlower,

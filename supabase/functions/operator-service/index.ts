@@ -296,6 +296,95 @@ Deno.serve(async (req) => {
                 });
                 return new Response(JSON.stringify({data}), {headers: corsHeaders});
             }
+            case "fetch-comments": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    body = {};
+                }
+                const operatorId = typeof body?.operatorId === "string" && body.operatorId !== "undefined" ? body.operatorId : null;
+                if (!operatorId) return new Response(JSON.stringify({error: "Operator ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                const {data, error} = await supabase
+                    .from("operators_comments")
+                    .select("*")
+                    .eq("operator_id", operatorId)
+                    .order("created_at", {ascending: false});
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({data: data ?? []}), {headers: corsHeaders});
+            }
+            case "add-comment": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                const operatorId = typeof body?.operatorId === "string" && body.operatorId !== "undefined" ? body.operatorId : null;
+                const text = typeof body?.text === "string" && body.text.trim() ? body.text.trim() : null;
+                const userId = typeof body?.userId === "string" && body.userId !== "undefined" ? body.userId : null;
+                if (!operatorId) return new Response(JSON.stringify({error: "Operator ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (!text) return new Response(JSON.stringify({error: "Comment text is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (!userId) return new Response(JSON.stringify({error: "User ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                const record = {
+                    id: crypto.randomUUID(),
+                    operator_id: operatorId,
+                    text: text,
+                    author: userId,
+                    created_at: new Date().toISOString()
+                };
+                const {data, error} = await supabase.from("operators_comments").insert(record).select().single();
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({data}), {headers: corsHeaders});
+            }
+            case "delete-comment": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    body = {};
+                }
+                const commentId = typeof body?.commentId === "string" && body.commentId !== "undefined" ? body.commentId : null;
+                if (!commentId) return new Response(JSON.stringify({error: "Comment ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                const {data, error} = await supabase
+                    .from("operators_comments")
+                    .delete()
+                    .eq("id", commentId)
+                    .select("*");
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (!data || data.length === 0) return new Response(JSON.stringify({error: "Comment not found"}), {
+                    status: 404,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
+            }
             default:
                 return new Response(JSON.stringify({error: "Invalid endpoint", path: url.pathname}), {
                     status: 404,

@@ -6,6 +6,7 @@ import LoadingScreen from '../../components/common/LoadingScreen'
 import OperatorDetailView from './OperatorDetailView'
 import OperatorCard from './OperatorCard'
 import OperatorAddView from './OperatorAddView'
+import OperatorCommentModal from './OperatorCommentModal'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import {OperatorService} from '../../services/OperatorService'
@@ -68,6 +69,9 @@ function OperatorsView({
     }
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedOperatorForHistory, setSelectedOperatorForHistory] = useState(null)
+    const [showCommentModal, setShowCommentModal] = useState(false)
+    const [modalOperatorId, setModalOperatorId] = useState(null)
+    const [modalOperatorName, setModalOperatorName] = useState('')
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -159,6 +163,15 @@ function OperatorsView({
     const fetchOperators = async (codes) => {
         try {
             const data = await OperatorService.fetchOperators(codes)
+            for (let i = 0; i < data.length; i++) {
+                const operator = data[i]
+                try {
+                    const comments = await OperatorService.fetchComments(operator.employeeId).catch(() => [])
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    operator.commentsCount = commentsCount
+                } catch (e) {
+                }
+            }
             setOperators(data)
             localStorage.setItem('cachedOperators', JSON.stringify(data))
             localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
@@ -415,7 +428,7 @@ function OperatorsView({
                         showReset={showReset}
                         onReset={handleResetFilters}
                         listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
-                        colWidths={['10%', '23%', '14%', '14%', '12%', '12%', '15%']}
+                        colWidths={['10%', '24%', '14%', '14%', '12%', '14%', '12%']}
                         sticky={true}
                         hidePlantFilter={plants.length === 0}
                         onHeaderClick={handleHeaderClick}
@@ -456,7 +469,7 @@ function OperatorsView({
                                 filteredItems={filteredOperators}
                                 handleSelectItem={handleSelectOperator}
                                 headerLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
-                                colWidths={['10%', '23%', '14%', '14%', '12%', '12%', '15%']}
+                                colWidths={['10%', '24%', '14%', '14%', '12%', '14%', '12%']}
                                 renderRow={(operator, handleSelect) => {
                                     const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
                                     const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
@@ -464,31 +477,52 @@ function OperatorsView({
                                         <tr key={operator.employeeId} onClick={() => handleSelect(operator)}
                                             style={{cursor: 'pointer'}}>
                                             <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
-                                            <td style={{width: '23%'}}><span
+                                            <td style={{width: '24%'}}><span
                                                 className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
                                             </td>
                                             <td style={{width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
                                             <td style={{width: '14%'}}>{operator.status || '\u2014'}</td>
                                             <td style={{width: '12%'}}>{renderStarsOrNA(operator)}</td>
-                                            <td style={{width: '12%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
-                                            <td style={{width: '15%'}}>
-                                                <button onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedOperatorForHistory(operator);
-                                                    setShowHistoryModal(true);
-                                                }} title="View history" style={{
-                                                    background: 'transparent',
-                                                    border: 'none',
-                                                    padding: 0,
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    cursor: 'pointer'
-                                                }}>
-                                                    <i className="fas fa-history" style={{
-                                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                                        marginRight: 4
-                                                    }}></i>
-                                                </button>
+                                            <td style={{width: '14%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                            <td style={{width: '12%'}}>
+                                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                                                    <button onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setModalOperatorId(operator.employeeId);
+                                                        setModalOperatorName(operator.name);
+                                                        setShowCommentModal(true);
+                                                    }} title="View comments" style={{
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        padding: 0,
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        cursor: 'pointer'
+                                                    }}>
+                                                        <i className="fas fa-comments" style={{
+                                                            color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                                            marginRight: 4
+                                                        }}></i>
+                                                        <span>{operator.commentsCount || 0}</span>
+                                                    </button>
+                                                    <button onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedOperatorForHistory(operator);
+                                                        setShowHistoryModal(true);
+                                                    }} title="View history" style={{
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        padding: 0,
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        cursor: 'pointer'
+                                                    }}>
+                                                        <i className="fas fa-history" style={{
+                                                            color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                                            marginRight: 4
+                                                        }}></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     )
@@ -513,6 +547,16 @@ function OperatorsView({
                             item={selectedOperatorForHistory}
                             type="operator"
                             onClose={() => setShowHistoryModal(false)}
+                        />
+                    )}
+                    {showCommentModal && modalOperatorId && (
+                        <OperatorCommentModal
+                            operatorId={modalOperatorId}
+                            operatorName={modalOperatorName}
+                            onClose={() => {
+                                setShowCommentModal(false);
+                                fetchOperators(regionPlantCodes);
+                            }}
                         />
                     )}
                 </>
