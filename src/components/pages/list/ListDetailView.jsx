@@ -24,6 +24,7 @@ function ListDetailView({itemId, onClose}) {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [originalValues, setOriginalValues] = useState({});
     const [canEditList, setCanEditList] = useState(false);
+    const [canDeleteList, setCanDeleteList] = useState(false);
 
     const canEdit = true;
 
@@ -35,6 +36,24 @@ function ListDetailView({itemId, onClose}) {
         return () => {
         };
     }, [itemId]);
+
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeleteList(hasPermission);
+                } else {
+                    setCanDeleteList(false);
+                }
+            } catch (error) {
+                setCanDeleteList(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
 
     async function fetchItem() {
         setLoading(true);
@@ -225,10 +244,12 @@ function ListDetailView({itemId, onClose}) {
                                 disabled={!hasUnsavedChanges || !canEditList}>
                             Save Changes
                         </button>
-                        <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                disabled={!canEditList}>
-                            Delete Item
-                        </button>
+                        {canDeleteList && (
+                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                    disabled={!canEditList}>
+                                Delete Item
+                            </button>
+                        )}
                     </>
                 )
             }

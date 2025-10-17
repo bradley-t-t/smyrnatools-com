@@ -36,6 +36,7 @@ function TractorDetailView({tractorId, onClose}) {
     const [message, setMessage] = useState('');
     const [showOperatorModal, setShowOperatorModal] = useState(false);
     const [canEditTractor, setCanEditTractor] = useState(false);
+    const [canDeleteTractor, setCanDeleteTractor] = useState(false);
     const [originalValues, setOriginalValues] = useState({});
     const [truckNumber, setTruckNumber] = useState('');
     const [assignedOperator, setAssignedOperator] = useState('');
@@ -445,6 +446,24 @@ function TractorDetailView({tractorId, onClose}) {
         fetchCommentsAndIssues()
     }, [tractorId]);
 
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeleteTractor(hasPermission);
+                } else {
+                    setCanDeleteTractor(false);
+                }
+            } catch (error) {
+                setCanDeleteTractor(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
+
     if (isLoading) {
         return null
     }
@@ -556,9 +575,11 @@ function TractorDetailView({tractorId, onClose}) {
                         <>
                             <button className="primary-button save-button" onClick={handleSave}
                                     disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                    disabled={isSaving}>Delete Tractor
-                            </button>
+                            {canDeleteTractor && (
+                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                        disabled={isSaving}>Delete Tractor
+                                </button>
+                            )}
                         </>
                     )
                 }

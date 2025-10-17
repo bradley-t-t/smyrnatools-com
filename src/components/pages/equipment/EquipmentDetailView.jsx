@@ -25,6 +25,7 @@ function EquipmentDetailView({equipmentId, onClose}) {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [message, setMessage] = useState('');
     const [canEditEquipment, setCanEditEquipment] = useState(false);
+    const [canDeleteEquipment, setCanDeleteEquipment] = useState(false);
     const [originalValues, setOriginalValues] = useState({});
     const [identifyingNumber, setIdentifyingNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
@@ -265,6 +266,24 @@ function EquipmentDetailView({equipmentId, onClose}) {
         fetchCommentsAndIssues();
     }, [equipmentId]);
 
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeleteEquipment(hasPermission);
+                } else {
+                    setCanDeleteEquipment(false);
+                }
+            } catch (error) {
+                setCanDeleteEquipment(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
+
     if (isLoading) {
         return null;
     }
@@ -320,6 +339,19 @@ function EquipmentDetailView({equipmentId, onClose}) {
                 deleteMessage={`Are you sure you want to delete ${equipment.equipmentType} #${equipment.identifyingNumber}? This action cannot be undone.`}
                 itemAssignedPlant={assignedPlant}
                 onCanEditChange={setCanEditEquipment}
+                footerActions={
+                    canEditEquipment && (
+                        <>
+                            <button className="primary-button save-button" onClick={handleSave}
+                                    disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
+                            {canDeleteEquipment && (
+                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                        disabled={isSaving}>Delete Equipment
+                                </button>
+                            )}
+                        </>
+                    )
+                }
             >
                 <div className="detail-card">
                     <div className="card-header">

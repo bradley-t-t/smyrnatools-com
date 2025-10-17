@@ -32,6 +32,7 @@ function ManagerDetailView({managerId, onClose}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [canEditManager, setCanEditManager] = useState(false);
+    const [canDeleteManager, setCanDeleteManager] = useState(false);
 
     useEffect(() => {
         document.body.classList.add('in-detail-view');
@@ -346,10 +347,12 @@ function ManagerDetailView({managerId, onClose}) {
                     <button className="primary-button save-button" onClick={handleSave} disabled={isSaving}>
                         {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
-                    <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                            disabled={isSaving}>
-                        Delete Manager
-                    </button>
+                    {canDeleteManager && (
+                        <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                disabled={isSaving}>
+                            Delete Manager
+                        </button>
+                    )}
                 </>
             ) : null}
             showDeleteConfirmation={showDeleteConfirmation}
@@ -381,96 +384,131 @@ function ManagerDetailView({managerId, onClose}) {
                     <h2>Edit Information</h2>
                 </div>
                 <p className="edit-instructions">{canEditManager ? 'Make changes below and click Save when finished.' : 'You are in read-only mode and cannot make changes to this manager.'}</p>
-                <div className="form-group">
-                    <label>First Name</label>
-                    <input
-                        type="text"
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
-                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                        readOnly={isReadOnly || !canEditManager}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Last Name</label>
-                    <input
-                        type="text"
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
-                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                        readOnly={isReadOnly || !canEditManager}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                        readOnly={isReadOnly || !canEditManager}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Plant</label>
-                    <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
-                            type="button" disabled={!canEditManager}>
-                        <span style={{
-                            display: 'block',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                        }}>{plantDisplayText}</span>
-                    </button>
-                </div>
-                <div className="form-group">
-                    <label>Role</label>
-                    <select
-                        value={roleName}
-                        onChange={e => setRoleName(e.target.value)}
-                        className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
-                        disabled={isReadOnly || !canEditManager}
-                    >
-                        {availableRoles.length ? availableRoles.map(role => (
-                            <option key={role.id} value={role.name}>{role.name}</option>
-                        )) : (
-                            <option value="">Loading roles...</option>
-                        )}
-                    </select>
-                    <div className="debug-info">
-                        {availableRoles.length ? `Found ${availableRoles.length} roles in database` : 'No roles found. Click refresh button above.'}
-                        {isReadOnly && (
-                            <div className="debug-warning">You cannot edit this manager.</div>
-                        )}
-                    </div>
-                </div>
-                <div className="form-group">
-                    <div className="password-header">
-                        <label>Password</label>
-                        {!showPasswordField && !isReadOnly && canEditManager && (
-                            <button className="text-button" onClick={() => setShowPasswordField(true)}>Change
-                                Password</button>
-                        )}
-                    </div>
-                    {showPasswordField && (
-                        <div className="password-fields">
+                <div className="form-sections">
+                    <div className="form-section basic-info">
+                        <h3>Basic Information</h3>
+                        <div className="form-group">
+                            <label>First Name</label>
                             <input
-                                type="password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                placeholder="Enter new password"
-                                className="form-control"
-                                disabled={!canEditManager}
+                                type="text"
+                                value={firstName}
+                                onChange={e => setFirstName(e.target.value)}
+                                className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                                readOnly={isReadOnly || !canEditManager}
                             />
-                            <button className="text-button small" onClick={() => {
-                                setShowPasswordField(false);
-                                setPassword('');
-                            }}>
-                                Cancel
+                        </div>
+                        <div className="form-group">
+                            <label>Last Name</label>
+                            <input
+                                type="text"
+                                value={lastName}
+                                onChange={e => setLastName(e.target.value)}
+                                className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                                readOnly={isReadOnly || !canEditManager}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                                readOnly={isReadOnly || !canEditManager}
+                            />
+                        </div>
+                    </div>
+                    <div className="form-section assignment-info">
+                        <h3>Assignment Information</h3>
+                        <div className="form-group">
+                            <label>Plant</label>
+                            <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                                    type="button" disabled={!canEditManager}>
+                                <span style={{
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}>{plantDisplayText}</span>
                             </button>
                         </div>
-                    )}
+                        <div className="form-group">
+                            <label>Role</label>
+                            <select
+                                value={roleName}
+                                onChange={e => setRoleName(e.target.value)}
+                                className={`form-control ${isReadOnly ? 'disabled-field' : ''}`}
+                                disabled={isReadOnly || !canEditManager}
+                            >
+                                {availableRoles.length ? availableRoles.map(role => (
+                                    <option key={role.id} value={role.name}>{role.name}</option>
+                                )) : (
+                                    <option value="">Loading roles...</option>
+                                )}
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
+            {!isReadOnly && (
+                <div className="detail-card">
+                    <div className="card-header">
+                        <h2>Security</h2>
+                    </div>
+                    <div className="form-sections">
+                        <div className="form-section security-info">
+                            <h3>Password Management</h3>
+                            {!showPasswordField ? (
+                                <div className="form-group">
+                                    <label>Password</label>
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px'}}>
+                                        <span style={{color: 'var(--text-secondary)', fontSize: '14px'}}>••••••••</span>
+                                        {canEditManager && (
+                                            <button
+                                                className="global-button-secondary"
+                                                onClick={() => setShowPasswordField(true)}
+                                                style={{padding: '8px 16px', fontSize: '14px'}}
+                                            >
+                                                <i className="fas fa-key"></i> Change Password
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p style={{color: 'var(--text-secondary)', fontSize: '13px', marginTop: '8px', marginBottom: '0'}}>
+                                        Click &quot;Change Password&quot; to set a new password for this manager.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="form-group">
+                                    <label>New Password</label>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        placeholder="Enter new password"
+                                        className="form-control"
+                                        disabled={!canEditManager}
+                                        autoFocus
+                                    />
+                                    <p style={{color: 'var(--text-secondary)', fontSize: '13px', marginTop: '8px', marginBottom: '12px'}}>
+                                        Enter a new password and click &quot;Save Changes&quot; at the bottom to apply it.
+                                    </p>
+                                    <div style={{display: 'flex', gap: '8px'}}>
+                                        <button
+                                            className="global-button-secondary"
+                                            onClick={() => {
+                                                setShowPasswordField(false);
+                                                setPassword('');
+                                            }}
+                                            style={{padding: '8px 16px', fontSize: '14px'}}
+                                        >
+                                            <i className="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </DetailViewSection>
     );
 }

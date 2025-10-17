@@ -35,6 +35,7 @@ function MixerDetailView({mixerId, onClose}) {
     const [message, setMessage] = useState('')
     const [showOperatorModal, setShowOperatorModal] = useState(false)
     const [canEditMixer, setCanEditMixer] = useState(false)
+    const [canDeleteMixer, setCanDeleteMixer] = useState(false)
     const [originalValues, setOriginalValues] = useState({})
     const [truckNumber, setTruckNumber] = useState('')
     const [assignedOperator, setAssignedOperator] = useState('')
@@ -112,6 +113,24 @@ function MixerDetailView({mixerId, onClose}) {
 
         fetchData()
     }, [mixerId])
+
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeleteMixer(hasPermission);
+                } else {
+                    setCanDeleteMixer(false);
+                }
+            } catch (error) {
+                setCanDeleteMixer(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
 
     useEffect(() => {
         let cancelled = false
@@ -612,9 +631,11 @@ function MixerDetailView({mixerId, onClose}) {
                         <>
                             <button className="primary-button save-button" onClick={handleSave}
                                     disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                    disabled={isSaving}>Delete Mixer
-                            </button>
+                            {canDeleteMixer && (
+                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                        disabled={isSaving}>Delete Mixer
+                                </button>
+                            )}
                         </>
                     )
                 }

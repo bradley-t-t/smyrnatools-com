@@ -46,6 +46,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const trailerCardRef = useRef(null);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [canDeleteTrailer, setCanDeleteTrailer] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -98,7 +99,25 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
         }
 
         fetchData();
-    }, [initialTrailer, trailerId]);
+    }, [trailerId, initialTrailer]);
+
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeleteTrailer(hasPermission);
+                } else {
+                    setCanDeleteTrailer(false);
+                }
+            } catch (error) {
+                setCanDeleteTrailer(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
 
     useEffect(() => {
         let cancelled = false
@@ -482,9 +501,11 @@ ${openIssues.length > 0
                                 >
                                     {isSaving ? 'Saving...' : 'Save Changes'}
                                 </button>
-                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                        disabled={isSaving}>Delete Trailer
-                                </button>
+                                {canDeleteTrailer && (
+                                    <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                            disabled={isSaving}>Delete Trailer
+                                    </button>
+                                )}
                             </>
                         )}
                     </>

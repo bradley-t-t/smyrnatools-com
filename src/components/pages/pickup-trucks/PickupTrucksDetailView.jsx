@@ -28,6 +28,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [canEditPickup, setCanEditPickup] = useState(false)
+    const [canDeletePickup, setCanDeletePickup] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -201,6 +202,24 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
         else onClose?.()
     }
 
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeletePickup(hasPermission);
+                } else {
+                    setCanDeletePickup(false);
+                }
+            } catch (error) {
+                setCanDeletePickup(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
+
     return (
         <DetailViewSection
             title={`Pickup ${assigned ? `- ${assigned}` : ''}`}
@@ -220,9 +239,11 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     <>
                         <button className="primary-button save-button" onClick={handleSave}
                                 disabled={isSaving || !canEditPickup}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                        <button className="danger-button" onClick={handleDelete}
-                                disabled={isSaving || !canEditPickup}>Delete Pickup
-                        </button>
+                        {canDeletePickup && (
+                            <button className="danger-button" onClick={handleDelete}
+                                    disabled={isSaving || !canEditPickup}>Delete Pickup
+                            </button>
+                        )}
                     </>
                 )
             }

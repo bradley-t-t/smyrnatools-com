@@ -8,8 +8,11 @@ import OperatorHistoryView from './OperatorHistoryView';
 import {UserService} from '../../../services/UserService';
 import {OperatorService} from '../../../services/OperatorService';
 import DetailViewSection from '../../sections/DetailViewSection';
+import ThemeUtility from '../../../utils/ThemeUtility';
+import {usePreferences} from '../../../app/context/PreferencesContext';
 
 function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
+    const {preferences} = usePreferences()
     const [operator, setOperator] = useState(null);
     const [plants, setPlants] = useState([]);
     const [trainers, setTrainers] = useState([]);
@@ -32,6 +35,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [canEditOperator, setCanEditOperator] = useState(false);
+    const [canDeleteOperator, setCanDeleteOperator] = useState(false);
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -53,6 +57,24 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
         fetchPlants();
         fetchTrainers();
     }, [operatorId]);
+
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || currentUser;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete');
+                    setCanDeleteOperator(hasPermission);
+                } else {
+                    setCanDeleteOperator(false);
+                }
+            } catch (error) {
+                setCanDeleteOperator(false);
+            }
+        };
+        checkDeletePermission();
+    }, []);
 
     const fetchPlants = async () => {
         const {data} = await supabase.from('plants').select('*');
@@ -246,13 +268,15 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                         >
                             {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>
-                        <button
-                            className="danger-button"
-                            onClick={() => setShowDeleteConfirmation(true)}
-                            disabled={isSaving || !canEditOperator}
-                        >
-                            Delete Operator
-                        </button>
+                        {canDeleteOperator && (
+                            <button
+                                className="danger-button"
+                                onClick={() => setShowDeleteConfirmation(true)}
+                                disabled={isSaving || !canEditOperator}
+                            >
+                                Delete Operator
+                            </button>
+                        )}
                     </>
                 )
             }
@@ -281,158 +305,174 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                     <h2>Edit Information</h2>
                 </div>
                 <p className="edit-instructions">{canEditOperator ? 'Make changes below and click Save when finished.' : 'You are in read-only mode and cannot make changes to this operator.'}</p>
-                <style>{`.form-group { margin-bottom: 25px !important; }`}</style>
-                <div className="form-group">
-                    <label>Employee ID</label>
-                    <input
-                        type="text"
-                        value={smyrnaId}
-                        onChange={(e) => setSmyrnaId(e.target.value)}
-                        className="form-control"
-                        disabled={!canEditOperator}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Name</label>
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="form-control"
-                        disabled={!canEditOperator}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Phone</label>
-                    <input
-                        type="tel"
-                        value={GrammarUtility.formatPhone(phone)}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="form-control"
-                        placeholder="(555) 555-5555"
-                        disabled={!canEditOperator}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Status</label>
-                    <select
-                        value={status}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setStatus(value);
-                            if (value === 'Active') setAssignedTrainer('');
-                        }}
-                        className="form-control"
-                        disabled={!canEditOperator}
-                    >
-                        <option value="Active">Active</option>
-                        <option value="Light Duty">Light Duty</option>
-                        <option value="Terminated">Terminated</option>
-                        {hasTrainingPermission && <option value="Pending Start">Pending Start</option>}
-                        {hasTrainingPermission && <option value="Training">Training</option>}
-                        <option value="No Hire">No Hire</option>
-                    </select>
-                </div>
-                {status === 'Pending Start' && (
-                    <div className="form-group">
-                        <label>Pending Start Date</label>
-                        <input
-                            type="date"
-                            value={pendingStartDate || ''}
-                            onChange={e => setPendingStartDate(e.target.value)}
-                            className="form-control"
-                            disabled={!canEditOperator}
-                        />
+                <div className="form-sections">
+                    <div className="form-section basic-info">
+                        <h3>Basic Information</h3>
+                        <div className="form-group">
+                            <label>Employee ID</label>
+                            <input
+                                type="text"
+                                value={smyrnaId}
+                                onChange={(e) => setSmyrnaId(e.target.value)}
+                                className="form-control"
+                                disabled={!canEditOperator}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Name</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="form-control"
+                                disabled={!canEditOperator}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Phone</label>
+                            <input
+                                type="tel"
+                                value={GrammarUtility.formatPhone(phone)}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="form-control"
+                                placeholder="(555) 555-5555"
+                                disabled={!canEditOperator}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Rating</label>
+                            <div className="cleanliness-rating-editor">
+                                <div className="star-input">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            className={`star-button ${star <= rating ? 'active' : ''} ${!canEditOperator ? 'disabled' : ''}`}
+                                            onClick={() => canEditOperator && setRating(star === rating ? 0 : star)}
+                                            aria-label={`Rate ${star} of 5 stars`}
+                                            disabled={!canEditOperator}
+                                        >
+                                            <i className={`fas fa-star ${star <= rating ? 'filled' : ''}`}
+                                               style={star <= rating ? {color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))} : {}}></i>
+                                        </button>
+                                    ))}
+                                </div>
+                                {rating > 0 && (
+                                    <div className="rating-value-display">
+                                        <span className="rating-label">
+                                            {[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                )}
-                <div className="form-group">
-                    <label>Assigned Plant</label>
-                    <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
-                            type="button" disabled={!canEditOperator}><span style={{
-                        display: 'block',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                    }}>{plantDisplayText}</span></button>
-                </div>
-                <div className="form-group">
-                    <label>Position</label>
-                    <select
-                        value={position}
-                        onChange={(e) => setPosition(e.target.value)}
-                        className="form-control"
-                        disabled={!canEditOperator}
-                    >
-                        <option value="">Select Position</option>
-                        <option value="Mixer Operator">Mixer Operator</option>
-                        <option value="Tractor Operator">Tractor Operator</option>
-                    </select>
-                </div>
-                <div className="form-group">
-                    <label>Rating</label>
-                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                        {[1, 2, 3, 4, 5].map(star => (
-                            <span
-                                key={star}
-                                style={{
-                                    cursor: canEditOperator ? 'pointer' : 'not-allowed',
-                                    fontSize: 24,
-                                    lineHeight: 1,
-                                    userSelect: 'none'
+                    <div className="form-section assignment-info">
+                        <h3>Assignment Information</h3>
+                        <div className="form-group">
+                            <label>Status</label>
+                            <select
+                                value={status}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setStatus(value);
+                                    if (value === 'Active') setAssignedTrainer('');
                                 }}
-                                onClick={canEditOperator ? () => setRating(star) : undefined}
-                                onKeyDown={canEditOperator ? (e => {
-                                    if (e.key === 'Enter') setRating(star);
-                                }) : undefined}
-                                tabIndex={canEditOperator ? 0 : -1}
-                                aria-label={`Set rating to ${star} star${star > 1 ? 's' : ''}`}
-                                role="button"
+                                className="form-control"
+                                disabled={!canEditOperator}
                             >
-                                {star <= rating ? '★' : '☆'}
-                            </span>
-                        ))}
-                        <span style={{marginLeft: 8}}>{rating > 0 ? `${rating} / 5` : 'Not Rated'}</span>
+                                <option value="Active">Active</option>
+                                <option value="Light Duty">Light Duty</option>
+                                <option value="Terminated">Terminated</option>
+                                {hasTrainingPermission && <option value="Pending Start">Pending Start</option>}
+                                {hasTrainingPermission && <option value="Training">Training</option>}
+                                <option value="No Hire">No Hire</option>
+                            </select>
+                        </div>
+                        {status === 'Pending Start' && (
+                            <div className="form-group">
+                                <label>Pending Start Date</label>
+                                <input
+                                    type="date"
+                                    value={pendingStartDate || ''}
+                                    onChange={e => setPendingStartDate(e.target.value)}
+                                    className="form-control"
+                                    disabled={!canEditOperator}
+                                />
+                            </div>
+                        )}
+                        <div className="form-group">
+                            <label>Assigned Plant</label>
+                            <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                                    type="button" disabled={!canEditOperator}><span style={{
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>{plantDisplayText}</span></button>
+                        </div>
+                        <div className="form-group">
+                            <label>Position</label>
+                            <select
+                                value={position}
+                                onChange={(e) => setPosition(e.target.value)}
+                                className="form-control"
+                                disabled={!canEditOperator}
+                            >
+                                <option value="">Select Position</option>
+                                <option value="Mixer Operator">Mixer Operator</option>
+                                <option value="Tractor Operator">Tractor Operator</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
             {hasTrainingPermission && (
                 <div className="detail-card">
-                    <h2>Training Information</h2>
-                    <div className="form-group">
-                        <label>Trainer Status</label>
-                        <select
-                            id="trainer-status"
-                            className="form-control"
-                            value={isTrainer ? "true" : "false"}
-                            onChange={(e) => {
-                                const isTrainerValue = e.target.value === "true";
-                                setIsTrainer(isTrainerValue);
-                                if (isTrainerValue) {
-                                    setAssignedTrainer(null);
-                                }
-                            }}
-                        >
-                            <option value="false">Not a Trainer</option>
-                            <option value="true">Trainer</option>
-                        </select>
+                    <div className="card-header">
+                        <h2>Training Information</h2>
                     </div>
-                    {(status === 'Training' || status === 'Pending Start') && (
-                        <div className="form-group">
-                            <label>Assigned Trainer</label>
-                            <select
-                                value={assignedTrainer}
-                                onChange={(e) => setAssignedTrainer(e.target.value)}
-                                className="form-control"
-                                disabled={isTrainer}
-                            >
-                                <option value="">None</option>
-                                {trainers.map(trainer => (
-                                    <option key={trainer.employeeId} value={trainer.employeeId}>
-                                        {trainer.name}
-                                    </option>
-                                ))}
-                            </select>
+                    <div className="form-sections">
+                        <div className="form-section training-info">
+                            <h3>Training Details</h3>
+                            <div className="form-group">
+                                <label>Trainer Status</label>
+                                <select
+                                    id="trainer-status"
+                                    className="form-control"
+                                    value={isTrainer ? "true" : "false"}
+                                    onChange={(e) => {
+                                        const isTrainerValue = e.target.value === "true";
+                                        setIsTrainer(isTrainerValue);
+                                        if (isTrainerValue) {
+                                            setAssignedTrainer(null);
+                                        }
+                                    }}
+                                    disabled={!canEditOperator}
+                                >
+                                    <option value="false">Not a Trainer</option>
+                                    <option value="true">Trainer</option>
+                                </select>
+                            </div>
+                            {(status === 'Training' || status === 'Pending Start') && (
+                                <div className="form-group">
+                                    <label>Assigned Trainer</label>
+                                    <select
+                                        value={assignedTrainer}
+                                        onChange={(e) => setAssignedTrainer(e.target.value)}
+                                        className="form-control"
+                                        disabled={isTrainer || !canEditOperator}
+                                    >
+                                        <option value="">None</option>
+                                        {trainers.map(trainer => (
+                                            <option key={trainer.employeeId} value={trainer.employeeId}>
+                                                {trainer.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
         </DetailViewSection>
