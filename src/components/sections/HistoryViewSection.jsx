@@ -1492,7 +1492,9 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="history-modal">
                 <div className="history-modal-header">
                     <h2>History for {itemName}</h2>
-                    <button className="close-button" onClick={onClose}>×</button>
+                    <button className="history-modal-close-button" onClick={onClose}>
+                        <i className="fas fa-times"></i>
+                    </button>
                 </div>
 
                 <div className="history-tabs">
