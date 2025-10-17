@@ -1,35 +1,20 @@
 import React from 'react';
 import {TractorUtility} from '../../../utils/TractorUtility';
-import {usePreferences} from '../../../app/context/PreferencesContext';
-import './styles/Tractors.css';
-import ThemeUtility from '../../../utils/ThemeUtility';
+import CardSection from '../../sections/CardSection';
 
 function TractorCard({
-                         tractor,
-                         operatorName,
-                         plantName,
-                         showOperatorWarning,
-                         onSelect,
-                         onShowCommentModal,
-                         onShowIssueModal
-                     }) {
+    tractor,
+    operatorName,
+    plantName,
+    showOperatorWarning,
+    onSelect,
+    onShowCommentModal,
+    onShowIssueModal
+}) {
     const isServiceOverdue = TractorUtility.isServiceOverdue(tractor.lastServiceDate);
     const isVerified = typeof tractor.isVerified === 'function'
         ? tractor.isVerified(tractor.latestHistoryDate)
         : TractorUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy, tractor.latestHistoryDate);
-    const {preferences} = usePreferences();
-    const openIssuesCount = Number(tractor.openIssuesCount || 0);
-    const commentsCount = Number(tractor.commentsCount || 0);
-
-    const handleCardClick = () => {
-        if (onSelect && typeof onSelect === 'function') {
-            onSelect(tractor.id);
-        }
-    };
-
-    const cardProps = onSelect ? {onClick: handleCardClick} : {};
-
-    const accentColor = ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor));
 
     let statusColor = 'var(--accent)';
     if (tractor.status === 'Active') statusColor = 'var(--status-active)';
@@ -38,158 +23,74 @@ function TractorCard({
     else if (tractor.status === 'Retired') statusColor = 'var(--status-retired)';
     else if (TractorUtility.isServiceOverdue(tractor.lastServiceDate)) statusColor = 'var(--error)';
 
-    return (
-        <div className="tractor-card" {...cardProps}>
-            <div style={{
-                height: 4,
-                width: '100%',
-                background: statusColor,
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: 10
-            }}/>
-            {commentsCount > 0 && (
-                <div
-                    className="comments-badge"
-                    style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: openIssuesCount > 0 ? '92px' : '42px',
-                        zIndex: 4,
-                        cursor: 'pointer'
-                    }}
-                    title={`${commentsCount} comment${commentsCount !== 1 ? 's' : ''}`}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onShowCommentModal();
-                    }}
-                >
-                    <i className="fas fa-comments comment-icon"></i>
-                    <span>{commentsCount}</span>
-                </div>
-            )}
-            {openIssuesCount > 0 && (
-                <div
-                    className="issues-badge"
-                    style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '42px',
-                        zIndex: 4,
-                        cursor: 'pointer'
-                    }}
-                    title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onShowIssueModal();
-                    }}
-                >
-                    <i className="fas fa-tools" style={{marginRight: '4px', fontSize: '0.9rem'}}></i>
-                    <span>{openIssuesCount}</span>
-                </div>
-            )}
-            {isVerified ? (
-                <div
-                    className="verification-flag"
-                    style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        color: 'var(--success)',
-                        fontSize: '1.2rem',
-                        zIndex: 5
-                    }}
-                    title="Verified"
-                >
-                    <i className="fas fa-check-circle" style={{color: 'var(--success)'}}></i>
-                </div>
-            ) : (
-                <div
-                    className="verification-flag"
-                    style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        color: 'var(--error)',
-                        fontSize: '1.2rem',
-                        zIndex: 5
-                    }}
-                    title={!tractor.updatedLast || !tractor.updatedBy ? 'Tractor never verified' :
-                        tractor.latestHistoryDate && new Date(tractor.latestHistoryDate) > new Date(tractor.updatedLast) ? 'Changes recorded in history since last verification' :
-                            'Tractor not verified since last Sunday'}
-                >
-                    <i className="fas fa-flag" style={{color: 'var(--error)'}}></i>
-                </div>
-            )}
-            <div className="card-content">
-                <div className="card-header">
-                    <h3 className="tractor-name"
-                        style={{color: accentColor}}>
-                        Tractor #{tractor.truckNumber || 'Not Assigned'}
-                    </h3>
-                </div>
+    const verificationTooltip = !tractor.updatedLast || !tractor.updatedBy
+        ? 'Tractor never verified'
+        : tractor.latestHistoryDate && new Date(tractor.latestHistoryDate) > new Date(tractor.updatedLast)
+            ? 'Changes recorded in history since last verification'
+            : 'Tractor not verified since last Sunday';
 
-                <div className="card-details">
-                    <div className="detail-row">
-                        <div className="detail-label">Plant</div>
-                        <div className="detail-value">{plantName}</div>
-                    </div>
-                    <div className="detail-row">
-                        <div className="detail-label">Status</div>
-                        <div className="detail-value">{tractor.status || 'Unknown'}</div>
-                    </div>
-                    <div className="detail-row">
-                        <div className="detail-label">Operator</div>
-                        <div className="detail-value">
-                            {operatorName}
-                            {showOperatorWarning && (
-                                <span className="warning-badge" title="Assigned to multiple tractors">
-                  <i className="fas fa-exclamation-triangle"></i>
-                </span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="detail-row">
-                        <div className="detail-label">Employee ID</div>
-                        <div className="detail-value">{tractor.operatorSmyrnaId || 'Not Assigned'}</div>
-                    </div>
-                    <div className="detail-row">
-                        <div className="detail-label">Last Service</div>
-                        <div className={`detail-value ${tractor.lastServiceDate && isServiceOverdue ? 'overdue' : ''}`}>
-                            {tractor.lastServiceDate ? (
-                                <>
-                                    {new Date(tractor.lastServiceDate).toLocaleDateString()}
-                                </>
-                            ) : (
-                                'Unknown'
-                            )}
-                        </div>
-                    </div>
-                    <div className="detail-row">
-                        <div className="detail-label">Has Blower</div>
-                        <div className="detail-value">{tractor.hasBlower ? 'Yes' : 'No'}</div>
-                    </div>
-                    <div className="detail-row">
-                        <div className="detail-label">Cleanliness</div>
-                        <div className="detail-value">
-                            {tractor.cleanlinessRating ? (
-                                <div className="stars-container">
-                                    {[...Array(5)].map((_, i) => (
-                                        <i key={i}
-                                           className={`fas fa-star ${i < tractor.cleanlinessRating ? 'filled-star' : 'empty-star'}`}
-                                           style={i < tractor.cleanlinessRating ? {color: accentColor} : {}}
-                                           aria-hidden="true"
-                                        ></i>
-                                    ))}
-                                </div>
-                            ) : 'Not Rated'}
-                        </div>
-                    </div>
+    return (
+        <CardSection
+            item={tractor}
+            itemType="Tractor"
+            itemNumber={tractor.truckNumber}
+            onSelect={onSelect}
+            onShowCommentModal={onShowCommentModal}
+            onShowIssueModal={onShowIssueModal}
+            statusColor={statusColor}
+            isVerified={isVerified}
+            verificationTooltip={verificationTooltip}
+        >
+            <div className="detail-row">
+                <div className="detail-label">Plant</div>
+                <div className="detail-value">{plantName}</div>
+            </div>
+            <div className="detail-row">
+                <div className="detail-label">Status</div>
+                <div className="detail-value">{tractor.status || 'Unknown'}</div>
+            </div>
+            <div className="detail-row">
+                <div className="detail-label">Operator</div>
+                <div className="detail-value">
+                    {operatorName}
+                    {showOperatorWarning && (
+                        <span className="warning-badge" title="Assigned to multiple tractors">
+                            <i className="fas fa-exclamation-triangle"></i>
+                        </span>
+                    )}
                 </div>
             </div>
-        </div>
+            <div className="detail-row">
+                <div className="detail-label">Employee ID</div>
+                <div className="detail-value">{tractor.operatorSmyrnaId || 'Not Assigned'}</div>
+            </div>
+            <div className="detail-row">
+                <div className="detail-label">Last Service</div>
+                <div className={`detail-value ${tractor.lastServiceDate && isServiceOverdue ? 'overdue' : ''}`}>
+                    {tractor.lastServiceDate ? new Date(tractor.lastServiceDate).toLocaleDateString() : 'Unknown'}
+                </div>
+            </div>
+            <div className="detail-row">
+                <div className="detail-label">Has Blower</div>
+                <div className="detail-value">{tractor.hasBlower ? 'Yes' : 'No'}</div>
+            </div>
+            <div className="detail-row">
+                <div className="detail-label">Cleanliness</div>
+                <div className="detail-value">
+                    {tractor.cleanlinessRating ? (
+                        <div className="stars-container">
+                            {[...Array(5)].map((_, i) => (
+                                <i
+                                    key={i}
+                                    className={`fas fa-star ${i < tractor.cleanlinessRating ? 'filled-star' : 'empty-star'}`}
+                                    aria-hidden="true"
+                                ></i>
+                            ))}
+                        </div>
+                    ) : 'Not Rated'}
+                </div>
+            </div>
+        </CardSection>
     );
 }
 

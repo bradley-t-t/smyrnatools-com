@@ -7,7 +7,6 @@ import EquipmentCommentModal from './EquipmentCommentModal';
 import EquipmentIssueModal from './EquipmentIssueModal';
 import EquipmentUtility from '../../../utils/EquipmentUtility';
 import EquipmentHistoryView from './EquipmentHistoryView';
-import './styles/Equipment.css';
 import {RegionService} from '../../../services/RegionService';
 import ThemeUtility from '../../../utils/ThemeUtility';
 import PlantDropdownModal from '../../common/PlantDropdownModal';

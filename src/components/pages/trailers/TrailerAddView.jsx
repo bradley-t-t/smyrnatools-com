@@ -77,14 +77,14 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
     }
 
     return (
-        <div className="add-tractor-modal-backdrop">
-            <div className="add-tractor-modal enhanced">
-                <div className="add-tractor-header sticky">
+        <div className="add-trailer-modal-backdrop">
+            <div className="add-trailer-modal">
+                <div className="add-trailer-header sticky">
                     <h2>Add New Trailer</h2>
-                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
+                    <button className="close-btn" onClick={onClose} aria-label="Close">×</button>
                 </div>
-                <div className="add-tractor-content-scrollable">
-                    <div className="add-tractor-content">
+                <div className="add-trailer-content-scrollable">
+                    <div className="add-trailer-content">
                         {error && <div className="error-message">{error}</div>}
                         <form onSubmit={handleSubmit} autoComplete="off">
                             <div className="form-section">

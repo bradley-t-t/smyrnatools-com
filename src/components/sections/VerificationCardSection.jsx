@@ -16,15 +16,13 @@ function VerificationCardSection({
             </div>
             <div className="verification-card">
                 <div className="verification-card-header">
-                    <i className="fas fa-clipboard-check"></i>
+                    <i className="fas fa-clipboard-check" style={{color: 'var(--accent)'}}></i>
                     {isVerified ? (
                         <div className="verification-badge verified">
-                            <i className="fas fa-check-circle"></i>
                             <span>Verified</span>
                         </div>
                     ) : (
                         <div className="verification-badge needs-verification">
-                            <i className="fas fa-exclamation-circle"></i>
                             <span>{verificationLabel || 'Needs Verification'}</span>
                         </div>
                     )}
@@ -74,4 +72,3 @@ function VerificationCardSection({
 }
 
 export default VerificationCardSection
-

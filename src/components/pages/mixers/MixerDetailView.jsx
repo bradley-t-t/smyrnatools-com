@@ -253,8 +253,10 @@ function MixerDetailView({mixerId, onClose}) {
                 }
             }
             setMixer(updatedMixer)
-            setMessage('Changes saved successfully! Mixer needs verification.')
-            setTimeout(() => setMessage(''), 5000)
+            if (!overrideValues.silent) {
+                setMessage('Changes saved successfully! Mixer needs verification.')
+                setTimeout(() => setMessage(''), 5000)
+            }
             setOriginalValues({
                 truckNumber: updatedMixer.truckNumber,
                 assignedOperator: updatedMixer.assignedOperator,
@@ -297,12 +299,13 @@ function MixerDetailView({mixerId, onClose}) {
             return
         }
         const vinValid = !!vin && ValidationUtility.isVIN(vin)
-        if (!vinValid || !mixer.make || !mixer.model || !mixer.year) {
+
+        if (!vinValid || !make || !model || !year) {
             let missing = []
             if (!vinValid) missing.push('VIN')
-            if (!mixer.make) missing.push('Make')
-            if (!mixer.model) missing.push('Model')
-            if (!mixer.year) missing.push('Year')
+            if (!make) missing.push('Make')
+            if (!model) missing.push('Model')
+            if (!year) missing.push('Year')
             setMissingFields(missing)
             setShowMissingFieldsModal(true)
             return
@@ -313,6 +316,7 @@ function MixerDetailView({mixerId, onClose}) {
             return
         }
         const operatorName = getOperatorName(assignedOperator)
+
         if (
             status === 'Active' &&
             (
@@ -326,6 +330,7 @@ function MixerDetailView({mixerId, onClose}) {
             setTimeout(() => setMessage(''), 4000)
             return
         }
+
         setIsSaving(true)
         try {
             if (hasUnsavedChanges) {
@@ -371,7 +376,7 @@ function MixerDetailView({mixerId, onClose}) {
                 setTimeout(() => setMessage(''), 4000)
                 return
             }
-            const overrides = {}
+            const overrides = {silent: true}
             if (needVin) overrides.vin = String(vin).trim().toUpperCase()
             if (needMake) overrides.make = String(make).trim()
             if (needModel) overrides.model = String(model).trim()
@@ -656,10 +661,23 @@ function MixerDetailView({mixerId, onClose}) {
                         )}
                         {showMissingFieldsModal && (
                             <VerificationRequirementsModal
-                                isOpen={showMissingFieldsModal}
+                                open={showMissingFieldsModal}
                                 onClose={() => setShowMissingFieldsModal(false)}
                                 missingFields={missingFields}
-                                onSave={handleSaveMissingFields}
+                                vin={vin}
+                                make={make}
+                                model={model}
+                                year={year}
+                                lastServiceDate={lastServiceDate}
+                                lastChipDate={lastChipDate}
+                                setVin={setVin}
+                                setMake={setMake}
+                                setModel={setModel}
+                                setYear={setYear}
+                                setLastServiceDate={setLastServiceDate}
+                                setLastChipDate={setLastChipDate}
+                                onSaveAndVerify={handleSaveMissingFields}
+                                isServiceOverdue={MixerUtility.isServiceOverdue}
                             />
                         )}
                     </>

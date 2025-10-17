@@ -1,6 +1,6 @@
 .detail-view {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-secondary);
@@ -8,7 +8,7 @@
     overflow-x: hidden;
     color: var(--text-primary);
     max-width: 100%;
-    padding-top: 10px;
+    padding-top: 0;
     padding-left: 0;
     padding-right: 0;
 }
@@ -20,13 +20,13 @@
     background-color: var(--detail-header-bg);
     border-bottom: 1px solid var(--border-light);
     position: sticky;
-    top: 10px;
+    top: 0;
     z-index: 10;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
     border-radius: 12px 12px 12px 12px;
-    margin: 0;
+    margin: 10px 0 0 0;
 }
 
 .detail-view-header-left {
@@ -94,7 +94,7 @@
 }
 
 .detail-view-content {
-    padding: 0;
+    padding: 16px 0 50px 0;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -257,7 +257,7 @@
 }
 
 .detail-card {
-    background-color: var(--bg-primary);
+    background-color: transparent;
     border-radius: 0;
     box-shadow: none;
     padding: 24px;
@@ -535,7 +535,7 @@
 
 .verification-card-header i {
     font-size: 20px;
-    color: var(--accent);
+    color: var(--text-light);
 }
 
 .verification-card-header h3 {
@@ -1518,4 +1518,138 @@
 .operator-select-button:disabled {
     background-color: var(--bg-tertiary);
     cursor: not-allowed;
+}
+
+.operator-select-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.unassign-operator-button {
+    padding: 8px 16px;
+    background-color: var(--danger);
+    color: var(--text-light);
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.unassign-operator-button:hover {
+    background-color: var(--danger-hover);
+    transform: translateY(-1px);
+}
+
+.unassign-operator-button:active {
+    transform: translateY(0);
+}
+
+.undo-operator-button {
+    background-color: var(--success);
+}
+
+.undo-operator-button:hover {
+    background-color: var(--success-hover);
+}
+
+.cleanliness-rating-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.star-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.star-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s ease;
+    font-size: 24px;
+}
+
+.star-button:hover:not(.disabled) {
+    transform: scale(1.15);
+}
+
+.star-button.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.star-button i {
+    transition: color 0.2s ease;
+}
+
+.star-button i:not(.filled) {
+    color: var(--text-secondary);
+}
+
+.rating-value-display {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    background-color: var(--accent);
+    border-radius: 6px;
+    align-self: flex-start;
+}
+
+.rating-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.form-control[type="text"],
+.form-control[type="date"],
+.form-control {
+    min-height: 38px;
+}
+
+select.form-control {
+    cursor: pointer;
+    height: 43px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    line-height: normal;
+}
+
+select.form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+    background-color: var(--bg-primary);
+}
+
+select.form-control:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+select.form-control option {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    padding: 8px;
 }

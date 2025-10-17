@@ -252,8 +252,10 @@ function TractorDetailView({tractorId, onClose}) {
             }
             const refreshedTractor = await TractorService.fetchTractorById(tractor.id);
             setTractor(refreshedTractor);
-            setMessage('Changes saved successfully! Tractor needs verification.');
-            setTimeout(() => setMessage(''), 5000);
+            if (!overrideValues.silent) {
+                setMessage('Changes saved successfully! Tractor needs verification.');
+                setTimeout(() => setMessage(''), 5000);
+            }
             setOriginalValues({
                 truckNumber: refreshedTractor.truckNumber,
                 assignedOperator: refreshedTractor.assignedOperator,
@@ -299,12 +301,13 @@ function TractorDetailView({tractorId, onClose}) {
             return
         }
         const vinValid = !!vin && ValidationUtility.isVIN(vin)
-        if (!vinValid || !tractor.make || !tractor.model || !tractor.year) {
+
+        if (!vinValid || !make || !model || !year) {
             let missing = [];
             if (!vinValid) missing.push('VIN');
-            if (!tractor.make) missing.push('Make');
-            if (!tractor.model) missing.push('Model');
-            if (!tractor.year) missing.push('Year');
+            if (!make) missing.push('Make');
+            if (!model) missing.push('Model');
+            if (!year) missing.push('Year');
             setMissingFields(missing);
             setShowMissingFieldsModal(true);
             return;
@@ -315,11 +318,13 @@ function TractorDetailView({tractorId, onClose}) {
             return;
         }
         const operatorName = getOperatorName(assignedOperator)
+
         if (status === 'Active' && (assignedOperator === null || assignedOperator === undefined || assignedOperator === '0' || (assignedOperator && operatorName === 'Unknown'))) {
             setMessage('Cannot verify: Assigned operator is missing or invalid.');
             setTimeout(() => setMessage(''), 4000);
             return;
         }
+
         setIsSaving(true)
         try {
             if (hasUnsavedChanges) {
@@ -366,7 +371,7 @@ function TractorDetailView({tractorId, onClose}) {
             setTimeout(() => setMessage(''), 4000);
             return
         }
-        const overrides = {}
+        const overrides = {silent: true}
         if (needVin) overrides.vin = String(vin).trim().toUpperCase()
         if (needMake) overrides.make = String(make).trim()
         if (needModel) overrides.model = String(model).trim()
@@ -600,10 +605,21 @@ function TractorDetailView({tractorId, onClose}) {
                         )}
                         {showMissingFieldsModal && (
                             <VerificationRequirementsModal
-                                isOpen={showMissingFieldsModal}
+                                open={showMissingFieldsModal}
                                 onClose={() => setShowMissingFieldsModal(false)}
                                 missingFields={missingFields}
-                                onSave={handleSaveMissingFields}
+                                vin={vin}
+                                make={make}
+                                model={model}
+                                year={year}
+                                lastServiceDate={lastServiceDate}
+                                setVin={setVin}
+                                setMake={setMake}
+                                setModel={setModel}
+                                setYear={setYear}
+                                setLastServiceDate={setLastServiceDate}
+                                onSaveAndVerify={handleSaveMissingFields}
+                                isServiceOverdue={TractorUtility.isServiceOverdue}
                             />
                         )}
                     </>

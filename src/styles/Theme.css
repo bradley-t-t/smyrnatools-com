@@ -14,6 +14,7 @@
     --primary-light: #4a5568;
     --secondary: #718096;
     --success: #38a169;
+    --success-hover: #2f8556;
     --warning: #ecc94b;
     --warning-hover: #d69e2e;
     --error: #e53e3e;
@@ -61,6 +62,7 @@
     --danger-bg: rgba(239, 68, 68, 0.1);
     --danger-bg-hover: rgba(239, 68, 68, 0.2);
     --danger: #b80017;
+    --danger-hover: #a00014;
     --verified-badge-text: #fff;
     --modal-bg: rgba(0, 0, 0, 0.5);
     --error-bg: var(--danger-bg);
@@ -128,6 +130,7 @@
     --primary-light: #23272a;
     --secondary: #5865f2;
     --success: #43b581;
+    --success-hover: #389168;
     --warning: #faa61a;
     --error: #f04747;
     --info: #7289da;
@@ -164,6 +167,7 @@
     --danger-bg: rgba(184, 0, 23, 0.18);
     --danger-bg-hover: rgba(184, 0, 23, 0.32);
     --danger: #ff5a5a;
+    --danger-hover: #a00014;
     --verified-badge-text: #000;
     --modal-bg: rgba(0, 0, 0, 0.5);
     --error-bg: var(--danger-bg);
