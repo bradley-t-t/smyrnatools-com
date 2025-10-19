@@ -20,6 +20,7 @@ function CardSection({
     const commentsCount = Number(item.commentsCount || 0);
     const otherAccent = ThemeUtility.getOtherAccentColor(preferences.accentColor);
     const accentColor = ThemeUtility.getAccentColor(otherAccent);
+    const hasVerification = isVerified !== undefined;
 
     const handleCardClick = () => {
         if (onSelect && typeof onSelect === 'function') {
@@ -37,7 +38,9 @@ function CardSection({
                 <div
                     className="comments-badge"
                     style={{
-                        right: openIssuesCount > 0 ? '92px' : '42px'
+                        right: hasVerification
+                            ? (openIssuesCount > 0 ? '92px' : '42px')
+                            : (openIssuesCount > 0 ? '62px' : '12px')
                     }}
                     onClick={(e) => {
                         e.stopPropagation();
@@ -53,6 +56,9 @@ function CardSection({
             {openIssuesCount > 0 && (
                 <div
                     className="issues-badge"
+                    style={{
+                        right: hasVerification ? '42px' : '12px'
+                    }}
                     onClick={(e) => {
                         e.stopPropagation();
                         if (onShowIssueModal) onShowIssueModal();
