@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {OperatorService} from '../../services/OperatorService';
 import LoadingScreen from '../common/LoadingScreen';
 import UserLabel from '../common/UserLabel';
@@ -423,7 +423,8 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="chart-container">
                 <h3 className="chart-title">Cleanliness Rating Over Time</h3>
                 <div className="chart-scroll-container">
-                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`} preserveAspectRatio="xMidYMid meet">
+                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
+                         preserveAspectRatio="xMidYMid meet">
                         <g transform={`translate(${padding}, ${padding})`}>
                             {[5, 4, 3, 2, 1].map(rating => (
                                 <g key={rating}>
@@ -542,14 +543,14 @@ function HistoryViewSection({item, type, onClose}) {
             const start = operatorData[startIndex].date;
             const end = endIndex < operatorData.length ? operatorData[endIndex].date : new Date();
             const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
-            return { days, endIndex };
+            return {days, endIndex};
         };
 
         const consolidatedTimeline = [];
         let i = 0;
         while (i < operatorData.length) {
             const entry = operatorData[i];
-            const { days, endIndex } = calculateDuration(i, entry.operator);
+            const {days, endIndex} = calculateDuration(i, entry.operator);
             consolidatedTimeline.push({
                 operator: entry.operator,
                 startDate: entry.timestamp,
@@ -583,7 +584,8 @@ function HistoryViewSection({item, type, onClose}) {
                 <h3 className="chart-section-title">Assignment Timeline</h3>
                 <div className="operator-timeline-modern">
                     {consolidatedTimeline.map((entry, index) => (
-                        <div key={index} className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                        <div key={index}
+                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
                                 <div className="timeline-dot"></div>
                                 {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
@@ -595,7 +597,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -607,11 +610,13 @@ function HistoryViewSection({item, type, onClose}) {
                     {chartData.map((data, index) => {
                         const isTopOperator = index === 0;
                         return (
-                            <div key={index} className={`distribution-row ${isTopOperator ? 'distribution-row-top' : ''}`}>
+                            <div key={index}
+                                 className={`distribution-row ${isTopOperator ? 'distribution-row-top' : ''}`}>
                                 <div className="distribution-info">
                                     <div className="distribution-operator-name">{data.name}</div>
                                     <div className="distribution-stats">
-                                        <span className="distribution-assignments">{data.count} {data.count === 1 ? 'assignment' : 'assignments'}</span>
+                                        <span
+                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'assignment' : 'assignments'}</span>
                                         <span className="distribution-percentage">{data.percentage}%</span>
                                     </div>
                                 </div>
@@ -701,7 +706,8 @@ function HistoryViewSection({item, type, onClose}) {
                     <div className="operator-summary-cards">
                         <div className="summary-card">
                             <div className="summary-label">Last Service</div>
-                            <div className="summary-value summary-value-small">{FormatUtility.formatDate(lastService.serviceDate)}</div>
+                            <div
+                                className="summary-value summary-value-small">{FormatUtility.formatDate(lastService.serviceDate)}</div>
                         </div>
                         <div className="summary-card">
                             <div className="summary-label">Days Since Service</div>
@@ -714,7 +720,8 @@ function HistoryViewSection({item, type, onClose}) {
                         {avgDaysService && (
                             <div className="summary-card">
                                 <div className="summary-label">Avg Service Interval</div>
-                                <div className="summary-value">{avgDaysService} <span style={{fontSize: '0.6rem'}}>days</span></div>
+                                <div className="summary-value">{avgDaysService} <span
+                                    style={{fontSize: '0.6rem'}}>days</span></div>
                             </div>
                         )}
                     </div>
@@ -736,7 +743,7 @@ function HistoryViewSection({item, type, onClose}) {
                 </div>
 
                 <h3 className="chart-section-title">Service & Issue Timeline</h3>
-                <ErrorMessage message={error} onDismiss={() => setError(null)} />
+                <ErrorMessage message={error} onDismiss={() => setError(null)}/>
 
                 <div className="operator-timeline-modern">
                     {combinedTimeline.map((entry, index) => {
@@ -754,7 +761,8 @@ function HistoryViewSection({item, type, onClose}) {
                                             </span>
                                         </div>
                                         <div className="timeline-card-meta">
-                                            <span className="timeline-date">{FormatUtility.formatDate(entry.date)}</span>
+                                            <span
+                                                className="timeline-date">{FormatUtility.formatDate(entry.date)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -767,45 +775,81 @@ function HistoryViewSection({item, type, onClose}) {
                                         <div className="timeline-dot" style={{
                                             background: entry.isCompleted ? 'var(--text-secondary)' :
                                                 issue.severity === 'High' ? 'var(--danger)' :
-                                                issue.severity === 'Medium' ? 'var(--warning)' :
-                                                'var(--info)'
+                                                    issue.severity === 'Medium' ? 'var(--warning)' :
+                                                        'var(--info)'
                                         }}></div>
                                         {index < combinedTimeline.length - 1 && <div className="timeline-line"></div>}
                                     </div>
                                     <div className="timeline-card" style={{
                                         borderLeftColor: entry.isCompleted ? 'var(--text-secondary)' :
                                             issue.severity === 'High' ? 'var(--danger)' :
-                                            issue.severity === 'Medium' ? 'var(--warning)' :
-                                            'var(--info)',
+                                                issue.severity === 'Medium' ? 'var(--warning)' :
+                                                    'var(--info)',
                                         borderLeftWidth: '3px',
                                         borderLeftStyle: 'solid',
                                         opacity: entry.isCompleted ? 0.7 : 1
                                     }}>
-                                        <div className="timeline-card-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem'}}>
+                                        <div className="timeline-card-header" style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '0.5rem'
+                                        }}>
                                             <div style={{flex: 1}}>
-                                                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem'}}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    marginBottom: '0.25rem'
+                                                }}>
                                                     <i className={entry.isCompleted ? "fas fa-check-circle" : "fas fa-exclamation-circle"}></i>
-                                                    <span className={`issue-modal-severity ${getSeverityClass(issue.severity)}`} style={{padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem'}}>
+                                                    <span
+                                                        className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}
+                                                        style={{
+                                                            padding: '0.25rem 0.5rem',
+                                                            borderRadius: '4px',
+                                                            fontSize: '0.75rem'
+                                                        }}>
                                                         {issue.severity}
                                                     </span>
                                                     {entry.isCompleted && (
-                                                        <span style={{fontSize: '0.75rem', color: 'var(--success)', fontWeight: 'bold'}}>
+                                                        <span style={{
+                                                            fontSize: '0.75rem',
+                                                            color: 'var(--success)',
+                                                            fontWeight: 'bold'
+                                                        }}>
                                                             RESOLVED
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div style={{fontSize: '0.95rem', marginTop: '0.5rem'}}>{issue.issue}</div>
+                                                <div style={{
+                                                    fontSize: '0.95rem',
+                                                    marginTop: '0.5rem'
+                                                }}>{issue.issue}</div>
                                             </div>
                                             <button
                                                 onClick={() => handleDeleteIssue(issue.id)}
                                                 title="Delete issue"
-                                                style={{padding: '0.25rem 0.5rem', borderRadius: '4px', border: 'none', background: 'var(--danger)', color: 'white', cursor: 'pointer', fontSize: '0.75rem'}}
+                                                style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    borderRadius: '4px',
+                                                    border: 'none',
+                                                    background: 'var(--danger)',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.75rem'
+                                                }}
                                             >
                                                 <i className="fas fa-trash"></i>
                                             </button>
                                         </div>
-                                        <div className="timeline-card-meta" style={{display: 'flex', flexDirection: 'column', gap: '0.25rem'}}>
-                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                        <div className="timeline-card-meta"
+                                             style={{display: 'flex', flexDirection: 'column', gap: '0.25rem'}}>
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}>
                                                 <span style={{fontSize: '0.85rem', opacity: 0.9}}>
                                                     <i className="fas fa-user"></i> {getCreatorName(issue)}
                                                 </span>
@@ -822,7 +866,16 @@ function HistoryViewSection({item, type, onClose}) {
                                                 <button
                                                     onClick={() => handleCompleteIssue(issue.id)}
                                                     title="Mark as resolved"
-                                                    style={{padding: '0.5rem 1rem', borderRadius: '4px', border: 'none', background: 'var(--success)', color: 'white', cursor: 'pointer', marginTop: '0.5rem', alignSelf: 'flex-start'}}
+                                                    style={{
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '4px',
+                                                        border: 'none',
+                                                        background: 'var(--success)',
+                                                        color: 'white',
+                                                        cursor: 'pointer',
+                                                        marginTop: '0.5rem',
+                                                        alignSelf: 'flex-start'
+                                                    }}
                                                 >
                                                     <i className="fas fa-check"></i> Mark as Resolved
                                                 </button>
@@ -872,14 +925,14 @@ function HistoryViewSection({item, type, onClose}) {
             const start = plantData[startIndex].date;
             const end = endIndex < plantData.length ? plantData[endIndex].date : new Date();
             const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
-            return { days, endIndex };
+            return {days, endIndex};
         };
 
         const consolidatedTimeline = [];
         let i = 0;
         while (i < plantData.length) {
             const entry = plantData[i];
-            const { days, endIndex } = calculateDuration(i, entry.plant);
+            const {days, endIndex} = calculateDuration(i, entry.plant);
             consolidatedTimeline.push({
                 plant: entry.plant,
                 startDate: entry.timestamp,
@@ -913,7 +966,8 @@ function HistoryViewSection({item, type, onClose}) {
                 <h3 className="chart-section-title">Assignment Timeline</h3>
                 <div className="operator-timeline-modern">
                     {consolidatedTimeline.map((entry, index) => (
-                        <div key={index} className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                        <div key={index}
+                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
                                 <div className="timeline-dot"></div>
                                 {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
@@ -925,7 +979,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -941,7 +996,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 <div className="distribution-info">
                                     <div className="distribution-operator-name">{data.plant}</div>
                                     <div className="distribution-stats">
-                                        <span className="distribution-assignments">{data.count} {data.count === 1 ? 'assignment' : 'assignments'}</span>
+                                        <span
+                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'assignment' : 'assignments'}</span>
                                         <span className="distribution-percentage">{data.percentage}%</span>
                                     </div>
                                 </div>
@@ -984,14 +1040,14 @@ function HistoryViewSection({item, type, onClose}) {
             const start = statusData[startIndex].date;
             const end = endIndex < statusData.length ? statusData[endIndex].date : new Date();
             const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
-            return { days, endIndex };
+            return {days, endIndex};
         };
 
         const consolidatedTimeline = [];
         let i = 0;
         while (i < statusData.length) {
             const entry = statusData[i];
-            const { days, endIndex } = calculateDuration(i, entry.status);
+            const {days, endIndex} = calculateDuration(i, entry.status);
             consolidatedTimeline.push({
                 status: entry.status,
                 startDate: entry.timestamp,
@@ -1026,7 +1082,8 @@ function HistoryViewSection({item, type, onClose}) {
                 <h3 className="chart-section-title">Status Timeline</h3>
                 <div className="operator-timeline-modern">
                     {consolidatedTimeline.map((entry, index) => (
-                        <div key={index} className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                        <div key={index}
+                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
                                 <div className="timeline-dot"></div>
                                 {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
@@ -1038,7 +1095,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1082,14 +1140,14 @@ function HistoryViewSection({item, type, onClose}) {
             const start = positionData[startIndex].date;
             const end = endIndex < positionData.length ? positionData[endIndex].date : new Date();
             const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
-            return { days, endIndex };
+            return {days, endIndex};
         };
 
         const consolidatedTimeline = [];
         let i = 0;
         while (i < positionData.length) {
             const entry = positionData[i];
-            const { days, endIndex } = calculateDuration(i, entry.position);
+            const {days, endIndex} = calculateDuration(i, entry.position);
             consolidatedTimeline.push({
                 position: entry.position,
                 startDate: entry.timestamp,
@@ -1124,7 +1182,8 @@ function HistoryViewSection({item, type, onClose}) {
                 <h3 className="chart-section-title">Position Timeline</h3>
                 <div className="operator-timeline-modern">
                     {consolidatedTimeline.map((entry, index) => (
-                        <div key={index} className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                        <div key={index}
+                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
                                 <div className="timeline-dot"></div>
                                 {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
@@ -1136,7 +1195,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1148,11 +1208,13 @@ function HistoryViewSection({item, type, onClose}) {
                     {chartData.map((data, index) => {
                         const isTopPosition = index === 0;
                         return (
-                            <div key={index} className={`distribution-row ${isTopPosition ? 'distribution-row-top' : ''}`}>
+                            <div key={index}
+                                 className={`distribution-row ${isTopPosition ? 'distribution-row-top' : ''}`}>
                                 <div className="distribution-info">
                                     <div className="distribution-operator-name">{data.position}</div>
                                     <div className="distribution-stats">
-                                        <span className="distribution-assignments">{data.count} {data.count === 1 ? 'time' : 'times'}</span>
+                                        <span
+                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'time' : 'times'}</span>
                                         <span className="distribution-percentage">{data.percentage}%</span>
                                     </div>
                                 </div>
@@ -1224,7 +1286,8 @@ function HistoryViewSection({item, type, onClose}) {
 
                 <h3 className="chart-section-title">Rating Over Time</h3>
                 <div className="chart-scroll-container">
-                    <svg className="chart-svg_fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`} preserveAspectRatio="xMidYMid meet">
+                    <svg className="chart-svg_fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
+                         preserveAspectRatio="xMidYMid meet">
                         <g transform={`translate(${padding}, ${padding})`}>
                             {[5, 4, 3, 2, 1].map(rating => (
                                 <g key={rating}>
@@ -1295,11 +1358,13 @@ function HistoryViewSection({item, type, onClose}) {
                     {distributionData.map((data, index) => {
                         const isTopRating = data.count > 0 && data.count === Math.max(...distributionData.map(d => d.count));
                         return (
-                            <div key={index} className={`distribution-row ${isTopRating ? 'distribution-row-top' : ''}`}>
+                            <div key={index}
+                                 className={`distribution-row ${isTopRating ? 'distribution-row-top' : ''}`}>
                                 <div className="distribution-info">
                                     <div className="distribution-operator-name">{data.rating}★ - {data.label}</div>
                                     <div className="distribution-stats">
-                                        <span className="distribution-assignments">{data.count} {data.count === 1 ? 'time' : 'times'}</span>
+                                        <span
+                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'time' : 'times'}</span>
                                         <span className="distribution-percentage">{data.percentage}%</span>
                                     </div>
                                 </div>
@@ -1321,7 +1386,8 @@ function HistoryViewSection({item, type, onClose}) {
                             </div>
                             <div className="timeline-card">
                                 <div className="timeline-card-header">
-                                    <span className="timeline-operator-name">{entry.rating}★ - {ratingLabels[entry.rating]}</span>
+                                    <span
+                                        className="timeline-operator-name">{entry.rating}★ - {ratingLabels[entry.rating]}</span>
                                     {index === 0 && <span className="current-badge">Current</span>}
                                 </div>
                                 <div className="timeline-card-meta">
@@ -1351,7 +1417,7 @@ function HistoryViewSection({item, type, onClose}) {
         const avgMileage = mileageData.reduce((sum, d) => sum + d.mileage, 0) / mileageData.length;
 
         const calculateMilesPerPeriod = () => {
-            if (mileageData.length < 2) return { perWeek: 0, perMonth: 0, perYear: 0 };
+            if (mileageData.length < 2) return {perWeek: 0, perMonth: 0, perYear: 0};
 
             const intervals = [];
             for (let i = 1; i < mileageData.length; i++) {
@@ -1362,11 +1428,11 @@ function HistoryViewSection({item, type, onClose}) {
                 const days = timeDiff / (1000 * 60 * 60 * 24);
 
                 if (days > 0 && milesDriven > 0) {
-                    intervals.push({ milesDriven, days });
+                    intervals.push({milesDriven, days});
                 }
             }
 
-            if (intervals.length === 0) return { perWeek: 0, perMonth: 0, perYear: 0 };
+            if (intervals.length === 0) return {perWeek: 0, perMonth: 0, perYear: 0};
 
             const totalMiles = intervals.reduce((sum, int) => sum + int.milesDriven, 0);
             const totalDays = intervals.reduce((sum, int) => sum + int.days, 0);
@@ -1379,7 +1445,7 @@ function HistoryViewSection({item, type, onClose}) {
             };
         };
 
-        const { perWeek, perMonth, perYear } = calculateMilesPerPeriod();
+        const {perWeek, perMonth, perYear} = calculateMilesPerPeriod();
 
         const maxMileage = Math.max(...mileageData.map(d => d.mileage));
         const minMileage = Math.min(...mileageData.map(d => d.mileage));
@@ -1388,10 +1454,10 @@ function HistoryViewSection({item, type, onClose}) {
         const padding = 60;
 
         const getMaintenanceMilestone = (miles) => {
-            if (miles >= 300000) return { level: 'critical', label: 'High Mileage' };
-            if (miles >= 200000) return { level: 'warning', label: 'Elevated' };
-            if (miles >= 100000) return { level: 'info', label: 'Moderate' };
-            return { level: 'good', label: 'Low' };
+            if (miles >= 300000) return {level: 'critical', label: 'High Mileage'};
+            if (miles >= 200000) return {level: 'warning', label: 'Elevated'};
+            if (miles >= 100000) return {level: 'info', label: 'Moderate'};
+            return {level: 'good', label: 'Low'};
         };
 
         const milestone = getMaintenanceMilestone(currentMileage);
@@ -1406,7 +1472,8 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                     <div className="summary-card">
                         <div className="summary-label">Total Change</div>
-                        <div className="summary-value">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
+                        <div
+                            className="summary-value">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
                         <div className="summary-subtext">miles tracked</div>
                     </div>
                     <div className="summary-card">
@@ -1449,7 +1516,8 @@ function HistoryViewSection({item, type, onClose}) {
 
                 <h3 className="chart-section-title">Mileage Over Time</h3>
                 <div className="chart-scroll-container">
-                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`} preserveAspectRatio="xMidYMid meet">
+                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
+                         preserveAspectRatio="xMidYMid meet">
                         <g transform={`translate(${padding}, ${padding})`}>
                             <line
                                 x1="0"
@@ -1545,18 +1613,21 @@ function HistoryViewSection({item, type, onClose}) {
                         const daysSince = reversedIndex > 0 ? Math.round((entry.date - mileageData[reversedIndex - 1].date) / (1000 * 60 * 60 * 24)) : 0;
 
                         return (
-                            <div key={index} className={`timeline-entry ${index === 0 ? 'timeline-entry-current' : ''}`}>
+                            <div key={index}
+                                 className={`timeline-entry ${index === 0 ? 'timeline-entry-current' : ''}`}>
                                 <div className="timeline-marker">
                                     <div className="timeline-dot"></div>
                                     {index < mileageData.length - 1 && <div className="timeline-line"></div>}
                                 </div>
                                 <div className="timeline-card">
                                     <div className="timeline-card-header">
-                                        <span className="timeline-operator-name">{entry.mileage.toLocaleString()} miles</span>
+                                        <span
+                                            className="timeline-operator-name">{entry.mileage.toLocaleString()} miles</span>
                                         {index === 0 && <span className="current-badge">Current</span>}
                                     </div>
                                     <div className="timeline-card-meta">
-                                        <span className="timeline-date">{FormatUtility.formatDate(entry.timestamp)}</span>
+                                        <span
+                                            className="timeline-date">{FormatUtility.formatDate(entry.timestamp)}</span>
                                         {milesDriven > 0 && daysSince > 0 && (
                                             <span className="timeline-duration">
                                                 +{milesDriven.toLocaleString()} miles in {daysSince} {daysSince === 1 ? 'day' : 'days'}
@@ -1594,7 +1665,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="empty-history">
                     <p>No history records found for this {type}.</p>
-                    <p className="empty-subtext">History entries will appear here when changes are made to this {type}.</p>
+                    <p className="empty-subtext">History entries will appear here when changes are made to
+                        this {type}.</p>
                 </div>
             );
         }
@@ -1615,11 +1687,13 @@ function HistoryViewSection({item, type, onClose}) {
                                 </div>
                                 <div className="history-change">
                                     <div className="history-old-value">
-                                        <span className="value-label">From:</span> {formatValue(entry.fieldName || entry.field_name, entry.oldValue || entry.old_value)}
+                                        <span
+                                            className="value-label">From:</span> {formatValue(entry.fieldName || entry.field_name, entry.oldValue || entry.old_value)}
                                     </div>
                                     <div className="history-arrow">→</div>
                                     <div className="history-new-value">
-                                        <span className="value-label">To:</span> {formatValue(entry.fieldName || entry.field_name, entry.newValue || entry.new_value)}
+                                        <span
+                                            className="value-label">To:</span> {formatValue(entry.fieldName || entry.field_name, entry.newValue || entry.new_value)}
                                     </div>
                                 </div>
                                 <div className="history-user">

@@ -21,7 +21,8 @@ function TerminatedOverlay() {
                 <img src={SmyrnaLogo} alt="Smyrna Logo" className="terminated-logo"/>
                 <h1>Access Revoked</h1>
                 <p className="terminated-message">
-                    Your access to this application has been revoked. Please contact your district manager for more information.
+                    Your access to this application has been revoked. Please contact your district manager for more
+                    information.
                 </p>
                 <button className="sign-out-button" onClick={handleSignOut}>
                     Sign Out

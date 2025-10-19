@@ -579,7 +579,8 @@ function AppContent() {
     if (updateMode) return <><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
     if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
-    if (isGuestOnly || !hasPlant) return (<div className="App"><GuestOverlay reason={!hasPlant ? "no-plant" : undefined}/></div>)
+    if (isGuestOnly || !hasPlant) return (
+        <div className="App"><GuestOverlay reason={!hasPlant ? "no-plant" : undefined}/></div>)
 
     return (
         <div className="App">

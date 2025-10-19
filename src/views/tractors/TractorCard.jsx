@@ -3,14 +3,14 @@ import {TractorUtility} from '../../utils/TractorUtility';
 import CardSection from '../../components/sections/CardSection';
 
 function TractorCard({
-    tractor,
-    operatorName,
-    plantName,
-    showOperatorWarning,
-    onSelect,
-    onShowCommentModal,
-    onShowIssueModal
-}) {
+                         tractor,
+                         operatorName,
+                         plantName,
+                         showOperatorWarning,
+                         onSelect,
+                         onShowCommentModal,
+                         onShowIssueModal
+                     }) {
     const isServiceOverdue = TractorUtility.isServiceOverdue(tractor.lastServiceDate);
     const isVerified = typeof tractor.isVerified === 'function'
         ? tractor.isVerified(tractor.latestHistoryDate)

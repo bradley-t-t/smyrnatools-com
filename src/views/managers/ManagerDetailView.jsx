@@ -422,7 +422,8 @@ function ManagerDetailView({managerId, onClose}) {
                         <h3>Assignment Information</h3>
                         <div className="form-group">
                             <label>Plant</label>
-                            <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                            <button className="operator-select-button form-control"
+                                    onClick={() => setShowPlantModal(true)}
                                     type="button" disabled={!canEditManager}>
                                 <span style={{
                                     display: 'block',
@@ -472,7 +473,12 @@ function ManagerDetailView({managerId, onClose}) {
                                             </button>
                                         )}
                                     </div>
-                                    <p style={{color: 'var(--text-secondary)', fontSize: '13px', marginTop: '8px', marginBottom: '0'}}>
+                                    <p style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: '13px',
+                                        marginTop: '8px',
+                                        marginBottom: '0'
+                                    }}>
                                         Click &quot;Change Password&quot; to set a new password for this manager.
                                     </p>
                                 </div>
@@ -488,8 +494,14 @@ function ManagerDetailView({managerId, onClose}) {
                                         disabled={!canEditManager}
                                         autoFocus
                                     />
-                                    <p style={{color: 'var(--text-secondary)', fontSize: '13px', marginTop: '8px', marginBottom: '12px'}}>
-                                        Enter a new password and click &quot;Save Changes&quot; at the bottom to apply it.
+                                    <p style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: '13px',
+                                        marginTop: '8px',
+                                        marginBottom: '12px'
+                                    }}>
+                                        Enter a new password and click &quot;Save Changes&quot; at the bottom to apply
+                                        it.
                                     </p>
                                     <div style={{display: 'flex', gap: '8px'}}>
                                         <button

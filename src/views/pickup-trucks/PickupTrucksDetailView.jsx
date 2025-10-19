@@ -280,8 +280,10 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                             searchPlaceholder="Search plants..."
                         />
                     )}
-                    {showHistory && <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
-                    {showComments && <PickupTruckCommentModal pickupTruck={pickup} onClose={() => setShowComments(false)}/>}
+                    {showHistory &&
+                        <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
+                    {showComments &&
+                        <PickupTruckCommentModal pickupTruck={pickup} onClose={() => setShowComments(false)}/>}
                     {showIssues && <PickupTruckIssueModal pickupTruck={pickup} onClose={() => setShowIssues(false)}/>}
                 </>
             }

@@ -192,9 +192,9 @@
     --status-pending-bg: #ffc107;
     --gradient-accent: linear-gradient(120deg, var(--accent-dark) 0%, var(--accent) 55%, var(--accent-light) 100%);
     --gradient-accent-soft: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.3) 0%, rgba(var(--accent-primary-rgb), 0.08) 100%);
-    --other-accent: #b80017;
-    --other-accent-rgb: 184, 0, 23;
-    --gradient-other-accent-soft: linear-gradient(135deg, rgba(184, 0, 23, 0.3) 0%, rgba(184, 0, 23, 0.08) 100%);
+    --other-accent: #dc2626;
+    --other-accent-rgb: 220, 38, 38;
+    --gradient-other-accent-soft: linear-gradient(135deg, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0.08) 100%);
     --gradient-surface: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-secondary) 140%);
     --bg-hover: var(--bg-tertiary);
     --star-unselected: var(--divider);
@@ -217,9 +217,17 @@
 }
 
 .dark-mode .accent-red {
-    --other-accent: #003896;
-    --other-accent-rgb: 0, 56, 150;
-    --gradient-other-accent-soft: linear-gradient(135deg, rgba(0, 56, 150, 0.3) 0%, rgba(0, 56, 150, 0.08) 100%);
+    --accent: #dc2626;
+    --accent-light: #ef4444;
+    --accent-dark: #b91c1c;
+    --accent-primary: #dc2626;
+    --accent-secondary: #ef4444;
+    --accent-hover: #b91c1c;
+    --accent-border: #fca5a5;
+    --accent-primary-rgb: 220, 38, 38;
+    --other-accent: #5865f2;
+    --other-accent-rgb: 88, 101, 242;
+    --gradient-other-accent-soft: linear-gradient(135deg, rgba(88, 101, 242, 0.3) 0%, rgba(88, 101, 242, 0.08) 100%);
 }
 
 body {

@@ -366,7 +366,10 @@ Deno.serve(async (req) => {
                     headers: corsHeaders
                 });
                 const comment = {truck_id: pickupId, text, author, created_at: nowIso()};
-                const {data, error} = await supabase.from("pickup_trucks_comments").insert([comment]).select().maybeSingle();
+                const {
+                    data,
+                    error
+                } = await supabase.from("pickup_trucks_comments").insert([comment]).select().maybeSingle();
                 if (error) return new Response(JSON.stringify({error: error.message}), {
                     status: 400,
                     headers: corsHeaders

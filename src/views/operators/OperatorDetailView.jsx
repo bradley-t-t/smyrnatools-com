@@ -422,7 +422,8 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                         )}
                         <div className="form-group">
                             <label>Assigned Plant</label>
-                            <button className="operator-select-button form-control" onClick={() => setShowPlantModal(true)}
+                            <button className="operator-select-button form-control"
+                                    onClick={() => setShowPlantModal(true)}
                                     type="button" disabled={!canEditOperator}><span style={{
                                 display: 'block',
                                 overflow: 'hidden',

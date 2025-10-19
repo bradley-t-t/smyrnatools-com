@@ -4,17 +4,17 @@ import {usePreferences} from '../../app/context/PreferencesContext';
 import ThemeUtility from '../../utils/ThemeUtility';
 
 function CardSection({
-    item,
-    itemType,
-    itemNumber,
-    onSelect,
-    onShowCommentModal,
-    onShowIssueModal,
-    statusColor,
-    isVerified,
-    verificationTooltip,
-    children
-}) {
+                         item,
+                         itemType,
+                         itemNumber,
+                         onSelect,
+                         onShowCommentModal,
+                         onShowIssueModal,
+                         statusColor,
+                         isVerified,
+                         verificationTooltip,
+                         children
+                     }) {
     const {preferences} = usePreferences();
     const openIssuesCount = Number(item.openIssuesCount || 0);
     const commentsCount = Number(item.commentsCount || 0);
@@ -31,7 +31,7 @@ function CardSection({
 
     return (
         <div className="item-card" {...cardProps}>
-            <div className="status-bar" style={{background: statusColor}} />
+            <div className="status-bar" style={{background: statusColor}}/>
 
             {commentsCount > 0 && (
                 <div

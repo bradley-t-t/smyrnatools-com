@@ -3,16 +3,16 @@ import {TrailerUtility} from '../../utils/TrailerUtility';
 import CardSection from '../../components/sections/CardSection';
 
 function TrailerCard({
-    trailer,
-    tractorName,
-    operatorName,
-    plantName,
-    showTractorWarning,
-    showOperatorWarning,
-    onSelect,
-    onShowCommentModal,
-    onShowIssueModal
-}) {
+                         trailer,
+                         tractorName,
+                         operatorName,
+                         plantName,
+                         showTractorWarning,
+                         showOperatorWarning,
+                         onSelect,
+                         onShowCommentModal,
+                         onShowIssueModal
+                     }) {
     const actualTractorName = tractorName || operatorName;
     const actualShowWarning = showTractorWarning || showOperatorWarning;
     const isServiceOverdue = TrailerUtility.isServiceOverdue(trailer.lastServiceDate);

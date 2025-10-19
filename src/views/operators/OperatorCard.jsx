@@ -66,7 +66,8 @@ function OperatorCard({
             </div>
             <div className="detail-row">
                 <div className="detail-label">Phone</div>
-                <div className="detail-value">{operator.phone ? GrammarUtility.formatPhone(operator.phone) : 'Not Set'}</div>
+                <div
+                    className="detail-value">{operator.phone ? GrammarUtility.formatPhone(operator.phone) : 'Not Set'}</div>
             </div>
             {operator.status === 'Pending Start' && (
                 <div className="detail-row">

@@ -3,14 +3,14 @@ import MixerUtility from '../../utils/MixerUtility';
 import CardSection from '../../components/sections/CardSection';
 
 function MixerCard({
-    mixer,
-    operatorName,
-    plantName,
-    showOperatorWarning,
-    onSelect,
-    onShowCommentModal,
-    onShowIssueModal
-}) {
+                       mixer,
+                       operatorName,
+                       plantName,
+                       showOperatorWarning,
+                       onSelect,
+                       onShowCommentModal,
+                       onShowIssueModal
+                   }) {
     const isServiceOverdue = MixerUtility.isServiceOverdue(mixer.lastServiceDate);
     const isChipOverdue = MixerUtility.isChipOverdue(mixer.lastChipDate);
     const isVerified = typeof mixer.isVerified === 'function'

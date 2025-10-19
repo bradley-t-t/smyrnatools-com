@@ -130,8 +130,11 @@ export function AggregateProductionSubmitPlugin({form, setForm, readOnly, weekIs
                     {reportTypeMap.aggregate_production.fields.map(f => (
                         <tr key={f.name}>
                             <td>{f.label}</td>
-                            <td><input type="text" value={String(getLastWeekValue(f.name))} disabled className="rpt-input"/></td>
-                            <td><input type="number" value={form[f.name] ?? ''} onChange={e => setForm(prev => ({...prev, [f.name]: e.target.value}))} disabled={readOnly} className="rpt-input"/></td>
+                            <td><input type="text" value={String(getLastWeekValue(f.name))} disabled
+                                       className="rpt-input"/></td>
+                            <td><input type="number" value={form[f.name] ?? ''}
+                                       onChange={e => setForm(prev => ({...prev, [f.name]: e.target.value}))}
+                                       disabled={readOnly} className="rpt-input"/></td>
                             <td>{renderVariance(f.name)}</td>
                         </tr>
                     ))}

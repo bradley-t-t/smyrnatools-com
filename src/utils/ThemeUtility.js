@@ -58,7 +58,7 @@ const ThemeUtility = {
     accent: {
         blue: {
             primary: '#003896',
-            secondary: '#2563eb',
+            secondary: '#5865f2',
             hover: '#1d4ed8',
             light: '#dbeafe',
             border: '#93c5fd'
@@ -95,18 +95,19 @@ const ThemeUtility = {
         '#718096', '#4a5568', '#a0aec0', '#975a16', '#1a202c'
     ],
 
-    getAccentColor(selection = 'red') {
+    getAccentColor(selection = 'red', mode) {
+        const isDarkMode = mode === 'dark' || (mode === undefined && document.documentElement.classList.contains('dark-mode'));
         const accentColors = {
-            red: '#b80017',
-            blue: '#003896',
-            white: '#ffffff',
-            black: '#000000',
-            gray: '#cccccc'
+            red: isDarkMode ? this.accent.red.secondary : this.accent.red.primary,
+            blue: isDarkMode ? this.accent.blue.secondary : this.accent.blue.primary,
+            white: this.colors.white,
+            black: this.colors.black,
+            gray: this.colors.gray
         };
-        return accentColors[selection.toLowerCase()] ?? accentColors.blue;
+        return accentColors[selection.toLowerCase()] ?? (isDarkMode ? this.accent.blue.secondary : this.accent.blue.primary);
     },
 
-    getOtherAccentColor(currentAccent) {
+    getOtherAccentColor(currentAccent, mode) {
         return currentAccent === 'red' ? 'blue' : 'red';
     },
 

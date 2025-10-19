@@ -397,11 +397,12 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}
                                                           onAdded={newItem => setPickups([...pickups, newItem])}/>}
-                    {showCommentModal && <PickupTruckCommentModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
-                                                                 onClose={() => setShowCommentModal(false)}
-                                                                 onSaved={handleCommentSaved}/>}
+                    {showCommentModal &&
+                        <PickupTruckCommentModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
+                                                 onClose={() => setShowCommentModal(false)}
+                                                 onSaved={handleCommentSaved}/>}
                     {showIssueModal && <PickupTruckIssueModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
-                                                              onClose={() => setShowIssueModal(false)} />}
+                                                              onClose={() => setShowIssueModal(false)}/>}
                     {showHistoryModal && selectedPickupForHistory && (
                         <HistoryViewSection
                             item={selectedPickupForHistory}

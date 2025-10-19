@@ -644,7 +644,7 @@
 }
 
 .verification-notice i {
-    color: var(--accent);
+    color: var(--text-light);
     font-size: 16px;
     margin-top: 2px;
 }
