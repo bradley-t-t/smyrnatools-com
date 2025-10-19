@@ -345,15 +345,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
             return (
                 <GridViewModeSection
                     filteredItems={filteredMixers}
-                    getCardProps={(mixer) => {
-                        const operator = operators.find(op => op.employeeId === mixer.assignedOperator);
-                        const plant = plants.find(p => p.code === mixer.assignedPlant);
-                        return {
-                            operatorName: operator?.name,
-                            plantName: plant?.name || mixer.assignedPlant,
-                            showOperatorWarning: false
-                        };
-                    }}
+                    operators={operators}
+                    plants={plants}
                     handleSelectItem={handleSelectMixer}
                     cardComponent={MixerCard}
                     itemPropName="mixer"

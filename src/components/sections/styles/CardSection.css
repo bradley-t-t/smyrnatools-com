@@ -1,88 +1,124 @@
 .item-card {
-    background-color: var(--bg-primary);
+    background: var(--card-bg);
     border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 16px;
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
     overflow: hidden;
     cursor: pointer;
     position: relative;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--card-border);
 }
 
 .item-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
 }
 
 .item-card:active {
-    transform: translateY(0px);
-    box-shadow: var(--shadow-sm);
-    background-color: var(--bg-tertiary);
+    transform: translateY(0);
 }
 
 .card-content {
-    padding: 16px;
-    background-color: var(--bg-primary);
+    padding: 32px;
 }
 
 .card-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-light);
-    flex-wrap: wrap;
-    max-width: 60%;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--divider);
+    gap: 8px;
+}
+
+.card-header::after {
+    display: none;
 }
 
 .item-name {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    text-align: left;
+    width: 100%;
+}
+
+.item-subtitle {
+    margin: 0;
+    font-size: 1rem;
     font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-align: left;
+    width: 100%;
 }
 
 .card-details {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .detail-row {
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
-    padding: 4px 0;
     align-items: center;
+    padding: 12px 0;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--divider);
+    transition: all 0.2s ease;
+    gap: 20px;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row:hover {
+    background: var(--bg-secondary);
+    padding-left: 12px;
 }
 
 .detail-label {
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
 }
 
 .detail-value {
     color: var(--text-primary);
     font-weight: 600;
     text-align: right;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
 }
 
 .detail-value.overdue {
     color: var(--danger);
-    font-weight: 600;
+    font-weight: 900;
 }
 
 .warning-badge {
     color: var(--warning);
-    margin-left: 5px;
+    margin-left: 8px;
+    font-size: 1.1rem;
 }
 
 .comments-badge {
     position: absolute;
-    top: 12px;
+    top: 16px;
     right: 92px;
     z-index: 4;
     display: flex;
@@ -90,22 +126,23 @@
     justify-content: center;
     background-color: var(--comments-badge-bg);
     color: var(--comments-badge-text);
-    border-radius: 12px;
-    padding: 2px 8px;
-    font-size: 0.95rem;
-    font-weight: bold;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    font-weight: 800;
     cursor: pointer;
+    box-shadow: var(--shadow-md);
 }
 
 .comment-icon {
-    margin-right: 4px;
-    font-size: 0.9rem;
+    margin-right: 6px;
+    font-size: 0.85rem;
     color: var(--comments-badge-icon);
 }
 
 .issues-badge {
     position: absolute;
-    top: 12px;
+    top: 16px;
     right: 42px;
     z-index: 4;
     display: flex;
@@ -113,47 +150,53 @@
     justify-content: center;
     background-color: var(--danger);
     color: var(--text-light);
-    border-radius: 12px;
-    padding: 2px 8px;
-    font-size: 0.95rem;
-    font-weight: bold;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    font-weight: 800;
     cursor: pointer;
+    box-shadow: var(--shadow-md);
 }
 
 .issues-icon {
-    margin-right: 4px;
-    font-size: 0.9rem;
+    margin-right: 6px;
+    font-size: 0.85rem;
 }
 
 .verification-flag {
     position: absolute;
-    top: 12px;
+    top: 16px;
     right: 12px;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     z-index: 5;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .status-bar {
-    height: 4px;
-    width: 100%;
+    height: 100%;
+    width: 6px;
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
+    bottom: 0;
     z-index: 10;
+    border-radius: 8px 0 0 8px;
 }
 
 .stars-container {
     display: inline-flex;
     align-items: center;
+    gap: 3px;
 }
 
 .filled-star {
-    margin-right: 2px;
+    font-size: 1.1rem;
+    color: var(--other-accent);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .empty-star {
-    color: var(--divider);
-    margin-right: 2px;
+    font-size: 1.1rem;
+    color: var(--star-unselected);
+    opacity: 0.25;
 }
-

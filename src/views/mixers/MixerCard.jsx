@@ -35,6 +35,8 @@ function MixerCard({
             item={mixer}
             itemType="Mixer"
             itemNumber={mixer.truckNumber}
+            subtitle={operatorName || 'Not Assigned'}
+            subtitleWarning={showOperatorWarning ? 'Assigned to multiple mixers' : null}
             onSelect={onSelect}
             onShowCommentModal={onShowCommentModal}
             onShowIssueModal={onShowIssueModal}
@@ -49,21 +51,6 @@ function MixerCard({
             <div className="detail-row">
                 <div className="detail-label">Status</div>
                 <div className="detail-value">{mixer.status || 'Unknown'}</div>
-            </div>
-            <div className="detail-row">
-                <div className="detail-label">Operator</div>
-                <div className="detail-value">
-                    {operatorName}
-                    {showOperatorWarning && (
-                        <span className="warning-badge" title="Assigned to multiple mixers">
-                            <i className="fas fa-exclamation-triangle"></i>
-                        </span>
-                    )}
-                </div>
-            </div>
-            <div className="detail-row">
-                <div className="detail-label">Employee ID</div>
-                <div className="detail-value">{mixer.operatorSmyrnaId || 'Not Assigned'}</div>
             </div>
             <div className="detail-row">
                 <div className="detail-label">Last Service</div>

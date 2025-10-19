@@ -29,6 +29,8 @@ function TrailerCard({
             item={trailer}
             itemType="Trailer"
             itemNumber={trailer.trailerNumber}
+            subtitle={actualTractorName || 'Not Assigned'}
+            subtitleWarning={actualShowWarning ? 'Assigned to multiple trailers' : null}
             onSelect={onSelect}
             onShowCommentModal={onShowCommentModal}
             onShowIssueModal={onShowIssueModal}
@@ -45,17 +47,6 @@ function TrailerCard({
             <div className="detail-row">
                 <div className="detail-label">Status</div>
                 <div className="detail-value">{trailer.status || 'Unknown'}</div>
-            </div>
-            <div className="detail-row">
-                <div className="detail-label">Assigned Tractor</div>
-                <div className="detail-value">
-                    {actualTractorName}
-                    {actualShowWarning && (
-                        <span className="warning-badge" title="Assigned to multiple trailers">
-                            <i className="fas fa-exclamation-triangle"></i>
-                        </span>
-                    )}
-                </div>
             </div>
             <div className="detail-row">
                 <div className="detail-label">Last Service</div>

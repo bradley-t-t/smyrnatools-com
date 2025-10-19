@@ -34,6 +34,8 @@ function TractorCard({
             item={tractor}
             itemType="Tractor"
             itemNumber={tractor.truckNumber}
+            subtitle={operatorName || 'Not Assigned'}
+            subtitleWarning={showOperatorWarning ? 'Assigned to multiple tractors' : null}
             onSelect={onSelect}
             onShowCommentModal={onShowCommentModal}
             onShowIssueModal={onShowIssueModal}
@@ -48,21 +50,6 @@ function TractorCard({
             <div className="detail-row">
                 <div className="detail-label">Status</div>
                 <div className="detail-value">{tractor.status || 'Unknown'}</div>
-            </div>
-            <div className="detail-row">
-                <div className="detail-label">Operator</div>
-                <div className="detail-value">
-                    {operatorName}
-                    {showOperatorWarning && (
-                        <span className="warning-badge" title="Assigned to multiple tractors">
-                            <i className="fas fa-exclamation-triangle"></i>
-                        </span>
-                    )}
-                </div>
-            </div>
-            <div className="detail-row">
-                <div className="detail-label">Employee ID</div>
-                <div className="detail-value">{tractor.operatorSmyrnaId || 'Not Assigned'}</div>
             </div>
             <div className="detail-row">
                 <div className="detail-label">Last Service</div>

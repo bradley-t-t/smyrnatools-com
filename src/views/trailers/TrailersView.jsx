@@ -261,11 +261,8 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         if (viewMode === 'grid') return (
             <GridViewModeSection
                 filteredItems={filteredTrailers}
-                getCardProps={(trailer) => ({
-                    tractorName: LookupUtility.getTractorTruckNumber(tractors, trailer.assignedTractor),
-                    plantName: LookupUtility.getPlantName(plants, trailer.assignedPlant),
-                    showTractorWarning: LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', trailer.assignedTractor)
-                })}
+                tractors={tractors}
+                plants={plants}
                 handleSelectItem={handleSelectTrailer}
                 cardComponent={TrailerCard}
                 itemPropName="trailer"

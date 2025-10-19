@@ -7,6 +7,8 @@ function CardSection({
                          item,
                          itemType,
                          itemNumber,
+                         subtitle,
+                         subtitleWarning,
                          onSelect,
                          onShowCommentModal,
                          onShowIssueModal,
@@ -16,11 +18,8 @@ function CardSection({
                          children
                      }) {
     const {preferences} = usePreferences();
-    const openIssuesCount = Number(item.openIssuesCount || 0);
-    const commentsCount = Number(item.commentsCount || 0);
     const otherAccent = ThemeUtility.getOtherAccentColor(preferences.accentColor);
     const accentColor = ThemeUtility.getAccentColor(otherAccent);
-    const hasVerification = isVerified !== undefined;
 
     const handleCardClick = () => {
         if (onSelect && typeof onSelect === 'function') {
@@ -33,42 +32,6 @@ function CardSection({
     return (
         <div className="item-card" {...cardProps}>
             <div className="status-bar" style={{background: statusColor}}/>
-
-            {commentsCount > 0 && (
-                <div
-                    className="comments-badge"
-                    style={{
-                        right: hasVerification
-                            ? (openIssuesCount > 0 ? '92px' : '42px')
-                            : (openIssuesCount > 0 ? '62px' : '12px')
-                    }}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (onShowCommentModal) onShowCommentModal();
-                    }}
-                    title={`${commentsCount} comment${commentsCount !== 1 ? 's' : ''}`}
-                >
-                    <i className="fas fa-comments comment-icon"></i>
-                    <span>{commentsCount}</span>
-                </div>
-            )}
-
-            {openIssuesCount > 0 && (
-                <div
-                    className="issues-badge"
-                    style={{
-                        right: hasVerification ? '42px' : '12px'
-                    }}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (onShowIssueModal) onShowIssueModal();
-                    }}
-                    title={`${openIssuesCount} open issue${openIssuesCount !== 1 ? 's' : ''}`}
-                >
-                    <i className="fas fa-tools issues-icon"></i>
-                    <span>{openIssuesCount}</span>
-                </div>
-            )}
 
             {isVerified !== undefined && (
                 isVerified ? (
@@ -95,6 +58,16 @@ function CardSection({
                     <h3 className="item-name" style={{color: accentColor}}>
                         {itemType} #{itemNumber || 'Not Assigned'}
                     </h3>
+                    {subtitle && (
+                        <div className="item-subtitle">
+                            {subtitle}
+                            {subtitleWarning && (
+                                <span className="warning-badge" title={subtitleWarning}>
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="card-details">
