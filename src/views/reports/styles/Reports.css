@@ -1791,6 +1791,24 @@
     font-size: 13px;
 }
 
+.rpts-plant-shutdown-notice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--info-bg);
+    border: 1.5px solid var(--info);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--info);
+}
+
+.rpts-plant-shutdown-notice i {
+    font-size: 18px;
+}
+
 .rpt-toolbar {
     display: flex;
     gap: 8px;

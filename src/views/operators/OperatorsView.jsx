@@ -163,27 +163,50 @@ function OperatorsView({
     const fetchOperators = async (codes) => {
         try {
             const data = await OperatorService.fetchOperators(codes)
-            for (let i = 0; i < data.length; i++) {
-                const operator = data[i]
-                try {
-                    const comments = await OperatorService.fetchComments(operator.employeeId).catch(() => [])
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    operator.commentsCount = commentsCount
-                } catch (e) {
-                }
-            }
             setOperators(data)
             localStorage.setItem('cachedOperators', JSON.stringify(data))
             localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
+
+            fetchCommentCounts(data)
         } catch {
             const cachedData = localStorage.getItem('cachedOperators')
             const cacheDate = localStorage.getItem('cachedOperatorsDate')
             if (cachedData && cacheDate) {
                 const cachedTime = new Date(cacheDate).getTime()
                 const hourAgo = new Date().getTime() - 3600000
-                if (cachedTime > hourAgo) setOperators(JSON.parse(cachedData))
+                if (cachedTime > hourAgo) {
+                    const parsedData = JSON.parse(cachedData)
+                    setOperators(parsedData)
+                    fetchCommentCounts(parsedData)
+                }
             }
         }
+    }
+
+    const fetchCommentCounts = async (operatorsList) => {
+        const commentPromises = operatorsList.map(async (operator) => {
+            try {
+                const comments = await OperatorService.fetchComments(operator.employeeId).catch(() => [])
+                return {
+                    employeeId: operator.employeeId,
+                    commentsCount: Array.isArray(comments) ? comments.length : 0
+                }
+            } catch {
+                return {
+                    employeeId: operator.employeeId,
+                    commentsCount: 0
+                }
+            }
+        })
+
+        const results = await Promise.all(commentPromises)
+
+        setOperators(prevOperators => {
+            return prevOperators.map(op => {
+                const result = results.find(r => r.employeeId === op.employeeId)
+                return result ? {...op, commentsCount: result.commentsCount} : op
+            })
+        })
     }
 
     const fetchPlants = async (codes) => {

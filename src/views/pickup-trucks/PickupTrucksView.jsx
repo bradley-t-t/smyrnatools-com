@@ -5,6 +5,8 @@ import LoadingScreen from '../../components/common/LoadingScreen'
 import PickupTrucksCard from './PickupTrucksCard'
 import PickupTrucksDetailView from './PickupTrucksDetailView'
 import PickupTrucksAddView from './PickupTrucksAddView'
+import PickupTruckCommentModal from './PickupTruckCommentModal'
+import PickupTruckIssueModal from './PickupTruckIssueModal'
 import {PickupTruckService} from '../../services/PickupTruckService'
 import AsyncUtility from '../../utils/AsyncUtility'
 import {PlantService} from '../../services/PlantService'
@@ -14,6 +16,8 @@ import {RegionService} from '../../services/RegionService'
 import TopSection from '../../components/sections/TopSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import ThemeUtility from '../../utils/ThemeUtility'
 
 function PickupTrucksView({title = 'Pickup Trucks'}) {
     const {preferences} = usePreferences()
@@ -31,6 +35,12 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
+    const [showCommentModal, setShowCommentModal] = useState(false)
+    const [showIssueModal, setShowIssueModal] = useState(false)
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [modalPickupId, setModalPickupId] = useState(null)
+    const [modalPickupNumber, setModalPickupNumber] = useState('')
+    const [selectedPickupForHistory, setSelectedPickupForHistory] = useState(null)
     const statusOptions = ['All Statuses', 'Active', 'Stationary', 'Spare', 'In Shop', 'Retired', 'Sold', 'Over 300k Miles']
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -39,7 +49,8 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         'Year': 'year',
         'Make & Model': null,
         'VIN': 'vin',
-        'Mileage': 'mileage'
+        'Mileage': 'mileage',
+        'More': null
     }
 
     const fetchAllPickups = useCallback(async () => {
@@ -214,23 +225,23 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             <ListViewModeSection
                 filteredItems={filtered}
                 handleSelectItem={(id) => setSelectedId(id)}
-                headerLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
-                colWidths={['15%', '15%', '15%', '10%', '20%', '15%', '10%']}
-                renderRow={(item, handleSelect) => {
+                headerLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage', 'More']}
+                colWidths={['12%', '12%', '12%', '8%', '18%', '15%', '10%', '13%']}
+                renderRow={(item, handleSelect, onComment, onIssue) => {
                     const statusClass = String(item.status || '').toLowerCase().replace(/\s+/g, '-')
                     const vinKey = String(item.vin || '').trim().toUpperCase().replace(/\s+/g, '')
                     const assignedKey = String(item.assigned || '').trim().toLowerCase()
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td style={{width: '15%'}}>{item.assignedPlant || '---'}</td>
-                            <td style={{width: '15%'}}><span
+                            <td style={{width: '12%'}}>{item.assignedPlant || '---'}</td>
+                            <td style={{width: '12%'}}><span
                                 className={`item-status-dot ${statusClass}`}></span>{item.status || '---'}</td>
-                            <td style={{width: '15%'}}>{item.assigned ? <span
+                            <td style={{width: '12%'}}>{item.assigned ? <span
                                 className="cell-inline"><span>{item.assigned}</span>{duplicateAssigned.has(assignedKey) &&
                                 <span className="warning-badge" title="Assigned to multiple pickups"><i
                                     className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
-                            <td style={{width: '10%'}}>{item.year || '---'}</td>
-                            <td style={{width: '20%'}}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
+                            <td style={{width: '8%'}}>{item.year || '---'}</td>
+                            <td style={{width: '18%'}}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
                             <td style={{width: '15%'}}>{item.vin ?
                                 <span className="cell-inline"><span>{item.vin}</span>{duplicateVINs.has(vinKey) &&
                                     <span className="warning-badge" title="Duplicate VIN"><i
@@ -239,14 +250,71 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                                 className="mileage-cell"><span>{item.mileage.toLocaleString()}</span>{item.mileage > 300000 &&
                                 <span className="warning-badge" title="High mileage"><i
                                     className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
+                            <td style={{width: '13%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.assigned || item.vin || 'Unknown');
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View comments"><i className="fas fa-comments" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i><span>{item.commentsCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.assigned || item.vin || 'Unknown');
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View issues"><i className="fas fa-tools" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i><span>{item.openIssuesCount || 0}</span></button>
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedPickupForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: 0,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer'
+                                    }} title="View history"><i className="fas fa-history" style={{
+                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                        marginRight: 4
+                                    }}></i></button>
+                                </div>
+                            </td>
                         </tr>
                     )
+                }}
+                onShowCommentModal={(id, number) => {
+                    setModalPickupId(id);
+                    setModalPickupNumber(number);
+                    setShowCommentModal(true);
+                }}
+                onShowIssueModal={(id, number) => {
+                    setModalPickupId(id);
+                    setModalPickupNumber(number);
+                    setShowIssueModal(true);
                 }}
                 containerClassName="list-table-container"
                 tableClassName="list-table"
             />
         )
-    }, [isLoading, filtered, viewMode, searchText, selectedPlant, statusFilter, duplicateVINs, duplicateAssigned])
+    }, [isLoading, filtered, viewMode, searchText, selectedPlant, statusFilter, duplicateVINs, duplicateAssigned, preferences.accentColor])
 
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses'))
 
@@ -262,6 +330,23 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         }
         setSelectedId(null)
         fetchAllPickups()
+    }
+
+    function handleCommentSaved(pickupId, pickupNumber, comment) {
+        setPickups(prev => {
+            const arr = prev.slice()
+            const idx = arr.findIndex(p => p.id === pickupId)
+            if (idx >= 0) {
+                const updatedPickup = {...arr[idx], comment}
+                arr[idx] = updatedPickup
+                return arr
+            } else {
+                return arr
+            }
+        })
+        setModalPickupId(null)
+        setModalPickupNumber('')
+        setShowCommentModal(false)
     }
 
     return (
@@ -302,8 +387,9 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                             setSelectedPlant('');
                             setStatusFilter('All Statuses')
                         }}
-                        listLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage']}
-                        colWidths={['15%', '15%', '15%', '10%', '20%', '15%', '10%']}
+                        listLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage', 'More']}
+                        colWidths={['12%', '12%', '12%', '8%', '18%', '15%', '10%', '13%']}
+                        forwardedRef={headerRef}
                         onHeaderClick={handleHeaderClick}
                         sortKey={sortKey}
                         sortDirection={sortDirection}
@@ -311,6 +397,18 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                     <div className="global-content-container content-container">{content}</div>
                     {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}
                                                           onAdded={newItem => setPickups([...pickups, newItem])}/>}
+                    {showCommentModal && <PickupTruckCommentModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
+                                                                 onClose={() => setShowCommentModal(false)}
+                                                                 onSaved={handleCommentSaved}/>}
+                    {showIssueModal && <PickupTruckIssueModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
+                                                              onClose={() => setShowIssueModal(false)} />}
+                    {showHistoryModal && selectedPickupForHistory && (
+                        <HistoryViewSection
+                            item={selectedPickupForHistory}
+                            type="pickup-truck"
+                            onClose={() => setShowHistoryModal(false)}
+                        />
+                    )}
                 </>
             )}
         </div>

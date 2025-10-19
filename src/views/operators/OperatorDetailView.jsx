@@ -172,7 +172,11 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             phone: phone || null
         };
         try {
-            if (operator && operator.plant_code !== assignedPlant) {
+            const shouldUnassignEquipment =
+                (operator && operator.plant_code !== assignedPlant) ||
+                (operator && operator.status !== status && !['Active'].includes(status));
+
+            if (shouldUnassignEquipment) {
                 const assignedMixers = await MixerService.getMixersByOperator(operatorId);
                 for (const mixer of assignedMixers) {
                     if (mixer.status === 'Active') {

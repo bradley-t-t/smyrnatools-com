@@ -115,6 +115,75 @@ class PickupTruckServiceImpl {
         })
         return dups
     }
+
+    static async fetchComments(pickupId) {
+        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/fetch-comments', {pickupId})
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch comments')
+        return json?.data ?? []
+    }
+
+    static async addComment(pickupId, text, author) {
+        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
+        if (!text?.trim()) throw new Error('Comment text is required')
+        if (!author) throw new Error('Author is required')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/add-comment', {pickupId, text, author})
+        if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
+        return json?.data
+    }
+
+    static async deleteComment(commentId) {
+        ValidationUtility.requireUUID(commentId, 'Comment ID is required')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/delete-comment', {commentId})
+        if (!res.ok) throw new Error(json?.error || 'Failed to delete comment')
+        return json?.success ?? false
+    }
+
+    static async fetchIssues(pickupId) {
+        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/fetch-issues', {pickupId})
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch issues')
+        return json?.data ?? []
+    }
+
+    static async completeIssue(issueId) {
+        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/complete-issue', {issueId})
+        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to complete issue')
+        return true
+    }
+
+    static async addIssue(pickupId, issue, severity, createdBy = null) {
+        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
+        if (!issue?.trim()) throw new Error('Issue description is required')
+        if (!['Low', 'Medium', 'High'].includes(severity)) throw new Error('Severity must be Low, Medium, or High')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/add-issue', {
+            pickupId,
+            issue: issue.trim(),
+            severity,
+            userId: createdBy
+        })
+        if (!res.ok) throw new Error(json?.error || 'Failed to add issue')
+        return json?.data
+    }
+
+    static async deleteIssue(issueId) {
+        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
+        const {res, json} = await APIUtility.post('/pickup-truck-service/delete-issue', {issueId})
+        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete issue')
+        return true
+    }
+
+    static async fetchHistory(pickupId, limit = null) {
+        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
+        const payload = {pickupId}
+        if (limit !== null && Number.isInteger(limit) && limit > 0) {
+            payload.limit = limit
+        }
+        const {res, json} = await APIUtility.post('/pickup-truck-service/fetch-history', payload)
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch history')
+        return json?.data ?? []
+    }
 }
 
 export const PickupTruckService = PickupTruckServiceImpl

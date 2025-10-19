@@ -31,6 +31,17 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     const [plants, setPlants] = useState([])
     const [exporting, setExporting] = useState(false)
     const [exportError, setExportError] = useState('')
+    const [isPlantShutdown, setIsPlantShutdown] = useState(false)
+
+    useEffect(() => {
+        if (report.name === 'plant_production' && operatorOptions.length > 0) {
+            const rows = Array.isArray(form.rows) ? form.rows : []
+            const excludedOperators = ReportUtility.getExcludedOperators(rows, operatorOptions)
+            setIsPlantShutdown(excludedOperators.length === operatorOptions.length && operatorOptions.length > 0)
+        } else {
+            setIsPlantShutdown(false)
+        }
+    }, [report.name, form.rows, operatorOptions])
 
     useEffect(() => {
         async function fetchOwnerName() {
@@ -233,6 +244,12 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                     )}
                 </div>
                 {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
+                {isPlantShutdown && (
+                    <div className="rpts-plant-shutdown-notice">
+                        <i className="fas fa-info-circle"></i>
+                        <span>Plant was shut down on {reportDateVerbose || 'the reported date'}</span>
+                    </div>
+                )}
                 <div className="rpts-form-body-wide">
                     <>
                         {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' ? null : (

@@ -59,7 +59,8 @@ function HistoryViewSection({item, type, onClose}) {
                 mixer: 'MixerService',
                 tractor: 'TractorService',
                 equipment: 'EquipmentService',
-                trailer: 'TrailerService'
+                trailer: 'TrailerService',
+                'pickup-truck': 'PickupTruckService'
             };
 
             const serviceName = serviceMap[type];
@@ -97,14 +98,16 @@ function HistoryViewSection({item, type, onClose}) {
             tractor: {service: 'TractorService', method: 'getTractorHistory'},
             equipment: {service: 'EquipmentService', method: 'getEquipmentHistory'},
             trailer: {service: 'TrailerService', method: 'getTrailerHistory'},
-            operator: {service: 'OperatorService', method: 'getOperatorHistory'}
+            operator: {service: 'OperatorService', method: 'getOperatorHistory'},
+            'pickup-truck': {service: 'PickupTruckService', method: 'fetchHistory'}
         };
         const tableMap = {
             mixer: 'mixers_history',
             tractor: 'tractors_history',
             equipment: 'heavy_equipment_history',
             trailer: 'trailers_history',
-            operator: 'operators_history'
+            operator: 'operators_history',
+            'pickup-truck': 'pickup_trucks_history'
         };
         try {
             const {service, method} = serviceMap[type];
@@ -122,10 +125,11 @@ function HistoryViewSection({item, type, onClose}) {
             try {
                 const tableName = tableMap[type];
                 const id = type === 'operator' ? item.employeeId : item.id;
+                const idField = type === 'pickup-truck' ? 'truck_id' : `${type}_id`;
                 const {data, error} = await supabase
                     .from(tableName)
                     .select('*')
-                    .eq(`${type}_id`, id)
+                    .eq(idField, id)
                     .order('changed_at', {ascending: false});
                 if (error) throw error;
                 let rows = data || [];
