@@ -209,6 +209,8 @@ function ManagersView({title = 'Managers', onSelectManager}) {
     const statusFilterValue = roleFilter ? roleFilter : 'All Roles'
     const showReset = (searchText || selectedPlant || roleFilter)
 
+    const isOfficeRegion = preferences.selectedRegion?.type === 'Office'
+
     return (
         <div
             className={`global-dashboard-container dashboard-container global-flush-top flush-top managers-view${showDetailView && selectedManager ? ' detail-open' : ''}`}>
@@ -237,6 +239,7 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                         onViewModeChange={handleViewModeChange}
                         plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
                         regionPlantCodes={regionPlantCodes}
+                        isOfficeRegion={isOfficeRegion}
                         selectedPlant={selectedPlant}
                         onSelectedPlantChange={v => {
                             setSelectedPlant(v);

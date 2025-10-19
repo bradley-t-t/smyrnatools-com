@@ -6,6 +6,9 @@ import {RegionService} from '../../services/RegionService'
 import {UserService} from '../../services/UserService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
+import PickupTruckHistoryView from './PickupTruckHistoryView'
+import PickupTruckCommentModal from './PickupTruckCommentModal'
+import PickupTruckIssueModal from './PickupTruckIssueModal'
 
 function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const {preferences} = usePreferences()
@@ -29,6 +32,9 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [canEditPickup, setCanEditPickup] = useState(false)
     const [canDeletePickup, setCanDeletePickup] = useState(false)
+    const [showHistory, setShowHistory] = useState(false)
+    const [showComments, setShowComments] = useState(false)
+    const [showIssues, setShowIssues] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -234,6 +240,22 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
             notFound={!pickup && !isLoading}
             notFoundMessage="Pickup Not Found"
             notFoundDescription="Could not find the requested pickup."
+            headerActions={
+                pickup && (
+                    <>
+                        <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                            <i className="fas fa-tools"></i> Issues
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                            <i className="fas fa-comments"></i> Comments
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                            <i className="fas fa-history"></i>
+                            <span>History</span>
+                        </button>
+                    </>
+                )
+            }
             footerActions={
                 canEditPickup && (
                     <>
@@ -247,15 +269,22 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     </>
                 )
             }
-            modals={showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={setAssignedPlant}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
+            modals={
+                <>
+                    {showPlantModal && (
+                        <PlantDropdownModal
+                            isOpen={showPlantModal}
+                            onClose={() => setShowPlantModal(false)}
+                            plants={filteredPlants}
+                            onSelect={setAssignedPlant}
+                            searchPlaceholder="Search plants..."
+                        />
+                    )}
+                    {showHistory && <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
+                    {showComments && <PickupTruckCommentModal pickupTruck={pickup} onClose={() => setShowComments(false)}/>}
+                    {showIssues && <PickupTruckIssueModal pickupTruck={pickup} onClose={() => setShowIssues(false)}/>}
+                </>
+            }
         >
             <div className="detail-card">
                 <div className="card-header"><h2>Pickup Information</h2></div>

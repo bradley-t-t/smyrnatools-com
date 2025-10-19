@@ -42,13 +42,19 @@ function TopSection({
                         hidePlantFilter = false,
                         onHeaderClick,
                         sortKey,
-                        sortDirection
+                        sortDirection,
+                        isOfficeRegion = false
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
     const safePositionOptions = Array.isArray(positionOptions) ? positionOptions : []
     const safeListLabels = Array.isArray(listLabels) && listLabels.length > 0 ? listLabels : ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']
     const safeColWidths = Array.isArray(colWidths) && colWidths.length > 0 ? colWidths : ['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']
+
+    const filteredPlants = isOfficeRegion || !regionPlantCodes || regionPlantCodes.size === 0
+        ? safePlants
+        : safePlants.filter(p => regionPlantCodes.has(String(p.plantCode || p.plant_code || '').trim().toUpperCase()));
+
     const effectiveFlush = typeof flushTop === 'boolean' ? flushTop : flush
     const classes = ['top-section']
     if (sticky) classes.push('top-section-sticky-header')
@@ -214,7 +220,7 @@ function TopSection({
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
                     onClose={() => setIsPlantModalOpen(false)}
-                    plants={safePlants}
+                    plants={filteredPlants}
                     onSelect={onSelectedPlantChange}
                     showAllPlants={true}
                 />

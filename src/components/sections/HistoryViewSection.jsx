@@ -384,7 +384,26 @@ function HistoryViewSection({item, type, onClose}) {
         })).filter(d => !isNaN(d.rating) && d.rating >= 0);
     }, [history]);
 
-    const itemName = type === 'mixer' || type === 'tractor' ? `Truck #${item.truckNumber}` : item.name || 'Item';
+    const mileageData = useMemo(() => {
+        const mileageEntries = history.filter(entry => {
+            const fieldName = entry.fieldName || entry.field_name;
+            const key = fieldName && fieldName.includes('_') ? fieldName : String(fieldName || '').replace(/([A-Z])/g, '_$1').toLowerCase();
+            return key === 'mileage';
+        }).sort((a, b) => {
+            const aTime = new Date(a.changedAt || a.changed_at);
+            const bTime = new Date(b.changedAt || b.changed_at);
+            return aTime - bTime;
+        });
+
+        return mileageEntries.map(entry => ({
+            date: new Date(entry.changedAt || entry.changed_at),
+            mileage: parseInt(entry.newValue || entry.new_value, 10),
+            timestamp: entry.changedAt || entry.changed_at,
+            changedBy: entry.changedBy || entry.changed_by
+        })).filter(entry => !isNaN(entry.mileage) && entry.mileage >= 0);
+    }, [history]);
+
+    const itemName = type === 'mixer' || type === 'tractor' ? `Truck #${item.truckNumber}` : type === 'pickup-truck' ? `${item.make || ''} ${item.model || ''} (${item.vin || 'Unknown'})`.trim() : item.name || 'Item';
 
     const renderCleanlinessChart = () => {
         if (cleanlinessData.length === 0) {
@@ -1317,6 +1336,242 @@ function HistoryViewSection({item, type, onClose}) {
         );
     };
 
+    const renderMileageTracking = () => {
+        if (mileageData.length === 0) {
+            return (
+                <div className="empty-history">
+                    <p>No mileage history available</p>
+                    <p className="empty-subtext">Mileage updates will be tracked here once they are recorded.</p>
+                </div>
+            );
+        }
+
+        const currentMileage = mileageData[mileageData.length - 1].mileage;
+        const totalMileageChange = currentMileage - mileageData[0].mileage;
+        const avgMileage = mileageData.reduce((sum, d) => sum + d.mileage, 0) / mileageData.length;
+
+        const calculateMilesPerPeriod = () => {
+            if (mileageData.length < 2) return { perWeek: 0, perMonth: 0, perYear: 0 };
+
+            const intervals = [];
+            for (let i = 1; i < mileageData.length; i++) {
+                const prevEntry = mileageData[i - 1];
+                const currEntry = mileageData[i];
+                const milesDriven = currEntry.mileage - prevEntry.mileage;
+                const timeDiff = currEntry.date - prevEntry.date;
+                const days = timeDiff / (1000 * 60 * 60 * 24);
+
+                if (days > 0 && milesDriven > 0) {
+                    intervals.push({ milesDriven, days });
+                }
+            }
+
+            if (intervals.length === 0) return { perWeek: 0, perMonth: 0, perYear: 0 };
+
+            const totalMiles = intervals.reduce((sum, int) => sum + int.milesDriven, 0);
+            const totalDays = intervals.reduce((sum, int) => sum + int.days, 0);
+            const milesPerDay = totalMiles / totalDays;
+
+            return {
+                perWeek: Math.round(milesPerDay * 7),
+                perMonth: Math.round(milesPerDay * 30.44),
+                perYear: Math.round(milesPerDay * 365.25)
+            };
+        };
+
+        const { perWeek, perMonth, perYear } = calculateMilesPerPeriod();
+
+        const maxMileage = Math.max(...mileageData.map(d => d.mileage));
+        const minMileage = Math.min(...mileageData.map(d => d.mileage));
+        const mileageRange = maxMileage - minMileage;
+        const chartHeight = 300;
+        const padding = 60;
+
+        const getMaintenanceMilestone = (miles) => {
+            if (miles >= 300000) return { level: 'critical', label: 'High Mileage' };
+            if (miles >= 200000) return { level: 'warning', label: 'Elevated' };
+            if (miles >= 100000) return { level: 'info', label: 'Moderate' };
+            return { level: 'good', label: 'Low' };
+        };
+
+        const milestone = getMaintenanceMilestone(currentMileage);
+
+        return (
+            <div className="chart-container">
+                <div className="operator-summary-cards">
+                    <div className="summary-card">
+                        <div className="summary-label">Current Mileage</div>
+                        <div className="summary-value">{currentMileage.toLocaleString()}</div>
+                        <div className="summary-subtext">{milestone.label}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Total Change</div>
+                        <div className="summary-value">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
+                        <div className="summary-subtext">miles tracked</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Average</div>
+                        <div className="summary-value">{Math.round(avgMileage).toLocaleString()}</div>
+                        <div className="summary-subtext">miles</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Updates</div>
+                        <div className="summary-value">{mileageData.length}</div>
+                        <div className="summary-subtext">recorded</div>
+                    </div>
+                </div>
+
+                <h3 className="chart-section-title">Estimated Usage Rates</h3>
+                <div className="operator-summary-cards">
+                    <div className="summary-card">
+                        <div className="summary-label">Per Week</div>
+                        <div className="summary-value">{perWeek.toLocaleString()}</div>
+                        <div className="summary-subtext">miles/week</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Per Month</div>
+                        <div className="summary-value">{perMonth.toLocaleString()}</div>
+                        <div className="summary-subtext">miles/month</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Per Year</div>
+                        <div className="summary-value">{perYear.toLocaleString()}</div>
+                        <div className="summary-subtext">miles/year</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Next Service Est.</div>
+                        <div className="summary-value">
+                            {perWeek > 0 ? Math.round((5000 - (currentMileage % 5000)) / (perWeek / 7)) : '—'}
+                        </div>
+                        <div className="summary-subtext">days (if 5k interval)</div>
+                    </div>
+                </div>
+
+                <h3 className="chart-section-title">Mileage Over Time</h3>
+                <div className="chart-scroll-container">
+                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`} preserveAspectRatio="xMidYMid meet">
+                        <g transform={`translate(${padding}, ${padding})`}>
+                            <line
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2={chartHeight}
+                                stroke="var(--border-light)"
+                                strokeWidth="2"
+                            />
+                            <line
+                                x1="0"
+                                y1={chartHeight}
+                                x2={1000 - padding * 2}
+                                y2={chartHeight}
+                                stroke="var(--border-light)"
+                                strokeWidth="2"
+                            />
+
+                            {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+                                const yPos = chartHeight * (1 - fraction);
+                                const mileageValue = Math.round(minMileage + mileageRange * fraction);
+                                return (
+                                    <g key={fraction}>
+                                        <line
+                                            x1="0"
+                                            y1={yPos}
+                                            x2={1000 - padding * 2}
+                                            y2={yPos}
+                                            stroke="var(--border-light)"
+                                            strokeWidth="1"
+                                            strokeDasharray="4"
+                                        />
+                                        <text
+                                            x="-10"
+                                            y={yPos + 5}
+                                            textAnchor="end"
+                                            fontSize="12"
+                                            fill="var(--text-secondary)"
+                                        >
+                                            {mileageValue.toLocaleString()}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            {mileageData.map((point, index) => {
+                                const x = (index / (mileageData.length - 1 || 1)) * (1000 - padding * 2);
+                                const normalizedY = (point.mileage - minMileage) / (mileageRange || 1);
+                                const y = chartHeight * (1 - normalizedY);
+
+                                return (
+                                    <g key={index}>
+                                        {index < mileageData.length - 1 && (
+                                            <line
+                                                x1={x}
+                                                y1={y}
+                                                x2={((index + 1) / (mileageData.length - 1)) * (1000 - padding * 2)}
+                                                y2={chartHeight * (1 - (mileageData[index + 1].mileage - minMileage) / (mileageRange || 1))}
+                                                stroke="var(--accent)"
+                                                strokeWidth="3"
+                                            />
+                                        )}
+                                        <circle
+                                            cx={x}
+                                            cy={y}
+                                            r="6"
+                                            fill="var(--accent)"
+                                            stroke="var(--bg-primary)"
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={x}
+                                            y={chartHeight + 20}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fill="var(--text-secondary)"
+                                            transform={`rotate(-45, ${x}, ${chartHeight + 20})`}
+                                        >
+                                            {FormatUtility.formatDate(point.timestamp)}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+                        </g>
+                    </svg>
+                </div>
+
+                <h3 className="chart-section-title">Mileage Timeline</h3>
+                <div className="operator-timeline-modern">
+                    {mileageData.slice().reverse().map((entry, index) => {
+                        const reversedIndex = mileageData.length - 1 - index;
+                        const milesDriven = reversedIndex > 0 ? entry.mileage - mileageData[reversedIndex - 1].mileage : 0;
+                        const daysSince = reversedIndex > 0 ? Math.round((entry.date - mileageData[reversedIndex - 1].date) / (1000 * 60 * 60 * 24)) : 0;
+
+                        return (
+                            <div key={index} className={`timeline-entry ${index === 0 ? 'timeline-entry-current' : ''}`}>
+                                <div className="timeline-marker">
+                                    <div className="timeline-dot"></div>
+                                    {index < mileageData.length - 1 && <div className="timeline-line"></div>}
+                                </div>
+                                <div className="timeline-card">
+                                    <div className="timeline-card-header">
+                                        <span className="timeline-operator-name">{entry.mileage.toLocaleString()} miles</span>
+                                        {index === 0 && <span className="current-badge">Current</span>}
+                                    </div>
+                                    <div className="timeline-card-meta">
+                                        <span className="timeline-date">{FormatUtility.formatDate(entry.timestamp)}</span>
+                                        {milesDriven > 0 && daysSince > 0 && (
+                                            <span className="timeline-duration">
+                                                +{milesDriven.toLocaleString()} miles in {daysSince} {daysSince === 1 ? 'day' : 'days'}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
     const renderContent = () => {
         if (isLoading) {
             return (
@@ -1388,6 +1643,8 @@ function HistoryViewSection({item, type, onClose}) {
                 return renderPositionHistory();
             case 'ratings':
                 return renderRatingsHistory();
+            case 'mileage':
+                return renderMileageTracking();
             default:
                 return null;
         }
@@ -1530,7 +1787,7 @@ function HistoryViewSection({item, type, onClose}) {
                             Operators
                         </button>
                     )}
-                    {(type === 'mixer' || type === 'tractor' || type === 'equipment') && (
+                    {(type === 'mixer' || type === 'tractor' || type === 'equipment' || type === 'pickup-truck') && (
                         <button
                             className={`history-tab ${activeTab === 'service' ? 'active' : ''}`}
                             onClick={() => setActiveTab('service')}
@@ -1538,7 +1795,7 @@ function HistoryViewSection({item, type, onClose}) {
                             Service History
                         </button>
                     )}
-                    {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment') && (
+                    {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment' || type === 'pickup-truck') && (
                         <button
                             className={`history-tab ${activeTab === 'plant' ? 'active' : ''}`}
                             onClick={() => setActiveTab('plant')}
@@ -1546,21 +1803,21 @@ function HistoryViewSection({item, type, onClose}) {
                             Plant Assignments
                         </button>
                     )}
+                    {(type === 'operator' || type === 'pickup-truck') && (
+                        <button
+                            className={`history-tab ${activeTab === 'status' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('status')}
+                        >
+                            Status History
+                        </button>
+                    )}
                     {type === 'operator' && (
-                        <>
-                            <button
-                                className={`history-tab ${activeTab === 'status' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('status')}
-                            >
-                                Status History
-                            </button>
-                            <button
-                                className={`history-tab ${activeTab === 'position' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('position')}
-                            >
-                                Position History
-                            </button>
-                        </>
+                        <button
+                            className={`history-tab ${activeTab === 'position' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('position')}
+                        >
+                            Position History
+                        </button>
                     )}
                     {type === 'operator' && (
                         <button
@@ -1568,6 +1825,14 @@ function HistoryViewSection({item, type, onClose}) {
                             onClick={() => setActiveTab('ratings')}
                         >
                             Ratings History
+                        </button>
+                    )}
+                    {type === 'pickup-truck' && (
+                        <button
+                            className={`history-tab ${activeTab === 'mileage' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('mileage')}
+                        >
+                            Mileage Tracking
                         </button>
                     )}
                 </div>
