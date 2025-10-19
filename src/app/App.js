@@ -162,6 +162,7 @@ function AppContent() {
     const [updateMode, setUpdateMode] = useState(false)
     const [latestVersion, setLatestVersion] = useState('')
     const [isGuestOnly, setIsGuestOnly] = useState(false)
+    const [hasPlant, setHasPlant] = useState(false)
     const [rolesLoaded, setRolesLoaded] = useState(false)
     const [showUpdateWarning, setShowUpdateWarning] = useState(false)
     const [scheduledAt, setScheduledAt] = useState(null)
@@ -284,6 +285,30 @@ function AppContent() {
         window.addEventListener('authSignOut', handleSignOut)
         return () => window.removeEventListener('authSignOut', handleSignOut)
     }, [])
+
+    useEffect(() => {
+        let active = true
+
+        async function checkPlant() {
+            if (!userId) return
+            try {
+                const plant = await UserService.getUserPlant(userId)
+                const plantCode = (typeof plant === 'string' ? plant : (plant?.plant_code || plant?.plantCode || '')).trim()
+                if (active) setHasPlant(!!plantCode)
+            } catch {
+                if (active) setHasPlant(false)
+            }
+        }
+
+        if (userId) checkPlant()
+        const interval = setInterval(() => {
+            if (userId) checkPlant()
+        }, 60000)
+        return () => {
+            clearInterval(interval)
+            active = false
+        }
+    }, [userId])
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -431,7 +456,7 @@ function AppContent() {
     const renderCurrentView = () => {
         if (!userId) return <LoginView/>
         if (!rolesLoaded) return null
-        if (isGuestOnly) return <GuestOverlay/>
+        if (isGuestOnly || !hasPlant) return <GuestOverlay reason={!hasPlant ? "no-plant" : undefined}/>
         if (webViewURL) return <WebOverlay url={webViewURL} onClose={() => setWebViewURL(null)}/>
         if (selectedView.view === 'Plants') return <PlantsView title="Plants"/>
         if (selectedView.view === 'Regions') return <RegionsView title="Regions"/>
@@ -554,7 +579,7 @@ function AppContent() {
     if (updateMode) return <><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
     if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
-    if (isGuestOnly) return (<div className="App"><GuestOverlay/></div>)
+    if (isGuestOnly || !hasPlant) return (<div className="App"><GuestOverlay reason={!hasPlant ? "no-plant" : undefined}/></div>)
 
     return (
         <div className="App">
