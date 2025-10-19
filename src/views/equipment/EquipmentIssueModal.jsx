@@ -1,6 +1,5 @@
 import React from 'react';
 import {EquipmentService} from '../../services/EquipmentService';
-import ErrorBoundary from '../../components/common/ErrorBoundary';
 import IssueModalSection from '../../components/sections/IssueModalSection';
 
 function EquipmentIssueModal({equipmentId, equipmentNumber, onClose}) {
@@ -15,12 +14,4 @@ function EquipmentIssueModal({equipmentId, equipmentNumber, onClose}) {
     );
 }
 
-function EquipmentIssueModalWithErrorBoundary(props) {
-    return (
-        <ErrorBoundary>
-            <EquipmentIssueModal {...props} />
-        </ErrorBoundary>
-    );
-}
-
-export default EquipmentIssueModalWithErrorBoundary;
+export default EquipmentIssueModal;
