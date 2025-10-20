@@ -282,18 +282,9 @@ Deno.serve(async (req) => {
                     })(),
                     freight: typeof tractor?.freight === "string" ? tractor.freight : current.freight,
                     status,
-                    updated_at: nowIso(),
-                    updated_by: userId,
                     updated_last: typeof tractor?.updatedLast === "string" ? tractor.updatedLast : current.updated_last
                 };
-                const {
-                    data,
-                    error
-                } = await supabase.from("tractors").update(apiData).eq("id", id).select().maybeSingle();
-                if (error) return new Response(JSON.stringify({error: error.message}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
+
                 const diffs: Array<{
                     tractor_id: string;
                     field_name: string;
@@ -330,6 +321,24 @@ Deno.serve(async (req) => {
                         changed_by: userId
                     });
                 }
+
+                if (diffs.length) {
+                    apiData.updated_at = nowIso();
+                    apiData.updated_by = userId;
+                } else {
+                    apiData.updated_at = current.updated_at;
+                    apiData.updated_by = current.updated_by;
+                }
+
+                const {
+                    data,
+                    error
+                } = await supabase.from("tractors").update(apiData).eq("id", id).select().maybeSingle();
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+
                 if (diffs.length) {
                     const {error: histErr} = await supabase.from("tractors_history").insert(diffs);
                     if (histErr) {
