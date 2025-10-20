@@ -18,6 +18,7 @@ import VerificationRequirementsModal from "../../components/common/VerificationR
 import DetailViewSection from "../../components/sections/DetailViewSection"
 import VerificationCardSection from "../../components/sections/VerificationCardSection"
 import {DateUtility} from "../../utils/DateUtility"
+import {supabase} from '../../services/DatabaseService'
 
 function MixerDetailView({mixerId, onClose}) {
     const {preferences} = usePreferences()
@@ -209,6 +210,12 @@ function MixerDetailView({mixerId, onClose}) {
             alert('Error: Cannot save mixer with undefined ID')
             return
         }
+
+        const relevantOverrideKeys = Object.keys(overrideValues || {}).filter(k => !['silent', 'prevAssignedOperator'].includes(k))
+        if (!hasUnsavedChanges && relevantOverrideKeys.length === 0) {
+            return
+        }
+
         setIsSaving(true)
         try {
             let userObj = await UserService.getCurrentUser()
@@ -345,6 +352,36 @@ function MixerDetailView({mixerId, onClose}) {
             return
         }
 
+        if (assignedOperator) {
+            try {
+                const {data: operatorData} = await supabase
+                    .from('operators')
+                    .select('phone')
+                    .eq('employee_id', assignedOperator)
+                    .single()
+
+                if (!operatorData?.phone || operatorData.phone.trim().length === 0) {
+                    setMissingFields([])
+                    setShowMissingFieldsModal(true)
+                    return
+                }
+            } catch (error) {
+                console.error('Failed to check operator phone:', error)
+            }
+        }
+
+        try {
+            const issues = await MixerService.fetchIssues(mixer.id)
+            const openIssues = Array.isArray(issues) ? issues.filter(issue => !issue.time_completed) : []
+            if (openIssues.length > 0) {
+                setMissingFields([])
+                setShowMissingFieldsModal(true)
+                return
+            }
+        } catch (error) {
+            console.error('Failed to check issues:', error)
+        }
+
         setIsSaving(true)
         try {
             if (hasUnsavedChanges) {
@@ -448,9 +485,9 @@ function MixerDetailView({mixerId, onClose}) {
         }
     }
 
-    function handleBackClick() {
+    async function handleBackClick() {
         if (hasUnsavedChanges) {
-            handleSave()
+            await handleSave()
         }
         onClose()
     }
@@ -694,6 +731,10 @@ function MixerDetailView({mixerId, onClose}) {
                                 setLastChipDate={setLastChipDate}
                                 onSaveAndVerify={handleSaveMissingFields}
                                 isServiceOverdue={MixerUtility.isServiceOverdue}
+                                assignedOperator={assignedOperator}
+                                itemType="Mixer"
+                                itemId={mixer?.id}
+                                service={MixerService}
                             />
                         )}
                     </>

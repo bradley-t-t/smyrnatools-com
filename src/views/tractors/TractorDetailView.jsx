@@ -17,6 +17,7 @@ import ThemeUtility from '../../utils/ThemeUtility';
 import VerificationRequirementsModal from "../../components/common/VerificationRequirementsModal";
 import DetailViewSection from "../../components/sections/DetailViewSection";
 import VerificationCardSection from "../../components/sections/VerificationCardSection";
+import {supabase} from '../../services/DatabaseService';
 import './styles/Tractors.css';
 
 function TractorDetailView({tractorId, onClose}) {
@@ -198,6 +199,12 @@ function TractorDetailView({tractorId, onClose}) {
             alert('Error: Cannot save tractor with undefined ID');
             return;
         }
+
+        const relevantOverrideKeys = Object.keys(overrideValues || {}).filter(k => !['silent', 'prevAssignedOperator'].includes(k));
+        if (!hasUnsavedChanges && relevantOverrideKeys.length === 0) {
+            return;
+        }
+
         setIsSaving(true);
         try {
             let userObj = await UserService.getCurrentUser();
@@ -326,6 +333,36 @@ function TractorDetailView({tractorId, onClose}) {
             return;
         }
 
+        if (assignedOperator) {
+            try {
+                const {data: operatorData} = await supabase
+                    .from('operators')
+                    .select('phone')
+                    .eq('employee_id', assignedOperator)
+                    .single()
+
+                if (!operatorData?.phone || operatorData.phone.trim().length === 0) {
+                    setMissingFields([]);
+                    setShowMissingFieldsModal(true);
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to check operator phone:', error);
+            }
+        }
+
+        try {
+            const issues = await TractorService.fetchIssues(tractor.id);
+            const openIssues = Array.isArray(issues) ? issues.filter(issue => !issue.time_completed) : [];
+            if (openIssues.length > 0) {
+                setMissingFields([]);
+                setShowMissingFieldsModal(true);
+                return;
+            }
+        } catch (error) {
+            console.error('Failed to check issues:', error);
+        }
+
         setIsSaving(true)
         try {
             if (hasUnsavedChanges) {
@@ -390,9 +427,9 @@ function TractorDetailView({tractorId, onClose}) {
         await handleVerifyTractor()
     }
 
-    function handleBackClick() {
+    async function handleBackClick() {
         if (hasUnsavedChanges) {
-            handleSave()
+            await handleSave()
         }
         onClose()
     }
@@ -641,6 +678,10 @@ function TractorDetailView({tractorId, onClose}) {
                                 setLastServiceDate={setLastServiceDate}
                                 onSaveAndVerify={handleSaveMissingFields}
                                 isServiceOverdue={TractorUtility.isServiceOverdue}
+                                assignedOperator={assignedOperator}
+                                itemType="Tractor"
+                                itemId={tractor?.id}
+                                service={TractorService}
                             />
                         )}
                     </>
