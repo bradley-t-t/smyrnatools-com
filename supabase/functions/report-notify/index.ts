@@ -1,7 +1,6 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
-import EmailUtility, {isValidEmail} from "../_shared/EmailUtility.js";
-import {buildReportSubmittedEmail} from "../_shared/emails/report-submitted-email.js";
+import {buildReportSubmittedEmail} from "../../../emails/report-submitted-email.js";
 
 const USERS_TABLE = 'users';
 const ROLES_TABLE = 'users_roles';
@@ -15,6 +14,12 @@ const corsHeaders = {
     "Access-Control-Max-Age": "86400",
     "Connection": "keep-alive"
 };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(email) {
+    return typeof email === 'string' && EMAIL_RE.test(email);
+}
 
 type ReportNotifyBody = {
     reportName?: string
@@ -160,22 +165,36 @@ Deno.serve(async (req) => {
                     logoUrl,
                     fromName
                 });
-                const prep = EmailUtility.prepareMailerSend({
-                    to: toEmails,
+
+                const mailerSendToken = Deno.env.get('MAILERSEND_API_TOKEN');
+                const fromEmail = Deno.env.get('MAILERSEND_FROM_EMAIL');
+
+                if (!mailerSendToken || !fromEmail) {
+                    return new Response(JSON.stringify({error: 'Email not configured'}), {
+                        status: 200,
+                        headers: corsHeaders
+                    });
+                }
+
+                const recipients = toEmails.map(email => ({email}));
+                const emailPayload = {
+                    from: {email: fromEmail, name: fromName},
+                    to: recipients,
                     subject,
-                    html,
                     text,
+                    html,
                     tags: ['report_submitted', reportName]
+                };
+
+                await fetch('https://api.mailersend.com/v1/email', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${mailerSendToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(emailPayload)
                 });
-                if (!prep.ok) return new Response(JSON.stringify({error: 'Email utility not configured'}), {
-                    status: 200,
-                    headers: corsHeaders
-                });
-                await fetch(prep.request.url, {
-                    method: prep.request.method,
-                    headers: prep.request.headers,
-                    body: prep.request.body
-                });
+
                 return new Response(JSON.stringify({ok: true, sent: toEmails.length}), {headers: corsHeaders});
             }
             default:
