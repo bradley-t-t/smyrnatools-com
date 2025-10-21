@@ -84,7 +84,15 @@ class EquipmentServiceImpl {
         }
         if (!userId) throw new Error('User ID is required')
         const {res, json} = await APIUtility.post('/equipment-service/update', {id, equipment, userId})
-        if (!res.ok) throw new Error(json?.error || 'Failed to update equipment')
+        if (!res.ok) {
+            console.error('Equipment update failed:', {
+                status: res.status,
+                statusText: res.statusText,
+                error: json?.error,
+                fullResponse: json
+            })
+            throw new Error(json?.error || 'Failed to update equipment')
+        }
         return json?.data ? new Equipment(json.data) : null
     }
 

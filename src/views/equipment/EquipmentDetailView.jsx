@@ -185,8 +185,6 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 return null;
             }
             const updatedEquipment = {
-                ...equipment,
-                id: equipment.id,
                 identifyingNumber,
                 assignedPlant,
                 equipmentType,
@@ -198,33 +196,43 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 equipmentMake: make,
                 equipmentModel: model,
                 yearMade: year ? parseInt(year) : null,
-                updatedAt: new Date().toISOString(),
-                updatedBy: userId,
+                updatedLast: equipment.updatedLast,
                 ...overrides
             };
-            await EquipmentService.updateEquipment(updatedEquipment.id, updatedEquipment, userId);
-            setEquipment(updatedEquipment);
+            console.log('Sending update:', {id: equipment.id, equipment: updatedEquipment, userId});
+            const result = await EquipmentService.updateEquipment(equipment.id, updatedEquipment, userId);
+            if (!result) {
+                setMessage('Error saving changes: No data returned from server');
+                return null;
+            }
+            setEquipment(result);
             setMessage('Changes saved successfully!');
             setTimeout(() => setMessage(''), 5000);
             setOriginalValues({
-                identifyingNumber: updatedEquipment.identifyingNumber,
-                assignedPlant: updatedEquipment.assignedPlant,
-                equipmentType: updatedEquipment.equipmentType,
-                status: updatedEquipment.status,
-                cleanlinessRating: updatedEquipment.cleanlinessRating,
-                conditionRating: updatedEquipment.conditionRating,
-                lastServiceDate: updatedEquipment.lastServiceDate,
-                hoursMileage: updatedEquipment.hoursMileage ? updatedEquipment.hoursMileage.toString() : '',
-                equipmentMake: updatedEquipment.equipmentMake,
-                equipmentModel: updatedEquipment.equipmentModel,
-                yearMade: updatedEquipment.yearMade ? updatedEquipment.yearMade.toString() : ''
+                identifyingNumber: result.identifyingNumber,
+                assignedPlant: result.assignedPlant,
+                equipmentType: result.equipmentType,
+                status: result.status,
+                cleanlinessRating: result.cleanlinessRating,
+                conditionRating: result.conditionRating,
+                lastServiceDate: result.lastServiceDate,
+                hoursMileage: result.hoursMileage ? result.hoursMileage.toString() : '',
+                equipmentMake: result.equipmentMake,
+                equipmentModel: result.equipmentModel,
+                yearMade: result.yearMade ? result.yearMade.toString() : ''
             });
             setHasUnsavedChanges(false);
             if (onSaved) {
-                onSaved(updatedEquipment);
+                onSaved(result);
             }
-            return updatedEquipment;
+            return result;
         } catch (error) {
+            console.error('Save error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                equipmentId: equipment?.id
+            });
             setMessage('Error saving changes: ' + (error.message || 'Unknown error'));
             return null;
         } finally {
@@ -553,7 +561,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 footerActions={
                     canEditEquipment && (
                         <>
-                            <button className="primary-button save-button" onClick={handleSave}
+                            <button className="primary-button save-button" onClick={() => handleSave()}
                                     disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
                             {canDeleteEquipment && (
                                 <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}

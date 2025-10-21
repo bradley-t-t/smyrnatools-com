@@ -49,6 +49,32 @@ function normalize(field: string, value: any): any {
     return v;
 }
 
+function getUserFriendlyError(error: string): string {
+    if (!error) return "An unknown error occurred";
+    const lowerError = error.toLowerCase();
+    if (lowerError.includes("heavy_equipment_year_made_check") || lowerError.includes("year_made_check")) {
+        return "Year must be a valid year.";
+    }
+    if (lowerError.includes("heavy_equipment_identifying_number_key") || lowerError.includes("duplicate key") && lowerError.includes("identifying_number")) {
+        return "This equipment number already exists in the system";
+    }
+    if (lowerError.includes("check constraint") && lowerError.includes("rating")) {
+        return "Rating values must be between 1 and 5";
+    }
+    if (lowerError.includes("foreign key") || lowerError.includes("violates foreign key constraint")) {
+        return "Invalid reference to related data. Please check your selections";
+    }
+    if (lowerError.includes("not null") || lowerError.includes("null value")) {
+        const fieldMatch = error.match(/column "([^"]+)"/);
+        const field = fieldMatch ? fieldMatch[1].replace(/_/g, " ") : "field";
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    }
+    if (lowerError.includes("permission denied") || lowerError.includes("insufficient privilege")) {
+        return "You don't have permission to perform this action";
+    }
+    return error;
+}
+
 Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return handleOptions();
     try {
@@ -203,7 +229,7 @@ Deno.serve(async (req) => {
                     updated_by: userId
                 };
                 const {data, error} = await supabase.from("heavy_equipment").insert([apiData]).select().maybeSingle();
-                if (error) return new Response(JSON.stringify({error: error.message}), {
+                if (error) return new Response(JSON.stringify({error: getUserFriendlyError(error.message)}), {
                     status: 400,
                     headers: corsHeaders
                 });
@@ -254,17 +280,8 @@ Deno.serve(async (req) => {
                     equipment_make: equipment?.equipmentMake ?? current.equipment_make,
                     equipment_model: equipment?.equipmentModel ?? current.equipment_model,
                     year_made: equipment?.yearMade != null ? Number(equipment.yearMade) : current.year_made,
-                    updated_at: nowIso(),
-                    updated_by: userId
+                    updated_last: typeof equipment?.updatedLast === "string" ? equipment.updatedLast : current.updated_last
                 };
-                const {
-                    data,
-                    error
-                } = await supabase.from("heavy_equipment").update(apiData).eq("id", id).select().maybeSingle();
-                if (error) return new Response(JSON.stringify({error: error.message}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
                 const diffs: Array<{
                     equipment_id: string;
                     field_name: string;
@@ -301,13 +318,40 @@ Deno.serve(async (req) => {
                     });
                 }
                 if (diffs.length) {
+                    apiData.updated_at = nowIso();
+                    apiData.updated_by = userId;
+                } else {
+                    apiData.updated_at = current.updated_at;
+                    apiData.updated_by = current.updated_by;
+                }
+                const {
+                    data,
+                    error
+                } = await supabase.from("heavy_equipment").update(apiData).eq("id", id).select().maybeSingle();
+                if (error) return new Response(JSON.stringify({error: getUserFriendlyError(error.message)}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (diffs.length) {
                     const {error: histErr} = await supabase.from("heavy_equipment_history").insert(diffs);
                     if (histErr) return new Response(JSON.stringify({error: histErr.message}), {
                         status: 400,
                         headers: corsHeaders
                     });
                 }
-                return new Response(JSON.stringify({data}), {headers: corsHeaders});
+                const {data: hist} = await supabase.from("heavy_equipment_history").select("equipment_id, changed_at").eq("equipment_id", id).order("changed_at", {ascending: false}).limit(1);
+                const latestHistoryDate = hist && hist.length > 0 ? (hist[0] as any).changed_at : null;
+                const {data: openIssues} = await supabase.from("heavy_equipment_maintenance").select("equipment_id").eq("equipment_id", id).is("time_completed", null);
+                const openIssuesCount = openIssues ? openIssues.length : 0;
+                const {data: comments} = await supabase.from("heavy_equipment_comments").select("equipment_id").eq("equipment_id", id);
+                const commentsCount = comments ? comments.length : 0;
+                const enrichedData = {
+                    ...data,
+                    latestHistoryDate,
+                    openIssuesCount,
+                    commentsCount
+                };
+                return new Response(JSON.stringify({data: enrichedData}), {headers: corsHeaders});
             }
             case "delete": {
                 let body: any;
@@ -733,7 +777,19 @@ Deno.serve(async (req) => {
                     status: 400,
                     headers: corsHeaders
                 });
-                return new Response(JSON.stringify({data}), {headers: corsHeaders});
+                const {data: hist} = await supabase.from("heavy_equipment_history").select("equipment_id, changed_at").eq("equipment_id", id).order("changed_at", {ascending: false}).limit(1);
+                const latestHistoryDate = hist && hist.length > 0 ? (hist[0] as any).changed_at : null;
+                const {data: openIssues} = await supabase.from("heavy_equipment_maintenance").select("equipment_id").eq("equipment_id", id).is("time_completed", null);
+                const openIssuesCount = openIssues ? openIssues.length : 0;
+                const {data: comments} = await supabase.from("heavy_equipment_comments").select("equipment_id").eq("equipment_id", id);
+                const commentsCount = comments ? comments.length : 0;
+                const enrichedData = {
+                    ...data,
+                    latestHistoryDate,
+                    openIssuesCount,
+                    commentsCount
+                };
+                return new Response(JSON.stringify({data: enrichedData}), {headers: corsHeaders});
             }
             default:
                 return new Response(JSON.stringify({error: "Invalid endpoint", path: url.pathname}), {

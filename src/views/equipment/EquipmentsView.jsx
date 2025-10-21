@@ -408,8 +408,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         <div
             className={`global-dashboard-container dashboard-container global-flush-top flush-top equipments-view${selectedEquipment ? ' detail-open' : ''}`}>
             {selectedEquipment ? (
-                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={() => setSelectedEquipment(null)}
-                                     onSaved={handleDetailViewSaved}/>
+                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={() => setSelectedEquipment(null)}/>
             ) : (
                 <>
                     <TopSection
