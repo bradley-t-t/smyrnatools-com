@@ -4,6 +4,9 @@ import CardSection from '../../components/sections/CardSection';
 
 function EquipmentCard({equipment, plantName, onSelect, onShowCommentModal, onShowIssueModal}) {
     const isServiceOverdue = EquipmentUtility.isServiceOverdue(equipment.lastServiceDate);
+    const isVerified = typeof equipment.isVerified === 'function'
+        ? equipment.isVerified(equipment.latestHistoryDate)
+        : EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy, equipment.latestHistoryDate);
 
     let statusColor = 'var(--accent)';
     if (equipment.status === 'Active') statusColor = 'var(--status-active)';
@@ -11,6 +14,12 @@ function EquipmentCard({equipment, plantName, onSelect, onShowCommentModal, onSh
     else if (equipment.status === 'In Shop') statusColor = 'var(--status-inshop)';
     else if (equipment.status === 'Retired') statusColor = 'var(--status-retired)';
     else if (EquipmentUtility.isServiceOverdue(equipment.lastServiceDate)) statusColor = 'var(--error)';
+
+    const verificationTooltip = !equipment.updatedLast || !equipment.updatedBy
+        ? 'Equipment never verified'
+        : equipment.latestHistoryDate && new Date(equipment.latestHistoryDate) > new Date(equipment.updatedLast)
+            ? 'Changes recorded in history since last verification'
+            : 'Equipment not verified since last Monday';
 
     return (
         <CardSection
@@ -21,6 +30,8 @@ function EquipmentCard({equipment, plantName, onSelect, onShowCommentModal, onSh
             onShowCommentModal={onShowCommentModal}
             onShowIssueModal={onShowIssueModal}
             statusColor={statusColor}
+            isVerified={isVerified}
+            verificationTooltip={verificationTooltip}
         >
             <div className="detail-row">
                 <div className="detail-label">Plant</div>

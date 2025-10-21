@@ -1,3 +1,5 @@
+import VerifiedUtility from './VerifiedUtility'
+
 const equipmentUtility = {
     isServiceOverdue(serviceDate) {
         if (!serviceDate) return false;
@@ -9,6 +11,9 @@ const equipmentUtility = {
         } catch (error) {
             return false;
         }
+    },
+    isVerified(updatedLast, updatedAt, updatedBy) {
+        return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy);
     },
     formatDate(date) {
         if (!date) return 'Not available';

@@ -1,3 +1,5 @@
+import EquipmentUtility from '../../utils/EquipmentUtility'
+
 export class Equipment {
     constructor(data = {}) {
         this.id = data.id ?? null
@@ -14,6 +16,7 @@ export class Equipment {
         this.yearMade = data.year_made ?? data.yearMade ?? data.year ?? ''
         this.createdAt = data.created_at ?? data.createdAt ?? new Date().toISOString()
         this.updatedAt = data.updated_at ?? data.updatedAt ?? new Date().toISOString()
+        this.updatedLast = data.updated_last ?? data.updatedLast ?? new Date().toISOString()
         this.updatedBy = data.updated_by ?? data.updatedBy ?? null
         this.latestHistoryDate = data.latestHistoryDate ?? null
         this.openIssuesCount = data.openIssuesCount ?? 0
@@ -64,5 +67,21 @@ export class Equipment {
 
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
+    }
+
+    isVerified(latestHistoryDate) {
+        return EquipmentUtility.isVerified(
+            this.updatedLast,
+            this.updatedAt,
+            this.updatedBy,
+            latestHistoryDate
+        )
+    }
+
+    verify(userId) {
+        const now = new Date().toISOString()
+        this.updatedLast = now
+        this.updatedBy = userId
+        return this
     }
 }

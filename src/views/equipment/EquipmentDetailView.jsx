@@ -11,8 +11,11 @@ import {RegionService} from '../../services/RegionService';
 import ThemeUtility from '../../utils/ThemeUtility';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import DetailViewSection from '../../components/sections/DetailViewSection';
+import VerificationCardSection from '../../components/sections/VerificationCardSection';
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal';
+import {Equipment} from '../../models/equipment/Equipment';
 
-function EquipmentDetailView({equipmentId, onClose}) {
+function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const {preferences} = usePreferences();
     const [equipment, setEquipment] = useState(null);
     const [plants, setPlants] = useState([]);
@@ -42,6 +45,9 @@ function EquipmentDetailView({equipmentId, onClose}) {
     const [_issues, setIssues] = useState([]);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [updatedByEmail, setUpdatedByEmail] = useState('');
+    const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
+    const [missingFields, setMissingFields] = useState([]);
 
     useEffect(() => {
         async function fetchData() {
@@ -165,7 +171,7 @@ function EquipmentDetailView({equipmentId, onClose}) {
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
 
-    async function handleSave() {
+    async function handleSave(overrides = {}) {
         if (!equipment?.id) {
             alert('Error: Cannot save equipment with undefined ID');
             return null;
@@ -193,7 +199,8 @@ function EquipmentDetailView({equipmentId, onClose}) {
                 equipmentModel: model,
                 yearMade: year ? parseInt(year) : null,
                 updatedAt: new Date().toISOString(),
-                updatedBy: userId
+                updatedBy: userId,
+                ...overrides
             };
             await EquipmentService.updateEquipment(updatedEquipment.id, updatedEquipment, userId);
             setEquipment(updatedEquipment);
@@ -213,6 +220,9 @@ function EquipmentDetailView({equipmentId, onClose}) {
                 yearMade: updatedEquipment.yearMade ? updatedEquipment.yearMade.toString() : ''
             });
             setHasUnsavedChanges(false);
+            if (onSaved) {
+                onSaved(updatedEquipment);
+            }
             return updatedEquipment;
         } catch (error) {
             setMessage('Error saving changes: ' + (error.message || 'Unknown error'));
@@ -284,6 +294,127 @@ function EquipmentDetailView({equipmentId, onClose}) {
         checkDeletePermission();
     }, []);
 
+    async function handleVerifyEquipment() {
+        try {
+            const missing = [];
+            if (!make || !make.trim()) missing.push('Make');
+            if (!model || !model.trim()) missing.push('Model');
+            if (!year || year === '0') missing.push('Year');
+            if (!lastServiceDate) missing.push('Last Service Date');
+
+            if (missing.length > 0) {
+                setMissingFields(missing);
+                setShowMissingFieldsModal(true);
+                return;
+            }
+
+            const overrides = {};
+            const incomingService = lastServiceDate ? (lastServiceDate instanceof Date ? lastServiceDate : new Date(lastServiceDate)) : null;
+            const existingService = equipment.lastServiceDate ? new Date(equipment.lastServiceDate) : null;
+            if (incomingService && (!existingService || existingService.getTime() !== incomingService.getTime())) overrides.lastServiceDate = incomingService;
+
+            await handleSave(overrides);
+            const candidateEquipment = {
+                ...equipment,
+                equipmentMake: overrides.equipmentMake ?? make ?? equipment.equipmentMake,
+                equipmentModel: overrides.equipmentModel ?? model ?? equipment.equipmentModel,
+                yearMade: overrides.yearMade ?? year ?? equipment.yearMade,
+                lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate
+            };
+
+            if (hasUnsavedChanges) {
+                await handleSave().catch(() => {
+                    alert('Failed to save your changes before verification. Please try saving manually first.');
+                    throw new Error('Failed to save changes before verification');
+                });
+            }
+
+            let userObj = await UserService.getCurrentUser();
+            let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj;
+            const verified = await EquipmentService.verifyEquipment(candidateEquipment.id, userId);
+            setEquipment(verified);
+            setMessage('Equipment verified successfully!');
+            setTimeout(() => setMessage(''), 3000);
+            setHasUnsavedChanges(false);
+            setShowMissingFieldsModal(false);
+            setMissingFields([]);
+            if (verified.updatedBy) {
+                try {
+                    const userName = await UserService.getUserDisplayName(verified.updatedBy);
+                    setUpdatedByEmail(userName);
+                } catch {
+                    setUpdatedByEmail('Unknown User');
+                }
+            }
+            if (onSaved) {
+                onSaved(verified);
+            }
+        } catch (error) {
+            alert('Failed to verify equipment. Please try again.');
+        }
+    }
+
+    async function handleSaveAndVerify() {
+        try {
+            const overrides = {
+                equipmentMake: make,
+                equipmentModel: model,
+                yearMade: year ? parseInt(year) : null,
+                lastServiceDate: lastServiceDate
+            };
+            const existingService = equipment.lastServiceDate ? new Date(equipment.lastServiceDate) : null;
+            const incomingService = lastServiceDate ? (lastServiceDate instanceof Date ? lastServiceDate : new Date(lastServiceDate)) : null;
+            if (incomingService && (!existingService || existingService.getTime() !== incomingService.getTime())) overrides.lastServiceDate = incomingService;
+
+            await handleSave(overrides);
+            const candidateEquipment = {
+                ...equipment,
+                equipmentMake: overrides.equipmentMake ?? equipment.equipmentMake,
+                equipmentModel: overrides.equipmentModel ?? equipment.equipmentModel,
+                yearMade: overrides.yearMade ?? equipment.yearMade,
+                lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate
+            };
+
+            if (hasUnsavedChanges) {
+                await handleSave().catch(() => {
+                    alert('Failed to save your changes before verification. Please try saving manually first.');
+                    throw new Error('Failed to save changes before verification');
+                });
+            }
+
+            let userObj = await UserService.getCurrentUser();
+            let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj;
+            const verified = await EquipmentService.verifyEquipment(candidateEquipment.id, userId);
+            setEquipment(verified);
+            setMessage('Equipment verified successfully!');
+            setTimeout(() => setMessage(''), 3000);
+            setHasUnsavedChanges(false);
+            setShowMissingFieldsModal(false);
+            setMissingFields([]);
+            if (verified.updatedBy) {
+                try {
+                    const userName = await UserService.getUserDisplayName(verified.updatedBy);
+                    setUpdatedByEmail(userName);
+                } catch {
+                    setUpdatedByEmail('Unknown User');
+                }
+            }
+            if (onSaved) {
+                onSaved(verified);
+            }
+        } catch (error) {
+            alert('Failed to save missing fields. Please try again.');
+        }
+    }
+
+    useEffect(() => {
+        if (equipment?.updatedBy) {
+            UserService.getUserDisplayName(equipment.updatedBy)
+                .then(name => setUpdatedByEmail(name))
+                .catch(() => setUpdatedByEmail('Unknown User'));
+        }
+    }, [equipment?.updatedBy]);
+
     if (isLoading) {
         return null;
     }
@@ -325,6 +456,22 @@ function EquipmentDetailView({equipmentId, onClose}) {
                     searchPlaceholder="Search plants..."
                 />
             )}
+            {showMissingFieldsModal && (
+                <VerificationRequirementsModal
+                    open={showMissingFieldsModal}
+                    onClose={() => setShowMissingFieldsModal(false)}
+                    onSaveAndVerify={handleSaveAndVerify}
+                    missingFields={missingFields}
+                    make={make}
+                    model={model}
+                    year={year}
+                    lastServiceDate={lastServiceDate}
+                    setMake={setMake}
+                    setModel={setModel}
+                    setYear={setYear}
+                    setLastServiceDate={setLastServiceDate}
+                />
+            )}
             <DetailViewSection
                 title={`${equipment.equipmentType} #${equipment.identifyingNumber || 'Not Assigned'}`}
                 onClose={handleBackClick}
@@ -339,6 +486,70 @@ function EquipmentDetailView({equipmentId, onClose}) {
                 deleteMessage={`Are you sure you want to delete ${equipment.equipmentType} #${equipment.identifyingNumber}? This action cannot be undone.`}
                 itemAssignedPlant={assignedPlant}
                 onCanEditChange={setCanEditEquipment}
+                headerActions={
+                    <>
+                        <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                            <i className="fas fa-tools"></i> Issues
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                            <i className="fas fa-comments"></i> Comments
+                        </button>
+                        <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                            <i className="fas fa-history"></i>
+                            <span>History</span>
+                        </button>
+                    </>
+                }
+                verificationCard={
+                    <VerificationCardSection
+                        isVerified={Equipment.ensureInstance(equipment).isVerified()}
+                        verificationLabel={!equipment.updatedLast || !equipment.updatedBy ? 'Needs Verification' : 'Verification Outdated'}
+                        verificationItems={[
+                            {
+                                icon: 'fas fa-calendar-plus',
+                                label: 'Created',
+                                value: equipment.createdAt ? new Date(equipment.createdAt).toLocaleString() : 'Not Assigned'
+                            },
+                            {
+                                icon: 'fas fa-calendar-check',
+                                label: 'Last Verified',
+                                value: equipment.updatedLast
+                                    ? `${new Date(equipment.updatedLast).toLocaleString()}${!Equipment.ensureInstance(equipment).isVerified() ? (new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
+                                    : 'Never verified',
+                                style: {
+                                    color: equipment.updatedLast
+                                        ? (Equipment.ensureInstance(equipment).isVerified() ? 'var(--success)' : new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? 'var(--error)' : 'var(--warning)')
+                                        : 'var(--error)'
+                                },
+                                iconStyle: {
+                                    color: equipment.updatedLast
+                                        ? (Equipment.ensureInstance(equipment).isVerified() ? 'var(--success)' : new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? 'var(--error)' : 'var(--warning)')
+                                        : 'var(--error)'
+                                },
+                                valueStyle: {
+                                    color: equipment.updatedLast
+                                        ? (Equipment.ensureInstance(equipment).isVerified() ? 'inherit' : new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? 'var(--error)' : 'var(--warning)')
+                                        : 'var(--error)'
+                                }
+                            },
+                            {
+                                icon: 'fas fa-user-check',
+                                label: 'Verified By',
+                                value: equipment.updatedBy ? (updatedByEmail || 'Unknown User') : 'No verification record',
+                                title: `Last Updated: ${new Date(equipment.updatedAt).toLocaleString()}`,
+                                iconStyle: {
+                                    color: equipment.updatedBy ? 'var(--success)' : 'var(--error)'
+                                },
+                                valueStyle: {
+                                    color: equipment.updatedBy ? 'inherit' : 'var(--error)'
+                                }
+                            }
+                        ]}
+                        onVerify={handleVerifyEquipment}
+                        canEdit={canEditEquipment}
+                        noticeText='Assets require verification after any changes are made and are reset weekly. <strong>Due: Every Friday at 10:00 AM.</strong> Resets on Mondays at 5pm.'
+                    />
+                }
                 footerActions={
                     canEditEquipment && (
                         <>

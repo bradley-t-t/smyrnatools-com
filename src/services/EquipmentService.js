@@ -4,6 +4,7 @@ import {Equipment} from '../models/equipment/Equipment'
 import {EquipmentHistory} from '../models/equipment/EquipmentHistory'
 import {EquipmentComment} from '../models/equipment/EquipmentComment'
 import {ValidationUtility} from '../utils/ValidationUtility'
+import EquipmentUtility from '../utils/EquipmentUtility'
 
 class EquipmentServiceImpl {
     static async getAllEquipments() {
@@ -17,6 +18,16 @@ class EquipmentServiceImpl {
         return this.getAllEquipments()
     }
 
+    static _attachIsVerified(e) {
+        if (!e) return e
+        if (typeof e.isVerified !== 'function') {
+            e.isVerified = function (latestHistoryDate) {
+                return EquipmentUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
+            }
+        }
+        return e
+    }
+
     static async getEquipmentById(id) {
         ValidationUtility.requireUUID(id, 'Equipment ID is required')
         const {res, json} = await APIUtility.post('/equipment-service/fetch-by-id', {id})
@@ -28,7 +39,9 @@ class EquipmentServiceImpl {
 
     static async fetchEquipmentById(id) {
         ValidationUtility.requireUUID(id, 'Invalid equipment ID')
-        return this.getEquipmentById(id)
+        const equipment = await this.getEquipmentById(id)
+        if (!equipment) return null
+        return this._attachIsVerified(equipment)
     }
 
     static async getActiveEquipments() {
@@ -230,6 +243,19 @@ class EquipmentServiceImpl {
             return processedBase.filter(e => regionCodes.has(String(e.assignedPlant || '').trim().toUpperCase()))
         }
         return processedBase
+    }
+
+    static async verifyEquipment(equipmentId, userId) {
+        ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
+        if (!userId) {
+            const user = await UserService.getCurrentUser()
+            userId = typeof user === 'object' && user !== null ? user.id : user
+        }
+        if (!userId) throw new Error('User ID is required')
+        const {res, json} = await APIUtility.post('/equipment-service/verify', {id: equipmentId, userId})
+        if (!res.ok) throw new Error(json?.error || 'Failed to verify equipment')
+        const equipment = new Equipment(json?.data)
+        return this._attachIsVerified(equipment)
     }
 }
 

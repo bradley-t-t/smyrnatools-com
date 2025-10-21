@@ -61,6 +61,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         'Type': 'equipmentType',
         'Cleanliness': 'cleanlinessRating',
         'Condition': 'conditionRating',
+        'Verified': 'verified',
         'More': null
     }
 
@@ -301,35 +302,41 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 operators={[]}
                 plants={plants}
                 handleSelectItem={handleSelectEquipment}
-                headerLabels={['Plant', 'Type', 'Equipment #', 'Status', 'Cleanliness', 'Condition', 'More']}
-                colWidths={['12%', '22%', '14%', '12%', '14%', '16%', '10%']}
+                headerLabels={['Plant', 'Type', 'Equipment #', 'Status', 'Cleanliness', 'Condition', 'Verified', 'More']}
+                colWidths={['12%', '18%', '12%', '10%', '12%', '12%', '12%', '12%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const issuesCount = Number(item.openIssuesCount || 0);
                     const commentsCount = Number(item.commentsCount || 0);
+                    const isVerified = typeof item.isVerified === 'function'
+                        ? item.isVerified(item.latestHistoryDate)
+                        : EquipmentUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy, item.latestHistoryDate);
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
                             <td style={{width: '12%'}}>{item.assignedPlant || '---'}</td>
-                            <td style={{width: '22%'}}>{item.equipmentType || '---'}</td>
-                            <td style={{width: '14%'}}>{item.identifyingNumber || '---'}</td>
-                            <td style={{width: '12%'}}><span className="item-status-dot" style={{
+                            <td style={{width: '18%'}}>{item.equipmentType || '---'}</td>
+                            <td style={{width: '12%'}}>{item.identifyingNumber || '---'}</td>
+                            <td style={{width: '10%'}}><span className="item-status-dot" style={{
                                 display: 'inline-block',
                                 verticalAlign: 'middle',
                                 marginRight: '8px',
                                 backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
                             }}></span>{item.status || '---'}</td>
-                            <td style={{width: '14%'}}>{(() => {
+                            <td style={{width: '12%'}}>{(() => {
                                 const rating = Math.round(item.cleanlinessRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '16%'}}>{(() => {
+                            <td style={{width: '12%'}}>{(() => {
                                 const rating = Math.round(item.conditionRating || 0);
                                 const stars = rating > 0 ? rating : 1;
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '10%'}}>
+                            <td style={{width: '12%'}}>{item.status === 'Retired' ? 'Not Applicable' : (isVerified ?
+                                <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
+                                <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
+                            <td style={{width: '12%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
                                         e.stopPropagation();
@@ -452,8 +459,8 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             setEquipmentTypeFilter('');
                             resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
                         }}
-                        listLabels={['Plant', 'Type', 'Equipment #', 'Status', 'Cleanliness', 'Condition', 'More']}
-                        colWidths={['12%', '22%', '14%', '12%', '14%', '16%', '10%']}
+                        listLabels={['Plant', 'Type', 'Equipment #', 'Status', 'Cleanliness', 'Condition', 'Verified', 'More']}
+                        colWidths={['12%', '18%', '12%', '10%', '12%', '12%', '12%', '12%']}
                         forwardedRef={headerRef}
                         sticky={true}
                         onHeaderClick={handleHeaderClick}
