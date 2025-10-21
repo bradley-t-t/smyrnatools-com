@@ -160,7 +160,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         }
 
         await Promise.all(Array.from({length: concurrency}, () => worker()))
-        setEquipments([...equipments])
+        setEquipments([...items])
     }
 
     function handleDetailViewSaved(updated) {
@@ -173,8 +173,11 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 return arr;
             });
         }
+    }
+
+    async function handleCloseDetailView() {
+        await fetchEquipments();
         setSelectedEquipment(null);
-        fetchEquipments();
     }
 
     function handleSelectEquipment(equipmentId) {
@@ -408,7 +411,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         <div
             className={`global-dashboard-container dashboard-container global-flush-top flush-top equipments-view${selectedEquipment ? ' detail-open' : ''}`}>
             {selectedEquipment ? (
-                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={() => setSelectedEquipment(null)}/>
+                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={handleCloseDetailView}/>
             ) : (
                 <>
                     <TopSection
