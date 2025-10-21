@@ -43,6 +43,9 @@ export default function VerificationRequirementsModal({
 
     const openIssues = issues.filter(issue => !issue.time_completed)
     const phoneOk = assignedOperator ? (operatorPhone && operatorPhone.trim().length > 0) : true
+    const ratingOk = assignedOperator ? (operatorRating > 0) : true
+    const operatorOk = phoneOk && ratingOk
+    const serviceOverdue = lastServiceDate && typeof isServiceOverdue === 'function' ? isServiceOverdue(lastServiceDate) : false
 
     useEffect(() => {
         if (open && assignedOperator) {
@@ -56,15 +59,27 @@ export default function VerificationRequirementsModal({
 
     useEffect(() => {
         if (open) {
-            if (!phoneOk || openIssues.length > 0) {
-                if (!phoneOk) {
-                    setExpandedSection('operator')
-                } else if (openIssues.length > 0) {
-                    setExpandedSection('issues')
-                }
+            const sectionsToExpand = []
+
+            if (missingFields.length > 0 || serviceOverdue) {
+                sectionsToExpand.push('checklist')
             }
+
+            if (!operatorOk) {
+                sectionsToExpand.push('operator')
+            }
+
+            if (openIssues.length > 0) {
+                sectionsToExpand.push('issues')
+            }
+
+            if (comments.length > 0) {
+                sectionsToExpand.push('comments')
+            }
+
+            setExpandedSection(sectionsToExpand)
         }
-    }, [open, phoneOk, openIssues.length])
+    }, [open, operatorOk, openIssues.length, missingFields.length, itemId, service, serviceOverdue, comments.length])
 
     const fetchOperatorData = async () => {
         setIsLoadingOperator(true)
@@ -236,10 +251,9 @@ export default function VerificationRequirementsModal({
     const modelOk = needsModel ? !!String(model).trim() : true
     const yearOk = needsYear ? !!String(year).trim() : true
     const requiredFieldsOk = vinOk && makeOk && modelOk && yearOk
-    const serviceOverdue = lastServiceDate && typeof isServiceOverdue === 'function' ? isServiceOverdue(lastServiceDate) : false
 
     const hasHighSeverityIssues = openIssues.some(issue => issue.severity === 'High')
-    const canVerify = requiredFieldsOk && phoneOk
+    const canVerify = requiredFieldsOk && operatorOk
 
     const formatDate = (dateString) => {
         if (!dateString) return ''
@@ -262,6 +276,25 @@ export default function VerificationRequirementsModal({
 
     const ratingLabels = [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent']
 
+    const toggleSection = (sectionName) => {
+        setExpandedSection(prev => {
+            const isArray = Array.isArray(prev)
+            const currentExpanded = isArray ? prev : [prev]
+
+            if (currentExpanded.includes(sectionName)) {
+                return currentExpanded.filter(s => s !== sectionName)
+            } else {
+                return [...currentExpanded, sectionName]
+            }
+        })
+    }
+
+    const isSectionExpanded = (sectionName) => {
+        return Array.isArray(expandedSection)
+            ? expandedSection.includes(sectionName)
+            : expandedSection === sectionName
+    }
+
     return (
         <div className="modal-overlay" role="dialog" aria-modal="true">
             <div className="modal-content verification-modal enhanced-verification">
@@ -281,16 +314,19 @@ export default function VerificationRequirementsModal({
                 <div className="verification-content">
                     <div className="verification-section">
                         <button
-                            className={`section-header ${expandedSection === 'checklist' ? 'expanded' : ''}`}
-                            onClick={() => setExpandedSection(expandedSection === 'checklist' ? null : 'checklist')}
+                            className={`section-header ${isSectionExpanded('checklist') ? 'expanded' : ''}`}
+                            onClick={() => toggleSection('checklist')}
                         >
                             <div className="section-title">
                                 <i className="fas fa-tasks"></i>
                                 <span>Required Information</span>
+                                {serviceOverdue && <span className="status-badge warning">Service Overdue</span>}
+                                {!serviceOverdue && !requiredFieldsOk && <span className="status-badge incomplete">Incomplete</span>}
+                                {!serviceOverdue && requiredFieldsOk && <span className="status-badge complete">Complete</span>}
                             </div>
-                            <i className={`fas fa-chevron-${expandedSection === 'checklist' ? 'up' : 'down'}`}></i>
+                            <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`}></i>
                         </button>
-                        {expandedSection === 'checklist' && (
+                        {isSectionExpanded('checklist') && (
                             <div className="section-content">
                                 <div className="verification-fields">
                                     {needsVin && (
@@ -395,127 +431,111 @@ export default function VerificationRequirementsModal({
                     {assignedOperator && (
                         <div className="verification-section">
                             <button
-                                className={`section-header ${expandedSection === 'operator' ? 'expanded' : ''}`}
-                                onClick={() => setExpandedSection(expandedSection === 'operator' ? null : 'operator')}
+                                className={`section-header ${isSectionExpanded('operator') ? 'expanded' : ''}`}
+                                onClick={() => toggleSection('operator')}
                             >
                                 <div className="section-title">
                                     <i className="fas fa-user"></i>
                                     <span>Operator Information</span>
+                                    {!operatorOk && !phoneOk && !ratingOk && <span className="status-badge incomplete">Phone & Rating Required</span>}
+                                    {!operatorOk && !phoneOk && ratingOk && <span className="status-badge incomplete">Phone Required</span>}
+                                    {!operatorOk && phoneOk && !ratingOk && <span className="status-badge incomplete">Rating Required</span>}
+                                    {operatorOk && <span className="status-badge complete">Complete</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${expandedSection === 'operator' ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`}></i>
                             </button>
-                            {expandedSection === 'operator' && (
+                            {isSectionExpanded('operator') && (
                                 <div className="section-content">
                                     {isLoadingOperator ? (
                                         <div className="loading-container">
                                             <LoadingScreen message="Loading operator data..." inline={true}/>
                                         </div>
                                     ) : operatorData ? (
-                                        <div className="operator-info">
-                                            <div className="operator-card">
-                                                <div className="operator-header">
-                                                    <div className="operator-avatar">
-                                                        <i className="fas fa-user-circle"></i>
-                                                    </div>
-                                                    <div className="operator-details">
-                                                        <h4 className="operator-name">{operatorData.name || 'N/A'}</h4>
-                                                        <div className="operator-meta">
-                                                            {operatorData.position && (
-                                                                <span className="operator-position">
-                                                                    <i className="fas fa-briefcase"></i>
-                                                                    {operatorData.position}
-                                                                </span>
-                                                            )}
-                                                            {operatorData.smyrna_id && (
-                                                                <span className="operator-id">
-                                                                    <i className="fas fa-id-badge"></i>
-                                                                    ID: {operatorData.smyrna_id}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="operator-rating-section">
-                                                    <label className="section-label">
-                                                        <i className="fas fa-star-half-alt"></i>
+                                        <div className="operator-info-table">
+                                            <table className="verification-table">
+                                                <tbody>
+                                                <tr>
+                                                    <td className="table-label">Name</td>
+                                                    <td className="table-value">{operatorData.name || 'N/A'}</td>
+                                                </tr>
+                                                {operatorData.position && (
+                                                    <tr>
+                                                        <td className="table-label">Position</td>
+                                                        <td className="table-value">{operatorData.position}</td>
+                                                    </tr>
+                                                )}
+                                                {operatorData.smyrna_id && (
+                                                    <tr>
+                                                        <td className="table-label">Employee ID</td>
+                                                        <td className="table-value">{operatorData.smyrna_id}</td>
+                                                    </tr>
+                                                )}
+                                                <tr className={!ratingOk ? 'highlight-row' : ''}>
+                                                    <td className="table-label">
                                                         Performance Rating
-                                                    </label>
-                                                    <div className="rating-display-enhanced">
-                                                        <div className="star-group">
-                                                            {[1, 2, 3, 4, 5].map(star => (
-                                                                <i
-                                                                    key={star}
-                                                                    className={`fas fa-star ${star <= operatorRating ? 'filled' : ''}`}
-                                                                    onClick={() => handleSaveOperatorRating(star)}
-                                                                    style={{cursor: 'pointer'}}
-                                                                ></i>
-                                                            ))}
+                                                        {!ratingOk && <span className="required-badge-inline">Required</span>}
+                                                    </td>
+                                                    <td className="table-value">
+                                                        <div className="rating-inline">
+                                                            <div className="star-group-compact">
+                                                                {[1, 2, 3, 4, 5].map(star => (
+                                                                    <i
+                                                                        key={star}
+                                                                        className={`fas fa-star ${star <= operatorRating ? 'filled' : ''}`}
+                                                                        onClick={() => handleSaveOperatorRating(star)}
+                                                                        style={{cursor: 'pointer'}}
+                                                                    ></i>
+                                                                ))}
+                                                            </div>
+                                                            <span className="rating-text-compact">
+                                                                {operatorRating > 0 ? `${operatorRating}/5 - ${ratingLabels[operatorRating]}` : 'Not Yet Rated'}
+                                                            </span>
                                                         </div>
-                                                        <div className="rating-text">
-                                                            {operatorRating > 0 ? (
-                                                                <>
-                                                                    <span
-                                                                        className="rating-score">{operatorRating}/5</span>
-                                                                    <span
-                                                                        className="rating-label-text">{ratingLabels[operatorRating]}</span>
-                                                                </>
-                                                            ) : (
-                                                                <span className="rating-label-text no-rating">Not Yet Rated</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="operator-phone-section">
-                                                    <label className="section-label">
-                                                        <i className="fas fa-phone"></i>
-                                                        Contact Number
-                                                        {!phoneOk && <span className="required-badge">Required</span>}
-                                                    </label>
-                                                    <div className="phone-control">
-                                                        <div className="phone-input-wrapper">
-                                                            <i className="fas fa-mobile-alt phone-icon"></i>
+                                                        {!ratingOk && (
+                                                            <div className="inline-validation error">
+                                                                <i className="fas fa-exclamation-circle"></i>
+                                                                Rating required for verification
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                                <tr className={!phoneOk ? 'highlight-row' : ''}>
+                                                    <td className="table-label">
+                                                        Phone Number
+                                                        {!phoneOk && <span className="required-badge-inline">Required</span>}
+                                                    </td>
+                                                    <td className="table-value">
+                                                        <div className="phone-control-compact">
                                                             <input
                                                                 type="tel"
-                                                                className={`phone-input-enhanced ${!phoneOk ? 'error' : ''}`}
+                                                                className={`phone-input-compact ${!phoneOk ? 'error' : ''}`}
                                                                 placeholder="(555) 555-5555"
                                                                 value={operatorPhone}
                                                                 onChange={e => setOperatorPhone(e.target.value)}
                                                             />
-                                                        </div>
-                                                        <button
-                                                            className="save-phone-button-enhanced"
-                                                            onClick={handleSaveOperatorPhone}
-                                                            disabled={isSavingPhone || !operatorPhone.trim()}
-                                                        >
-                                                            {isSavingPhone ? (
-                                                                <>
+                                                            <button
+                                                                className="save-phone-button-compact"
+                                                                onClick={handleSaveOperatorPhone}
+                                                                disabled={isSavingPhone || !operatorPhone.trim()}
+                                                                title="Save Phone"
+                                                            >
+                                                                {isSavingPhone ? (
                                                                     <i className="fas fa-spinner fa-spin"></i>
-                                                                    Saving...
-                                                                </>
-                                                            ) : (
-                                                                <>
+                                                                ) : (
                                                                     <i className="fas fa-save"></i>
-                                                                    Save Phone
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                    {!phoneOk && (
-                                                        <div className="validation-message error">
-                                                            <i className="fas fa-exclamation-circle"></i>
-                                                            Phone number must be added before verification
+                                                                )}
+                                                            </button>
                                                         </div>
-                                                    )}
-                                                    {phoneOk && (
-                                                        <div className="validation-message success">
-                                                            <i className="fas fa-check-circle"></i>
-                                                            Contact information verified
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                                                        {!phoneOk && (
+                                                            <div className="inline-validation error">
+                                                                <i className="fas fa-exclamation-circle"></i>
+                                                                Phone required for verification
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     ) : (
                                         <div className="no-data">
@@ -533,17 +553,23 @@ export default function VerificationRequirementsModal({
                     {itemId && service && (
                         <div className="verification-section">
                             <button
-                                className={`section-header ${expandedSection === 'issues' ? 'expanded' : ''}`}
-                                onClick={() => setExpandedSection(expandedSection === 'issues' ? null : 'issues')}
+                                className={`section-header ${isSectionExpanded('issues') ? 'expanded' : ''}`}
+                                onClick={() => toggleSection('issues')}
                             >
                                 <div className="section-title">
                                     <i className="fas fa-wrench"></i>
                                     <span>Maintenance Issues</span>
+                                    {openIssues.length === 0 && <span className="status-badge complete">Complete</span>}
+                                    {openIssues.length > 0 && <span className="status-badge info">{openIssues.length} Open</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${expandedSection === 'issues' ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`}></i>
                             </button>
-                            {expandedSection === 'issues' && (
+                            {isSectionExpanded('issues') && (
                                 <div className="section-content">
+                                    <div className="modal-note" style={{marginBottom: '1rem', backgroundColor: 'var(--info-bg, #e3f2fd)', borderLeft: '4px solid var(--info, #2196f3)', padding: '0.75rem'}}>
+                                        <i className="fas fa-info-circle" style={{marginRight: '0.5rem', color: 'var(--info, #2196f3)'}}></i>
+                                        <span>Issues are shown for awareness only. You can mark them as resolved if completed, but this is not required to verify the asset.</span>
+                                    </div>
                                     {isLoadingIssues ? (
                                         <div className="loading-container">
                                             <LoadingScreen message="Loading issues..." inline={true}/>
@@ -558,7 +584,7 @@ export default function VerificationRequirementsModal({
                                             {hasHighSeverityIssues && (
                                                 <div className="modal-note warning high-severity-warning">
                                                     <i className="fas fa-exclamation-triangle"></i>
-                                                    <span>High severity issues detected. Consider resolving before verification.</span>
+                                                    <span>High severity issues detected. Consider resolving before verification, but not required.</span>
                                                 </div>
                                             )}
                                             <div className="issues-list">
@@ -608,17 +634,23 @@ export default function VerificationRequirementsModal({
                     {itemId && service && (
                         <div className="verification-section">
                             <button
-                                className={`section-header ${expandedSection === 'comments' ? 'expanded' : ''}`}
-                                onClick={() => setExpandedSection(expandedSection === 'comments' ? null : 'comments')}
+                                className={`section-header ${isSectionExpanded('comments') ? 'expanded' : ''}`}
+                                onClick={() => toggleSection('comments')}
                             >
                                 <div className="section-title">
                                     <i className="fas fa-comments"></i>
                                     <span>Comments</span>
+                                    {comments.length === 0 && <span className="status-badge complete">Complete</span>}
+                                    {comments.length > 0 && <span className="status-badge info">{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${expandedSection === 'comments' ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`}></i>
                             </button>
-                            {expandedSection === 'comments' && (
+                            {isSectionExpanded('comments') && (
                                 <div className="section-content">
+                                    <div className="modal-note" style={{marginBottom: '1rem', backgroundColor: 'var(--info-bg, #e3f2fd)', borderLeft: '4px solid var(--info, #2196f3)', padding: '0.75rem'}}>
+                                        <i className="fas fa-info-circle" style={{marginRight: '0.5rem', color: 'var(--info, #2196f3)'}}></i>
+                                        <span>Comments are shown for awareness only. You can delete them if no longer applicable, but this is not required to verify the asset.</span>
+                                    </div>
                                     {isLoadingComments ? (
                                         <div className="loading-container">
                                             <LoadingScreen message="Loading comments..." inline={true}/>

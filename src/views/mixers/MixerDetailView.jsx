@@ -313,103 +313,15 @@ function MixerDetailView({mixerId, onClose}) {
         }
     }
 
-    async function handleVerifyMixer() {
+    async function handleVerifyMixer(skipIssueCheck = false) {
         if (status === 'Retired') {
             setMessage('Cannot verify: Retired mixers cannot be verified.')
             setTimeout(() => setMessage(''), 4000)
             return
         }
-        const vinValid = !!vin && ValidationUtility.isVIN(vin)
 
-        if (!vinValid || !make || !model || !year) {
-            let missing = []
-            if (!vinValid) missing.push('VIN')
-            if (!make) missing.push('Make')
-            if (!model) missing.push('Model')
-            if (!year) missing.push('Year')
-            setMissingFields(missing)
-            setShowMissingFieldsModal(true)
-            return
-        }
-        if (lastServiceDate && MixerUtility.isServiceOverdue(lastServiceDate)) {
-            setMissingFields([])
-            setShowMissingFieldsModal(true)
-            return
-        }
-        const operatorName = getOperatorName(assignedOperator)
-
-        if (
-            status === 'Active' &&
-            (
-                assignedOperator === null ||
-                assignedOperator === undefined ||
-                assignedOperator === '0' ||
-                (assignedOperator && operatorName === 'Unknown')
-            )
-        ) {
-            setMessage('Cannot verify: Assigned operator is missing or invalid.')
-            setTimeout(() => setMessage(''), 4000)
-            return
-        }
-
-        if (assignedOperator) {
-            try {
-                const {data: operatorData} = await supabase
-                    .from('operators')
-                    .select('phone')
-                    .eq('employee_id', assignedOperator)
-                    .single()
-
-                if (!operatorData?.phone || operatorData.phone.trim().length === 0) {
-                    setMissingFields([])
-                    setShowMissingFieldsModal(true)
-                    return
-                }
-            } catch (error) {
-                console.error('Failed to check operator phone:', error)
-            }
-        }
-
-        try {
-            const issues = await MixerService.fetchIssues(mixer.id)
-            const openIssues = Array.isArray(issues) ? issues.filter(issue => !issue.time_completed) : []
-            if (openIssues.length > 0) {
-                setMissingFields([])
-                setShowMissingFieldsModal(true)
-                return
-            }
-        } catch (error) {
-            console.error('Failed to check issues:', error)
-        }
-
-        setIsSaving(true)
-        try {
-            if (hasUnsavedChanges) {
-                await handleSave().catch(() => {
-                    alert('Failed to save your changes before verification. Please try saving manually first.')
-                    throw new Error('Failed to save changes before verification')
-                })
-            }
-            let userObj = await UserService.getCurrentUser()
-            let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-            const verified = await MixerService.verifyMixer(mixer.id, userId)
-            setMixer(verified)
-            setMessage('Mixer verified successfully!')
-            setTimeout(() => setMessage(''), 3000)
-            setHasUnsavedChanges(false)
-            if (verified.updatedBy) {
-                try {
-                    const userName = await UserService.getUserDisplayName(verified.updatedBy)
-                    setUpdatedByEmail(userName)
-                } catch {
-                    setUpdatedByEmail('Unknown User')
-                }
-            }
-        } catch (error) {
-            alert(`Error verifying mixer: ${error.message}`)
-        } finally {
-            setIsSaving(false)
-        }
+        setMissingFields([])
+        setShowMissingFieldsModal(true)
     }
 
     async function handleSaveMissingFields() {
@@ -463,6 +375,14 @@ function MixerDetailView({mixerId, onClose}) {
                 setTimeout(() => setMessage(''), 4000)
                 return
             }
+
+            if (hasUnsavedChanges) {
+                await handleSave().catch(() => {
+                    alert('Failed to save your changes before verification. Please try saving manually first.')
+                    throw new Error('Failed to save changes before verification')
+                })
+            }
+
             let userObj = await UserService.getCurrentUser()
             let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
             const verified = await MixerService.verifyMixer(candidateMixer.id, userId)
