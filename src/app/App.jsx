@@ -32,6 +32,7 @@ function App() {
     const [offlineMode, setOfflineMode] = useState(false)
     const {user, isAuthenticated} = useAuth()
     const [hasPlant, setHasPlant] = useState(false)
+    const [plantLoading, setPlantLoading] = useState(true)
     const [isTerminated, setIsTerminated] = useState(false)
     const [rolesChecked, setRolesChecked] = useState(false)
     const location = useLocation()
@@ -65,17 +66,46 @@ function App() {
         let active = true
 
         async function checkPlant() {
-            if (!user) return
+            if (!user) {
+                if (active) {
+                    setPlantLoading(false)
+                    setHasPlant(false)
+                }
+                return
+            }
+
+            setPlantLoading(true)
             try {
-                const plant = await UserService.getUserPlant(user.id)
+                const currentUser = await UserService.getCurrentUser()
+                if (!currentUser || !currentUser.id) {
+                    if (active) {
+                        setPlantLoading(false)
+                        setHasPlant(false)
+                    }
+                    return
+                }
+
+                const plant = await UserService.getUserPlant(currentUser.id)
                 const plantCode = (typeof plant === 'string' ? plant : (plant?.plant_code || plant?.plantCode || '')).trim()
-                if (active) setHasPlant(!!plantCode)
+                if (active) {
+                    setHasPlant(!!plantCode)
+                    setPlantLoading(false)
+                }
             } catch {
-                if (active) setHasPlant(false)
+                if (active) {
+                    setHasPlant(false)
+                    setPlantLoading(false)
+                }
             }
         }
 
-        if (user) checkPlant()
+        if (user) {
+            checkPlant()
+        } else {
+            setPlantLoading(false)
+            setHasPlant(false)
+        }
+
         const interval = setInterval(() => {
             if (user) checkPlant()
         }, 60000)
@@ -159,11 +189,11 @@ function App() {
     }
 
     useEffect(() => {
-        const showOverlay = (isAuthenticated && hasPlant === false && location.pathname !== '/guest') || isTerminated
-        console.log('[App] Overlay state - isTerminated:', isTerminated, 'showOverlay:', showOverlay)
+        const showOverlay = (isAuthenticated && !plantLoading && hasPlant === false && location.pathname !== '/guest') || isTerminated
+        console.log('[App] Overlay state - isTerminated:', isTerminated, 'plantLoading:', plantLoading, 'hasPlant:', hasPlant, 'showOverlay:', showOverlay)
         document.body.style.overflow = showOverlay ? 'hidden' : 'auto'
         document.body.style.pointerEvents = showOverlay ? 'none' : 'auto'
-    }, [isAuthenticated, hasPlant, location.pathname, isTerminated])
+    }, [isAuthenticated, hasPlant, plantLoading, location.pathname, isTerminated])
 
     if (isMobile && !isBot) return (
         <PreferencesProvider>
@@ -220,7 +250,7 @@ function App() {
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace/>}/>
                 </Routes>
-                {isAuthenticated && hasPlant === false && location.pathname !== '/guest' &&
+                {isAuthenticated && !plantLoading && hasPlant === false && location.pathname !== '/guest' &&
                     <GuestOverlay reason="no-plant"/>}
             </AccountProvider>
         </PreferencesProvider>

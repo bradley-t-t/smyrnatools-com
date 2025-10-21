@@ -156,6 +156,7 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                                             <option value="Ice Conveyor">Ice Conveyor</option>
                                             <option value="Rotary Mixer">Rotary Mixer</option>
                                             <option value="Road Reclaimer">Road Reclaimer</option>
+                                            <option value="Roller">Roller</option>
                                             <option value="Maintainer">Maintainer</option>
                                             <option value="Sweeper">Sweeper</option>
                                             <option value="Other">Other</option>

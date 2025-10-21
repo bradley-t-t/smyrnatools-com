@@ -52,7 +52,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [selectedEquipmentForHistory, setSelectedEquipmentForHistory] = useState(null)
 
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Open Issues'];
-    const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Backhoe', 'Skid Steer', 'Forklift', 'Manlift', 'Dozer', 'Off-Road Dump Truck', 'Water/Trash Pump', 'Water Truck', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Rotary Mixer', 'Road Reclaimer', 'Maintainer', 'Sweeper', 'Other', 'Unknown'];
+    const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Backhoe', 'Skid Steer', 'Forklift', 'Manlift', 'Dozer', 'Off-Road Dump Truck', 'Water/Trash Pump', 'Water Truck', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Rotary Mixer', 'Road Reclaimer', 'Roller', 'Maintainer', 'Sweeper', 'Other', 'Unknown'];
     const headerRef = useRef(null)
     const sortMappings = {
         'Plant': 'assignedPlant',
