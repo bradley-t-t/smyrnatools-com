@@ -270,13 +270,16 @@
     overflow: visible;
     margin-left: 0;
     margin-right: 0;
+    text-align: left;
 }
 
 .detail-card h2 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
+    text-align: left;
     color: var(--text-primary);
+    text-align: left;
 }
 
 .form-group {
@@ -492,7 +495,7 @@
 }
 
 .edit-instructions {
-    color: var(--edit-instructions-color) !important;
+    color: var(--edit-instructions-color) ;
     background-color: var(--accent);
     border-left: 3px solid var(--accent);
     font-size: 14px;
@@ -504,7 +507,7 @@
 }
 
 .dark-mode .edit-instructions {
-    color: var(--text-light) !important;
+    color: var(--text-light) ;
     background-color: var(--accent);
 }
 
@@ -662,12 +665,17 @@
 }
 
 .card-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
     margin-bottom: 16px;
+    text-align: left;
 }
 
 .card-header h2 {
     margin: 0;
-    font-size: 18px;
+    text-align: left;
     font-weight: 600;
     color: var(--text-primary);
 }

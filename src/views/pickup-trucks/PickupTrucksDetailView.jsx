@@ -283,8 +283,8 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     {showHistory &&
                         <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
                     {showComments &&
-                        <PickupTruckCommentModal pickupTruck={pickup} onClose={() => setShowComments(false)}/>}
-                    {showIssues && <PickupTruckIssueModal pickupTruck={pickup} onClose={() => setShowIssues(false)}/>}
+                        <PickupTruckCommentModal pickupId={pickup?.id} pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id} onClose={() => setShowComments(false)}/>}
+                    {showIssues && <PickupTruckIssueModal pickupId={pickup?.id} pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id} onClose={() => setShowIssues(false)}/>}
                 </>
             }
         >

@@ -263,6 +263,24 @@ function HistoryViewSection({item, type, onClose}) {
         })).filter(d => !isNaN(d.rating) && d.rating > 0);
     }, [history]);
 
+    const conditionData = useMemo(() => {
+        const conditionEntries = history.filter(entry => {
+            const fieldName = entry.fieldName || entry.field_name;
+            const key = fieldName && fieldName.includes('_') ? fieldName : String(fieldName || '').replace(/([A-Z])/g, '_$1').toLowerCase();
+            return key === 'condition_rating';
+        }).sort((a, b) => {
+            const aTime = new Date(a.changedAt || a.changed_at);
+            const bTime = new Date(b.changedAt || b.changed_at);
+            return aTime - bTime;
+        });
+
+        return conditionEntries.map(entry => ({
+            date: new Date(entry.changedAt || entry.changed_at),
+            rating: parseInt(entry.newValue || entry.new_value, 10),
+            timestamp: entry.changedAt || entry.changed_at
+        })).filter(d => !isNaN(d.rating) && d.rating > 0);
+    }, [history]);
+
     const operatorData = useMemo(() => {
         const operatorEntries = history.filter(entry => {
             const fieldName = entry.fieldName || entry.field_name;
@@ -422,6 +440,22 @@ function HistoryViewSection({item, type, onClose}) {
         return (
             <div className="chart-container">
                 <h3 className="chart-title">Cleanliness Rating Over Time</h3>
+                <div className="chart-stats">
+                    <div className="stat-item">
+                        <span className="stat-label">Average Rating:</span>
+                        <span className="stat-value">
+                            {(cleanlinessData.reduce((sum, d) => sum + d.rating, 0) / cleanlinessData.length).toFixed(1)}★
+                        </span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-label">Total Ratings:</span>
+                        <span className="stat-value">{cleanlinessData.length}</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-label">Current Rating:</span>
+                        <span className="stat-value">{cleanlinessData[cleanlinessData.length - 1].rating}★</span>
+                    </div>
+                </div>
                 <div className="chart-scroll-container">
                     <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
                          preserveAspectRatio="xMidYMid meet">
@@ -489,21 +523,109 @@ function HistoryViewSection({item, type, onClose}) {
                         </g>
                     </svg>
                 </div>
+            </div>
+        );
+    };
+
+    const renderConditionChart = () => {
+        if (conditionData.length === 0) {
+            return (
+                <div className="empty-history">
+                    <p>No condition rating history available</p>
+                    <p className="empty-subtext">Condition ratings will be charted here once they are recorded.</p>
+                </div>
+            );
+        }
+
+        const maxRating = 5;
+        const chartHeight = 300;
+        const padding = 40;
+
+        return (
+            <div className="chart-container">
+                <h3 className="chart-title">Condition Rating Over Time</h3>
                 <div className="chart-stats">
                     <div className="stat-item">
                         <span className="stat-label">Average Rating:</span>
                         <span className="stat-value">
-                            {(cleanlinessData.reduce((sum, d) => sum + d.rating, 0) / cleanlinessData.length).toFixed(1)}★
+                            {(conditionData.reduce((sum, d) => sum + d.rating, 0) / conditionData.length).toFixed(1)}★
                         </span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">Total Ratings:</span>
-                        <span className="stat-value">{cleanlinessData.length}</span>
+                        <span className="stat-value">{conditionData.length}</span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">Current Rating:</span>
-                        <span className="stat-value">{cleanlinessData[cleanlinessData.length - 1].rating}★</span>
+                        <span className="stat-value">{conditionData[conditionData.length - 1].rating}★</span>
                     </div>
+                </div>
+                <div className="chart-scroll-container">
+                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
+                         preserveAspectRatio="xMidYMid meet">
+                        <g transform={`translate(${padding}, ${padding})`}>
+                            {[5, 4, 3, 2, 1].map(rating => (
+                                <g key={rating}>
+                                    <line
+                                        x1="0"
+                                        y1={(maxRating - rating) * (chartHeight / maxRating)}
+                                        x2={1000 - padding * 2}
+                                        y2={(maxRating - rating) * (chartHeight / maxRating)}
+                                        stroke="var(--border-light)"
+                                        strokeWidth="1"
+                                        strokeDasharray="4"
+                                    />
+                                    <text
+                                        x="-10"
+                                        y={(maxRating - rating) * (chartHeight / maxRating) + 5}
+                                        textAnchor="end"
+                                        fontSize="12"
+                                        fill="var(--text-secondary)"
+                                    >
+                                        {rating}★
+                                    </text>
+                                </g>
+                            ))}
+
+                            {conditionData.map((point, index) => {
+                                const x = (index / (conditionData.length - 1 || 1)) * (1000 - padding * 2);
+                                const y = (maxRating - point.rating) * (chartHeight / maxRating);
+
+                                return (
+                                    <g key={index}>
+                                        {index < conditionData.length - 1 && (
+                                            <line
+                                                x1={x}
+                                                y1={y}
+                                                x2={(index + 1) / (conditionData.length - 1) * (1000 - padding * 2)}
+                                                y2={(maxRating - conditionData[index + 1].rating) * (chartHeight / maxRating)}
+                                                stroke="var(--accent)"
+                                                strokeWidth="3"
+                                            />
+                                        )}
+                                        <circle
+                                            cx={x}
+                                            cy={y}
+                                            r="6"
+                                            fill="var(--accent)"
+                                            stroke="var(--bg-primary)"
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={x}
+                                            y={chartHeight + 20}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fill="var(--text-secondary)"
+                                            transform={`rotate(-45, ${x}, ${chartHeight + 20})`}
+                                        >
+                                            {FormatUtility.formatDate(point.timestamp)}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+                        </g>
+                    </svg>
                 </div>
             </div>
         );
@@ -524,17 +646,6 @@ function HistoryViewSection({item, type, onClose}) {
             return acc;
         }, {});
 
-        const totalAssignments = operatorData.length;
-        const uniqueOperators = Object.keys(operatorCounts).length;
-        const currentOperator = operatorData[operatorData.length - 1].operator;
-        const mostFrequentOperator = Object.entries(operatorCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
-
-        const chartData = Object.entries(operatorCounts).map(([name, count]) => ({
-            name,
-            count,
-            percentage: (count / totalAssignments * 100).toFixed(1)
-        })).sort((a, b) => b.count - a.count);
-
         const calculateDuration = (startIndex, operatorName) => {
             let endIndex = startIndex + 1;
             while (endIndex < operatorData.length && operatorData[endIndex].operator === operatorName) {
@@ -546,18 +657,39 @@ function HistoryViewSection({item, type, onClose}) {
             return {days, endIndex};
         };
 
-        const consolidatedTimeline = [];
+        const operatorDurations = {};
         let i = 0;
         while (i < operatorData.length) {
             const entry = operatorData[i];
             const {days, endIndex} = calculateDuration(i, entry.operator);
+            if (!operatorDurations[entry.operator]) {
+                operatorDurations[entry.operator] = 0;
+            }
+            operatorDurations[entry.operator] += days;
+            i = endIndex;
+        }
+
+        const totalAssignments = operatorData.length;
+        const uniqueOperators = Object.keys(operatorCounts).length;
+        const isActive = item.status === 'Active';
+        const currentOperator = isActive && operatorData.length > 0 ? operatorData[operatorData.length - 1].operator : null;
+        const mostFrequentOperator = Object.keys(operatorDurations).length > 0
+            ? Object.entries(operatorDurations).reduce((a, b) => a[1] > b[1] ? a : b)[0]
+            : null;
+
+
+        const consolidatedTimeline = [];
+        let j = 0;
+        while (j < operatorData.length) {
+            const entry = operatorData[j];
+            const {days, endIndex} = calculateDuration(j, entry.operator);
             consolidatedTimeline.push({
                 operator: entry.operator,
                 startDate: entry.timestamp,
                 days: days,
                 isCurrent: endIndex >= operatorData.length
             });
-            i = endIndex;
+            j = endIndex;
         }
 
         return (
@@ -565,7 +697,7 @@ function HistoryViewSection({item, type, onClose}) {
                 <div className="operator-summary-cards">
                     <div className="summary-card">
                         <div className="summary-label">Current Operator</div>
-                        <div className="summary-value">{currentOperator}</div>
+                        <div className="summary-value">{currentOperator || 'Not Assigned'}</div>
                     </div>
                     <div className="summary-card">
                         <div className="summary-label">Total Assignments</div>
@@ -577,13 +709,13 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                     <div className="summary-card">
                         <div className="summary-label">Most Frequent</div>
-                        <div className="summary-value summary-value-small">{mostFrequentOperator}</div>
+                        <div className="summary-value summary-value-small">{mostFrequentOperator || 'Not Assigned'}</div>
                     </div>
                 </div>
 
                 <h3 className="chart-section-title">Assignment Timeline</h3>
                 <div className="operator-timeline-modern">
-                    {consolidatedTimeline.map((entry, index) => (
+                    {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index}
                              className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
@@ -603,29 +735,6 @@ function HistoryViewSection({item, type, onClose}) {
                             </div>
                         </div>
                     ))}
-                </div>
-
-                <h3 className="chart-section-title">Assignment Distribution</h3>
-                <div className="operator-distribution-modern">
-                    {chartData.map((data, index) => {
-                        const isTopOperator = index === 0;
-                        return (
-                            <div key={index}
-                                 className={`distribution-row ${isTopOperator ? 'distribution-row-top' : ''}`}>
-                                <div className="distribution-info">
-                                    <div className="distribution-operator-name">{data.name}</div>
-                                    <div className="distribution-stats">
-                                        <span
-                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'assignment' : 'assignments'}</span>
-                                        <span className="distribution-percentage">{data.percentage}%</span>
-                                    </div>
-                                </div>
-                                <div className="distribution-bar-bg">
-                                    <div className="distribution-bar-fill" style={{width: `${data.percentage}%`}}></div>
-                                </div>
-                            </div>
-                        );
-                    })}
                 </div>
             </div>
         );
@@ -911,11 +1020,6 @@ function HistoryViewSection({item, type, onClose}) {
         const currentPlant = plantData[plantData.length - 1].plant;
         const mostFrequentPlant = Object.entries(plantCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
 
-        const chartData = Object.entries(plantCounts).map(([plant, count]) => ({
-            plant,
-            count,
-            percentage: (count / totalAssignments * 100).toFixed(1)
-        })).sort((a, b) => b.count - a.count);
 
         const calculateDuration = (startIndex, plantCode) => {
             let endIndex = startIndex + 1;
@@ -965,7 +1069,7 @@ function HistoryViewSection({item, type, onClose}) {
 
                 <h3 className="chart-section-title">Assignment Timeline</h3>
                 <div className="operator-timeline-modern">
-                    {consolidatedTimeline.map((entry, index) => (
+                    {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index}
                              className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
@@ -985,28 +1089,6 @@ function HistoryViewSection({item, type, onClose}) {
                             </div>
                         </div>
                     ))}
-                </div>
-
-                <h3 className="chart-section-title">Plant Distribution</h3>
-                <div className="operator-distribution-modern">
-                    {chartData.map((data, index) => {
-                        const isTopPlant = index === 0;
-                        return (
-                            <div key={index} className={`distribution-row ${isTopPlant ? 'distribution-row-top' : ''}`}>
-                                <div className="distribution-info">
-                                    <div className="distribution-operator-name">{data.plant}</div>
-                                    <div className="distribution-stats">
-                                        <span
-                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'assignment' : 'assignments'}</span>
-                                        <span className="distribution-percentage">{data.percentage}%</span>
-                                    </div>
-                                </div>
-                                <div className="distribution-bar-bg">
-                                    <div className="distribution-bar-fill" style={{width: `${data.percentage}%`}}></div>
-                                </div>
-                            </div>
-                        );
-                    })}
                 </div>
             </div>
         );
@@ -1081,7 +1163,7 @@ function HistoryViewSection({item, type, onClose}) {
 
                 <h3 className="chart-section-title">Status Timeline</h3>
                 <div className="operator-timeline-modern">
-                    {consolidatedTimeline.map((entry, index) => (
+                    {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index}
                              className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
@@ -1181,7 +1263,7 @@ function HistoryViewSection({item, type, onClose}) {
 
                 <h3 className="chart-section-title">Position Timeline</h3>
                 <div className="operator-timeline-modern">
-                    {consolidatedTimeline.map((entry, index) => (
+                    {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index}
                              className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                             <div className="timeline-marker">
@@ -1248,17 +1330,6 @@ function HistoryViewSection({item, type, onClose}) {
         const currentRating = ratingsData[ratingsData.length - 1].rating;
         const highestRating = Math.max(...ratingsData.map(d => d.rating));
 
-        const ratingCounts = ratingsData.reduce((acc, entry) => {
-            acc[entry.rating] = (acc[entry.rating] || 0) + 1;
-            return acc;
-        }, {});
-
-        const distributionData = [1, 2, 3, 4, 5].map(rating => ({
-            rating,
-            count: ratingCounts[rating] || 0,
-            percentage: ((ratingCounts[rating] || 0) / ratingsData.length * 100).toFixed(1),
-            label: ratingLabels[rating]
-        })).reverse();
 
         return (
             <div className="chart-container">
@@ -1353,28 +1424,6 @@ function HistoryViewSection({item, type, onClose}) {
                     </svg>
                 </div>
 
-                <h3 className="chart-section-title">Rating Distribution</h3>
-                <div className="operator-distribution-modern">
-                    {distributionData.map((data, index) => {
-                        const isTopRating = data.count > 0 && data.count === Math.max(...distributionData.map(d => d.count));
-                        return (
-                            <div key={index}
-                                 className={`distribution-row ${isTopRating ? 'distribution-row-top' : ''}`}>
-                                <div className="distribution-info">
-                                    <div className="distribution-operator-name">{data.rating}★ - {data.label}</div>
-                                    <div className="distribution-stats">
-                                        <span
-                                            className="distribution-assignments">{data.count} {data.count === 1 ? 'time' : 'times'}</span>
-                                        <span className="distribution-percentage">{data.percentage}%</span>
-                                    </div>
-                                </div>
-                                <div className="distribution-bar-bg">
-                                    <div className="distribution-bar-fill" style={{width: `${data.percentage}%`}}></div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
 
                 <h3 className="chart-section-title">Rating Timeline</h3>
                 <div className="operator-timeline-modern">
@@ -1705,6 +1754,8 @@ function HistoryViewSection({item, type, onClose}) {
                 );
             case 'cleanliness':
                 return renderCleanlinessChart();
+            case 'condition':
+                return renderConditionChart();
             case 'operators':
                 return renderOperatorChart();
             case 'service':
@@ -1845,14 +1896,6 @@ function HistoryViewSection({item, type, onClose}) {
                     >
                         Timeline
                     </button>
-                    {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment') && (
-                        <button
-                            className={`history-tab ${activeTab === 'cleanliness' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('cleanliness')}
-                        >
-                            Cleanliness
-                        </button>
-                    )}
                     {(type === 'mixer' || type === 'tractor') && (
                         <button
                             className={`history-tab ${activeTab === 'operators' ? 'active' : ''}`}
@@ -1907,6 +1950,22 @@ function HistoryViewSection({item, type, onClose}) {
                             onClick={() => setActiveTab('mileage')}
                         >
                             Mileage Tracking
+                        </button>
+                    )}
+                    {type === 'equipment' && (
+                        <button
+                            className={`history-tab ${activeTab === 'condition' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('condition')}
+                        >
+                            Condition
+                        </button>
+                    )}
+                    {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment') && (
+                        <button
+                            className={`history-tab ${activeTab === 'cleanliness' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('cleanliness')}
+                        >
+                            Cleanliness
                         </button>
                     )}
                 </div>

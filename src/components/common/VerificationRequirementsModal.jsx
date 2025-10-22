@@ -320,7 +320,7 @@ export default function VerificationRequirementsModal({
                             <div className="section-title">
                                 <i className="fas fa-tasks"></i>
                                 <span>Required Information</span>
-                                {serviceOverdue && <span className="status-badge warning">Service Overdue</span>}
+                                {serviceOverdue && <span className="status-badge incomplete">Service Overdue</span>}
                                 {!serviceOverdue && !requiredFieldsOk && <span className="status-badge incomplete">Incomplete</span>}
                                 {!serviceOverdue && requiredFieldsOk && <span className="status-badge complete">Complete</span>}
                             </div>
@@ -566,8 +566,8 @@ export default function VerificationRequirementsModal({
                             </button>
                             {isSectionExpanded('issues') && (
                                 <div className="section-content">
-                                    <div className="modal-note" style={{marginBottom: '1rem', backgroundColor: 'var(--info-bg, #e3f2fd)', borderLeft: '4px solid var(--info, #2196f3)', padding: '0.75rem'}}>
-                                        <i className="fas fa-info-circle" style={{marginRight: '0.5rem', color: 'var(--info, #2196f3)'}}></i>
+                                    <div className="modal-note warning">
+                                        <i className="fas fa-comments"></i>
                                         <span>Issues are shown for awareness only. You can mark them as resolved if completed, but this is not required to verify the asset.</span>
                                     </div>
                                     {isLoadingIssues ? (
@@ -647,8 +647,8 @@ export default function VerificationRequirementsModal({
                             </button>
                             {isSectionExpanded('comments') && (
                                 <div className="section-content">
-                                    <div className="modal-note" style={{marginBottom: '1rem', backgroundColor: 'var(--info-bg, #e3f2fd)', borderLeft: '4px solid var(--info, #2196f3)', padding: '0.75rem'}}>
-                                        <i className="fas fa-info-circle" style={{marginRight: '0.5rem', color: 'var(--info, #2196f3)'}}></i>
+                                    <div className="modal-note warning">
+                                        <i className="fas fa-comments"></i>
                                         <span>Comments are shown for awareness only. You can delete them if no longer applicable, but this is not required to verify the asset.</span>
                                     </div>
                                     {isLoadingComments ? (
