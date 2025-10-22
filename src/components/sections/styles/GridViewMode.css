@@ -5,6 +5,22 @@
     padding: 1rem;
 }
 
+.grid-card-animated {
+    animation: slideInFromLeft 0.4s ease-out;
+    animation-fill-mode: both;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .item-card {
     background-color: var(--bg-primary);
     border-radius: 12px;

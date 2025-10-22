@@ -37,9 +37,15 @@ export default function VerificationRequirementsModal({
     const [isLoadingIssues, setIsLoadingIssues] = useState(false)
     const [isSavingPhone, setIsSavingPhone] = useState(false)
     const [userNames, setUserNames] = useState({})
-    const [expandedSection, setExpandedSection] = useState('checklist')
+    const [expandedSection, setExpandedSection] = useState([])
     const [comments, setComments] = useState([])
     const [isLoadingComments, setIsLoadingComments] = useState(false)
+    const [sectionsReady, setSectionsReady] = useState({
+        checklist: false,
+        operator: false,
+        issues: false,
+        comments: false
+    })
 
     const openIssues = issues.filter(issue => !issue.time_completed)
     const phoneOk = assignedOperator ? (operatorPhone && operatorPhone.trim().length > 0) : true
@@ -48,38 +54,84 @@ export default function VerificationRequirementsModal({
     const serviceOverdue = lastServiceDate && typeof isServiceOverdue === 'function' ? isServiceOverdue(lastServiceDate) : false
 
     useEffect(() => {
-        if (open && assignedOperator) {
-            fetchOperatorData()
+        if (!open) {
+            setSectionsReady({
+                checklist: false,
+                operator: false,
+                issues: false,
+                comments: false
+            })
+            setExpandedSection([])
+            return
         }
-        if (open && itemId && service) {
-            fetchIssues()
-            fetchComments()
+        
+        setTimeout(() => {
+            setSectionsReady(prev => ({ ...prev, checklist: true }))
+        }, 50)
+        
+        if (assignedOperator) {
+            fetchOperatorData().then(() => {
+                setTimeout(() => {
+                    setSectionsReady(prev => ({ ...prev, operator: true }))
+                }, 150)
+            })
+        } else {
+            setTimeout(() => {
+                setSectionsReady(prev => ({ ...prev, operator: true }))
+            }, 150)
+        }
+        
+        if (itemId && service) {
+            fetchIssues().then(() => {
+                setTimeout(() => {
+                    setSectionsReady(prev => ({ ...prev, issues: true }))
+                }, 250)
+            })
+            fetchComments().then(() => {
+                setTimeout(() => {
+                    setSectionsReady(prev => ({ ...prev, comments: true }))
+                }, 350)
+            })
+        } else {
+            setTimeout(() => {
+                setSectionsReady(prev => ({ ...prev, issues: true, comments: true }))
+            }, 250)
         }
     }, [open, assignedOperator, itemId])
 
     useEffect(() => {
-        if (open) {
-            const sectionsToExpand = []
+        if (!open) return
+        
+        const allSectionsReady = Object.values(sectionsReady).every(ready => ready)
+        if (!allSectionsReady) return
+        
+        const sectionsToExpand = []
 
-            if (missingFields.length > 0 || serviceOverdue) {
-                sectionsToExpand.push('checklist')
-            }
-
-            if (!operatorOk) {
-                sectionsToExpand.push('operator')
-            }
-
-            if (openIssues.length > 0) {
-                sectionsToExpand.push('issues')
-            }
-
-            if (comments.length > 0) {
-                sectionsToExpand.push('comments')
-            }
-
-            setExpandedSection(sectionsToExpand)
+        if (missingFields.length > 0 || serviceOverdue) {
+            sectionsToExpand.push('checklist')
         }
-    }, [open, operatorOk, openIssues.length, missingFields.length, itemId, service, serviceOverdue, comments.length])
+
+        if (!operatorOk) {
+            sectionsToExpand.push('operator')
+        }
+
+        if (openIssues.length > 0) {
+            sectionsToExpand.push('issues')
+        }
+
+        if (comments.length > 0) {
+            sectionsToExpand.push('comments')
+        }
+
+        sectionsToExpand.forEach((section, index) => {
+            setTimeout(() => {
+                setExpandedSection(prev => {
+                    const currentExpanded = Array.isArray(prev) ? prev : []
+                    return [...currentExpanded, section]
+                })
+            }, 800 + (index * 400))
+        })
+    }, [open, sectionsReady, operatorOk, openIssues.length, missingFields.length, itemId, service, serviceOverdue, comments.length])
 
     const fetchOperatorData = async () => {
         setIsLoadingOperator(true)
@@ -312,6 +364,7 @@ export default function VerificationRequirementsModal({
                 </div>
 
                 <div className="verification-content">
+                    {sectionsReady.checklist && (
                     <div className="verification-section">
                         <button
                             className={`section-header ${isSectionExpanded('checklist') ? 'expanded' : ''}`}
@@ -320,7 +373,7 @@ export default function VerificationRequirementsModal({
                             <div className="section-title">
                                 <i className="fas fa-tasks"></i>
                                 <span>Required Information</span>
-                                {serviceOverdue && <span className="status-badge incomplete">Service Overdue</span>}
+                                {serviceOverdue && <span className="status-badge warning">Service Overdue</span>}
                                 {!serviceOverdue && !requiredFieldsOk && <span className="status-badge incomplete">Incomplete</span>}
                                 {!serviceOverdue && requiredFieldsOk && <span className="status-badge complete">Complete</span>}
                             </div>
@@ -425,10 +478,11 @@ export default function VerificationRequirementsModal({
                                     )}
                                 </div>
                             </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
 
-                    {assignedOperator && (
+                    {assignedOperator && sectionsReady.operator && (
                         <div className="verification-section">
                             <button
                                 className={`section-header ${isSectionExpanded('operator') ? 'expanded' : ''}`}
@@ -534,23 +588,23 @@ export default function VerificationRequirementsModal({
                                                         )}
                                                     </td>
                                                 </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="no-data">
-                                            <i className="fas fa-exclamation-triangle"></i>
-                                            <p>Unable to load operator information</p>
-                                            <p className="no-data-hint">The operator may have been removed or there was
-                                                a connection issue</p>
-                                        </div>
-                                    )}
-                                </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="no-data">
+                            <i className="fas fa-exclamation-triangle"></i>
+                            <p>Unable to load operator information</p>
+                            <p className="no-data-hint">The operator may have been removed or there was
+                                a connection issue</p>
+                        </div>
+                    )}
+                </div>
                             )}
                         </div>
                     )}
 
-                    {itemId && service && (
+                    {itemId && service && sectionsReady.issues && (
                         <div className="verification-section">
                             <button
                                 className={`section-header ${isSectionExpanded('issues') ? 'expanded' : ''}`}
@@ -595,6 +649,9 @@ export default function VerificationRequirementsModal({
                                                                 className={`issue-severity ${getSeverityClass(issue.severity)}`}>
                                                                 {issue.severity}
                                                             </span>
+                                                            <span className="issue-creator">
+                                                                <i className="fas fa-user"></i> {userNames[issue.created_by] || 'Unknown'}
+                                                            </span>
                                                             <span
                                                                 className="issue-date">{formatDate(issue.time_created)}</span>
                                                             <div className="issue-actions">
@@ -615,12 +672,6 @@ export default function VerificationRequirementsModal({
                                                             </div>
                                                         </div>
                                                         <div className="issue-text">{issue.issue}</div>
-                                                        {issue.created_by && userNames[issue.created_by] && (
-                                                            <div className="issue-creator">
-                                                                <i className="fas fa-user"></i>
-                                                                {userNames[issue.created_by]}
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
@@ -631,7 +682,7 @@ export default function VerificationRequirementsModal({
                         </div>
                     )}
 
-                    {itemId && service && (
+                    {itemId && service && sectionsReady.comments && (
                         <div className="verification-section">
                             <button
                                 className={`section-header ${isSectionExpanded('comments') ? 'expanded' : ''}`}

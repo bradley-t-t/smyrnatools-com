@@ -83,9 +83,22 @@ function TopSection({
             <div className={className} ref={forwardedRef} data-section="top" aria-label="Page controls">
                 <div className="top-section-inner">
                     <div className="top-row primary-row">
-                        <h1 className="top-title">{title} {badge && (onBadgeClick ?
-                            <button className="top-badge" onClick={onBadgeClick}>{badge}</button> :
-                            <span className="top-badge">{badge}</span>)}</h1>
+                        <h1 className="top-title">{title}</h1>
+                        {badge && (
+                            <div className="badge-container">
+                                {onBadgeClick ? (
+                                    <button className="top-badge" onClick={onBadgeClick}>
+                                        <i className="fas fa-user-clock" aria-hidden="true"></i>
+                                        <span className="badge-text">{badge}</span>
+                                    </button>
+                                ) : (
+                                    <span className="top-badge">
+                                        <i className="fas fa-user-clock" aria-hidden="true"></i>
+                                        <span className="badge-text">{badge}</span>
+                                    </span>
+                                )}
+                            </div>
+                        )}
                         <div className="action-cluster" role="group" aria-label="Primary actions">
                             {onToggleSidebar && (
                                 <button className="action-button subtle" onClick={onToggleSidebar} type="button"

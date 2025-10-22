@@ -1,13 +1,32 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {useAuth} from '../../app/context/AuthContext';
 import {useLocation} from 'react-router-dom';
 import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
+import LoadingScreen from './LoadingScreen';
+import {UserService} from '../../services/UserService';
 import './styles/GuestOverlay.css';
 
 function GuestOverlay({reason}) {
     const {signOut} = useAuth();
     const location = useLocation();
     const reasonToUse = reason || location.state?.reason || 'pending';
+    const [isValidating, setIsValidating] = useState(true);
+    const [isValidUser, setIsValidUser] = useState(false);
+
+    useEffect(() => {
+        const validateSession = async () => {
+            try {
+                const user = await UserService.getCurrentUser();
+                setIsValidUser(!!user?.id);
+            } catch (error) {
+                setIsValidUser(false);
+            } finally {
+                setIsValidating(false);
+            }
+        };
+
+        validateSession();
+    }, []);
 
     const handleSignOut = async () => {
         try {
@@ -16,6 +35,14 @@ function GuestOverlay({reason}) {
         } catch (error) {
         }
     };
+
+    if (isValidating) {
+        return <LoadingScreen message="Attempting to authenticate your user" fullPage={true} />;
+    }
+
+    if (!isValidUser) {
+        return <LoadingScreen message="Attempting to authenticate your user" fullPage={true} />;
+    }
 
     const getMessage = () => {
         if (reasonToUse === 'no-plant') {

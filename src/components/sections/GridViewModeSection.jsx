@@ -18,13 +18,14 @@ function GridViewModeSection({
     tractors = tractors || [];
     return (
         <div className={gridClassName || 'grid'}>
-            {filteredItems && Array.isArray(filteredItems) && filteredItems.map(item => {
+            {filteredItems && Array.isArray(filteredItems) && filteredItems.map((item, index) => {
                 const operator = operators.find(op => op.employeeId === item.assignedOperator);
                 const plant = plants.find(p => p.code === item.assignedPlant);
                 const tractor = tractors.find(t => t.id === item.assignedTractor);
                 const Card = cardComponent;
                 const number = item.identifyingNumber || item.truckNumber || item.trailerNumber || '';
-                return (
+                const shouldAnimate = index < 30;
+                const cardElement = (
                     <Card
                         key={item.id}
                         {...{[itemPropName]: item}}
@@ -38,6 +39,20 @@ function GridViewModeSection({
                         onShowIssueModal={() => onShowIssueModal(item.id, number)}
                     />
                 );
+                
+                if (shouldAnimate) {
+                    return (
+                        <div 
+                            key={item.id}
+                            className="grid-card-animated"
+                            style={{animationDelay: `${index * 80}ms`}}
+                        >
+                            {cardElement}
+                        </div>
+                    );
+                } else {
+                    return cardElement;
+                }
             })}
         </div>
     );

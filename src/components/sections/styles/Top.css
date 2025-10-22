@@ -42,7 +42,8 @@
 .primary-row {
     justify-content: space-between;
     gap: 16px;
-    flex-wrap: wrap
+    flex-wrap: wrap;
+    align-items: center
 }
 
 .controls-row {
@@ -59,24 +60,52 @@
     color: var(--text-primary)
 }
 
+@keyframes subtle-bob {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.badge-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto
+}
+
 .top-badge {
-    margin-left: 12px;
-    padding: 4px 8px;
-    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 14px;
     background: var(--warning);
     color: var(--text-light);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: inline-block;
-    vertical-align: middle;
+    letter-spacing: 0.3px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    animation: subtle-bob 2.5s ease-in-out infinite;
+}
+
+.top-badge i {
+    font-size: 14px;
+}
+
+.badge-text {
+    white-space: nowrap;
 }
 
 .top-badge:hover {
     background: var(--warning-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    animation: none;
 }
 
 .action-cluster {

@@ -80,6 +80,22 @@
     cursor: pointer;
 }
 
+.list-row-animated {
+    animation: slideInFromLeft 0.4s ease-out;
+    animation-fill-mode: both;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .list-table tbody tr:hover td {
     background: var(--accent-row-hover-bg) !important;
     color: var(--text-primary) !important;

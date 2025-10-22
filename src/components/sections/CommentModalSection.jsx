@@ -121,62 +121,70 @@ function CommentModalSection({
         <div className="comment-modal-backdrop" onClick={handleBackdropClick}>
             <div className="comment-modal">
                 <div className="comment-modal-header">
-                    <h2>Comments for {itemType} {itemNumber || itemId}</h2>
+                    <div className="comment-modal-header-content">
+                        <i className="fas fa-comment-dots"></i>
+                        <div>
+                            <h2>{itemType} {itemNumber || itemId}</h2>
+                            <span className="comment-modal-subtitle">Comments</span>
+                        </div>
+                    </div>
                     <button className="comment-modal-close-button" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
                 <div className="comment-modal-content">
-                    <ErrorMessage
-                        message={error}
-                        onDismiss={() => setError(null)}
-                    />
-                    <div className="comment-modal-add-section">
-                        <h3>Add New Comment</h3>
-                        <form onSubmit={handleAddComment}>
+                    <ErrorMessage message={error} onDismiss={() => setError(null)} />
+                    <form onSubmit={handleAddComment} className="comment-modal-add-section">
+                        <div className="comment-modal-form-row">
                             <textarea
                                 className="comment-modal-textarea"
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
-                                placeholder="Write your comment here..."
+                                placeholder="Write your comment..."
                                 disabled={isSubmitting}
+                                rows="3"
                             ></textarea>
                             <button
                                 type="submit"
                                 className="comment-modal-add-button"
                                 disabled={isSubmitting || !newComment.trim()}
                             >
+                                <i className="fas fa-plus"></i>
                                 {isSubmitting ? 'Adding...' : 'Add Comment'}
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                     <div className="comment-modal-list">
-                        <h3>Comments History</h3>
                         {isLoading ? (
                             <div className="comment-modal-loading">
                                 <LoadingScreen message="Loading comments..." inline={true}/>
                             </div>
                         ) : comments.length === 0 ? (
                             <div className="comment-modal-empty">
-                                <i className="fas fa-comments comment-modal-empty-icon"></i>
+                                <i className="fas fa-comment-slash"></i>
                                 <p>No comments yet</p>
-                                <p className="comment-modal-empty-subtext">Be the first to add a comment about
-                                    this {itemType.toLowerCase()}</p>
                             </div>
                         ) : (
                             <div className="comment-modal-section">
+                                <div className="comment-modal-section-header">
+                                    <h4>All Comments</h4>
+                                    <span className="comment-modal-count">{comments.length}</span>
+                                </div>
                                 {sortedComments.map(comment => (
                                     <div key={comment.id} className="comment-modal-item">
-                                        <div className="comment-modal-item-header">
-                                            <span className="comment-modal-author">
-                                                <i className="fas fa-user"></i> {getAuthorName(comment)}
-                                            </span>
-                                            <span className="comment-modal-date">
-                                                {formatDate(comment.createdAt || comment.created_at)}
-                                            </span>
+                                        <div className="comment-modal-item-top">
+                                            <div className="comment-modal-meta">
+                                                <span className="comment-modal-author">
+                                                    <i className="fas fa-user"></i>
+                                                    {getAuthorName(comment)}
+                                                </span>
+                                                <span className="comment-modal-date">
+                                                    {formatDate(comment.createdAt || comment.created_at)}
+                                                </span>
+                                            </div>
                                             <div className="comment-modal-actions">
                                                 <button
-                                                    className="comment-modal-delete-button"
+                                                    className="comment-modal-action-btn delete"
                                                     onClick={() => handleDeleteComment(comment.id)}
                                                     title="Delete comment"
                                                 >
@@ -190,9 +198,6 @@ function CommentModalSection({
                             </div>
                         )}
                     </div>
-                </div>
-                <div className="comment-modal-footer">
-                    <button className="comment-modal-cancel-button" onClick={onClose}>Close</button>
                 </div>
             </div>
         </div>

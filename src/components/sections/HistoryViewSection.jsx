@@ -709,7 +709,7 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                     <div className="summary-card">
                         <div className="summary-label">Most Frequent</div>
-                        <div className="summary-value summary-value-small">{mostFrequentOperator || 'Not Assigned'}</div>
+                        <div className="summary-value">{mostFrequentOperator || 'Not Assigned'}</div>
                     </div>
                 </div>
 
@@ -836,7 +836,7 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                 )}
 
-                <div className="operator-summary-cards" style={{marginTop: actualServices.length > 0 ? '1rem' : '0'}}>
+                <div className="operator-summary-cards">
                     <div className="summary-card">
                         <div className="summary-label">Open Issues</div>
                         <div className="summary-value">{openIssues.length}</div>
@@ -878,88 +878,40 @@ function HistoryViewSection({item, type, onClose}) {
                             );
                         } else {
                             const issue = entry.issue;
+                            const severityClass = entry.isCompleted ? 'completed' :
+                                issue.severity === 'High' ? 'high' :
+                                    issue.severity === 'Medium' ? 'medium' : 'low';
                             return (
-                                <div key={`issue-${issue.id}`} className="timeline-entry">
+                                <div key={`issue-${issue.id}`} className={`timeline-entry timeline-issue ${entry.isCompleted ? 'timeline-issue-completed' : ''}`}>
                                     <div className="timeline-marker">
-                                        <div className="timeline-dot" style={{
-                                            background: entry.isCompleted ? 'var(--text-secondary)' :
-                                                issue.severity === 'High' ? 'var(--danger)' :
-                                                    issue.severity === 'Medium' ? 'var(--warning)' :
-                                                        'var(--info)'
-                                        }}></div>
+                                        <div className={`timeline-dot timeline-dot-${severityClass}`}></div>
                                         {index < combinedTimeline.length - 1 && <div className="timeline-line"></div>}
                                     </div>
-                                    <div className="timeline-card" style={{
-                                        borderLeftColor: entry.isCompleted ? 'var(--text-secondary)' :
-                                            issue.severity === 'High' ? 'var(--danger)' :
-                                                issue.severity === 'Medium' ? 'var(--warning)' :
-                                                    'var(--info)',
-                                        borderLeftWidth: '3px',
-                                        borderLeftStyle: 'solid',
-                                        opacity: entry.isCompleted ? 0.7 : 1
-                                    }}>
-                                        <div className="timeline-card-header" style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'flex-start',
-                                            marginBottom: '0.5rem'
-                                        }}>
-                                            <div style={{flex: 1}}>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem',
-                                                    marginBottom: '0.25rem'
-                                                }}>
+                                    <div className={`timeline-card timeline-card-issue timeline-card-issue-${severityClass}`}>
+                                        <div className="timeline-issue-header">
+                                            <div className="timeline-issue-content">
+                                                <div className="timeline-issue-badges">
                                                     <i className={entry.isCompleted ? "fas fa-check-circle" : "fas fa-exclamation-circle"}></i>
-                                                    <span
-                                                        className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}
-                                                        style={{
-                                                            padding: '0.25rem 0.5rem',
-                                                            borderRadius: '4px',
-                                                            fontSize: '0.75rem'
-                                                        }}>
+                                                    <span className={`issue-severity-badge ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     {entry.isCompleted && (
-                                                        <span style={{
-                                                            fontSize: '0.75rem',
-                                                            color: 'var(--success)',
-                                                            fontWeight: 'bold'
-                                                        }}>
-                                                            RESOLVED
-                                                        </span>
+                                                        <span className="resolved-badge">RESOLVED</span>
                                                     )}
                                                 </div>
-                                                <div style={{
-                                                    fontSize: '0.95rem',
-                                                    marginTop: '0.5rem'
-                                                }}>{issue.issue}</div>
+                                                <div className="timeline-issue-text">{issue.issue}</div>
                                             </div>
                                             <button
                                                 onClick={() => handleDeleteIssue(issue.id)}
                                                 title="Delete issue"
-                                                style={{
-                                                    padding: '0.25rem 0.5rem',
-                                                    borderRadius: '4px',
-                                                    border: 'none',
-                                                    background: 'var(--danger)',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    fontSize: '0.75rem'
-                                                }}
+                                                className="timeline-issue-delete-btn"
                                             >
                                                 <i className="fas fa-trash"></i>
                                             </button>
                                         </div>
-                                        <div className="timeline-card-meta"
-                                             style={{display: 'flex', flexDirection: 'column', gap: '0.25rem'}}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}>
-                                                <span style={{fontSize: '0.85rem', opacity: 0.9}}>
+                                        <div className="timeline-issue-meta">
+                                            <div className="timeline-issue-info">
+                                                <span className="timeline-issue-creator">
                                                     <i className="fas fa-user"></i> {getCreatorName(issue)}
                                                 </span>
                                                 <span className="timeline-date">
@@ -967,7 +919,7 @@ function HistoryViewSection({item, type, onClose}) {
                                                 </span>
                                             </div>
                                             {entry.isCompleted && entry.completedDate && (
-                                                <span className="timeline-date" style={{color: 'var(--success)'}}>
+                                                <span className="timeline-completed-date">
                                                     <i className="fas fa-check"></i> Completed: {formatDate(issue.time_completed)}
                                                 </span>
                                             )}
@@ -975,16 +927,7 @@ function HistoryViewSection({item, type, onClose}) {
                                                 <button
                                                     onClick={() => handleCompleteIssue(issue.id)}
                                                     title="Mark as resolved"
-                                                    style={{
-                                                        padding: '0.5rem 1rem',
-                                                        borderRadius: '4px',
-                                                        border: 'none',
-                                                        background: 'var(--success)',
-                                                        color: 'white',
-                                                        cursor: 'pointer',
-                                                        marginTop: '0.5rem',
-                                                        alignSelf: 'flex-start'
-                                                    }}
+                                                    className="timeline-issue-resolve-btn"
                                                 >
                                                     <i className="fas fa-check"></i> Mark as Resolved
                                                 </button>
@@ -1157,7 +1100,7 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                     <div className="summary-card">
                         <div className="summary-label">Most Frequent</div>
-                        <div className="summary-value summary-value-small">{mostFrequentStatus}</div>
+                        <div className="summary-value">{mostFrequentStatus}</div>
                     </div>
                 </div>
 
@@ -1441,7 +1384,7 @@ function HistoryViewSection({item, type, onClose}) {
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.timestamp)}</span>
-                                    <UserLabel userId={entry.changedBy}/>
+                                    <UserLabel userId={entry.changedBy} showIcon={true}/>
                                 </div>
                             </div>
                         </div>
@@ -1746,7 +1689,7 @@ function HistoryViewSection({item, type, onClose}) {
                                     </div>
                                 </div>
                                 <div className="history-user">
-                                    <UserLabel userId={entry.changedBy || entry.changed_by}/>
+                                    <UserLabel userId={entry.changedBy || entry.changed_by} showIcon={true}/>
                                 </div>
                             </div>
                         ))}
@@ -1883,7 +1826,13 @@ function HistoryViewSection({item, type, onClose}) {
         <div className="history-modal-backdrop">
             <div className="history-modal">
                 <div className="history-modal-header">
-                    <h2>History for {itemName}</h2>
+                    <div className="history-modal-header-content">
+                        <i className="fas fa-history"></i>
+                        <div>
+                            <h2>{itemName}</h2>
+                            <span className="history-modal-subtitle">Change History</span>
+                        </div>
+                    </div>
                     <button className="history-modal-close-button" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>

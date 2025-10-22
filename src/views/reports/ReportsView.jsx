@@ -793,7 +793,7 @@ function ReportsView() {
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {myPaginatedItems.map(item => {
+                                                            {myPaginatedItems.map((item, index) => {
                                                                 const weekIso = item.weekIso
                                                                 const {
                                                                     monday,
@@ -814,9 +814,11 @@ function ReportsView() {
                                                                 })
                                                                 const badge = ReportUtility.getWeekBadge(weekIso)
                                                                 const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : ''
+                                                                const shouldAnimate = index < 30
                                                                 return (
                                                                     <tr key={item.name + item.weekIso}
-                                                                        className="rpt-row">
+                                                                        className={shouldAnimate ? 'rpt-row rpt-row-animated' : 'rpt-row'}
+                                                                        style={shouldAnimate ? {animationDelay: `${index * 80}ms`} : {}}>
                                                                         <td className="rpt-td rpt-week-td"><span
                                                                             className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}
                                                                         </td>
@@ -894,15 +896,18 @@ function ReportsView() {
                                                             </thead>
                                                             <tbody>
                                                             {reviewPaginatedItems
-                                                                .map(report => {
+                                                                .map((report, index) => {
                                                                     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
                                                                     const {
                                                                         monday,
                                                                         saturday
                                                                     } = ReportUtility.getWeekDatesFromIso(weekIso)
                                                                     const weekRange = ReportService.getWeekRangeString(monday, saturday)
+                                                                    const shouldAnimate = index < 30
                                                                     return (
-                                                                        <tr key={report.id} className="rpt-row">
+                                                                        <tr key={report.id} 
+                                                                            className={shouldAnimate ? 'rpt-row rpt-row-animated' : 'rpt-row'}
+                                                                            style={shouldAnimate ? {animationDelay: `${index * 80}ms`} : {}}>
                                                                             <td className="rpt-td rpt-week-td"><span
                                                                                 className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>{ReportUtility.getWeekBadge(weekIso)}</span> {weekRange}
                                                                             </td>
@@ -980,7 +985,7 @@ function ReportsView() {
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            {overduePaginatedItems.map(item => {
+                                                            {overduePaginatedItems.map((item, index) => {
                                                                 const weekIso = item.week
                                                                 const {
                                                                     monday,
@@ -988,9 +993,11 @@ function ReportsView() {
                                                                 } = ReportUtility.getWeekDatesFromIso(weekIso)
                                                                 const weekRange = ReportService.getWeekRangeString(monday, saturday)
                                                                 const title = (reportTypeMap[item.report_name] || {}).title || item.report_name
+                                                                const shouldAnimate = index < 30
                                                                 return (
                                                                     <tr key={`${item.userId}-${item.report_name}-${item.week}`}
-                                                                        className="rpt-row">
+                                                                        className={shouldAnimate ? 'rpt-row rpt-row-animated' : 'rpt-row'}
+                                                                        style={shouldAnimate ? {animationDelay: `${index * 80}ms`} : {}}>
                                                                         <td className="rpt-td rpt-week-td"><span
                                                                             className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>{ReportUtility.getWeekBadge(weekIso)}</span> {weekRange}
                                                                         </td>
