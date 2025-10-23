@@ -139,11 +139,19 @@ function DetailViewSection({
                     ) : (
                         <>
                             {verificationCard && (
-                                <div className="detail-card">
+                                <div className="detail-card slide-in-item" style={{'--item-index': 0}}>
                                     {verificationCard}
                                 </div>
                             )}
-                            {children}
+                            {React.Children.map(children, (child, index) => {
+                                if (React.isValidElement(child) && child.props.className?.includes('detail-card')) {
+                                    return React.cloneElement(child, {
+                                        className: `${child.props.className || 'detail-card'} slide-in-item`,
+                                        style: { '--item-index': verificationCard ? index + 1 : index, ...child.props.style }
+                                    })
+                                }
+                                return child
+                            })}
                             {footerActions && (
                                 <div className="form-actions">
                                     {footerActions}
