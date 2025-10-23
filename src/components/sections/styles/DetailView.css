@@ -273,6 +273,24 @@
     text-align: left;
 }
 
+.detail-card.slide-in-item {
+    animation: slideInCard 0.4s ease-out forwards;
+    animation-delay: calc(var(--item-index, 0) * 0.08s);
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+@keyframes slideInCard {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .detail-card h2 {
     margin: 0;
     font-size: 18px;

@@ -1,32 +1,42 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../app/context/AuthContext';
 import {useLocation} from 'react-router-dom';
 import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
 import LoadingScreen from './LoadingScreen';
 import {UserService} from '../../services/UserService';
-import './styles/GuestOverlay.css';
+import './styles/LockedOverlay.css';
 
-function GuestOverlay({reason}) {
+function LockedOverlay({reason}) {
     const {signOut} = useAuth();
     const location = useLocation();
-    const reasonToUse = reason || location.state?.reason || 'pending';
     const [isValidating, setIsValidating] = useState(true);
-    const [isValidUser, setIsValidUser] = useState(false);
+    const [reasonToUse, setReasonToUse] = useState(null);
 
     useEffect(() => {
         const validateSession = async () => {
+            setIsValidating(true);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             try {
                 const user = await UserService.getCurrentUser();
-                setIsValidUser(!!user?.id);
+
+                if (!user?.id) {
+                    setReasonToUse('invalid-session');
+                    setIsValidating(false);
+                    return;
+                }
+
+                setReasonToUse(reason || location.state?.reason || 'pending');
             } catch (error) {
-                setIsValidUser(false);
+                setReasonToUse('invalid-session');
             } finally {
                 setIsValidating(false);
             }
         };
 
         validateSession();
-    }, []);
+    }, [reason, location.state?.reason]);
 
     const handleSignOut = async () => {
         try {
@@ -36,15 +46,14 @@ function GuestOverlay({reason}) {
         }
     };
 
-    if (isValidating) {
-        return <LoadingScreen message="Attempting to authenticate your user" fullPage={true} />;
-    }
-
-    if (!isValidUser) {
-        return <LoadingScreen message="Attempting to authenticate your user" fullPage={true} />;
+    if (isValidating || !reasonToUse) {
+        return <LoadingScreen message="Attempting to authenticate your user" fullPage={true}/>;
     }
 
     const getMessage = () => {
+        if (reasonToUse === 'invalid-session') {
+            return 'Your session has expired or is invalid. Please sign out and log in again to continue.';
+        }
         if (reasonToUse === 'no-plant') {
             return 'Your plant has not been assigned. Please contact your district manager to assign a plant to your profile.';
         }
@@ -52,6 +61,9 @@ function GuestOverlay({reason}) {
     };
 
     const getTitle = () => {
+        if (reasonToUse === 'invalid-session') {
+            return 'Session Invalid';
+        }
         if (reasonToUse === 'no-plant') {
             return 'Plant Not Assigned';
         }
@@ -75,4 +87,4 @@ function GuestOverlay({reason}) {
     );
 }
 
-export default GuestOverlay;
+export default LockedOverlay;

@@ -18,7 +18,7 @@ import VerifyEmailPage from './views/auth/VerifyEmailPage';
 import {PreferencesProvider} from './context/PreferencesContext';
 import {AccountProvider} from './context/AccountContext';
 import ListView from '../views/list/ListView';
-import GuestOverlay from '../components/common/GuestOverlay';
+import LockedOverlay from '../components/common/LockedOverlay';
 import TerminatedOverlay from '../components/common/TerminatedOverlay';
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
 import OfflineOverlay from '../components/common/OfflineOverlay'
@@ -31,7 +31,7 @@ function App() {
     const isBot = /bot|crawl|spider|googlebot|bingbot|yandexbot/i.test(navigator.userAgent);
     const [offlineMode, setOfflineMode] = useState(false)
     const {user, isAuthenticated} = useAuth()
-    const [hasPlant, setHasPlant] = useState(false)
+    const [hasPlant, setHasPlant] = useState(null)
     const [plantLoading, setPlantLoading] = useState(true)
     const [isTerminated, setIsTerminated] = useState(false)
     const [rolesChecked, setRolesChecked] = useState(false)
@@ -238,7 +238,7 @@ function App() {
                         <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                         <Route path="/verify-email" element={<VerifyEmailPage/>}/>
                     </Route>
-                    <Route path="/guest" element={<GuestOverlay/>}/>
+                    <Route path="/guest" element={<LockedOverlay/>}/>
                     <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
                         <Route path="/" element={<HomePage/>}/>
                         <Route path="/operators" element={<OperatorsPage/>}/>
@@ -251,7 +251,7 @@ function App() {
                     <Route path="*" element={<Navigate to="/" replace/>}/>
                 </Routes>
                 {isAuthenticated && !plantLoading && hasPlant === false && location.pathname !== '/guest' &&
-                    <GuestOverlay reason="no-plant"/>}
+                    <LockedOverlay reason="no-plant"/>}
             </AccountProvider>
         </PreferencesProvider>
     );

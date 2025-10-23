@@ -25,7 +25,7 @@ import '../styles/Global.css'
 import PlantsView from '../views/plants/PlantsView'
 import RegionsView from '../views/regions/RegionsView'
 import SmyrnaLogo from '../assets/images/SmyrnaLogo.png'
-import GuestOverlay from '../components/common/GuestOverlay'
+import LockedOverlay from '../components/common/LockedOverlay'
 import TerminatedOverlay from '../components/common/TerminatedOverlay'
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay'
 import PickupTrucksView from '../views/pickup-trucks/PickupTrucksView'
@@ -456,7 +456,7 @@ function AppContent() {
     const renderCurrentView = () => {
         if (!userId) return <LoginView/>
         if (!rolesLoaded) return null
-        if (isGuestOnly || !hasPlant) return <GuestOverlay reason={!hasPlant ? "no-plant" : undefined}/>
+        if (isGuestOnly || !hasPlant) return <LockedOverlay reason={!hasPlant ? "no-plant" : undefined}/>
         if (webViewURL) return <WebOverlay url={webViewURL} onClose={() => setWebViewURL(null)}/>
         if (selectedView.view === 'Plants') return <PlantsView title="Plants"/>
         if (selectedView.view === 'Regions') return <RegionsView title="Regions"/>
@@ -580,7 +580,7 @@ function AppContent() {
     if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
     if (isGuestOnly || !hasPlant) return (
-        <div className="App"><GuestOverlay reason={!hasPlant ? "no-plant" : undefined}/></div>)
+        <div className="App"><LockedOverlay reason={!hasPlant ? "no-plant" : undefined}/></div>)
 
     return (
         <div className="App">
