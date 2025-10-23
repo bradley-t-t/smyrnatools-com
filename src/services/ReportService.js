@@ -61,7 +61,7 @@ class ReportServiceImpl {
     }
 
     getWeekRangeString(start, end) {
-        return `${this.formatDateMMDDYY(start)} through ${this.formatDateMMDDYY(end)}`
+        return `${this.formatDateMMDDYY(start)} to ${this.formatDateMMDDYY(end)}`
     }
 
     getPlantNameFromReport(report) {
