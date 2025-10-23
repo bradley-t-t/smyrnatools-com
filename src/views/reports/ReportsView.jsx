@@ -729,7 +729,7 @@ function ReportsView() {
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <div className="rpts-pagination">
+                                            <div className="rpts-pagination rpts-pagination-animated">
                                                 <div className="rpts-page-size">
                                                     <label>Show:</label>
                                                     <select
@@ -833,7 +833,7 @@ function ReportsView() {
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <div className="rpts-pagination">
+                                            <div className="rpts-pagination rpts-pagination-animated">
                                                 <div className="rpts-page-size">
                                                     <label>Show:</label>
                                                     <select
@@ -920,7 +920,7 @@ function ReportsView() {
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <div className="rpts-pagination">
+                                            <div className="rpts-pagination rpts-pagination-animated">
                                                 <div className="rpts-page-size">
                                                     <label>Show:</label>
                                                     <select

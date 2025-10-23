@@ -15,7 +15,6 @@ function MyAccountView({userId}) {
     const [email, setEmail] = useState('');
     const [userRole, setUserRole] = useState('');
     const [plantCode, setPlantCode] = useState('');
-    const [regionCode, setRegionCode] = useState('');
     const [regionName, setRegionName] = useState('');
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -27,7 +26,6 @@ function MyAccountView({userId}) {
     const [activeTab, setActiveTab] = useState('profile');
     const [permittedRegions, setPermittedRegions] = useState([])
     const [regionsLoaded, setRegionsLoaded] = useState(false)
-    const [hasAllRegionsPermission, setHasAllRegionsPermission] = useState(false)
 
     useEffect(() => {
         let cancelled = false
@@ -44,40 +42,29 @@ function MyAccountView({userId}) {
                     throw new Error('No active session or user ID')
                 }
                 setIsAuthenticated(true)
-                const allPerm = await UserService.hasPermission(uid, 'region.select.all').catch(() => false)
-                if (!cancelled) setHasAllRegionsPermission(!!allPerm)
-                let sessionEmail = session?.user?.email || ''
-                if (!sessionEmail) {
-                    try {
-                        const {data: userData} = await supabase.from('users').select('email').eq('id', uid).single();
-                        if (userData?.email) sessionEmail = userData.email
-                    } catch {
-                    }
-                }
-                setEmail(sessionEmail)
-                const [{data: profileData}, {data: usersData}, highestRole] = await Promise.all([
-                    supabase.from('users_profiles').select('first_name, last_name, plant_code, regions').eq('id', uid).single(),
-                    firstName && lastName ? Promise.resolve({data: null}) : supabase.from('users').select('*, profiles(first_name, last_name)').eq('id', uid).single(),
-                    UserService.getHighestRole(uid).catch(() => null)
+                
+                const [profileData, userData, highestRole, regionsList] = await Promise.all([
+                    supabase.from('users_profiles').select('first_name, last_name, plant_code').eq('id', uid).single().then(r => r.data).catch(() => null),
+                    supabase.from('users').select('email').eq('id', uid).single().then(r => r.data).catch(() => null),
+                    UserService.getHighestRole(uid).catch(() => null),
+                    UserService.getPermittedRegions(uid).catch(() => [])
                 ])
+                
+                const userEmail = session?.user?.email || userData?.email || ''
+                if (userEmail) setEmail(userEmail)
+                
+                if (cancelled) return
+                
                 if (highestRole?.name) setUserRole(highestRole.name)
-                let regionsList = []
-                try {
-                    regionsList = await UserService.getPermittedRegions(uid)
-                } catch {
-                    regionsList = []
-                }
+                
                 if (profileData) {
                     setUser({...profileData})
                     if (profileData.first_name) setFirstName(profileData.first_name)
                     if (profileData.last_name) setLastName(profileData.last_name)
-                    const pc = profileData.plant_code || ''
-                    setPlantCode(pc)
-                } else if (!regionsList.length && !allPerm && usersData?.profiles) {
-                    if (usersData.profiles.first_name) setFirstName(usersData.profiles.first_name)
-                    if (usersData.profiles.last_name) setLastName(usersData.profiles.last_name)
+                    if (profileData.plant_code) setPlantCode(profileData.plant_code)
                 }
-                if (regionsList.length) {
+                
+                if (regionsList && regionsList.length) {
                     setPermittedRegions(regionsList)
                     const currentSelCode = preferences.selectedRegion?.code
                     let chosen = regionsList.find(r => (r.regionCode || r.region_code) === currentSelCode)
@@ -88,16 +75,14 @@ function MyAccountView({userId}) {
                         type: chosen.type || chosen.region_type || ''
                     }
                     updatePreferences('selectedRegion', sel)
-                    setRegionCode(sel.code)
                     setRegionName(sel.name)
                 } else {
                     setPermittedRegions([])
                     updatePreferences('selectedRegion', {code: '', name: '', type: ''})
-                    setRegionCode('')
                     setRegionName('')
                 }
             } catch (e) {
-                setMessage(`Error: ${e.message}`)
+                if (!cancelled) setMessage(`Error: ${e.message}`)
             } finally {
                 if (!cancelled) {
                     setRegionsLoaded(true);
@@ -209,7 +194,6 @@ function MyAccountView({userId}) {
         const code = e.target.value
         if (!code) {
             updatePreferences('selectedRegion', {code: '', name: '', type: ''});
-            setRegionCode('');
             setRegionName('');
             return
         }
@@ -218,16 +202,16 @@ function MyAccountView({userId}) {
         const name = r.regionName || r.region_name || '';
         const type = r.type || r.region_type || ''
         updatePreferences('selectedRegion', {code, name, type});
-        setRegionCode(code);
         setRegionName(name)
     }
 
-    if (loading) return <LoadingScreen fullPage={true}
-                                       message={message.startsWith('Error') ? 'Retrying...' : 'Loading account...'}/>
+    if (loading) {
+        return <LoadingScreen fullPage={true} message="Loading your account..." />
+    }
 
     return (
-        <div className="my-account-container">
-            <div className="account-hero">
+        <div className="my-account-container account-fade-in">
+            <div className="account-hero account-slide-in">
                 <div className="account-avatar" style={{borderColor: 'var(--myaccount-accent)'}}>
                     {firstName && lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() :
                         <i className="fas fa-user"></i>}
@@ -241,9 +225,6 @@ function MyAccountView({userId}) {
                         {(preferences.selectedRegion?.name || regionName) && <div className="account-badge"
                                                                                   style={{backgroundColor: 'var(--myaccount-accent)'}}>{preferences.selectedRegion?.name || regionName}</div>}
                         {plantCode && <div className="account-badge plant-badge">{plantCode}</div>}
-                        {hasAllRegionsPermission &&
-                            <div className="account-badge" style={{backgroundColor: 'var(--myaccount-accent)'}}>All
-                                Regions</div>}
                     </div>
                 </div>
             </div>
@@ -256,7 +237,7 @@ function MyAccountView({userId}) {
                         className="fas fa-times"></i></button>
                 </div>
             )}
-            <div className="account-tabs">
+            <div className="account-tabs account-slide-in" style={{animationDelay: '0.1s'}}>
                 <button className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
                         onClick={() => setActiveTab('profile')}
                         style={activeTab === 'profile' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}><i
@@ -268,7 +249,7 @@ function MyAccountView({userId}) {
                     className="fas fa-shield-alt"></i> Security
                 </button>
             </div>
-            <div className="account-tab-content" style={{display: activeTab === 'profile' ? 'block' : 'none'}}>
+            <div className="account-tab-content account-slide-in" style={{display: activeTab === 'profile' ? 'block' : 'none', animationDelay: '0.2s'}}>
                 <div className="account-section">
                     <div className="section-header">
                         <h2><i className="fas fa-id-card" style={{color: 'var(--myaccount-accent)'}}></i> Personal
@@ -359,7 +340,7 @@ function MyAccountView({userId}) {
                     </div>
                 </div>
             </div>
-            <div className="account-tab-content" style={{display: activeTab === 'security' ? 'block' : 'none'}}>
+            <div className="account-tab-content account-slide-in" style={{display: activeTab === 'security' ? 'block' : 'none', animationDelay: '0.2s'}}>
                 <div className="account-section">
                     <div className="section-header">
                         <h2><i className="fas fa-shield-alt" style={{color: 'var(--myaccount-accent)'}}></i> Account

@@ -151,7 +151,7 @@ function SettingsView() {
                         </div>
                     </div>
                 </div>
-                <div className="settings-card">
+                <div className="settings-card settings-slide-in" style={{animationDelay: '0.3s'}}>
                     <div className="settings-card-header">
                         <h2>
                             <i className="fas fa-bell"></i> Notifications

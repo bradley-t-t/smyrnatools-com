@@ -2016,6 +2016,23 @@
     }
 }
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.rpts-pagination-animated {
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
+    animation-delay: 2.4s;
+}
+
 .rpt-col-operator {
     width: 210px;
 }

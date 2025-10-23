@@ -6,6 +6,34 @@
     z-index: 1;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.settings-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.settings-slide-in {
+    animation: slideInUp 0.5s ease-out backwards;
+}
+
 .settings-feedback {
     position: fixed;
     top: 20px;

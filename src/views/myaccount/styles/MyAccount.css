@@ -8,6 +8,34 @@
     z-index: 1;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.account-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.account-slide-in {
+    animation: slideInUp 0.5s ease-out backwards;
+}
+
 .account-hero {
     display: flex;
     align-items: center;
