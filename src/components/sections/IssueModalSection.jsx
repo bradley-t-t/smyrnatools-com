@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import ReactDOM from 'react-dom';
 import LoadingScreen from '../common/LoadingScreen';
 import ErrorMessage from '../common/ErrorMessage';
 import {UserService} from '../../services/UserService';
@@ -142,7 +143,11 @@ function IssueModalSection({
         }
     };
 
-    return (
+    if (typeof document === 'undefined' || !document.body) {
+        return null;
+    }
+
+    return ReactDOM.createPortal(
         <div className="issue-modal-backdrop" onClick={handleBackdropClick}>
             <div className="issue-modal">
                 <div className="issue-modal-header">
@@ -291,7 +296,8 @@ function IssueModalSection({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

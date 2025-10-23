@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import ReactDOM from 'react-dom';
 import {OperatorService} from '../../services/OperatorService';
 import LoadingScreen from '../common/LoadingScreen';
 import UserLabel from '../common/UserLabel';
@@ -1822,7 +1823,11 @@ function HistoryViewSection({item, type, onClose}) {
         return FormatUtility.formatDateTime(dateString);
     };
 
-    return (
+    if (typeof document === 'undefined' || !document.body) {
+        return null;
+    }
+
+    return ReactDOM.createPortal(
         <div className="history-modal-backdrop">
             <div className="history-modal">
                 <div className="history-modal-header">
@@ -1927,7 +1932,8 @@ function HistoryViewSection({item, type, onClose}) {
                     <button className="cancel-button" onClick={onClose}>Close</button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

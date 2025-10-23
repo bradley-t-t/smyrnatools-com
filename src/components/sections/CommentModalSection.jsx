@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import ReactDOM from 'react-dom';
 import LoadingScreen from '../common/LoadingScreen';
 import ErrorMessage from '../common/ErrorMessage';
 import {UserService} from '../../services/UserService';
@@ -117,7 +118,11 @@ function CommentModalSection({
         return dateB - dateA;
     });
 
-    return (
+    if (typeof document === 'undefined' || !document.body) {
+        return null;
+    }
+
+    return ReactDOM.createPortal(
         <div className="comment-modal-backdrop" onClick={handleBackdropClick}>
             <div className="comment-modal">
                 <div className="comment-modal-header">
@@ -200,7 +205,8 @@ function CommentModalSection({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

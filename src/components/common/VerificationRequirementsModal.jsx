@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react'
+import ReactDOM from 'react-dom'
 import {ValidationUtility} from '../../utils/ValidationUtility'
 import {UserService} from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
@@ -347,7 +348,11 @@ export default function VerificationRequirementsModal({
             : expandedSection === sectionName
     }
 
-    return (
+    if (typeof document === 'undefined' || !document.body) {
+        return null
+    }
+
+    return ReactDOM.createPortal(
         <div className="modal-overlay" role="dialog" aria-modal="true">
             <div className="modal-content verification-modal enhanced-verification">
                 <div className="verification-modal-header">
@@ -758,6 +763,7 @@ export default function VerificationRequirementsModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
