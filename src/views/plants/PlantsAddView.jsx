@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import {PlantService} from '../../services/PlantService'
 import './styles/Plants.css'
+import AddViewSection from '../../components/sections/AddViewSection'
 
 function PlantsAddView({onClose, onPlantAdded}) {
     const [plantCode, setPlantCode] = useState('')
@@ -42,55 +43,44 @@ function PlantsAddView({onClose, onPlantAdded}) {
     }
 
     return (
-        <div className="add-plant-modal-backdrop">
-            <div className="add-plant-modal enhanced">
-                <div className="add-plant-header sticky">
-                    <h2>Add New Plant</h2>
-                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
-                </div>
-                <div className="add-plant-content-scrollable">
-                    <div className="add-plant-content">
-                        {error && <div className="error-message">{error}</div>}
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="plantCode">Plant Code*</label>
-                                        <input
-                                            id="plantCode"
-                                            type="text"
-                                            className="ios-input"
-                                            value={plantCode}
-                                            onChange={e => setPlantCode(e.target.value)}
-                                            placeholder="Enter plant code"
-                                            required
-                                            autoFocus
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="plantName">Plant Name*</label>
-                                        <input
-                                            id="plantName"
-                                            type="text"
-                                            className="ios-input"
-                                            value={plantName}
-                                            onChange={e => setPlantName(e.target.value)}
-                                            placeholder="Enter plant name"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="form-actions">
-                                <button type="submit" className="ios-button-primary" disabled={isSaving}>
-                                    {isSaving ? 'Adding...' : 'Add Plant'}
-                                </button>
-                            </div>
-                        </form>
+        <AddViewSection title="Add New Plant" onClose={onClose} error={error}>
+            <form onSubmit={handleSubmit} autoComplete="off">
+                <div className="form-section">
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="plantCode">Plant Code*</label>
+                            <input
+                                id="plantCode"
+                                type="text"
+                                className="ios-input"
+                                value={plantCode}
+                                onChange={e => setPlantCode(e.target.value)}
+                                placeholder="Enter plant code"
+                                required
+                                autoFocus
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="plantName">Plant Name*</label>
+                            <input
+                                id="plantName"
+                                type="text"
+                                className="ios-input"
+                                value={plantName}
+                                onChange={e => setPlantName(e.target.value)}
+                                placeholder="Enter plant name"
+                                required
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+                <div className="form-actions">
+                    <button type="submit" className="ios-button-primary" disabled={isSaving}>
+                        {isSaving ? 'Adding...' : 'Add Plant'}
+                    </button>
+                </div>
+            </form>
+        </AddViewSection>
     )
 }
 

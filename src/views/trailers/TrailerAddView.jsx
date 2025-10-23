@@ -4,6 +4,7 @@ import Trailer from '../../models/trailers/Trailer';
 import {AuthService} from '../../services/AuthService';
 import './styles/Trailers.css';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import AddViewSection from '../../components/sections/AddViewSection';
 
 function TrailerAddView({plants, onClose, onTrailerAdded}) {
     const [trailerNumber, setTrailerNumber] = useState('');
@@ -77,99 +78,90 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
     }
 
     return (
-        <div className="add-trailer-modal-backdrop">
-            <div className="add-trailer-modal">
-                <div className="add-trailer-header sticky">
-                    <h2>Add New Trailer</h2>
-                    <button className="close-btn" onClick={onClose} aria-label="Close">×</button>
-                </div>
-                <div className="add-trailer-content-scrollable">
-                    <div className="add-trailer-content">
-                        {error && <div className="error-message">{error}</div>}
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label htmlFor="trailerNumber">Trailer Number*</label>
-                                        <input
-                                            id="trailerNumber"
-                                            type="text"
-                                            className="ios-input"
-                                            value={trailerNumber}
-                                            onChange={e => setTrailerNumber(e.target.value)}
-                                            placeholder="Enter trailer number"
-                                            required
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
+        <>
+            <AddViewSection title="Add New Trailer" onClose={onClose} error={error}>
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <div className="form-section">
+                        <div className="form-row">
+                            <div className="form-group wide">
+                                <label htmlFor="trailerNumber">Trailer Number*</label>
+                                <input
+                                    id="trailerNumber"
+                                    type="text"
+                                    className="ios-input"
+                                    value={trailerNumber}
+                                    onChange={e => setTrailerNumber(e.target.value)}
+                                    placeholder="Enter trailer number"
+                                    required
+                                    autoFocus
+                                />
                             </div>
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="assignedPlant">Assigned Plant*</label>
-                                        <button
-                                            type="button"
-                                            className="ios-select"
-                                            onClick={() => setIsPlantModalOpen(true)}
-                                            aria-label="Select assigned plant"
-                                        >
-                                            {plantDisplayText}
-                                        </button>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="trailerType">Trailer Type</label>
-                                        <select
-                                            id="trailerType"
-                                            className="ios-select"
-                                            value={trailerType}
-                                            onChange={e => setTrailerType(e.target.value)}
-                                        >
-                                            <option value="Cement">Cement</option>
-                                            <option value="End Dump">End Dump</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="cleanlinessRating">Cleanliness Rating</label>
-                                        <select
-                                            id="cleanlinessRating"
-                                            className="ios-select"
-                                            value={cleanlinessRating}
-                                            onChange={e => setCleanlinessRating(Number(e.target.value))}
-                                        >
-                                            {[1, 2, 3, 4, 5].map(rating => (
-                                                <option key={rating}
-                                                        value={rating}>{rating} Star{rating > 1 ? 's' : ''}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="form-actions">
-                                <button type="submit" className="ios-button-primary" disabled={isSaving}>
-                                    {isSaving ? 'Adding...' : 'Add Trailer'}
+                        </div>
+                    </div>
+                    <div className="form-section">
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="assignedPlant">Assigned Plant*</label>
+                                <button
+                                    type="button"
+                                    className="ios-select"
+                                    onClick={() => setIsPlantModalOpen(true)}
+                                    aria-label="Select assigned plant"
+                                >
+                                    {plantDisplayText}
                                 </button>
                             </div>
-                        </form>
-                        {isPlantModalOpen && (
-                            <PlantDropdownModal
-                                isOpen={isPlantModalOpen}
-                                onClose={() => setIsPlantModalOpen(false)}
-                                onSelect={code => {
-                                    setAssignedPlant(code);
-                                    setIsPlantModalOpen(false);
-                                }}
-                                plants={visiblePlants}
-                            />
-                        )}
+                            <div className="form-group">
+                                <label htmlFor="trailerType">Trailer Type</label>
+                                <select
+                                    id="trailerType"
+                                    className="ios-select"
+                                    value={trailerType}
+                                    onChange={e => setTrailerType(e.target.value)}
+                                >
+                                    <option value="Cement">Cement</option>
+                                    <option value="End Dump">End Dump</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                    <div className="form-section">
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="cleanlinessRating">Cleanliness Rating</label>
+                                <select
+                                    id="cleanlinessRating"
+                                    className="ios-select"
+                                    value={cleanlinessRating}
+                                    onChange={e => setCleanlinessRating(Number(e.target.value))}
+                                >
+                                    {[1, 2, 3, 4, 5].map(rating => (
+                                        <option key={rating}
+                                                value={rating}>{rating} Star{rating > 1 ? 's' : ''}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="form-actions">
+                        <button type="submit" className="ios-button-primary" disabled={isSaving}>
+                            {isSaving ? 'Adding...' : 'Add Trailer'}
+                        </button>
+                    </div>
+                </form>
+            </AddViewSection>
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
+                    onClose={() => setIsPlantModalOpen(false)}
+                    onSelect={code => {
+                        setAssignedPlant(code);
+                        setIsPlantModalOpen(false);
+                    }}
+                    plants={visiblePlants}
+                />
+            )}
+        </>
     );
 }
 

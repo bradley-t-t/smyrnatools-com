@@ -7,6 +7,7 @@ import {PlantService} from '../../services/PlantService';
 import {usePreferences} from '../../app/context/PreferencesContext';
 import GrammarUtility from '../../utils/GrammarUtility';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import AddViewSection from '../../components/sections/AddViewSection';
 
 function ListAddView({onClose, onItemAdded, item = null}) {
     const {preferences} = usePreferences();
@@ -129,21 +130,15 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     };
 
     return (
-        <div className="add-list-modal-backdrop">
-            <div className="add-list-modal enhanced">
-                <div className="add-list-header sticky">
-                    <h2>{item ? 'Edit List Item' : 'Add New List Item'}</h2>
-                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
-                </div>
-                <div className="add-list-content-scrollable">
-                    <div className="add-list-content">
-                        {plantRestrictionMessage && (
-                            <div className="plant-restriction-notice">
-                                <i className="fas fa-info-circle"></i> {plantRestrictionMessage}
-                            </div>
-                        )}
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="form-section">
+        <>
+            <AddViewSection title={item ? 'Edit List Item' : 'Add New List Item'} onClose={onClose}>
+                {plantRestrictionMessage && (
+                    <div className="plant-restriction-notice">
+                        <i className="fas fa-info-circle"></i> {plantRestrictionMessage}
+                    </div>
+                )}
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <div className="form-section">
                                 <div className="form-row">
                                     <div className="form-group wide">
                                         <label htmlFor="description">Description*</label>
@@ -208,11 +203,9 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                 </button>
                             </div>
                         </form>
-                        {errors.description && <div className="error-message">{errors.description}</div>}
-                        {errors.plantCode && <div className="error-message">{errors.plantCode}</div>}
-                    </div>
-                </div>
-            </div>
+                {errors.description && <div className="error-message">{errors.description}</div>}
+                {errors.plantCode && <div className="error-message">{errors.plantCode}</div>}
+            </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -224,7 +217,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                     plants={visiblePlants}
                 />
             )}
-        </div>
+        </>
     );
 }
 

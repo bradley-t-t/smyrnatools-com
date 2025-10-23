@@ -81,74 +81,6 @@
     }
 }
 
-.add-operator-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(2px);
-}
-
-.add-operator-modal {
-    background: var(--bg-primary);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
-    max-width: 600px;
-    width: 90vw;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.add-operator-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 22px 28px 18px 28px;
-    border-bottom: 1px solid var(--border-light);
-    background: var(--bg-primary);
-    font-size: 20px;
-    font-weight: 600;
-    z-index: 2;
-}
-
-.add-operator-header h2 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-}
-
-.add-operator-content-scrollable {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    min-height: 0;
-    background: var(--bg-secondary);
-}
-
-.add-operator-content {
-    padding: 28px 28px 18px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.add-operator-content .error-message {
-    background-color: var(--error-bg);
-    color: var(--danger);
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 14px;
-}
-
 .form-row-horizontal {
     display: flex;
     gap: 18px;
@@ -197,41 +129,8 @@
 }
 
 @media (max-width: 700px) {
-    .add-operator-modal {
-        width: 100%;
-        max-width: 100vw;
-        border-radius: 0;
-    }
-
-    .add-operator-content {
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-
-    .add-operator-header {
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-
     .form-row-horizontal {
         flex-direction: column;
         gap: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .add-operator-modal {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        border-radius: 0;
-    }
-
-    .add-operator-header {
-        padding-top: 20px;
-    }
-
-    .add-operator-content {
-        padding: 12px 4px 8px 4px;
     }
 }

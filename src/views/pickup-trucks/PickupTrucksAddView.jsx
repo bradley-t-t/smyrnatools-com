@@ -6,6 +6,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import {PlantService} from '../../services/PlantService'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import AddViewSection from '../../components/sections/AddViewSection';
 
 function PickupTrucksAddView({onClose, onAdded}) {
     const {preferences} = usePreferences()
@@ -111,17 +112,10 @@ function PickupTrucksAddView({onClose, onAdded}) {
     }
 
     return (
-        <div className="add-mixer-modal-backdrop">
-            <div className="add-mixer-modal enhanced pickup-trucks-add">
-                <div className="add-mixer-header sticky">
-                    <h2>Add Pickup Truck</h2>
-                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
-                </div>
-                <div className="add-mixer-content-scrollable">
-                    <div className="add-mixer-content">
-                        {error && <div className="error-message">{error}</div>}
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="form-section">
+        <>
+            <AddViewSection title="Add Pickup Truck" onClose={onClose} error={error}>
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <div className="form-section">
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label>Plant*</label>
@@ -198,9 +192,7 @@ function PickupTrucksAddView({onClose, onAdded}) {
                                         disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Pickup'}</button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
+            </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -212,7 +204,7 @@ function PickupTrucksAddView({onClose, onAdded}) {
                     plants={sortedFilteredPlants}
                 />
             )}
-        </div>
+        </>
     )
 }
 

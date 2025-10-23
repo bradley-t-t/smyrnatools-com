@@ -5,6 +5,7 @@ import './styles/Equipment.css';
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import AddViewSection from '../../components/sections/AddViewSection';
 
 function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
     const {preferences} = usePreferences()
@@ -88,17 +89,10 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
     }
 
     return (
-        <div className="add-equipment-modal-backdrop">
-            <div className="add-equipment-modal enhanced">
-                <div className="add-equipment-header sticky">
-                    <h2>Add New Equipment</h2>
-                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
-                </div>
-                <div className="add-equipment-content-scrollable">
-                    <div className="add-equipment-content">
-                        {error && <div className="error-message">{error}</div>}
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="form-section">
+        <>
+            <AddViewSection title="Add New Equipment" onClose={onClose} error={error}>
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <div className="form-section">
                                 <div className="form-row">
                                     <div className="form-group wide">
                                         <label htmlFor="identifyingNumber">Identifying Number*</label>
@@ -185,9 +179,7 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
+            </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -199,7 +191,7 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                     plants={visiblePlants}
                 />
             )}
-        </div>
+        </>
     );
 }
 

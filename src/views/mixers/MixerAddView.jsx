@@ -6,6 +6,7 @@ import './styles/Mixers.css';
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import AddViewSection from '../../components/sections/AddViewSection';
 
 function MixerAddView({plants, onClose, onMixerAdded}) {
     const {preferences} = usePreferences()
@@ -107,71 +108,62 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
     }
 
     return (
-        <div className="add-mixer-modal-backdrop">
-            <div className="add-mixer-modal enhanced">
-                <div className="add-mixer-header sticky">
-                    <h2>Add New Mixer</h2>
-                    <button className="ios-button close-btn" onClick={onClose} aria-label="Close">×</button>
-                </div>
-                <div className="add-mixer-content-scrollable">
-                    <div className="add-mixer-content">
-                        {error && <div className="error-message">{error}</div>}
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label htmlFor="truckNumber">Truck Number*</label>
-                                        <input
-                                            id="truckNumber"
-                                            type="text"
-                                            className="ios-input"
-                                            value={truckNumber}
-                                            onChange={e => setTruckNumber(e.target.value)}
-                                            placeholder="Enter truck number"
-                                            required
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
+        <>
+            <AddViewSection title="Add New Mixer" onClose={onClose} error={error}>
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <div className="form-section">
+                        <div className="form-row">
+                            <div className="form-group wide">
+                                <label htmlFor="truckNumber">Truck Number*</label>
+                                <input
+                                    id="truckNumber"
+                                    type="text"
+                                    className="ios-input"
+                                    value={truckNumber}
+                                    onChange={e => setTruckNumber(e.target.value)}
+                                    placeholder="Enter truck number"
+                                    required
+                                    autoFocus
+                                />
                             </div>
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="assignedPlant">Assigned Plant*</label>
-                                        <button
-                                            type="button"
-                                            className="ios-select"
-                                            onClick={() => setIsPlantModalOpen(true)}
-                                            aria-label="Select assigned plant"
-                                        >
-                                            {plantDisplayText}
-                                        </button>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="status">Status</label>
-                                        <select
-                                            id="status"
-                                            className="ios-select"
-                                            value={status}
-                                            onChange={e => setStatus(e.target.value)}
-                                        >
-                                            <option value="">Select status</option>
-                                            <option value="Spare">Spare</option>
-                                            <option value="In Shop">In Shop</option>
-                                            <option value="Retired">Retired</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="form-actions">
-                                <button type="submit" className="ios-button-primary" disabled={isSaving}>
-                                    {isSaving ? 'Adding...' : 'Add Mixer'}
+                        </div>
+                    </div>
+                    <div className="form-section">
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="assignedPlant">Assigned Plant*</label>
+                                <button
+                                    type="button"
+                                    className="ios-select"
+                                    onClick={() => setIsPlantModalOpen(true)}
+                                    aria-label="Select assigned plant"
+                                >
+                                    {plantDisplayText}
                                 </button>
                             </div>
-                        </form>
+                            <div className="form-group">
+                                <label htmlFor="status">Status</label>
+                                <select
+                                    id="status"
+                                    className="ios-select"
+                                    value={status}
+                                    onChange={e => setStatus(e.target.value)}
+                                >
+                                    <option value="">Select status</option>
+                                    <option value="Spare">Spare</option>
+                                    <option value="In Shop">In Shop</option>
+                                    <option value="Retired">Retired</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                    <div className="form-actions">
+                        <button type="submit" className="ios-button-primary" disabled={isSaving}>
+                            {isSaving ? 'Adding...' : 'Add Mixer'}
+                        </button>
+                    </div>
+                </form>
+            </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -183,7 +175,7 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                     plants={visiblePlants}
                 />
             )}
-        </div>
+        </>
     );
 }
 

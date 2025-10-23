@@ -142,7 +142,7 @@ function LoginView() {
                         </p>
                     </div>
                 </div>
-                <div className="login-card">
+                <div className="login-card login-slide-in-right">
                     <div className="login-card-header">
                         <img src={SmyrnaLogo} alt="SRM Logo" className="login-card-logo"/>
                         <h1>{isSignUp ? 'Create Account' : 'Sign In'}</h1>

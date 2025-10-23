@@ -6,6 +6,7 @@ import './styles/Operators.css';
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import AddViewSection from '../../components/sections/AddViewSection';
 
 function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allowedPlantCodes}) {
     const {preferences} = usePreferences()
@@ -140,16 +141,10 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
     };
 
     return (
-        <div className="add-operator-modal-backdrop">
-            <div className="add-operator-modal">
-                <div className="add-operator-header">
-                    <h2>Add New Operator</h2>
-                    <button className="ios-button" onClick={onClose}>Cancel</button>
-                </div>
-                <div className="add-operator-content">
-                    {error && <div className="error-message">{error}</div>}
-                    <form onSubmit={handleSubmit}>
-                        <div className="form-group">
+        <>
+            <AddViewSection title="Add New Operator" onClose={onClose} error={error}>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
                             <label htmlFor="name">Name*</label>
                             <input id="name" type="text" className="ios-input" value={name}
                                    onChange={(e) => setName(e.target.value)} placeholder="Enter full name" required/>
@@ -237,8 +232,7 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                         <button type="submit" className="ios-button-primary"
                                 disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Operator'}</button>
                     </form>
-                </div>
-            </div>
+            </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -250,7 +244,7 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                     plants={filteredPlants}
                 />
             )}
-        </div>
+        </>
     );
 }
 
