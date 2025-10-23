@@ -62,30 +62,26 @@ function ListViewModeSection({
                             <td>{item.cleanlinessRating ? '★'.repeat(item.cleanlinessRating) : 'Not Rated'}</td>
                             <td>{item.vinNumber || item.vin}</td>
                             <td>{item.isVerified() ? 'Yes' : 'No'}</td>
-                            <td>
-                                <button onClick={(e) => {
-                                    e.stopPropagation();
-                                    onShowCommentModal(item.id, number);
-                                }} title="Comments" style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--text)',
-                                    padding: '4px',
-                                    cursor: 'pointer'
-                                }}>
-                                    <i className="fas fa-comments" style={{fontSize: '1.2rem'}}></i>
+                            <td className="list-actions-cell">
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onShowCommentModal(item.id, number);
+                                    }} 
+                                    title="Comments"
+                                    className="list-action-btn"
+                                >
+                                    <i className="fas fa-comments"></i>
                                 </button>
-                                <button onClick={(e) => {
-                                    e.stopPropagation();
-                                    onShowIssueModal(item.id, number);
-                                }} title="Issues" style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--text)',
-                                    padding: '4px',
-                                    cursor: 'pointer'
-                                }}>
-                                    <i className="fas fa-tools" style={{fontSize: '1.2rem'}}></i>
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onShowIssueModal(item.id, number);
+                                    }} 
+                                    title="Issues"
+                                    className="list-action-btn"
+                                >
+                                    <i className="fas fa-tools"></i>
                                 </button>
                             </td>
                         </tr>

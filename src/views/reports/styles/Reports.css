@@ -319,13 +319,12 @@
 
 .rpts-status {
     display: inline-block;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 600;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-left: 0;
 }
 
 .rpts-status.success {
@@ -357,24 +356,27 @@
 }
 
 .rpts-list-action {
-    background: var(--card-bg);
+    background: transparent;
     color: var(--text-primary);
     border: 1px solid var(--divider);
-    border-radius: 8px;
-    padding: 7px 18px;
-    font-size: 15px;
-    font-weight: 500;
+    border-radius: 6px;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
     cursor: pointer;
-    margin-left: 18px;
-    transition: background 0.18s, transform 0.12s ease-in-out;
+    transition: all 0.2s ease;
 }
 
 .rpts-list-action:hover {
-    background: var(--divider);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--text-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .rpts-list-action:active {
-    transform: translateY(1px);
+    transform: translateY(0);
 }
 
 .rpts-empty {
@@ -1421,8 +1423,8 @@
 }
 
 .rpt-table-accent th {
-    background: var(--accent);
-    color: var(--text-light);
+    background: var(--accent-header-bg);
+    color: var(--accent-header-text);
 }
 
 .rpt-plant-summary-table {
@@ -1856,57 +1858,84 @@
 
 .rpt-table-wrapper {
     overflow-x: auto;
-    border: 1px solid var(--divider);
-    border-radius: 10px;
-    box-shadow: var(--shadow-md);
     overflow-y: auto;
 }
 
 .rpt-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     table-layout: auto;
+    font-size: 0.8125rem;
+    background: var(--card-bg);
+    border: 1px solid var(--divider);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
 }
 
 .rpt-table th {
-    background: var(--background);
-    padding: 12px 16px;
+    background: var(--accent-header-bg);
+    color: var(--accent-header-text);
+    padding: 14px 8px;
     text-align: left;
-    font-weight: 600;
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--divider);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid var(--divider);
+    box-sizing: border-box;
+}
+
+.rpt-table th:first-child {
+    border-top-left-radius: 14px;
+}
+
+.rpt-table th:last-child {
+    border-top-right-radius: 14px;
 }
 
 .rpt-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--divider);
+    padding: 0.625rem 0.75rem;
+    border-bottom: none;
     color: var(--text-primary);
     text-align: left;
+    font-size: 0.8125rem;
+    transition: all 0.15s ease;
+    vertical-align: middle;
+}
+
+.rpt-table tbody tr {
+    transition: all 0.15s ease;
+    cursor: pointer;
+    background: transparent;
+}
+
+.rpt-table tbody tr:nth-child(even) {
+    background: var(--background);
 }
 
 .rpt-table tbody tr:hover {
-    background: var(--card-bg);
+    background: var(--divider);
 }
 
 .rpt-row-animated {
-    animation: slideInFromLeft 0.4s ease-out;
+    animation: slideInFromLeft 0.35s ease-out;
     animation-fill-mode: both;
 }
 
 @keyframes slideInFromLeft {
     from {
         opacity: 0;
-        transform: translateX(-30px);
+        transform: translateX(-20px);
     }
     to {
         opacity: 1;
         transform: translateX(0);
     }
-}
-
-.rpt-table-accent th {
-    background: var(--accent);
-    color: var(--text-light);
 }
 
 .rpt-col-operator {
@@ -1933,50 +1962,14 @@
     width: 80px;
 }
 
-.rpt-th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    text-align: left;
-    padding: 8px 10px;
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--accent-header-text);
-    border-bottom: 1px solid var(--divider);
-    background: var(--accent-header-bg);
-    white-space: nowrap;
-}
-
-.rpt-th.right {
-    text-align: right;
-}
-
 .rpt-row {
     position: relative;
     z-index: 1;
-    border-bottom: 1px solid var(--divider);
-    height: 48px;
-}
-
-.rpt-td {
-    padding: 8px 10px;
-    font-size: 14px;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    z-index: 1;
-    vertical-align: middle;
-    text-align: left;
 }
 
 .rpt-td.secondary {
     color: var(--text-secondary);
     text-align: left;
-}
-
-.rpt-td.right {
-    text-align: right;
 }
 
 .rpt-td.warn {
