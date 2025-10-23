@@ -51,7 +51,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedEquipmentForHistory, setSelectedEquipmentForHistory] = useState(null)
 
-    const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Open Issues'];
+    const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues'];
     const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Backhoe', 'Skid Steer', 'Forklift', 'Manlift', 'Dozer', 'Off-Road Dump Truck', 'Water/Trash Pump', 'Water Truck', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Rotary Mixer', 'Road Reclaimer', 'Roller', 'Maintainer', 'Sweeper', 'Other', 'Unknown'];
     const headerRef = useRef(null)
     const sortMappings = {
@@ -199,7 +199,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         const matchesRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(equipment.assignedPlant);
         let matchesStatus = true;
         if (statusFilter && statusFilter !== 'All Statuses') {
-            matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? equipment.status === statusFilter : statusFilter === 'Past Due Service' ? EquipmentUtility.isServiceOverdue(equipment.lastServiceDate) : statusFilter === 'Open Issues' ? Number(equipment.openIssuesCount || 0) > 0 : false
+            matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? equipment.status === statusFilter : statusFilter === 'Past Due Service' ? EquipmentUtility.isServiceOverdue(equipment.lastServiceDate) : statusFilter === 'Verified' ? EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy) : statusFilter === 'Not Verified' ? (!EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy) && equipment.status !== 'Retired') : statusFilter === 'Open Issues' ? Number(equipment.openIssuesCount || 0) > 0 : false
         }
         const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter;
         return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType;
@@ -208,9 +208,19 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
         }
         const prop = sortMappings[sortKey]
-        if (!prop) return 0;
-        let aVal = a[prop]
-        let bVal = b[prop]
+        let aVal, bVal;
+        if (sortKey === 'Verified') {
+            aVal = a.status === 'Retired' ? 0 : (EquipmentUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy) ? 2 : 1)
+            bVal = b.status === 'Retired' ? 0 : (EquipmentUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy) ? 2 : 1)
+        } else if (sortKey === 'Equipment #') {
+            aVal = parseFloat(a.identifyingNumber) || 0
+            bVal = parseFloat(b.identifyingNumber) || 0
+        } else if (prop) {
+            aVal = a[prop]
+            bVal = b[prop]
+        } else {
+            return 0
+        }
         if (typeof aVal === 'number' && typeof bVal === 'number') {
             return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
         } else {

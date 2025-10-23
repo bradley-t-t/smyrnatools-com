@@ -228,14 +228,23 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
         }
         const prop = sortMappings[sortKey]
-        if (!prop) return 0;
         let aVal, bVal;
         if (sortKey === 'Trailer #') {
             aVal = parseFloat(a.trailerNumber) || 0
             bVal = parseFloat(b.trailerNumber) || 0
-        } else {
+        } else if (sortKey === 'Tractor') {
+            const tractorA = tractors.find(t => t.id === a.assignedTractor)
+            const tractorB = tractors.find(t => t.id === b.assignedTractor)
+            aVal = tractorA?.truckNumber || ''
+            bVal = tractorB?.truckNumber || ''
+        } else if (sortKey === 'VIN') {
+            aVal = String(a.vinNumber || '').toLowerCase()
+            bVal = String(b.vinNumber || '').toLowerCase()
+        } else if (prop) {
             aVal = a[prop]
             bVal = b[prop]
+        } else {
+            return 0
         }
         if (typeof aVal === 'number' && typeof bVal === 'number') {
             return sortDirection === 'asc' ? aVal - bVal : bVal - aVal

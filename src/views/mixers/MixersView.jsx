@@ -282,11 +282,10 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
                 }
                 const prop = sortMappings[sortKey]
-                if (!prop) return 0;
                 let aVal, bVal;
                 if (sortKey === 'Verified') {
-                    aVal = a.isVerified() ? 1 : 0
-                    bVal = b.isVerified() ? 1 : 0
+                    aVal = a.status === 'Retired' ? 0 : (a.isVerified() ? 2 : 1)
+                    bVal = b.status === 'Retired' ? 0 : (b.isVerified() ? 2 : 1)
                 } else if (sortKey === 'Operator') {
                     aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
                     bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
@@ -296,9 +295,14 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 } else if (sortKey === 'Truck #') {
                     aVal = parseFloat(a.truckNumber) || 0
                     bVal = parseFloat(b.truckNumber) || 0
-                } else {
+                } else if (sortKey === 'VIN') {
+                    aVal = String(a.vinNumber || '').toLowerCase()
+                    bVal = String(b.vinNumber || '').toLowerCase()
+                } else if (prop) {
                     aVal = a[prop]
                     bVal = b[prop]
+                } else {
+                    return 0
                 }
                 if (typeof aVal === 'number' && typeof bVal === 'number') {
                     return sortDirection === 'asc' ? aVal - bVal : bVal - aVal

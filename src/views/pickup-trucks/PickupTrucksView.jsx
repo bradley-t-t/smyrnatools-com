@@ -160,14 +160,21 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                 return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'assigned')
             }
             const prop = sortMappings[sortKey]
-            if (!prop) return 0;
             let aVal, bVal;
             if (sortKey === 'Assigned') {
                 aVal = parseFloat(a.assigned) || 0
                 bVal = parseFloat(b.assigned) || 0
-            } else {
+            } else if (sortKey === 'Make & Model') {
+                aVal = `${a.make || ''} ${a.model || ''}`.trim().toLowerCase()
+                bVal = `${b.make || ''} ${b.model || ''}`.trim().toLowerCase()
+            } else if (sortKey === 'VIN') {
+                aVal = String(a.vin || '').toLowerCase()
+                bVal = String(b.vin || '').toLowerCase()
+            } else if (prop) {
                 aVal = a[prop]
                 bVal = b[prop]
+            } else {
+                return 0
             }
             if (typeof aVal === 'number' && typeof bVal === 'number') {
                 return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
