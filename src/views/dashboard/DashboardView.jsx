@@ -829,7 +829,7 @@ export default function DashboardView() {
                     </div>
                 </div>
             </div>
-            <div className="dashboard-hero simple">
+            <div className="dashboard-hero simple slide-in-hero">
                 <div className="hero-left">
                     <div className="hero-region">
                         <div className="hero-region-name">{regionDisplayName}</div>
@@ -881,12 +881,12 @@ export default function DashboardView() {
                     </div>
                 ) : (
                     <div className="group-grid">
-                        <div className="group-section">
+                        <div className="group-section slide-in-section">
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
                                 {!isAggregate && (
                                     <div
-                                        className={`kpi-card ${selectedRegion?.type === 'Concrete' ? 'prominent' : ''}`}>
+                                        className={`kpi-card slide-in-card ${selectedRegion?.type === 'Concrete' ? 'prominent' : ''}`}>
                                         <div className="kpi-title">Mixers</div>
                                         <div className="kpi-value">{stats.mixers.total}</div>
                                         <div className="kpi-row">
@@ -901,7 +901,7 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                 )}
-                                <div className={`kpi-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}>
+                                <div className={`kpi-card slide-in-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}>
                                     <div className="kpi-title">Tractors</div>
                                     <div className="kpi-value">{stats.tractors.total}</div>
                                     <div className="kpi-row">
@@ -915,7 +915,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Comments {stats.tractors.comments}</div>
                                     </div>
                                 </div>
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Trailers</div>
                                     <div className="kpi-value">{stats.trailers.total}</div>
                                     <div className="kpi-row">
@@ -928,7 +928,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Comments {stats.trailers.comments}</div>
                                     </div>
                                 </div>
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Equipment</div>
                                     <div className="kpi-value">{stats.equipment.total}</div>
                                     <div className="kpi-row">
@@ -942,7 +942,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Comments {stats.equipment.comments}</div>
                                     </div>
                                 </div>
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Pickup Trucks</div>
                                     <div className="kpi-value">{stats.pickups.total}</div>
                                     <div className="kpi-row">
@@ -958,10 +958,10 @@ export default function DashboardView() {
                                 </div>
                             </div>
                         </div>
-                        <div className="group-section">
+                        <div className="group-section slide-in-section">
                             <div className="section-title">People</div>
                             <div className="dashboard-grid inner-grid">
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Operators</div>
                                     <div className="kpi-value">{stats.operators.total}</div>
                                     <div className="kpi-row">
@@ -976,7 +976,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Pending Start {stats.operators.pending}</div>
                                     </div>
                                 </div>
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Managers</div>
                                     <div className="kpi-value">{stats.managers}</div>
                                 </div>
@@ -1089,10 +1089,10 @@ export default function DashboardView() {
                                 )}
                             </div>
                         </div>
-                        <div className="group-section">
+                        <div className="group-section slide-in-section">
                             <div className="section-title">Maintenance & Quality</div>
                             <div className="dashboard-grid inner-grid">
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Service Overdue</div>
                                     <div className="kpi-value">{stats.overdueTotal}</div>
                                     <div className="kpi-row">
@@ -1102,7 +1102,7 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Equipment {stats.equipment.overdue}</div>
                                     </div>
                                 </div>
-                                <div className="kpi-card">
+                                <div className="kpi-card slide-in-card">
                                     <div className="kpi-title">Open Issues</div>
                                     <div className="kpi-value">{stats.openIssuesTotal}</div>
                                     <div className="kpi-row">

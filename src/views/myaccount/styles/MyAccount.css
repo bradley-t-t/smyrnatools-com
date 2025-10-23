@@ -128,6 +128,7 @@
 
 .section-header {
     margin-bottom: 1rem;
+    border-radius: 12px;
 }
 
 .section-header h2 {
