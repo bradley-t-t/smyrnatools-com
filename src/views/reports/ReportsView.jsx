@@ -697,7 +697,7 @@ function ReportsView() {
                 {loadError && <div className="rpts-load-error">{loadError}</div>}
                 {!showForm && !showReview && (
                     <>
-                        <div className="rpts-toolbar">
+                        <div className="rpts-toolbar rpts-toolbar-sticky">
                             <div className="rpts-toolbar-left">
                                 <div className="rpts-toolbar-title">
                                     <i className="fas fa-file-alt"></i>
@@ -781,17 +781,17 @@ function ReportsView() {
                                                 </div>
                                             ) : (
                                                 <>
+                                                    <div className="rpt-sticky-header-wrapper">
+                                                        <div className="rpt-list-headers header-row">
+                                                            <div style={{width: '20%'}}>Week</div>
+                                                            <div style={{width: '25%'}}>Report Type</div>
+                                                            <div style={{width: '20%'}}>Status</div>
+                                                            <div style={{width: '20%'}}>Due Date</div>
+                                                            <div style={{width: '15%'}}>Actions</div>
+                                                        </div>
+                                                    </div>
                                                     <div className="rpt-table-wrapper">
-                                                        <table className="rpt-table rpt-table-accent">
-                                                            <thead>
-                                                            <tr>
-                                                                <th className="rpt-th">Week</th>
-                                                                <th className="rpt-th">Report Type</th>
-                                                                <th className="rpt-th">Status</th>
-                                                                <th className="rpt-th">Due Date</th>
-                                                                <th className="rpt-th right">Actions</th>
-                                                            </tr>
-                                                            </thead>
+                                                        <table className="rpt-table rpt-table-accent rpt-table-my-reports">
                                                             <tbody>
                                                             {myPaginatedItems.map((item, index) => {
                                                                 const weekIso = item.weekIso
@@ -882,18 +882,18 @@ function ReportsView() {
                                                 </div>
                                             ) : (
                                                 <>
+                                                    <div className="rpt-sticky-header-wrapper">
+                                                        <div className="rpt-list-headers header-row">
+                                                            <div style={{width: '18%'}}>Week</div>
+                                                            <div style={{width: '22%'}}>Report Type</div>
+                                                            <div style={{width: '20%'}}>Submitted By</div>
+                                                            <div style={{width: '16%'}}>Submitted Date</div>
+                                                            <div style={{width: '12%'}}>Reviewed</div>
+                                                            <div style={{width: '12%'}}>Actions</div>
+                                                        </div>
+                                                    </div>
                                                     <div className="rpt-table-wrapper">
-                                                        <table className="rpt-table rpt-table-accent">
-                                                            <thead>
-                                                            <tr>
-                                                                <th className="rpt-th">Week</th>
-                                                                <th className="rpt-th">Report Type</th>
-                                                                <th className="rpt-th">Submitted By</th>
-                                                                <th className="rpt-th">Submitted Date</th>
-                                                                <th className="rpt-th">Reviewed</th>
-                                                                <th className="rpt-th right">Actions</th>
-                                                            </tr>
-                                                            </thead>
+                                                        <table className="rpt-table rpt-table-accent rpt-table-review">
                                                             <tbody>
                                                             {reviewPaginatedItems
                                                                 .map((report, index) => {
@@ -974,16 +974,16 @@ function ReportsView() {
                                                 </div>
                                             ) : (
                                                 <>
+                                                    <div className="rpt-sticky-header-wrapper">
+                                                        <div className="rpt-list-headers header-row">
+                                                            <div style={{width: '22%'}}>Week</div>
+                                                            <div style={{width: '26%'}}>Report Type</div>
+                                                            <div style={{width: '26%'}}>Owed By</div>
+                                                            <div style={{width: '26%'}}>Due Date</div>
+                                                        </div>
+                                                    </div>
                                                     <div className="rpt-table-wrapper">
-                                                        <table className="rpt-table rpt-table-accent">
-                                                            <thead>
-                                                            <tr>
-                                                                <th className="rpt-th">Week</th>
-                                                                <th className="rpt-th">Report Type</th>
-                                                                <th className="rpt-th">Owed By</th>
-                                                                <th className="rpt-th">Due Date</th>
-                                                            </tr>
-                                                            </thead>
+                                                        <table className="rpt-table rpt-table-accent rpt-table-overdue">
                                                             <tbody>
                                                             {overduePaginatedItems.map((item, index) => {
                                                                 const weekIso = item.week

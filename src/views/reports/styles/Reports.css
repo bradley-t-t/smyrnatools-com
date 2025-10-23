@@ -84,7 +84,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     border: none;
     position: relative;
     z-index: 1;
@@ -113,6 +113,14 @@
     padding: 24px 32px 18px 32px;
     border-bottom: 1px solid var(--divider);
     background: var(--background);
+}
+
+.rpts-toolbar-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 400;
+    background: var(--background);
+    backdrop-filter: blur(6px);
 }
 
 .rpts-toolbar-left {
@@ -247,7 +255,6 @@
 }
 
 .rpts-content {
-    flex: 1;
     display: flex;
     flex-direction: column;
     padding: 24px 0 10px 0;
@@ -276,9 +283,8 @@
 
 .rpts-list {
     width: 100%;
-    padding: 0;
+    padding: 0 0 50px 0;
     margin: 0;
-    flex: 1;
     z-index: 1;
 }
 
@@ -1856,53 +1862,66 @@
     border-radius: 6px;
 }
 
+.rpt-sticky-header-wrapper {
+    position: sticky;
+    top: 75px;
+    z-index: 300;
+    background: var(--background);
+}
+
+.rpt-list-headers.header-row {
+    background: var(--accent-header-bg);
+    color: var(--accent-header-text);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-size: 15px;
+    text-transform: uppercase;
+    position: relative;
+    border: 1px solid var(--divider);
+    border-bottom: none;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    padding: 0;
+    gap: 0;
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rpt-list-headers.header-row > div {
+    padding: 14px 8px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 2px solid var(--divider);
+}
+
 .rpt-table-wrapper {
     overflow-x: auto;
-    overflow-y: auto;
+    position: relative;
 }
 
 .rpt-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    table-layout: auto;
+    table-layout: fixed;
     font-size: 0.8125rem;
     background: var(--card-bg);
-    border: 1px solid var(--divider);
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
-}
-
-.rpt-table th {
-    background: var(--accent-header-bg);
-    color: var(--accent-header-text);
-    padding: 14px 8px;
-    text-align: left;
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    border-bottom: 2px solid var(--divider);
+    border-left: 1px solid var(--divider);
+    border-right: 1px solid var(--divider);
+    border-bottom: 1px solid var(--divider);
+    border-top: none;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
     box-sizing: border-box;
-}
-
-.rpt-table th:first-child {
-    border-top-left-radius: 14px;
-}
-
-.rpt-table th:last-child {
-    border-top-right-radius: 14px;
 }
 
 .rpt-table td {
     padding: 0.625rem 0.75rem;
     border-bottom: none;
     color: var(--text-primary);
-    text-align: left;
     font-size: 0.8125rem;
     transition: all 0.15s ease;
     vertical-align: middle;
@@ -1920,6 +1939,66 @@
 
 .rpt-table tbody tr:hover {
     background: var(--divider);
+}
+
+.rpt-table.rpt-table-my-reports td:nth-child(1) {
+    width: 20%;
+}
+
+.rpt-table.rpt-table-my-reports td:nth-child(2) {
+    width: 25%;
+}
+
+.rpt-table.rpt-table-my-reports td:nth-child(3) {
+    width: 20%;
+}
+
+.rpt-table.rpt-table-my-reports td:nth-child(4) {
+    width: 20%;
+}
+
+.rpt-table.rpt-table-my-reports td:nth-child(5) {
+    width: 15%;
+}
+
+.rpt-table.rpt-table-review td:nth-child(1) {
+    width: 18%;
+}
+
+.rpt-table.rpt-table-review td:nth-child(2) {
+    width: 22%;
+}
+
+.rpt-table.rpt-table-review td:nth-child(3) {
+    width: 20%;
+}
+
+.rpt-table.rpt-table-review td:nth-child(4) {
+    width: 16%;
+}
+
+.rpt-table.rpt-table-review td:nth-child(5) {
+    width: 12%;
+}
+
+.rpt-table.rpt-table-review td:nth-child(6) {
+    width: 12%;
+}
+
+.rpt-table.rpt-table-overdue td:nth-child(1) {
+    width: 22%;
+}
+
+.rpt-table.rpt-table-overdue td:nth-child(2) {
+    width: 26%;
+}
+
+.rpt-table.rpt-table-overdue td:nth-child(3) {
+    width: 26%;
+}
+
+.rpt-table.rpt-table-overdue td:nth-child(4) {
+    width: 26%;
 }
 
 .rpt-row-animated {
