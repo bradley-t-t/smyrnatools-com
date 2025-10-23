@@ -222,9 +222,9 @@ function TopSection({
                              aria-label="List headers">
                             {safeListLabels.map((l, i) => <div key={l} style={{
                                 width: safeColWidths[i] || 'auto',
-                                cursor: l ? 'pointer' : 'default'
+                                cursor: l && l !== 'More' ? 'pointer' : 'default'
                             }} role="columnheader"
-                                                               onClick={() => onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
+                                                               onClick={() => l && l !== 'More' && onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
                         </div>
                     )}
                 </div>
