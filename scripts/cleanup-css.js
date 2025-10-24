@@ -87,7 +87,6 @@ async function main() {
     const files = await fg(pattern, {cwd: root, dot: false, onlyFiles: true, absolute: true});
 
     if (files.length === 0) {
-        console.log('No CSS files found under src');
         process.exit(0);
     }
 

@@ -18,7 +18,6 @@ function handleOptions() {
     });
 }
 
-console.log("Auth utility function started");
 Deno.serve(async (req) => {
     if (req.method === "OPTIONS") {
         return handleOptions();
@@ -26,7 +25,6 @@ Deno.serve(async (req) => {
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();
-        console.log(`Processing endpoint: ${endpoint}`);
         const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
             global: {
                 headers: {
@@ -87,7 +85,6 @@ Deno.serve(async (req) => {
                 return new Response(JSON.stringify({salt}), {headers: corsHeaders});
             }
             case "hash-password": {
-                console.log("Processing hash-password request");
                 let requestBody;
                 try {
                     requestBody = await req.json();
@@ -114,7 +111,6 @@ Deno.serve(async (req) => {
                     });
                     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Password hash timed out")), PWD_HASH_TIMEOUT));
                     const hash = await Promise.race([hashPromise, timeoutPromise]);
-                    console.log("Hash generated successfully");
                     return new Response(JSON.stringify({hash}), {headers: corsHeaders});
                 } catch (error) {
                     console.error("Error in crypto API, using fallback:", error);

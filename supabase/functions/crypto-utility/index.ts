@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();
-        console.log(`Processing endpoint: ${endpoint}`);
         let body = {};
         if (req.method === "POST") {
             body = await req.json().catch(() => ({}));

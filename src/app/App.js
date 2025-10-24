@@ -185,9 +185,7 @@ function AppContent() {
 
         function pollVersion() {
             fetch(`/version.json?t=${Date.now()}`, {cache: 'no-store'}).then(res => res.json()).then(data => {
-                console.log('Polled version:', data.version, 'Current version:', currentVersion)
                 if (data.version && currentVersion && compareVersions(data.version, currentVersion) > 0) {
-                    console.log('New version detected:', data.version)
                     setLatestVersion(data.version)
                     if (!updateMode && !showUpdateWarning && !scheduledAt) setShowUpdateWarning(true)
                 }
@@ -351,11 +349,9 @@ function AppContent() {
             try {
                 UserService.userRolesCache.delete(userId)
                 const roles = await UserService.getUserRoles(userId)
-                console.log('[TerminatedCheck] User roles:', roles)
                 if (cancelled) return
 
                 const isTerminated = roles && roles.some(r => (r?.name || '').toLowerCase() === 'terminated')
-                console.log('[TerminatedCheck] Is terminated:', isTerminated)
 
                 if (isTerminated) {
                     setTerminatedMode(true)
@@ -368,7 +364,6 @@ function AppContent() {
                 setRolesLoaded(true)
                 if (guestOnly) setSelectedView({view: 'Guest', initialStatusFilter: null})
             } catch (error) {
-                console.error('[TerminatedCheck] Error loading roles:', error)
                 if (!cancelled) {
                     setIsGuestOnly(false);
                     setRolesLoaded(true)
@@ -383,11 +378,11 @@ function AppContent() {
         }
     }, [userId])
 
-    const fetchUserProfile = async (user) => {
+    const fetchUserProfile = async (userId) => {
         const {
             data,
             error
-        } = await supabase.from('users_profiles').select('first_name, last_name').eq('id', user.id).single()
+        } = await supabase.from('users_profiles').select('first_name, last_name').eq('id', userId).single()
         if (!error && data && (data.first_name || data.last_name)) setTitle(`Welcome, ${data.first_name || ''} ${data.last_name || ''}`.trim())
     }
 

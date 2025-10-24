@@ -292,6 +292,13 @@ export default function VerificationRequirementsModal({
         }
     }
 
+    const handleSaveAndVerify = async () => {
+        if (assignedOperator && operatorPhone && operatorPhone.trim().length > 0) {
+            await handleSaveOperatorPhone()
+        }
+        onSaveAndVerify()
+    }
+
     if (!open) return null
 
     const vinInfo = useMemo(() => ValidationUtility.explainVIN(vin || ''), [vin])
@@ -756,7 +763,7 @@ export default function VerificationRequirementsModal({
                         type="button"
                         className="primary-button"
                         disabled={!canVerify}
-                        onClick={onSaveAndVerify}
+                        onClick={handleSaveAndVerify}
                     >
                         <i className="fas fa-check-circle"></i>
                         {canVerify ? 'Save & Verify' : 'Complete Requirements to Verify'}
