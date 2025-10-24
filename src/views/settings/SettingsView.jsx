@@ -56,12 +56,12 @@ function SettingsView() {
                     <i className="fas fa-check-circle"></i> Saved
                 </div>
             )}
-            <div className="settings-header">
+            <div className="settings-header settings-slide-in">
                 <h1>Settings</h1>
                 <p>Adjust your setting how you would like.</p>
             </div>
             <div className="settings-content">
-                <div className="settings-card">
+                <div className="settings-card settings-slide-in" style={{animationDelay: '0.1s'}}>
                     <div className="settings-card-header">
                         <h2>
                             <i className="fas fa-palette"></i> Appearance
@@ -109,7 +109,7 @@ function SettingsView() {
                         </div>
                     </div>
                 </div>
-                <div className="settings-card">
+                <div className="settings-card settings-slide-in" style={{animationDelay: '0.2s'}}>
                     <div className="settings-card-header">
                         <h2>
                             <i className="fas fa-bars"></i> Navigation
