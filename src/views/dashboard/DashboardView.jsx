@@ -723,6 +723,7 @@ export default function DashboardView() {
     const onRegionChange = e => {
         const code = e.target.value
         if (!code && !hasAllRegionsPermission) return
+        setDataReady(false)
         if (!code && hasAllRegionsPermission) {
             setDashboardRegionCode('')
             setDashboardRegionName('')
@@ -835,31 +836,57 @@ export default function DashboardView() {
             <div className="dashboard-hero simple slide-in-hero">
                 <div className="hero-left">
                     <div className="hero-region">
-                        <div className="hero-region-name">{regionDisplayName}</div>
-                        <div
-                            className="hero-region-sub">{heroRegionSub}</div>
+                        <div className="hero-region-name">{showSkeleton ? <div className="skeleton-line w60"/> : regionDisplayName}</div>
+                        <div className="hero-region-sub">{showSkeleton ? <div className="skeleton-line w40"/> : heroRegionSub}</div>
                     </div>
                     <div className="hero-metrics compact">
-                        <div className="hero-metric">
-                            <div className="metric-label">Fleet</div>
-                            <div className="metric-value">{stats.fleetTotal}{diffBadge(stats.fleetTotal)}</div>
-                            <div className="metric-sub">Total Assets</div>
-                        </div>
-                        <div className="hero-metric">
-                            <div className="metric-label">Asset Allocation</div>
-                            <div className="metric-value">{stats.overallAllocationPercent}%</div>
-                            <div className="metric-sub">Overall Asset Allocation</div>
-                        </div>
-                        <div className="hero-metric">
-                            <div className="metric-label">Overdue</div>
-                            <div className="metric-value">{stats.overdueTotal}</div>
-                            <div className="metric-sub">Service Overdue</div>
-                        </div>
-                        <div className="hero-metric wide">
-                            <div className="metric-label">Verified</div>
-                            <div className="metric-value">{stats.verificationAverage}%</div>
-                            <div className="metric-sub">Overall Verification</div>
-                        </div>
+                        {showSkeleton ? (
+                            <>
+                                <div className="hero-metric skeleton-card">
+                                    <div className="skeleton-line w40"/>
+                                    <div className="skeleton-line w60 tall"/>
+                                    <div className="skeleton-line w30"/>
+                                </div>
+                                <div className="hero-metric skeleton-card">
+                                    <div className="skeleton-line w40"/>
+                                    <div className="skeleton-line w60 tall"/>
+                                    <div className="skeleton-line w30"/>
+                                </div>
+                                <div className="hero-metric skeleton-card">
+                                    <div className="skeleton-line w40"/>
+                                    <div className="skeleton-line w60 tall"/>
+                                    <div className="skeleton-line w30"/>
+                                </div>
+                                <div className="hero-metric wide skeleton-card">
+                                    <div className="skeleton-line w40"/>
+                                    <div className="skeleton-line w60 tall"/>
+                                    <div className="skeleton-line w30"/>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="hero-metric">
+                                    <div className="metric-label">Fleet</div>
+                                    <div className="metric-value">{stats.fleetTotal}{diffBadge(stats.fleetTotal)}</div>
+                                    <div className="metric-sub">Total Assets</div>
+                                </div>
+                                <div className="hero-metric">
+                                    <div className="metric-label">Asset Allocation</div>
+                                    <div className="metric-value">{stats.overallAllocationPercent}%</div>
+                                    <div className="metric-sub">Overall Asset Allocation</div>
+                                </div>
+                                <div className="hero-metric">
+                                    <div className="metric-label">Overdue</div>
+                                    <div className="metric-value">{stats.overdueTotal}</div>
+                                    <div className="metric-sub">Service Overdue</div>
+                                </div>
+                                <div className="hero-metric wide">
+                                    <div className="metric-label">Verified</div>
+                                    <div className="metric-value">{stats.verificationAverage}%</div>
+                                    <div className="metric-sub">Overall Verification</div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

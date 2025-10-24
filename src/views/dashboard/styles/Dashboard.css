@@ -358,10 +358,19 @@
     color: var(--accent)
 }
 
+.hero-region-name .skeleton-line {
+    height: 20px
+}
+
 .hero-region-sub {
     font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
+    margin-top: 4px
+}
+
+.hero-region-sub .skeleton-line {
+    height: 12px;
     margin-top: 4px
 }
 
