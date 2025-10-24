@@ -139,9 +139,77 @@
     align-items: center;
     padding: 7px 10px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.3s ease;
     gap: 8px;
     border-left: 3px solid transparent;
+}
+
+@keyframes menuItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px) scaleY(0.3);
+        transform-origin: top left;
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scaleY(1);
+        transform-origin: top left;
+    }
+}
+
+@keyframes menuItemSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scaleY(1);
+        transform-origin: top left;
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-20px) scaleY(0);
+        transform-origin: top left;
+    }
+}
+
+@keyframes menuItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes menuItemSlideOut {
+    from {
+        opacity: 1;
+        max-height: 100px;
+        padding-top: 13px;
+        padding-bottom: 13px;
+        margin-top: 0;
+        margin-bottom: 0;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        transform: translateX(-20px);
+    }
+}
+
+.menu-item.animating-out {
+    animation: menuItemSlideOut 0.3s ease-in forwards;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.menu-item.animating-in {
+    animation: menuItemSlideIn 0.4s ease-out;
 }
 
 .menu-item-collapsed {

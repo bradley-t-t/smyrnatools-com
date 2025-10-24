@@ -5,17 +5,15 @@ import FlagSmyrnaLogo from '../../assets/images/FlagSmyrnaLogo.png'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
 
-const ensureFontAwesome = () => {
-    if (!document.getElementById('font-awesome-stylesheet')) {
-        const link = document.createElement('link')
-        link.id = 'font-awesome-stylesheet'
-        link.rel = 'stylesheet'
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'
-        link.integrity = 'sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=='
-        link.crossOrigin = 'anonymous'
-        document.head.appendChild(link)
-    }
+const ANIMATION_TIMING = {
+    ITEM_ENTER_DELAY: 375,
+    ITEM_EXIT_DELAY: 150,
+    BASE_EXIT_DURATION: 375
 }
+
+const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'List']
+const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions']
+const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
 
 const getIconForMenuItem = (id) => {
     switch (id) {
@@ -82,12 +80,18 @@ export default function Navigation({
     const {preferences, toggleNavbarMinimized} = usePreferences()
     const [collapsed, setCollapsed] = useState(preferences.navbarMinimized)
     const [visibleMenuItems, setVisibleMenuItems] = useState([])
+    const [exitingItems, setExitingItems] = useState([])
+    const [enteringItemIds, setEnteringItemIds] = useState(new Set())
+    const [isMenuReady, setIsMenuReady] = useState(false)
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const lastMenuItemsRef = useRef([])
+    const exitAnimationTimeoutRef = useRef(null)
+    const enterAnimationTimeoutRef = useRef(null)
+    const enterTimeoutsRef = useRef([])
+    const isInitialMenuLoadRef = useRef(true)
 
     useEffect(() => {
-        ensureFontAwesome()
         const handleStatusFilterChange = (event) => {
             const {statusFilter} = event.detail
             if (statusFilter === 'completed' || listStatusFilter === 'completed') {
@@ -108,14 +112,99 @@ export default function Navigation({
             }
             try {
                 const permissions = await UserService.getUserPermissions(userId)
-                let filtered = menuItems.filter(item => {
-                    if (item.permission) return permissions.includes(item.permission)
-                    return false
-                })
-                if (regionType === 'Office') filtered = filtered.filter(item => item.id === 'Reports' || item.id === 'Dashboard' || item.id === 'Managers' || item.id === 'Plants' || item.id === 'Regions')
-                else if (regionType === 'Aggregate') filtered = filtered.filter(item => !['Mixers', 'Plants', 'Regions'].includes(item.id))
-                else filtered = filtered.filter(item => !['Plants', 'Regions'].includes(item.id))
-                setVisibleMenuItems(filtered)
+                let filtered = menuItems.filter(item => 
+                    item.permission && permissions.includes(item.permission)
+                )
+                
+                if (regionType === 'Office') {
+                    filtered = filtered.filter(item => OFFICE_VISIBLE_ITEMS.includes(item.id))
+                } else if (regionType === 'Aggregate') {
+                    filtered = filtered.filter(item => !AGGREGATE_HIDDEN_ITEMS.includes(item.id))
+                } else {
+                    filtered = filtered.filter(item => !DEFAULT_HIDDEN_ITEMS.includes(item.id))
+                }
+
+                const prevIds = new Set(lastMenuItemsRef.current.map(item => item.id))
+                const newIds = new Set(filtered.map(item => item.id))
+                const addedItems = filtered.filter(item => !prevIds.has(item.id))
+                const removedItems = lastMenuItemsRef.current.filter(item => !newIds.has(item.id))
+                const isInitialLoad = isInitialMenuLoadRef.current && filtered.length > 0 && lastMenuItemsRef.current.length === 0
+
+                if (isInitialLoad) {
+                    isInitialMenuLoadRef.current = false
+                    setVisibleMenuItems([])
+
+                    if (!isMenuReady) {
+                        setIsMenuReady(true)
+                    }
+
+                    setTimeout(() => {
+                        filtered.forEach((item, index) => {
+                            const timeout = setTimeout(() => {
+                                setVisibleMenuItems(prev => [...prev, item])
+                                setEnteringItemIds(prev => new Set([...prev, item.id]))
+                            }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                            enterTimeoutsRef.current.push(timeout)
+                        })
+
+                        const enterDuration = filtered.length * ANIMATION_TIMING.ITEM_ENTER_DELAY + ANIMATION_TIMING.BASE_EXIT_DURATION
+                        enterAnimationTimeoutRef.current = setTimeout(() => {
+                            setEnteringItemIds(new Set())
+                        }, enterDuration)
+                    }, 0)
+
+                    lastMenuItemsRef.current = filtered
+                    return
+                } else if (addedItems.length > 0 || removedItems.length > 0) {
+                    if (exitAnimationTimeoutRef.current) {
+                        clearTimeout(exitAnimationTimeoutRef.current)
+                    }
+                    if (enterAnimationTimeoutRef.current) {
+                        clearTimeout(enterAnimationTimeoutRef.current)
+                    }
+                    enterTimeoutsRef.current.forEach(t => clearTimeout(t))
+                    enterTimeoutsRef.current = []
+
+                    if (removedItems.length > 0) {
+                        setExitingItems(removedItems)
+                        const exitDuration = ANIMATION_TIMING.BASE_EXIT_DURATION + (removedItems.length - 1) * ANIMATION_TIMING.ITEM_EXIT_DELAY
+                        exitAnimationTimeoutRef.current = setTimeout(() => {
+                            setExitingItems([])
+                        }, exitDuration)
+                    }
+
+                    if (addedItems.length > 0) {
+                        const itemsWithoutAdded = lastMenuItemsRef.current
+                        setVisibleMenuItems(itemsWithoutAdded)
+
+                        setTimeout(() => {
+                            const reversedItems = [...addedItems].reverse()
+                            reversedItems.forEach((item, index) => {
+                                const timeout = setTimeout(() => {
+                                    setVisibleMenuItems(prev => [...prev, item])
+                                    setEnteringItemIds(prev => new Set([...prev, item.id]))
+                                }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                                enterTimeoutsRef.current.push(timeout)
+                            })
+
+                            const enterDuration = addedItems.length * ANIMATION_TIMING.ITEM_ENTER_DELAY + ANIMATION_TIMING.BASE_EXIT_DURATION
+                            enterAnimationTimeoutRef.current = setTimeout(() => {
+                                setEnteringItemIds(new Set())
+                            }, enterDuration)
+                        }, 0)
+                    } else {
+                        setVisibleMenuItems(filtered)
+                    }
+                } else {
+                    if (enterTimeoutsRef.current.length > 0 && visibleMenuItems.length === 0) {
+                        return
+                    }
+                    setVisibleMenuItems(filtered)
+                    if (!isMenuReady) {
+                        setIsMenuReady(true)
+                    }
+                }
+
                 lastMenuItemsRef.current = filtered
             } catch (error) {
                 setVisibleMenuItems([])
@@ -128,7 +217,12 @@ export default function Navigation({
 
     useEffect(() => {
         if (visibleMenuItems.length > 0 && !visibleMenuItems.some(item => item.id === selectedView) && selectedView !== 'Settings' && selectedView !== 'MyAccount') {
-            onSelectView(visibleMenuItems[0].id)
+            const dashboardItem = visibleMenuItems.find(item => item.id === 'Dashboard')
+            if (dashboardItem) {
+                onSelectView('Dashboard')
+            } else {
+                onSelectView(visibleMenuItems[0].id)
+            }
         }
     }, [visibleMenuItems, selectedView, onSelectView])
 
@@ -136,10 +230,55 @@ export default function Navigation({
         setCollapsed(preferences.navbarMinimized)
     }, [preferences.navbarMinimized])
 
+    useEffect(() => {
+        return () => {
+            if (exitAnimationTimeoutRef.current) {
+                clearTimeout(exitAnimationTimeoutRef.current)
+            }
+            if (enterAnimationTimeoutRef.current) {
+                clearTimeout(enterAnimationTimeoutRef.current)
+            }
+            enterTimeoutsRef.current.forEach(t => clearTimeout(t))
+        }
+    }, [])
+
     const toggleCollapse = () => {
         setCollapsed(!collapsed)
         toggleNavbarMinimized()
     }
+
+    const handleMenuItemClick = (itemId) => {
+        if (window.appSwitchView && (itemId === 'List' || itemId === 'Archive')) {
+            window.appSwitchView(itemId)
+        } else {
+            onSelectView(itemId)
+        }
+    }
+
+    const getMenuItemStyles = () => {
+        if (collapsed) return {}
+        return {
+            padding: '13px 18px',
+            minHeight: 0,
+            lineHeight: 1.35,
+            fontSize: 17
+        }
+    }
+
+    const getMenuIconStyles = () => {
+        if (collapsed) return {}
+        return {
+            marginRight: 14,
+            fontSize: 20,
+            minWidth: 24
+        }
+    }
+
+    const getMenuTextStyles = () => ({
+        fontSize: 17,
+        padding: 0,
+        margin: 0
+    })
 
     return (
         <div className="app-container">
@@ -180,78 +319,99 @@ export default function Navigation({
                 </button>
                 <nav className="navbar-menu">
                     <ul style={!collapsed ? {padding: 0, margin: 0, gap: 0, rowGap: 0} : {}}>
-                        {visibleMenuItems.map((item) => {
-                            const isActive = item.id === 'List' ? selectedView === 'List' : selectedView === item.id
-                            return (
-                                <li
-                                    key={item.id}
-                                    className={`menu-item ${isActive ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''}`}
-                                    onClick={() => {
-                                        if (window.appSwitchView && (item.id === 'List' || item.id === 'Archive')) window.appSwitchView(item.id)
-                                        else onSelectView(item.id)
-                                    }}
-                                    style={collapsed ? {} : {
-                                        padding: '13px 18px',
-                                        minHeight: 0,
-                                        lineHeight: 1.35,
-                                        fontSize: 17
-                                    }}
-                                >
-                                    <span className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`}
-                                          title={item.text}
-                                          style={collapsed ? {} : {marginRight: 14, fontSize: 20, minWidth: 24}}>
-                                        {getIconForMenuItem(item.id)}
-                                    </span>
-                                    {!collapsed && <span className="menu-text" style={{
-                                        fontSize: 17,
-                                        padding: 0,
-                                        margin: 0
-                                    }}>{item.text}</span>}
-                                </li>
+                        {isMenuReady && (() => {
+                            const exitingIds = new Set(exitingItems.map(item => item.id))
+                            const visibleIds = new Set(visibleMenuItems.map(item => item.id))
+                            const exitingMap = new Map(exitingItems.map(item => [item.id, item]))
+
+                            const allItemsInOrder = menuItems.filter(item =>
+                                visibleIds.has(item.id) || exitingIds.has(item.id)
+                            ).map(item =>
+                                exitingIds.has(item.id) ? exitingMap.get(item.id) : item
                             )
-                        })}
+
+                            return allItemsInOrder.map((item) => {
+                                const isExiting = exitingIds.has(item.id)
+                                const isEntering = enteringItemIds.has(item.id)
+                                const isActive = item.id === 'List' ? selectedView === 'List' : selectedView === item.id
+
+                                const exitingItemsList = allItemsInOrder.filter(i => exitingIds.has(i.id))
+
+                                let animationDelay = 0
+                                if (isExiting) {
+                                    const exitIndex = exitingItemsList.findIndex(i => i.id === item.id)
+                                    animationDelay = exitIndex * 0.15
+                                }
+
+                                return (
+                                    <li
+                                        key={item.id}
+                                        className={`menu-item ${isActive ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
+                                        onClick={() => {
+                                            if (isExiting) return
+                                            handleMenuItemClick(item.id)
+                                        }}
+                                        style={{
+                                            ...getMenuItemStyles(),
+                                            animationDelay: isExiting ? `${animationDelay}s` : undefined
+                                        }}
+                                    >
+                                        <span 
+                                            className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`}
+                                            title={item.text}
+                                            style={getMenuIconStyles()}
+                                        >
+                                            {getIconForMenuItem(item.id)}
+                                        </span>
+                                        {!collapsed && (
+                                            <span className="menu-text" style={getMenuTextStyles()}>
+                                                {item.text}
+                                            </span>
+                                        )}
+                                    </li>
+                                )
+                            })
+                        })()}
                         <li
                             className={`menu-item ${selectedView === 'Settings' ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''}`}
-                            onClick={() => {
-                                if (window.appSwitchView) window.appSwitchView('Settings')
-                                else onSelectView('Settings')
-                            }}
-                            style={collapsed ? {} : {
-                                padding: '13px 18px',
-                                minHeight: 0,
-                                lineHeight: 1.35,
-                                fontSize: 17
-                            }}
+                            onClick={() => handleMenuItemClick('Settings')}
+                            style={getMenuItemStyles()}
                         >
-                            <span className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`} title="Settings"
-                                  style={collapsed ? {} : {marginRight: 14, fontSize: 20, minWidth: 24}}>
+                            <span 
+                                className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`} 
+                                title="Settings"
+                                style={getMenuIconStyles()}
+                            >
                                 {getIconForMenuItem('Settings')}
                             </span>
-                            {!collapsed && <span className="menu-text"
-                                                 style={{fontSize: 17, padding: 0, margin: 0}}>Settings</span>}
+                            {!collapsed && (
+                                <span className="menu-text" style={getMenuTextStyles()}>
+                                    Settings
+                                </span>
+                            )}
                         </li>
                         <li
                             className={`menu-item ${selectedView === 'MyAccount' ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''}`}
-                            onClick={() => {
-                                if (window.appSwitchView) window.appSwitchView('MyAccount')
-                                else onSelectView('MyAccount')
-                            }}
-                            style={collapsed ? {} : {
-                                padding: '13px 18px',
-                                minHeight: 0,
-                                lineHeight: 1.35,
-                                fontSize: 17
-                            }}
+                            onClick={() => handleMenuItemClick('MyAccount')}
+                            style={getMenuItemStyles()}
                         >
-                            <span className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`} title="My Account"
-                                  style={collapsed ? {} : {marginRight: 14, fontSize: 20, minWidth: 24}}>
+                            <span 
+                                className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`} 
+                                title="My Account"
+                                style={getMenuIconStyles()}
+                            >
                                 {getIconForMenuItem('MyAccount')}
                             </span>
                             {!collapsed && (
                                 <div className="user-menu-content">
-                                    <span className="menu-text"
-                                          style={{fontSize: 17, padding: 0, margin: 0}}>My Account</span>
-                                    {userName && <span className="user-name" style={{paddingLeft: 0}}>{userName}</span>}
+                                    <span className="menu-text" style={getMenuTextStyles()}>
+                                        My Account
+                                    </span>
+                                    {userName && (
+                                        <span className="user-name" style={{paddingLeft: 0}}>
+                                            {userName}
+                                        </span>
+                                    )}
                                 </div>
                             )}
                         </li>
