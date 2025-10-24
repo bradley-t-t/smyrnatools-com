@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();
-        console.log(`Processing endpoint: ${endpoint}`);
         const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
             global: {
                 headers: {

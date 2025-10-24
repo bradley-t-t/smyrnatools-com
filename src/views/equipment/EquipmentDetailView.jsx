@@ -199,7 +199,6 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 updatedLast: equipment.updatedLast,
                 ...overrides
             };
-            console.log('Sending update:', {id: equipment.id, equipment: updatedEquipment, userId});
             const result = await EquipmentService.updateEquipment(equipment.id, updatedEquipment, userId);
             if (!result) {
                 setMessage('Error saving changes: No data returned from server');
