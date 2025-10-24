@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import ReactDOM from 'react-dom';
 import './styles/PlantDropdownModal.css';
 
 function PlantDropdownModal({
@@ -19,7 +20,11 @@ function PlantDropdownModal({
 
     if (!isOpen) return null;
 
-    return (
+    if (typeof document === 'undefined' || !document.body) {
+        return null;
+    }
+
+    return ReactDOM.createPortal(
         <div className="plant-dropdown-modal-overlay" onClick={onClose}>
             <div className="plant-dropdown-modal" onClick={e => e.stopPropagation()}>
                 <div className="plant-dropdown-modal-header">
@@ -58,7 +63,8 @@ function PlantDropdownModal({
                         ))}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
