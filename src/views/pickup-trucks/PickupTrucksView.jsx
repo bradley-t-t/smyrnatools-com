@@ -11,6 +11,7 @@ import {PickupTruckService} from '../../services/PickupTruckService'
 import AsyncUtility from '../../utils/AsyncUtility'
 import {PlantService} from '../../services/PlantService'
 import FleetUtility from '../../utils/FleetUtility'
+import FormatUtility from '../../utils/FormatUtility'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import TopSection from '../../components/sections/TopSection'
@@ -168,8 +169,8 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                 aVal = `${a.make || ''} ${a.model || ''}`.trim().toLowerCase()
                 bVal = `${b.make || ''} ${b.model || ''}`.trim().toLowerCase()
             } else if (sortKey === 'VIN') {
-                aVal = String(a.vin || '').toLowerCase()
-                bVal = String(b.vin || '').toLowerCase()
+                const comparison = FormatUtility.compareVINs(a.vin, b.vin)
+                return sortDirection === 'asc' ? comparison : -comparison
             } else if (prop) {
                 aVal = a[prop]
                 bVal = b[prop]

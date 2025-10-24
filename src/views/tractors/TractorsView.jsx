@@ -15,6 +15,7 @@ import TractorCommentModal from './TractorCommentModal'
 import {RegionService} from '../../services/RegionService'
 import AsyncUtility from '../../utils/AsyncUtility'
 import FleetUtility from '../../utils/FleetUtility'
+import FormatUtility from '../../utils/FormatUtility'
 import TopSection from '../../components/sections/TopSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
@@ -246,8 +247,8 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
             aVal = parseFloat(a.truckNumber) || 0
             bVal = parseFloat(b.truckNumber) || 0
         } else if (sortKey === 'VIN') {
-            aVal = String(a.vinNumber || '').toLowerCase()
-            bVal = String(b.vinNumber || '').toLowerCase()
+            const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+            return sortDirection === 'asc' ? comparison : -comparison
         } else if (prop) {
             aVal = a[prop]
             bVal = b[prop]

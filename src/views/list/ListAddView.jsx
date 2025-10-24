@@ -131,7 +131,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
 
     return (
         <>
-            <AddViewSection title={item ? 'Edit List Item' : 'Add New List Item'} onClose={onClose}>
+            <AddViewSection title={item ? 'Edit List Item' : 'Add New List Item'} onClose={onClose} isListItem={true}>
                 {plantRestrictionMessage && (
                     <div className="plant-restriction-notice">
                         <i className="fas fa-info-circle"></i> {plantRestrictionMessage}

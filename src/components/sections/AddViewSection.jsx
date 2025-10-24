@@ -4,7 +4,7 @@ import './styles/AddView.css';
 import {UserService} from '../../services/UserService';
 import ErrorMessage from '../common/ErrorMessage';
 
-function AddViewSection({title, onClose, children, error}) {
+function AddViewSection({title, onClose, children, error, isListItem = false}) {
     const [hasPermission, setHasPermission] = useState(null);
     const [internalError, setInternalError] = useState(null);
 
@@ -12,15 +12,21 @@ function AddViewSection({title, onClose, children, error}) {
         async function checkPermission() {
             const userId = sessionStorage.getItem('userId');
             if (userId) {
-                const permitted = await UserService.hasPermission(userId, 'assets.add');
-                setHasPermission(permitted);
+                if (isListItem) {
+                    const hasListAdd = await UserService.hasPermission(userId, 'list.add');
+                    const hasAssetsAdd = await UserService.hasPermission(userId, 'assets.add');
+                    setHasPermission(hasListAdd || hasAssetsAdd);
+                } else {
+                    const hasAssetsAdd = await UserService.hasPermission(userId, 'assets.add');
+                    setHasPermission(hasAssetsAdd);
+                }
             } else {
                 setHasPermission(false);
             }
         }
 
         checkPermission();
-    }, []);
+    }, [isListItem]);
 
     useEffect(() => {
         if (error) {

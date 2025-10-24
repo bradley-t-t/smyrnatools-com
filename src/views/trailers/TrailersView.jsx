@@ -16,6 +16,7 @@ import {RegionService} from '../../services/RegionService'
 import AsyncUtility from '../../utils/AsyncUtility'
 import LookupUtility from '../../utils/LookupUtility'
 import FleetUtility from '../../utils/FleetUtility'
+import FormatUtility from '../../utils/FormatUtility'
 import TopSection from '../../components/sections/TopSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
@@ -238,8 +239,8 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             aVal = tractorA?.truckNumber || ''
             bVal = tractorB?.truckNumber || ''
         } else if (sortKey === 'VIN') {
-            aVal = String(a.vinNumber || '').toLowerCase()
-            bVal = String(b.vinNumber || '').toLowerCase()
+            const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+            return sortDirection === 'asc' ? comparison : -comparison
         } else if (prop) {
             aVal = a[prop]
             bVal = b[prop]
