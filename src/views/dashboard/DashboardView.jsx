@@ -18,6 +18,7 @@ import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 export default function DashboardView() {
     const {preferences, updatePreferences} = usePreferences()
     const [loading, setLoading] = useState(true)
+    const [dataReady, setDataReady] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState('')
     const [permittedRegions, setPermittedRegions] = useState([])
@@ -571,7 +572,6 @@ export default function DashboardView() {
                             allOperatorsRef.current = (parsed.operators || []).map(slimOperator)
                             computeStats()
                             setLastUpdated(parsed.lastUpdated ? new Date(parsed.lastUpdated) : new Date(parsed.savedAt || now))
-                            setLoading(false)
                         }
                     }
                 } catch {
@@ -648,6 +648,9 @@ export default function DashboardView() {
                 if (!cancelled) {
                     setLoading(false)
                     setRefreshing(false)
+                    setTimeout(() => {
+                        setDataReady(true)
+                    }, 2000)
                 }
             }
         }
@@ -754,7 +757,7 @@ export default function DashboardView() {
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
         return `${Math.floor(diff / 86400)}d ago`
     }
-    const showSkeleton = loading
+    const showSkeleton = !dataReady
 
     const filteredTrainingOperators = (() => {
         const plantSet = plantSetRef.current
@@ -868,16 +871,75 @@ export default function DashboardView() {
             </div>}
             <div className="global-content-container content-container" aria-busy={showSkeleton}>
                 {showSkeleton ? (
-                    <div className="dashboard-grid skeleton-grid">{Array.from({length: 8}).map((_, i) => <div
-                        className="kpi-card skeleton-card" key={i}>
-                        <div className="skeleton-line w40"/>
-                        <div className="skeleton-line w60 tall"/>
-                        <div className="skeleton-row">
-                            <div className="skeleton-pill w30"/>
-                            <div className="skeleton-pill w20"/>
-                            <div className="skeleton-pill w25"/>
+                    <div className="group-grid">
+                        <div className="group-section">
+                            <div className="section-title">Fleet</div>
+                            <div className="dashboard-grid inner-grid">
+                                {Array.from({length: 5}).map((_, i) => (
+                                    <div className="kpi-card skeleton-card" key={`fleet-${i}`}>
+                                        <div className="skeleton-line w40"/>
+                                        <div className="skeleton-line w60 tall"/>
+                                        <div className="skeleton-row">
+                                            <div className="skeleton-pill w30"/>
+                                            <div className="skeleton-pill w20"/>
+                                            <div className="skeleton-pill w25"/>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>)}
+                        <div className="group-section">
+                            <div className="section-title">People</div>
+                            <div className="dashboard-grid inner-grid">
+                                {Array.from({length: 2}).map((_, i) => (
+                                    <div className="kpi-card skeleton-card" key={`people-${i}`}>
+                                        <div className="skeleton-line w40"/>
+                                        <div className="skeleton-line w60 tall"/>
+                                        <div className="skeleton-row">
+                                            <div className="skeleton-pill w30"/>
+                                            <div className="skeleton-pill w20"/>
+                                            <div className="skeleton-pill w25"/>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="training-table-wrapper skeleton-card">
+                                <div className="skeleton-line w60"/>
+                                <div className="skeleton-line w40"/>
+                                <div className="skeleton-line w30"/>
+                            </div>
+                            <div className="training-table-wrapper skeleton-card">
+                                <div className="skeleton-line w60"/>
+                                <div className="skeleton-line w40"/>
+                                <div className="skeleton-line w30"/>
+                            </div>
+                            <div className="training-table-wrapper skeleton-card">
+                                <div className="skeleton-line w60"/>
+                                <div className="skeleton-line w40"/>
+                                <div className="skeleton-line w30"/>
+                            </div>
+                        </div>
+                        <div className="group-section">
+                            <div className="section-title">Maintenance & Quality</div>
+                            <div className="dashboard-grid inner-grid">
+                                {Array.from({length: 2}).map((_, i) => (
+                                    <div className="kpi-card skeleton-card" key={`maintenance-${i}`}>
+                                        <div className="skeleton-line w40"/>
+                                        <div className="skeleton-line w60 tall"/>
+                                        <div className="skeleton-row">
+                                            <div className="skeleton-pill w30"/>
+                                            <div className="skeleton-pill w20"/>
+                                            <div className="skeleton-pill w25"/>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="training-table-wrapper skeleton-card">
+                                <div className="skeleton-line w60"/>
+                                <div className="skeleton-line w40"/>
+                                <div className="skeleton-line w30"/>
+                            </div>
+                        </div>
                     </div>
                 ) : (
                     <div className="group-grid">

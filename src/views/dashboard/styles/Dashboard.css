@@ -207,6 +207,14 @@
     overflow: hidden
 }
 
+.training-table-wrapper.skeleton-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    min-height: 80px
+}
+
 .skeleton-line {
     height: 14px;
     background: var(--badge-bg);
@@ -297,61 +305,26 @@
     }
 }
 
-@keyframes slideInUp {
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateX(30px);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
     }
 }
 
 .slide-in-hero {
-    animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: fadeIn 0.3s ease-out forwards;
 }
 
 .slide-in-section {
-    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: fadeIn 0.3s ease-out forwards;
 }
 
 .slide-in-card {
-    animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    opacity: 0;
+    opacity: 1;
 }
-
-.group-section:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.group-section:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.group-section:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.kpi-card:nth-child(1) { animation-delay: 0.05s; }
-.kpi-card:nth-child(2) { animation-delay: 0.1s; }
-.kpi-card:nth-child(3) { animation-delay: 0.15s; }
-.kpi-card:nth-child(4) { animation-delay: 0.2s; }
-.kpi-card:nth-child(5) { animation-delay: 0.25s; }
-.kpi-card:nth-child(6) { animation-delay: 0.3s; }
-.kpi-card:nth-child(7) { animation-delay: 0.35s; }
-.kpi-card:nth-child(8) { animation-delay: 0.4s; }
 
 .dashboard-hero {
     display: flex;
