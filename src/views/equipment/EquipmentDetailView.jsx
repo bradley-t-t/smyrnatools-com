@@ -176,6 +176,12 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
             alert('Error: Cannot save equipment with undefined ID');
             return null;
         }
+
+        const relevantOverrideKeys = Object.keys(overrides || {}).filter(k => !['silent'].includes(k));
+        if (!hasUnsavedChanges && relevantOverrideKeys.length === 0) {
+            return equipment;
+        }
+
         setIsSaving(true);
         try {
             const user = await UserService.getCurrentUser();
@@ -205,8 +211,10 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 return null;
             }
             setEquipment(result);
-            setMessage('Changes saved successfully!');
-            setTimeout(() => setMessage(''), 5000);
+            if (!overrides.silent) {
+                setMessage('Changes saved successfully! Equipment needs verification.');
+                setTimeout(() => setMessage(''), 5000);
+            }
             setOriginalValues({
                 identifyingNumber: result.identifyingNumber,
                 assignedPlant: result.assignedPlant,
@@ -254,9 +262,9 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
         }
     }
 
-    function handleBackClick() {
+    async function handleBackClick() {
         if (hasUnsavedChanges) {
-            handleSave();
+            await handleSave();
         }
         onClose();
     }
