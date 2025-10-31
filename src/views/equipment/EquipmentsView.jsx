@@ -329,7 +329,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             <td style={{width: '10%'}}>{item.assignedPlant || '---'}</td>
                             <td style={{width: '15%'}}>{item.equipmentType || '---'}</td>
                             <td style={{width: '10%'}}>{item.identifyingNumber || '---'}</td>
-                            <td style={{width: '15%'}}>{item.equipmentMake && item.equipmentModel ? `${item.equipmentMake} ${item.equipmentModel}` : item.equipmentMake || item.equipmentModel || '---'}</td>
+                            <td style={{width: '15%'}}>{item.yearMade || item.equipmentMake || item.equipmentModel ? `${item.yearMade ? item.yearMade + ' ' : ''}${item.equipmentMake || ''} ${item.equipmentModel || ''}`.trim() : '---'}</td>
                             <td style={{width: '8%'}}><span className="item-status-dot" style={{
                                 display: 'inline-block',
                                 verticalAlign: 'middle',

@@ -422,6 +422,37 @@ function HistoryViewSection({item, type, onClose}) {
         })).filter(entry => !isNaN(entry.mileage) && entry.mileage >= 0);
     }, [history]);
 
+    const assignmentsData = useMemo(() => {
+        const assignmentEntries = history.filter(entry => {
+            const fieldName = entry.fieldName || entry.field_name;
+            const key = fieldName && fieldName.includes('_') ? fieldName : String(fieldName || '').replace(/([A-Z])/g, '_$1').toLowerCase();
+            return key === 'assigned_mixer' || key === 'assigned_tractor';
+        }).sort((a, b) => {
+            const aTime = new Date(a.changedAt || a.changed_at);
+            const bTime = new Date(b.changedAt || b.changed_at);
+            return aTime - bTime;
+        });
+
+        return assignmentEntries.map(entry => {
+            const fieldName = entry.fieldName || entry.field_name;
+            const key = fieldName && fieldName.includes('_') ? fieldName : String(fieldName || '').replace(/([A-Z])/g, '_$1').toLowerCase();
+            const assignmentType = key === 'assigned_mixer' ? 'Mixer' : 'Tractor';
+            const newValue = entry.newValue || entry.new_value;
+            const oldValue = entry.oldValue || entry.old_value;
+
+            return {
+                date: new Date(entry.changedAt || entry.changed_at),
+                assignmentType: assignmentType,
+                vehicleNumber: newValue && newValue !== 'null' && newValue !== '' ? newValue : null,
+                previousVehicleNumber: oldValue && oldValue !== 'null' && oldValue !== '' ? oldValue : null,
+                timestamp: entry.changedAt || entry.changed_at,
+                changedBy: entry.changedBy || entry.changed_by,
+                isAssignment: newValue && newValue !== 'null' && newValue !== '',
+                isUnassignment: !newValue || newValue === 'null' || newValue === ''
+            };
+        });
+    }, [history]);
+
     const itemName = type === 'mixer' || type === 'tractor' ? `Truck #${item.truckNumber}` : type === 'pickup-truck' ? `${item.make || ''} ${item.model || ''} (${item.vin || 'Unknown'})`.trim() : item.name || 'Item';
 
     const renderCleanlinessChart = () => {
@@ -1636,6 +1667,153 @@ function HistoryViewSection({item, type, onClose}) {
         );
     };
 
+    const renderAssignmentsHistory = () => {
+        if (assignmentsData.length === 0) {
+            return (
+                <div className="empty-history">
+                    <p>No assignment history available</p>
+                    <p className="empty-subtext">Vehicle assignments will be tracked here once they are recorded.</p>
+                </div>
+            );
+        }
+
+        const mixerAssignments = assignmentsData.filter(a => a.assignmentType === 'Mixer');
+        const tractorAssignments = assignmentsData.filter(a => a.assignmentType === 'Tractor');
+        const totalAssignments = assignmentsData.filter(a => a.isAssignment).length;
+        const currentMixerAssignment = mixerAssignments.length > 0 ? mixerAssignments[mixerAssignments.length - 1] : null;
+        const currentTractorAssignment = tractorAssignments.length > 0 ? tractorAssignments[tractorAssignments.length - 1] : null;
+
+        const currentMixer = currentMixerAssignment && currentMixerAssignment.vehicleNumber ? currentMixerAssignment.vehicleNumber : null;
+        const currentTractor = currentTractorAssignment && currentTractorAssignment.vehicleNumber ? currentTractorAssignment.vehicleNumber : null;
+
+        const calculateDuration = (startDate, endDate) => {
+            const start = new Date(startDate);
+            const end = endDate ? new Date(endDate) : new Date();
+            const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
+            return days;
+        };
+
+        const consolidatedTimeline = [];
+        let currentMixerEntry = null;
+        let currentTractorEntry = null;
+
+        assignmentsData.forEach((entry, index) => {
+            if (entry.assignmentType === 'Mixer') {
+                if (currentMixerEntry && currentMixerEntry.vehicleNumber) {
+                    currentMixerEntry.endDate = entry.timestamp;
+                    currentMixerEntry.duration = calculateDuration(currentMixerEntry.startDate, currentMixerEntry.endDate);
+                    consolidatedTimeline.push({...currentMixerEntry});
+                }
+                if (entry.vehicleNumber) {
+                    currentMixerEntry = {
+                        assignmentType: 'Mixer',
+                        vehicleNumber: entry.vehicleNumber,
+                        startDate: entry.timestamp,
+                        endDate: null,
+                        changedBy: entry.changedBy,
+                        isCurrent: index === assignmentsData.length - 1 || !assignmentsData.slice(index + 1).some(e => e.assignmentType === 'Mixer')
+                    };
+                } else {
+                    currentMixerEntry = null;
+                }
+            } else if (entry.assignmentType === 'Tractor') {
+                if (currentTractorEntry && currentTractorEntry.vehicleNumber) {
+                    currentTractorEntry.endDate = entry.timestamp;
+                    currentTractorEntry.duration = calculateDuration(currentTractorEntry.startDate, currentTractorEntry.endDate);
+                    consolidatedTimeline.push({...currentTractorEntry});
+                }
+                if (entry.vehicleNumber) {
+                    currentTractorEntry = {
+                        assignmentType: 'Tractor',
+                        vehicleNumber: entry.vehicleNumber,
+                        startDate: entry.timestamp,
+                        endDate: null,
+                        changedBy: entry.changedBy,
+                        isCurrent: index === assignmentsData.length - 1 || !assignmentsData.slice(index + 1).some(e => e.assignmentType === 'Tractor')
+                    };
+                } else {
+                    currentTractorEntry = null;
+                }
+            }
+        });
+
+        if (currentMixerEntry && currentMixerEntry.vehicleNumber) {
+            currentMixerEntry.duration = calculateDuration(currentMixerEntry.startDate, new Date());
+            currentMixerEntry.isCurrent = true;
+            consolidatedTimeline.push(currentMixerEntry);
+        }
+
+        if (currentTractorEntry && currentTractorEntry.vehicleNumber) {
+            currentTractorEntry.duration = calculateDuration(currentTractorEntry.startDate, new Date());
+            currentTractorEntry.isCurrent = true;
+            consolidatedTimeline.push(currentTractorEntry);
+        }
+
+        consolidatedTimeline.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+        return (
+            <div className="chart-container">
+                <div className="operator-summary-cards">
+                    <div className="summary-card">
+                        <div className="summary-label">Current Mixer</div>
+                        <div className="summary-value">{currentMixer ? `#${currentMixer}` : 'Not Assigned'}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Current Tractor</div>
+                        <div className="summary-value">{currentTractor ? `#${currentTractor}` : 'Not Assigned'}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Total Assignments</div>
+                        <div className="summary-value">{totalAssignments}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Assignment Changes</div>
+                        <div className="summary-value">{assignmentsData.length}</div>
+                    </div>
+                </div>
+
+                <h3 className="chart-section-title">Assignment Timeline</h3>
+                <div className="operator-timeline-modern">
+                    {consolidatedTimeline.map((entry, index) => {
+                        const durationText = entry.duration === 0 ? 'Less than a day' :
+                            entry.duration === 1 ? '1 day' :
+                            entry.duration < 30 ? `${entry.duration} days` :
+                            entry.duration < 365 ? `${Math.round(entry.duration / 30.44)} months` :
+                            `${(entry.duration / 365.25).toFixed(1)} years`;
+
+                        return (
+                            <div key={index} className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                                <div className="timeline-marker">
+                                    <div className="timeline-dot"></div>
+                                    {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
+                                </div>
+                                <div className="timeline-card">
+                                    <div className="timeline-card-header">
+                                        <span className="timeline-operator-name">
+                                            {entry.assignmentType} #{entry.vehicleNumber}
+                                        </span>
+                                        {entry.isCurrent && <span className="current-badge">Current</span>}
+                                    </div>
+                                    <div className="timeline-card-meta">
+                                        <span className="timeline-date">
+                                            {FormatUtility.formatDate(entry.startDate)}
+                                            {entry.endDate && ` - ${FormatUtility.formatDate(entry.endDate)}`}
+                                            {!entry.endDate && ' - Present'}
+                                        </span>
+                                        <span className="timeline-duration">({durationText})</span>
+                                    </div>
+                                    <div className="timeline-card-meta">
+                                        <UserLabel userId={entry.changedBy} showIcon={true}/>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
     const renderContent = () => {
         if (isLoading) {
             return (
@@ -1714,6 +1892,8 @@ function HistoryViewSection({item, type, onClose}) {
                 return renderRatingsHistory();
             case 'mileage':
                 return renderMileageTracking();
+            case 'assignments':
+                return renderAssignmentsHistory();
             default:
                 return null;
         }
@@ -1896,6 +2076,14 @@ function HistoryViewSection({item, type, onClose}) {
                             onClick={() => setActiveTab('ratings')}
                         >
                             Ratings History
+                        </button>
+                    )}
+                    {type === 'operator' && (
+                        <button
+                            className={`history-tab ${activeTab === 'assignments' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('assignments')}
+                        >
+                            Assignments
                         </button>
                     )}
                     {type === 'pickup-truck' && (
