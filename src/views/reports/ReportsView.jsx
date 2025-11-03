@@ -703,12 +703,15 @@ function ReportsView() {
                                                         });
                                                         const badge = ReportUtility.getWeekBadge(weekIso);
                                                         const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : '';
-                                                        const shouldAnimate = index < 30;
+                                                        const baseDelay = 80;
+                                                        const minDelay = baseDelay / 2;
+                                                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / myPaginatedItems.length);
+                                                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                                                         return (
                                                             <tr
                                                                 key={item.name + item.weekIso}
-                                                                className={shouldAnimate ? 'rpt-row rpt-row-animated' : 'rpt-row'}
-                                                                style={shouldAnimate ? { animationDelay: `${index * 80}ms` } : {}}
+                                                                className='rpt-row rpt-row-animated'
+                                                                style={{ animationDelay: `${index * delay}ms` }}
                                                             >
                                                                 <td className="rpt-td rpt-week-td">
                                                                     <span className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}
@@ -796,12 +799,15 @@ function ReportsView() {
                                                         const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
                                                         const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                        const shouldAnimate = index < 30;
+                                                        const baseDelay = 80;
+                                                        const minDelay = baseDelay / 2;
+                                                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / reviewPaginatedItems.length);
+                                                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                                                         return (
                                                             <tr
                                                                 key={report.id}
-                                                                className={shouldAnimate ? 'rpt-row rpt-row-animated' : 'rpt-row'}
-                                                                style={shouldAnimate ? { animationDelay: `${index * 80}ms` } : {}}
+                                                                className='rpt-row rpt-row-animated'
+                                                                style={{ animationDelay: `${index * delay}ms` }}
                                                             >
                                                                 <td className="rpt-td rpt-week-td">
                                                                         <span className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
@@ -899,12 +905,15 @@ function ReportsView() {
                                                         const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
                                                         const title = (reportTypeMap[item.report_name] || {}).title || item.report_name;
-                                                        const shouldAnimate = index < 30;
+                                                        const baseDelay = 80;
+                                                        const minDelay = baseDelay / 2;
+                                                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / overduePaginatedItems.length);
+                                                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                                                         return (
                                                             <tr
                                                                 key={`${item.userId}-${item.report_name}-${item.week}`}
-                                                                className={shouldAnimate ? 'rpt-row rpt-row-animated' : 'rpt-row'}
-                                                                style={shouldAnimate ? { animationDelay: `${index * 80}ms` } : {}}
+                                                                className='rpt-row rpt-row-animated'
+                                                                style={{ animationDelay: `${index * delay}ms` }}
                                                             >
                                                                 <td className="rpt-td rpt-week-td">
                                                                         <span className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>

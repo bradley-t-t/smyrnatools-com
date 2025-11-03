@@ -21,14 +21,17 @@ function ListViewModeSection({
                     <tbody>
                     {filteredItems && Array.isArray(filteredItems) && filteredItems.map((item, index) => {
                         const row = renderRow(item, handleSelectItem, onShowCommentModal, onShowIssueModal);
-                        const shouldAnimate = index < 20;
+                        const baseDelay = 80;
+                        const minDelay = baseDelay / 2;
+                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length);
+                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                         return React.cloneElement(row, {
                             key: row.key || item.id,
                             style: {
                                 ...row.props.style,
-                                animationDelay: shouldAnimate ? `${index * 80}ms` : '0ms'
+                                animationDelay: `${index * delay}ms`
                             },
-                            className: shouldAnimate ? `${row.props.className || ''} list-row-animated`.trim() : row.props.className
+                            className: `${row.props.className || ''} list-row-animated`.trim()
                         });
                     })}
                     </tbody>
@@ -44,16 +47,19 @@ function ListViewModeSection({
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
                     const number = item.identifyingNumber || item.truckNumber || item.trailerNumber || '';
-                    const shouldAnimate = index < 30;
+                    const baseDelay = 80;
+                    const minDelay = baseDelay / 2;
+                    const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length);
+                    const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                     return (
                         <tr 
                             key={item.id} 
                             onClick={() => handleSelectItem(item.id)} 
                             style={{
                                 cursor: 'pointer',
-                                animationDelay: shouldAnimate ? `${index * 80}ms` : '0ms'
+                                animationDelay: `${index * delay}ms`
                             }}
-                            className={shouldAnimate ? 'list-row-animated' : ''}
+                            className='list-row-animated'
                         >
                             <td>{plant?.name || item.assignedPlant}</td>
                             <td>{item.truckNumber || item.trailerNumber}</td>

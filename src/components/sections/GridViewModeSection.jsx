@@ -24,7 +24,10 @@ function GridViewModeSection({
                 const tractor = tractors.find(t => t.id === item.assignedTractor);
                 const Card = cardComponent;
                 const number = item.identifyingNumber || item.truckNumber || item.trailerNumber || '';
-                const shouldAnimate = index < 30;
+                const baseDelay = 80;
+                const minDelay = baseDelay / 2;
+                const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length);
+                const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                 const cardElement = (
                     <Card
                         key={item.id}
@@ -40,19 +43,15 @@ function GridViewModeSection({
                     />
                 );
                 
-                if (shouldAnimate) {
-                    return (
-                        <div 
-                            key={item.id}
-                            className="grid-card-animated"
-                            style={{animationDelay: `${index * 80}ms`}}
-                        >
-                            {cardElement}
-                        </div>
-                    );
-                } else {
-                    return cardElement;
-                }
+                return (
+                    <div 
+                        key={item.id}
+                        className="grid-card-animated"
+                        style={{animationDelay: `${index * delay}ms`}}
+                    >
+                        {cardElement}
+                    </div>
+                );
             })}
         </div>
     );
