@@ -134,7 +134,7 @@ function ReportsSubmitView({
                 return
             }
         }
-        if (report.name !== 'general_manager' && report.name !== 'aggregate_production') {
+        if (report.name !== 'general_manager') {
             for (const field of report.fields) {
                 const val = form[field.name]
                 if (field.required && (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0))) {
