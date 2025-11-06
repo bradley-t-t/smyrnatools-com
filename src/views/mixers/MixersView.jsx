@@ -12,6 +12,7 @@ import './styles/Mixers.css';
 import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
 import MixerCommentModal from './MixerCommentModal'
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import {RegionService} from '../../services/RegionService'
 import AsyncUtility from '../../utils/AsyncUtility'
 import FleetUtility from '../../utils/FleetUtility'
@@ -21,6 +22,7 @@ import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
+import {ValidationUtility} from '../../utils/ValidationUtility'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -60,6 +62,14 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const [sortDirection, setSortDirection] = useState('asc')
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedMixerForHistory, setSelectedMixerForHistory] = useState(null)
+    const [showVerifyModal, setShowVerifyModal] = useState(false)
+    const [verifyMixer, setVerifyMixer] = useState(null)
+    const [verifyVin, setVerifyVin] = useState('')
+    const [verifyMake, setVerifyMake] = useState('')
+    const [verifyModel, setVerifyModel] = useState('')
+    const [verifyYear, setVerifyYear] = useState('')
+    const [verifyLastServiceDate, setVerifyLastServiceDate] = useState(null)
+    const [verifyLastChipDate, setVerifyLastChipDate] = useState(null)
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues'];
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -231,6 +241,56 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         }
     }
 
+    const handleVerifyMixer = useCallback(async (mixerId) => {
+        const mixer = mixers.find(m => m.id === mixerId);
+        if (mixer) {
+            if (mixer.status === 'Retired') {
+                return;
+            }
+            setVerifyMixer(mixer);
+            setVerifyVin(mixer.vin || mixer.vinNumber || '');
+            setVerifyMake(mixer.make || '');
+            setVerifyModel(mixer.model || '');
+            setVerifyYear(mixer.year || '');
+            setVerifyLastServiceDate(mixer.lastServiceDate || null);
+            setVerifyLastChipDate(mixer.lastChipDate || null);
+            setShowVerifyModal(true);
+        }
+    }, [mixers]);
+
+    const handleSaveAndVerify = useCallback(async () => {
+        if (!verifyMixer) return;
+        
+        try {
+            const updates = {};
+            if (verifyVin && verifyVin !== verifyMixer.vin) updates.vin = verifyVin;
+            if (verifyMake && verifyMake !== verifyMixer.make) updates.make = verifyMake;
+            if (verifyModel && verifyModel !== verifyMixer.model) updates.model = verifyModel;
+            if (verifyYear && verifyYear !== verifyMixer.year) updates.year = verifyYear;
+            if (verifyLastServiceDate) updates.lastServiceDate = verifyLastServiceDate;
+            if (verifyLastChipDate) updates.lastChipDate = verifyLastChipDate;
+            
+            if (Object.keys(updates).length > 0) {
+                await MixerService.updateMixer(verifyMixer.id, updates);
+            }
+            
+            const verified = await MixerService.verifyMixer(verifyMixer.id);
+            
+            setMixers(prevMixers => prevMixers.map(m => 
+                m.id === verifyMixer.id ? verified : m
+            ));
+            setAllMixers(prevMixers => prevMixers.map(m => 
+                m.id === verifyMixer.id ? verified : m
+            ));
+            
+            setShowVerifyModal(false);
+            setVerifyMixer(null);
+        } catch (error) {
+            console.error('Failed to verify mixer:', error);
+            alert('Failed to verify mixer. Please try again.');
+        }
+    }, [verifyMixer, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate, verifyLastChipDate]);
+
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '');
@@ -375,7 +435,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 handleSelectItem={handleSelectMixer}
                 headerLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
                 colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
-                renderRow={(item, handleSelect, onComment, onIssue) => {
+                renderRow={(item, handleSelect, onComment, onIssue, onVerify) => {
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
                     return (
@@ -396,9 +456,26 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
                             <td style={{width: '16%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (item.isVerified() ?
-                                <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
-                                <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
+                            <td style={{width: '10%'}}>
+                                {item.status === 'Retired' ? (
+                                    <span className="list-verify-status list-verify-na">N/A</span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onVerify) {
+                                                onVerify(item.id, item.truckNumber);
+                                            }
+                                        }}
+                                        title={item.isVerified() ? 'Verified - Click to view details' : 'Click to verify'}
+                                        className={`list-verify-btn ${item.isVerified() ? 'verified' : 'not-verified'}`}
+                                    >
+                                        <i className={`fas ${item.isVerified() ? 'fa-check' : 'fa-flag'}`}></i>
+                                        <span>{item.isVerified() ? 'Verified' : 'Not Verified'}</span>
+                                    </button>
+                                )}
+                            </td>
                             <td style={{width: '10%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
@@ -459,11 +536,12 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     setModalMixerNumber(number);
                     setShowIssueModal(true);
                 }}
+                onVerify={handleVerifyMixer}
                 containerClassName="list-table-container"
                 tableClassName="list-table"
             />
         )
-    }, [isLoading, isRegionLoading, filteredMixers, viewMode, searchText, selectedPlant, statusFilter, operators, plants, mixers])
+    }, [isLoading, isRegionLoading, filteredMixers, viewMode, searchText, selectedPlant, statusFilter, operators, plants, mixers, handleVerifyMixer])
 
     useEffect(() => {
         function updateStickyCoverHeight() {
@@ -556,6 +634,39 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 item={selectedMixerForHistory}
                                 type="mixer"
                                 onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                        {showVerifyModal && verifyMixer && (
+                            <VerificationRequirementsModal
+                                open={showVerifyModal}
+                                onClose={() => {
+                                    setShowVerifyModal(false);
+                                    setVerifyMixer(null);
+                                }}
+                                onSaveAndVerify={handleSaveAndVerify}
+                                missingFields={[
+                                    ...(!verifyMixer.vin || !ValidationUtility.isVIN(verifyMixer.vin) ? ['VIN'] : []),
+                                    ...(!verifyMixer.make ? ['Make'] : []),
+                                    ...(!verifyMixer.model ? ['Model'] : []),
+                                    ...(!verifyMixer.year ? ['Year'] : [])
+                                ]}
+                                vin={verifyVin}
+                                make={verifyMake}
+                                model={verifyModel}
+                                year={verifyYear}
+                                lastServiceDate={verifyLastServiceDate}
+                                lastChipDate={verifyLastChipDate}
+                                setVin={setVerifyVin}
+                                setMake={setVerifyMake}
+                                setModel={setVerifyModel}
+                                setYear={setVerifyYear}
+                                setLastServiceDate={setVerifyLastServiceDate}
+                                setLastChipDate={setVerifyLastChipDate}
+                                isServiceOverdue={MixerUtility.isServiceOverdue}
+                                assignedOperator={verifyMixer.assignedOperator}
+                                itemType="mixer"
+                                itemId={verifyMixer.id}
+                                service={MixerService}
                             />
                         )}
                     </>
