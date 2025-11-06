@@ -156,11 +156,13 @@ export const PreferencesProvider = ({children}) => {
     }, [userId])
 
     useEffect(() => {
-        document.documentElement.classList.remove('dark-mode', 'old-dark-mode')
+        document.documentElement.classList.remove('dark-mode', 'old-dark-mode', 'red-dark-mode')
         if (preferences.themeMode === 'dark') {
             document.documentElement.classList.add('dark-mode')
         } else if (preferences.themeMode === 'old-dark') {
             document.documentElement.classList.add('old-dark-mode')
+        } else if (preferences.themeMode === 'red-dark') {
+            document.documentElement.classList.add('red-dark-mode')
         }
         document.documentElement.classList.remove('accent-blue', 'accent-red', 'accent-orange', 'accent-green', 'accent-darkgrey')
         document.documentElement.classList.add(`accent-${preferences.accentColor}`)
@@ -358,7 +360,7 @@ export const PreferencesProvider = ({children}) => {
     const toggleNavbarMinimized = () => updatePreferences('navbarMinimized', !preferences.navbarMinimized)
     const toggleShowTips = () => updatePreferences('showTips', !preferences.showTips)
     const toggleShowOnlineOverlay = () => updatePreferences('showOnlineOverlay', !preferences.showOnlineOverlay)
-    const setThemeMode = mode => (['light', 'dark', 'old-dark'].includes(mode)) && updatePreferences('themeMode', mode)
+    const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark'].includes(mode)) && updatePreferences('themeMode', mode)
     const setAccentColor = color => (color === 'red' || color === 'blue') && updatePreferences('accentColor', color)
     const saveLastViewedFilters = async filters => {
         try {

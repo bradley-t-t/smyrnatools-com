@@ -91,7 +91,18 @@ function SettingsView() {
                                         <div className="preview-item"></div>
                                     </div>
                                 </div>
-                                <span>Dark</span>
+                                <span>Blue Dark</span>
+                            </div>
+                            <div className={`theme-option ${preferences.themeMode === 'red-dark' ? 'active' : ''}`}
+                                 onClick={() => save(setThemeMode, 'red-dark')}>
+                                <div className="theme-preview red-dark-preview">
+                                    <div className="preview-navbar"></div>
+                                    <div className="preview-content">
+                                        <div className="preview-item"></div>
+                                        <div className="preview-item"></div>
+                                    </div>
+                                </div>
+                                <span>Red Dark</span>
                             </div>
                             <div className={`theme-option ${preferences.themeMode === 'old-dark' ? 'active' : ''}`}
                                  onClick={() => save(setThemeMode, 'old-dark')}>
