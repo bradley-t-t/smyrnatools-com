@@ -155,6 +155,17 @@ Deno.serve(async (req) => {
                     status: 400,
                     headers: corsHeaders
                 });
+                if (data && (data as any).employee_id) {
+                    const creationHistory = {
+                        operator_id: (data as any).employee_id,
+                        field_name: "created",
+                        old_value: null,
+                        new_value: "Operator created",
+                        changed_at: now,
+                        changed_by: "00000000-0000-0000-0000-000000000000"
+                    };
+                    await supabase.from("operators_history").insert(creationHistory);
+                }
                 return new Response(JSON.stringify({data}), {headers: corsHeaders});
             }
             case "update": {

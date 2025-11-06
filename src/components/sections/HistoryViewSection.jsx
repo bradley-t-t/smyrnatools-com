@@ -156,7 +156,8 @@ function HistoryViewSection({item, type, onClose}) {
             'last_service_date': 'Service Date',
             'last_chip_date': 'Chip Date',
             'cleanliness_rating': 'Cleanliness',
-            'verification': 'Verification'
+            'verification': 'Verification',
+            'created': 'Created'
         };
         if (type === 'tractor') {
             commonFields['has_blower'] = 'Has Blower';
@@ -190,6 +191,9 @@ function HistoryViewSection({item, type, onClose}) {
 
     const formatValue = (fieldName, value) => {
         const key = fieldName && fieldName.includes('_') ? fieldName : String(fieldName || '').replace(/([A-Z])/g, '_$1').toLowerCase();
+        if (key === 'created') {
+            return value || '';
+        }
         if (value === null || value === undefined || value === '') return 'Not Assigned';
         if (key === 'assigned_operator') {
             return getOperatorName(value);
@@ -1846,32 +1850,43 @@ function HistoryViewSection({item, type, onClose}) {
             case 'timeline':
                 return (
                     <div className="history-timeline">
-                        {sortedHistory.map((entry, index) => (
-                            <div key={entry.id || index} className="history-item">
-                                <div className="history-item-header">
-                                    <div className="history-field-name">
-                                        {formatFieldName(entry.fieldName || entry.field_name)}
+                        {sortedHistory.map((entry, index) => {
+                            const fieldName = entry.fieldName || entry.field_name;
+                            const isCreatedEntry = fieldName === 'created';
+                            
+                            return (
+                                <div key={entry.id || index} className="history-item">
+                                    <div className="history-item-header">
+                                        <div className="history-field-name">
+                                            {formatFieldName(fieldName)}
+                                        </div>
+                                        <div className="history-timestamp">
+                                            {formatTimestamp(entry.changedAt || entry.changed_at)}
+                                        </div>
                                     </div>
-                                    <div className="history-timestamp">
-                                        {formatTimestamp(entry.changedAt || entry.changed_at)}
+                                    {isCreatedEntry ? (
+                                        <div className="history-change">
+                                            <div className="history-created-value">
+                                                {formatValue(fieldName, entry.newValue || entry.new_value)}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="history-change">
+                                            <div className="history-old-value">
+                                                <span className="value-label">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
+                                            </div>
+                                            <div className="history-arrow">→</div>
+                                            <div className="history-new-value">
+                                                <span className="value-label">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="history-user">
+                                        <UserLabel userId={entry.changedBy || entry.changed_by} showIcon={true}/>
                                     </div>
                                 </div>
-                                <div className="history-change">
-                                    <div className="history-old-value">
-                                        <span
-                                            className="value-label">From:</span> {formatValue(entry.fieldName || entry.field_name, entry.oldValue || entry.old_value)}
-                                    </div>
-                                    <div className="history-arrow">→</div>
-                                    <div className="history-new-value">
-                                        <span
-                                            className="value-label">To:</span> {formatValue(entry.fieldName || entry.field_name, entry.newValue || entry.new_value)}
-                                    </div>
-                                </div>
-                                <div className="history-user">
-                                    <UserLabel userId={entry.changedBy || entry.changed_by} showIcon={true}/>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 );
             case 'cleanliness':
