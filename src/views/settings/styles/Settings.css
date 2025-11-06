@@ -206,6 +206,10 @@
 }
 
 .dark-preview {
+    background-color: #1a2332;
+}
+
+.old-dark-preview {
     background-color: #18191a;
 }
 
@@ -216,8 +220,13 @@
 }
 
 .dark-preview .preview-navbar {
-    background-color: #242526;
-    border-color: #3a3b3c;
+    background-color: #1a2332;
+    border-color: #2d4665;
+}
+
+.old-dark-preview .preview-navbar {
+    background-color: #181a20;
+    border-color: #23272a;
 }
 
 .preview-content {
@@ -234,7 +243,11 @@
 }
 
 .dark-preview .preview-item {
-    background-color: #242526;
+    background-color: #20334a;
+}
+
+.old-dark-preview .preview-item {
+    background-color: #20232a;
 }
 
 .color-selector {

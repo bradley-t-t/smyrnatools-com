@@ -93,6 +93,17 @@ function SettingsView() {
                                 </div>
                                 <span>Dark</span>
                             </div>
+                            <div className={`theme-option ${preferences.themeMode === 'old-dark' ? 'active' : ''}`}
+                                 onClick={() => save(setThemeMode, 'old-dark')}>
+                                <div className="theme-preview old-dark-preview">
+                                    <div className="preview-navbar"></div>
+                                    <div className="preview-content">
+                                        <div className="preview-item"></div>
+                                        <div className="preview-item"></div>
+                                    </div>
+                                </div>
+                                <span>Classic Dark</span>
+                            </div>
                         </div>
                     </div>
                     <div className="settings-section">
