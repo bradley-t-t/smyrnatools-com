@@ -426,7 +426,7 @@ export const debugForceCreatePreferences = async userId => {
                 theme_mode: 'light',
                 accent_color: 'blue',
                 default_view_mode: 'grid',
-                accept_report_submitted_emails: true
+                accept_report_submitted_emails: false
             }])
     } catch {
         return false
