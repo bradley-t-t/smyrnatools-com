@@ -40,7 +40,7 @@ function DetailViewSection({
                 try {
                     const userObj = await UserService.getCurrentUser()
                     const userId = userObj?.id || userObj
-                    if (!userId) {
+                    if (!userId || userId === '0' || userId === 0) {
                         setInternalCanEdit(true)
                         setInternalRestrictionWarning(null)
                         onCanEditChange && onCanEditChange(true)
