@@ -263,12 +263,24 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         
         try {
             const updates = {};
-            if (verifyVin && verifyVin !== verifyMixer.vin) updates.vin = verifyVin;
-            if (verifyMake && verifyMake !== verifyMixer.make) updates.make = verifyMake;
-            if (verifyModel && verifyModel !== verifyMixer.model) updates.model = verifyModel;
-            if (verifyYear && verifyYear !== verifyMixer.year) updates.year = verifyYear;
-            if (verifyLastServiceDate) updates.lastServiceDate = verifyLastServiceDate;
-            if (verifyLastChipDate) updates.lastChipDate = verifyLastChipDate;
+            if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyMixer.vin || '')) {
+                updates.vin = verifyVin;
+            }
+            if (verifyMake && verifyMake.trim() !== '' && verifyMake !== (verifyMixer.make || '')) {
+                updates.make = verifyMake;
+            }
+            if (verifyModel && verifyModel.trim() !== '' && verifyModel !== (verifyMixer.model || '')) {
+                updates.model = verifyModel;
+            }
+            if (verifyYear && String(verifyYear).trim() !== '' && verifyYear !== (verifyMixer.year || '')) {
+                updates.year = verifyYear;
+            }
+            if (verifyLastServiceDate && verifyLastServiceDate !== verifyMixer.lastServiceDate) {
+                updates.lastServiceDate = verifyLastServiceDate;
+            }
+            if (verifyLastChipDate && verifyLastChipDate !== verifyMixer.lastChipDate) {
+                updates.lastChipDate = verifyLastChipDate;
+            }
             
             if (Object.keys(updates).length > 0) {
                 await MixerService.updateMixer(verifyMixer.id, updates);

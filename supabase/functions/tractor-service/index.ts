@@ -272,26 +272,28 @@ Deno.serve(async (req) => {
                     status: 404,
                     headers: corsHeaders
                 });
-                let assignedOperator = tractor?.assignedOperator ?? null;
-                let status = tractor?.status ?? current.status;
+                let assignedOperator = "assignedOperator" in tractor ? tractor.assignedOperator : current.assigned_operator;
+                if (assignedOperator === null || assignedOperator === "" || assignedOperator === "0") assignedOperator = null;
+                let status = "status" in tractor ? tractor.status : current.status;
                 if ((!assignedOperator || assignedOperator === "" || assignedOperator === "0") && status === "Active") status = "Spare";
                 if (assignedOperator && status !== "Active") status = "Active";
                 if (["In Shop", "Retired", "Spare"].includes(status) && assignedOperator) assignedOperator = null;
                 const apiData: Record<string, any> = {
-                    truck_number: tractor?.truckNumber ?? current.truck_number,
-                    assigned_plant: tractor?.assignedPlant ?? current.assigned_plant,
+                    truck_number: "truckNumber" in tractor ? tractor.truckNumber : current.truck_number,
+                    assigned_plant: "assignedPlant" in tractor ? tractor.assignedPlant : current.assigned_plant,
                     assigned_operator: assignedOperator,
-                    last_service_date: toDbTimestamp(tractor?.lastServiceDate) ?? current.last_service_date,
-                    cleanliness_rating: typeof tractor?.cleanlinessRating === "number" ? tractor.cleanlinessRating : current.cleanliness_rating,
-                    has_blower: typeof tractor?.hasBlower === "boolean" ? tractor.hasBlower : current.has_blower,
-                    vin: tractor?.vin ?? current.vin,
-                    make: tractor?.make ?? current.make,
-                    model: tractor?.model ?? current.model,
+                    last_service_date: "lastServiceDate" in tractor ? toDbTimestamp(tractor.lastServiceDate) : current.last_service_date,
+                    cleanliness_rating: "cleanlinessRating" in tractor ? (typeof tractor.cleanlinessRating === "number" ? tractor.cleanlinessRating : Number(tractor.cleanlinessRating)) : current.cleanliness_rating,
+                    has_blower: "hasBlower" in tractor ? (typeof tractor.hasBlower === "boolean" ? tractor.hasBlower : Boolean(tractor.hasBlower)) : current.has_blower,
+                    vin: "vin" in tractor ? tractor.vin : current.vin,
+                    make: "make" in tractor ? tractor.make : current.make,
+                    model: "model" in tractor ? tractor.model : current.model,
                     year: (() => {
-                        const y = normalize("year", tractor?.year);
+                        if (!("year" in tractor)) return current.year;
+                        const y = normalize("year", tractor.year);
                         return y != null && Number.isFinite(Number(y)) ? Number(y) : current.year;
                     })(),
-                    freight: typeof tractor?.freight === "string" ? tractor.freight : current.freight,
+                    freight: "freight" in tractor ? (typeof tractor.freight === "string" ? tractor.freight : String(tractor.freight)) : current.freight,
                     status,
                     updated_last: typeof tractor?.updatedLast === "string" ? tractor.updatedLast : current.updated_last
                 };

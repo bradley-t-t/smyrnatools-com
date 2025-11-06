@@ -280,17 +280,22 @@ Deno.serve(async (req) => {
                     headers: corsHeaders
                 });
                 const apiData: Record<string, any> = {
-                    identifying_number: equipment?.identifyingNumber ?? current.identifying_number,
-                    assigned_plant: equipment?.assignedPlant ?? current.assigned_plant,
-                    equipment_type: equipment?.equipmentType ?? current.equipment_type,
-                    status: equipment?.status ?? current.status,
-                    last_service_date: toDbTimestamp(equipment?.lastServiceDate) ?? current.last_service_date,
-                    hours_mileage: equipment?.hoursMileage != null ? Number(equipment.hoursMileage) : current.hours_mileage,
-                    cleanliness_rating: equipment?.cleanlinessRating != null ? Number(equipment.cleanlinessRating) : current.cleanliness_rating,
-                    condition_rating: equipment?.conditionRating != null ? Number(equipment.conditionRating) : current.condition_rating,
-                    equipment_make: equipment?.equipmentMake ?? current.equipment_make,
-                    equipment_model: equipment?.equipmentModel ?? current.equipment_model,
-                    year_made: equipment?.yearMade != null ? Number(equipment.yearMade) : current.year_made,
+                    identifying_number: "identifyingNumber" in equipment ? equipment.identifyingNumber : current.identifying_number,
+                    assigned_plant: "assignedPlant" in equipment ? equipment.assignedPlant : current.assigned_plant,
+                    assigned_operator: "assignedOperator" in equipment ? equipment.assignedOperator : current.assigned_operator,
+                    equipment_type: "equipmentType" in equipment ? equipment.equipmentType : current.equipment_type,
+                    status: "status" in equipment ? equipment.status : current.status,
+                    last_service_date: "lastServiceDate" in equipment ? toDbTimestamp(equipment.lastServiceDate) : current.last_service_date,
+                    hours_mileage: "hoursMileage" in equipment ? Number(equipment.hoursMileage) : current.hours_mileage,
+                    cleanliness_rating: "cleanlinessRating" in equipment ? Number(equipment.cleanlinessRating) : current.cleanliness_rating,
+                    condition_rating: "conditionRating" in equipment ? Number(equipment.conditionRating) : current.condition_rating,
+                    equipment_make: "equipmentMake" in equipment ? equipment.equipmentMake : current.equipment_make,
+                    equipment_model: "equipmentModel" in equipment ? equipment.equipmentModel : current.equipment_model,
+                    year_made: "yearMade" in equipment ? Number(equipment.yearMade) : current.year_made,
+                    vin: "vin" in equipment ? equipment.vin : current.vin,
+                    make: "make" in equipment ? equipment.make : current.make,
+                    model: "model" in equipment ? equipment.model : current.model,
+                    year: "year" in equipment ? Number(equipment.year) : current.year,
                     updated_last: typeof equipment?.updatedLast === "string" ? equipment.updatedLast : current.updated_last
                 };
                 const diffs: Array<{

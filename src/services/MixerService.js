@@ -83,7 +83,9 @@ class MixerServiceImpl {
             if (!userId) throw new Error('Authentication required')
         }
         if (mixer.id) delete mixer.id
-        mixer.vin = (mixer.vin || '').toUpperCase()
+        if (mixer.vin) {
+            mixer.vin = mixer.vin.toUpperCase()
+        }
         return this.addMixer(mixer, userId)
     }
 

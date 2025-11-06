@@ -250,23 +250,25 @@ Deno.serve(async (req) => {
                     status: 404,
                     headers: corsHeaders
                 });
-                let assignedOperator = mixer?.assignedOperator ?? null;
-                let status = mixer?.status ?? current.status;
+                let assignedOperator = "assignedOperator" in mixer ? mixer.assignedOperator : current.assigned_operator;
+                if (assignedOperator === null || assignedOperator === "" || assignedOperator === "0") assignedOperator = null;
+                let status = "status" in mixer ? mixer.status : current.status;
                 if ((!assignedOperator || assignedOperator === "" || assignedOperator === "0") && status === "Active") status = "Spare";
                 if (assignedOperator && status !== "Active") status = "Active";
                 if (["In Shop", "Retired", "Spare"].includes(status) && assignedOperator) assignedOperator = null;
                 const apiData: Record<string, any> = {
-                    truck_number: mixer?.truckNumber ?? current.truck_number,
-                    assigned_plant: mixer?.assignedPlant ?? current.assigned_plant,
+                    truck_number: "truckNumber" in mixer ? mixer.truckNumber : current.truck_number,
+                    assigned_plant: "assignedPlant" in mixer ? mixer.assignedPlant : current.assigned_plant,
                     assigned_operator: assignedOperator,
-                    last_service_date: toDbTimestamp(mixer?.lastServiceDate) ?? current.last_service_date,
-                    last_chip_date: toDbTimestamp(mixer?.lastChipDate) ?? current.last_chip_date,
-                    cleanliness_rating: typeof mixer?.cleanlinessRating === "number" ? mixer.cleanlinessRating : current.cleanliness_rating,
-                    vin: mixer?.vin ?? current.vin,
-                    make: mixer?.make ?? current.make,
-                    model: mixer?.model ?? current.model,
+                    last_service_date: "lastServiceDate" in mixer ? toDbTimestamp(mixer.lastServiceDate) : current.last_service_date,
+                    last_chip_date: "lastChipDate" in mixer ? toDbTimestamp(mixer.lastChipDate) : current.last_chip_date,
+                    cleanliness_rating: "cleanlinessRating" in mixer ? (typeof mixer.cleanlinessRating === "number" ? mixer.cleanlinessRating : Number(mixer.cleanlinessRating)) : current.cleanliness_rating,
+                    vin: "vin" in mixer ? mixer.vin : current.vin,
+                    make: "make" in mixer ? mixer.make : current.make,
+                    model: "model" in mixer ? mixer.model : current.model,
                     year: (() => {
-                        const y = normalize("year", mixer?.year);
+                        if (!("year" in mixer)) return current.year;
+                        const y = normalize("year", mixer.year);
                         return y != null && Number.isFinite(Number(y)) ? Number(y) : current.year;
                     })(),
                     status,
