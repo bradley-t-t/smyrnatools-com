@@ -82,6 +82,39 @@ function SettingsView() {
                                 </div>
                                 <span>Light</span>
                             </div>
+                            <div className={`theme-option ${preferences.themeMode === 'blue-light' ? 'active' : ''}`}
+                                 onClick={() => save(setThemeMode, 'blue-light')}>
+                                <div className="theme-preview blue-light-preview">
+                                    <div className="preview-navbar"></div>
+                                    <div className="preview-content">
+                                        <div className="preview-item"></div>
+                                        <div className="preview-item"></div>
+                                    </div>
+                                </div>
+                                <span>Blue Light</span>
+                            </div>
+                            <div className={`theme-option ${preferences.themeMode === 'red-light' ? 'active' : ''}`}
+                                 onClick={() => save(setThemeMode, 'red-light')}>
+                                <div className="theme-preview red-light-preview">
+                                    <div className="preview-navbar"></div>
+                                    <div className="preview-content">
+                                        <div className="preview-item"></div>
+                                        <div className="preview-item"></div>
+                                    </div>
+                                </div>
+                                <span>Red Light</span>
+                            </div>
+                            <div className={`theme-option ${preferences.themeMode === 'old-dark' ? 'active' : ''}`}
+                                 onClick={() => save(setThemeMode, 'old-dark')}>
+                                <div className="theme-preview old-dark-preview">
+                                    <div className="preview-navbar"></div>
+                                    <div className="preview-content">
+                                        <div className="preview-item"></div>
+                                        <div className="preview-item"></div>
+                                    </div>
+                                </div>
+                                <span>Dark</span>
+                            </div>
                             <div className={`theme-option ${preferences.themeMode === 'dark' ? 'active' : ''}`}
                                  onClick={() => save(setThemeMode, 'dark')}>
                                 <div className="theme-preview dark-preview">
@@ -103,17 +136,6 @@ function SettingsView() {
                                     </div>
                                 </div>
                                 <span>Red Dark</span>
-                            </div>
-                            <div className={`theme-option ${preferences.themeMode === 'old-dark' ? 'active' : ''}`}
-                                 onClick={() => save(setThemeMode, 'old-dark')}>
-                                <div className="theme-preview old-dark-preview">
-                                    <div className="preview-navbar"></div>
-                                    <div className="preview-content">
-                                        <div className="preview-item"></div>
-                                        <div className="preview-item"></div>
-                                    </div>
-                                </div>
-                                <span>Classic Dark</span>
                             </div>
                         </div>
                     </div>

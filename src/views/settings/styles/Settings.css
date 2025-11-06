@@ -205,6 +205,14 @@
     background-color: #f4f6f4;
 }
 
+.blue-light-preview {
+    background-color: #e8f0ff;
+}
+
+.red-light-preview {
+    background-color: #ffe8ed;
+}
+
 .dark-preview {
     background-color: #1a2332;
 }
@@ -221,6 +229,16 @@
     height: 30%;
     background-color: #ffffff;
     border-bottom: 1px solid #e5e5ea;
+}
+
+.blue-light-preview .preview-navbar {
+    background-color: #f5f8ff;
+    border-color: #c5d9f5;
+}
+
+.red-light-preview .preview-navbar {
+    background-color: #fff5f7;
+    border-color: #ffc5d1;
 }
 
 .dark-preview .preview-navbar {
@@ -248,6 +266,14 @@
 .preview-item {
     height: 8px;
     border-radius: 4px;
+    background-color: #ffffff;
+}
+
+.blue-light-preview .preview-item {
+    background-color: #ffffff;
+}
+
+.red-light-preview .preview-item {
     background-color: #ffffff;
 }
 
