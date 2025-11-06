@@ -315,7 +315,6 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
             if (!make || !make.trim()) missing.push('Make');
             if (!model || !model.trim()) missing.push('Model');
             if (!year || year === '0') missing.push('Year');
-            if (!lastServiceDate) missing.push('Last Service Date');
 
             if (missing.length > 0) {
                 setMissingFields(missing);

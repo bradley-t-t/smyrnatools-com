@@ -320,7 +320,12 @@ function MixerDetailView({mixerId, onClose}) {
             return
         }
 
-        setMissingFields([])
+        const missing = []
+        if (!mixer.vin || !ValidationUtility.isVIN(mixer.vin)) missing.push('VIN')
+        if (!mixer.make) missing.push('Make')
+        if (!mixer.model) missing.push('Model')
+        if (!mixer.year) missing.push('Year')
+        setMissingFields(missing)
         setShowMissingFieldsModal(true)
     }
 

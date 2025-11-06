@@ -309,7 +309,12 @@ function TractorDetailView({tractorId, onClose}) {
             return
         }
 
-        setMissingFields([])
+        const missing = []
+        if (!tractor.vin || !ValidationUtility.isVIN(tractor.vin)) missing.push('VIN')
+        if (!tractor.make) missing.push('Make')
+        if (!tractor.model) missing.push('Model')
+        if (!tractor.year) missing.push('Year')
+        setMissingFields(missing)
         setShowMissingFieldsModal(true)
     }
 
