@@ -189,6 +189,24 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         if (onSelectEquipment) onSelectEquipment(equipmentId);
     }
 
+    const handleVerifyEquipment = useCallback(async (equipmentId) => {
+        const equipment = equipments.find(e => e.id === equipmentId);
+        if (equipment) {
+            if (equipment.status === 'Retired') {
+                return;
+            }
+            saveLastViewedFilters();
+            setSelectedEquipment(equipment);
+            if (onSelectEquipment) onSelectEquipment(equipmentId);
+            setTimeout(() => {
+                const verifyButton = document.querySelector('[data-verify-trigger="true"]');
+                if (verifyButton) {
+                    verifyButton.click();
+                }
+            }, 300);
+        }
+    }, [equipments, saveLastViewedFilters, onSelectEquipment]);
+
     const debouncedSetSearchText = useCallback(debounce(value => {
         setSearchText(value);
         safeUpdateEquipmentFilter('searchText', value);
@@ -318,7 +336,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                 handleSelectItem={handleSelectEquipment}
                 headerLabels={['Plant', 'Type', 'Equipment #', 'Make & Model', 'Status', 'Cleanliness', 'Condition', 'Verified', 'More']}
                 colWidths={['10%', '15%', '10%', '15%', '8%', '10%', '10%', '10%', '12%']}
-                renderRow={(item, handleSelect, onComment, onIssue) => {
+                renderRow={(item, handleSelect, onComment, onIssue, onVerify) => {
                     const issuesCount = Number(item.openIssuesCount || 0);
                     const commentsCount = Number(item.commentsCount || 0);
                     const isVerified = typeof item.isVerified === 'function'
@@ -348,9 +366,26 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                                 return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                     style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                             })()}</td>
-                            <td style={{width: '10%'}}>{item.status === 'Retired' ? 'Not Applicable' : (isVerified ?
-                                <span><i className="fas fa-check" style={{color: 'green', marginRight: '4px'}}></i>Verified</span> :
-                                <span><i className="fas fa-flag" style={{color: 'red', marginRight: '4px'}}></i>Not Verified</span>)}</td>
+                            <td style={{width: '10%'}}>
+                                {item.status === 'Retired' ? (
+                                    <span className="list-verify-status list-verify-na">N/A</span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onVerify) {
+                                                onVerify(item.id, item.identifyingNumber);
+                                            }
+                                        }}
+                                        title={isVerified ? 'Verified - Click to view details' : 'Click to verify'}
+                                        className={`list-verify-btn ${isVerified ? 'verified' : 'not-verified'}`}
+                                    >
+                                        <i className={`fas ${isVerified ? 'fa-check' : 'fa-flag'}`}></i>
+                                        <span>{isVerified ? 'Verified' : 'Not Verified'}</span>
+                                    </button>
+                                )}
+                            </td>
                             <td style={{width: '12%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                                     <button type="button" onClick={e => {
@@ -411,6 +446,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                     setModalEquipmentNumber(number);
                     setShowIssueModal(true);
                 }}
+                onVerify={handleVerifyEquipment}
                 containerClassName="list-table-container"
                 tableClassName="list-table"
             />

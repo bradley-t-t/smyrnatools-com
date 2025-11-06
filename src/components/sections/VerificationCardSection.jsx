@@ -57,6 +57,7 @@ function VerificationCardSection({
                     className="verify-now-button"
                     onClick={onVerify}
                     disabled={!canEdit || verificationDisabled}
+                    data-verify-trigger="true"
                 >
                     <i className="fas fa-check-circle"></i> Verify Now
                 </button>
