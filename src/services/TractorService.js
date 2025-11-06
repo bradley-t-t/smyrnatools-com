@@ -61,7 +61,9 @@ export class TractorService {
     }
 
     static async addTractor(tractor, userId) {
-        if (tractor && typeof tractor === 'object') tractor.vin = (tractor.vin || '').toUpperCase()
+        if (tractor && typeof tractor === 'object' && 'vin' in tractor && tractor.vin) {
+            tractor.vin = tractor.vin.toUpperCase()
+        }
         const {res, json} = await APIUtility.post('/tractor-service/create', {userId, tractor})
         if (!res.ok) throw new Error(json?.error || 'Failed to create tractor')
         return Tractor.fromApiFormat(json?.data)
@@ -74,7 +76,9 @@ export class TractorService {
             if (!userId) throw new Error('Authentication required')
         }
         if (tractor.id) delete tractor.id
-        tractor.vin = (tractor.vin || '').toUpperCase()
+        if (tractor.vin) {
+            tractor.vin = tractor.vin.toUpperCase()
+        }
         return this.addTractor(tractor, userId)
     }
 
@@ -86,7 +90,9 @@ export class TractorService {
             userId = typeof user === 'object' && user !== null ? user.id : user
         }
         if (!userId) throw new Error('User ID is required')
-        if (tractor && typeof tractor === 'object') tractor.vin = (tractor.vin || '').toUpperCase()
+        if (tractor && typeof tractor === 'object' && 'vin' in tractor && tractor.vin) {
+            tractor.vin = tractor.vin.toUpperCase()
+        }
 
         if (_prevTractorState && _prevTractorState.assignedPlant !== tractor.assignedPlant) {
             tractor.assignedOperator = null

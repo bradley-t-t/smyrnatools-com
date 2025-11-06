@@ -12,6 +12,8 @@ import TractorAddView from "./TractorAddView";
 import TractorDetailView from "./TractorDetailView";
 import TractorIssueModal from './TractorIssueModal'
 import TractorCommentModal from './TractorCommentModal'
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
+import {ValidationUtility} from '../../utils/ValidationUtility'
 import {RegionService} from '../../services/RegionService'
 import AsyncUtility from '../../utils/AsyncUtility'
 import FleetUtility from '../../utils/FleetUtility'
@@ -61,6 +63,13 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
     const [sortDirection, setSortDirection] = useState('asc')
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedTractorForHistory, setSelectedTractorForHistory] = useState(null)
+    const [showVerifyModal, setShowVerifyModal] = useState(false)
+    const [verifyTractor, setVerifyTractor] = useState(null)
+    const [verifyVin, setVerifyVin] = useState('')
+    const [verifyMake, setVerifyMake] = useState('')
+    const [verifyModel, setVerifyModel] = useState('')
+    const [verifyYear, setVerifyYear] = useState('')
+    const [verifyLastServiceDate, setVerifyLastServiceDate] = useState(null)
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues']
     const sortMappings = {
         'Plant': 'assignedPlant',
@@ -218,17 +227,57 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
             if (tractor.status === 'Retired') {
                 return;
             }
-            saveLastViewedFilters();
-            setSelectedTractor(tractorId);
-            onSelectTractor?.(tractorId);
-            setTimeout(() => {
-                const verifyButton = document.querySelector('[data-verify-trigger="true"]');
-                if (verifyButton) {
-                    verifyButton.click();
-                }
-            }, 300);
+            setVerifyTractor(tractor);
+            setVerifyVin(tractor.vin || tractor.vinNumber || '');
+            setVerifyMake(tractor.make || '');
+            setVerifyModel(tractor.model || '');
+            setVerifyYear(tractor.year || '');
+            setVerifyLastServiceDate(tractor.lastServiceDate || null);
+            setShowVerifyModal(true);
         }
-    }, [tractors, saveLastViewedFilters, onSelectTractor]);
+    }, [tractors]);
+
+    const handleSaveAndVerify = useCallback(async () => {
+        if (!verifyTractor) return;
+        
+        try {
+            const updates = {};
+            if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyTractor.vin || '')) {
+                updates.vin = verifyVin;
+            }
+            if (verifyMake && verifyMake.trim() !== '' && verifyMake !== (verifyTractor.make || '')) {
+                updates.make = verifyMake;
+            }
+            if (verifyModel && verifyModel.trim() !== '' && verifyModel !== (verifyTractor.model || '')) {
+                updates.model = verifyModel;
+            }
+            if (verifyYear && String(verifyYear).trim() !== '' && verifyYear !== (verifyTractor.year || '')) {
+                updates.year = verifyYear;
+            }
+            if (verifyLastServiceDate && verifyLastServiceDate !== verifyTractor.lastServiceDate) {
+                updates.lastServiceDate = verifyLastServiceDate;
+            }
+            
+            if (Object.keys(updates).length > 0) {
+                await TractorService.updateTractor(verifyTractor.id, updates);
+            }
+            
+            const verified = await TractorService.verifyTractor(verifyTractor.id);
+            
+            setTractors(prevTractors => prevTractors.map(t => 
+                t.id === verifyTractor.id ? verified : t
+            ));
+            setAllTractors(prevTractors => prevTractors.map(t => 
+                t.id === verifyTractor.id ? verified : t
+            ));
+            
+            setShowVerifyModal(false);
+            setVerifyTractor(null);
+        } catch (error) {
+            console.error('Failed to verify tractor:', error);
+            alert('Failed to verify tractor. Please try again.');
+        }
+    }, [verifyTractor, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate]);
 
     const filteredTractors = useMemo(() => tractors.filter(tractor => {
         const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -606,6 +655,37 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                                 item={selectedTractorForHistory}
                                 type="tractor"
                                 onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                        {showVerifyModal && verifyTractor && (
+                            <VerificationRequirementsModal
+                                open={showVerifyModal}
+                                onClose={() => {
+                                    setShowVerifyModal(false);
+                                    setVerifyTractor(null);
+                                }}
+                                onSaveAndVerify={handleSaveAndVerify}
+                                missingFields={[
+                                    ...(!verifyTractor.vin || !ValidationUtility.isVIN(verifyTractor.vin) ? ['VIN'] : []),
+                                    ...(!verifyTractor.make ? ['Make'] : []),
+                                    ...(!verifyTractor.model ? ['Model'] : []),
+                                    ...(!verifyTractor.year ? ['Year'] : [])
+                                ]}
+                                vin={verifyVin}
+                                make={verifyMake}
+                                model={verifyModel}
+                                year={verifyYear}
+                                lastServiceDate={verifyLastServiceDate}
+                                setVin={setVerifyVin}
+                                setMake={setVerifyMake}
+                                setModel={setVerifyModel}
+                                setYear={setVerifyYear}
+                                setLastServiceDate={setVerifyLastServiceDate}
+                                isServiceOverdue={TractorUtility.isServiceOverdue}
+                                assignedOperator={verifyTractor.assignedOperator}
+                                itemType="tractor"
+                                itemId={verifyTractor.id}
+                                service={TractorService}
                             />
                         )}
                     </>

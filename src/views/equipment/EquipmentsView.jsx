@@ -11,6 +11,7 @@ import '../../styles/FilterStyles.css';
 import './styles/Equipment.css';
 import EquipmentIssueModal from './EquipmentIssueModal'
 import EquipmentCommentModal from './EquipmentCommentModal'
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import {RegionService} from '../../services/RegionService'
 import {debounce} from '../../utils/AsyncUtility'
 import {getPlantName as lookupGetPlantName} from '../../utils/LookupUtility'
@@ -50,6 +51,13 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const [sortDirection, setSortDirection] = useState('asc')
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedEquipmentForHistory, setSelectedEquipmentForHistory] = useState(null)
+    const [showVerifyModal, setShowVerifyModal] = useState(false)
+    const [verifyEquipment, setVerifyEquipment] = useState(null)
+    const [verifyVin, setVerifyVin] = useState('')
+    const [verifyMake, setVerifyMake] = useState('')
+    const [verifyModel, setVerifyModel] = useState('')
+    const [verifyYear, setVerifyYear] = useState('')
+    const [verifyLastServiceDate, setVerifyLastServiceDate] = useState(null)
 
     const filterOptions = ['All Statuses', 'Active', 'Spare', 'In Shop', 'Retired', 'Past Due Service', 'Verified', 'Not Verified', 'Open Issues'];
     const equipmentTypeOptions = ['', 'Front-End Loader', 'Excavator', 'Mini-Excavator', 'Backhoe', 'Skid Steer', 'Forklift', 'Manlift', 'Dozer', 'Off-Road Dump Truck', 'Water/Trash Pump', 'Water Truck', 'Trailer', 'Portable Compressor', 'Portable Conveyor', 'Crusher', 'Ice Conveyor', 'Rotary Mixer', 'Road Reclaimer', 'Roller', 'Maintainer', 'Sweeper', 'Other', 'Unknown'];
@@ -195,17 +203,54 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             if (equipment.status === 'Retired') {
                 return;
             }
-            saveLastViewedFilters();
-            setSelectedEquipment(equipment);
-            if (onSelectEquipment) onSelectEquipment(equipmentId);
-            setTimeout(() => {
-                const verifyButton = document.querySelector('[data-verify-trigger="true"]');
-                if (verifyButton) {
-                    verifyButton.click();
-                }
-            }, 300);
+            setVerifyEquipment(equipment);
+            setVerifyVin(equipment.vin || '');
+            setVerifyMake(equipment.make || equipment.equipmentMake || '');
+            setVerifyModel(equipment.model || equipment.equipmentModel || '');
+            setVerifyYear(equipment.year || equipment.yearMade || '');
+            setVerifyLastServiceDate(equipment.lastServiceDate || null);
+            setShowVerifyModal(true);
         }
-    }, [equipments, saveLastViewedFilters, onSelectEquipment]);
+    }, [equipments]);
+
+    const handleSaveAndVerify = useCallback(async () => {
+        if (!verifyEquipment) return;
+        
+        try {
+            const updates = {};
+            if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyEquipment.vin || '')) {
+                updates.vin = verifyVin;
+            }
+            if (verifyMake && verifyMake.trim() !== '' && verifyMake !== (verifyEquipment.make || verifyEquipment.equipmentMake || '')) {
+                updates.make = verifyMake;
+            }
+            if (verifyModel && verifyModel.trim() !== '' && verifyModel !== (verifyEquipment.model || verifyEquipment.equipmentModel || '')) {
+                updates.model = verifyModel;
+            }
+            if (verifyYear && String(verifyYear).trim() !== '' && verifyYear !== (verifyEquipment.year || verifyEquipment.yearMade || '')) {
+                updates.year = verifyYear;
+            }
+            if (verifyLastServiceDate && verifyLastServiceDate !== verifyEquipment.lastServiceDate) {
+                updates.lastServiceDate = verifyLastServiceDate;
+            }
+            
+            if (Object.keys(updates).length > 0) {
+                await EquipmentService.updateEquipment(verifyEquipment.id, updates);
+            }
+            
+            const verified = await EquipmentService.verifyEquipment(verifyEquipment.id);
+            
+            setEquipments(prevEquipments => prevEquipments.map(e => 
+                e.id === verifyEquipment.id ? verified : e
+            ));
+            
+            setShowVerifyModal(false);
+            setVerifyEquipment(null);
+        } catch (error) {
+            console.error('Failed to verify equipment:', error);
+            alert('Failed to verify equipment. Please try again.');
+        }
+    }, [verifyEquipment, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate]);
 
     const debouncedSetSearchText = useCallback(debounce(value => {
         setSearchText(value);
@@ -531,6 +576,36 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             item={selectedEquipmentForHistory}
                             type="equipment"
                             onClose={() => setShowHistoryModal(false)}
+                        />
+                    )}
+                    {showVerifyModal && verifyEquipment && (
+                        <VerificationRequirementsModal
+                            open={showVerifyModal}
+                            onClose={() => {
+                                setShowVerifyModal(false);
+                                setVerifyEquipment(null);
+                            }}
+                            onSaveAndVerify={handleSaveAndVerify}
+                            missingFields={[
+                                ...(!verifyEquipment.make && !verifyEquipment.equipmentMake ? ['Make'] : []),
+                                ...(!verifyEquipment.model && !verifyEquipment.equipmentModel ? ['Model'] : []),
+                                ...(!verifyEquipment.year && !verifyEquipment.yearMade ? ['Year'] : [])
+                            ]}
+                            vin={verifyVin}
+                            make={verifyMake}
+                            model={verifyModel}
+                            year={verifyYear}
+                            lastServiceDate={verifyLastServiceDate}
+                            setVin={setVerifyVin}
+                            setMake={setVerifyMake}
+                            setModel={setVerifyModel}
+                            setYear={setVerifyYear}
+                            setLastServiceDate={setVerifyLastServiceDate}
+                            isServiceOverdue={EquipmentUtility.isServiceOverdue}
+                            assignedOperator={verifyEquipment.assignedOperator}
+                            itemType="equipment"
+                            itemId={verifyEquipment.id}
+                            service={EquipmentService}
                         />
                     )}
                 </>
