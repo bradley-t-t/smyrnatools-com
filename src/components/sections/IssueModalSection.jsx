@@ -19,12 +19,29 @@ function IssueModalSection({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [userNames, setUserNames] = useState({});
+    const [canDelete, setCanDelete] = useState(false);
 
     useEffect(() => {
         if (itemId) {
             fetchIssues();
         }
     }, [itemId]);
+
+    useEffect(() => {
+        async function checkDeletePermission() {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || null;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, "detailview.bypass.plantrestriction");
+                    setCanDelete(hasPermission);
+                }
+            } catch {
+                setCanDelete(false);
+            }
+        }
+        checkDeletePermission();
+    }, []);
 
     const sortedIssues = [...issues].sort((a, b) => {
         return new Date(b.time_created) - new Date(a.time_created);
@@ -237,13 +254,15 @@ function IssueModalSection({
                                                         >
                                                             <i className="fas fa-check"></i>
                                                         </button>
-                                                        <button
-                                                            className="issue-modal-action-btn delete"
-                                                            onClick={() => handleDeleteIssue(issue.id)}
-                                                            title="Delete issue"
-                                                        >
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
+                                                        {canDelete && (
+                                                            <button
+                                                                className="issue-modal-action-btn delete"
+                                                                onClick={() => handleDeleteIssue(issue.id)}
+                                                                title="Delete issue"
+                                                            >
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="issue-modal-text">{issue.issue}</div>
@@ -273,13 +292,15 @@ function IssueModalSection({
                                                         </span>
                                                     </div>
                                                     <div className="issue-modal-actions">
-                                                        <button
-                                                            className="issue-modal-action-btn delete"
-                                                            onClick={() => handleDeleteIssue(issue.id)}
-                                                            title="Delete issue"
-                                                        >
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
+                                                        {canDelete && (
+                                                            <button
+                                                                className="issue-modal-action-btn delete"
+                                                                onClick={() => handleDeleteIssue(issue.id)}
+                                                                title="Delete issue"
+                                                            >
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="issue-modal-text">{issue.issue}</div>
