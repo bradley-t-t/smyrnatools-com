@@ -45,6 +45,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
     const [_issues, setIssues] = useState([]);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [currentRegion, setCurrentRegion] = useState(null);
     const [updatedByEmail, setUpdatedByEmail] = useState('');
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
     const [missingFields, setMissingFields] = useState([]);
@@ -170,6 +171,60 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
+
+    useEffect(() => {
+        if (equipment?.assignedPlant) {
+            RegionService.fetchRegionsByPlantCode(equipment.assignedPlant)
+                .then(regions => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [equipment?.assignedPlant])
+
+    async function handleRegionTransfer(newRegionCode, newPlantCode) {
+        if (!equipment?.id || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid equipment, region, or plant')
+        }
+
+        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+
+        setIsSaving(true)
+        setMessage('')
+
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+
+            const updatedEquipment = {
+                ...equipment,
+                assignedPlant: newPlantCode
+            }
+
+            const result = await EquipmentService.updateEquipment(equipment.id, updatedEquipment, userId, equipment)
+            setEquipment(result)
+            setAssignedPlant(newPlantCode)
+            setOriginalValues({
+                ...originalValues,
+                assignedPlant: newPlantCode
+            })
+            setHasUnsavedChanges(false)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     async function handleSave(overrides = {}) {
         if (!equipment?.id) {
@@ -500,6 +555,9 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 deleteMessage={`Are you sure you want to delete ${equipment.equipmentType} #${equipment.identifyingNumber}? This action cannot be undone.`}
                 itemAssignedPlant={assignedPlant}
                 onCanEditChange={setCanEditEquipment}
+                currentRegion={currentRegion}
+                assetType="equipment"
+                onRegionTransfer={handleRegionTransfer}
                 headerActions={
                     <>
                         <button className="global-button-secondary" onClick={() => setShowIssues(true)}>

@@ -59,6 +59,7 @@ function TractorDetailView({tractorId, onClose}) {
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
     const [missingFields, setMissingFields] = useState([]);
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [currentRegion, setCurrentRegion] = useState(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -193,6 +194,63 @@ function TractorDetailView({tractorId, onClose}) {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
+
+    useEffect(() => {
+        if (tractor?.assignedPlant) {
+            RegionService.fetchRegionsByPlantCode(tractor.assignedPlant)
+                .then(regions => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [tractor?.assignedPlant])
+
+    async function handleRegionTransfer(newRegionCode, newPlantCode) {
+        if (!tractor?.id || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid tractor, region, or plant')
+        }
+
+        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+
+        setIsSaving(true)
+        setMessage('')
+
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+
+            const updatedTractor = {
+                ...tractor,
+                assignedPlant: newPlantCode,
+                assignedOperator: null
+            }
+
+            const result = await TractorService.updateTractor(tractor.id, updatedTractor, userId, tractor)
+            setTractor(result)
+            setAssignedPlant(newPlantCode)
+            setAssignedOperator('')
+            setOriginalValues({
+                ...originalValues,
+                assignedPlant: newPlantCode,
+                assignedOperator: ''
+            })
+            setHasUnsavedChanges(false)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     async function handleSave(overrideValues = {}) {
         if (!tractor?.id) {
@@ -530,6 +588,9 @@ function TractorDetailView({tractorId, onClose}) {
                 onDeleteCancel={() => setShowDeleteConfirmation(false)}
                 deleteTitle="Confirm Delete"
                 deleteMessage={`Are you sure you want to delete Truck #${tractor.truckNumber}? This action cannot be undone.`}
+                currentRegion={currentRegion}
+                assetType="tractor"
+                onRegionTransfer={handleRegionTransfer}
                 headerActions={
                     <>
                         <button className="global-button-secondary" onClick={() => setShowIssues(true)}>

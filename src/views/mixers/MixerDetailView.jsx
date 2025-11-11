@@ -58,6 +58,7 @@ function MixerDetailView({mixerId, onClose}) {
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false)
     const [missingFields, setMissingFields] = useState([])
     const [showPlantModal, setShowPlantModal] = useState(false)
+    const [currentRegion, setCurrentRegion] = useState(null)
 
     useEffect(() => {
         async function fetchData() {
@@ -204,6 +205,50 @@ function MixerDetailView({mixerId, onClose}) {
         window.addEventListener('beforeunload', handleBeforeUnload)
         return () => window.removeEventListener('beforeunload', handleBeforeUnload)
     }, [hasUnsavedChanges])
+
+    async function handleRegionTransfer(newRegionCode, newPlantCode) {
+        if (!mixer?.id || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid mixer, region, or plant')
+        }
+
+        const regionService = RegionService
+        const newRegion = await regionService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+
+        setIsSaving(true)
+        setMessage('')
+
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+
+            const updatedMixer = {
+                ...mixer,
+                assignedPlant: newPlantCode,
+                assignedOperator: null
+            }
+
+            const result = await MixerService.updateMixer(mixer.id, updatedMixer, userId, mixer)
+            setMixer(result)
+            setAssignedPlant(newPlantCode)
+            setAssignedOperator('')
+            setOriginalValues({
+                ...originalValues,
+                assignedPlant: newPlantCode,
+                assignedOperator: ''
+            })
+            setHasUnsavedChanges(false)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     async function handleSave(overrideValues = {}) {
         if (!mixer?.id) {
@@ -469,6 +514,20 @@ function MixerDetailView({mixerId, onClose}) {
         fetchCommentsAndIssues()
     }, [mixerId])
 
+    useEffect(() => {
+        if (mixer?.assignedPlant) {
+            RegionService.fetchRegionsByPlantCode(mixer.assignedPlant)
+                .then(regions => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [mixer?.assignedPlant])
+
     if (isLoading) {
         return null
     }
@@ -559,6 +618,9 @@ function MixerDetailView({mixerId, onClose}) {
                 onDeleteCancel={() => setShowDeleteConfirmation(false)}
                 deleteTitle="Confirm Delete"
                 deleteMessage={`Are you sure you want to delete Truck #${mixer.truckNumber}? This action cannot be undone.`}
+                currentRegion={currentRegion}
+                assetType="mixer"
+                onRegionTransfer={handleRegionTransfer}
                 headerActions={
                     <>
                         <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
@@ -908,4 +970,3 @@ function MixerDetailView({mixerId, onClose}) {
 }
 
 export default MixerDetailView
-

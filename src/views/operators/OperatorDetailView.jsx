@@ -8,6 +8,7 @@ import OperatorHistoryView from './OperatorHistoryView';
 import OperatorCommentModal from './OperatorCommentModal';
 import {UserService} from '../../services/UserService';
 import {OperatorService} from '../../services/OperatorService';
+import {RegionService} from '../../services/RegionService';
 import DetailViewSection from '../../components/sections/DetailViewSection';
 import ThemeUtility from '../../utils/ThemeUtility';
 import {usePreferences} from '../../app/context/PreferencesContext';
@@ -34,6 +35,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [rating, setRating] = useState(0);
     const [phone, setPhone] = useState('');
     const [showPlantModal, setShowPlantModal] = useState(false);
+    const [currentRegion, setCurrentRegion] = useState(null);
     const [showHistory, setShowHistory] = useState(false);
     const [showComments, setShowComments] = useState(false);
     const [canEditOperator, setCanEditOperator] = useState(false);
@@ -147,6 +149,56 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
         }
         if (onClose) onClose();
     };
+
+    useEffect(() => {
+        if (operator?.plant_code) {
+            RegionService.fetchRegionsByPlantCode(operator.plant_code)
+                .then(regions => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [operator?.plant_code])
+
+    const handleRegionTransfer = async (newRegionCode, newPlantCode) => {
+        if (!operator?.employeeId || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid operator, region, or plant')
+        }
+
+        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+
+        setIsSaving(true)
+        setMessage('')
+
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+
+            const updatedOperator = {
+                ...operator,
+                plant_code: newPlantCode
+            }
+
+            await OperatorService.updateOperator(operator.employeeId, updatedOperator, userId)
+            setAssignedPlant(newPlantCode)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+            
+            await fetchData()
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     const handleDelete = async () => {
         setIsSaving(true);
@@ -268,6 +320,9 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             isLoading={isLoading}
             loadingMessage="Loading operator details..."
             notFound={!operator && !isLoading}
+            currentRegion={currentRegion}
+            assetType="operator"
+            onRegionTransfer={handleRegionTransfer}
             notFoundMessage="Operator Not Found"
             notFoundDescription="Could not find the requested operator."
             footerActions={

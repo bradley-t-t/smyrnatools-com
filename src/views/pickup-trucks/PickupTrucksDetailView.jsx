@@ -30,6 +30,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     const [originalValues, setOriginalValues] = useState(null)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
     const [showPlantModal, setShowPlantModal] = useState(false)
+    const [currentRegion, setCurrentRegion] = useState(null)
     const [canEditPickup, setCanEditPickup] = useState(false)
     const [canDeletePickup, setCanDeletePickup] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
@@ -146,6 +147,60 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
         setHasUnsavedChanges(changed)
     }, [vin, make, model, year, assigned, assignedPlant, status, mileage, comments, originalValues])
 
+    useEffect(() => {
+        if (pickup?.assignedPlant) {
+            RegionService.fetchRegionsByPlantCode(pickup.assignedPlant)
+                .then(regions => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [pickup?.assignedPlant])
+
+    async function handleRegionTransfer(newRegionCode, newPlantCode) {
+        if (!pickup?.id || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid pickup truck, region, or plant')
+        }
+
+        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+
+        setIsSaving(true)
+        setMessage('')
+
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+
+            const updatedPickup = {
+                ...pickup,
+                assignedPlant: newPlantCode
+            }
+
+            const result = await PickupTruckService.updatePickupTruck(pickup.id, updatedPickup, userId)
+            setPickup(result)
+            setAssignedPlant(newPlantCode)
+            setOriginalValues({
+                ...originalValues,
+                assignedPlant: newPlantCode
+            })
+            setHasUnsavedChanges(false)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
     async function handleSave() {
         if (!pickup?.id) return null
         setIsSaving(true)
@@ -240,6 +295,9 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
             notFound={!pickup && !isLoading}
             notFoundMessage="Pickup Not Found"
             notFoundDescription="Could not find the requested pickup."
+            currentRegion={currentRegion}
+            assetType="pickup_truck"
+            onRegionTransfer={handleRegionTransfer}
             headerActions={
                 pickup && (
                     <>

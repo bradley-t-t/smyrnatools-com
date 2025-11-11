@@ -47,6 +47,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [canDeleteTrailer, setCanDeleteTrailer] = useState(false);
+    const [currentRegion, setCurrentRegion] = useState(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -188,6 +189,60 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
+
+    useEffect(() => {
+        if (trailer?.assignedPlant) {
+            RegionService.fetchRegionsByPlantCode(trailer.assignedPlant)
+                .then(regions => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [trailer?.assignedPlant])
+
+    async function handleRegionTransfer(newRegionCode, newPlantCode) {
+        if (!trailer?.id || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid trailer, region, or plant')
+        }
+
+        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+
+        setIsSaving(true)
+        setMessage('')
+
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+
+            const updatedTrailer = {
+                ...trailer,
+                assignedPlant: newPlantCode
+            }
+
+            const result = await TrailerService.updateTrailer(trailer.id, updatedTrailer, userId, trailer)
+            setTrailer(result)
+            setAssignedPlant(newPlantCode)
+            setOriginalValues({
+                ...originalValues,
+                assignedPlant: newPlantCode
+            })
+            setHasUnsavedChanges(false)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     async function handleSave(overrideValues = {}) {
         if (!trailer?.id) {
@@ -473,6 +528,9 @@ ${openIssues.length > 0
                 onDeleteCancel={() => setShowDeleteConfirmation(false)}
                 deleteTitle="Confirm Delete"
                 deleteMessage={`Are you sure you want to delete Trailer #${trailer.trailerNumber}? This action cannot be undone.`}
+                currentRegion={currentRegion}
+                assetType="trailer"
+                onRegionTransfer={handleRegionTransfer}
                 headerActions={
                     <>
                         <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
