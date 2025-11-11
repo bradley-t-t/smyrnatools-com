@@ -678,7 +678,7 @@ function ReportsSubmitView({
                                     </div>
                                 </div>
                             </>
-                        ) : report.name === 'general_manager' ? null : report.name === 'aggregate_production' ? null : report.name === 'safety_manager' ? null : (
+                        ) : report.name === 'general_manager' ? null : report.name === 'aggregate_production' ? null : report.name === 'safety_manager' ? null : report.name === 'district_manager' ? null : (
                             report.fields.map(field => (
                                 field.name === 'issues' ? null : (
                                     <div key={field.name} className="rpts-sbmt-field-wide">

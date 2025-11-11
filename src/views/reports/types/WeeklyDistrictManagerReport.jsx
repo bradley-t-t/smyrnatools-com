@@ -2,12 +2,66 @@ import React from 'react'
 import '../styles/Reports.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
 
-export function DistrictManagerSubmitPlugin({maintenanceItems, plants}) {
+function DailyRecapSection({form, handleChange, readOnly}) {
+    const days = [
+        {key: 'monday', label: 'Monday', icon: 'fa-calendar-day'},
+        {key: 'tuesday', label: 'Tuesday', icon: 'fa-calendar-day'},
+        {key: 'wednesday', label: 'Wednesday', icon: 'fa-calendar-day'},
+        {key: 'thursday', label: 'Thursday', icon: 'fa-calendar-day'},
+        {key: 'friday', label: 'Friday', icon: 'fa-calendar-day'},
+        {key: 'saturday', label: 'Saturday', icon: 'fa-calendar-week'}
+    ]
+
+    return (
+        <div className="dm-daily-recap-section">
+            <div className="dm-daily-recap-header">
+                <h3 className="dm-daily-recap-title">
+                    <i className="fas fa-clipboard-list"></i>
+                    Daily Activity Recaps
+                </h3>
+                <p className="dm-daily-recap-subtitle">
+                    Document key activities, accomplishments, and notes for each day of the week
+                </p>
+            </div>
+            <div className="dm-daily-recap-grid">
+                {days.map(day => (
+                    <div key={day.key} className="dm-daily-card">
+                        <div className="dm-daily-card-header">
+                            <i className={`fas ${day.icon} dm-daily-icon`}></i>
+                            <span className="dm-daily-label">{day.label}</span>
+                            <span className="dm-daily-required">*</span>
+                        </div>
+                        <textarea
+                            className="dm-daily-textarea"
+                            value={form[day.key] ?? ''}
+                            onChange={e => handleChange(e, day.key)}
+                            placeholder={`Enter ${day.label.toLowerCase()} activities, meetings, issues, accomplishments...`}
+                            required
+                            disabled={readOnly}
+                            rows={6}
+                        />
+                        <div className="dm-daily-char-count">
+                            {(form[day.key] ?? '').length} characters
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, setForm, readOnly}) {
     const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
     
     const filteredItems = maintenanceItems && plantCodes 
         ? maintenanceItems.filter(item => plantCodes.has(item.plant_code))
         : maintenanceItems || []
+
+    function handleChange(e, name) {
+        if (setForm) {
+            setForm(prev => ({...prev, [name]: e.target.value}))
+        }
+    }
 
     function getPlantName(plantCode) {
         const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
@@ -24,6 +78,8 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants}) {
 
     return (
         <div className="dm-report-plugin">
+            <DailyRecapSection form={form} handleChange={handleChange} readOnly={readOnly} />
+            
             <div className="dm-report-header">
                 <h3 className="dm-report-title">Weekly Completed Maintenance Items</h3>
                 <div className="dm-report-stats">
