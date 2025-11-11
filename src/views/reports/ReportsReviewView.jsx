@@ -252,7 +252,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                 )}
                 <div className="rpts-form-body-wide">
                     <>
-                        {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' ? null : (
+                        {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' ? null : (
                             <div className="rpts-form-fields-grid">
                                 {report.fields.map(field => (
                                     (report.name === 'safety_manager' && field.name === 'issues') ? null : (

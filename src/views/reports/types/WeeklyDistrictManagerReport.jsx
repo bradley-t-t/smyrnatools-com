@@ -161,12 +161,15 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
     )
 }
 
-export function DistrictManagerReviewPlugin({maintenanceItems, plants}) {
+export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
     const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
     
     const filteredItems = maintenanceItems && plantCodes 
         ? maintenanceItems.filter(item => plantCodes.has(item.plant_code))
         : maintenanceItems || []
+
+    function handleChange() {
+    }
 
     function getPlantName(plantCode) {
         const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
@@ -183,6 +186,8 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants}) {
 
     return (
         <div className="dm-report-plugin">
+            <DailyRecapSection form={form} handleChange={handleChange} readOnly={true} />
+            
             <div className="dm-report-header">
                 <h3 className="dm-report-title">Weekly Completed Maintenance Items</h3>
                 <div className="dm-report-stats">
