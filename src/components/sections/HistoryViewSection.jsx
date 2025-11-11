@@ -297,12 +297,19 @@ function HistoryViewSection({item, type, onClose}) {
             return aTime - bTime;
         });
 
-        return operatorEntries.map(entry => ({
-            date: new Date(entry.changedAt || entry.changed_at),
-            operator: getOperatorName(entry.newValue || entry.new_value),
-            operatorId: entry.newValue || entry.new_value,
-            timestamp: entry.changedAt || entry.changed_at
-        })).filter(entry => entry.operator !== 'Unknown' && entry.operator !== 'None');
+        return operatorEntries.map(entry => {
+            const operatorId = entry.newValue || entry.new_value;
+            const operatorName = getOperatorName(operatorId);
+            const isEmpty = !operatorId || operatorId === '0' || operatorId === 'null' || operatorName === 'None';
+            
+            return {
+                date: new Date(entry.changedAt || entry.changed_at),
+                operator: isEmpty ? 'Empty' : operatorName,
+                operatorId: operatorId,
+                timestamp: entry.changedAt || entry.changed_at,
+                isEmpty: isEmpty
+            };
+        }).filter(entry => entry.operator !== 'Unknown');
     }, [history, operators]);
 
     const serviceData = useMemo(() => {
@@ -455,6 +462,74 @@ function HistoryViewSection({item, type, onClose}) {
                 isUnassignment: !newValue || newValue === 'null' || newValue === ''
             };
         });
+    }, [history]);
+
+    const allStatusPeriodsData = useMemo(() => {
+        const statusEntries = history.filter(entry => {
+            const fieldName = entry.fieldName || entry.field_name;
+            const key = fieldName && fieldName.includes('_') ? fieldName : String(fieldName || '').replace(/([A-Z])/g, '_$1').toLowerCase();
+            return key === 'status';
+        }).sort((a, b) => {
+            const aTime = new Date(a.changedAt || a.changed_at);
+            const bTime = new Date(b.changedAt || b.changed_at);
+            return aTime - bTime;
+        });
+
+        const statusPeriods = [];
+
+        if (statusEntries.length > 0) {
+            const firstEntry = statusEntries[0];
+            const oldStatus = firstEntry.oldValue || firstEntry.old_value;
+            
+            if (oldStatus && oldStatus !== 'null' && oldStatus !== '') {
+                const oldestHistoryEntry = history.length > 0
+                    ? new Date(Math.min(...history.map(h => new Date(h.changedAt || h.changed_at))))
+                    : new Date(firstEntry.changedAt || firstEntry.changed_at);
+                const firstChangeDate = new Date(firstEntry.changedAt || firstEntry.changed_at);
+                const initialDays = Math.round((firstChangeDate - oldestHistoryEntry) / (1000 * 60 * 60 * 24));
+                
+                if (initialDays > 0) {
+                    statusPeriods.push({
+                        status: oldStatus,
+                        startDate: oldestHistoryEntry,
+                        endDate: firstChangeDate,
+                        startTimestamp: oldestHistoryEntry.toISOString(),
+                        endTimestamp: firstEntry.changedAt || firstEntry.changed_at,
+                        days: initialDays,
+                        isCurrent: false,
+                        changedBy: null,
+                        endChangedBy: firstEntry.changedBy || firstEntry.changed_by
+                    });
+                }
+            }
+        }
+
+        statusEntries.forEach((entry, index) => {
+            const status = entry.newValue || entry.new_value;
+            const timestamp = entry.changedAt || entry.changed_at;
+            const changedBy = entry.changedBy || entry.changed_by;
+            const startDate = new Date(timestamp);
+            
+            const nextEntry = statusEntries[index + 1];
+            const endDate = nextEntry ? new Date(nextEntry.changedAt || nextEntry.changed_at) : new Date();
+            const endTimestamp = nextEntry ? nextEntry.changedAt || nextEntry.changed_at : null;
+            const endChangedBy = nextEntry ? nextEntry.changedBy || nextEntry.changed_by : null;
+            const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            statusPeriods.push({
+                status: status,
+                startDate: startDate,
+                endDate: endDate,
+                startTimestamp: timestamp,
+                endTimestamp: endTimestamp,
+                days: days,
+                isCurrent: !nextEntry,
+                changedBy: changedBy,
+                endChangedBy: endChangedBy
+            });
+        });
+
+        return statusPeriods;
     }, [history]);
 
     const itemName = type === 'mixer' || type === 'tractor' ? `Truck #${item.truckNumber}` : type === 'pickup-truck' ? `${item.make || ''} ${item.model || ''} (${item.vin || 'Unknown'})`.trim() : item.name || 'Item';
@@ -706,11 +781,14 @@ function HistoryViewSection({item, type, onClose}) {
         }
 
         const totalAssignments = operatorData.length;
-        const uniqueOperators = Object.keys(operatorCounts).length;
+        const uniqueOperators = Object.keys(operatorCounts).filter(op => op !== 'Empty').length;
         const isActive = item.status === 'Active';
-        const currentOperator = isActive && operatorData.length > 0 ? operatorData[operatorData.length - 1].operator : null;
+        const lastEntry = operatorData.length > 0 ? operatorData[operatorData.length - 1] : null;
+        const currentOperator = lastEntry ? (lastEntry.isEmpty ? 'Empty' : lastEntry.operator) : null;
         const mostFrequentOperator = Object.keys(operatorDurations).length > 0
-            ? Object.entries(operatorDurations).reduce((a, b) => a[1] > b[1] ? a : b)[0]
+            ? Object.entries(operatorDurations)
+                .filter(([op]) => op !== 'Empty')
+                .reduce((a, b) => !a || b[1] > a[1] ? b : a, null)?.[0] || 'Not Assigned'
             : null;
 
 
@@ -719,11 +797,62 @@ function HistoryViewSection({item, type, onClose}) {
         while (j < operatorData.length) {
             const entry = operatorData[j];
             const {days, endIndex} = calculateDuration(j, entry.operator);
+            
+            let statusPeriods = [];
+            if (entry.isEmpty) {
+                const periodStart = new Date(entry.timestamp);
+                const periodEnd = endIndex < operatorData.length ? new Date(operatorData[endIndex].timestamp) : new Date();
+                
+                const statusChangesInPeriod = statusData.filter(statusEntry => {
+                    const statusDate = new Date(statusEntry.timestamp);
+                    return statusDate >= periodStart && statusDate < periodEnd;
+                });
+
+                if (statusChangesInPeriod.length > 0) {
+                    const statusDaysMap = {};
+                    let currentStatus = statusChangesInPeriod[0];
+                    let statusStart = periodStart;
+                    
+                    for (let k = 1; k < statusChangesInPeriod.length; k++) {
+                        const nextStatus = statusChangesInPeriod[k];
+                        const statusEnd = new Date(nextStatus.timestamp);
+                        const statusDays = Math.round((statusEnd - statusStart) / (1000 * 60 * 60 * 24));
+                        
+                        if (!statusDaysMap[currentStatus.status]) {
+                            statusDaysMap[currentStatus.status] = 0;
+                        }
+                        statusDaysMap[currentStatus.status] += statusDays;
+                        
+                        currentStatus = nextStatus;
+                        statusStart = statusEnd;
+                    }
+                    
+                    const lastStatusDays = Math.round((periodEnd - statusStart) / (1000 * 60 * 60 * 24));
+                    if (!statusDaysMap[currentStatus.status]) {
+                        statusDaysMap[currentStatus.status] = 0;
+                    }
+                    statusDaysMap[currentStatus.status] += lastStatusDays;
+                    
+                    statusPeriods = Object.entries(statusDaysMap).map(([status, totalDays]) => ({
+                        status: status,
+                        days: totalDays
+                    }));
+                } else {
+                    const currentStatus = item.status || 'Unknown';
+                    statusPeriods.push({
+                        status: currentStatus,
+                        days: days
+                    });
+                }
+            }
+            
             consolidatedTimeline.push({
                 operator: entry.operator,
                 startDate: entry.timestamp,
                 days: days,
-                isCurrent: endIndex >= operatorData.length
+                isCurrent: endIndex >= operatorData.length,
+                isEmpty: entry.isEmpty,
+                statusPeriods: statusPeriods
             });
             j = endIndex;
         }
@@ -753,7 +882,7 @@ function HistoryViewSection({item, type, onClose}) {
                 <div className="operator-timeline-modern">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index}
-                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''} ${entry.isEmpty ? 'timeline-entry-empty' : ''}`}>
                             <div className="timeline-marker">
                                 <div className="timeline-dot"></div>
                                 {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
@@ -762,15 +891,208 @@ function HistoryViewSection({item, type, onClose}) {
                                 <div className="timeline-card-header">
                                     <span className="timeline-operator-name">{entry.operator}</span>
                                     {entry.isCurrent && <span className="current-badge">Current</span>}
+                                    {entry.isEmpty && !entry.isCurrent && <span className="empty-badge">No Operator</span>}
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
                                     <span
                                         className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
+                                {entry.isEmpty && entry.statusPeriods && entry.statusPeriods.length > 0 && (
+                                    <div className="timeline-status-periods">
+                                        <div className="status-periods-label">Status during period:</div>
+                                        <div className="status-periods-list">
+                                            {entry.statusPeriods.map((statusPeriod, spIndex) => (
+                                                <div key={spIndex} className="status-period-item">
+                                                    <span className="status-period-name">{statusPeriod.status}</span>
+                                                    <span className="status-period-duration">
+                                                        ({statusPeriod.days} {statusPeriod.days === 1 ? 'day' : 'days'})
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
+                </div>
+            </div>
+        );
+    };
+
+    const renderOverviewChart = () => {
+        const currentStatus = item.status || 'Unknown';
+        
+        const oldestEntry = history.length > 0
+            ? new Date(Math.min(...history.map(h => new Date(h.changedAt || h.changed_at))))
+            : new Date();
+        const totalDaysSinceCreation = Math.round((new Date() - oldestEntry) / (1000 * 60 * 60 * 24));
+
+        let statusDaysMap = {};
+        let statusPercentages;
+        let totalShopDays = 0;
+
+        if (allStatusPeriodsData.length === 0) {
+            statusDaysMap[currentStatus] = totalDaysSinceCreation > 0 ? totalDaysSinceCreation : 1;
+            statusPercentages = [{
+                status: currentStatus,
+                days: statusDaysMap[currentStatus],
+                percentage: '100.0'
+            }];
+        } else {
+            totalShopDays = allStatusPeriodsData
+                .filter(p => p.status === 'In Shop')
+                .reduce((sum, period) => sum + period.days, 0);
+
+            allStatusPeriodsData.forEach(period => {
+                if (!statusDaysMap[period.status]) {
+                    statusDaysMap[period.status] = 0;
+                }
+                statusDaysMap[period.status] += period.days;
+            });
+
+            statusPercentages = Object.entries(statusDaysMap).map(([status, days]) => ({
+                status,
+                days,
+                percentage: totalDaysSinceCreation > 0 ? ((days / totalDaysSinceCreation) * 100).toFixed(1) : 0
+            })).sort((a, b) => b.days - a.days);
+        }
+
+        const getStatusColor = (status) => {
+            switch(status) {
+                case 'Active': return 'var(--success)';
+                case 'Spare': return '#9333ea';
+                case 'In Shop': return '#3b82f6';
+                case 'Retired': return 'var(--error)';
+                default: return 'var(--accent)';
+            }
+        };
+
+        return (
+            <div className="chart-container">
+                <div className="utilization-metrics">
+                    <h3 className="utilization-title">Asset Status Distribution</h3>
+                    <div className="utilization-bar-container">
+                        <div className="utilization-bar">
+                            {statusPercentages.map((item, index) => (
+                                parseFloat(item.percentage) > 0 && (
+                                    <div 
+                                        key={index}
+                                        className="utilization-segment" 
+                                        style={{
+                                            width: `${item.percentage}%`,
+                                            background: getStatusColor(item.status)
+                                        }}
+                                        title={`${item.status}: ${item.percentage}%`}
+                                    >
+                                        {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                    </div>
+                                )
+                            ))}
+                        </div>
+                    </div>
+                    <div className="utilization-legend">
+                        {statusPercentages.map((item, index) => (
+                            <div key={index} className="legend-item">
+                                <div 
+                                    className="legend-color" 
+                                    style={{background: getStatusColor(item.status)}}
+                                ></div>
+                                <div className="legend-details">
+                                    <div className="legend-label">{item.status}</div>
+                                    <div className="legend-value">{item.days} days ({item.percentage}%)</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="operator-summary-cards">
+                    <div className="summary-card">
+                        <div className="summary-label">Current Status</div>
+                        <div className="summary-value">{currentStatus}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Total Status Changes</div>
+                        <div className="summary-value">{allStatusPeriodsData.length}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Total Shop Days</div>
+                        <div className="summary-value">{totalShopDays}</div>
+                    </div>
+                    <div className="summary-card">
+                        <div className="summary-label">Days Since Creation</div>
+                        <div className="summary-value">{totalDaysSinceCreation}</div>
+                    </div>
+                </div>
+
+                <h3 className="chart-section-title">Status Timeline</h3>
+                <div className="operator-timeline-modern">
+                    {allStatusPeriodsData.length === 0 ? (
+                        <div className="timeline-entry timeline-entry-current">
+                            <div className="timeline-marker">
+                                <div 
+                                    className="timeline-dot"
+                                    style={{background: getStatusColor(currentStatus)}}
+                                ></div>
+                            </div>
+                            <div className="timeline-card">
+                                <div className="timeline-card-header">
+                                    <span className="timeline-operator-name">{currentStatus}</span>
+                                    <span className="current-badge">Current</span>
+                                </div>
+                                <div className="timeline-card-meta">
+                                    <span className="timeline-date">Since Creation</span>
+                                    <span className="timeline-duration">
+                                        {statusDaysMap[currentStatus]} {statusDaysMap[currentStatus] === 1 ? 'day' : 'days'}
+                                    </span>
+                                </div>
+                                <div className="timeline-card-meta">
+                                    <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic'}}>
+                                        No status changes recorded
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        allStatusPeriodsData.slice().reverse().map((period, index) => (
+                            <div key={index}
+                                 className={`timeline-entry ${period.isCurrent ? 'timeline-entry-current' : ''} ${period.status === 'In Shop' ? 'timeline-entry-shop' : ''}`}>
+                                <div className="timeline-marker">
+                                    <div 
+                                        className="timeline-dot"
+                                        style={{background: getStatusColor(period.status)}}
+                                    ></div>
+                                    {index < allStatusPeriodsData.length - 1 && <div className="timeline-line"></div>}
+                                </div>
+                                <div className="timeline-card">
+                                    <div className="timeline-card-header">
+                                        <span className="timeline-operator-name">{period.status}</span>
+                                        {period.isCurrent && <span className="current-badge">Current</span>}
+                                    </div>
+                                    <div className="timeline-card-meta">
+                                        <span className="timeline-date">
+                                            {FormatUtility.formatDate(period.startTimestamp)}
+                                            {period.endTimestamp && ` - ${FormatUtility.formatDate(period.endTimestamp)}`}
+                                            {!period.endTimestamp && ' - Present'}
+                                        </span>
+                                        <span className="timeline-duration">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
+                                    </div>
+                                    <div className="timeline-card-meta">
+                                        <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>
+                                            Started by: <UserLabel userId={period.changedBy} showIcon={false}/>
+                                        </span>
+                                        {period.endChangedBy && (
+                                            <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>
+                                                Ended by: <UserLabel userId={period.endChangedBy} showIcon={false}/>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         );
@@ -1893,6 +2215,8 @@ function HistoryViewSection({item, type, onClose}) {
                 return renderCleanlinessChart();
             case 'condition':
                 return renderConditionChart();
+            case 'overview':
+                return renderOverviewChart();
             case 'operators':
                 return renderOperatorChart();
             case 'service':
@@ -2045,6 +2369,14 @@ function HistoryViewSection({item, type, onClose}) {
                     >
                         Timeline
                     </button>
+                    {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment' || type === 'pickup-truck') && (
+                        <button
+                            className={`history-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('overview')}
+                        >
+                            Overview
+                        </button>
+                    )}
                     {(type === 'mixer' || type === 'tractor') && (
                         <button
                             className={`history-tab ${activeTab === 'operators' ? 'active' : ''}`}

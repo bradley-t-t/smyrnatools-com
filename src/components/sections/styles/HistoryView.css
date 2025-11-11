@@ -394,6 +394,100 @@
     min-height: 250px;
 }
 
+.utilization-metrics {
+    background: var(--card-bg);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.utilization-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.utilization-bar-container {
+    margin-bottom: 1rem;
+}
+
+.utilization-bar {
+    display: flex;
+    width: 100%;
+    height: 60px;
+    background: var(--background);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--divider);
+}
+
+.utilization-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.utilization-segment span {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.active-segment {
+    background: var(--success);
+}
+
+.spare-segment {
+    background: var(--text-secondary);
+}
+
+.shop-segment {
+    background: var(--warning);
+}
+
+.utilization-legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.legend-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.legend-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.legend-value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
 .operator-timeline-modern {
     display: flex;
     flex-direction: column;
@@ -432,6 +526,19 @@
     flex: 1;
     background: var(--divider);
     margin-top: 0.5rem;
+}
+
+.timeline-entry-shop .timeline-dot {
+    background: #3b82f6;
+}
+
+.timeline-entry-shop.timeline-entry-current .timeline-card {
+    border-color: #3b82f6;
+    background: var(--background);
+}
+
+.timeline-entry-shop .timeline-card {
+    border-left: 3px solid #3b82f6;
 }
 
 .timeline-card {
@@ -473,6 +580,18 @@
     letter-spacing: 0.5px;
 }
 
+.empty-badge {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--divider);
+}
+
 .timeline-card-meta {
     display: flex;
     gap: 0.75rem;
@@ -490,6 +609,48 @@
     font-size: 0.75rem;
     color: var(--text-secondary);
     font-weight: 600;
+}
+
+.timeline-status-periods {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--divider);
+}
+
+.status-periods-label {
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.status-periods-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.status-period-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.status-period-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 0.125rem 0.5rem;
+    background: var(--background);
+    border-radius: 4px;
+    border: 1px solid var(--divider);
+}
+
+.status-period-duration {
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .operator-distribution-modern {
