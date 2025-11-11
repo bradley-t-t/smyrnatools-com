@@ -2049,6 +2049,291 @@
     width: 150px;
 }
 
+.dm-report-plugin {
+    margin: 24px 0;
+    padding: 0;
+}
+
+.dm-report-header {
+    margin-bottom: 24px;
+}
+
+.dm-report-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 16px 0;
+    letter-spacing: -0.01em;
+}
+
+.dm-report-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.dm-stat-card {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--divider);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+.dm-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.dm-stat-completed {
+    border-left: 4px solid var(--success);
+}
+
+.dm-stat-overdue {
+    border-left: 4px solid var(--error);
+}
+
+.dm-stat-icon {
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.dm-stat-completed .dm-stat-icon {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+}
+
+.dm-stat-overdue .dm-stat-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.dm-stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dm-stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dm-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.dm-items-container {
+    background: var(--card-bg);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.dm-items-table-wrapper {
+    overflow-x: auto;
+}
+
+.dm-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.dm-items-table thead {
+    background: var(--background);
+    border-bottom: 2px solid var(--divider);
+}
+
+.dm-items-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.dm-th-description {
+    width: 40%;
+}
+
+.dm-th-plant {
+    width: 25%;
+}
+
+.dm-th-deadline {
+    width: 17.5%;
+}
+
+.dm-th-completed {
+    width: 17.5%;
+}
+
+.dm-item-row {
+    border-bottom: 1px solid var(--divider);
+    transition: background 0.15s ease;
+}
+
+.dm-item-row:hover {
+    background: var(--background);
+}
+
+.dm-item-row:last-child {
+    border-bottom: none;
+}
+
+.dm-item-overdue {
+    background: rgba(239, 68, 68, 0.03);
+}
+
+.dm-item-overdue:hover {
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.dm-items-table td {
+    padding: 16px;
+    vertical-align: middle;
+    color: var(--text-primary);
+}
+
+.dm-td-description {
+    font-weight: 500;
+}
+
+.dm-item-desc-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dm-item-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.dm-item-text {
+    line-height: 1.5;
+}
+
+.dm-plant-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--background);
+    border: 1px solid var(--divider);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.dm-td-deadline {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.dm-completed-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--success);
+    white-space: nowrap;
+}
+
+.dm-empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+}
+
+.dm-empty-icon {
+    font-size: 48px;
+    color: var(--text-secondary);
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.dm-empty-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .dm-report-stats {
+        flex-direction: column;
+    }
+    
+    .dm-stat-card {
+        min-width: 100%;
+    }
+    
+    .dm-items-table th,
+    .dm-items-table td {
+        padding: 12px;
+        font-size: 13px;
+    }
+    
+    .dm-item-desc-wrapper {
+        gap: 8px;
+    }
+    
+    .dm-item-icon {
+        font-size: 14px;
+    }
+    
+    .dm-plant-badge,
+    .dm-completed-badge {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    .dm-th-deadline,
+    .dm-th-completed,
+    .dm-td-deadline,
+    .dm-td-completed {
+        display: none;
+    }
+    
+    .dm-th-description {
+        width: 60%;
+    }
+    
+    .dm-th-plant {
+        width: 40%;
+    }
+}
+
 .rpt-col-lph {
     width: 80px;
 }
