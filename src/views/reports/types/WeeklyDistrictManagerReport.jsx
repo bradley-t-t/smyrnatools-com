@@ -2,11 +2,18 @@ import React from 'react'
 import '../styles/Reports.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
 
-export function DistrictManagerSubmitPlugin({maintenanceItems}) {
-    if (!maintenanceItems || maintenanceItems.length === 0) return null
+export function DistrictManagerSubmitPlugin({maintenanceItems, plants}) {
+    const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
+    
+    const filteredItems = maintenanceItems && plantCodes 
+        ? maintenanceItems.filter(item => plantCodes.has(item.plant_code))
+        : maintenanceItems || []
+
+    if (filteredItems.length === 0) return null
 
     function getPlantName(plantCode) {
-        return plantCode || ''
+        const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
+        return plant?.name || plantCode || ''
     }
 
     function truncateText(text, maxLength) {
@@ -30,7 +37,7 @@ export function DistrictManagerSubmitPlugin({maintenanceItems}) {
                     </tr>
                     </thead>
                     <tbody>
-                    {maintenanceItems.map(item => (
+                    {filteredItems.map(item => (
                         <tr key={item.id} className={item.completed ? 'completed' : ''}>
                             <td title={item.description}>
                                 <i
@@ -57,11 +64,18 @@ export function DistrictManagerSubmitPlugin({maintenanceItems}) {
     )
 }
 
-export function DistrictManagerReviewPlugin({maintenanceItems}) {
-    if (!maintenanceItems || maintenanceItems.length === 0) return null
+export function DistrictManagerReviewPlugin({maintenanceItems, plants}) {
+    const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
+    
+    const filteredItems = maintenanceItems && plantCodes 
+        ? maintenanceItems.filter(item => plantCodes.has(item.plant_code))
+        : maintenanceItems || []
+
+    if (filteredItems.length === 0) return null
 
     function getPlantName(plantCode) {
-        return plantCode || ''
+        const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
+        return plant?.name || plantCode || ''
     }
 
     function truncateText(text, maxLength) {
@@ -85,7 +99,7 @@ export function DistrictManagerReviewPlugin({maintenanceItems}) {
                     </tr>
                     </thead>
                     <tbody>
-                    {maintenanceItems.map(item => (
+                    {filteredItems.map(item => (
                         <tr key={item.id} className={item.completed ? 'completed' : ''}>
                             <td title={item.description}>
                                 <i
