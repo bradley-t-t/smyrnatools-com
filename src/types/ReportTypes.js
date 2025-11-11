@@ -105,6 +105,14 @@ const reportTypes = [
         fields: []
     }),
     createReportType({
+        name: "ready_mix_instructor",
+        title: "Ready Mix Instructor",
+        frequency: "weekly",
+        assignment: ["reports.assigned.rmi"],
+        review: ["reports.review.rmi"],
+        fields: []
+    }),
+    createReportType({
         name: "test",
         title: "Test",
         frequency: "weekly",

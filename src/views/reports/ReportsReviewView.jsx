@@ -7,6 +7,7 @@ import {DistrictManagerReviewPlugin} from './types/WeeklyDistrictManagerReport'
 import {EfficiencyReviewPlugin} from './types/WeeklyEfficiencyReport'
 import {SafetyManagerReviewPlugin} from './types/WeeklySafetyManagerReport'
 import {GeneralManagerReviewPlugin} from './types/WeeklyGeneralManagerReport'
+import {ReadyMixInstructorReviewPlugin} from './types/WeeklyReadyMixInstructorReport'
 import {ReportUtility} from '../../utils/ReportUtility'
 import {exportGeneralManagerReport} from '../../utils/ExportUtility'
 
@@ -15,7 +16,8 @@ const plugins = {
     district_manager: DistrictManagerReviewPlugin,
     plant_production: EfficiencyReviewPlugin,
     safety_manager: SafetyManagerReviewPlugin,
-    general_manager: GeneralManagerReviewPlugin
+    general_manager: GeneralManagerReviewPlugin,
+    ready_mix_instructor: ReadyMixInstructorReviewPlugin
 }
 
 function ReportsReviewView({report, initialData, onBack, user, completedByUser, onManagerEdit}) {
@@ -252,7 +254,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                 )}
                 <div className="rpts-form-body-wide">
                     <>
-                        {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' ? null : (
+                        {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' || report.name === 'ready_mix_instructor' ? null : (
                             <div className="rpts-form-fields-grid">
                                 {report.fields.map(field => (
                                     (report.name === 'safety_manager' && field.name === 'issues') ? null : (

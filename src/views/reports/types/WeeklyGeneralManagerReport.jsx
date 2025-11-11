@@ -4,6 +4,7 @@ import {supabase} from '../../../services/DatabaseService'
 import {ReportService} from '../../../services/ReportService'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {reportTypeMap} from '../../../types/ReportTypes'
+import {ReadyMixInstructorReviewPlugin} from './WeeklyReadyMixInstructorReport'
 
 /* eslint-disable no-undef */
 export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly, weekIso, userId}) {
@@ -12,6 +13,8 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
     const [aggReport, setAggReport] = React.useState(null)
     const [lastWeekGM, setLastWeekGM] = React.useState(null)
     const [lastWeekAgg, setLastWeekAgg] = React.useState(null)
+    const [rmiReport, setRmiReport] = React.useState(null)
+    const [rmiLoading, setRmiLoading] = React.useState(true)
 
     React.useEffect(() => {
         let cancelled = false
@@ -235,6 +238,65 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
             cancelled = true
         }
     }, [weekIso, userId])
+
+    React.useEffect(() => {
+        async function fetchRMIReport() {
+            if (!weekIso || !plants?.length) {
+                setRmiReport(null)
+                setRmiLoading(false)
+                return
+            }
+
+            const targetMondayIso = ReportUtility.getMondayISO(weekIso)
+            if (!targetMondayIso) {
+                setRmiReport(null)
+                setRmiLoading(false)
+                return
+            }
+
+            const targetMondayDate = new Date(targetMondayIso + 'T00:00:00Z')
+            const prevSunday = new Date(targetMondayDate)
+            prevSunday.setUTCDate(prevSunday.getUTCDate() - 1)
+            const windowEnd = new Date(targetMondayDate)
+            windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
+            const qStart = prevSunday.toISOString()
+            const qEnd = windowEnd.toISOString()
+
+            try {
+                let {data: reports} = await supabase
+                    .from('reports')
+                    .select('id,data,week,submitted_at,completed')
+                    .eq('report_name', 'ready_mix_instructor')
+                    .gte('week', qStart)
+                    .lt('week', qEnd)
+
+                if (!Array.isArray(reports)) reports = []
+
+                const filtered = reports.filter(r => {
+                    const weekField = r.week
+                    const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
+                    return mondayIso === targetMondayIso
+                })
+
+                if (filtered.length > 0) {
+                    const sorted = filtered.sort((a, b) => {
+                        if (a.completed !== b.completed) return b.completed ? 1 : -1
+                        return (b.submitted_at || '') > (a.submitted_at || '') ? 1 : -1
+                    })
+                    setRmiReport(sorted[0].data)
+                } else {
+                    setRmiReport(null)
+                }
+            } catch (error) {
+                console.error('Error fetching RMI report:', error)
+                setRmiReport(null)
+            } finally {
+                setRmiLoading(false)
+            }
+        }
+
+        fetchRMIReport()
+    }, [weekIso, plants])
 
     function getLastWeekValue(field) {
         const data = lastWeekGM?.data
@@ -612,17 +674,105 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                     </div>
                 </div>
             )}
+
+            <div style={{marginTop: '40px'}}>
+                <div className="rpt-card-header">
+                    <div className="rpt-card-title">Ready Mix Instructor Report</div>
+                </div>
+                {rmiLoading ? (
+                    <div className="rpt-empty">Loading RMI report data...</div>
+                ) : rmiReport ? (
+                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants} />
+                ) : (
+                    <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
+                )}
+            </div>
         </div>
     )
 }
 
-export function GeneralManagerReviewPlugin() {
+export function GeneralManagerReviewPlugin({form, plants = [], weekIso}) {
+    const [rmiReport, setRmiReport] = React.useState(null)
+    const [loading, setLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        async function fetchRMIReport() {
+            if (!weekIso || !plants?.length) {
+                setRmiReport(null)
+                setLoading(false)
+                return
+            }
+
+            const targetMondayIso = ReportUtility.getMondayISO(weekIso)
+            if (!targetMondayIso) {
+                setRmiReport(null)
+                setLoading(false)
+                return
+            }
+
+            const targetMondayDate = new Date(targetMondayIso + 'T00:00:00Z')
+            const prevSunday = new Date(targetMondayDate)
+            prevSunday.setUTCDate(prevSunday.getUTCDate() - 1)
+            const windowEnd = new Date(targetMondayDate)
+            windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
+            const qStart = prevSunday.toISOString()
+            const qEnd = windowEnd.toISOString()
+
+            try {
+                let {data: reports} = await supabase
+                    .from('reports')
+                    .select('id,data,week,submitted_at,completed')
+                    .eq('report_name', 'ready_mix_instructor')
+                    .gte('week', qStart)
+                    .lt('week', qEnd)
+
+                if (!Array.isArray(reports)) reports = []
+
+                const filtered = reports.filter(r => {
+                    const weekField = r.week
+                    const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
+                    return mondayIso === targetMondayIso
+                })
+
+                if (filtered.length > 0) {
+                    const sorted = filtered.sort((a, b) => {
+                        if (a.completed !== b.completed) return b.completed ? 1 : -1
+                        return (b.submitted_at || '') > (a.submitted_at || '') ? 1 : -1
+                    })
+                    setRmiReport(sorted[0].data)
+                } else {
+                    setRmiReport(null)
+                }
+            } catch (error) {
+                console.error('Error fetching RMI report:', error)
+                setRmiReport(null)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchRMIReport()
+    }, [weekIso, plants])
+
     return (
         <div className="rpt-card">
             <div className="rpt-card-header">
                 <div className="rpt-card-title">General Manager Report</div>
             </div>
             <div className="rpt-empty">Review view for General Manager reports.</div>
+
+            <div style={{marginTop: '40px'}}>
+                <div className="rpt-card-header">
+                    <div className="rpt-card-title">Ready Mix Instructor Report</div>
+                </div>
+                {loading ? (
+                    <div className="rpt-empty">Loading RMI report data...</div>
+                ) : rmiReport ? (
+                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants} />
+                ) : (
+                    <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
+                )}
+            </div>
         </div>
     )
 }

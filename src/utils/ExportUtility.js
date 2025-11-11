@@ -182,6 +182,43 @@ function sortPlants(plants) {
     })
 }
 
+async function fetchRMIReport(weekIso) {
+    if (!weekIso) return null
+    const targetMondayIso = ReportUtility.getMondayISO(weekIso)
+    if (!targetMondayIso) return null
+    const targetMondayDate = new Date(targetMondayIso + 'T00:00:00Z')
+    const prevSunday = new Date(targetMondayDate)
+    prevSunday.setUTCDate(prevSunday.getUTCDate() - 1)
+    const windowEnd = new Date(targetMondayDate)
+    windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
+    const qStart = prevSunday.toISOString()
+    const qEnd = windowEnd.toISOString()
+
+    let {data: reports} = await supabase
+        .from('reports')
+        .select('id,data,week,submitted_at,completed')
+        .eq('report_name', 'ready_mix_instructor')
+        .gte('week', qStart)
+        .lt('week', qEnd)
+
+    if (!Array.isArray(reports)) return null
+
+    const filtered = reports.filter(r => {
+        const weekField = r.week
+        const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
+        return mondayIso === targetMondayIso
+    })
+
+    if (filtered.length === 0) return null
+
+    const sorted = filtered.sort((a, b) => {
+        if (a.completed !== b.completed) return b.completed ? 1 : -1
+        return (b.submitted_at || '') > (a.submitted_at || '') ? 1 : -1
+    })
+
+    return sorted[0].data
+}
+
 export async function exportGeneralManagerReport({form, plants, weekIso, filename = 'general_manager_report.xlsx'}) {
     if (typeof window === 'undefined') return
     const accentHex = getCssVarHex('--accent', '#003896')
@@ -367,6 +404,142 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             })
         }
     }
+
+    const rmiReportData = await fetchRMIReport(weekIso)
+    if (rmiReportData) {
+        r += 2
+        header(ws.getCell(r, 1), 'Ready Mix Instructor Report')
+        r += 2
+
+        const snapshotData = rmiReportData.snapshot_data || {}
+        const mixerTrainers = snapshotData.mixer_trainers || []
+        const tractorTrainers = snapshotData.tractor_trainers || []
+        const mixerPending = snapshotData.mixer_pending || []
+        const tractorPending = snapshotData.tractor_pending || []
+        const mixerTraining = snapshotData.mixer_training || []
+        const tractorTraining = snapshotData.tractor_training || []
+        const hiringGoals = rmiReportData.hiring_goals || {}
+
+        const getPlantName = (plantCode) => {
+            const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
+            return plant?.name || plantCode || '—'
+        }
+
+        if (mixerTrainers.length > 0 || tractorTrainers.length > 0) {
+            header(ws.getCell(r, 1), 'Active Trainers')
+            r++
+            header(ws.getCell(r, 1), 'Type')
+            header(ws.getCell(r, 2), 'Name')
+            header(ws.getCell(r, 3), 'Plant')
+            header(ws.getCell(r, 4), 'Status')
+            r++
+
+            mixerTrainers.forEach(trainer => {
+                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
+                cells[0].value = 'Mixer'
+                cells[1].value = trainer.name || '—'
+                cells[2].value = getPlantName(trainer.plant)
+                cells[3].value = trainer.status || '—'
+                cells.forEach(fillDataCell)
+                r++
+            })
+
+            tractorTrainers.forEach(trainer => {
+                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
+                cells[0].value = 'Tractor'
+                cells[1].value = trainer.name || '—'
+                cells[2].value = getPlantName(trainer.plant)
+                cells[3].value = trainer.status || '—'
+                cells.forEach(fillDataCell)
+                r++
+            })
+        }
+
+        if (mixerPending.length > 0 || tractorPending.length > 0) {
+            r++
+            header(ws.getCell(r, 1), 'Pending Start Operators')
+            r++
+            header(ws.getCell(r, 1), 'Type')
+            header(ws.getCell(r, 2), 'Name')
+            header(ws.getCell(r, 3), 'Plant')
+            header(ws.getCell(r, 4), 'Start Date')
+            r++
+
+            mixerPending.forEach(op => {
+                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
+                cells[0].value = 'Mixer'
+                cells[1].value = op.name || '—'
+                cells[2].value = getPlantName(op.plant)
+                cells[3].value = op.startDate || '—'
+                cells.forEach(fillDataCell)
+                r++
+            })
+
+            tractorPending.forEach(op => {
+                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
+                cells[0].value = 'Tractor'
+                cells[1].value = op.name || '—'
+                cells[2].value = getPlantName(op.plant)
+                cells[3].value = op.startDate || '—'
+                cells.forEach(fillDataCell)
+                r++
+            })
+        }
+
+        if (mixerTraining.length > 0 || tractorTraining.length > 0) {
+            r++
+            header(ws.getCell(r, 1), 'Training Operators')
+            r++
+            header(ws.getCell(r, 1), 'Type')
+            header(ws.getCell(r, 2), 'Name')
+            header(ws.getCell(r, 3), 'Plant')
+            header(ws.getCell(r, 4), 'Trainer')
+            r++
+
+            mixerTraining.forEach(op => {
+                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
+                cells[0].value = 'Mixer'
+                cells[1].value = op.name || '—'
+                cells[2].value = getPlantName(op.plant)
+                cells[3].value = op.trainer || '—'
+                cells.forEach(fillDataCell)
+                r++
+            })
+
+            tractorTraining.forEach(op => {
+                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
+                cells[0].value = 'Tractor'
+                cells[1].value = op.name || '—'
+                cells[2].value = getPlantName(op.plant)
+                cells[3].value = op.trainer || '—'
+                cells.forEach(fillDataCell)
+                r++
+            })
+        }
+
+        if (Object.keys(hiringGoals).length > 0) {
+            r++
+            header(ws.getCell(r, 1), 'Weekly Hiring Goals')
+            r++
+            header(ws.getCell(r, 1), 'Plant')
+            header(ws.getCell(r, 2), 'Goal')
+            r++
+
+            sortedPlants.forEach(plant => {
+                const plantCode = plant.plant_code || plant.code
+                const goal = hiringGoals[plantCode]
+                if (goal !== undefined && goal !== null && goal !== '') {
+                    const cells = [ws.getCell(r, 1), ws.getCell(r, 2)]
+                    cells[0].value = getPlantName(plantCode)
+                    cells[1].value = ensure(Number(goal), true)
+                    cells.forEach(fillDataCell)
+                    right(cells[1])
+                    r++
+                }
+            })
+        }
+    }
+
     ws.columns.forEach((col, idx) => {
         let max = 0;
         col.eachCell({includeEmpty: false}, c => {

@@ -5,7 +5,7 @@
     right: 0;
     bottom: 0;
     background: var(--modal-bg);
-    z-index: 1100;
+    z-index: 10001;
     transition: opacity 0.2s ease;
 }
 

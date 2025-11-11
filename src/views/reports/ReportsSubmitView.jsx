@@ -7,6 +7,7 @@ import {EfficiencySubmitPlugin} from './types/WeeklyEfficiencyReport'
 import {SafetyManagerSubmitPlugin} from './types/WeeklySafetyManagerReport'
 import {GeneralManagerSubmitPlugin} from './types/WeeklyGeneralManagerReport'
 import {AggregateProductionSubmitPlugin} from './types/WeeklyAggregateProductionReport'
+import {ReadyMixInstructorSubmitPlugin} from './types/WeeklyReadyMixInstructorReport'
 import {ReportUtility} from '../../utils/ReportUtility'
 import {EmailUtility} from '../../utils/EmailUtility'
 import {exportGeneralManagerReport} from '../../utils/ExportUtility'
@@ -18,7 +19,8 @@ const plugins = {
     plant_production: EfficiencySubmitPlugin,
     safety_manager: SafetyManagerSubmitPlugin,
     general_manager: GeneralManagerSubmitPlugin,
-    aggregate_production: AggregateProductionSubmitPlugin
+    aggregate_production: AggregateProductionSubmitPlugin,
+    ready_mix_instructor: ReadyMixInstructorSubmitPlugin
 }
 
 function ReportsSubmitView({
