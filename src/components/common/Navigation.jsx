@@ -66,7 +66,8 @@ const menuItems = [
     {text: 'List', id: 'List', permission: 'list.view', alwaysVisible: false},
     {text: 'Reports', id: 'Reports', permission: 'reports.view', alwaysVisible: false},
     {text: 'Plants', id: 'Plants', permission: 'plants.view', alwaysVisible: false},
-    {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false}
+    {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false},
+    {text: 'Roles', id: 'Roles', permission: 'roles.view', alwaysVisible: false}
 ]
 
 export default function Navigation({

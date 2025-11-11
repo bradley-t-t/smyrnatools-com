@@ -24,6 +24,7 @@ import '../styles/Theme.css'
 import '../styles/Global.css'
 import PlantsView from '../views/plants/PlantsView'
 import RegionsView from '../views/regions/RegionsView'
+import RolesView from '../views/roles/RolesView'
 import SmyrnaLogo from '../assets/images/SmyrnaLogo.png'
 import LockedOverlay from '../components/common/LockedOverlay'
 import TerminatedOverlay from '../components/common/TerminatedOverlay'
@@ -511,6 +512,8 @@ function AppContent() {
             case 'Heavy Equipment':
                 return <EquipmentsView title="Equipment Fleet" onSelectEquipment={() => {
                 }}/>
+            case 'Roles':
+                return <RolesView/>
             default:
                 return <div className="coming-soon"><h2>{selectedView.view} view is coming soon!</h2><p>This feature is
                     under
