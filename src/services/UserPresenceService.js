@@ -1,5 +1,6 @@
 import {supabase} from './DatabaseService';
 import {UserService} from './UserService';
+import {RegionService} from './RegionService';
 import APIUtility from '../utils/APIUtility'
 
 class UserPresenceService {
@@ -113,10 +114,67 @@ class UserPresenceService {
             const users = []
             for (const presence of presences) {
                 try {
-                    const name = await UserService.getUserDisplayName(presence.user_id)
+                    const [name, rolesData, profile] = await Promise.all([
+                        UserService.getUserDisplayName(presence.user_id),
+                        UserService.getUserRoles(presence.user_id),
+                        UserService.getUserProfile(presence.user_id).catch(err => {
+                            console.warn(`Failed to get profile for user ${presence.user_id}:`, err);
+                            return null;
+                        })
+                    ])
+                    
+                    console.log(`User: ${name}`);
+                    console.log('  Profile:', profile);
+                    console.log('  Roles data:', rolesData);
+                    
+                    let roleNames = []
+                    if (Array.isArray(rolesData)) {
+                        roleNames = rolesData
+                            .map(r => {
+                                if (typeof r === 'string') return r
+                                if (r && typeof r === 'object' && r.name) return r.name
+                                return null
+                            })
+                            .filter(Boolean)
+                    }
+                    
+                    console.log('  Extracted roles:', roleNames);
+                    
+                    let regionCode = null
+                    if (profile) {
+                        if (profile.regions && Array.isArray(profile.regions) && profile.regions.length > 0) {
+                            regionCode = profile.regions[0]
+                            console.log('  Region from profile.regions[0]:', regionCode);
+                        } else if (profile.region_code) {
+                            regionCode = profile.region_code
+                            console.log('  Region from profile.region_code:', regionCode);
+                        } else if (profile.regionCode) {
+                            regionCode = profile.regionCode
+                            console.log('  Region from profile.regionCode:', regionCode);
+                        } else if (profile.plant_code) {
+                            try {
+                                const regions = await RegionService.fetchRegionsByPlantCode(profile.plant_code)
+                                if (regions && regions.length > 0) {
+                                    regionCode = regions[0].regionCode || regions[0].region_code
+                                    console.log('  Region derived from plant_code:', profile.plant_code, '-> ', regionCode);
+                                } else {
+                                    console.log('  No regions found for plant_code:', profile.plant_code);
+                                }
+                            } catch (err) {
+                                console.warn('  Failed to fetch region by plant_code:', err);
+                            }
+                        } else {
+                            console.log('  No region or plant_code found in profile');
+                        }
+                    } else {
+                        console.log('  Profile is null/undefined');
+                    }
+                    
                     users.push({
                         id: presence.user_id,
                         name,
+                        roles: roleNames,
+                        regionCode,
                         lastSeen: presence.last_seen
                     })
                 } catch {

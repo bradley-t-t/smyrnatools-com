@@ -207,6 +207,27 @@ Deno.serve(async (req) => {
                     headers: corsHeaders
                 });
             }
+            case "user-profile": {
+                const {userId} = body;
+                if (!userId) {
+                    return new Response(JSON.stringify({
+                        error: "User ID is required"
+                    }), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                const id = typeof userId === 'object' && userId.id ? userId.id : userId;
+                const {data, error} = await supabase.from(PROFILES_TABLE).select('*').eq('id', id).single();
+                if (error || !data) {
+                    return new Response(JSON.stringify(null), {
+                        headers: corsHeaders
+                    });
+                }
+                return new Response(JSON.stringify(data), {
+                    headers: corsHeaders
+                });
+            }
             case "has-permission": {
                 const {userId, permission} = body;
                 if (!userId || !permission) {

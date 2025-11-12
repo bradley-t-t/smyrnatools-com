@@ -98,6 +98,13 @@ UserService.getUserRoles = async function (userId) {
     return roles
 }
 
+UserService.getUserProfile = async function (userId) {
+    if (!userId) throw new Error('User ID is required')
+    const id = typeof userId === 'object' && userId.id ? userId.id : userId
+    const {json} = await APIUtility.post(`${USER_FUNCTION}/user-profile`, {userId: id})
+    return json
+}
+
 UserService.getUserPermissions = async function (userId) {
     if (!userId) throw new Error('User ID is required')
     const id = typeof userId === 'object' && userId.id ? userId.id : userId

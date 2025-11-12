@@ -608,38 +608,6 @@ function RolesView() {
 
             {!searchQuery && (
                 <>
-            <div className="roles-stats">
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <i className="fas fa-users-cog"></i>
-                    </div>
-                    <div className="stat-content">
-                        <div className="stat-label">Total Roles</div>
-                        <div className="stat-value">{roles.length}</div>
-                    </div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <i className="fas fa-key"></i>
-                    </div>
-                    <div className="stat-content">
-                        <div className="stat-label">Total Permissions</div>
-                        <div className="stat-value">
-                            {roles.reduce((sum, role) => sum + getPermissionCount(role), 0)}
-                        </div>
-                    </div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <i className="fas fa-edit"></i>
-                    </div>
-                    <div className="stat-content">
-                        <div className="stat-label">Edit Access</div>
-                        <div className="stat-value">{hasITAccess ? 'Yes' : 'No'}</div>
-                    </div>
-                </div>
-            </div>
-
             <div className="roles-list">
                 {roles.map((role) => {
                     const isExpanded = expandedRoles.has(role.id);

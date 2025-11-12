@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {usePresence} from '../../app/hooks/usePresence';
 import {usePreferences} from '../../app/context/PreferencesContext';
+import {RegionService} from '../../services/RegionService';
 import './styles/OnlineUsersOverlay.css';
 
 function OnlineUsersOverlay() {
@@ -62,14 +63,26 @@ function OnlineUsersOverlay() {
                         {onlineUsers.slice(0, isExpanded ? onlineUsers.length : 3).map(user => {
                             let displayName = typeof user.name === 'string' ? user.name : '';
                             let avatarChar = displayName.length > 0 ? displayName.charAt(0).toUpperCase() : 'U';
+                            const userRoles = Array.isArray(user.roles) ? user.roles : [];
+                            const primaryRole = userRoles.length > 0 ? userRoles[0] : null;
+                            const region = user.regionCode ? RegionService.getRegionByCode(user.regionCode) : null;
+                            const regionName = region?.regionName || region?.region_name || null;
+                            
                             return (
                                 <div key={user.id} className="ouo-online-user">
                                     <div className="ouo-user-avatar">{avatarChar}</div>
                                     <div className="ouo-user-info">
-                                        <div className="ouo-user-status">
-                                            <span className="ouo-status-indicator"></span>
-                                        </div>
                                         <div className="ouo-user-name">{displayName || 'Unknown User'}</div>
+                                        {(primaryRole || regionName) && (
+                                            <div className="ouo-user-meta">
+                                                {primaryRole && <span className="ouo-user-role">{primaryRole}</span>}
+                                                {primaryRole && regionName && <span className="ouo-meta-separator">•</span>}
+                                                {regionName && <span className="ouo-user-region">{regionName}</span>}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="ouo-user-status">
+                                        <span className="ouo-status-indicator"></span>
                                     </div>
                                 </div>
                             );
