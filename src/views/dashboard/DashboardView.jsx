@@ -73,7 +73,10 @@ export default function DashboardView() {
             unassigned: 0,
             pending: 0
         },
-        managers: 0,
+        managers: {
+            total: 0,
+            byRole: {}
+        },
         fleetTotal: 0,
         openIssuesTotal: 0,
         overdueTotal: 0,
@@ -101,7 +104,6 @@ export default function DashboardView() {
     const [isFiltering, startTransition] = useTransition()
     const filterTimeoutRef = useRef(null)
     const plantSetRef = useRef(new Set())
-    const lastManagersFetchRef = useRef(0)
     const countsRef = useRef({mixers: {}, tractors: {}, trailers: {}, equipment: {}})
 
     const slimMixer = m => ({
@@ -318,7 +320,6 @@ export default function DashboardView() {
             equipment: {...equipmentTotals, allocationPercent: equipmentAllocationPercent},
             pickups: {...pickupsTotals, allocationPercent: pickupsAllocationPercent},
             operators: operatorsTotals,
-            managers: s.managers,
             fleetTotal,
             openIssuesTotal,
             overdueTotal,
@@ -667,36 +668,6 @@ export default function DashboardView() {
     useEffect(() => {
         if (!loading) fetchIssueCommentCounts()
     }, [stats.fleetTotal, loading, fetchIssueCommentCounts])
-
-    useEffect(() => {
-        if (loading) return
-        const now = Date.now()
-        if (now - lastManagersFetchRef.current < 60000) return
-        lastManagersFetchRef.current = now
-        let cancelled = false
-
-        async function loadManagers() {
-            try {
-                const [permRes, roleRes, profRes] = await Promise.all([
-                    supabase.from('users_permissions').select('user_id, role_id'),
-                    supabase.from('users_roles').select('id, name'),
-                    supabase.from('users_profiles').select('id, plant_code')
-                ])
-                if (cancelled) return
-                const managerRoleIds = new Set((roleRes.data || []).filter(r => String(r.name || '').toLowerCase().includes('manager')).map(r => r.id))
-                const userIds = new Set((permRes.data || []).filter(p => managerRoleIds.has(p.role_id)).map(p => p.user_id))
-                const plantSet = plantSetRef.current
-                const managersCount = (profRes.data || []).filter(pr => userIds.has(pr.id) && (plantSet.size === 0 || plantSet.has(String(pr.plant_code || '').trim()))).length
-                setStats(s => ({...s, managers: managersCount}))
-            } catch {
-            }
-        }
-
-        loadManagers()
-        return () => {
-            cancelled = true
-        }
-    }, [stats.fleetTotal, dashboardPlant, regionPlants, loading])
 
     const regionDisplayName = (() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
@@ -1064,10 +1035,6 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Unassigned {stats.operators.unassigned}</div>
                                         <div className="kpi-pill">Pending Start {stats.operators.pending}</div>
                                     </div>
-                                </div>
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Managers</div>
-                                    <div className="kpi-value">{stats.managers}</div>
                                 </div>
                             </div>
                             <div className="training-table-wrapper">
