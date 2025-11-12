@@ -318,7 +318,17 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
             });
             setHasUnsavedChanges(false);
         } catch (error) {
-            alert(`Error saving changes: ${error.message || 'Unknown error'}`);
+            let errorMessage = 'Unknown error'
+            
+            if (error.message && typeof error.message === 'string') {
+                if (error.message.includes('duplicate key') && error.message.includes('trailers_trailer_number_key')) {
+                    errorMessage = `This trailer number already exists. Please use a different trailer number.`
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
+            alert(`Error saving changes: ${errorMessage}`);
         } finally {
             setIsSaving(false);
         }

@@ -295,7 +295,18 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 stack: error.stack,
                 equipmentId: equipment?.id
             });
-            setMessage('Error saving changes: ' + (error.message || 'Unknown error'));
+            
+            let errorMessage = 'Unknown error'
+            
+            if (error.message && typeof error.message === 'string') {
+                if (error.message.includes('duplicate key') && error.message.includes('equipment_equipment_number_key')) {
+                    errorMessage = `This equipment number already exists. Please use a different equipment number.`
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
+            setMessage('Error saving changes: ' + errorMessage);
             return null;
         } finally {
             setIsSaving(false);

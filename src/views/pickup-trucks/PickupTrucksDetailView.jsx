@@ -234,7 +234,17 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
             setHasUnsavedChanges(false)
             return updated
         } catch (e) {
-            setMessage(e?.message || 'Error saving changes')
+            let errorMessage = 'Error saving changes'
+            
+            if (e?.message && typeof e.message === 'string') {
+                if (e.message.includes('duplicate key') && e.message.includes('pickup_trucks_truck_number_key')) {
+                    errorMessage = `This truck number already exists. Please use a different truck number.`
+                } else {
+                    errorMessage = e.message
+                }
+            }
+            
+            setMessage(errorMessage)
             setTimeout(() => setMessage(''), 4000)
             return null
         } finally {
