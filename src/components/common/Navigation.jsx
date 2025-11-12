@@ -49,6 +49,8 @@ const getIconForMenuItem = (id) => {
             return <i className="fas fa-sign-out-alt"></i>
         case 'Reports':
             return <i className="fas fa-file-alt"></i>
+        case 'Roles':
+            return <i className="fas fa-lock"></i>
         default:
             return <i className="fas fa-clipboard-list"></i>
     }

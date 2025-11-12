@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { UserService } from '../../services/UserService';
 import { supabase } from '../../services/DatabaseService';
 import LoadingScreen from '../../components/common/LoadingScreen';
@@ -22,6 +23,10 @@ function RolesView() {
     const [editedWeight, setEditedWeight] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [showSearchModal, setShowSearchModal] = useState(false);
+    const [showCleanupModal, setShowCleanupModal] = useState(false);
+    const [isCleaningUp, setIsCleaningUp] = useState(false);
+    const [cleanupResults, setCleanupResults] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -237,6 +242,205 @@ function RolesView() {
         setSearchResults(results);
     };
 
+    const openSearch = () => {
+        setShowSearchModal(true);
+        setSearchQuery('');
+        setSearchResults([]);
+    };
+
+    const closeSearch = () => {
+        setShowSearchModal(false);
+        setSearchQuery('');
+        setSearchResults([]);
+    };
+
+    const removePermissionFromAll = async (permissionToRemove) => {
+        if (!hasITAccess || !permissionToRemove) return;
+
+        if (!window.confirm(`Are you sure you want to remove "${permissionToRemove}" from all roles that have it?`)) {
+            return;
+        }
+
+        setError('');
+        setMessage('');
+
+        try {
+            let rolesModified = 0;
+
+            for (const result of searchResults) {
+                const role = result.role;
+                const hasExactMatch = role.permissions.includes(permissionToRemove);
+
+                if (hasExactMatch) {
+                    const updatedPermissions = role.permissions.filter(p => p !== permissionToRemove);
+                    const sortedPermissions = updatedPermissions.sort((a, b) => a.localeCompare(b));
+
+                    const { error: updateError } = await supabase
+                        .from('users_roles')
+                        .update({ permissions: sortedPermissions })
+                        .eq('id', role.id);
+
+                    if (updateError) {
+                        throw updateError;
+                    }
+
+                    rolesModified++;
+                }
+            }
+
+            UserService.clearCache();
+            await loadData();
+            
+            const updatedResults = searchResults
+                .map(result => {
+                    const updatedPermissions = result.matchingPermissions.filter(p => p !== permissionToRemove);
+                    return {
+                        ...result,
+                        matchingPermissions: updatedPermissions
+                    };
+                })
+                .filter(result => result.matchingPermissions.length > 0);
+            
+            setSearchResults(updatedResults);
+
+            setMessage(`Successfully removed "${permissionToRemove}" from ${rolesModified} ${rolesModified === 1 ? 'role' : 'roles'}`);
+            setTimeout(() => setMessage(''), 5000);
+        } catch (err) {
+            console.error('Error removing permission:', err);
+            setError(`Failed to remove permission: ${err.message}`);
+        }
+    };
+
+    const removePermissionFromRole = async (permissionToRemove, roleId, roleName) => {
+        if (!hasITAccess || !permissionToRemove || !roleId) return;
+
+        if (!window.confirm(`Remove "${permissionToRemove}" from "${roleName}"?`)) {
+            return;
+        }
+
+        setError('');
+        setMessage('');
+
+        try {
+            const role = roles.find(r => r.id === roleId);
+            if (!role) return;
+
+            const updatedPermissions = role.permissions.filter(p => p !== permissionToRemove);
+            const sortedPermissions = updatedPermissions.sort((a, b) => a.localeCompare(b));
+
+            const { error: updateError } = await supabase
+                .from('users_roles')
+                .update({ permissions: sortedPermissions })
+                .eq('id', roleId);
+
+            if (updateError) {
+                throw updateError;
+            }
+
+            UserService.clearCache();
+            await loadData();
+            
+            const updatedResults = searchResults
+                .map(result => {
+                    if (result.role.id === roleId) {
+                        const updatedPermissions = result.matchingPermissions.filter(p => p !== permissionToRemove);
+                        return {
+                            ...result,
+                            matchingPermissions: updatedPermissions
+                        };
+                    }
+                    return result;
+                })
+                .filter(result => result.matchingPermissions.length > 0);
+            
+            setSearchResults(updatedResults);
+
+            setMessage(`Successfully removed "${permissionToRemove}" from "${roleName}"`);
+            setTimeout(() => setMessage(''), 3000);
+        } catch (err) {
+            console.error('Error removing permission:', err);
+            setError(`Failed to remove permission: ${err.message}`);
+        }
+    };
+
+    const cleanupAllRoles = async () => {
+        if (!hasITAccess) return;
+
+        setIsCleaningUp(true);
+        setError('');
+
+        try {
+            const results = {
+                processed: 0,
+                cleaned: 0,
+                duplicatesRemoved: 0,
+                emptyPermissionsRemoved: 0,
+                details: []
+            };
+
+            for (const role of roles) {
+                results.processed++;
+
+                if (!role.permissions || !Array.isArray(role.permissions)) {
+                    continue;
+                }
+
+                const originalCount = role.permissions.length;
+                const trimmedPermissions = role.permissions
+                    .map(p => p.trim())
+                    .filter(p => p.length > 0);
+
+                const emptyRemoved = originalCount - trimmedPermissions.length;
+                const uniquePermissions = [...new Set(trimmedPermissions)];
+                const duplicatesRemoved = trimmedPermissions.length - uniquePermissions.length;
+                const sortedPermissions = uniquePermissions.sort((a, b) => a.localeCompare(b));
+
+                const permissionsChanged = 
+                    JSON.stringify(role.permissions) !== JSON.stringify(sortedPermissions);
+
+                if (permissionsChanged) {
+                    results.cleaned++;
+                    results.duplicatesRemoved += duplicatesRemoved;
+                    results.emptyPermissionsRemoved += emptyRemoved;
+
+                    results.details.push({
+                        roleName: role.name,
+                        before: originalCount,
+                        after: sortedPermissions.length,
+                        duplicatesRemoved: duplicatesRemoved,
+                        emptyRemoved: emptyRemoved
+                    });
+
+                    const { error: updateError } = await supabase
+                        .from('users_roles')
+                        .update({ permissions: sortedPermissions })
+                        .eq('id', role.id);
+
+                    if (updateError) {
+                        throw updateError;
+                    }
+                }
+            }
+
+            UserService.clearCache();
+            await loadData();
+            setCleanupResults(results);
+            
+            if (results.cleaned === 0) {
+                setMessage('All roles are already clean! No changes needed.');
+            } else {
+                setMessage(`Cleanup complete! ${results.cleaned} ${results.cleaned === 1 ? 'role' : 'roles'} cleaned.`);
+            }
+            
+            setTimeout(() => setMessage(''), 5000);
+        } catch (err) {
+            console.error('Error cleaning up roles:', err);
+            setError(`Cleanup failed: ${err.message}`);
+        } finally {
+            setIsCleaningUp(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="roles-view">
@@ -259,6 +463,15 @@ function RolesView() {
                 <div className="roles-header-actions">
                     {hasITAccess && (
                         <button 
+                            className="cleanup-button"
+                            onClick={() => setShowCleanupModal(true)}
+                        >
+                            <i className="fas fa-broom"></i>
+                            Cleanup
+                        </button>
+                    )}
+                    {hasITAccess && (
+                        <button 
                             className="create-role-button"
                             onClick={() => setShowCreateModal(true)}
                         >
@@ -275,47 +488,108 @@ function RolesView() {
                 </div>
             </div>
 
-            <div className="roles-search-bar">
-                <i className="fas fa-search"></i>
-                <input
-                    type="text"
-                    placeholder="Search for permission nodes across all roles..."
-                    value={searchQuery}
-                    onChange={(e) => searchPermissions(e.target.value)}
-                    className="search-input"
-                />
-                {searchQuery && (
-                    <button 
-                        className="clear-search"
-                        onClick={() => searchPermissions('')}
-                    >
-                        <i className="fas fa-times"></i>
-                    </button>
-                )}
+            <div className="roles-search-trigger">
+                <button 
+                    className="search-trigger-button"
+                    onClick={openSearch}
+                >
+                    <i className="fas fa-search"></i>
+                    Search permission nodes
+                </button>
             </div>
 
-            {searchResults.length > 0 && (
-                <div className="search-results">
-                    <h3>Search Results ({searchResults.length} {searchResults.length === 1 ? 'role' : 'roles'})</h3>
-                    {searchResults.map((result, index) => (
-                        <div key={index} className="search-result-card">
-                            <div className="search-result-header">
-                                <i className="fas fa-user-shield"></i>
-                                <span className="search-result-role">{result.role.name}</span>
-                                <span className="search-result-count">
-                                    {result.matchingPermissions.length} {result.matchingPermissions.length === 1 ? 'match' : 'matches'}
-                                </span>
+            {showSearchModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+                <div className="search-modal-backdrop" onClick={closeSearch}>
+                    <div className="search-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="search-modal-header">
+                            <div className="roles-search-bar-modal">
+                                <i className="fas fa-search"></i>
+                                <input
+                                    type="text"
+                                    placeholder="Search for permission nodes across all roles..."
+                                    value={searchQuery}
+                                    onChange={(e) => searchPermissions(e.target.value)}
+                                    className="search-input"
+                                    autoFocus
+                                />
                             </div>
-                            <div className="search-result-permissions">
-                                {result.matchingPermissions.map((perm, pIndex) => (
-                                    <span key={pIndex} className="search-result-permission">
-                                        {perm}
-                                    </span>
-                                ))}
-                            </div>
+                            <button 
+                                className="close-search-button"
+                                onClick={closeSearch}
+                                title="Close search"
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
                         </div>
-                    ))}
-                </div>
+                        {searchResults.length > 0 ? (
+                            <>
+                                <div className="search-results-header-info">
+                                    <div className="search-results-info">
+                                        <span className="search-results-count">{searchResults.length} {searchResults.length === 1 ? 'role' : 'roles'} found</span>
+                                        <span className="search-results-query">matching &ldquo;{searchQuery.trim()}&rdquo;</span>
+                                    </div>
+                                    {hasITAccess && searchQuery.trim() && (
+                                        <button 
+                                            className="bulk-remove-button"
+                                            onClick={() => removePermissionFromAll(searchQuery.trim())}
+                                            title={`Remove exact matches of "${searchQuery.trim()}" from all roles`}
+                                        >
+                                            <i className="fas fa-trash-alt"></i>
+                                            Remove from All
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="search-modal-body">
+                                    <div className="search-results-list">
+                                        {searchResults.map((result, index) => {
+                                            const hasExactMatch = result.role.permissions.includes(searchQuery.trim());
+                                            return (
+                                                <div key={index} className="search-result-item">
+                                                    <div className="search-result-item-header">
+                                                        <div className="search-result-role-info">
+                                                            <span className="search-result-role-name">{result.role.name}</span>
+                                                            <span className="search-result-match-count">
+                                                                {result.matchingPermissions.length} {result.matchingPermissions.length === 1 ? 'match' : 'matches'}
+                                                            </span>
+                                                        </div>
+                                                        {hasITAccess && hasExactMatch && (
+                                                            <button 
+                                                                className="single-remove-button"
+                                                                onClick={() => removePermissionFromRole(searchQuery.trim(), result.role.id, result.role.name)}
+                                                                title={`Remove exact match from this role`}
+                                                            >
+                                                                <i className="fas fa-times"></i>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <div className="search-result-permissions-list">
+                                                        {result.matchingPermissions.map((perm, pIndex) => {
+                                                            const isExact = perm === searchQuery.trim();
+                                                            return (
+                                                                <div key={pIndex} className={`permission-item ${isExact ? 'exact-match' : 'partial-match'}`}>
+                                                                    <span className="permission-text">{perm}</span>
+                                                                    {isExact && <span className="exact-badge">exact</span>}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="search-modal-body">
+                                <div className="no-search-results">
+                                    <i className="fas fa-search"></i>
+                                    <p>Search by permission nodes.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>,
+                document.body
             )}
 
             {message && (
@@ -332,6 +606,8 @@ function RolesView() {
                 </div>
             )}
 
+            {!searchQuery && (
+                <>
             <div className="roles-stats">
                 <div className="stat-card">
                     <div className="stat-icon">
@@ -531,36 +807,46 @@ function RolesView() {
                     <p>There are no roles configured in the system.</p>
                 </div>
             )}
+            </>
+            )}
 
-            {showCreateModal && (
+            {showCreateModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
                 <div className="modal-backdrop" onClick={() => setShowCreateModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Create New Role</h3>
+                            <div className="modal-header-content">
+                                <i className="fas fa-plus-circle"></i>
+                                <div>
+                                    <h2>Create New Role</h2>
+                                    <span className="modal-subtitle">Add Role</span>
+                                </div>
+                            </div>
                             <button className="modal-close" onClick={() => setShowCreateModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label>Role Name</label>
-                                <input
-                                    type="text"
-                                    value={newRoleName}
-                                    onChange={(e) => setNewRoleName(e.target.value)}
-                                    placeholder="Enter role name"
-                                    className="form-input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Weight</label>
-                                <input
-                                    type="number"
-                                    value={newRoleWeight}
-                                    onChange={(e) => setNewRoleWeight(parseInt(e.target.value) || 0)}
-                                    placeholder="Enter weight (0-100)"
-                                    className="form-input"
-                                />
+                        <div className="modal-content-scrollable">
+                            <div className="modal-body-content">
+                                <div className="form-group">
+                                    <label>Role Name</label>
+                                    <input
+                                        type="text"
+                                        value={newRoleName}
+                                        onChange={(e) => setNewRoleName(e.target.value)}
+                                        placeholder="Enter role name"
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Weight</label>
+                                    <input
+                                        type="number"
+                                        value={newRoleWeight}
+                                        onChange={(e) => setNewRoleWeight(parseInt(e.target.value) || 0)}
+                                        placeholder="Enter weight (0-100)"
+                                        className="form-input"
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="modal-footer">
@@ -591,7 +877,162 @@ function RolesView() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
+            )}
+
+            {showCleanupModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+                <div className="modal-backdrop" onClick={() => !isCleaningUp && setShowCleanupModal(false)}>
+                    <div className="modal-content cleanup-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div className="modal-header-content">
+                                <i className="fas fa-broom"></i>
+                                <div>
+                                    <h2>Cleanup All Roles</h2>
+                                    <span className="modal-subtitle">Database Maintenance</span>
+                                </div>
+                            </div>
+                            {!isCleaningUp && !cleanupResults && (
+                                <button className="modal-close" onClick={() => setShowCleanupModal(false)}>
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            )}
+                        </div>
+                        <div className="modal-content-scrollable">
+                            <div className="modal-body-content">
+                            {!cleanupResults ? (
+                                <>
+                                    <p className="cleanup-description">
+                                        This will automatically clean up all roles by:
+                                    </p>
+                                    <ul className="cleanup-actions-list">
+                                        <li>
+                                            <i className="fas fa-check-circle"></i>
+                                            Removing duplicate permission nodes
+                                        </li>
+                                        <li>
+                                            <i className="fas fa-check-circle"></i>
+                                            Removing empty or whitespace-only entries
+                                        </li>
+                                        <li>
+                                            <i className="fas fa-check-circle"></i>
+                                            Sorting permissions alphabetically
+                                        </li>
+                                        <li>
+                                            <i className="fas fa-check-circle"></i>
+                                            Trimming whitespace from all entries
+                                        </li>
+                                    </ul>
+                                    <p className="cleanup-warning">
+                                        <i className="fas fa-info-circle"></i>
+                                        This action will process all {roles.length} roles in the system.
+                                    </p>
+                                </>
+                            ) : (
+                                <div className="cleanup-results">
+                                    <div className="cleanup-summary">
+                                        <div className="cleanup-stat">
+                                            <i className="fas fa-users-cog"></i>
+                                            <div>
+                                                <div className="cleanup-stat-value">{cleanupResults.processed}</div>
+                                                <div className="cleanup-stat-label">Roles Processed</div>
+                                            </div>
+                                        </div>
+                                        <div className="cleanup-stat">
+                                            <i className="fas fa-broom"></i>
+                                            <div>
+                                                <div className="cleanup-stat-value">{cleanupResults.cleaned}</div>
+                                                <div className="cleanup-stat-label">Roles Cleaned</div>
+                                            </div>
+                                        </div>
+                                        <div className="cleanup-stat">
+                                            <i className="fas fa-copy"></i>
+                                            <div>
+                                                <div className="cleanup-stat-value">{cleanupResults.duplicatesRemoved}</div>
+                                                <div className="cleanup-stat-label">Duplicates Removed</div>
+                                            </div>
+                                        </div>
+                                        <div className="cleanup-stat">
+                                            <i className="fas fa-trash"></i>
+                                            <div>
+                                                <div className="cleanup-stat-value">{cleanupResults.emptyPermissionsRemoved}</div>
+                                                <div className="cleanup-stat-label">Empty Entries Removed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {cleanupResults.details.length > 0 && (
+                                        <div className="cleanup-details">
+                                            <h4>Changes Made:</h4>
+                                            {cleanupResults.details.map((detail, index) => (
+                                                <div key={index} className="cleanup-detail-item">
+                                                    <div className="cleanup-detail-role">{detail.roleName}</div>
+                                                    <div className="cleanup-detail-changes">
+                                                        {detail.before} → {detail.after} permissions
+                                                        {detail.duplicatesRemoved > 0 && (
+                                                            <span className="cleanup-detail-badge">
+                                                                -{detail.duplicatesRemoved} duplicates
+                                                            </span>
+                                                        )}
+                                                        {detail.emptyRemoved > 0 && (
+                                                            <span className="cleanup-detail-badge">
+                                                                -{detail.emptyRemoved} empty
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            {!cleanupResults ? (
+                                <>
+                                    <button
+                                        className="save-button cleanup-confirm-button"
+                                        onClick={cleanupAllRoles}
+                                        disabled={isCleaningUp}
+                                    >
+                                        {isCleaningUp ? (
+                                            <>
+                                                <i className="fas fa-spinner fa-spin"></i>
+                                                Cleaning Up...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-broom"></i>
+                                                Start Cleanup
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        className="cancel-button"
+                                        onClick={() => setShowCleanupModal(false)}
+                                        disabled={isCleaningUp}
+                                    >
+                                        <i className="fas fa-times"></i>
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    className="save-button"
+                                    onClick={() => {
+                                        setShowCleanupModal(false);
+                                        setCleanupResults(null);
+                                    }}
+                                >
+                                    <i className="fas fa-check"></i>
+                                    Done
+                                </button>
+                            )}
+                        </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );
