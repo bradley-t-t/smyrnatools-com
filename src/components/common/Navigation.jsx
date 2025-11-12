@@ -11,9 +11,10 @@ const ANIMATION_TIMING = {
     BASE_EXIT_DURATION: 375
 }
 
-const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'List']
+const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
 const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions']
 const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
+const OFFICE_ONLY_ITEMS = ['Roles']
 
 const getIconForMenuItem = (id) => {
     switch (id) {
@@ -92,7 +93,6 @@ export default function Navigation({
     const exitAnimationTimeoutRef = useRef(null)
     const enterAnimationTimeoutRef = useRef(null)
     const enterTimeoutsRef = useRef([])
-    const isInitialMenuLoadRef = useRef(true)
 
     useEffect(() => {
         const handleStatusFilterChange = (event) => {
@@ -113,6 +113,7 @@ export default function Navigation({
                 setVisibleMenuItems([])
                 return
             }
+            
             try {
                 const permissions = await UserService.getUserPermissions(userId)
                 let filtered = menuItems.filter(item => 
@@ -120,92 +121,96 @@ export default function Navigation({
                 )
                 
                 if (regionType === 'Office') {
-                    filtered = filtered.filter(item => OFFICE_VISIBLE_ITEMS.includes(item.id))
+                    filtered = filtered.filter(item => OFFICE_VISIBLE_ITEMS.includes(item.id) || OFFICE_ONLY_ITEMS.includes(item.id))
                 } else if (regionType === 'Aggregate') {
-                    filtered = filtered.filter(item => !AGGREGATE_HIDDEN_ITEMS.includes(item.id))
+                    filtered = filtered.filter(item => !AGGREGATE_HIDDEN_ITEMS.includes(item.id) && !OFFICE_ONLY_ITEMS.includes(item.id))
                 } else {
-                    filtered = filtered.filter(item => !DEFAULT_HIDDEN_ITEMS.includes(item.id))
+                    filtered = filtered.filter(item => !DEFAULT_HIDDEN_ITEMS.includes(item.id) && !OFFICE_ONLY_ITEMS.includes(item.id))
                 }
 
-                const prevIds = new Set(lastMenuItemsRef.current.map(item => item.id))
-                const newIds = new Set(filtered.map(item => item.id))
-                const addedItems = filtered.filter(item => !prevIds.has(item.id))
-                const removedItems = lastMenuItemsRef.current.filter(item => !newIds.has(item.id))
-                const isInitialLoad = isInitialMenuLoadRef.current && filtered.length > 0 && lastMenuItemsRef.current.length === 0
-
+                const isInitialLoad = lastMenuItemsRef.current.length === 0 && filtered.length > 0
+                
                 if (isInitialLoad) {
-                    isInitialMenuLoadRef.current = false
                     setVisibleMenuItems([])
-
-                    if (!isMenuReady) {
-                        setIsMenuReady(true)
-                    }
-
-                    setTimeout(() => {
-                        filtered.forEach((item, index) => {
-                            const timeout = setTimeout(() => {
-                                setVisibleMenuItems(prev => [...prev, item])
-                                setEnteringItemIds(prev => new Set([...prev, item.id]))
-                            }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                            enterTimeoutsRef.current.push(timeout)
-                        })
-
-                        const enterDuration = filtered.length * ANIMATION_TIMING.ITEM_ENTER_DELAY + ANIMATION_TIMING.BASE_EXIT_DURATION
-                        enterAnimationTimeoutRef.current = setTimeout(() => {
-                            setEnteringItemIds(new Set())
-                        }, enterDuration)
-                    }, 0)
-
+                    setIsMenuReady(true)
+                    
+                    filtered.forEach((item, index) => {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, item])
+                            setEnteringItemIds(prev => new Set([...prev, item.id]))
+                            
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete(item.id)
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                    })
+                    
                     lastMenuItemsRef.current = filtered
                     return
-                } else if (addedItems.length > 0 || removedItems.length > 0) {
-                    if (exitAnimationTimeoutRef.current) {
-                        clearTimeout(exitAnimationTimeoutRef.current)
-                    }
-                    if (enterAnimationTimeoutRef.current) {
-                        clearTimeout(enterAnimationTimeoutRef.current)
-                    }
-                    enterTimeoutsRef.current.forEach(t => clearTimeout(t))
-                    enterTimeoutsRef.current = []
+                }
 
-                    if (removedItems.length > 0) {
-                        setExitingItems(removedItems)
-                        const exitDuration = ANIMATION_TIMING.BASE_EXIT_DURATION + (removedItems.length - 1) * ANIMATION_TIMING.ITEM_EXIT_DELAY
-                        exitAnimationTimeoutRef.current = setTimeout(() => {
-                            setExitingItems([])
-                        }, exitDuration)
-                    }
+                const currentIds = new Set(visibleMenuItems.map(item => item.id))
+                const newIds = new Set(filtered.map(item => item.id))
+                const itemsToRemove = visibleMenuItems.filter(item => !newIds.has(item.id))
+                const itemsToAdd = filtered.filter(item => !currentIds.has(item.id))
 
-                    if (addedItems.length > 0) {
-                        const itemsWithoutAdded = lastMenuItemsRef.current
-                        setVisibleMenuItems(itemsWithoutAdded)
+                if (itemsToRemove.length === 0 && itemsToAdd.length === 0) {
+                    lastMenuItemsRef.current = filtered
+                    return
+                }
 
-                        setTimeout(() => {
-                            const reversedItems = [...addedItems].reverse()
-                            reversedItems.forEach((item, index) => {
+                enterTimeoutsRef.current.forEach(t => clearTimeout(t))
+                enterTimeoutsRef.current = []
+                if (exitAnimationTimeoutRef.current) clearTimeout(exitAnimationTimeoutRef.current)
+                if (enterAnimationTimeoutRef.current) clearTimeout(enterAnimationTimeoutRef.current)
+
+                if (itemsToRemove.length > 0) {
+                    setExitingItems(itemsToRemove)
+                    
+                    const exitDuration = ANIMATION_TIMING.BASE_EXIT_DURATION + (itemsToRemove.length - 1) * ANIMATION_TIMING.ITEM_EXIT_DELAY
+                    exitAnimationTimeoutRef.current = setTimeout(() => {
+                        setExitingItems([])
+                        setVisibleMenuItems(visibleMenuItems.filter(item => newIds.has(item.id)))
+                        
+                        if (itemsToAdd.length > 0) {
+                            itemsToAdd.forEach((item, index) => {
                                 const timeout = setTimeout(() => {
                                     setVisibleMenuItems(prev => [...prev, item])
                                     setEnteringItemIds(prev => new Set([...prev, item.id]))
+                                    
+                                    setTimeout(() => {
+                                        setEnteringItemIds(prev => {
+                                            const newSet = new Set(prev)
+                                            newSet.delete(item.id)
+                                            return newSet
+                                        })
+                                    }, ANIMATION_TIMING.BASE_EXIT_DURATION)
                                 }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
                                 enterTimeoutsRef.current.push(timeout)
                             })
-
-                            const enterDuration = addedItems.length * ANIMATION_TIMING.ITEM_ENTER_DELAY + ANIMATION_TIMING.BASE_EXIT_DURATION
-                            enterAnimationTimeoutRef.current = setTimeout(() => {
-                                setEnteringItemIds(new Set())
-                            }, enterDuration)
-                        }, 0)
-                    } else {
-                        setVisibleMenuItems(filtered)
-                    }
-                } else {
-                    if (enterTimeoutsRef.current.length > 0 && visibleMenuItems.length === 0) {
-                        return
-                    }
-                    setVisibleMenuItems(filtered)
-                    if (!isMenuReady) {
-                        setIsMenuReady(true)
-                    }
+                        }
+                    }, exitDuration)
+                } else if (itemsToAdd.length > 0) {
+                    itemsToAdd.forEach((item, index) => {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, item])
+                            setEnteringItemIds(prev => new Set([...prev, item.id]))
+                            
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete(item.id)
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                    })
                 }
 
                 lastMenuItemsRef.current = filtered
@@ -216,7 +221,7 @@ export default function Navigation({
         }
 
         filterMenuItems()
-    }, [userId, regionType, regionCode])
+    }, [userId, regionType, regionCode, visibleMenuItems])
 
     useEffect(() => {
         if (visibleMenuItems.length > 0 && !visibleMenuItems.some(item => item.id === selectedView) && selectedView !== 'Settings' && selectedView !== 'MyAccount') {
