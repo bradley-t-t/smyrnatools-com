@@ -73,10 +73,6 @@ export default function DashboardView() {
             unassigned: 0,
             pending: 0
         },
-        managers: {
-            total: 0,
-            byRole: {}
-        },
         fleetTotal: 0,
         openIssuesTotal: 0,
         overdueTotal: 0,
