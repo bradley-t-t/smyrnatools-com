@@ -26,6 +26,76 @@ function MyAccountView({userId}) {
     const [activeTab, setActiveTab] = useState('profile');
     const [permittedRegions, setPermittedRegions] = useState([])
     const [regionsLoaded, setRegionsLoaded] = useState(false)
+    const [sessions, setSessions] = useState([])
+    const [currentSessionId, setCurrentSessionId] = useState('')
+
+    const getBrowserInfo = (userAgent) => {
+        if (userAgent.includes('Firefox')) return 'Firefox'
+        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
+        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
+        if (userAgent.includes('Edg')) return 'Edge'
+        if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera'
+        return 'Unknown Browser'
+    }
+
+    const getOSInfo = (userAgent) => {
+        if (userAgent.includes('Windows')) return 'Windows'
+        if (userAgent.includes('Mac')) return 'macOS'
+        if (userAgent.includes('Linux')) return 'Linux'
+        if (userAgent.includes('Android')) return 'Android'
+        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS'
+        return 'Unknown OS'
+    }
+
+    const getDeviceInfo = (userAgent) => {
+        if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) return 'Mobile'
+        if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'Tablet'
+        return 'Desktop'
+    }
+
+    const getDeviceIcon = (device) => {
+        if (device === 'Mobile') return 'fa-mobile-alt'
+        if (device === 'Tablet') return 'fa-tablet-alt'
+        return 'fa-desktop'
+    }
+
+    const formatSessionTime = (timestamp) => {
+        const date = new Date(timestamp)
+        const now = new Date()
+        const diffMs = now - date
+        const diffMins = Math.floor(diffMs / 60000)
+        const diffHours = Math.floor(diffMs / 3600000)
+        const diffDays = Math.floor(diffMs / 86400000)
+
+        if (diffMins < 5) return 'Active now'
+        if (diffMins < 60) return `Active ${diffMins} minutes ago`
+        if (diffHours < 24) return `Active ${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
+        return `Active ${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
+    }
+
+    const handleRevokeSession = async (sessionId) => {
+        if (sessionId === currentSessionId) {
+            setMessage('Cannot revoke current session. Please sign out instead.')
+            setTimeout(() => setMessage(''), 3000)
+            return
+        }
+        try {
+            const { error } = await supabase
+                .from('users_sessions')
+                .delete()
+                .eq('id', sessionId)
+            
+            if (error) throw error
+            
+            setSessions(sessions.filter(s => s.id !== sessionId))
+            setMessage('Session revoked successfully')
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            setMessage(`Error revoking session: ${error.message}`)
+            setTimeout(() => setMessage(''), 3000)
+        }
+    }
+
 
     useEffect(() => {
         let cancelled = false
@@ -80,6 +150,64 @@ function MyAccountView({userId}) {
                     setPermittedRegions([])
                     updatePreferences('selectedRegion', {code: '', name: '', type: ''})
                     setRegionName('')
+                }
+                
+                if (uid) {
+                    const sessionId = sessionStorage.getItem('sessionId')
+                    const userAgent = navigator.userAgent
+                    
+                    if (sessionId) {
+                        setCurrentSessionId(sessionId)
+                        
+                        try {
+                            await supabase.from('users_sessions')
+                                .update({ last_active: new Date().toISOString() })
+                                .eq('id', sessionId)
+                        } catch (err) {
+                            console.error('Failed to update session:', err)
+                        }
+                    } else {
+                        const newSessionId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                        sessionStorage.setItem('sessionId', newSessionId)
+                        
+                        try {
+                            await supabase.from('users_sessions').upsert({
+                                id: newSessionId,
+                                user_id: uid,
+                                browser: getBrowserInfo(userAgent),
+                                os: getOSInfo(userAgent),
+                                device: getDeviceInfo(userAgent),
+                                user_agent: userAgent,
+                                last_active: new Date().toISOString(),
+                                created_at: new Date().toISOString()
+                            }, { onConflict: 'id' })
+                        } catch (err) {
+                            console.error('Failed to create session:', err)
+                        }
+                        
+                        setCurrentSessionId(newSessionId)
+                    }
+                    
+                    const { data: userSessions } = await supabase
+                        .from('users_sessions')
+                        .select('*')
+                        .eq('user_id', uid)
+                        .order('last_active', { ascending: false })
+                        .limit(10)
+                    
+                    if (userSessions && userSessions.length > 0) {
+                        const currentSessId = sessionStorage.getItem('sessionId')
+                        const sessionsList = userSessions.map(s => ({
+                            id: s.id,
+                            createdAt: s.created_at,
+                            lastActive: s.last_active,
+                            browser: s.browser,
+                            os: s.os,
+                            device: s.device,
+                            isCurrent: s.id === currentSessId
+                        }))
+                        setSessions(sessionsList)
+                    }
                 }
             } catch (e) {
                 if (!cancelled) setMessage(`Error: ${e.message}`)
@@ -175,9 +303,22 @@ function MyAccountView({userId}) {
     const handleSignOut = async () => {
         setLoading(true)
         try {
+            const sessionId = sessionStorage.getItem('sessionId')
+            if (sessionId) {
+                try {
+                    await supabase
+                        .from('users_sessions')
+                        .delete()
+                        .eq('id', sessionId)
+                } catch (err) {
+                    console.error('Failed to delete session:', err)
+                }
+            }
+            
             await AuthService.signOut();
             await supabase.auth.signOut();
             sessionStorage.removeItem('userId');
+            sessionStorage.removeItem('sessionId');
             window.location.href = '/'
         } catch (err) {
             setMessage(`Error signing out: ${err.message}`)
@@ -366,15 +507,54 @@ function MyAccountView({userId}) {
                                     className="fas fa-laptop"></i></div>
                                 <h3>Session Management</h3>
                                 <p>Control your active sessions across devices</p>
-                                <div className="active-session">
-                                    <div className="session-icon"><i className="fas fa-desktop"></i></div>
-                                    <div className="session-info">
-                                        <div className="session-name">Current Browser</div>
-                                        <div className="session-details"><span
-                                            className="session-status">•</span> Active now
+                                {sessions.length > 0 ? (
+                                    sessions.map(session => (
+                                        <div key={session.id} className="active-session" style={{marginTop: '12px'}}>
+                                            <div className="session-icon"><i className={`fas ${getDeviceIcon(session.device)}`}></i></div>
+                                            <div className="session-info" style={{flex: 1}}>
+                                                <div className="session-name">{session.browser} on {session.os}</div>
+                                                <div className="session-details">
+                                                    <span className="session-status">•</span> {formatSessionTime(session.lastActive)}
+                                                </div>
+                                            </div>
+                                            {session.isCurrent ? (
+                                                <span style={{
+                                                    padding: '4px 12px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    backgroundColor: 'var(--success-bg)',
+                                                    color: 'var(--success)'
+                                                }}>Current</span>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => handleRevokeSession(session.id)}
+                                                    style={{
+                                                        padding: '4px 12px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        backgroundColor: 'var(--danger-bg)',
+                                                        color: 'var(--danger)',
+                                                        border: 'none',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    title="Revoke this session"
+                                                >
+                                                    Revoke
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="active-session">
+                                        <div className="session-icon"><i className="fas fa-desktop"></i></div>
+                                        <div className="session-info">
+                                            <div className="session-name">No active sessions</div>
+                                            <div className="session-details">Sign in to see your sessions</div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>

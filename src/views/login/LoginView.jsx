@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useAuth} from '../../app/context/AuthContext';
 import {AuthUtility} from '../../utils/AuthUtility';
+import {supabase} from '../../services/DatabaseService';
 import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
 import BG from '../../assets/images/BG.png';
 import './styles/Login.css';
@@ -56,6 +57,51 @@ function LoginView() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const getBrowserInfo = (userAgent) => {
+        if (userAgent.includes('Firefox')) return 'Firefox'
+        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
+        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
+        if (userAgent.includes('Edg')) return 'Edge'
+        if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera'
+        return 'Unknown Browser'
+    }
+
+    const getOSInfo = (userAgent) => {
+        if (userAgent.includes('Windows')) return 'Windows'
+        if (userAgent.includes('Mac')) return 'macOS'
+        if (userAgent.includes('Linux')) return 'Linux'
+        if (userAgent.includes('Android')) return 'Android'
+        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS'
+        return 'Unknown OS'
+    }
+
+    const getDeviceInfo = (userAgent) => {
+        if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) return 'Mobile'
+        if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'Tablet'
+        return 'Desktop'
+    }
+
+    const createSession = async (userId) => {
+        try {
+            const userAgent = navigator.userAgent
+            const sessionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            sessionStorage.setItem('sessionId', sessionId)
+            
+            await supabase.from('users_sessions').upsert({
+                id: sessionId,
+                user_id: userId,
+                browser: getBrowserInfo(userAgent),
+                os: getOSInfo(userAgent),
+                device: getDeviceInfo(userAgent),
+                user_agent: userAgent,
+                last_active: new Date().toISOString(),
+                created_at: new Date().toISOString()
+            }, { onConflict: 'id' })
+        } catch (error) {
+            console.error('Failed to create session:', error)
+        }
+    }
+
     useEffect(() => {
         if (error) {
             setErrorMessage(error);
@@ -94,6 +140,12 @@ function LoginView() {
                     throw new Error('First and last name must be strings after normalization');
                 }
                 await signUp(email, password, normFirst, normLast);
+                
+                const userId = sessionStorage.getItem('userId')
+                if (userId) {
+                    await createSession(userId)
+                }
+                
                 setErrorMessage('');
                 setSuccessMessage('Account created successfully. Redirecting...');
                 setTimeout(() => forceReload(), 1000);
@@ -105,9 +157,15 @@ function LoginView() {
                     return;
                 }
                 await signIn(email, password);
+                
+                const userId = sessionStorage.getItem('userId')
+                if (userId) {
+                    await createSession(userId)
+                }
+                
                 setErrorMessage('');
                 setSuccessMessage('Signed in successfully. Redirecting...');
-                setTimeout(() => forceReload(), 500);
+                setTimeout(() => forceReload(), 800);
             }
         } catch (err) {
             setErrorMessage(err?.message || 'An authentication error occurred. Please try again.');
