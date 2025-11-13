@@ -80,7 +80,6 @@ function App() {
                 if (!currentUser || !currentUser.id) {
                     if (active) {
                         setPlantLoading(false)
-                        setHasPlant(false)
                     }
                     return
                 }
@@ -91,9 +90,9 @@ function App() {
                     setHasPlant(!!plantCode)
                     setPlantLoading(false)
                 }
-            } catch {
+            } catch (error) {
+                console.error('[PlantCheck] Error checking plant:', error)
                 if (active) {
-                    setHasPlant(false)
                     setPlantLoading(false)
                 }
             }
@@ -107,13 +106,13 @@ function App() {
         }
 
         const interval = setInterval(() => {
-            if (user) checkPlant()
+            if (user && !plantLoading) checkPlant()
         }, 60000)
         return () => {
             clearInterval(interval)
             active = false
         }
-    }, [user])
+    }, [user, plantLoading])
 
     useEffect(() => {
         let active = true

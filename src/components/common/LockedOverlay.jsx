@@ -27,7 +27,12 @@ function LockedOverlay({reason}) {
                     return;
                 }
 
-                setReasonToUse(reason || location.state?.reason || 'pending');
+                const actualReason = reason || location.state?.reason;
+                if (!actualReason) {
+                    setReasonToUse(null);
+                } else {
+                    setReasonToUse(actualReason);
+                }
             } catch (error) {
                 setReasonToUse('invalid-session');
             } finally {
@@ -47,7 +52,10 @@ function LockedOverlay({reason}) {
     };
 
     if (isValidating || !reasonToUse) {
-        return <LoadingScreen message="Attempting to authenticate your user" fullPage={true}/>;
+        if (isValidating) {
+            return <LoadingScreen message="Attempting to authenticate your user" fullPage={true}/>;
+        }
+        return null;
     }
 
     const getMessage = () => {
