@@ -85,7 +85,6 @@ export default function DashboardView() {
     const [pendingCollapsed, setPendingCollapsed] = useState(true)
     const [lightDutyOperators, setLightDutyOperators] = useState([])
     const [lightDutyCollapsed, setLightDutyCollapsed] = useState(true)
-    const [issuesCollapsed, setIssuesCollapsed] = useState(true)
     const [assetIssueDetails, setAssetIssueDetails] = useState([])
     const [statusHistoryData, setStatusHistoryData] = useState({
         mixers: [],
@@ -182,6 +181,33 @@ export default function DashboardView() {
         const rangeStart = filterStartDate ? normalizeDate(filterStartDate, false) : null
         const rangeEnd = filterEndDate ? normalizeDate(filterEndDate, true) : new Date()
 
+        if (rangeEnd) {
+            let earliestDataDate = null;
+            
+            if (historyRecords.length > 0) {
+                earliestDataDate = historyRecords
+                    .filter(h => h.changed_at)
+                    .map(h => new Date(h.changed_at))
+                    .sort((a, b) => a - b)[0];
+            }
+            
+            const earliestAssetCreationDate = assets
+                .map(a => a.createdAt || a.created_at)
+                .filter(d => d)
+                .map(d => new Date(d))
+                .sort((a, b) => a - b)[0];
+            
+            if (earliestAssetCreationDate) {
+                if (!earliestDataDate || earliestAssetCreationDate < earliestDataDate) {
+                    earliestDataDate = earliestAssetCreationDate;
+                }
+            }
+            
+            if (earliestDataDate && rangeEnd < earliestDataDate) {
+                return [];
+            }
+        }
+
         assets.forEach(asset => {
             let assetHistory = historyRecords.filter(h => 
                 h.mixer_id === asset.id || 
@@ -197,7 +223,30 @@ export default function DashboardView() {
             const createdAt = asset.createdAt || asset.created_at
             const assetCreationDate = createdAt ? new Date(createdAt) : null
 
-            const effectiveStart = rangeStart ? rangeStart : (assetCreationDate || new Date())
+            if (assetCreationDate && rangeEnd && assetCreationDate > rangeEnd) {
+                return;
+            }
+
+            const earliestAssetHistory = assetHistory.length > 0 
+                ? new Date(assetHistory[0].changed_at)
+                : null;
+
+            if (earliestAssetHistory && rangeEnd && earliestAssetHistory > rangeEnd) {
+                return;
+            }
+
+            if (!earliestAssetHistory && rangeEnd && rangeEnd < new Date()) {
+                return;
+            }
+
+            let effectiveStart = rangeStart 
+                ? (assetCreationDate && assetCreationDate > rangeStart ? assetCreationDate : rangeStart)
+                : (assetCreationDate || new Date())
+            
+            if (earliestAssetHistory && assetHistory.length > 0 && effectiveStart < earliestAssetHistory) {
+                effectiveStart = earliestAssetHistory;
+            }
+            
             const effectiveEnd = rangeEnd
 
             if (effectiveStart > effectiveEnd) {
@@ -207,23 +256,25 @@ export default function DashboardView() {
             let startingStatus = currentStatus;
             let endingStatus = currentStatus;
             
-            if (rangeStart && assetHistory.length > 0) {
-                const recordsBeforeOrAtStart = assetHistory.filter(h => new Date(h.changed_at) <= rangeStart);
-                if (recordsBeforeOrAtStart.length > 0) {
-                    const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1];
-                    startingStatus = lastRecordBeforeStart.new_value || currentStatus;
-                } else {
-                    startingStatus = assetHistory[0].old_value || currentStatus;
+            if (assetHistory.length > 0) {
+                if (rangeStart) {
+                    const recordsBeforeOrAtStart = assetHistory.filter(h => new Date(h.changed_at) <= rangeStart);
+                    if (recordsBeforeOrAtStart.length > 0) {
+                        const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1];
+                        startingStatus = lastRecordBeforeStart.new_value || currentStatus;
+                    } else if (assetHistory.length > 0) {
+                        startingStatus = assetHistory[0].old_value || currentStatus;
+                    }
                 }
-            }
-            
-            if (rangeEnd && assetHistory.length > 0) {
-                const recordsBeforeOrAtEnd = assetHistory.filter(h => new Date(h.changed_at) <= rangeEnd);
-                if (recordsBeforeOrAtEnd.length > 0) {
-                    const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1];
-                    endingStatus = lastRecordBeforeEnd.new_value || currentStatus;
-                } else {
-                    endingStatus = assetHistory[0].old_value || currentStatus;
+                
+                if (rangeEnd) {
+                    const recordsBeforeOrAtEnd = assetHistory.filter(h => new Date(h.changed_at) <= rangeEnd);
+                    if (recordsBeforeOrAtEnd.length > 0) {
+                        const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1];
+                        endingStatus = lastRecordBeforeEnd.new_value || currentStatus;
+                    } else if (assetHistory.length > 0) {
+                        endingStatus = assetHistory[0].old_value || currentStatus;
+                    }
                 }
             }
 
@@ -819,47 +870,6 @@ export default function DashboardView() {
                 pickups: pickupsHist.data || []
             }
 
-            const allHistoryRecords = [
-                ...(mixersHist.data || []),
-                ...(tractorsHist.data || []),
-                ...(trailersHist.data || []),
-                ...(equipmentHist.data || []),
-                ...(pickupsHist.data || [])
-            ]
-
-            let oldestDate = new Date()
-            if (allHistoryRecords.length > 0) {
-                const dates = allHistoryRecords.map(h => new Date(h.changed_at))
-                oldestDate = new Date(Math.min(...dates))
-            } else {
-                const allAssets = [
-                    ...allMixersRef.current,
-                    ...allTractorsRef.current,
-                    ...allTrailersRef.current,
-                    ...allEquipmentRef.current,
-                    ...allPickupsRef.current
-                ]
-                const creationDates = allAssets
-                    .map(a => a.createdAt || a.created_at)
-                    .filter(Boolean)
-                    .map(d => new Date(d))
-                if (creationDates.length > 0) {
-                    oldestDate = new Date(Math.min(...creationDates))
-                }
-            }
-
-            const oldestDateStr = oldestDate.toISOString().split('T')[0]
-            const todayStr = new Date().toISOString().split('T')[0]
-
-            if (!historyStartDate && !historyEndDate) {
-                setHistoryStartDate(oldestDateStr)
-                setHistoryEndDate(todayStr)
-                setOldestHistoryDate(oldestDateStr)
-            }
-
-            const startFilter = historyStartDate || oldestDateStr
-            const endFilter = historyEndDate || todayStr
-
             const region = RegionService.getRegionByCode(dashboardRegionCode)
             const isOffice = region?.type === 'Office'
             const plantSet = new Set()
@@ -883,6 +893,56 @@ export default function DashboardView() {
             const filteredTrailers = allTrailersRef.current.filter(t => t.status !== 'Retired' && consider(t.plantCode))
             const filteredEquipment = allEquipmentRef.current.filter(e => e.status !== 'Retired' && consider(e.plantCode))
             const filteredPickups = allPickupsRef.current.filter(p => p.status !== 'Retired' && consider(p.plantCode))
+
+            const filteredAssetIds = new Set([
+                ...filteredMixers.map(m => m.id),
+                ...filteredTractors.map(t => t.id),
+                ...filteredTrailers.map(t => t.id),
+                ...filteredEquipment.map(e => e.id),
+                ...filteredPickups.map(p => p.id)
+            ])
+
+            const filteredHistoryRecords = [
+                ...(mixersHist.data || []).filter(h => filteredAssetIds.has(h.mixer_id)),
+                ...(tractorsHist.data || []).filter(h => filteredAssetIds.has(h.tractor_id)),
+                ...(trailersHist.data || []).filter(h => filteredAssetIds.has(h.trailer_id)),
+                ...(equipmentHist.data || []).filter(h => filteredAssetIds.has(h.equipment_id)),
+                ...(pickupsHist.data || []).filter(h => filteredAssetIds.has(h.truck_id))
+            ]
+
+            let oldestDate = new Date()
+            if (filteredHistoryRecords.length > 0) {
+                const dates = filteredHistoryRecords.map(h => new Date(h.changed_at))
+                oldestDate = new Date(Math.min(...dates))
+            } else {
+                const filteredAssets = [
+                    ...filteredMixers,
+                    ...filteredTractors,
+                    ...filteredTrailers,
+                    ...filteredEquipment,
+                    ...filteredPickups
+                ]
+                const creationDates = filteredAssets
+                    .map(a => a.createdAt || a.created_at)
+                    .filter(Boolean)
+                    .map(d => new Date(d))
+                if (creationDates.length > 0) {
+                    oldestDate = new Date(Math.min(...creationDates))
+                }
+            }
+
+            const oldestDateStr = oldestDate.toISOString().split('T')[0]
+            const todayStr = new Date().toISOString().split('T')[0]
+
+            if (!historyStartDate && !historyEndDate) {
+                setHistoryStartDate(oldestDateStr)
+                setHistoryEndDate(todayStr)
+            }
+            
+            setOldestHistoryDate(oldestDateStr)
+
+            const startFilter = historyStartDate || oldestDateStr
+            const endFilter = historyEndDate || todayStr
 
             const mixersData = calculateStatusDistribution(filteredMixers, mixersHist.data || [], startFilter, endFilter)
             const tractorsData = calculateStatusDistribution(filteredTractors, tractorsHist.data || [], startFilter, endFilter)
@@ -1036,6 +1096,96 @@ export default function DashboardView() {
         setRefreshKey(prev => prev + 1);
         setTimeout(() => setRefreshing(false), 1000);
     }
+    
+    const handleQuickDateFilter = (filter) => {
+        const today = new Date()
+        const todayStr = today.toISOString().split('T')[0]
+        let startDate = ''
+        
+        switch(filter) {
+            case 'last-week': {
+                const lastWeekStart = new Date(today)
+                lastWeekStart.setDate(today.getDate() - 7)
+                startDate = lastWeekStart.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(todayStr)
+                break
+            }
+            case 'this-week': {
+                const thisWeekStart = new Date(today)
+                const dayOfWeek = today.getDay()
+                thisWeekStart.setDate(today.getDate() - dayOfWeek)
+                startDate = thisWeekStart.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(todayStr)
+                break
+            }
+            case 'last-month': {
+                const lastMonthStart = new Date(today)
+                lastMonthStart.setMonth(today.getMonth() - 1)
+                startDate = lastMonthStart.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(todayStr)
+                break
+            }
+            case 'this-month': {
+                const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+                startDate = thisMonthStart.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(todayStr)
+                break
+            }
+            case 'this-quarter': {
+                const currentMonth = today.getMonth()
+                const quarterStartMonth = Math.floor(currentMonth / 3) * 3
+                const thisQuarterStart = new Date(today.getFullYear(), quarterStartMonth, 1)
+                startDate = thisQuarterStart.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(todayStr)
+                break
+            }
+            case 'last-quarter': {
+                const currentMonth = today.getMonth()
+                const lastQuarterStartMonth = Math.floor(currentMonth / 3) * 3 - 3
+                let year = today.getFullYear()
+                let month = lastQuarterStartMonth
+                if (month < 0) {
+                    month = 9
+                    year -= 1
+                }
+                const lastQuarterStart = new Date(year, month, 1)
+                const lastQuarterEnd = new Date(year, month + 3, 0)
+                startDate = lastQuarterStart.toISOString().split('T')[0]
+                const endDate = lastQuarterEnd.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(endDate)
+                break
+            }
+            case 'this-year': {
+                const thisYearStart = new Date(today.getFullYear(), 0, 1)
+                startDate = thisYearStart.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(todayStr)
+                break
+            }
+            case 'last-year': {
+                const lastYearStart = new Date(today.getFullYear() - 1, 0, 1)
+                const lastYearEnd = new Date(today.getFullYear() - 1, 11, 31)
+                startDate = lastYearStart.toISOString().split('T')[0]
+                const endDate = lastYearEnd.toISOString().split('T')[0]
+                setHistoryStartDate(startDate)
+                setHistoryEndDate(endDate)
+                break
+            }
+            case 'all':
+                setHistoryStartDate(oldestHistoryDate || todayStr)
+                setHistoryEndDate(todayStr)
+                break
+            default:
+                break
+        }
+    }
+    
     const timeAgo = d => {
         if (!d) return ''
         const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000)
@@ -1476,6 +1626,80 @@ export default function DashboardView() {
                                 <div className="status-bars-header">
                                     <h3 className="status-bars-title">Historical Status Distribution</h3>
                                     <div className="status-bars-date-range">
+                                        <div className="date-quick-filters">
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('last-week')}
+                                                title="Last 7 days"
+                                            >
+                                                Last Week
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('this-week')}
+                                                title="Since Sunday"
+                                            >
+                                                This Week
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('last-month')}
+                                                title="Last 30 days"
+                                            >
+                                                Last Month
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('this-month')}
+                                                title="Since 1st of this month"
+                                            >
+                                                This Month
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('this-quarter')}
+                                                title="Since start of current quarter"
+                                            >
+                                                This Quarter
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('last-quarter')}
+                                                title="Previous quarter period"
+                                            >
+                                                Last Quarter
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('this-year')}
+                                                title="Since January 1st of this year"
+                                            >
+                                                This Year
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('last-year')}
+                                                title="Entire previous year"
+                                            >
+                                                Last Year
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="date-filter-btn"
+                                                onClick={() => handleQuickDateFilter('all')}
+                                                title="All history"
+                                            >
+                                                All
+                                            </button>
+                                        </div>
                                         <label>From:</label>
                                         <input
                                             type="date"
@@ -1495,6 +1719,76 @@ export default function DashboardView() {
                                         />
                                     </div>
                                 </div>
+                                
+                                <div className="compact-metrics-container">
+                                    {(() => {
+                                        const calculateMetrics = (data) => {
+                                            const active = data.find(d => d.status === 'Active')?.days || 0
+                                            const spare = data.find(d => d.status === 'Spare')?.days || 0
+                                            const inShop = data.find(d => d.status === 'In Shop')?.days || 0
+                                            const total = data.reduce((sum, d) => sum + d.days, 0)
+                                            
+                                            return {
+                                                active: total > 0 ? Math.round((active / total) * 100) : 0,
+                                                spare: total > 0 ? Math.round((spare / total) * 100) : 0,
+                                                inShop: total > 0 ? Math.round((inShop / total) * 100) : 0
+                                            }
+                                        }
+                                        
+                                        const mixersMetrics = calculateMetrics(statusHistoryData.mixers)
+                                        const tractorsMetrics = calculateMetrics(statusHistoryData.tractors)
+                                        const trailersMetrics = calculateMetrics(statusHistoryData.trailers)
+                                        const equipmentMetrics = calculateMetrics(statusHistoryData.equipment)
+                                        const pickupsMetrics = calculateMetrics(statusHistoryData.pickups)
+                                        
+                                        const metricsWithData = [
+                                            { metrics: mixersMetrics, hasData: statusHistoryData.mixers.length > 0 },
+                                            { metrics: tractorsMetrics, hasData: statusHistoryData.tractors.length > 0 },
+                                            { metrics: trailersMetrics, hasData: statusHistoryData.trailers.length > 0 },
+                                            { metrics: equipmentMetrics, hasData: statusHistoryData.equipment.length > 0 },
+                                            { metrics: pickupsMetrics, hasData: statusHistoryData.pickups.length > 0 }
+                                        ].filter(m => m.hasData)
+                                        
+                                        const count = metricsWithData.length || 1
+                                        const avgActive = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.active, 0) / count)
+                                        const avgSpare = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.spare, 0) / count)
+                                        const avgInShop = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.inShop, 0) / count)
+                                        
+                                        const assetData = [
+                                            { name: 'Overall', ...{active: avgActive, spare: avgSpare, inShop: avgInShop}, isOverall: true },
+                                            { name: 'Mixers', ...mixersMetrics },
+                                            { name: 'Tractors', ...tractorsMetrics },
+                                            { name: 'Trailers', ...trailersMetrics },
+                                            { name: 'Equipment', ...equipmentMetrics },
+                                            { name: 'Pickups', ...pickupsMetrics }
+                                        ]
+                                        
+                                        return (
+                                            <div className="compact-metrics-grid">
+                                                {assetData.map((asset, idx) => (
+                                                    <div key={idx} className={`compact-metric-card ${asset.isOverall ? 'overall-metric' : ''}`}>
+                                                        <div className="metric-card-header">{asset.name}</div>
+                                                        <div className="metric-card-stats">
+                                                            <div className="metric-stat active-stat">
+                                                                <span className="stat-value">{asset.active}%</span>
+                                                                <span className="stat-label">Active</span>
+                                                            </div>
+                                                            <div className="metric-stat spare-stat">
+                                                                <span className="stat-value">{asset.spare}%</span>
+                                                                <span className="stat-label">Spare</span>
+                                                            </div>
+                                                            <div className="metric-stat inshop-stat">
+                                                                <span className="stat-value">{asset.inShop}%</span>
+                                                                <span className="stat-label">In Shop</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )
+                                    })()}
+                                </div>
+                                
                                 <div className="status-bars-wrapper">
                                 {(() => {
                                     const getStatusColor = (status) => {
@@ -1509,6 +1803,18 @@ export default function DashboardView() {
                                         }
                                     };
                                     
+                                    const sortStatuses = (data) => {
+                                        const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold', 'Retired'];
+                                        return [...data].sort((a, b) => {
+                                            const indexA = order.indexOf(a.status);
+                                            const indexB = order.indexOf(b.status);
+                                            if (indexA === -1 && indexB === -1) return 0;
+                                            if (indexA === -1) return 1;
+                                            if (indexB === -1) return -1;
+                                            return indexA - indexB;
+                                        });
+                                    };
+                                    
                                     return (
                                         <>
                                         {!isAggregate && (
@@ -1516,7 +1822,7 @@ export default function DashboardView() {
                                                 <div className="asset-status-label">Mixers</div>
                                                 <div className="asset-status-bar">
                                                     {statusHistoryData.mixers.length > 0 ? (
-                                                        statusHistoryData.mixers
+                                                        sortStatuses(statusHistoryData.mixers)
                                                             .filter(item => parseFloat(item.percentage) > 0)
                                                             .map((item, index) => (
                                                                 <div 
@@ -1544,7 +1850,7 @@ export default function DashboardView() {
                                             <div className="asset-status-label">Tractors</div>
                                             <div className="asset-status-bar">
                                                 {statusHistoryData.tractors.length > 0 ? (
-                                                    statusHistoryData.tractors
+                                                    sortStatuses(statusHistoryData.tractors)
                                                         .filter(item => parseFloat(item.percentage) > 0)
                                                         .map((item, index) => (
                                                             <div 
@@ -1571,7 +1877,7 @@ export default function DashboardView() {
                                             <div className="asset-status-label">Trailers</div>
                                             <div className="asset-status-bar">
                                                 {statusHistoryData.trailers.length > 0 ? (
-                                                    statusHistoryData.trailers
+                                                    sortStatuses(statusHistoryData.trailers)
                                                         .filter(item => parseFloat(item.percentage) > 0)
                                                         .map((item, index) => (
                                                             <div 
@@ -1598,7 +1904,7 @@ export default function DashboardView() {
                                             <div className="asset-status-label">Equipment</div>
                                             <div className="asset-status-bar">
                                                 {statusHistoryData.equipment.length > 0 ? (
-                                                    statusHistoryData.equipment
+                                                    sortStatuses(statusHistoryData.equipment)
                                                         .filter(item => parseFloat(item.percentage) > 0)
                                                         .map((item, index) => (
                                                             <div 
@@ -1625,7 +1931,7 @@ export default function DashboardView() {
                                             <div className="asset-status-label">Pickup Trucks</div>
                                             <div className="asset-status-bar">
                                                 {statusHistoryData.pickups.length > 0 ? (
-                                                    statusHistoryData.pickups
+                                                    sortStatuses(statusHistoryData.pickups)
                                                         .filter(item => parseFloat(item.percentage) > 0)
                                                         .map((item, index) => (
                                                             <div 
@@ -1651,43 +1957,6 @@ export default function DashboardView() {
                                     );
                                 })()}
                             </div>
-                            </div>
-                            
-                            <div className="training-table-wrapper">
-                                <div className="training-table-header">
-                                    <div className="training-table-title">Asset Issues ({assetIssuesRows.length})</div>
-                                    <button type="button" className="training-toggle" aria-expanded={!issuesCollapsed}
-                                            onClick={() => setIssuesCollapsed(v => !v)}
-                                            disabled={!assetIssuesRows.length}>{issuesCollapsed ? 'Expand' : 'Collapse'}</button>
-                                </div>
-                                {!issuesCollapsed && (
-                                    assetIssuesRows.length > 0 ? (
-                                        <div className="training-table-scroll">
-                                            <table className="training-table asset-issues-table">
-                                                <thead>
-                                                <tr>
-                                                    <th>Asset Type</th>
-                                                    <th>Truck/VIN</th>
-                                                    <th>Plant</th>
-                                                    <th className="issue-desc-col">Issue</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {assetIssuesRows.map(r => <tr
-                                                    key={r.type + ':' + r.assetId + ':' + r.description.slice(0, 30)}>
-                                                    <td>{r.type}</td>
-                                                    <td>{r.identifier || '-'}</td>
-                                                    <td>{r.plant || '-'}</td>
-                                                    <td className="issue-desc"
-                                                        title={r.description || 'Issue'}>{r.description || 'Issue'}</td>
-                                                </tr>)}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="training-empty">None</div>
-                                    )
-                                )}
                             </div>
                         </div>
                     </div>
