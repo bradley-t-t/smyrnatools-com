@@ -262,6 +262,22 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status')
                 ? overrideValues.status
                 : status;
+            
+            if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
+                const {data: openIssues} = await supabase
+                    .from('trailers_maintenance')
+                    .select('id')
+                    .eq('trailer_id', trailer.id)
+                    .is('time_completed', null)
+                
+                if (!openIssues || openIssues.length === 0) {
+                    setIsSaving(false)
+                    setMessage('Cannot change status to "In Shop" without having at least one open issue. Please add an issue first.')
+                    setTimeout(() => setMessage(''), 5000)
+                    return
+                }
+            }
+            
             if (!['Cement', 'End Dump'].includes(trailerTypeValue)) {
                 trailerTypeValue = 'Cement';
             }

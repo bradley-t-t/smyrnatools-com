@@ -87,6 +87,16 @@ export default function DashboardView() {
     const [lightDutyCollapsed, setLightDutyCollapsed] = useState(true)
     const [issuesCollapsed, setIssuesCollapsed] = useState(true)
     const [assetIssueDetails, setAssetIssueDetails] = useState([])
+    const [statusHistoryData, setStatusHistoryData] = useState({
+        mixers: [],
+        tractors: [],
+        trailers: [],
+        equipment: [],
+        pickups: []
+    })
+    const [historyStartDate, setHistoryStartDate] = useState('')
+    const [historyEndDate, setHistoryEndDate] = useState('')
+    const [oldestHistoryDate, setOldestHistoryDate] = useState('')
 
     const allMixersRef = useRef([])
     const allTractorsRef = useRef([])
@@ -101,6 +111,13 @@ export default function DashboardView() {
     const filterTimeoutRef = useRef(null)
     const plantSetRef = useRef(new Set())
     const countsRef = useRef({mixers: {}, tractors: {}, trailers: {}, equipment: {}})
+    const historyRecordsRef = useRef({
+        mixers: [],
+        tractors: [],
+        trailers: [],
+        equipment: [],
+        pickups: []
+    })
 
     const slimMixer = m => ({
         id: m.id,
@@ -148,6 +165,125 @@ export default function DashboardView() {
         const diff = Math.ceil((Date.now() - new Date(date).getTime()) / 86400000)
         return diff > 90
     }
+
+    const calculateStatusDistribution = useCallback((assets, historyRecords, filterStartDate = null, filterEndDate = null) => {
+        const statusDaysMap = {}
+        let totalDays = 0
+
+        const normalizeDate = (dateStr, endOfDay = false) => {
+            if (!dateStr) return null;
+            const parts = dateStr.split('-');
+            if (endOfDay) {
+                return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999));
+            }
+            return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0));
+        };
+
+        const rangeStart = filterStartDate ? normalizeDate(filterStartDate, false) : null
+        const rangeEnd = filterEndDate ? normalizeDate(filterEndDate, true) : new Date()
+
+        assets.forEach(asset => {
+            let assetHistory = historyRecords.filter(h => 
+                h.mixer_id === asset.id || 
+                h.tractor_id === asset.id || 
+                h.trailer_id === asset.id || 
+                h.equipment_id === asset.id || 
+                h.truck_id === asset.id
+            ).filter(h => h.field_name === 'status').sort((a, b) => 
+                new Date(a.changed_at) - new Date(b.changed_at)
+            )
+
+            const currentStatus = asset.status || 'Unknown'
+            const createdAt = asset.createdAt || asset.created_at
+            const assetCreationDate = createdAt ? new Date(createdAt) : null
+
+            const effectiveStart = rangeStart ? rangeStart : (assetCreationDate || new Date())
+            const effectiveEnd = rangeEnd
+
+            if (effectiveStart > effectiveEnd) {
+                return;
+            }
+
+            let startingStatus = currentStatus;
+            let endingStatus = currentStatus;
+            
+            if (rangeStart && assetHistory.length > 0) {
+                const recordsBeforeOrAtStart = assetHistory.filter(h => new Date(h.changed_at) <= rangeStart);
+                if (recordsBeforeOrAtStart.length > 0) {
+                    const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1];
+                    startingStatus = lastRecordBeforeStart.new_value || currentStatus;
+                } else {
+                    startingStatus = assetHistory[0].old_value || currentStatus;
+                }
+            }
+            
+            if (rangeEnd && assetHistory.length > 0) {
+                const recordsBeforeOrAtEnd = assetHistory.filter(h => new Date(h.changed_at) <= rangeEnd);
+                if (recordsBeforeOrAtEnd.length > 0) {
+                    const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1];
+                    endingStatus = lastRecordBeforeEnd.new_value || currentStatus;
+                } else {
+                    endingStatus = assetHistory[0].old_value || currentStatus;
+                }
+            }
+
+            const recordsInRange = rangeStart && rangeEnd 
+                ? assetHistory.filter(h => {
+                    const changedAt = new Date(h.changed_at);
+                    return changedAt > rangeStart && changedAt <= rangeEnd;
+                  })
+                : assetHistory;
+
+            if (recordsInRange.length === 0) {
+                const days = Math.max(1, Math.round((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)))
+                statusDaysMap[startingStatus] = (statusDaysMap[startingStatus] || 0) + days
+                totalDays += days
+            } else {
+                let previousStatus = startingStatus
+                let previousDate = effectiveStart
+
+                recordsInRange.forEach(historyEntry => {
+                    const changeDate = new Date(historyEntry.changed_at)
+                    const daysDiff = Math.round((changeDate - previousDate) / (1000 * 60 * 60 * 24))
+                    
+                    if (daysDiff > 0) {
+                        statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + daysDiff
+                        totalDays += daysDiff
+                    }
+
+                    previousStatus = historyEntry.new_value || endingStatus
+                    previousDate = changeDate
+                })
+
+                const finalDays = Math.round((effectiveEnd - previousDate) / (1000 * 60 * 60 * 24))
+                if (finalDays > 0) {
+                    statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + finalDays
+                    totalDays += finalDays
+                }
+            }
+        })
+
+        if (totalDays === 0) totalDays = 1
+
+        const entries = Object.entries(statusDaysMap)
+            .filter(([status]) => status !== 'Retired')
+            .map(([status, days]) => ({
+                status,
+                days,
+                percentage: ((days / totalDays) * 100).toFixed(1)
+            }))
+            .sort((a, b) => b.days - a.days)
+
+        if (entries.length > 0) {
+            const sum = entries.reduce((acc, item) => acc + parseFloat(item.percentage), 0);
+            if (sum < 100) {
+                const diff = (100 - sum).toFixed(1);
+                entries[entries.length - 1].percentage = (parseFloat(entries[entries.length - 1].percentage) + parseFloat(diff)).toFixed(1);
+            }
+        }
+
+        return entries
+    }, [])
 
     const computeStats = useCallback(() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
@@ -665,6 +801,196 @@ export default function DashboardView() {
         if (!loading) fetchIssueCommentCounts()
     }, [stats.fleetTotal, loading, fetchIssueCommentCounts])
 
+    const fetchStatusHistory = useCallback(async () => {
+        try {
+            const [mixersHist, tractorsHist, trailersHist, equipmentHist, pickupsHist] = await Promise.all([
+                supabase.from('mixers_history').select('*').eq('field_name', 'status').order('changed_at', {ascending: true}),
+                supabase.from('tractors_history').select('*').eq('field_name', 'status').order('changed_at', {ascending: true}),
+                supabase.from('trailers_history').select('*').eq('field_name', 'status').order('changed_at', {ascending: true}),
+                supabase.from('heavy_equipment_history').select('*').eq('field_name', 'status').order('changed_at', {ascending: true}),
+                supabase.from('pickup_trucks_history').select('*').eq('field_name', 'status').order('changed_at', {ascending: true})
+            ])
+
+            historyRecordsRef.current = {
+                mixers: mixersHist.data || [],
+                tractors: tractorsHist.data || [],
+                trailers: trailersHist.data || [],
+                equipment: equipmentHist.data || [],
+                pickups: pickupsHist.data || []
+            }
+
+            const allHistoryRecords = [
+                ...(mixersHist.data || []),
+                ...(tractorsHist.data || []),
+                ...(trailersHist.data || []),
+                ...(equipmentHist.data || []),
+                ...(pickupsHist.data || [])
+            ]
+
+            let oldestDate = new Date()
+            if (allHistoryRecords.length > 0) {
+                const dates = allHistoryRecords.map(h => new Date(h.changed_at))
+                oldestDate = new Date(Math.min(...dates))
+            } else {
+                const allAssets = [
+                    ...allMixersRef.current,
+                    ...allTractorsRef.current,
+                    ...allTrailersRef.current,
+                    ...allEquipmentRef.current,
+                    ...allPickupsRef.current
+                ]
+                const creationDates = allAssets
+                    .map(a => a.createdAt || a.created_at)
+                    .filter(Boolean)
+                    .map(d => new Date(d))
+                if (creationDates.length > 0) {
+                    oldestDate = new Date(Math.min(...creationDates))
+                }
+            }
+
+            const oldestDateStr = oldestDate.toISOString().split('T')[0]
+            const todayStr = new Date().toISOString().split('T')[0]
+
+            if (!historyStartDate && !historyEndDate) {
+                setHistoryStartDate(oldestDateStr)
+                setHistoryEndDate(todayStr)
+                setOldestHistoryDate(oldestDateStr)
+            }
+
+            const startFilter = historyStartDate || oldestDateStr
+            const endFilter = historyEndDate || todayStr
+
+            const region = RegionService.getRegionByCode(dashboardRegionCode)
+            const isOffice = region?.type === 'Office'
+            const plantSet = new Set()
+            if (isOffice) {
+                allPlants.forEach(p => {
+                    const c = p.plantCode || p.plant_code
+                    if (c) plantSet.add(String(c).trim())
+                })
+            } else {
+                if (dashboardPlant) plantSet.add(String(dashboardPlant).trim())
+                else (regionPlants || []).forEach(p => {
+                    const c = p.plantCode || p.plant_code
+                    if (c) plantSet.add(String(c).trim())
+                })
+            }
+            const filterActive = plantSet.size > 0
+            const consider = plantCode => !filterActive || plantSet.has(String(plantCode || '').trim())
+
+            const filteredMixers = allMixersRef.current.filter(m => m.status !== 'Retired' && consider(m.plantCode))
+            const filteredTractors = allTractorsRef.current.filter(t => t.status !== 'Retired' && consider(t.plantCode))
+            const filteredTrailers = allTrailersRef.current.filter(t => t.status !== 'Retired' && consider(t.plantCode))
+            const filteredEquipment = allEquipmentRef.current.filter(e => e.status !== 'Retired' && consider(e.plantCode))
+            const filteredPickups = allPickupsRef.current.filter(p => p.status !== 'Retired' && consider(p.plantCode))
+
+            const mixersData = calculateStatusDistribution(filteredMixers, mixersHist.data || [], startFilter, endFilter)
+            const tractorsData = calculateStatusDistribution(filteredTractors, tractorsHist.data || [], startFilter, endFilter)
+            const trailersData = calculateStatusDistribution(filteredTrailers, trailersHist.data || [], startFilter, endFilter)
+            const equipmentData = calculateStatusDistribution(filteredEquipment, equipmentHist.data || [], startFilter, endFilter)
+            const pickupsData = calculateStatusDistribution(filteredPickups, pickupsHist.data || [], startFilter, endFilter)
+
+            setStatusHistoryData({
+                mixers: mixersData,
+                tractors: tractorsData,
+                trailers: trailersData,
+                equipment: equipmentData,
+                pickups: pickupsData
+            })
+        } catch (error) {
+            console.error('Error fetching status history:', error)
+        }
+    }, [calculateStatusDistribution, dashboardRegionCode, dashboardPlant, allPlants, regionPlants, historyStartDate, historyEndDate])
+
+    useEffect(() => {
+        if (!loading && dataReady && allMixersRef.current.length > 0) {
+            fetchStatusHistory()
+        }
+    }, [loading, dataReady, refreshKey, fetchStatusHistory])
+
+    useEffect(() => {
+        if (historyStartDate && historyEndDate) {
+            const today = new Date().toISOString().split('T')[0];
+            let validatedStartDate = historyStartDate;
+            let validatedEndDate = historyEndDate;
+            
+            if (historyEndDate > today) {
+                validatedEndDate = today;
+                setHistoryEndDate(today);
+            }
+            
+            if (historyStartDate >= validatedEndDate) {
+                const endDate = new Date(validatedEndDate);
+                endDate.setDate(endDate.getDate() - 1);
+                validatedStartDate = endDate.toISOString().split('T')[0];
+                setHistoryStartDate(validatedStartDate);
+            }
+
+            const region = RegionService.getRegionByCode(dashboardRegionCode)
+            const isOffice = region?.type === 'Office'
+            const plantSet = new Set()
+            if (isOffice) {
+                allPlants.forEach(p => {
+                    const c = p.plantCode || p.plant_code
+                    if (c) plantSet.add(String(c).trim())
+                })
+            } else {
+                if (dashboardPlant) plantSet.add(String(dashboardPlant).trim())
+                else (regionPlants || []).forEach(p => {
+                    const c = p.plantCode || p.plant_code
+                    if (c) plantSet.add(String(c).trim())
+                })
+            }
+            const filterActive = plantSet.size > 0
+            const consider = plantCode => !filterActive || plantSet.has(String(plantCode || '').trim())
+
+            const filteredMixers = allMixersRef.current.filter(m => m.status !== 'Retired' && consider(m.plantCode))
+            const filteredTractors = allTractorsRef.current.filter(t => t.status !== 'Retired' && consider(t.plantCode))
+            const filteredTrailers = allTrailersRef.current.filter(t => t.status !== 'Retired' && consider(t.plantCode))
+            const filteredEquipment = allEquipmentRef.current.filter(e => e.status !== 'Retired' && consider(e.plantCode))
+            const filteredPickups = allPickupsRef.current.filter(p => p.status !== 'Retired' && consider(p.plantCode))
+            
+            const mixersData = calculateStatusDistribution(
+                filteredMixers, 
+                historyRecordsRef.current.mixers, 
+                validatedStartDate, 
+                validatedEndDate
+            )
+            const tractorsData = calculateStatusDistribution(
+                filteredTractors, 
+                historyRecordsRef.current.tractors, 
+                validatedStartDate, 
+                validatedEndDate
+            )
+            const trailersData = calculateStatusDistribution(
+                filteredTrailers, 
+                historyRecordsRef.current.trailers, 
+                validatedStartDate, 
+                validatedEndDate
+            )
+            const equipmentData = calculateStatusDistribution(
+                filteredEquipment, 
+                historyRecordsRef.current.equipment, 
+                validatedStartDate, 
+                validatedEndDate
+            )
+            const pickupsData = calculateStatusDistribution(
+                filteredPickups, 
+                historyRecordsRef.current.pickups, 
+                validatedStartDate, 
+                validatedEndDate
+            )
+
+            setStatusHistoryData({
+                mixers: mixersData,
+                tractors: tractorsData,
+                trailers: trailersData,
+                equipment: equipmentData,
+                pickups: pickupsData
+            })
+        }
+    }, [historyStartDate, historyEndDate, calculateStatusDistribution, dashboardRegionCode, dashboardPlant, regionPlants, allPlants])
+
     const regionDisplayName = (() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
         const isOffice = region?.type === 'Office'
@@ -689,15 +1015,8 @@ export default function DashboardView() {
 
     const onRegionChange = e => {
         const code = e.target.value
-        if (!code && !hasAllRegionsPermission) return
+        if (!code) return
         setDataReady(false)
-        if (!code && hasAllRegionsPermission) {
-            setDashboardRegionCode('')
-            setDashboardRegionName('')
-            setDashboardPlant('')
-            updatePreferences('selectedRegion', {code: '', name: '', type: ''})
-            return
-        }
         const r = permittedRegions.find(x => (x.regionCode || x.region_code) === code)
         if (r) {
             setDashboardRegionCode(r.regionCode || r.region_code)
@@ -784,7 +1103,6 @@ export default function DashboardView() {
                         </button>
                         <select className="ios-select" value={dashboardRegionCode} onChange={onRegionChange}
                                 disabled={refreshing} aria-label="Region">
-                            {hasAllRegionsPermission && <option value="">All Regions</option>}
                             {permittedRegions.map(r => <option key={r.regionCode}
                                                                value={r.regionCode}>{r.regionName} ({r.regionCode})</option>)}
                         </select>
@@ -873,11 +1191,7 @@ export default function DashboardView() {
                                     <div className="kpi-card skeleton-card" key={`fleet-${i}`}>
                                         <div className="skeleton-line w40"/>
                                         <div className="skeleton-line w60 tall"/>
-                                        <div className="skeleton-row">
-                                            <div className="skeleton-pill w30"/>
-                                            <div className="skeleton-pill w20"/>
-                                            <div className="skeleton-pill w25"/>
-                                        </div>
+                                        <div className="skeleton-line w30"/>
                                     </div>
                                 ))}
                             </div>
@@ -889,11 +1203,7 @@ export default function DashboardView() {
                                     <div className="kpi-card skeleton-card" key={`people-${i}`}>
                                         <div className="skeleton-line w40"/>
                                         <div className="skeleton-line w60 tall"/>
-                                        <div className="skeleton-row">
-                                            <div className="skeleton-pill w30"/>
-                                            <div className="skeleton-pill w20"/>
-                                            <div className="skeleton-pill w25"/>
-                                        </div>
+                                        <div className="skeleton-line w30"/>
                                     </div>
                                 ))}
                             </div>
@@ -920,11 +1230,7 @@ export default function DashboardView() {
                                     <div className="kpi-card skeleton-card" key={`maintenance-${i}`}>
                                         <div className="skeleton-line w40"/>
                                         <div className="skeleton-line w60 tall"/>
-                                        <div className="skeleton-row">
-                                            <div className="skeleton-pill w30"/>
-                                            <div className="skeleton-pill w20"/>
-                                            <div className="skeleton-pill w25"/>
-                                        </div>
+                                        <div className="skeleton-line w30"/>
                                     </div>
                                 ))}
                             </div>
@@ -1165,6 +1471,188 @@ export default function DashboardView() {
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div className="status-bars-section">
+                                <div className="status-bars-header">
+                                    <h3 className="status-bars-title">Historical Status Distribution</h3>
+                                    <div className="status-bars-date-range">
+                                        <label>From:</label>
+                                        <input
+                                            type="date"
+                                            value={historyStartDate}
+                                            onChange={(e) => setHistoryStartDate(e.target.value)}
+                                            max={historyEndDate || new Date().toISOString().split('T')[0]}
+                                            className="date-range-input"
+                                        />
+                                        <label>To:</label>
+                                        <input
+                                            type="date"
+                                            value={historyEndDate}
+                                            onChange={(e) => setHistoryEndDate(e.target.value)}
+                                            min={historyStartDate}
+                                            max={new Date().toISOString().split('T')[0]}
+                                            className="date-range-input"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="status-bars-wrapper">
+                                {(() => {
+                                    const getStatusColor = (status) => {
+                                        switch(status) {
+                                            case 'Active': return 'var(--success)';
+                                            case 'Spare': return '#9333ea';
+                                            case 'In Shop': return '#3b82f6';
+                                            case 'Stationary': return '#eab308';
+                                            case 'Sold': return '#6b7280';
+                                            case 'Retired': return 'var(--error)';
+                                            default: return 'var(--accent)';
+                                        }
+                                    };
+                                    
+                                    return (
+                                        <>
+                                        {!isAggregate && (
+                                            <div className="asset-status-bar-row">
+                                                <div className="asset-status-label">Mixers</div>
+                                                <div className="asset-status-bar">
+                                                    {statusHistoryData.mixers.length > 0 ? (
+                                                        statusHistoryData.mixers
+                                                            .filter(item => parseFloat(item.percentage) > 0)
+                                                            .map((item, index) => (
+                                                                <div 
+                                                                    key={index}
+                                                                    className="status-segment" 
+                                                                    style={{
+                                                                        width: `${item.percentage}%`,
+                                                                        background: getStatusColor(item.status)
+                                                                    }}
+                                                                    title={`${item.status}: ${item.percentage}%`}
+                                                                >
+                                                                    {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                                </div>
+                                                            ))
+                                                    ) : (
+                                                        <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
+                                                            <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                
+                                        <div className="asset-status-bar-row">
+                                            <div className="asset-status-label">Tractors</div>
+                                            <div className="asset-status-bar">
+                                                {statusHistoryData.tractors.length > 0 ? (
+                                                    statusHistoryData.tractors
+                                                        .filter(item => parseFloat(item.percentage) > 0)
+                                                        .map((item, index) => (
+                                                            <div 
+                                                                key={index}
+                                                                className="status-segment" 
+                                                                style={{
+                                                                    width: `${item.percentage}%`,
+                                                                    background: getStatusColor(item.status)
+                                                                }}
+                                                                title={`${item.status}: ${item.percentage}%`}
+                                                            >
+                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                            </div>
+                                                        ))
+                                                ) : (
+                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
+                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                
+                                        <div className="asset-status-bar-row">
+                                            <div className="asset-status-label">Trailers</div>
+                                            <div className="asset-status-bar">
+                                                {statusHistoryData.trailers.length > 0 ? (
+                                                    statusHistoryData.trailers
+                                                        .filter(item => parseFloat(item.percentage) > 0)
+                                                        .map((item, index) => (
+                                                            <div 
+                                                                key={index}
+                                                                className="status-segment" 
+                                                                style={{
+                                                                    width: `${item.percentage}%`,
+                                                                    background: getStatusColor(item.status)
+                                                                }}
+                                                                title={`${item.status}: ${item.percentage}%`}
+                                                            >
+                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                            </div>
+                                                        ))
+                                                ) : (
+                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
+                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                
+                                        <div className="asset-status-bar-row">
+                                            <div className="asset-status-label">Equipment</div>
+                                            <div className="asset-status-bar">
+                                                {statusHistoryData.equipment.length > 0 ? (
+                                                    statusHistoryData.equipment
+                                                        .filter(item => parseFloat(item.percentage) > 0)
+                                                        .map((item, index) => (
+                                                            <div 
+                                                                key={index}
+                                                                className="status-segment" 
+                                                                style={{
+                                                                    width: `${item.percentage}%`,
+                                                                    background: getStatusColor(item.status)
+                                                                }}
+                                                                title={`${item.status}: ${item.percentage}%`}
+                                                            >
+                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                            </div>
+                                                        ))
+                                                ) : (
+                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
+                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                
+                                        <div className="asset-status-bar-row">
+                                            <div className="asset-status-label">Pickup Trucks</div>
+                                            <div className="asset-status-bar">
+                                                {statusHistoryData.pickups.length > 0 ? (
+                                                    statusHistoryData.pickups
+                                                        .filter(item => parseFloat(item.percentage) > 0)
+                                                        .map((item, index) => (
+                                                            <div 
+                                                                key={index}
+                                                                className="status-segment" 
+                                                                style={{
+                                                                    width: `${item.percentage}%`,
+                                                                    background: getStatusColor(item.status)
+                                                                }}
+                                                                title={`${item.status}: ${item.percentage}%`}
+                                                            >
+                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                            </div>
+                                                        ))
+                                                ) : (
+                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
+                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                            </div>
+                            
                             <div className="training-table-wrapper">
                                 <div className="training-table-header">
                                     <div className="training-table-title">Asset Issues ({assetIssuesRows.length})</div>
@@ -1210,4 +1698,3 @@ export default function DashboardView() {
         </div>
     )
 }
-

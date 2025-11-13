@@ -123,10 +123,6 @@ class UserPresenceService {
                         })
                     ])
                     
-                    console.log(`User: ${name}`);
-                    console.log('  Profile:', profile);
-                    console.log('  Roles data:', rolesData);
-                    
                     let roleNames = []
                     if (Array.isArray(rolesData)) {
                         roleNames = rolesData
@@ -137,37 +133,27 @@ class UserPresenceService {
                             })
                             .filter(Boolean)
                     }
-                    
-                    console.log('  Extracted roles:', roleNames);
-                    
+
                     let regionCode = null
                     if (profile) {
                         if (profile.regions && Array.isArray(profile.regions) && profile.regions.length > 0) {
                             regionCode = profile.regions[0]
-                            console.log('  Region from profile.regions[0]:', regionCode);
                         } else if (profile.region_code) {
                             regionCode = profile.region_code
-                            console.log('  Region from profile.region_code:', regionCode);
                         } else if (profile.regionCode) {
                             regionCode = profile.regionCode
-                            console.log('  Region from profile.regionCode:', regionCode);
                         } else if (profile.plant_code) {
                             try {
                                 const regions = await RegionService.fetchRegionsByPlantCode(profile.plant_code)
                                 if (regions && regions.length > 0) {
                                     regionCode = regions[0].regionCode || regions[0].region_code
-                                    console.log('  Region derived from plant_code:', profile.plant_code, '-> ', regionCode);
                                 } else {
-                                    console.log('  No regions found for plant_code:', profile.plant_code);
                                 }
                             } catch (err) {
-                                console.warn('  Failed to fetch region by plant_code:', err);
                             }
                         } else {
-                            console.log('  No region or plant_code found in profile');
                         }
                     } else {
-                        console.log('  Profile is null/undefined');
                     }
                     
                     users.push({

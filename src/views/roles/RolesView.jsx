@@ -88,7 +88,6 @@ function RolesView() {
 
     const savePermissions = async () => {
         if (!editingRole || !hasITAccess) {
-            console.log('Cannot save - editingRole:', editingRole, 'hasITAccess:', hasITAccess);
             return;
         }
 
@@ -105,9 +104,6 @@ function RolesView() {
             const uniquePermissions = [...new Set(permissionsArray)];
             const sortedPermissions = uniquePermissions.sort((a, b) => a.localeCompare(b));
 
-            console.log('Saving permissions for role:', editingRole);
-            console.log('Permissions:', sortedPermissions);
-
             const { data, error: updateError } = await supabase
                 .from('users_roles')
                 .update({ permissions: sortedPermissions })
@@ -116,8 +112,6 @@ function RolesView() {
             if (updateError) {
                 throw updateError;
             }
-
-            console.log('Update successful:', data);
 
             UserService.clearCache();
             await loadData();

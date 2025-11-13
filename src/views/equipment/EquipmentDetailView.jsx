@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {EquipmentService} from '../../services/EquipmentService';
 import {PlantService} from '../../services/PlantService';
 import {UserService} from '../../services/UserService';
+import {supabase} from '../../services/DatabaseService';
 import {usePreferences} from '../../app/context/PreferencesContext';
 import EquipmentCommentModal from './EquipmentCommentModal';
 import EquipmentIssueModal from './EquipmentIssueModal';
@@ -245,6 +246,24 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 setMessage('Error saving changes: User ID is required');
                 return null;
             }
+            
+            const statusValue = overrides.status ?? status;
+            
+            if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
+                const {data: openIssues} = await supabase
+                    .from('heavy_equipment_maintenance')
+                    .select('id')
+                    .eq('equipment_id', equipment.id)
+                    .is('time_completed', null)
+                
+                if (!openIssues || openIssues.length === 0) {
+                    setIsSaving(false)
+                    setMessage('Cannot change status to "In Shop" without having at least one open issue. Please add an issue first.')
+                    setTimeout(() => setMessage(''), 5000)
+                    return null
+                }
+            }
+            
             const updatedEquipment = {
                 identifyingNumber,
                 assignedPlant,

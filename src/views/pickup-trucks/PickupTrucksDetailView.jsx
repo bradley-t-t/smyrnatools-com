@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {PickupTruckService} from '../../services/PickupTruckService'
 import {PlantService} from '../../services/PlantService'
+import {supabase} from '../../services/DatabaseService'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import {UserService} from '../../services/UserService'

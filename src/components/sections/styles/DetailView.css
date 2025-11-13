@@ -378,9 +378,16 @@
 
 .form-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+    align-items: center;
     margin-top: 24px;
-    gap: 16px;
+    gap: 12px;
+}
+
+.form-actions button {
+    flex: 0 0 auto;
+    min-width: 140px;
+    white-space: nowrap;
 }
 
 .primary-button {
