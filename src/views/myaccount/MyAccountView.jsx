@@ -28,6 +28,7 @@ function MyAccountView({userId}) {
     const [regionsLoaded, setRegionsLoaded] = useState(false)
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
+    const [sessionsExpanded, setSessionsExpanded] = useState(false)
 
     const getBrowserInfo = (userAgent) => {
         if (userAgent.includes('Firefox')) return 'Firefox'
@@ -192,6 +193,7 @@ function MyAccountView({userId}) {
                         .from('users_sessions')
                         .select('*')
                         .eq('user_id', uid)
+                        .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
                         .order('last_active', { ascending: false })
                         .limit(10)
                     
@@ -505,54 +507,84 @@ function MyAccountView({userId}) {
                             <div className="action-card-content">
                                 <div className="action-icon" style={{backgroundColor: 'var(--myaccount-accent)'}}><i
                                     className="fas fa-laptop"></i></div>
-                                <h3>Session Management</h3>
-                                <p>Control your active sessions across devices</p>
-                                {sessions.length > 0 ? (
-                                    sessions.map(session => (
-                                        <div key={session.id} className="active-session" style={{marginTop: '12px'}}>
-                                            <div className="session-icon"><i className={`fas ${getDeviceIcon(session.device)}`}></i></div>
-                                            <div className="session-info" style={{flex: 1}}>
-                                                <div className="session-name">{session.browser} on {session.os}</div>
-                                                <div className="session-details">
-                                                    <span className="session-status">•</span> {formatSessionTime(session.lastActive)}
+                                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '8px'}}>
+                                    <div>
+                                        <h3 style={{margin: 0}}>Session Management</h3>
+                                        <p style={{margin: '4px 0 0'}}>Control your active sessions across devices</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setSessionsExpanded(!sessionsExpanded)}
+                                        style={{
+                                            padding: '8px 12px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '600',
+                                            backgroundColor: 'var(--myaccount-accent)',
+                                            color: 'white',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            transition: 'opacity 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.opacity = '0.9'}
+                                        onMouseLeave={(e) => e.target.style.opacity = '1'}
+                                    >
+                                        {sessionsExpanded ? 'Hide' : 'Show'} ({sessions.length})
+                                        <i className={`fas fa-chevron-${sessionsExpanded ? 'up' : 'down'}`}></i>
+                                    </button>
+                                </div>
+                                {sessionsExpanded && (
+                                    <div style={{marginTop: '12px'}}>
+                                        {sessions.length > 0 ? (
+                                            sessions.map(session => (
+                                                <div key={session.id} className="active-session" style={{marginTop: '12px'}}>
+                                                    <div className="session-icon"><i className={`fas ${getDeviceIcon(session.device)}`}></i></div>
+                                                    <div className="session-info" style={{flex: 1}}>
+                                                        <div className="session-name">{session.browser} on {session.os}</div>
+                                                        <div className="session-details">
+                                                            <span className="session-status">•</span> {formatSessionTime(session.lastActive)}
+                                                        </div>
+                                                    </div>
+                                                    {session.isCurrent ? (
+                                                        <span style={{
+                                                            padding: '4px 12px',
+                                                            borderRadius: '12px',
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: '600',
+                                                            backgroundColor: 'var(--success-bg)',
+                                                            color: 'var(--success)'
+                                                        }}>Current</span>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => handleRevokeSession(session.id)}
+                                                            style={{
+                                                                padding: '4px 12px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: '600',
+                                                                backgroundColor: 'var(--danger-bg)',
+                                                                color: 'var(--danger)',
+                                                                border: 'none',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                            title="Revoke this session"
+                                                        >
+                                                            Revoke
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="active-session">
+                                                <div className="session-icon"><i className="fas fa-desktop"></i></div>
+                                                <div className="session-info">
+                                                    <div className="session-name">No active sessions</div>
+                                                    <div className="session-details">Sign in to see your sessions</div>
                                                 </div>
                                             </div>
-                                            {session.isCurrent ? (
-                                                <span style={{
-                                                    padding: '4px 12px',
-                                                    borderRadius: '12px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '600',
-                                                    backgroundColor: 'var(--success-bg)',
-                                                    color: 'var(--success)'
-                                                }}>Current</span>
-                                            ) : (
-                                                <button 
-                                                    onClick={() => handleRevokeSession(session.id)}
-                                                    style={{
-                                                        padding: '4px 12px',
-                                                        borderRadius: '6px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        backgroundColor: 'var(--danger-bg)',
-                                                        color: 'var(--danger)',
-                                                        border: 'none',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                    title="Revoke this session"
-                                                >
-                                                    Revoke
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="active-session">
-                                        <div className="session-icon"><i className="fas fa-desktop"></i></div>
-                                        <div className="session-info">
-                                            <div className="session-name">No active sessions</div>
-                                            <div className="session-details">Sign in to see your sessions</div>
-                                        </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

@@ -686,6 +686,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                                 itemType="tractor"
                                 itemId={verifyTractor.id}
                                 service={TractorService}
+                                status={verifyTractor.status}
                             />
                         )}
                     </>

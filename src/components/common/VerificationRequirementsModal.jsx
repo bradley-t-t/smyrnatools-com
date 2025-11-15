@@ -28,7 +28,8 @@ export default function VerificationRequirementsModal({
                                                           assignedOperator,
                                                           itemType,
                                                           itemId,
-                                                          service
+                                                          service,
+                                                          status
                                                       }) {
     const [operatorData, setOperatorData] = useState(null)
     const [operatorPhone, setOperatorPhone] = useState('')
@@ -41,6 +42,7 @@ export default function VerificationRequirementsModal({
     const [expandedSection, setExpandedSection] = useState([])
     const [comments, setComments] = useState([])
     const [isLoadingComments, setIsLoadingComments] = useState(false)
+    const [canDelete, setCanDelete] = useState(false)
     const [sectionsReady, setSectionsReady] = useState({
         checklist: false,
         operator: false,
@@ -53,6 +55,22 @@ export default function VerificationRequirementsModal({
     const ratingOk = assignedOperator ? (operatorRating > 0) : true
     const operatorOk = phoneOk && ratingOk
     const serviceOverdue = lastServiceDate && typeof isServiceOverdue === 'function' ? isServiceOverdue(lastServiceDate) : false
+
+    useEffect(() => {
+        async function checkDeletePermission() {
+            try {
+                const currentUser = await UserService.getCurrentUser();
+                const userId = currentUser?.id || null;
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, "detailview.bypass.plantrestriction");
+                    setCanDelete(hasPermission);
+                }
+            } catch {
+                setCanDelete(false);
+            }
+        }
+        checkDeletePermission();
+    }, []);
 
     useEffect(() => {
         if (!open) {
@@ -313,7 +331,8 @@ export default function VerificationRequirementsModal({
     const requiredFieldsOk = vinOk && makeOk && modelOk && yearOk
 
     const hasHighSeverityIssues = openIssues.some(issue => issue.severity === 'High')
-    const canVerify = requiredFieldsOk && operatorOk
+    const isMixerInShopWithoutIssues = itemType?.toLowerCase() === 'mixer' && status === 'In Shop' && openIssues.length === 0
+    const canVerify = requiredFieldsOk && operatorOk && !isMixerInShopWithoutIssues
 
     const formatDate = (dateString) => {
         if (!dateString) return ''
@@ -674,13 +693,15 @@ export default function VerificationRequirementsModal({
                                                                 >
                                                                     <i className="fas fa-check"></i>
                                                                 </button>
-                                                                <button
-                                                                    className="delete-button"
-                                                                    onClick={() => handleDeleteIssue(issue.id)}
-                                                                    title="Delete issue"
-                                                                >
-                                                                    <i className="fas fa-trash"></i>
-                                                                </button>
+                                                                {canDelete && (
+                                                                    <button
+                                                                        className="delete-button"
+                                                                        onClick={() => handleDeleteIssue(issue.id)}
+                                                                        title="Delete issue"
+                                                                    >
+                                                                        <i className="fas fa-trash"></i>
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className="issue-text">{issue.issue}</div>
@@ -754,6 +775,13 @@ export default function VerificationRequirementsModal({
                         </div>
                     )}
                 </div>
+
+                {isMixerInShopWithoutIssues && (
+                    <div className="modal-note warning" style={{margin: '1rem 1.5rem 0'}}>
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <span>Mixers in &quot;In Shop&quot; status must have at least one active issue before they can be verified. Please add an issue describing why this mixer is in the shop.</span>
+                    </div>
+                )}
 
                 <div className="modal-actions">
                     <button type="button" className="cancel-button" onClick={onClose}>

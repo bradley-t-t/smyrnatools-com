@@ -569,6 +569,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                     setModel={setModel}
                     setYear={setYear}
                     setLastServiceDate={setLastServiceDate}
+                    status={status}
                 />
             )}
             <DetailViewSection

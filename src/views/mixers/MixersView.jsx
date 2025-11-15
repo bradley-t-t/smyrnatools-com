@@ -679,6 +679,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 itemType="mixer"
                                 itemId={verifyMixer.id}
                                 service={MixerService}
+                                status={verifyMixer.status}
                             />
                         )}
                     </>

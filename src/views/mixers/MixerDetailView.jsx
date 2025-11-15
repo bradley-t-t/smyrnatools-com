@@ -416,10 +416,10 @@ function MixerDetailView({mixerId, onClose}) {
                 return
             }
             const overrides = {silent: true}
-            if (needVin) overrides.vin = String(vin).trim().toUpperCase()
-            if (needMake) overrides.make = String(make).trim()
-            if (needModel) overrides.model = String(model).trim()
-            if (needYear) overrides.year = String(year).trim()
+            if (vin && vin.trim()) overrides.vin = String(vin).trim().toUpperCase()
+            if (make && make.trim()) overrides.make = String(make).trim()
+            if (model && model.trim()) overrides.model = String(model).trim()
+            if (year && year.trim()) overrides.year = String(year).trim()
             const parseDate = d => d ? new Date(d) : null
             const existingService = parseDate(mixer.lastServiceDate)
             const existingChip = parseDate(mixer.lastChipDate)
@@ -748,6 +748,7 @@ function MixerDetailView({mixerId, onClose}) {
                                 itemType="Mixer"
                                 itemId={mixer?.id}
                                 service={MixerService}
+                                status={status}
                             />
                         )}
                     </>

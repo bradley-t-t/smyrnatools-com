@@ -98,14 +98,14 @@ export default function Navigation({
         const handleStatusFilterChange = (event) => {
             const {statusFilter} = event.detail
             if (statusFilter === 'completed' || listStatusFilter === 'completed') {
-                setVisibleMenuItems([...visibleMenuItems])
+                setVisibleMenuItems(prev => [...prev])
             }
         }
         window.addEventListener('list-status-filter-change', handleStatusFilterChange)
         return () => {
             window.removeEventListener('list-status-filter-change', handleStatusFilterChange)
         }
-    }, [listStatusFilter, visibleMenuItems])
+    }, [listStatusFilter])
 
     useEffect(() => {
         async function filterMenuItems() {
@@ -154,9 +154,9 @@ export default function Navigation({
                     return
                 }
 
-                const currentIds = new Set(visibleMenuItems.map(item => item.id))
+                const currentIds = new Set(lastMenuItemsRef.current.map(item => item.id))
                 const newIds = new Set(filtered.map(item => item.id))
-                const itemsToRemove = visibleMenuItems.filter(item => !newIds.has(item.id))
+                const itemsToRemove = lastMenuItemsRef.current.filter(item => !newIds.has(item.id))
                 const itemsToAdd = filtered.filter(item => !currentIds.has(item.id))
 
                 if (itemsToRemove.length === 0 && itemsToAdd.length === 0) {
@@ -175,7 +175,7 @@ export default function Navigation({
                     const exitDuration = ANIMATION_TIMING.BASE_EXIT_DURATION + (itemsToRemove.length - 1) * ANIMATION_TIMING.ITEM_EXIT_DELAY
                     exitAnimationTimeoutRef.current = setTimeout(() => {
                         setExitingItems([])
-                        setVisibleMenuItems(visibleMenuItems.filter(item => newIds.has(item.id)))
+                        setVisibleMenuItems(prev => prev.filter(item => newIds.has(item.id)))
                         
                         if (itemsToAdd.length > 0) {
                             itemsToAdd.forEach((item, index) => {
@@ -221,7 +221,7 @@ export default function Navigation({
         }
 
         filterMenuItems()
-    }, [userId, regionType, regionCode, visibleMenuItems])
+    }, [userId, regionType, regionCode])
 
     useEffect(() => {
         if (visibleMenuItems.length > 0 && !visibleMenuItems.some(item => item.id === selectedView) && selectedView !== 'Settings' && selectedView !== 'MyAccount') {

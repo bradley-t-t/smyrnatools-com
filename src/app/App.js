@@ -157,13 +157,11 @@ function AppContent() {
     const [selectedMixer, setSelectedMixer] = useState(null)
     const [selectedTractor, setSelectedTractor] = useState(null)
     const [webViewURL, setWebViewURL] = useState(null)
-    const [session, setSession] = useState(null)
     const [userDisplayName, setUserDisplayName] = useState('')
     const [currentVersion, setCurrentVersion] = useState('')
     const [updateMode, setUpdateMode] = useState(false)
     const [latestVersion, setLatestVersion] = useState('')
     const [isGuestOnly, setIsGuestOnly] = useState(false)
-    const [hasPlant, setHasPlant] = useState(false)
     const [rolesLoaded, setRolesLoaded] = useState(false)
     const [showUpdateWarning, setShowUpdateWarning] = useState(false)
     const [scheduledAt, setScheduledAt] = useState(null)
@@ -286,59 +284,22 @@ function AppContent() {
     }, [])
 
     useEffect(() => {
-        let active = true
-
-        async function checkPlant() {
-            if (!userId) return
-            try {
-                const plant = await UserService.getUserPlant(userId)
-                const plantCode = (typeof plant === 'string' ? plant : (plant?.plant_code || plant?.plantCode || '')).trim()
-                if (active) setHasPlant(!!plantCode)
-            } catch {
-                if (active) setHasPlant(false)
+        const storedUserId = sessionStorage.getItem('userId')
+        if (storedUserId) {
+            setUserId(storedUserId)
+        }
+        
+        const handleAuthSuccess = (event) => {
+            const userId = event.detail?.userId || sessionStorage.getItem('userId')
+            if (userId) {
+                setUserId(userId)
             }
         }
-
-        if (userId) checkPlant()
-        const interval = setInterval(() => {
-            if (userId) checkPlant()
-        }, 60000)
+        
+        window.addEventListener('authSuccess', handleAuthSuccess)
+        
         return () => {
-            clearInterval(interval)
-            active = false
-        }
-    }, [userId])
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const {data, error} = await supabase.auth.getSession()
-                if (error) return
-                setSession(data.session)
-                if (data.session?.user?.id) {
-                    setUserId(data.session.user.id)
-                    sessionStorage.setItem('userId', data.session.user.id)
-                } else {
-                    const storedUserId = sessionStorage.getItem('userId')
-                    setUserId(storedUserId || null)
-                }
-            } catch {
-                setUserId(null)
-            }
-        }
-        checkAuth()
-        const {data: authListener} = supabase.auth.onAuthStateChange((event, session) => {
-            setSession(session)
-            if (session?.user?.id) {
-                setUserId(session.user.id)
-                sessionStorage.setItem('userId', session.user.id)
-            } else if (event === 'SIGNED_OUT') {
-                setUserId(null)
-                sessionStorage.removeItem('userId')
-            }
-        })
-        return () => {
-            if (authListener?.subscription) authListener.subscription.unsubscribe()
+            window.removeEventListener('authSuccess', handleAuthSuccess)
         }
     }, [])
 
@@ -346,9 +307,16 @@ function AppContent() {
         let cancelled = false
 
         async function loadRoles() {
-            if (!userId) return
+            if (!userId) {
+                setRolesLoaded(false)
+                return
+            }
+            
+            if (rolesLoaded) {
+                return
+            }
+            
             try {
-                UserService.userRolesCache.delete(userId)
                 const roles = await UserService.getUserRoles(userId)
                 if (cancelled) return
 
@@ -365,19 +333,22 @@ function AppContent() {
                 setRolesLoaded(true)
                 if (guestOnly) setSelectedView({view: 'Guest', initialStatusFilter: null})
             } catch (error) {
+                console.error('Failed to load user roles:', error)
                 if (!cancelled) {
-                    setIsGuestOnly(false);
+                    setIsGuestOnly(false)
                     setRolesLoaded(true)
                 }
             }
         }
 
-        setRolesLoaded(false)
-        if (userId) loadRoles()
+        if (userId && !rolesLoaded) {
+            loadRoles()
+        }
+        
         return () => {
             cancelled = true
         }
-    }, [userId])
+    }, [userId, rolesLoaded])
 
     const fetchUserProfile = async (userId) => {
         const {
@@ -425,16 +396,6 @@ function AppContent() {
         setSelectedView({view: viewId, initialStatusFilter: null})
         if (viewId === 'Guest') setTitle('Access Pending')
         else setTitle(viewId)
-        if (viewId === 'MyAccount') {
-            supabase.auth.getSession().then(({data}) => {
-                if (data?.session?.user?.id) {
-                    setUserId(data.session.user.id)
-                    sessionStorage.setItem('userId', data.session.user.id)
-                    setSession(data.session)
-                }
-            }).catch(() => {
-            })
-        }
         if (selectedMixer && viewId !== 'Mixers') setSelectedMixer(null)
         if (selectedTractor && viewId !== 'Tractors') setSelectedTractor(null)
         if (selectedItem && viewId !== 'List') setSelectedItem(null)
@@ -452,7 +413,7 @@ function AppContent() {
     const renderCurrentView = () => {
         if (!userId) return <LoginView/>
         if (!rolesLoaded) return null
-        if (isGuestOnly || !hasPlant) return <LockedOverlay reason={!hasPlant ? "no-plant" : undefined}/>
+        if (isGuestOnly) return <LockedOverlay reason="guest-only"/>
         if (webViewURL) return <WebOverlay url={webViewURL} onClose={() => setWebViewURL(null)}/>
         if (selectedView.view === 'Plants') return <PlantsView title="Plants"/>
         if (selectedView.view === 'Regions') return <RegionsView title="Regions"/>
@@ -494,7 +455,7 @@ function AppContent() {
             case 'Archive':
                 return <ListView title="Archived Items" showArchived/>
             case 'MyAccount': {
-                const effectiveUserId = userId || sessionStorage.getItem('userId') || session?.user?.id
+                const effectiveUserId = userId || sessionStorage.getItem('userId')
                 return effectiveUserId ? <MyAccountView userId={effectiveUserId}/> : <LoginView/>
             }
             case 'Settings':
@@ -572,13 +533,9 @@ function AppContent() {
 
     if (terminatedMode) return <><TerminatedOverlay/></>
     if (isMobile) return <><DesktopOnlyOverlay/></>
-    if (offlineMode) return <><OfflineOverlay onRetry={handleRetryConnection}
-                                              onReload={handleReloadIfOnline}/></>
     if (updateMode) return <><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
     if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
-    if (isGuestOnly || !hasPlant) return (
-        <div className="App"><LockedOverlay reason={!hasPlant ? "no-plant" : undefined}/></div>)
 
     return (
         <div className="App">
@@ -597,6 +554,8 @@ function AppContent() {
             {showScheduledBanner && scheduledAt && !updateMode && (
                 <ScheduledUpdateBanner remainingMs={remainingMs} onRefreshNow={startImmediateUpdate}
                                        onDismiss={dismissScheduledBanner}/>)}
+            {offlineMode && <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline}/>}
+            {isGuestOnly && <LockedOverlay reason="guest-only"/>}
         </div>
     )
 }

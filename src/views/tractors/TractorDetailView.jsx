@@ -716,6 +716,7 @@ function TractorDetailView({tractorId, onClose}) {
                                 itemType="Tractor"
                                 itemId={tractor?.id}
                                 service={TractorService}
+                                status={status}
                             />
                         )}
                     </>

@@ -606,6 +606,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             itemType="equipment"
                             itemId={verifyEquipment.id}
                             service={EquipmentService}
+                            status={verifyEquipment.status}
                         />
                     )}
                 </>

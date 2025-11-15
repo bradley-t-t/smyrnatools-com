@@ -1,91 +1,70 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import {useAuth} from '../../app/context/AuthContext';
-import {useLocation} from 'react-router-dom';
-import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
-import LoadingScreen from './LoadingScreen';
-import {UserService} from '../../services/UserService';
 import './styles/LockedOverlay.css';
 
 function LockedOverlay({reason}) {
     const {signOut} = useAuth();
-    const location = useLocation();
-    const [isValidating, setIsValidating] = useState(true);
-    const [reasonToUse, setReasonToUse] = useState(null);
-
-    useEffect(() => {
-        const validateSession = async () => {
-            setIsValidating(true);
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            try {
-                const user = await UserService.getCurrentUser();
-
-                if (!user?.id) {
-                    setReasonToUse('invalid-session');
-                    setIsValidating(false);
-                    return;
-                }
-
-                const actualReason = reason || location.state?.reason;
-                if (!actualReason) {
-                    setReasonToUse(null);
-                } else {
-                    setReasonToUse(actualReason);
-                }
-            } catch (error) {
-                setReasonToUse('invalid-session');
-            } finally {
-                setIsValidating(false);
-            }
-        };
-
-        validateSession();
-    }, [reason, location.state?.reason]);
 
     const handleSignOut = async () => {
         try {
             await signOut();
             window.location.href = '/';
         } catch (error) {
+            console.error('Sign out failed:', error);
         }
     };
 
-    if (isValidating || !reasonToUse) {
-        if (isValidating) {
-            return <LoadingScreen message="Attempting to authenticate your user" fullPage={true}/>;
-        }
-        return null;
-    }
+    const handleRefresh = () => {
+        window.location.reload();
+    };
 
     const getMessage = () => {
-        if (reasonToUse === 'invalid-session') {
-            return 'Your session has expired or is invalid. Please sign out and log in again to continue.';
+        if (reason === 'invalid-session') {
+            return 'Your session has expired or is invalid. Please refresh the page or sign out and log in again to continue.';
+        }
+        if (reason === 'no-plant') {
+            return 'Your account is not assigned to a plant. Please contact your district manager to complete your setup.';
         }
         return 'You must contact your district manager for them to approve your sign-up.';
     };
 
     const getTitle = () => {
-        if (reasonToUse === 'invalid-session') {
+        if (reason === 'invalid-session') {
             return 'Session Invalid';
+        }
+        if (reason === 'no-plant') {
+            return 'Setup Incomplete';
         }
         return 'Access Pending';
     };
 
-    return (
-        <div className="guest-view-container" onClick={() => {
-        }}>
-            <div className="guest-view-content">
-                <img src={SmyrnaLogo} alt="Smyrna Logo" className="guest-logo"/>
-                <h1>{getTitle()}</h1>
-                <p className="guest-message">
-                    {getMessage()}
-                </p>
-                <button className="sign-out-button" onClick={handleSignOut}>
-                    Sign Out
-                </button>
+    if (typeof document === 'undefined' || !document.body) {
+        return null;
+    }
+
+    return ReactDOM.createPortal(
+        <div className="locked-overlay-backdrop">
+            <div className="locked-overlay-modal">
+                <div className="locked-overlay-content">
+                    <h1>{getTitle()}</h1>
+                    <p className="locked-message">
+                        {getMessage()}
+                    </p>
+                    <div className="locked-actions">
+                        <button className="locked-button refresh-button" onClick={handleRefresh}>
+                            <i className="fas fa-sync-alt"></i>
+                            Refresh Page
+                        </button>
+                        <button className="locked-button signout-button" onClick={handleSignOut}>
+                            <i className="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
