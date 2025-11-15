@@ -1,14 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react'
 import './styles/Navigation.css'
-import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png'
 import FlagSmyrnaLogo from '../../assets/images/FlagSmyrnaLogo.png'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
+import {RegionService} from "../../services/RegionService"
 
 const ANIMATION_TIMING = {
-    ITEM_ENTER_DELAY: 375,
-    ITEM_EXIT_DELAY: 150,
-    BASE_EXIT_DURATION: 375
+    ITEM_ENTER_DELAY: 750,
+    ITEM_EXIT_DELAY: 300,
+    BASE_EXIT_DURATION: 750
 }
 
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
@@ -74,25 +74,28 @@ const menuItems = [
 ]
 
 export default function Navigation({
-                                       selectedView,
-                                       onSelectView,
-                                       children,
-                                       userName = '',
-                                       userId = null,
-                                       listStatusFilter = ''
-                                   }) {
-    const {preferences, toggleNavbarMinimized} = usePreferences()
-    const [collapsed, setCollapsed] = useState(preferences.navbarMinimized)
+    selectedView,
+    onSelectView,
+    children,
+    userName = '',
+    userId = null,
+    listStatusFilter = ''
+}) {
+    const {preferences, updatePreferences} = usePreferences()
     const [visibleMenuItems, setVisibleMenuItems] = useState([])
     const [exitingItems, setExitingItems] = useState([])
     const [enteringItemIds, setEnteringItemIds] = useState(new Set())
     const [isMenuReady, setIsMenuReady] = useState(false)
+    const [showAssetsDropdown, setShowAssetsDropdown] = useState(false)
+    const [permittedRegions, setPermittedRegions] = useState([])
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const lastMenuItemsRef = useRef([])
     const exitAnimationTimeoutRef = useRef(null)
     const enterAnimationTimeoutRef = useRef(null)
     const enterTimeoutsRef = useRef([])
+    const exitTimeoutsRef = useRef([])
+    const assetsDropdownRef = useRef(null)
 
     useEffect(() => {
         const handleStatusFilterChange = (event) => {
@@ -106,6 +109,52 @@ export default function Navigation({
             window.removeEventListener('list-status-filter-change', handleStatusFilterChange)
         }
     }, [listStatusFilter])
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (assetsDropdownRef.current && !assetsDropdownRef.current.contains(event.target)) {
+                setShowAssetsDropdown(false)
+            }
+        }
+        if (showAssetsDropdown) {
+            document.addEventListener('mousedown', handleClickOutside)
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [showAssetsDropdown])
+
+    useEffect(() => {
+        async function fetchPermittedRegions() {
+            if (!userId) {
+                setPermittedRegions([])
+                return
+            }
+            try {
+                const hasAllPerm = await UserService.hasPermission(userId, 'region.select.all').catch(() => false)
+                let regionsList = []
+                if (hasAllPerm) {
+                    regionsList = await UserService.getPermittedRegions(userId)
+                }
+                if (!regionsList || !regionsList.length) {
+                    regionsList = await RegionService.fetchAllRegions().catch(() => [])
+                }
+                setPermittedRegions(regionsList)
+
+                if (!regionCode && regionsList.length) {
+                    const first = regionsList[0]
+                    updatePreferences('selectedRegion', {
+                        code: first.regionCode || first.region_code,
+                        name: first.regionName || first.region_name || '',
+                        type: first.type || first.region_type || ''
+                    })
+                }
+            } catch (error) {
+                setPermittedRegions([])
+            }
+        }
+        fetchPermittedRegions()
+    }, [userId, regionCode, updatePreferences])
 
     useEffect(() => {
         async function filterMenuItems() {
@@ -128,13 +177,17 @@ export default function Navigation({
                     filtered = filtered.filter(item => !DEFAULT_HIDDEN_ITEMS.includes(item.id) && !OFFICE_ONLY_ITEMS.includes(item.id))
                 }
 
+                const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
+                const itemsForAnimation = filtered.filter(item => !assetItems.includes(item.id))
+                const assetItemsToAdd = filtered.filter(item => assetItems.includes(item.id))
+
                 const isInitialLoad = lastMenuItemsRef.current.length === 0 && filtered.length > 0
                 
                 if (isInitialLoad) {
-                    setVisibleMenuItems([])
+                    setVisibleMenuItems(assetItemsToAdd)
                     setIsMenuReady(true)
                     
-                    filtered.forEach((item, index) => {
+                    itemsForAnimation.forEach((item, index) => {
                         const timeout = setTimeout(() => {
                             setVisibleMenuItems(prev => [...prev, item])
                             setEnteringItemIds(prev => new Set([...prev, item.id]))
@@ -156,8 +209,19 @@ export default function Navigation({
 
                 const currentIds = new Set(lastMenuItemsRef.current.map(item => item.id))
                 const newIds = new Set(filtered.map(item => item.id))
-                const itemsToRemove = lastMenuItemsRef.current.filter(item => !newIds.has(item.id))
-                const itemsToAdd = filtered.filter(item => !currentIds.has(item.id))
+                const itemsToRemove = lastMenuItemsRef.current.filter(item => !newIds.has(item.id) && !assetItems.includes(item.id))
+                const itemsToAdd = filtered.filter(item => !currentIds.has(item.id) && !assetItems.includes(item.id))
+                const newAssetItems = filtered.filter(item => assetItems.includes(item.id) && !currentIds.has(item.id))
+                const assetItemsToRemove = lastMenuItemsRef.current.filter(item => !newIds.has(item.id) && assetItems.includes(item.id))
+
+                if (assetItemsToRemove.length > 0) {
+                    const assetIdsToRemove = new Set(assetItemsToRemove.map(a => a.id))
+                    setVisibleMenuItems(prev => prev.filter(item => !assetIdsToRemove.has(item.id)))
+                }
+
+                if (newAssetItems.length > 0) {
+                    setVisibleMenuItems(prev => [...prev, ...newAssetItems])
+                }
 
                 if (itemsToRemove.length === 0 && itemsToAdd.length === 0) {
                     lastMenuItemsRef.current = filtered
@@ -170,31 +234,38 @@ export default function Navigation({
                 if (enterAnimationTimeoutRef.current) clearTimeout(enterAnimationTimeoutRef.current)
 
                 if (itemsToRemove.length > 0) {
-                    setExitingItems(itemsToRemove)
-                    
-                    const exitDuration = ANIMATION_TIMING.BASE_EXIT_DURATION + (itemsToRemove.length - 1) * ANIMATION_TIMING.ITEM_EXIT_DELAY
-                    exitAnimationTimeoutRef.current = setTimeout(() => {
-                        setExitingItems([])
-                        setVisibleMenuItems(prev => prev.filter(item => newIds.has(item.id)))
-                        
-                        if (itemsToAdd.length > 0) {
-                            itemsToAdd.forEach((item, index) => {
-                                const timeout = setTimeout(() => {
-                                    setVisibleMenuItems(prev => [...prev, item])
-                                    setEnteringItemIds(prev => new Set([...prev, item.id]))
-                                    
-                                    setTimeout(() => {
-                                        setEnteringItemIds(prev => {
-                                            const newSet = new Set(prev)
-                                            newSet.delete(item.id)
-                                            return newSet
-                                        })
-                                    }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                                }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                                enterTimeoutsRef.current.push(timeout)
-                            })
-                        }
-                    }, exitDuration)
+                    exitTimeoutsRef.current.forEach(t => clearTimeout(t))
+                    exitTimeoutsRef.current = []
+
+                    itemsToRemove.forEach((item, index) => {
+                        const startDelay = index * ANIMATION_TIMING.ITEM_ENTER_DELAY
+                        const addExitTimeout = setTimeout(() => {
+                            setExitingItems(prev => [...prev, item])
+                            const removeTimeout = setTimeout(() => {
+                                setVisibleMenuItems(prev => prev.filter(x => x.id !== item.id))
+                                setExitingItems(prev => prev.filter(x => x.id !== item.id))
+
+                                if (index === itemsToRemove.length - 1 && itemsToAdd.length > 0) {
+                                    itemsToAdd.forEach((toAdd, addIdx) => {
+                                        const timeout = setTimeout(() => {
+                                            setVisibleMenuItems(prev => [...prev, toAdd])
+                                            setEnteringItemIds(prev => new Set([...prev, toAdd.id]))
+                                            setTimeout(() => {
+                                                setEnteringItemIds(prev => {
+                                                    const newSet = new Set(prev)
+                                                    newSet.delete(toAdd.id)
+                                                    return newSet
+                                                })
+                                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                                        }, addIdx * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                                        enterTimeoutsRef.current.push(timeout)
+                                    })
+                                }
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                            exitTimeoutsRef.current.push(removeTimeout)
+                        }, startDelay)
+                        exitTimeoutsRef.current.push(addExitTimeout)
+                    })
                 } else if (itemsToAdd.length > 0) {
                     itemsToAdd.forEach((item, index) => {
                         const timeout = setTimeout(() => {
@@ -224,21 +295,6 @@ export default function Navigation({
     }, [userId, regionType, regionCode])
 
     useEffect(() => {
-        if (visibleMenuItems.length > 0 && !visibleMenuItems.some(item => item.id === selectedView) && selectedView !== 'Settings' && selectedView !== 'MyAccount') {
-            const dashboardItem = visibleMenuItems.find(item => item.id === 'Dashboard')
-            if (dashboardItem) {
-                onSelectView('Dashboard')
-            } else {
-                onSelectView(visibleMenuItems[0].id)
-            }
-        }
-    }, [visibleMenuItems, selectedView, onSelectView])
-
-    useEffect(() => {
-        setCollapsed(preferences.navbarMinimized)
-    }, [preferences.navbarMinimized])
-
-    useEffect(() => {
         return () => {
             if (exitAnimationTimeoutRef.current) {
                 clearTimeout(exitAnimationTimeoutRef.current)
@@ -247,13 +303,9 @@ export default function Navigation({
                 clearTimeout(enterAnimationTimeoutRef.current)
             }
             enterTimeoutsRef.current.forEach(t => clearTimeout(t))
+            exitTimeoutsRef.current.forEach(t => clearTimeout(t))
         }
     }, [])
-
-    const toggleCollapse = () => {
-        setCollapsed(!collapsed)
-        toggleNavbarMinimized()
-    }
 
     const handleMenuItemClick = (itemId) => {
         if (window.appSwitchView && (itemId === 'List' || itemId === 'Archive')) {
@@ -263,170 +315,206 @@ export default function Navigation({
         }
     }
 
-    const getMenuItemStyles = () => {
-        if (collapsed) return {}
-        return {
-            padding: '13px 18px',
-            minHeight: 0,
-            lineHeight: 1.35,
-            fontSize: 17
+    const handleRegionChange = (e) => {
+        const code = e.target.value
+        if (!code) return
+        const r = permittedRegions.find(x => (x.regionCode || x.region_code) === code)
+        if (r) {
+            const newRegion = {
+                code: r.regionCode || r.region_code,
+                name: r.regionName || r.region_name || '',
+                type: r.type || r.region_type || ''
+            }
+            updatePreferences('selectedRegion', newRegion)
+            
+            window.dispatchEvent(new CustomEvent('region-changed', {
+                detail: newRegion
+            }))
         }
     }
-
-    const getMenuIconStyles = () => {
-        if (collapsed) return {}
-        return {
-            marginRight: 14,
-            fontSize: 20,
-            minWidth: 24
-        }
-    }
-
-    const getMenuTextStyles = () => ({
-        fontSize: 17,
-        padding: 0,
-        margin: 0
-    })
 
     return (
         <div className="app-container">
-            <div className={`vertical-navbar ${collapsed ? 'collapsed' : ''}`}>
-                <div className="navbar-header">
+            <div className="horizontal-navbar">
+                <div className="navbar-left">
                     <div className="logo-container">
-                        {collapsed ? (
-                            <img
-                                src={FlagSmyrnaLogo}
-                                alt="Smyrna Logo"
-                                className="navbar-logo"
-                                title="Smyrna Ready Mix"
-                                width={40}
-                                height={40}
-                                style={{imageRendering: 'auto'}}
-                                draggable={false}
-                                decoding="async"
-                                loading="eager"
-                            />
-                        ) : (
-                            <img
-                                src={SmyrnaLogo}
-                                alt="Smyrna Logo"
-                                className="navbar-logo large"
-                                title="Smyrna Ready Mix"
-                                width={260}
-                                height={90}
-                                style={{imageRendering: 'auto', maxWidth: 260, maxHeight: 90, margin: 0, padding: 0}}
-                                draggable={false}
-                                decoding="async"
-                                loading="eager"
-                            />
-                        )}
+                        <img
+                            src={FlagSmyrnaLogo}
+                            alt="Smyrna Logo"
+                            className="navbar-logo"
+                            title="Smyrna Ready Mix"
+                            draggable={false}
+                            decoding="async"
+                            loading="eager"
+                        />
                     </div>
                 </div>
-                <button className="collapse-btn" onClick={toggleCollapse}>
-                    <i className="fas fa-chevron-right collapse-icon"></i>
-                </button>
                 <nav className="navbar-menu">
-                    <ul style={!collapsed ? {padding: 0, margin: 0, gap: 0, rowGap: 0} : {}}>
+                    <ul>
                         {isMenuReady && (() => {
                             const exitingIds = new Set(exitingItems.map(item => item.id))
                             const visibleIds = new Set(visibleMenuItems.map(item => item.id))
                             const exitingMap = new Map(exitingItems.map(item => [item.id, item]))
 
-                            const allItemsInOrder = menuItems.filter(item =>
-                                visibleIds.has(item.id) || exitingIds.has(item.id)
+                            const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
+                            const hasAssets = visibleMenuItems.some(item => assetItems.includes(item.id))
+                            const isAssetsActive = assetItems.includes(selectedView)
+
+                            const dashboardItem = menuItems.find(item => item.id === 'Dashboard' && (visibleIds.has(item.id) || exitingIds.has(item.id)))
+                            const dashboardData = dashboardItem && exitingIds.has(dashboardItem.id) ? exitingMap.get(dashboardItem.id) : dashboardItem
+
+                            const otherItems = menuItems.filter(item =>
+                                (visibleIds.has(item.id) || exitingIds.has(item.id)) &&
+                                item.id !== 'Dashboard' &&
+                                !assetItems.includes(item.id)
                             ).map(item =>
                                 exitingIds.has(item.id) ? exitingMap.get(item.id) : item
                             )
 
-                            return allItemsInOrder.map((item) => {
+                            const result = []
+
+                            if (dashboardData) {
+                                const isExiting = exitingIds.has(dashboardData.id)
+                                const isEntering = enteringItemIds.has(dashboardData.id)
+                                const isActive = selectedView === dashboardData.id
+
+                                result.push(
+                                    <li
+                                        key={dashboardData.id}
+                                        className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
+                                        onClick={() => {
+                                            if (isExiting) return
+                                            handleMenuItemClick(dashboardData.id)
+                                        }}
+                                        title={dashboardData.text}
+                                    >
+                                        <span className="menu-icon">
+                                            {getIconForMenuItem(dashboardData.id)}
+                                        </span>
+                                        <span className="menu-text">
+                                            {dashboardData.text}
+                                        </span>
+                                    </li>
+                                )
+                            }
+
+                            if (hasAssets) {
+                                result.push(
+                                    <li
+                                        key="assets-dropdown"
+                                        className={`menu-item ${isAssetsActive ? 'active' : ''}`}
+                                        ref={assetsDropdownRef}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setShowAssetsDropdown(!showAssetsDropdown)
+                                        }}
+                                        title="Assets"
+                                        style={{ position: 'relative' }}
+                                    >
+                                        <span className="menu-icon">
+                                            <i className="fas fa-truck"></i>
+                                        </span>
+                                        <span className="menu-text">
+                                            Assets
+                                        </span>
+                                        <span className="menu-icon" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                                            <i className={`fas fa-chevron-${showAssetsDropdown ? 'up' : 'down'}`}></i>
+                                        </span>
+                                        {showAssetsDropdown && (
+                                            <div className="assets-dropdown">
+                                                {assetItems.map(assetId => {
+                                                    const item = visibleMenuItems.find(i => i.id === assetId)
+                                                    if (!item) return null
+                                                    return (
+                                                        <div
+                                                            key={item.id}
+                                                            className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleMenuItemClick(item.id)
+                                                                setShowAssetsDropdown(false)
+                                                            }}
+                                                        >
+                                                            <span className="menu-icon">
+                                                                {getIconForMenuItem(item.id)}
+                                                            </span>
+                                                            <span className="menu-text">
+                                                                {item.text}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </li>
+                                )
+                            }
+
+                            result.push(...otherItems.map((item) => {
                                 const isExiting = exitingIds.has(item.id)
                                 const isEntering = enteringItemIds.has(item.id)
                                 const isActive = item.id === 'List' ? selectedView === 'List' : selectedView === item.id
 
-                                const exitingItemsList = allItemsInOrder.filter(i => exitingIds.has(i.id))
-
-                                let animationDelay = 0
-                                if (isExiting) {
-                                    const exitIndex = exitingItemsList.findIndex(i => i.id === item.id)
-                                    animationDelay = exitIndex * 0.15
-                                }
-
                                 return (
                                     <li
                                         key={item.id}
-                                        className={`menu-item ${isActive ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
+                                        className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
                                         onClick={() => {
                                             if (isExiting) return
                                             handleMenuItemClick(item.id)
                                         }}
-                                        style={{
-                                            ...getMenuItemStyles(),
-                                            animationDelay: isExiting ? `${animationDelay}s` : undefined
-                                        }}
+                                        title={item.text}
                                     >
-                                        <span 
-                                            className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`}
-                                            title={item.text}
-                                            style={getMenuIconStyles()}
-                                        >
+                                        <span className="menu-icon">
                                             {getIconForMenuItem(item.id)}
                                         </span>
-                                        {!collapsed && (
-                                            <span className="menu-text" style={getMenuTextStyles()}>
-                                                {item.text}
-                                            </span>
-                                        )}
+                                        <span className="menu-text">
+                                            {item.text}
+                                        </span>
                                     </li>
                                 )
-                            })
+                            }))
+
+                            return result
                         })()}
-                        <li
-                            className={`menu-item ${selectedView === 'Settings' ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''}`}
-                            onClick={() => handleMenuItemClick('Settings')}
-                            style={getMenuItemStyles()}
-                        >
-                            <span 
-                                className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`} 
-                                title="Settings"
-                                style={getMenuIconStyles()}
-                            >
-                                {getIconForMenuItem('Settings')}
-                            </span>
-                            {!collapsed && (
-                                <span className="menu-text" style={getMenuTextStyles()}>
-                                    Settings
-                                </span>
-                            )}
-                        </li>
-                        <li
-                            className={`menu-item ${selectedView === 'MyAccount' ? 'active' : ''} ${collapsed ? 'menu-item-collapsed' : ''}`}
-                            onClick={() => handleMenuItemClick('MyAccount')}
-                            style={getMenuItemStyles()}
-                        >
-                            <span 
-                                className={`menu-icon${collapsed ? ' menu-icon-collapsed' : ''}`} 
-                                title="My Account"
-                                style={getMenuIconStyles()}
-                            >
-                                {getIconForMenuItem('MyAccount')}
-                            </span>
-                            {!collapsed && (
-                                <div className="user-menu-content">
-                                    <span className="menu-text" style={getMenuTextStyles()}>
-                                        My Account
-                                    </span>
-                                    {userName && (
-                                        <span className="user-name" style={{paddingLeft: 0}}>
-                                            {userName}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </li>
                     </ul>
                 </nav>
+                <div className="navbar-right">
+                    {permittedRegions.length > 0 && (
+                        <select 
+                            className="region-selector" 
+                            value={regionCode || ''} 
+                            onChange={handleRegionChange}
+                            aria-label="Region"
+                        >
+                            {permittedRegions.map(r => (
+                                <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                    {r.regionName || r.region_name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                    <div
+                        className={`menu-item ${selectedView === 'Settings' ? 'active' : ''}`}
+                        onClick={() => handleMenuItemClick('Settings')}
+                        title="Settings"
+                    >
+                        <span className="menu-icon">
+                            {getIconForMenuItem('Settings')}
+                        </span>
+                    </div>
+                    <div
+                        className={`menu-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
+                        onClick={() => handleMenuItemClick('MyAccount')}
+                        title={userName ? `My Account - ${userName}` : 'My Account'}
+                    >
+                        <span className="menu-icon">
+                            {getIconForMenuItem('MyAccount')}
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div className={`content-area ${collapsed ? 'expanded' : ''}`}>{children}</div>
+            <div className="content-area">{children}</div>
         </div>
     )
 }

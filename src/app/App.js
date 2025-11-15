@@ -174,6 +174,7 @@ function AppContent() {
     const offlineStreakRef = useRef(0)
     const offlineSinceRef = useRef(null)
     const [selectedItem, setSelectedItem] = useState(null)
+    const [regionKey, setRegionKey] = useState(0)
 
     useEffect(() => {
         fetch('/version.json', {cache: 'no-store'}).then(res => res.json()).then(data => setCurrentVersion(data.version || '')).catch(() => setCurrentVersion(''))
@@ -282,6 +283,33 @@ function AppContent() {
         window.addEventListener('authSignOut', handleSignOut)
         return () => window.removeEventListener('authSignOut', handleSignOut)
     }, [])
+
+    useEffect(() => {
+        const handleRegionChange = (event) => {
+            const newRegion = event?.detail || {}
+            const regionType = newRegion?.type
+            const view = selectedView?.view
+            const OFFICE_VISIBLE_ITEMS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
+            const AGGREGATE_HIDDEN_ITEMS = new Set(['Mixers', 'Plants', 'Regions'])
+            const DEFAULT_HIDDEN_ITEMS = new Set(['Plants', 'Regions'])
+
+            const isViewAllowedInRegion = (v, t) => {
+                if (!v) return true
+                if (v === 'Settings' || v === 'MyAccount') return true
+                if (t === 'Office') return OFFICE_VISIBLE_ITEMS.has(v)
+                if (t === 'Aggregate') return !AGGREGATE_HIDDEN_ITEMS.has(v)
+                return !DEFAULT_HIDDEN_ITEMS.has(v)
+            }
+
+            if (!isViewAllowedInRegion(view, regionType)) {
+                setSelectedView({view: 'Dashboard', initialStatusFilter: null})
+            }
+
+            setRegionKey(prev => prev + 1)
+        }
+        window.addEventListener('region-changed', handleRegionChange)
+        return () => window.removeEventListener('region-changed', handleRegionChange)
+    }, [selectedView])
 
     useEffect(() => {
         const storedUserId = sessionStorage.getItem('userId')
@@ -547,7 +575,9 @@ function AppContent() {
                 userDisplayName={userDisplayName}
                 userId={userId}
             >
-                {renderCurrentView()}
+                <div key={`view-${regionKey}`}>
+                    {renderCurrentView()}
+                </div>
             </Navigation>
             {showUpdateWarning && (<UpdateWarningPopup latestVersion={latestVersion} onRefreshNow={startImmediateUpdate}
                                                        onClose={scheduleUpdateInFiveMinutes}/>)}

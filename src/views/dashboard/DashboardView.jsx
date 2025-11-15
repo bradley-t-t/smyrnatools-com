@@ -16,7 +16,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 
 export default function DashboardView() {
-    const {preferences, updatePreferences} = usePreferences()
+    const {preferences} = usePreferences()
     const [loading, setLoading] = useState(true)
     const [dataReady, setDataReady] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
@@ -679,16 +679,14 @@ export default function DashboardView() {
                 const totalAggregateLocations = aggregatePlantsArrays.flat().length
                 setTotalAggregateLocations(totalAggregateLocations)
                 setTotalPlantsExcludingAggregate(allPlantsCount - totalAggregateLocations)
-                if (!dashboardRegionCode && regionsList.length) {
-                    const selectedCode = preferences.selectedRegion?.code
-                    if (selectedCode) {
-                        setDashboardRegionCode(selectedCode)
-                        setDashboardRegionName(preferences.selectedRegion?.name || '')
-                    } else {
-                        const first = regionsList[0]
-                        setDashboardRegionCode(first.regionCode)
-                        setDashboardRegionName(first.regionName)
-                    }
+                const selectedCode = preferences.selectedRegion?.code
+                if (selectedCode) {
+                    setDashboardRegionCode(selectedCode)
+                    setDashboardRegionName(preferences.selectedRegion?.name || '')
+                } else if (regionsList.length) {
+                    const first = regionsList[0]
+                    setDashboardRegionCode(first.regionCode)
+                    setDashboardRegionName(first.regionName)
                 }
             } catch (error) {
                 console.error('Error loading dashboard base data:', error)
@@ -709,6 +707,15 @@ export default function DashboardView() {
             if (intervalId) clearInterval(intervalId)
         }
     }, [dashboardRegionCode])
+
+    useEffect(() => {
+        if (preferences.selectedRegion?.code && preferences.selectedRegion.code !== dashboardRegionCode) {
+            setDashboardRegionCode(preferences.selectedRegion.code)
+            setDashboardRegionName(preferences.selectedRegion.name || '')
+            setDashboardPlant('')
+            setDataReady(false)
+        }
+    }, [preferences.selectedRegion, dashboardRegionCode])
 
     useEffect(() => {
         let cancelled = false
@@ -1073,23 +1080,6 @@ export default function DashboardView() {
                      title={`Change since last refresh: ${diff}`}>{up ? '▲' : '▼'}{Math.abs(diff)}</span>
     }
 
-    const onRegionChange = e => {
-        const code = e.target.value
-        if (!code) return
-        setDataReady(false)
-        const r = permittedRegions.find(x => (x.regionCode || x.region_code) === code)
-        if (r) {
-            setDashboardRegionCode(r.regionCode || r.region_code)
-            setDashboardRegionName(r.regionName || r.region_name || '')
-            updatePreferences('selectedRegion', {
-                code: r.regionCode || r.region_code,
-                name: r.regionName || r.region_name || '',
-                type: r.type || r.region_type || ''
-            })
-        }
-        setDashboardPlant('')
-    }
-    const onPlantChange = e => setDashboardPlant(e.target.value)
     const onRetry = () => setRefreshKey(v => v + 1)
     const onRefresh = () => {
         setRefreshing(true);
@@ -1251,11 +1241,6 @@ export default function DashboardView() {
                                 aria-label="Refresh">
                             <i className={`fas fa-sync ${refreshing ? 'spinning' : ''}`}></i> Refresh
                         </button>
-                        <select className="ios-select" value={dashboardRegionCode} onChange={onRegionChange}
-                                disabled={refreshing} aria-label="Region">
-                            {permittedRegions.map(r => <option key={r.regionCode}
-                                                               value={r.regionCode}>{r.regionName} ({r.regionCode})</option>)}
-                        </select>
                         {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
                             <button className="ios-select" onClick={() => setPlantModalOpen(true)} disabled={refreshing}
                                     aria-label="Plant">
