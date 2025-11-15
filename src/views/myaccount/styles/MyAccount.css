@@ -581,28 +581,26 @@ button.save-button:disabled {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    align-items: start;
 }
 
 .security-action-card {
-    background-color: var(--bg-primary);
-    border-radius: 12px;
+    background: var(--bg-primary);
     border: 1px solid var(--border-light);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: box-shadow 0.3s ease;
+    height: fit-content;
 }
 
 .security-action-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-card-content {
-    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    gap: 1rem;
 }
 
 .action-icon {
@@ -612,88 +610,127 @@ button.save-button:disabled {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-light);
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .action-card-content h3 {
-    font-size: 1.2rem;
+    margin: 0;
+    font-size: 1.25rem;
     font-weight: 600;
-    margin: 0 0 0.75rem 0;
     color: var(--text-primary);
 }
 
 .action-card-content p {
-    color: var(--text-secondary);
+    margin: 0;
     font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-    flex: 1;
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
 
-.btn.action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-light);
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-}
-
-.btn.action-btn:hover {
-    opacity: 0.9;
-}
-
-.active-session {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background-color: var(--bg-secondary);
-    border-radius: 8px;
+.action-btn {
+    width: 100%;
     margin-top: 0.5rem;
 }
 
-.session-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: var(--bg-tertiary);
+.sessions-list {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
 }
 
-.session-info {
+.session-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: all 0.2s ease;
+}
+
+.session-item:hover {
+    border-color: var(--border-medium);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.session-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.session-device-info {
     flex: 1;
 }
 
-.session-name {
-    font-weight: 500;
-    font-size: 0.95rem;
+.session-browser {
+    font-size: 15px;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 4px;
 }
 
-.session-details {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+.session-platform {
+    font-size: 13px;
     color: var(--text-secondary);
 }
 
-.session-status {
-    color: #4caf50;
-    font-size: 1.5rem;
-    line-height: 0.5;
+.session-time {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    margin-left: 16px;
+}
+
+.session-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.session-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.current-badge {
+    background-color: var(--success-bg);
+    color: var(--success);
+}
+
+.session-revoke-btn {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: transparent;
+    color: var(--error);
+    border: 1px solid var(--error);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.session-revoke-btn:hover {
+    background-color: var(--error);
+    color: white;
+}
+
+.sessions-empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.sessions-empty p {
+    margin: 0;
+    font-size: 14px;
 }
 
 .account-actions {

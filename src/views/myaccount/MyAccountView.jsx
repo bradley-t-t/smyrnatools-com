@@ -28,7 +28,6 @@ function MyAccountView({userId}) {
     const [regionsLoaded, setRegionsLoaded] = useState(false)
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
-    const [sessionsExpanded, setSessionsExpanded] = useState(false)
 
     const getBrowserInfo = (userAgent) => {
         if (userAgent.includes('Firefox')) return 'Firefox'
@@ -154,30 +153,79 @@ function MyAccountView({userId}) {
                 }
                 
                 if (uid) {
-                    const sessionId = sessionStorage.getItem('sessionId')
                     const userAgent = navigator.userAgent
+                    const currentBrowser = getBrowserInfo(userAgent)
+                    const currentOS = getOSInfo(userAgent)
+                    const currentDevice = getDeviceInfo(userAgent)
                     
-                    if (sessionId) {
-                        setCurrentSessionId(sessionId)
+                    const { data: existingSessions } = await supabase
+                        .from('users_sessions')
+                        .select('*')
+                        .eq('user_id', uid)
+                        .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+                        .order('last_active', { ascending: false })
+                    
+                    let matchingSession = null
+                    const duplicates = []
+                    
+                    if (existingSessions && existingSessions.length > 0) {
+                        const sessionsByDevice = {}
+                        
+                        for (const session of existingSessions) {
+                            const key = `${session.browser}_${session.os}_${session.device}`
+                            
+                            if (session.browser === currentBrowser && 
+                                session.os === currentOS && 
+                                session.device === currentDevice) {
+                                if (!matchingSession) {
+                                    matchingSession = session
+                                } else {
+                                    duplicates.push(session.id)
+                                }
+                            }
+                            
+                            if (sessionsByDevice[key]) {
+                                duplicates.push(session.id)
+                            } else {
+                                sessionsByDevice[key] = session
+                            }
+                        }
+                        
+                        if (duplicates.length > 0) {
+                            try {
+                                await supabase
+                                    .from('users_sessions')
+                                    .delete()
+                                    .in('id', duplicates)
+                            } catch (err) {
+                                console.error('Failed to remove duplicate sessions:', err)
+                            }
+                        }
+                    }
+                    
+                    let currentSessId
+                    if (matchingSession) {
+                        currentSessId = matchingSession.id
+                        sessionStorage.setItem('sessionId', currentSessId)
                         
                         try {
                             await supabase.from('users_sessions')
                                 .update({ last_active: new Date().toISOString() })
-                                .eq('id', sessionId)
+                                .eq('id', currentSessId)
                         } catch (err) {
                             console.error('Failed to update session:', err)
                         }
                     } else {
-                        const newSessionId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                        sessionStorage.setItem('sessionId', newSessionId)
+                        currentSessId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                        sessionStorage.setItem('sessionId', currentSessId)
                         
                         try {
                             await supabase.from('users_sessions').upsert({
-                                id: newSessionId,
+                                id: currentSessId,
                                 user_id: uid,
-                                browser: getBrowserInfo(userAgent),
-                                os: getOSInfo(userAgent),
-                                device: getDeviceInfo(userAgent),
+                                browser: currentBrowser,
+                                os: currentOS,
+                                device: currentDevice,
                                 user_agent: userAgent,
                                 last_active: new Date().toISOString(),
                                 created_at: new Date().toISOString()
@@ -185,9 +233,9 @@ function MyAccountView({userId}) {
                         } catch (err) {
                             console.error('Failed to create session:', err)
                         }
-                        
-                        setCurrentSessionId(newSessionId)
                     }
+                    
+                    setCurrentSessionId(currentSessId)
                     
                     const { data: userSessions } = await supabase
                         .from('users_sessions')
@@ -198,7 +246,6 @@ function MyAccountView({userId}) {
                         .limit(10)
                     
                     if (userSessions && userSessions.length > 0) {
-                        const currentSessId = sessionStorage.getItem('sessionId')
                         const sessionsList = userSessions.map(s => ({
                             id: s.id,
                             createdAt: s.created_at,
@@ -507,84 +554,38 @@ function MyAccountView({userId}) {
                             <div className="action-card-content">
                                 <div className="action-icon" style={{backgroundColor: 'var(--myaccount-accent)'}}><i
                                     className="fas fa-laptop"></i></div>
-                                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '8px'}}>
-                                    <div>
-                                        <h3 style={{margin: 0}}>Session Management</h3>
-                                        <p style={{margin: '4px 0 0'}}>Control your active sessions across devices</p>
-                                    </div>
-                                    <button 
-                                        onClick={() => setSessionsExpanded(!sessionsExpanded)}
-                                        style={{
-                                            padding: '8px 12px',
-                                            borderRadius: '6px',
-                                            fontSize: '0.875rem',
-                                            fontWeight: '600',
-                                            backgroundColor: 'var(--myaccount-accent)',
-                                            color: 'white',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            transition: 'opacity 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.opacity = '0.9'}
-                                        onMouseLeave={(e) => e.target.style.opacity = '1'}
-                                    >
-                                        {sessionsExpanded ? 'Hide' : 'Show'} ({sessions.length})
-                                        <i className={`fas fa-chevron-${sessionsExpanded ? 'up' : 'down'}`}></i>
-                                    </button>
-                                </div>
-                                {sessionsExpanded && (
-                                    <div style={{marginTop: '12px'}}>
-                                        {sessions.length > 0 ? (
-                                            sessions.map(session => (
-                                                <div key={session.id} className="active-session" style={{marginTop: '12px'}}>
-                                                    <div className="session-icon"><i className={`fas ${getDeviceIcon(session.device)}`}></i></div>
-                                                    <div className="session-info" style={{flex: 1}}>
-                                                        <div className="session-name">{session.browser} on {session.os}</div>
-                                                        <div className="session-details">
-                                                            <span className="session-status">•</span> {formatSessionTime(session.lastActive)}
-                                                        </div>
+                                <h3>Active Sessions</h3>
+                                <p>Manage your active sessions across devices</p>
+                                {sessions.length > 0 ? (
+                                    <div className="sessions-list">
+                                        {sessions.map(session => (
+                                            <div key={session.id} className="session-item">
+                                                <div className="session-main">
+                                                    <div className="session-device-info">
+                                                        <div className="session-browser">{session.browser}</div>
+                                                        <div className="session-platform">{session.os} • {session.device}</div>
                                                     </div>
+                                                    <div className="session-time">{formatSessionTime(session.lastActive)}</div>
+                                                </div>
+                                                <div className="session-actions">
                                                     {session.isCurrent ? (
-                                                        <span style={{
-                                                            padding: '4px 12px',
-                                                            borderRadius: '12px',
-                                                            fontSize: '0.75rem',
-                                                            fontWeight: '600',
-                                                            backgroundColor: 'var(--success-bg)',
-                                                            color: 'var(--success)'
-                                                        }}>Current</span>
+                                                        <span className="session-badge current-badge">Current Session</span>
                                                     ) : (
                                                         <button 
+                                                            className="session-revoke-btn"
                                                             onClick={() => handleRevokeSession(session.id)}
-                                                            style={{
-                                                                padding: '4px 12px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: '600',
-                                                                backgroundColor: 'var(--danger-bg)',
-                                                                color: 'var(--danger)',
-                                                                border: 'none',
-                                                                cursor: 'pointer'
-                                                            }}
                                                             title="Revoke this session"
                                                         >
                                                             Revoke
                                                         </button>
                                                     )}
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <div className="active-session">
-                                                <div className="session-icon"><i className="fas fa-desktop"></i></div>
-                                                <div className="session-info">
-                                                    <div className="session-name">No active sessions</div>
-                                                    <div className="session-details">Sign in to see your sessions</div>
-                                                </div>
                                             </div>
-                                        )}
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="sessions-empty">
+                                        <p>No active sessions found</p>
                                     </div>
                                 )}
                             </div>
