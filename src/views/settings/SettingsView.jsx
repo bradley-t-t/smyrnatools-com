@@ -15,7 +15,6 @@ function SettingsView() {
     const version = useVersion()
     const {
         preferences,
-        toggleNavbarMinimized,
         toggleShowTips,
         toggleShowOnlineOverlay,
         setThemeMode,
@@ -156,25 +155,12 @@ function SettingsView() {
                 <div className="settings-card settings-slide-in" style={{animationDelay: '0.2s'}}>
                     <div className="settings-card-header">
                         <h2>
-                            <i className="fas fa-bars"></i> Navigation
+                            <i className="fas fa-desktop"></i> Interface
                         </h2>
-                        <p>Set up how you move around</p>
+                        <p>Customize your interface preferences</p>
                     </div>
                     <div className="settings-section">
-                        <h3>Sidebar</h3>
-                        <div className="toggle-setting">
-                            <span className="toggle-label">Minimize Navigation</span>
-                            <label className="switch">
-                                <input type="checkbox" checked={preferences.navbarMinimized}
-                                       onChange={() => save(toggleNavbarMinimized)}/>
-                                <span className="slider round"></span>
-                            </label>
-                            <span
-                                className="toggle-state">{preferences.navbarMinimized ? 'Minimized' : 'Expanded'}</span>
-                        </div>
-                    </div>
-                    <div className="settings-section">
-                        <h3>Interface</h3>
+                        <h3>Display Options</h3>
                         <div className="toggle-setting">
                             <span className="toggle-label">Tips</span>
                             <label className="switch">

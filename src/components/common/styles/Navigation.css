@@ -150,11 +150,11 @@
     transition: all 0.3s ease;
 }
 
-.menu-item.active .menu-icon {
+.menu-item.active > .menu-icon {
     color: var(--accent);
 }
 
-.menu-item:hover .menu-icon {
+.menu-item:hover > .menu-icon {
     color: var(--text-primary);
     transform: scale(1.1);
 }
@@ -167,12 +167,12 @@
     transition: all 0.3s ease;
 }
 
-.menu-item.active .menu-text {
+.menu-item.active > .menu-text {
     font-weight: 600;
     color: var(--accent);
 }
 
-.menu-item:hover .menu-text {
+.menu-item:hover > .menu-text {
     color: var(--text-primary);
 }
 

@@ -13,7 +13,6 @@ export function usePreferences() {
 }
 
 const defaultPreferences = {
-    navbarMinimized: false,
     themeMode: 'light',
     accentColor: 'red',
     showTips: true,
@@ -79,7 +78,6 @@ export const PreferencesProvider = ({children}) => {
                     const data = await UserPreferencesService.getUserPreferences(user.id)
                     if (data) {
                         prefs = {
-                            navbarMinimized: data.navbar_minimized,
                             themeMode: data.theme_mode,
                             accentColor: data.accent_color,
                             showTips: data.show_tips === undefined ? true : data.show_tips,
@@ -113,7 +111,7 @@ export const PreferencesProvider = ({children}) => {
                             lastViewedFilters: data.last_viewed_filters,
                             selectedRegion: data.selected_region ? {...defaultPreferences.selectedRegion, ...data.selected_region} : defaultPreferences.selectedRegion,
                             regionOverlayMinimized: data.region_overlay_minimized === undefined ? defaultPreferences.regionOverlayMinimized : data.region_overlay_minimized,
-                            acceptReportSubmittedEmails: data.accept_report_submitted_emails === undefined ? true : data.accept_report_submitted_emails
+                            accept_report_submitted_emails: data.accept_report_submitted_emails === undefined ? true : data.accept_report_submitted_emails
                         }
                     }
                 } catch {
@@ -135,9 +133,7 @@ export const PreferencesProvider = ({children}) => {
                                 }
                             }
                         }
-                    } catch (e) {
-                        // ignore
-                    }
+                    } catch (e) {}
                 }
                 setPreferences(prefs)
                 if (!originalSelectedRegion.code && prefs.selectedRegion.code) {
@@ -172,69 +168,6 @@ export const PreferencesProvider = ({children}) => {
         document.documentElement.classList.add(`accent-${preferences.accentColor}`)
     }, [preferences])
 
-    const fetchUserPreferences = async uid => {
-        try {
-            setLoading(true)
-            const {data, error} = await supabase
-                .from('users_preferences')
-                .select('*')
-                .eq('user_id', uid)
-                .single()
-            if (error && error.code === 'PGRST116') {
-                setTimeout(() => setPreferences(defaultPreferences), 1000)
-            } else if (error) {
-                throw error
-            } else {
-                setTimeout(() => setPreferencesFromData(data), 1000)
-            }
-        } catch (error) {
-            logSupabaseError('fetching preferences', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const setPreferencesFromData = data => {
-        const newPreferences = {
-            navbarMinimized: data.navbar_minimized,
-            themeMode: data.theme_mode,
-            accentColor: data.accent_color,
-            showTips: data.show_tips === undefined ? false : data.show_tips,
-            showOnlineOverlay: data.show_online_overlay === undefined ? true : data.show_online_overlay,
-            defaultViewMode: data.default_view_mode === undefined ? null : data.default_view_mode,
-            mixerFilters: data.mixer_filters ? {
-                ...data.mixer_filters,
-                viewMode: data.mixer_filters.viewMode || 'grid'
-            } : {...defaultPreferences.mixerFilters},
-            operatorFilters: data.operator_filters ? {
-                ...data.operator_filters,
-                viewMode: data.operator_filters.viewMode || 'grid',
-                positionFilter: data.operator_filters.positionFilter === undefined ? '' : data.operator_filters.positionFilter
-            } : {...defaultPreferences.operatorFilters},
-            managerFilters: data.manager_filters ? {
-                ...data.manager_filters,
-                viewMode: data.manager_filters.viewMode || 'grid'
-            } : {...defaultPreferences.managerFilters},
-            tractorFilters: data.tractor_filters ? {
-                ...data.tractor_filters,
-                viewMode: data.tractor_filters.viewMode || 'grid'
-            } : {...defaultPreferences.tractorFilters},
-            trailerFilters: data.trailer_filters ? {
-                ...data.trailer_filters,
-                viewMode: data.trailer_filters.viewMode || 'grid'
-            } : {...defaultPreferences.trailerFilters},
-            equipmentFilters: data.equipment_filters ? {
-                ...data.equipment_filters,
-                viewMode: data.equipment_filters.viewMode || 'grid'
-            } : {...defaultPreferences.equipmentFilters},
-            lastViewedFilters: data.last_viewed_filters,
-            selectedRegion: data.selected_region ? {...defaultPreferences.selectedRegion, ...data.selected_region} : defaultPreferences.selectedRegion,
-            regionOverlayMinimized: data.region_overlay_minimized === undefined ? defaultPreferences.regionOverlayMinimized : data.region_overlay_minimized,
-            acceptReportSubmittedEmails: data.accept_report_submitted_emails === undefined ? true : data.accept_report_submitted_emails
-        }
-        setPreferences(newPreferences)
-    }
-
     const updatePreferences = async (keyOrObject, value) => {
         let updatedPreferences
         if (typeof keyOrObject === 'string') {
@@ -247,7 +180,6 @@ export const PreferencesProvider = ({children}) => {
             const now = new Date().toISOString()
             const upsertData = {
                 user_id: userId,
-                navbar_minimized: updatedPreferences.navbarMinimized,
                 theme_mode: updatedPreferences.themeMode,
                 accent_color: updatedPreferences.accentColor,
                 show_tips: updatedPreferences.showTips,
@@ -309,7 +241,7 @@ export const PreferencesProvider = ({children}) => {
     const resetTrailerFilters = (options = {}) => {
         let newFilters = {...defaultPreferences.trailerFilters}
         if (options.keepViewMode && options.currentViewMode !== undefined) {
-            newFilters.viewMode = options.currentViewMode
+                newFilters.viewMode = options.currentViewMode
         }
         updatePreferences('trailerFilters', newFilters)
     }
@@ -361,7 +293,6 @@ export const PreferencesProvider = ({children}) => {
         updatePreferences('regionOverlayMinimized', !!minimized)
     }
 
-    const toggleNavbarMinimized = () => updatePreferences('navbarMinimized', !preferences.navbarMinimized)
     const toggleShowTips = () => updatePreferences('showTips', !preferences.showTips)
     const toggleShowOnlineOverlay = () => updatePreferences('showOnlineOverlay', !preferences.showOnlineOverlay)
     const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) && updatePreferences('themeMode', mode)
@@ -392,7 +323,6 @@ export const PreferencesProvider = ({children}) => {
             value={{
                 preferences,
                 loading,
-                toggleNavbarMinimized,
                 toggleShowTips,
                 toggleShowOnlineOverlay,
                 setThemeMode,
@@ -419,23 +349,4 @@ export const PreferencesProvider = ({children}) => {
             {!loading && children}
         </PreferencesContext.Provider>
     )
-}
-
-export const debugForceCreatePreferences = async userId => {
-    if (!userId) return false
-    try {
-        await supabase
-            .from('users_preferences')
-            .insert([{
-                user_id: userId,
-                navbar_minimized: false,
-                theme_mode: 'light',
-                accent_color: 'blue',
-                default_view_mode: 'grid',
-                accept_report_submitted_emails: false
-            }])
-    } catch {
-        return false
-    }
-    return true
 }
