@@ -1,10 +1,21 @@
-import React from 'react'
+import React, {useState} from 'react'
 import ReactDOM from 'react-dom'
 import './styles/OfflineOverlay.css'
 
-function OfflineOverlay({onRetry, onReload}) {
+function OfflineOverlay({onRetry}) {
+    const [isRetrying, setIsRetrying] = useState(false)
+
     if (typeof document === 'undefined' || !document.body) {
         return null;
+    }
+
+    const handleRetry = async () => {
+        setIsRetrying(true)
+        try {
+            await onRetry()
+        } finally {
+            setIsRetrying(false)
+        }
     }
 
     return ReactDOM.createPortal(
@@ -16,9 +27,13 @@ function OfflineOverlay({onRetry, onReload}) {
                         Your connection appears to be offline or unstable. Please check your network and try again.
                     </p>
                     <div className="offline-actions">
-                        <button className="offline-button retry-button" onClick={onRetry}>
-                            <i className="fas fa-redo"></i>
-                            Retry Connection
+                        <button 
+                            className={`offline-button retry-button ${isRetrying ? 'retrying' : ''}`}
+                            onClick={handleRetry}
+                            disabled={isRetrying}
+                        >
+                            <i className={`fas fa-redo ${isRetrying ? 'spinning' : ''}`}></i>
+                            {isRetrying ? 'Checking Connection...' : 'Retry Connection'}
                         </button>
                     </div>
                 </div>

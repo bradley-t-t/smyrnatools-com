@@ -131,14 +131,7 @@ export default function Navigation({
                 return
             }
             try {
-                const hasAllPerm = await UserService.hasPermission(userId, 'region.select.all').catch(() => false)
-                let regionsList = []
-                if (hasAllPerm) {
-                    regionsList = await UserService.getPermittedRegions(userId)
-                }
-                if (!regionsList || !regionsList.length) {
-                    regionsList = await RegionService.fetchAllRegions().catch(() => [])
-                }
+                const regionsList = await RegionService.fetchRegions().catch(() => [])
                 setPermittedRegions(regionsList)
 
                 if (!regionCode && regionsList.length) {
@@ -480,20 +473,22 @@ export default function Navigation({
                     </ul>
                 </nav>
                 <div className="navbar-right">
-                    {permittedRegions.length > 0 && (
-                        <select 
-                            className="region-selector" 
-                            value={regionCode || ''} 
-                            onChange={handleRegionChange}
-                            aria-label="Region"
-                        >
-                            {permittedRegions.map(r => (
+                    <select 
+                        className="region-selector" 
+                        value={regionCode || ''} 
+                        onChange={handleRegionChange}
+                        aria-label="Region"
+                    >
+                        {permittedRegions.length === 0 ? (
+                            <option value="">Loading regions...</option>
+                        ) : (
+                            permittedRegions.map(r => (
                                 <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
                                     {r.regionName || r.region_name}
                                 </option>
-                            ))}
-                        </select>
-                    )}
+                            ))
+                        )}
+                    </select>
                     <div
                         className={`menu-item ${selectedView === 'Settings' ? 'active' : ''}`}
                         onClick={() => handleMenuItemClick('Settings')}

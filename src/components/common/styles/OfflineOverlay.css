@@ -78,9 +78,31 @@
     color: white;
 }
 
-.retry-button:hover {
+.retry-button:hover:not(:disabled) {
     opacity: 0.9;
     transform: translateY(-1px);
+}
+
+.retry-button.retrying {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.retry-button:disabled {
+    cursor: not-allowed;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .reload-button {

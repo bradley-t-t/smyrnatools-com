@@ -542,7 +542,6 @@ function AppContent() {
             offlineStreakRef.current = 0
             offlineSinceRef.current = null
             setOfflineMode(false)
-            window.location.reload()
         }
     }
 
