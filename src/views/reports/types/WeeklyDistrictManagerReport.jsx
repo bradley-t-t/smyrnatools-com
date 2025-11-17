@@ -1,6 +1,8 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import '../styles/Reports.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
+import {usePreferences} from '../../../app/context/PreferencesContext'
+import {RegionService} from '../../../services/RegionService'
 
 function DailyRecapSection({form, handleChange, readOnly}) {
     const days = [
@@ -51,16 +53,24 @@ function DailyRecapSection({form, handleChange, readOnly}) {
 }
 
 export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, setForm, readOnly}) {
+    const {preferences} = usePreferences()
+    const [allowedCodes, setAllowedCodes] = useState(null)
+    useEffect(() => {
+        let mounted = true
+        ;(async () => {
+            const regionCode = preferences?.selectedRegion?.code || ''
+            const codes = await RegionService.getAllowedPlantCodes(regionCode)
+            if (mounted) setAllowedCodes(codes)
+        })()
+        return () => { mounted = false }
+    }, [preferences?.selectedRegion?.code])
+
     const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
-    
-    const filteredItems = maintenanceItems && plantCodes 
-        ? maintenanceItems.filter(item => plantCodes.has(item.plant_code))
-        : maintenanceItems || []
+    const baseFiltered = maintenanceItems && plantCodes ? maintenanceItems.filter(item => plantCodes.has(item.plant_code)) : maintenanceItems || []
+    const finalFiltered = allowedCodes ? baseFiltered.filter(item => allowedCodes.has(String(item.plant_code || '').trim().toUpperCase())) : baseFiltered
 
     function handleChange(e, name) {
-        if (setForm) {
-            setForm(prev => ({...prev, [name]: e.target.value}))
-        }
+        if (setForm) setForm(prev => ({...prev, [name]: e.target.value}))
     }
 
     function getPlantName(plantCode) {
@@ -73,13 +83,12 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
         return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
     }
 
-    const completedCount = filteredItems.length
-    const overdueCount = filteredItems.filter(item => item.isOverdue).length
+    const completedCount = finalFiltered.length
+    const overdueCount = finalFiltered.filter(item => item.isOverdue).length
 
     return (
         <div className="dm-report-plugin">
             <DailyRecapSection form={form} handleChange={handleChange} readOnly={readOnly} />
-            
             <div className="dm-report-header">
                 <h3 className="dm-report-title">Weekly Completed Maintenance Items</h3>
                 <div className="dm-report-stats">
@@ -105,8 +114,7 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
                     )}
                 </div>
             </div>
-
-            {filteredItems.length > 0 ? (
+            {finalFiltered.length > 0 ? (
                 <div className="dm-items-container">
                     <div className="dm-items-table-wrapper">
                         <table className="dm-items-table">
@@ -119,7 +127,7 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredItems.map(item => (
+                                {finalFiltered.map(item => (
                                     <tr key={item.id} className={`dm-item-row ${item.isOverdue ? 'dm-item-overdue' : ''}`}>
                                         <td className="dm-td-description">
                                             <div className="dm-item-desc-wrapper">
@@ -162,14 +170,23 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
 }
 
 export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
-    const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
-    
-    const filteredItems = maintenanceItems && plantCodes 
-        ? maintenanceItems.filter(item => plantCodes.has(item.plant_code))
-        : maintenanceItems || []
+    const {preferences} = usePreferences()
+    const [allowedCodes, setAllowedCodes] = useState(null)
+    useEffect(() => {
+        let mounted = true
+        ;(async () => {
+            const regionCode = preferences?.selectedRegion?.code || ''
+            const codes = await RegionService.getAllowedPlantCodes(regionCode)
+            if (mounted) setAllowedCodes(codes)
+        })()
+        return () => { mounted = false }
+    }, [preferences?.selectedRegion?.code])
 
-    function handleChange() {
-    }
+    const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
+    const baseFiltered = maintenanceItems && plantCodes ? maintenanceItems.filter(item => plantCodes.has(item.plant_code)) : maintenanceItems || []
+    const finalFiltered = allowedCodes ? baseFiltered.filter(item => allowedCodes.has(String(item.plant_code || '').trim().toUpperCase())) : baseFiltered
+
+    function handleChange() {}
 
     function getPlantName(plantCode) {
         const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
@@ -181,13 +198,12 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
         return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
     }
 
-    const completedCount = filteredItems.length
-    const overdueCount = filteredItems.filter(item => item.isOverdue).length
+    const completedCount = finalFiltered.length
+    const overdueCount = finalFiltered.filter(item => item.isOverdue).length
 
     return (
         <div className="dm-report-plugin">
             <DailyRecapSection form={form} handleChange={handleChange} readOnly={true} />
-            
             <div className="dm-report-header">
                 <h3 className="dm-report-title">Weekly Completed Maintenance Items</h3>
                 <div className="dm-report-stats">
@@ -213,8 +229,7 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
                     )}
                 </div>
             </div>
-
-            {filteredItems.length > 0 ? (
+            {finalFiltered.length > 0 ? (
                 <div className="dm-items-container">
                     <div className="dm-items-table-wrapper">
                         <table className="dm-items-table">
@@ -227,7 +242,7 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredItems.map(item => (
+                                {finalFiltered.map(item => (
                                     <tr key={item.id} className={`dm-item-row ${item.isOverdue ? 'dm-item-overdue' : ''}`}>
                                         <td className="dm-td-description">
                                             <div className="dm-item-desc-wrapper">

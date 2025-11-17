@@ -62,13 +62,24 @@ class RegionServiceImpl {
 
     async fetchRegionPlants(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
-        const {res, json} = await APIUtility.post('/region-service/fetch-region-plants', {regionCode})
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch region plants')
-        const data = json?.data ?? []
-        return data.map(row => ({
-            plantCode: row.plant_code,
-            plantName: row.plant_name
-        }))
+        let attempt = 0
+        const maxAttempts = 3
+        while (attempt < maxAttempts) {
+            try {
+                const {res, json} = await APIUtility.post('/region-service/fetch-region-plants', {regionCode})
+                if (res && res.ok) {
+                    const data = json?.data ?? []
+                    return data.map(row => ({
+                        plantCode: row.plant_code,
+                        plantName: row.plant_name
+                    }))
+                }
+            } catch (e) {}
+            attempt += 1
+            const delay = Math.min(4000, 500 * 2 ** (attempt - 1))
+            await new Promise(r => setTimeout(r, delay))
+        }
+        return []
     }
 
     async getRegionWithPlants(regionCode) {
