@@ -12,7 +12,6 @@
 .horizontal-navbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     height: 70px;
     background: var(--bg-navbar);
     color: var(--text-primary);
@@ -27,8 +26,8 @@
 .navbar-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-    min-width: auto;
+    gap: 0;
+    flex: 0 0 auto;
 }
 
 .logo-container {
@@ -36,7 +35,7 @@
     align-items: center;
     justify-content: center;
     height: 70px;
-    padding: 0 4px;
+    padding: 0 12px 0 4px;
 }
 
 .navbar-logo {
@@ -56,12 +55,10 @@
 }
 
 .navbar-menu {
-    flex: 1;
+    flex: 0 1 auto;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    max-width: 1400px;
-    padding: 0 16px;
+    padding: 0;
 }
 
 .navbar-menu ul {
@@ -72,7 +69,6 @@
     align-items: center;
     gap: 6px;
     flex-wrap: nowrap;
-    justify-content: flex-start;
 }
 
 .menu-item {
@@ -180,8 +176,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 120px;
-    justify-content: flex-end;
+    margin-left: auto;
 }
 
 .region-selector {
