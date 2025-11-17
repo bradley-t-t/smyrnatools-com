@@ -89,6 +89,9 @@
     border-bottom: 1px solid var(--divider);
     color: var(--text-primary);
     transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .plant-option:hover {
@@ -97,4 +100,49 @@
 
 .plant-option:last-child {
     border-bottom: none;
+}
+
+.plant-option.selected {
+    background: var(--bg-tertiary);
+}
+
+.plant-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+}
+
+.plant-option span {
+    flex: 1;
+}
+
+.plant-dropdown-modal-footer {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--divider);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.plant-done-button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.plant-done-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.plant-done-button:active {
+    transform: translateY(0);
 }

@@ -13,6 +13,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     const {preferences} = usePreferences();
     const [description, setDescription] = useState('');
     const [plantCode, setPlantCode] = useState('');
+    const [selectedPlantCodes, setSelectedPlantCodes] = useState([]);
     const [deadline, setDeadline] = useState(() => {
         const today = new Date();
         today.setHours(17, 0, 0, 0);
@@ -84,11 +85,20 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     const validate = () => {
         const newErrors = {};
         if (!description.trim()) newErrors.description = 'Description is required';
-        if (!plantCode) newErrors.plantCode = 'Plant is required';
-        if (!deadline) newErrors.deadline = 'Deadline is required';
-        if (!canBypassPlantRestriction && userPlantCode && plantCode !== userPlantCode) {
-            newErrors.plantCode = `You can only create items for your assigned plant (${userPlantCode})`;
+        const isBulkMode = selectedPlantCodes.length > 0;
+        if (isBulkMode) {
+            if (!canBypassPlantRestriction) {
+                newErrors.plantCode = 'You do not have permission to add items to multiple plants';
+            } else if (!selectedPlantCodes.length) {
+                newErrors.plantCode = 'At least one plant is required';
+            }
+        } else {
+            if (!plantCode) newErrors.plantCode = 'Plant is required';
+            if (!canBypassPlantRestriction && userPlantCode && plantCode !== userPlantCode) {
+                newErrors.plantCode = `You can only create items for your assigned plant (${userPlantCode})`;
+            }
         }
+        if (!deadline) newErrors.deadline = 'Deadline is required';
         setErrors(newErrors);
         return !Object.keys(newErrors).length;
     };
@@ -109,14 +119,20 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                 userId = user.id;
                 setCurrentUserId(userId);
             }
-            const updateData = {
-                plant_code: plantCode,
-                description: description.trim(),
-                deadline: new Date(deadline).toISOString(),
-                comments: comments.trim()
-            };
+            
             if (item) {
+                const updateData = {
+                    plant_code: plantCode,
+                    description: description.trim(),
+                    deadline: new Date(deadline).toISOString(),
+                    comments: comments.trim()
+                };
                 await ListService.updateListItem({...item, ...updateData});
+            } else if (selectedPlantCodes.length > 0) {
+                const promises = selectedPlantCodes.map(code =>
+                    ListService.createListItem(code, description, new Date(deadline), comments)
+                );
+                await Promise.all(promises);
             } else {
                 await ListService.createListItem(plantCode, description, new Date(deadline), comments);
             }
@@ -139,27 +155,62 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                 )}
                 <form onSubmit={handleSubmit} autoComplete="off">
                     <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label htmlFor="description">Description*</label>
-                                        <input
-                                            id="description"
-                                            type="text"
-                                            className="ios-input"
-                                            value={description}
-                                            onChange={e => setDescription(e.target.value)}
-                                            onBlur={() => setDescription(GrammarUtility.cleanDescription(description))}
-                                            placeholder="Enter item description"
-                                            required
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
+                        <div className="form-row">
+                            <div className="form-group wide">
+                                <label htmlFor="description">Description*</label>
+                                <input
+                                    id="description"
+                                    type="text"
+                                    className="ios-input"
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                    onBlur={() => setDescription(GrammarUtility.cleanDescription(description))}
+                                    placeholder="Enter item description"
+                                    required
+                                    autoFocus
+                                />
                             </div>
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="plantCode">Plant*</label>
+                        </div>
+                    </div>
+                    <div className="form-section">
+                        <div className="form-row">
+                            {canBypassPlantRestriction ? (
+                                <div className="form-group">
+                                    <label htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
+                                    {!item ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                className="ios-select"
+                                                onClick={() => setIsPlantModalOpen(true)}
+                                                aria-label="Select plants"
+                                            >
+                                                {selectedPlantCodes.length === 0 
+                                                    ? 'Select Plants' 
+                                                    : `${selectedPlantCodes.length} plant${selectedPlantCodes.length !== 1 ? 's' : ''} selected`}
+                                            </button>
+                                            {selectedPlantCodes.length > 0 && (
+                                                <div className="selected-plants-list">
+                                                    {selectedPlantCodes.map(code => {
+                                                        const plant = visiblePlants.find(p => p.plant_code === code);
+                                                        return (
+                                                            <div key={code} className="selected-plant-chip">
+                                                                <span>({plant?.plant_code}) {plant?.plant_name}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    className="remove-plant-button"
+                                                                    onClick={() => setSelectedPlantCodes(prev => prev.filter(c => c !== code))}
+                                                                    aria-label="Remove plant"
+                                                                >
+                                                                    <i className="fas fa-times"></i>
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
                                         <button
                                             type="button"
                                             className="ios-select"
@@ -168,53 +219,75 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                         >
                                             {plantDisplayText}
                                         </button>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="deadline">Deadline*</label>
-                                        <input
-                                            id="deadline"
-                                            type="datetime-local"
-                                            className="ios-input"
-                                            value={deadline}
-                                            onChange={e => setDeadline(e.target.value)}
-                                            required
-                                        />
-                                    </div>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label htmlFor="comments">Comments</label>
-                                        <textarea
-                                            id="comments"
-                                            className="ios-input"
-                                            value={comments}
-                                            onChange={e => setComments(e.target.value)}
-                                            placeholder="Enter any additional comments"
-                                            rows="3"
-                                        />
-                                    </div>
+                            ) : userPlantCode && (
+                                <div className="form-group">
+                                    <label htmlFor="plantCode">Plant*</label>
+                                    <input
+                                        id="plantCode"
+                                        type="text"
+                                        className="ios-input"
+                                        value={plantDisplayText}
+                                        disabled
+                                        style={{backgroundColor: 'var(--bg-tertiary)', cursor: 'not-allowed'}}
+                                    />
                                 </div>
+                            )}
+                            <div className="form-group">
+                                <label htmlFor="deadline">Deadline*</label>
+                                <input
+                                    id="deadline"
+                                    type="datetime-local"
+                                    className="ios-input"
+                                    value={deadline}
+                                    onChange={e => setDeadline(e.target.value)}
+                                    required
+                                />
                             </div>
-                            <div className="form-actions">
-                                <button type="submit" className="ios-button-primary" disabled={isSaving}>
-                                    {isSaving ? 'Saving...' : item ? 'Update Item' : 'Add Item'}
-                                </button>
+                        </div>
+                    </div>
+                    <div className="form-section">
+                        <div className="form-row">
+                            <div className="form-group wide">
+                                <label htmlFor="comments">Comments</label>
+                                <textarea
+                                    id="comments"
+                                    className="ios-input"
+                                    value={comments}
+                                    onChange={e => setComments(e.target.value)}
+                                    placeholder="Enter any additional comments"
+                                    rows="3"
+                                />
                             </div>
-                        </form>
+                        </div>
+                    </div>
+                    <div className="form-actions">
+                        <button type="submit" className="ios-button-primary" disabled={isSaving}>
+                            {isSaving ? 'Saving...' : item ? 'Update Item' : selectedPlantCodes.length > 0 ? `Add to ${selectedPlantCodes.length} Plant${selectedPlantCodes.length !== 1 ? 's' : ''}` : 'Add Item'}
+                        </button>
+                    </div>
+                </form>
                 {errors.description && <div className="error-message">{errors.description}</div>}
                 {errors.plantCode && <div className="error-message">{errors.plantCode}</div>}
             </AddViewSection>
-            {isPlantModalOpen && (
+            {isPlantModalOpen && canBypassPlantRestriction && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
                     onClose={() => setIsPlantModalOpen(false)}
                     onSelect={code => {
-                        setPlantCode(code);
-                        setIsPlantModalOpen(false);
+                        if (!item) {
+                            if (!selectedPlantCodes.includes(code)) {
+                                setSelectedPlantCodes(prev => [...prev, code]);
+                            }
+                        } else {
+                            setPlantCode(code);
+                            setIsPlantModalOpen(false);
+                        }
                     }}
                     plants={visiblePlants}
+                    allowMultiple={!item}
+                    selectedPlantCodes={selectedPlantCodes}
                 />
             )}
         </>

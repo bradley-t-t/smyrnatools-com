@@ -131,7 +131,7 @@ export default function Navigation({
                 return
             }
             try {
-                const regionsList = await RegionService.fetchRegions().catch(() => [])
+                const regionsList = await UserService.getPermittedRegions(userId).catch(() => [])
                 setPermittedRegions(regionsList)
 
                 if (!regionCode && regionsList.length) {
