@@ -3,7 +3,8 @@ import './styles/Navigation.css'
 import FlagSmyrnaLogo from '../../assets/images/FlagSmyrnaLogo.png'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
-import {RegionService} from "../../services/RegionService"
+import NotificationsModal from './NotificationsModal'
+import NotificationsService from '../../services/NotificationsService'
 
 const ANIMATION_TIMING = {
     ITEM_ENTER_DELAY: 750,
@@ -96,6 +97,50 @@ export default function Navigation({
     const enterTimeoutsRef = useRef([])
     const exitTimeoutsRef = useRef([])
     const assetsDropdownRef = useRef(null)
+    const [showNotifications, setShowNotifications] = useState(false)
+    const [notificationsCount, setNotificationsCount] = useState(0)
+    const [notificationsAnchor, setNotificationsAnchor] = useState(null)
+    const notifRetryTimeoutsRef = useRef([])
+    const notifSeqRef = useRef(0)
+
+    useEffect(() => {
+        let intervalId = null
+        const clearRetryTimers = () => {
+            notifRetryTimeoutsRef.current.forEach(t => clearTimeout(t))
+            notifRetryTimeoutsRef.current = []
+        }
+        const refresh = async () => {
+            const seq = ++notifSeqRef.current
+            try {
+                if (!userId) {
+                    if (notifSeqRef.current === seq) setNotificationsCount(0)
+                    return
+                }
+                const list = await NotificationsService.getNotifications(userId, preferences?.selectedRegion)
+                if (notifSeqRef.current === seq) setNotificationsCount(Array.isArray(list) ? list.length : 0)
+            } catch {
+                if (notifSeqRef.current === seq) setNotificationsCount(0)
+            }
+        }
+        refresh()
+        intervalId = window.setInterval(refresh, 60000)
+        const handler = () => {
+            clearRetryTimers()
+            refresh()
+            ;[250, 1000, 2000].forEach(delay => {
+                const t = setTimeout(() => { refresh() }, delay)
+                notifRetryTimeoutsRef.current.push(t)
+            })
+        }
+        window.addEventListener('notifications-refresh', handler)
+        window.addEventListener('region-changed', handler)
+        return () => {
+            if (intervalId) window.clearInterval(intervalId)
+            window.removeEventListener('notifications-refresh', handler)
+            window.removeEventListener('region-changed', handler)
+            clearRetryTimers()
+        }
+    }, [userId, preferences?.selectedRegion?.code])
 
     useEffect(() => {
         const handleStatusFilterChange = (event) => {
@@ -490,7 +535,7 @@ export default function Navigation({
                         )}
                     </select>
                     <div
-                        className={`menu-item ${selectedView === 'Settings' ? 'active' : ''}`}
+                        className={`menu-item settings-item ${selectedView === 'Settings' ? 'active' : ''}`}
                         onClick={() => handleMenuItemClick('Settings')}
                         title="Settings"
                     >
@@ -499,7 +544,7 @@ export default function Navigation({
                         </span>
                     </div>
                     <div
-                        className={`menu-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
+                        className={`menu-item account-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
                         onClick={() => handleMenuItemClick('MyAccount')}
                         title={userName ? `My Account - ${userName}` : 'My Account'}
                     >
@@ -507,9 +552,37 @@ export default function Navigation({
                             {getIconForMenuItem('MyAccount')}
                         </span>
                     </div>
+                    <div
+                        className={`menu-item notifications-item ${notificationsCount > 0 ? 'has-notifications' : ''}`}
+                        title="Notifications"
+                        aria-label="Notifications"
+                        onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            setNotificationsAnchor(rect)
+                            if (typeof window !== 'undefined') {
+                                try { window.dispatchEvent(new CustomEvent('notifications-refresh')) } catch {}
+                            }
+                            setShowNotifications(true)
+                        }}
+                    >
+                        <span className="menu-icon">
+                            <i className="fas fa-bell"></i>
+                        </span>
+                        {notificationsCount > 0 && (
+                            <span className="notification-badge">{notificationsCount}</span>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="content-area">{children}</div>
+            {showNotifications && (
+                <NotificationsModal isOpen={showNotifications} onClose={() => {
+                    setShowNotifications(false)
+                    if (typeof window !== 'undefined') {
+                        try { window.dispatchEvent(new CustomEvent('notifications-refresh')) } catch {}
+                    }
+                }} anchorRect={notificationsAnchor} />
+            )}
         </div>
     )
 }

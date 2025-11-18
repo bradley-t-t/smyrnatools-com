@@ -75,7 +75,7 @@ class EquipmentServiceImpl {
         return this.addEquipment(equipment, userId)
     }
 
-    static async updateEquipment(equipmentId, equipment, userId, prevEquipmentState = null) {
+    static async updateEquipment(equipmentId, equipment, userId, _prevEquipmentState = null) {
         const id = typeof equipmentId === 'object' ? equipmentId.id : equipmentId
         ValidationUtility.requireUUID(id, 'Equipment ID is required')
         if (!userId) {
@@ -93,7 +93,13 @@ class EquipmentServiceImpl {
             })
             throw new Error(json?.error || 'Failed to update equipment')
         }
-        return json?.data ? new Equipment(json.data) : null
+        const updated = json?.data ? new Equipment(json.data) : null
+        try {
+            if (updated && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('notifications-refresh', {detail: {type: 'equipment', id, plant: updated.assignedPlant}}))
+            }
+        } catch {}
+        return updated
     }
 
     static async deleteEquipment(id) {
@@ -263,6 +269,11 @@ class EquipmentServiceImpl {
         const {res, json} = await APIUtility.post('/equipment-service/verify', {id: equipmentId, userId})
         if (!res.ok) throw new Error(json?.error || 'Failed to verify equipment')
         const equipment = new Equipment(json?.data)
+        try {
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('notifications-refresh', {detail: {type: 'equipment', id: equipmentId, plant: equipment.assignedPlant}}))
+            }
+        } catch {}
         return this._attachIsVerified(equipment)
     }
 }

@@ -317,3 +317,115 @@
     padding: 0 24px;
     background-color: var(--bg-content);
 }
+
+.notifications-item {
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--error);
+    color: var(--text-light);
+    box-shadow: 0 0 0 2px var(--bg-navbar);
+    transform: translate(25%, -25%);
+}
+
+.notifications-item.has-notifications .menu-icon .fa-bell {
+    animation: bell-shake-periodic 5.5s ease-in-out infinite;
+    transform-origin: 50% 12%;
+    will-change: transform;
+}
+
+.notifications-item.has-notifications:hover .menu-icon .fa-bell {
+    animation: bell-shake-loop 1.2s ease-in-out infinite;
+}
+
+@keyframes bell-shake-periodic {
+    0%,
+    92% {
+        transform: rotate(0);
+    }
+    94% {
+        transform: rotate(-16deg);
+    }
+    96% {
+        transform: rotate(14deg);
+    }
+    98% {
+        transform: rotate(-10deg);
+    }
+    100% {
+        transform: rotate(0);
+    }
+}
+
+@keyframes bell-shake-loop {
+    0% {
+        transform: rotate(0);
+    }
+    20% {
+        transform: rotate(-16deg);
+    }
+    40% {
+        transform: rotate(12deg);
+    }
+    60% {
+        transform: rotate(-8deg);
+    }
+    80% {
+        transform: rotate(4deg);
+    }
+    100% {
+        transform: rotate(0);
+    }
+}
+
+.settings-item:hover .menu-icon i {
+    animation: icon-spin 1.2s linear infinite;
+}
+
+.settings-item .menu-icon i {
+    display: inline-block;
+    will-change: transform;
+}
+
+@keyframes icon-spin {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.account-item .menu-icon i {
+    display: inline-block;
+    will-change: transform;
+}
+
+.account-item:hover .menu-icon i {
+    animation: account-bob 1.1s linear infinite;
+}
+
+@keyframes account-bob {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}

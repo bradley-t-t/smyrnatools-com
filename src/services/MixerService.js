@@ -343,6 +343,11 @@ class MixerServiceImpl {
         const {res, json} = await APIUtility.post('/mixer-service/verify', {id: mixerId, userId})
         if (!res.ok) throw new Error(json?.error || 'Failed to verify mixer')
         const mixer = new Mixer(json?.data)
+        try {
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('notifications-refresh', {detail: {type: 'mixer', id: mixerId, plant: mixer.assignedPlant}}))
+            }
+        } catch {}
         return this._attachIsVerified(mixer)
     }
 }
