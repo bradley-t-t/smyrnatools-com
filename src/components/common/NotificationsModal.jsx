@@ -36,7 +36,8 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                 const uid = user?.id || null
                 const list = await NotificationsService.getNotifications(uid, preferences?.selectedRegion)
                 if (mounted) setItems(list)
-            } catch {}
+            } catch {
+            }
         }
         window.addEventListener('notifications-refresh', handler)
         window.addEventListener('region-changed', handler)
@@ -90,7 +91,8 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                                 </div>
                             ) : (
                                 items.map((n, idx) => (
-                                    <div key={n.id} className={`notification-item ${n.severity}`} style={{animationDelay: `${Math.min(idx, 6) * 30}ms`}}>
+                                    <div key={n.id} className={`notification-item ${n.severity}`}
+                                         style={{animationDelay: `${Math.min(idx, 6) * 30}ms`}}>
                                         <div className="notification-body">
                                             <div className="notification-title">{n.title}</div>
                                             <div className="notification-subtitle">{n.subtitle}</div>

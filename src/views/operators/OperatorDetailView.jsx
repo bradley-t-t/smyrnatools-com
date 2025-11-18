@@ -190,7 +190,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             setAssignedPlant(newPlantCode)
             setMessage(`Successfully transferred to ${newRegion.regionName}`)
             setTimeout(() => setMessage(''), 3000)
-            
+
             await fetchData()
         } catch (error) {
             console.error('Region transfer failed:', error)

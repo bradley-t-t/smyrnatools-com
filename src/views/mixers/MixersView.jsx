@@ -260,7 +260,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
 
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyMixer) return;
-        
+
         try {
             const updates = {};
             if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyMixer.vin || '')) {
@@ -281,20 +281,20 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
             if (verifyLastChipDate && verifyLastChipDate !== verifyMixer.lastChipDate) {
                 updates.lastChipDate = verifyLastChipDate;
             }
-            
+
             if (Object.keys(updates).length > 0) {
                 await MixerService.updateMixer(verifyMixer.id, updates);
             }
-            
+
             const verified = await MixerService.verifyMixer(verifyMixer.id);
-            
-            setMixers(prevMixers => prevMixers.map(m => 
+
+            setMixers(prevMixers => prevMixers.map(m =>
                 m.id === verifyMixer.id ? verified : m
             ));
-            setAllMixers(prevMixers => prevMixers.map(m => 
+            setAllMixers(prevMixers => prevMixers.map(m =>
                 m.id === verifyMixer.id ? verified : m
             ));
-            
+
             setShowVerifyModal(false);
             setVerifyMixer(null);
         } catch (error) {

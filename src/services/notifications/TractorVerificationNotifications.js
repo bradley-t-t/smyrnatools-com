@@ -38,6 +38,13 @@ async function getNotifications({userId, selectedRegion}) {
     const all = await TractorService.getAllTractors().catch(() => [])
     const tractors = (all || []).filter(t => String(t.status || '').toLowerCase() !== 'retired')
     const byPlant = new Map()
+    const now = new Date()
+    const centralParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now)
+    const mp = {}
+    centralParts.forEach(p=>{mp[p.type]=p.value})
+    const dayIndex = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(mp.weekday)
+    const hour = parseInt(mp.hour,10)
+    const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
     tractors.forEach(t => {
         const code = String(t.assignedPlant || '').toUpperCase()
         if (!scopedPlants.has(code)) return
@@ -48,11 +55,13 @@ async function getNotifications({userId, selectedRegion}) {
     byPlant.forEach((list, code) => {
         const unverifiedCount = list.reduce((acc, t) => acc + (!TractorUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy, t.latestHistoryDate) ? 1 : 0), 0)
         if (unverifiedCount > 0) {
+            const titlePhase = pastDue ? 'Past Due' : 'Due'
+            const severity = pastDue ? 'error' : 'warning'
             notifications.push({
                 id: `tractors-verify-${code}`,
-                title: `Plant ${code} Tractor Verifications Past Due`,
+                title: `Plant ${code} Tractor Verifications ${titlePhase}`,
                 subtitle: `This plant has ${unverifiedCount} unverified tractors.`,
-                severity: 'warning',
+                severity,
                 type: 'tractors.verifications',
                 plantCode: code
             })
@@ -61,4 +70,4 @@ async function getNotifications({userId, selectedRegion}) {
     return notifications
 }
 
-export default { id: 'tractors.verifications', getNotifications }
+export default {id: 'tractors.verifications', getNotifications}

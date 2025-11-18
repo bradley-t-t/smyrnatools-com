@@ -239,7 +239,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
 
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyTractor) return;
-        
+
         try {
             const updates = {};
             if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyTractor.vin || '')) {
@@ -257,20 +257,20 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
             if (verifyLastServiceDate && verifyLastServiceDate !== verifyTractor.lastServiceDate) {
                 updates.lastServiceDate = verifyLastServiceDate;
             }
-            
+
             if (Object.keys(updates).length > 0) {
                 await TractorService.updateTractor(verifyTractor.id, updates);
             }
-            
+
             const verified = await TractorService.verifyTractor(verifyTractor.id);
-            
-            setTractors(prevTractors => prevTractors.map(t => 
+
+            setTractors(prevTractors => prevTractors.map(t =>
                 t.id === verifyTractor.id ? verified : t
             ));
-            setAllTractors(prevTractors => prevTractors.map(t => 
+            setAllTractors(prevTractors => prevTractors.map(t =>
                 t.id === verifyTractor.id ? verified : t
             ));
-            
+
             setShowVerifyModal(false);
             setVerifyTractor(null);
         } catch (error) {

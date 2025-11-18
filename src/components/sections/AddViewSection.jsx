@@ -116,7 +116,7 @@ function AddViewSection({title, onClose, children, error, isListItem = false}) {
                 </div>
                 <div className="add-view-content-scrollable">
                     <div className="add-view-content">
-                        <ErrorMessage message={internalError} onDismiss={() => setInternalError(null)} />
+                        <ErrorMessage message={internalError} onDismiss={() => setInternalError(null)}/>
                         {children}
                     </div>
                 </div>

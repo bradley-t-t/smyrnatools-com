@@ -1,16 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import './styles/Reports.css';
 import ReportsSubmitView from './ReportsSubmitView';
 import ReportsReviewView from './ReportsReviewView';
-import { supabase } from '../../services/DatabaseService';
-import { UserService } from '../../services/UserService';
-import { ReportService } from '../../services/ReportService';
+import {supabase} from '../../services/DatabaseService';
+import {UserService} from '../../services/UserService';
+import {ReportService} from '../../services/ReportService';
 import LoadingScreen from '../../components/common/LoadingScreen';
-import { usePreferences } from '../../app/context/PreferencesContext';
-import { RegionService } from '../../services/RegionService';
-import { ReportUtility } from '../../utils/ReportUtility';
+import {usePreferences} from '../../app/context/PreferencesContext';
+import {RegionService} from '../../services/RegionService';
+import {ReportUtility} from '../../utils/ReportUtility';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
-import { reportTypeMap, reportTypes } from '../../types/ReportTypes';
+import {reportTypeMap, reportTypes} from '../../types/ReportTypes';
 
 const HARDCODED_TODAY = new Date();
 const REPORTS_START_DATE = new Date('2025-07-20');
@@ -38,7 +38,7 @@ function ReportsView() {
     const [isLoadingReview, setIsLoadingReview] = useState(true);
     const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
     const [reviewLoadedWeeks, setReviewLoadedWeeks] = useState(new Set());
-    const { preferences } = usePreferences();
+    const {preferences} = usePreferences();
     const [regionPlantCodes, setRegionPlantCodes] = useState(null);
     const [reporterPlantMap, setReporterPlantMap] = useState({});
     const [loadingReporterPlants, setLoadingReporterPlants] = useState(false);
@@ -58,19 +58,19 @@ function ReportsView() {
     async function fetchProfilesFor(userIds) {
         const missing = userIds.filter(id => !userProfiles[id]);
         if (missing.length === 0) return;
-        const { data: profiles, error } = await supabase
+        const {data: profiles, error} = await supabase
             .from('users_profiles')
             .select('id, first_name, last_name')
             .in('id', missing);
         if (!error && Array.isArray(profiles)) {
             setUserProfiles(prev => ({
                 ...prev,
-                ...profiles.reduce((map, p) => ({ ...map, [p.id]: p }), {})
+                ...profiles.reduce((map, p) => ({...map, [p.id]: p}), {})
             }));
         }
     }
 
-    async function fetchReportsBatch({ weeks, scope }) {
+    async function fetchReportsBatch({weeks, scope}) {
         if (!user || !Array.isArray(weeks) || weeks.length === 0) return;
         const isoList = weeks.map(w => new Date(w).toISOString());
         let query = supabase
@@ -90,7 +90,7 @@ function ReportsView() {
             query = query.neq('user_id', user.id).eq('completed', true);
             if (allowedReview.length > 0) query = query.in('report_name', allowedReview);
         }
-        const { data, error } = await query;
+        const {data, error} = await query;
         if (error) {
             setLoadError(error.message || 'Error fetching reports');
             return;
@@ -132,6 +132,7 @@ function ReportsView() {
                 setIsLoadingUser(false);
             }
         }
+
         init();
     }, []);
 
@@ -154,6 +155,7 @@ function ReportsView() {
             setHasReviewPermission(review);
             setIsLoadingPermissions(false);
         }
+
         checkAssignedAndReview();
     }, [user?.id]);
 
@@ -167,23 +169,26 @@ function ReportsView() {
 
     useEffect(() => {
         async function fetchPlants() {
-            const { data, error } = await supabase
+            const {data, error} = await supabase
                 .from('plants')
                 .select('plant_code,plant_name')
-                .order('plant_code', { ascending: true });
+                .order('plant_code', {ascending: true});
             setPlants(!error && Array.isArray(data) ? data.filter(p => p.plant_code && p.plant_name) : []);
         }
+
         fetchPlants();
     }, []);
 
     useEffect(() => {
         if (!user || isLoadingPermissions) return;
         const initialMyWeeks = ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY);
+
         async function loadInitial() {
             setIsLoadingMy(true);
-            await fetchReportsBatch({ weeks: initialMyWeeks, scope: 'my' });
+            await fetchReportsBatch({weeks: initialMyWeeks, scope: 'my'});
             setIsLoadingMy(false);
         }
+
         loadInitial();
     }, [user?.id, isLoadingPermissions, hasAssigned, regionType, refreshKey]);
 
@@ -196,19 +201,24 @@ function ReportsView() {
             return;
         }
         let cancelled = false;
+
         async function loadReview() {
             setIsLoadingReview(true);
-            await fetchReportsBatch({ weeks: toLoad, scope: 'review' });
+            await fetchReportsBatch({weeks: toLoad, scope: 'review'});
             if (!cancelled) setReviewLoadedWeeks(prev => new Set([...toLoad, ...prev]));
             setIsLoadingReview(false);
         }
+
         loadReview();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, [tab, user?.id, isLoadingPermissions, regionType, refreshKey]);
 
     useEffect(() => {
         const code = preferences.selectedRegion?.code || '';
         let cancelled = false;
+
         async function loadRegion() {
             if (!code) {
                 setRegionPlantCodes(null);
@@ -227,8 +237,11 @@ function ReportsView() {
                 setRegionType(null);
             }
         }
+
         loadRegion();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, [preferences.selectedRegion?.code, filterPlant]);
 
     useEffect(() => {
@@ -238,6 +251,7 @@ function ReportsView() {
         ])).filter(id => !(id in reporterPlantMap));
         if (ids.length === 0) return;
         let cancelled = false;
+
         async function loadReporterPlants() {
             setLoadingReporterPlants(true);
             try {
@@ -258,20 +272,27 @@ function ReportsView() {
                 if (!cancelled) setLoadingReporterPlants(false);
             }
         }
+
         loadReporterPlants();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, [localReports, user?.id, overdueItems]);
 
     useEffect(() => {
         if (tab !== 'overdue' || isLoadingPermissions) return;
         let cancelled = false;
+
         async function loadOverdue() {
             setIsLoadingOverdue(true);
             try {
                 const allowedReview = regionType === 'office'
                     ? (hasReviewPermission['general_manager'] ? ['general_manager'] : [])
                     : reportTypes.filter(rt => hasReviewPermission[rt.name] && rt.name !== 'general_manager').map(rt => rt.name);
-                const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, { force: false, allowedReview });
+                const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, {
+                    force: false,
+                    allowedReview
+                });
                 if (!cancelled) {
                     setOverdueItems(items || []);
                     const ids = Array.from(new Set((items || []).map(i => i.userId).filter(Boolean)));
@@ -283,8 +304,11 @@ function ReportsView() {
                 if (!cancelled) setIsLoadingOverdue(false);
             }
         }
+
         loadOverdue();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, [tab, isLoadingPermissions, hasReviewPermission, regionType, refreshKey]);
 
     useEffect(() => {
@@ -363,21 +387,21 @@ function ReportsView() {
             setLoadError('User not found');
             return;
         }
-        const { weekIso, name: reportName } = showForm;
+        const {weekIso, name: reportName} = showForm;
         const userId = user.id;
         const monday = weekIso ? new Date(weekIso) : null;
         const saturday = monday ? new Date(monday.getTime() + 5 * 24 * 60 * 60 * 1000) : null;
         const upsertData = {
             report_name: reportName,
             user_id: userId,
-            data: { ...formData, week: weekIso },
+            data: {...formData, week: weekIso},
             week: monday?.toISOString() || null,
             completed,
             submitted_at: new Date().toISOString(),
             report_date_range_start: monday?.toISOString() || null,
             report_date_range_end: saturday?.toISOString() || null
         };
-        const { data: existing, error: findError } = await supabase
+        const {data: existing, error: findError} = await supabase
             .from('reports')
             .select('id')
             .eq('report_name', reportName)
@@ -400,7 +424,7 @@ function ReportsView() {
                 .insert([upsertData])
                 .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
                 .single();
-        const { data, error } = response;
+        const {data, error} = response;
         if (error) {
             setLoadError(error.message || 'Error submitting report');
             return;
@@ -430,21 +454,21 @@ function ReportsView() {
             setLoadError('No user selected for manager edit');
             return;
         }
-        const { weekIso, name: reportName } = showForm;
+        const {weekIso, name: reportName} = showForm;
         const userId = managerEditUser;
         const monday = weekIso ? new Date(weekIso) : null;
         const saturday = monday ? new Date(monday.getTime() + 5 * 24 * 60 * 60 * 1000) : null;
         const upsertData = {
             report_name: reportName,
             user_id: userId,
-            data: { ...formData, week: weekIso },
+            data: {...formData, week: weekIso},
             week: monday?.toISOString() || null,
             completed: true,
             submitted_at: new Date().toISOString(),
             report_date_range_start: monday?.toISOString() || null,
             report_date_range_end: saturday?.toISOString() || null
         };
-        const { data: existing, error: findError } = await supabase
+        const {data: existing, error: findError} = await supabase
             .from('reports')
             .select('id')
             .eq('report_name', reportName)
@@ -467,7 +491,7 @@ function ReportsView() {
                 .insert([upsertData])
                 .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
                 .single();
-        const { data, error } = response;
+        const {data, error} = response;
         if (error) {
             setLoadError(error.message || 'Error submitting report');
             return;
@@ -495,12 +519,12 @@ function ReportsView() {
 
     async function handleReview(report) {
         if (report.userId !== user?.id) {
-            const { error } = await supabase
+            const {error} = await supabase
                 .from('reports')
-                .update({ been_reviewed: true })
+                .update({been_reviewed: true})
                 .eq('id', report.id);
             if (!error) {
-                setLocalReports(prev => prev.map(r => r.id === report.id ? { ...r, been_reviewed: true } : r));
+                setLocalReports(prev => prev.map(r => r.id === report.id ? {...r, been_reviewed: true} : r));
             }
         }
         setReviewData(report);
@@ -528,7 +552,7 @@ function ReportsView() {
             setShowForm(item);
             return;
         }
-        const { data, error } = await supabase
+        const {data, error} = await supabase
             .from('reports')
             .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
             .eq('report_name', item.name)
@@ -667,7 +691,7 @@ function ReportsView() {
                             <div className="rpts-list">
                                 {(isLoadingUser || isLoadingMy || isLoadingPermissions) && weeksToShow.length === 0 ? (
                                     <div className="rpts-loading">
-                                        <LoadingScreen message="Loading your reports..." inline />
+                                        <LoadingScreen message="Loading your reports..." inline/>
                                     </div>
                                 ) : (
                                     weeksToShow.length === 0 ? (
@@ -679,23 +703,30 @@ function ReportsView() {
                                         <div>
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
-                                                    <div style={{ width: '20%' }}>Week</div>
-                                                    <div style={{ width: '25%' }}>Report Type</div>
-                                                    <div style={{ width: '20%' }}>Status</div>
-                                                    <div style={{ width: '20%' }}>Due Date</div>
-                                                    <div style={{ width: '15%' }}>Actions</div>
+                                                    <div style={{width: '20%'}}>Week</div>
+                                                    <div style={{width: '25%'}}>Report Type</div>
+                                                    <div style={{width: '20%'}}>Status</div>
+                                                    <div style={{width: '20%'}}>Due Date</div>
+                                                    <div style={{width: '15%'}}>Actions</div>
                                                 </div>
                                             </div>
                                             <div className="rpt-table-wrapper">
                                                 <table className="rpt-table rpt-table-accent rpt-table-my-reports">
                                                     <tbody>
                                                     {myPaginatedItems.map((item, index) => {
-                                                        const { weekIso } = item;
-                                                        const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const {weekIso} = item;
+                                                        const {
+                                                            monday,
+                                                            saturday
+                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
                                                         const today = new Date();
                                                         const hasSavedData = !!(item.report && item.report.data);
-                                                        const { statusText, statusClass, buttonLabel } = ReportUtility.computeMyReportStatus({
+                                                        const {
+                                                            statusText,
+                                                            statusClass,
+                                                            buttonLabel
+                                                        } = ReportUtility.computeMyReportStatus({
                                                             completed: item.completed,
                                                             hasSavedData,
                                                             weekIso,
@@ -711,18 +742,21 @@ function ReportsView() {
                                                             <tr
                                                                 key={item.name + item.weekIso}
                                                                 className='rpt-row rpt-row-animated'
-                                                                style={{ animationDelay: `${index * delay}ms` }}
+                                                                style={{animationDelay: `${index * delay}ms`}}
                                                             >
                                                                 <td className="rpt-td rpt-week-td">
-                                                                    <span className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}
+                                                                    <span
+                                                                        className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}
                                                                 </td>
                                                                 <td className="rpt-td">{item.title}</td>
                                                                 <td className="rpt-td">
-                                                                    <span className={`rpts-status ${statusClass}`}>{statusText}</span>
+                                                                    <span
+                                                                        className={`rpts-status ${statusClass}`}>{statusText}</span>
                                                                 </td>
                                                                 <td className="rpt-td">{saturday.toLocaleDateString()}</td>
                                                                 <td className="rpt-td right">
-                                                                    <button className="rpts-list-action" onClick={() => handleShowForm(item)}>
+                                                                    <button className="rpts-list-action"
+                                                                            onClick={() => handleShowForm(item)}>
                                                                         {buttonLabel}
                                                                     </button>
                                                                 </td>
@@ -772,7 +806,7 @@ function ReportsView() {
                             <div className="rpts-list">
                                 {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || (isLoadingReview && visibleReviewReports.length === 0)) ? (
                                     <div className="rpts-loading">
-                                        <LoadingScreen message="Loading reports to review..." inline />
+                                        <LoadingScreen message="Loading reports to review..." inline/>
                                     </div>
                                 ) : (
                                     visibleReviewReports.length === 0 ? (
@@ -784,12 +818,12 @@ function ReportsView() {
                                         <div>
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
-                                                    <div style={{ width: '18%' }}>Week</div>
-                                                    <div style={{ width: '22%' }}>Report Type</div>
-                                                    <div style={{ width: '20%' }}>Submitted By</div>
-                                                    <div style={{ width: '16%' }}>Submitted Date</div>
-                                                    <div style={{ width: '12%' }}>Reviewed</div>
-                                                    <div style={{ width: '12%' }}>Actions</div>
+                                                    <div style={{width: '18%'}}>Week</div>
+                                                    <div style={{width: '22%'}}>Report Type</div>
+                                                    <div style={{width: '20%'}}>Submitted By</div>
+                                                    <div style={{width: '16%'}}>Submitted Date</div>
+                                                    <div style={{width: '12%'}}>Reviewed</div>
+                                                    <div style={{width: '12%'}}>Actions</div>
                                                 </div>
                                             </div>
                                             <div className="rpt-table-wrapper">
@@ -797,7 +831,10 @@ function ReportsView() {
                                                     <tbody>
                                                     {reviewPaginatedItems.map((report, index) => {
                                                         const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
-                                                        const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const {
+                                                            monday,
+                                                            saturday
+                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
                                                         const baseDelay = 80;
                                                         const minDelay = baseDelay / 2;
@@ -807,10 +844,11 @@ function ReportsView() {
                                                             <tr
                                                                 key={report.id}
                                                                 className='rpt-row rpt-row-animated'
-                                                                style={{ animationDelay: `${index * delay}ms` }}
+                                                                style={{animationDelay: `${index * delay}ms`}}
                                                             >
                                                                 <td className="rpt-td rpt-week-td">
-                                                                        <span className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
+                                                                        <span
+                                                                            className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
                                                                             {ReportUtility.getWeekBadge(weekIso)}
                                                                         </span> {weekRange}
                                                                 </td>
@@ -824,12 +862,14 @@ function ReportsView() {
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <i className="fas fa-flag rpts-reviewed-flag"></i> Not Reviewed
+                                                                            <i className="fas fa-flag rpts-reviewed-flag"></i> Not
+                                                                            Reviewed
                                                                         </>
                                                                     )}
                                                                 </td>
                                                                 <td className="rpt-td right">
-                                                                    <button className="rpts-list-action" onClick={() => handleReview(report)}>
+                                                                    <button className="rpts-list-action"
+                                                                            onClick={() => handleReview(report)}>
                                                                         Review
                                                                     </button>
                                                                 </td>
@@ -879,7 +919,7 @@ function ReportsView() {
                             <div className="rpts-list">
                                 {(isLoadingUser || isLoadingPermissions || isLoadingOverdue || loadingReporterPlants) ? (
                                     <div className="rpts-loading">
-                                        <LoadingScreen message="Loading overdue reports..." inline />
+                                        <LoadingScreen message="Loading overdue reports..." inline/>
                                     </div>
                                 ) : (
                                     filteredOverdueItems.length === 0 ? (
@@ -891,18 +931,21 @@ function ReportsView() {
                                         <div>
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
-                                                    <div style={{ width: '22%' }}>Week</div>
-                                                    <div style={{ width: '26%' }}>Report Type</div>
-                                                    <div style={{ width: '26%' }}>Owed By</div>
-                                                    <div style={{ width: '26%' }}>Due Date</div>
+                                                    <div style={{width: '22%'}}>Week</div>
+                                                    <div style={{width: '26%'}}>Report Type</div>
+                                                    <div style={{width: '26%'}}>Owed By</div>
+                                                    <div style={{width: '26%'}}>Due Date</div>
                                                 </div>
                                             </div>
                                             <div className="rpt-table-wrapper">
                                                 <table className="rpt-table rpt-table-accent rpt-table-overdue">
                                                     <tbody>
                                                     {overduePaginatedItems.map((item, index) => {
-                                                        const { week: weekIso } = item;
-                                                        const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const {week: weekIso} = item;
+                                                        const {
+                                                            monday,
+                                                            saturday
+                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
                                                         const title = (reportTypeMap[item.report_name] || {}).title || item.report_name;
                                                         const baseDelay = 80;
@@ -913,10 +956,11 @@ function ReportsView() {
                                                             <tr
                                                                 key={`${item.userId}-${item.report_name}-${item.week}`}
                                                                 className='rpt-row rpt-row-animated'
-                                                                style={{ animationDelay: `${index * delay}ms` }}
+                                                                style={{animationDelay: `${index * delay}ms`}}
                                                             >
                                                                 <td className="rpt-td rpt-week-td">
-                                                                        <span className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
+                                                                        <span
+                                                                            className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
                                                                             {ReportUtility.getWeekBadge(weekIso)}
                                                                         </span> {weekRange}
                                                                 </td>
@@ -970,7 +1014,10 @@ function ReportsView() {
             )}
             {showForm && (
                 <ReportsSubmitView
-                    report={reportTypeMap[showForm.name] ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso } : showForm}
+                    report={reportTypeMap[showForm.name] ? {
+                        ...reportTypeMap[showForm.name],
+                        weekIso: showForm.weekIso
+                    } : showForm}
                     initialData={submitInitialData}
                     onBack={() => {
                         setShowForm(null);

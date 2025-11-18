@@ -183,39 +183,39 @@ export default function DashboardView() {
 
         if (rangeEnd) {
             let earliestDataDate = null;
-            
+
             if (historyRecords.length > 0) {
                 earliestDataDate = historyRecords
                     .filter(h => h.changed_at)
                     .map(h => new Date(h.changed_at))
                     .sort((a, b) => a - b)[0];
             }
-            
+
             const earliestAssetCreationDate = assets
                 .map(a => a.createdAt || a.created_at)
                 .filter(d => d)
                 .map(d => new Date(d))
                 .sort((a, b) => a - b)[0];
-            
+
             if (earliestAssetCreationDate) {
                 if (!earliestDataDate || earliestAssetCreationDate < earliestDataDate) {
                     earliestDataDate = earliestAssetCreationDate;
                 }
             }
-            
+
             if (earliestDataDate && rangeEnd < earliestDataDate) {
                 return [];
             }
         }
 
         assets.forEach(asset => {
-            let assetHistory = historyRecords.filter(h => 
-                h.mixer_id === asset.id || 
-                h.tractor_id === asset.id || 
-                h.trailer_id === asset.id || 
-                h.equipment_id === asset.id || 
+            let assetHistory = historyRecords.filter(h =>
+                h.mixer_id === asset.id ||
+                h.tractor_id === asset.id ||
+                h.trailer_id === asset.id ||
+                h.equipment_id === asset.id ||
                 h.truck_id === asset.id
-            ).filter(h => h.field_name === 'status').sort((a, b) => 
+            ).filter(h => h.field_name === 'status').sort((a, b) =>
                 new Date(a.changed_at) - new Date(b.changed_at)
             )
 
@@ -227,7 +227,7 @@ export default function DashboardView() {
                 return;
             }
 
-            const earliestAssetHistory = assetHistory.length > 0 
+            const earliestAssetHistory = assetHistory.length > 0
                 ? new Date(assetHistory[0].changed_at)
                 : null;
 
@@ -239,14 +239,14 @@ export default function DashboardView() {
                 return;
             }
 
-            let effectiveStart = rangeStart 
+            let effectiveStart = rangeStart
                 ? (assetCreationDate && assetCreationDate > rangeStart ? assetCreationDate : rangeStart)
                 : (assetCreationDate || new Date())
-            
+
             if (earliestAssetHistory && assetHistory.length > 0 && effectiveStart < earliestAssetHistory) {
                 effectiveStart = earliestAssetHistory;
             }
-            
+
             const effectiveEnd = rangeEnd
 
             if (effectiveStart > effectiveEnd) {
@@ -255,7 +255,7 @@ export default function DashboardView() {
 
             let startingStatus = currentStatus;
             let endingStatus = currentStatus;
-            
+
             if (assetHistory.length > 0) {
                 if (rangeStart) {
                     const recordsBeforeOrAtStart = assetHistory.filter(h => new Date(h.changed_at) <= rangeStart);
@@ -266,7 +266,7 @@ export default function DashboardView() {
                         startingStatus = assetHistory[0].old_value || currentStatus;
                     }
                 }
-                
+
                 if (rangeEnd) {
                     const recordsBeforeOrAtEnd = assetHistory.filter(h => new Date(h.changed_at) <= rangeEnd);
                     if (recordsBeforeOrAtEnd.length > 0) {
@@ -278,11 +278,11 @@ export default function DashboardView() {
                 }
             }
 
-            const recordsInRange = rangeStart && rangeEnd 
+            const recordsInRange = rangeStart && rangeEnd
                 ? assetHistory.filter(h => {
                     const changedAt = new Date(h.changed_at);
                     return changedAt > rangeStart && changedAt <= rangeEnd;
-                  })
+                })
                 : assetHistory;
 
             if (recordsInRange.length === 0) {
@@ -296,7 +296,7 @@ export default function DashboardView() {
                 recordsInRange.forEach(historyEntry => {
                     const changeDate = new Date(historyEntry.changed_at)
                     const daysDiff = Math.round((changeDate - previousDate) / (1000 * 60 * 60 * 24))
-                    
+
                     if (daysDiff > 0) {
                         statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + daysDiff
                         totalDays += daysDiff
@@ -945,7 +945,7 @@ export default function DashboardView() {
                 setHistoryStartDate(oldestDateStr)
                 setHistoryEndDate(todayStr)
             }
-            
+
             setOldestHistoryDate(oldestDateStr)
 
             const startFilter = historyStartDate || oldestDateStr
@@ -980,12 +980,12 @@ export default function DashboardView() {
             const today = new Date().toISOString().split('T')[0];
             let validatedStartDate = historyStartDate;
             let validatedEndDate = historyEndDate;
-            
+
             if (historyEndDate > today) {
                 validatedEndDate = today;
                 setHistoryEndDate(today);
             }
-            
+
             if (historyStartDate >= validatedEndDate) {
                 const endDate = new Date(validatedEndDate);
                 endDate.setDate(endDate.getDate() - 1);
@@ -1016,35 +1016,35 @@ export default function DashboardView() {
             const filteredTrailers = allTrailersRef.current.filter(t => t.status !== 'Retired' && consider(t.plantCode))
             const filteredEquipment = allEquipmentRef.current.filter(e => e.status !== 'Retired' && consider(e.plantCode))
             const filteredPickups = allPickupsRef.current.filter(p => p.status !== 'Retired' && consider(p.plantCode))
-            
+
             const mixersData = calculateStatusDistribution(
-                filteredMixers, 
-                historyRecordsRef.current.mixers, 
-                validatedStartDate, 
+                filteredMixers,
+                historyRecordsRef.current.mixers,
+                validatedStartDate,
                 validatedEndDate
             )
             const tractorsData = calculateStatusDistribution(
-                filteredTractors, 
-                historyRecordsRef.current.tractors, 
-                validatedStartDate, 
+                filteredTractors,
+                historyRecordsRef.current.tractors,
+                validatedStartDate,
                 validatedEndDate
             )
             const trailersData = calculateStatusDistribution(
-                filteredTrailers, 
-                historyRecordsRef.current.trailers, 
-                validatedStartDate, 
+                filteredTrailers,
+                historyRecordsRef.current.trailers,
+                validatedStartDate,
                 validatedEndDate
             )
             const equipmentData = calculateStatusDistribution(
-                filteredEquipment, 
-                historyRecordsRef.current.equipment, 
-                validatedStartDate, 
+                filteredEquipment,
+                historyRecordsRef.current.equipment,
+                validatedStartDate,
                 validatedEndDate
             )
             const pickupsData = calculateStatusDistribution(
-                filteredPickups, 
-                historyRecordsRef.current.pickups, 
-                validatedStartDate, 
+                filteredPickups,
+                historyRecordsRef.current.pickups,
+                validatedStartDate,
                 validatedEndDate
             )
 
@@ -1086,13 +1086,13 @@ export default function DashboardView() {
         setRefreshKey(prev => prev + 1);
         setTimeout(() => setRefreshing(false), 1000);
     }
-    
+
     const handleQuickDateFilter = (filter) => {
         const today = new Date()
         const todayStr = today.toISOString().split('T')[0]
         let startDate = ''
-        
-        switch(filter) {
+
+        switch (filter) {
             case 'last-week': {
                 const lastWeekStart = new Date(today)
                 lastWeekStart.setDate(today.getDate() - 7)
@@ -1175,7 +1175,7 @@ export default function DashboardView() {
                 break
         }
     }
-    
+
     const timeAgo = d => {
         if (!d) return ''
         const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000)
@@ -1256,8 +1256,10 @@ export default function DashboardView() {
             <div className="dashboard-hero simple slide-in-hero">
                 <div className="hero-left">
                     <div className="hero-region">
-                        <div className="hero-region-name">{showSkeleton ? <div className="skeleton-line w60"/> : regionDisplayName}</div>
-                        <div className="hero-region-sub">{showSkeleton ? <div className="skeleton-line w40"/> : heroRegionSub}</div>
+                        <div className="hero-region-name">{showSkeleton ?
+                            <div className="skeleton-line w60"/> : regionDisplayName}</div>
+                        <div className="hero-region-sub">{showSkeleton ?
+                            <div className="skeleton-line w40"/> : heroRegionSub}</div>
                     </div>
                     <div className="hero-metrics compact">
                         {showSkeleton ? (
@@ -1398,7 +1400,8 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                 )}
-                                <div className={`kpi-card slide-in-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}>
+                                <div
+                                    className={`kpi-card slide-in-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}>
                                     <div className="kpi-title">Tractors</div>
                                     <div className="kpi-value">{stats.tractors.total}</div>
                                     <div className="kpi-row">
@@ -1606,78 +1609,78 @@ export default function DashboardView() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="status-bars-section">
                                 <div className="status-bars-header">
                                     <h3 className="status-bars-title">Historical Status Distribution</h3>
                                     <div className="status-bars-date-range">
                                         <div className="date-quick-filters">
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('last-week')}
                                                 title="Last 7 days"
                                             >
                                                 Last Week
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('this-week')}
                                                 title="Since Sunday"
                                             >
                                                 This Week
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('last-month')}
                                                 title="Last 30 days"
                                             >
                                                 Last Month
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('this-month')}
                                                 title="Since 1st of this month"
                                             >
                                                 This Month
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('this-quarter')}
                                                 title="Since start of current quarter"
                                             >
                                                 This Quarter
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('last-quarter')}
                                                 title="Previous quarter period"
                                             >
                                                 Last Quarter
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('this-year')}
                                                 title="Since January 1st of this year"
                                             >
                                                 This Year
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('last-year')}
                                                 title="Entire previous year"
                                             >
                                                 Last Year
                                             </button>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="date-filter-btn"
                                                 onClick={() => handleQuickDateFilter('all')}
                                                 title="All history"
@@ -1704,7 +1707,7 @@ export default function DashboardView() {
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="compact-metrics-container">
                                     {(() => {
                                         const calculateMetrics = (data) => {
@@ -1712,46 +1715,56 @@ export default function DashboardView() {
                                             const spare = data.find(d => d.status === 'Spare')?.days || 0
                                             const inShop = data.find(d => d.status === 'In Shop')?.days || 0
                                             const total = data.reduce((sum, d) => sum + d.days, 0)
-                                            
+
                                             return {
                                                 active: total > 0 ? Math.round((active / total) * 100) : 0,
                                                 spare: total > 0 ? Math.round((spare / total) * 100) : 0,
                                                 inShop: total > 0 ? Math.round((inShop / total) * 100) : 0
                                             }
                                         }
-                                        
+
                                         const mixersMetrics = calculateMetrics(statusHistoryData.mixers)
                                         const tractorsMetrics = calculateMetrics(statusHistoryData.tractors)
                                         const trailersMetrics = calculateMetrics(statusHistoryData.trailers)
                                         const equipmentMetrics = calculateMetrics(statusHistoryData.equipment)
                                         const pickupsMetrics = calculateMetrics(statusHistoryData.pickups)
-                                        
+
                                         const metricsWithData = [
-                                            { metrics: mixersMetrics, hasData: statusHistoryData.mixers.length > 0 },
-                                            { metrics: tractorsMetrics, hasData: statusHistoryData.tractors.length > 0 },
-                                            { metrics: trailersMetrics, hasData: statusHistoryData.trailers.length > 0 },
-                                            { metrics: equipmentMetrics, hasData: statusHistoryData.equipment.length > 0 },
-                                            { metrics: pickupsMetrics, hasData: statusHistoryData.pickups.length > 0 }
+                                            {metrics: mixersMetrics, hasData: statusHistoryData.mixers.length > 0},
+                                            {metrics: tractorsMetrics, hasData: statusHistoryData.tractors.length > 0},
+                                            {metrics: trailersMetrics, hasData: statusHistoryData.trailers.length > 0},
+                                            {
+                                                metrics: equipmentMetrics,
+                                                hasData: statusHistoryData.equipment.length > 0
+                                            },
+                                            {metrics: pickupsMetrics, hasData: statusHistoryData.pickups.length > 0}
                                         ].filter(m => m.hasData)
-                                        
+
                                         const count = metricsWithData.length || 1
                                         const avgActive = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.active, 0) / count)
                                         const avgSpare = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.spare, 0) / count)
                                         const avgInShop = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.inShop, 0) / count)
-                                        
+
                                         const assetData = [
-                                            { name: 'Overall', ...{active: avgActive, spare: avgSpare, inShop: avgInShop}, isOverall: true },
-                                            { name: 'Mixers', ...mixersMetrics },
-                                            { name: 'Tractors', ...tractorsMetrics },
-                                            { name: 'Trailers', ...trailersMetrics },
-                                            { name: 'Equipment', ...equipmentMetrics },
-                                            { name: 'Pickups', ...pickupsMetrics }
+                                            {
+                                                name: 'Overall', ...{
+                                                    active: avgActive,
+                                                    spare: avgSpare,
+                                                    inShop: avgInShop
+                                                }, isOverall: true
+                                            },
+                                            {name: 'Mixers', ...mixersMetrics},
+                                            {name: 'Tractors', ...tractorsMetrics},
+                                            {name: 'Trailers', ...trailersMetrics},
+                                            {name: 'Equipment', ...equipmentMetrics},
+                                            {name: 'Pickups', ...pickupsMetrics}
                                         ]
-                                        
+
                                         return (
                                             <div className="compact-metrics-grid">
                                                 {assetData.map((asset, idx) => (
-                                                    <div key={idx} className={`compact-metric-card ${asset.isOverall ? 'overall-metric' : ''}`}>
+                                                    <div key={idx}
+                                                         className={`compact-metric-card ${asset.isOverall ? 'overall-metric' : ''}`}>
                                                         <div className="metric-card-header">{asset.name}</div>
                                                         <div className="metric-card-stats">
                                                             <div className="metric-stat active-stat">
@@ -1773,175 +1786,222 @@ export default function DashboardView() {
                                         )
                                     })()}
                                 </div>
-                                
+
                                 <div className="status-bars-wrapper">
-                                {(() => {
-                                    const getStatusColor = (status) => {
-                                        switch(status) {
-                                            case 'Active': return 'var(--success)';
-                                            case 'Spare': return '#9333ea';
-                                            case 'In Shop': return '#3b82f6';
-                                            case 'Stationary': return '#eab308';
-                                            case 'Sold': return '#6b7280';
-                                            case 'Retired': return 'var(--error)';
-                                            default: return 'var(--accent)';
-                                        }
-                                    };
-                                    
-                                    const sortStatuses = (data) => {
-                                        const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold', 'Retired'];
-                                        return [...data].sort((a, b) => {
-                                            const indexA = order.indexOf(a.status);
-                                            const indexB = order.indexOf(b.status);
-                                            if (indexA === -1 && indexB === -1) return 0;
-                                            if (indexA === -1) return 1;
-                                            if (indexB === -1) return -1;
-                                            return indexA - indexB;
-                                        });
-                                    };
-                                    
-                                    return (
-                                        <>
-                                        {!isAggregate && (
-                                            <div className="asset-status-bar-row">
-                                                <div className="asset-status-label">Mixers</div>
-                                                <div className="asset-status-bar">
-                                                    {statusHistoryData.mixers.length > 0 ? (
-                                                        sortStatuses(statusHistoryData.mixers)
-                                                            .filter(item => parseFloat(item.percentage) > 0)
-                                                            .map((item, index) => (
-                                                                <div 
-                                                                    key={index}
-                                                                    className="status-segment" 
-                                                                    style={{
-                                                                        width: `${item.percentage}%`,
-                                                                        background: getStatusColor(item.status)
-                                                                    }}
-                                                                    title={`${item.status}: ${item.percentage}%`}
-                                                                >
-                                                                    {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                    {(() => {
+                                        const getStatusColor = (status) => {
+                                            switch (status) {
+                                                case 'Active':
+                                                    return 'var(--success)';
+                                                case 'Spare':
+                                                    return '#9333ea';
+                                                case 'In Shop':
+                                                    return '#3b82f6';
+                                                case 'Stationary':
+                                                    return '#eab308';
+                                                case 'Sold':
+                                                    return '#6b7280';
+                                                case 'Retired':
+                                                    return 'var(--error)';
+                                                default:
+                                                    return 'var(--accent)';
+                                            }
+                                        };
+
+                                        const sortStatuses = (data) => {
+                                            const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold', 'Retired'];
+                                            return [...data].sort((a, b) => {
+                                                const indexA = order.indexOf(a.status);
+                                                const indexB = order.indexOf(b.status);
+                                                if (indexA === -1 && indexB === -1) return 0;
+                                                if (indexA === -1) return 1;
+                                                if (indexB === -1) return -1;
+                                                return indexA - indexB;
+                                            });
+                                        };
+
+                                        return (
+                                            <>
+                                                {!isAggregate && (
+                                                    <div className="asset-status-bar-row">
+                                                        <div className="asset-status-label">Mixers</div>
+                                                        <div className="asset-status-bar">
+                                                            {statusHistoryData.mixers.length > 0 ? (
+                                                                sortStatuses(statusHistoryData.mixers)
+                                                                    .filter(item => parseFloat(item.percentage) > 0)
+                                                                    .map((item, index) => (
+                                                                        <div
+                                                                            key={index}
+                                                                            className="status-segment"
+                                                                            style={{
+                                                                                width: `${item.percentage}%`,
+                                                                                background: getStatusColor(item.status)
+                                                                            }}
+                                                                            title={`${item.status}: ${item.percentage}%`}
+                                                                        >
+                                                                            {parseFloat(item.percentage) > 10 &&
+                                                                                <span>{item.percentage}%</span>}
+                                                                        </div>
+                                                                    ))
+                                                            ) : (
+                                                                <div className="status-segment" style={{
+                                                                    width: '100%',
+                                                                    background: 'var(--divider)',
+                                                                    justifyContent: 'center'
+                                                                }}>
+                                                                    <span style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        fontSize: '0.75rem'
+                                                                    }}>No data</span>
                                                                 </div>
-                                                            ))
-                                                    ) : (
-                                                        <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
-                                                            <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                            )}
                                                         </div>
-                                                    )}
+                                                    </div>
+                                                )}
+
+                                                <div className="asset-status-bar-row">
+                                                    <div className="asset-status-label">Tractors</div>
+                                                    <div className="asset-status-bar">
+                                                        {statusHistoryData.tractors.length > 0 ? (
+                                                            sortStatuses(statusHistoryData.tractors)
+                                                                .filter(item => parseFloat(item.percentage) > 0)
+                                                                .map((item, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="status-segment"
+                                                                        style={{
+                                                                            width: `${item.percentage}%`,
+                                                                            background: getStatusColor(item.status)
+                                                                        }}
+                                                                        title={`${item.status}: ${item.percentage}%`}
+                                                                    >
+                                                                        {parseFloat(item.percentage) > 10 &&
+                                                                            <span>{item.percentage}%</span>}
+                                                                    </div>
+                                                                ))
+                                                        ) : (
+                                                            <div className="status-segment" style={{
+                                                                width: '100%',
+                                                                background: 'var(--divider)',
+                                                                justifyContent: 'center'
+                                                            }}>
+                                                                <span style={{
+                                                                    color: 'var(--text-secondary)',
+                                                                    fontSize: '0.75rem'
+                                                                }}>No data</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                
-                                        <div className="asset-status-bar-row">
-                                            <div className="asset-status-label">Tractors</div>
-                                            <div className="asset-status-bar">
-                                                {statusHistoryData.tractors.length > 0 ? (
-                                                    sortStatuses(statusHistoryData.tractors)
-                                                        .filter(item => parseFloat(item.percentage) > 0)
-                                                        .map((item, index) => (
-                                                            <div 
-                                                                key={index}
-                                                                className="status-segment" 
-                                                                style={{
-                                                                    width: `${item.percentage}%`,
-                                                                    background: getStatusColor(item.status)
-                                                                }}
-                                                                title={`${item.status}: ${item.percentage}%`}
-                                                            >
-                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+
+                                                <div className="asset-status-bar-row">
+                                                    <div className="asset-status-label">Trailers</div>
+                                                    <div className="asset-status-bar">
+                                                        {statusHistoryData.trailers.length > 0 ? (
+                                                            sortStatuses(statusHistoryData.trailers)
+                                                                .filter(item => parseFloat(item.percentage) > 0)
+                                                                .map((item, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="status-segment"
+                                                                        style={{
+                                                                            width: `${item.percentage}%`,
+                                                                            background: getStatusColor(item.status)
+                                                                        }}
+                                                                        title={`${item.status}: ${item.percentage}%`}
+                                                                    >
+                                                                        {parseFloat(item.percentage) > 10 &&
+                                                                            <span>{item.percentage}%</span>}
+                                                                    </div>
+                                                                ))
+                                                        ) : (
+                                                            <div className="status-segment" style={{
+                                                                width: '100%',
+                                                                background: 'var(--divider)',
+                                                                justifyContent: 'center'
+                                                            }}>
+                                                                <span style={{
+                                                                    color: 'var(--text-secondary)',
+                                                                    fontSize: '0.75rem'
+                                                                }}>No data</span>
                                                             </div>
-                                                        ))
-                                                ) : (
-                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
-                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                
-                                        <div className="asset-status-bar-row">
-                                            <div className="asset-status-label">Trailers</div>
-                                            <div className="asset-status-bar">
-                                                {statusHistoryData.trailers.length > 0 ? (
-                                                    sortStatuses(statusHistoryData.trailers)
-                                                        .filter(item => parseFloat(item.percentage) > 0)
-                                                        .map((item, index) => (
-                                                            <div 
-                                                                key={index}
-                                                                className="status-segment" 
-                                                                style={{
-                                                                    width: `${item.percentage}%`,
-                                                                    background: getStatusColor(item.status)
-                                                                }}
-                                                                title={`${item.status}: ${item.percentage}%`}
-                                                            >
-                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                </div>
+
+                                                <div className="asset-status-bar-row">
+                                                    <div className="asset-status-label">Equipment</div>
+                                                    <div className="asset-status-bar">
+                                                        {statusHistoryData.equipment.length > 0 ? (
+                                                            sortStatuses(statusHistoryData.equipment)
+                                                                .filter(item => parseFloat(item.percentage) > 0)
+                                                                .map((item, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="status-segment"
+                                                                        style={{
+                                                                            width: `${item.percentage}%`,
+                                                                            background: getStatusColor(item.status)
+                                                                        }}
+                                                                        title={`${item.status}: ${item.percentage}%`}
+                                                                    >
+                                                                        {parseFloat(item.percentage) > 10 &&
+                                                                            <span>{item.percentage}%</span>}
+                                                                    </div>
+                                                                ))
+                                                        ) : (
+                                                            <div className="status-segment" style={{
+                                                                width: '100%',
+                                                                background: 'var(--divider)',
+                                                                justifyContent: 'center'
+                                                            }}>
+                                                                <span style={{
+                                                                    color: 'var(--text-secondary)',
+                                                                    fontSize: '0.75rem'
+                                                                }}>No data</span>
                                                             </div>
-                                                        ))
-                                                ) : (
-                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
-                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                
-                                        <div className="asset-status-bar-row">
-                                            <div className="asset-status-label">Equipment</div>
-                                            <div className="asset-status-bar">
-                                                {statusHistoryData.equipment.length > 0 ? (
-                                                    sortStatuses(statusHistoryData.equipment)
-                                                        .filter(item => parseFloat(item.percentage) > 0)
-                                                        .map((item, index) => (
-                                                            <div 
-                                                                key={index}
-                                                                className="status-segment" 
-                                                                style={{
-                                                                    width: `${item.percentage}%`,
-                                                                    background: getStatusColor(item.status)
-                                                                }}
-                                                                title={`${item.status}: ${item.percentage}%`}
-                                                            >
-                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
+                                                </div>
+
+                                                <div className="asset-status-bar-row">
+                                                    <div className="asset-status-label">Pickup Trucks</div>
+                                                    <div className="asset-status-bar">
+                                                        {statusHistoryData.pickups.length > 0 ? (
+                                                            sortStatuses(statusHistoryData.pickups)
+                                                                .filter(item => parseFloat(item.percentage) > 0)
+                                                                .map((item, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="status-segment"
+                                                                        style={{
+                                                                            width: `${item.percentage}%`,
+                                                                            background: getStatusColor(item.status)
+                                                                        }}
+                                                                        title={`${item.status}: ${item.percentage}%`}
+                                                                    >
+                                                                        {parseFloat(item.percentage) > 10 &&
+                                                                            <span>{item.percentage}%</span>}
+                                                                    </div>
+                                                                ))
+                                                        ) : (
+                                                            <div className="status-segment" style={{
+                                                                width: '100%',
+                                                                background: 'var(--divider)',
+                                                                justifyContent: 'center'
+                                                            }}>
+                                                                <span style={{
+                                                                    color: 'var(--text-secondary)',
+                                                                    fontSize: '0.75rem'
+                                                                }}>No data</span>
                                                             </div>
-                                                        ))
-                                                ) : (
-                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
-                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                
-                                        <div className="asset-status-bar-row">
-                                            <div className="asset-status-label">Pickup Trucks</div>
-                                            <div className="asset-status-bar">
-                                                {statusHistoryData.pickups.length > 0 ? (
-                                                    sortStatuses(statusHistoryData.pickups)
-                                                        .filter(item => parseFloat(item.percentage) > 0)
-                                                        .map((item, index) => (
-                                                            <div 
-                                                                key={index}
-                                                                className="status-segment" 
-                                                                style={{
-                                                                    width: `${item.percentage}%`,
-                                                                    background: getStatusColor(item.status)
-                                                                }}
-                                                                title={`${item.status}: ${item.percentage}%`}
-                                                            >
-                                                                {parseFloat(item.percentage) > 10 && <span>{item.percentage}%</span>}
-                                                            </div>
-                                                        ))
-                                                ) : (
-                                                    <div className="status-segment" style={{width: '100%', background: 'var(--divider)', justifyContent: 'center'}}>
-                                                        <span style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>No data</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        </>
-                                    );
-                                })()}
-                            </div>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
                             </div>
                         </div>
                     </div>

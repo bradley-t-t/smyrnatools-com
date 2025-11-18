@@ -74,7 +74,8 @@ class RegionServiceImpl {
                         plantName: row.plant_name
                     }))
                 }
-            } catch (e) {}
+            } catch (e) {
+            }
             attempt += 1
             const delay = Math.min(4000, 500 * 2 ** (attempt - 1))
             await new Promise(r => setTimeout(r, delay))

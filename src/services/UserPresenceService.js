@@ -122,7 +122,7 @@ class UserPresenceService {
                             return null;
                         })
                     ])
-                    
+
                     let roleNames = []
                     if (Array.isArray(rolesData)) {
                         roleNames = rolesData
@@ -155,7 +155,7 @@ class UserPresenceService {
                         }
                     } else {
                     }
-                    
+
                     users.push({
                         id: presence.user_id,
                         name,

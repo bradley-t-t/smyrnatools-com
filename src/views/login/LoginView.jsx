@@ -86,7 +86,7 @@ function LoginView() {
             const userAgent = navigator.userAgent
             const sessionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
             sessionStorage.setItem('sessionId', sessionId)
-            
+
             await supabase.from('users_sessions').upsert({
                 id: sessionId,
                 user_id: userId,
@@ -96,7 +96,7 @@ function LoginView() {
                 user_agent: userAgent,
                 last_active: new Date().toISOString(),
                 created_at: new Date().toISOString()
-            }, { onConflict: 'id' })
+            }, {onConflict: 'id'})
         } catch (error) {
             console.error('Failed to create session:', error)
         }
@@ -140,12 +140,12 @@ function LoginView() {
                     throw new Error('First and last name must be strings after normalization');
                 }
                 await signUp(email, password, normFirst, normLast);
-                
+
                 const userId = sessionStorage.getItem('userId')
                 if (userId) {
                     await createSession(userId)
                 }
-                
+
                 setErrorMessage('');
                 setSuccessMessage('Account created successfully. Redirecting...');
                 setTimeout(() => forceReload(), 1000);
@@ -157,12 +157,12 @@ function LoginView() {
                     return;
                 }
                 await signIn(email, password);
-                
+
                 const userId = sessionStorage.getItem('userId')
                 if (userId) {
                     await createSession(userId)
                 }
-                
+
                 setErrorMessage('');
                 setSuccessMessage('Signed in successfully. Redirecting...');
                 setTimeout(() => forceReload(), 800);

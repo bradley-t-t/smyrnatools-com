@@ -788,7 +788,10 @@ Deno.serve(async (req) => {
                     updated_last: nowIso(),
                     updated_by: userId
                 };
-                const {data, error} = await supabase.from("heavy_equipment").update(patch).eq("id", id).select().maybeSingle();
+                const {
+                    data,
+                    error
+                } = await supabase.from("heavy_equipment").update(patch).eq("id", id).select().maybeSingle();
                 if (error) return new Response(JSON.stringify({error: error.message}), {
                     status: 400,
                     headers: corsHeaders

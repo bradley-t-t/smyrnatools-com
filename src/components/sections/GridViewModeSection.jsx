@@ -42,9 +42,9 @@ function GridViewModeSection({
                         onShowIssueModal={() => onShowIssueModal(item.id, number)}
                     />
                 );
-                
+
                 return (
-                    <div 
+                    <div
                         key={item.id}
                         className="grid-card-animated"
                         style={{animationDelay: `${index * delay}ms`}}

@@ -138,7 +138,7 @@ function CommentModalSection({
                     </button>
                 </div>
                 <div className="comment-modal-content">
-                    <ErrorMessage message={error} onDismiss={() => setError(null)} />
+                    <ErrorMessage message={error} onDismiss={() => setError(null)}/>
                     <form onSubmit={handleAddComment} className="comment-modal-add-section">
                         <div className="comment-modal-form-row">
                             <textarea

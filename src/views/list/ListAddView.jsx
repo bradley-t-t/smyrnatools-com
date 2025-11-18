@@ -119,7 +119,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                 userId = user.id;
                 setCurrentUserId(userId);
             }
-            
+
             if (item) {
                 const updateData = {
                     plant_code: plantCode,
@@ -176,7 +176,8 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                         <div className="form-row">
                             {canBypassPlantRestriction ? (
                                 <div className="form-group">
-                                    <label htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
+                                    <label
+                                        htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
                                     {!item ? (
                                         <>
                                             <button
@@ -185,8 +186,8 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                                 onClick={() => setIsPlantModalOpen(true)}
                                                 aria-label="Select plants"
                                             >
-                                                {selectedPlantCodes.length === 0 
-                                                    ? 'Select Plants' 
+                                                {selectedPlantCodes.length === 0
+                                                    ? 'Select Plants'
                                                     : `${selectedPlantCodes.length} plant${selectedPlantCodes.length !== 1 ? 's' : ''} selected`}
                                             </button>
                                             {selectedPlantCodes.length > 0 && (

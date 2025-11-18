@@ -345,9 +345,16 @@ class MixerServiceImpl {
         const mixer = new Mixer(json?.data)
         try {
             if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('notifications-refresh', {detail: {type: 'mixer', id: mixerId, plant: mixer.assignedPlant}}))
+                window.dispatchEvent(new CustomEvent('notifications-refresh', {
+                    detail: {
+                        type: 'mixer',
+                        id: mixerId,
+                        plant: mixer.assignedPlant
+                    }
+                }))
             }
-        } catch {}
+        } catch {
+        }
         return this._attachIsVerified(mixer)
     }
 }

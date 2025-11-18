@@ -53,9 +53,9 @@ function ListViewModeSection({
                     const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length);
                     const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
                     return (
-                        <tr 
-                            key={item.id} 
-                            onClick={() => handleSelectItem(item.id)} 
+                        <tr
+                            key={item.id}
+                            onClick={() => handleSelectItem(item.id)}
                             style={{
                                 cursor: 'pointer',
                                 animationDelay: `${index * delay}ms`
@@ -89,21 +89,21 @@ function ListViewModeSection({
                                 )}
                             </td>
                             <td className="list-actions-cell">
-                                <button 
+                                <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onShowCommentModal(item.id, number);
-                                    }} 
+                                    }}
                                     title="Comments"
                                     className="list-action-btn"
                                 >
                                     <i className="fas fa-comments"></i>
                                 </button>
-                                <button 
+                                <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onShowIssueModal(item.id, number);
-                                    }} 
+                                    }}
                                     title="Issues"
                                     className="list-action-btn"
                                 >

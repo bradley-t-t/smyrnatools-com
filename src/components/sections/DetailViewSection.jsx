@@ -271,7 +271,7 @@ function DetailViewSection({
                                 if (React.isValidElement(child) && child.props.className?.includes('detail-card')) {
                                     return React.cloneElement(child, {
                                         className: `${child.props.className || 'detail-card'} slide-in-item`,
-                                        style: { '--item-index': verificationCard ? index + 1 : index, ...child.props.style }
+                                        style: {'--item-index': verificationCard ? index + 1 : index, ...child.props.style}
                                     })
                                 }
                                 return child
@@ -330,7 +330,8 @@ function DetailViewSection({
                                     <span className="add-view-subtitle">Region Transfer</span>
                                 </div>
                             </div>
-                            <button className="add-view-close-button" onClick={handleCloseRegionTransfer} aria-label="Close">
+                            <button className="add-view-close-button" onClick={handleCloseRegionTransfer}
+                                    aria-label="Close">
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
@@ -347,7 +348,8 @@ function DetailViewSection({
                                         fontSize: '0.875rem',
                                         color: 'var(--text-secondary)',
                                         marginBottom: '0.25rem'
-                                    }}>Current Region</div>
+                                    }}>Current Region
+                                    </div>
                                     <div style={{
                                         fontSize: '1rem',
                                         fontWeight: '600',
@@ -389,13 +391,15 @@ function DetailViewSection({
                                         >
                                             <option value="">Choose a plant...</option>
                                             {availablePlants.map(plant => (
-                                                <option key={plant.plantCode || plant.plant_code} value={plant.plantCode || plant.plant_code}>
+                                                <option key={plant.plantCode || plant.plant_code}
+                                                        value={plant.plantCode || plant.plant_code}>
                                                     {plant.plantName || plant.plant_name} ({plant.plantCode || plant.plant_code})
                                                 </option>
                                             ))}
                                         </select>
                                         {availablePlants.length === 0 && (
-                                            <div className="error-text" style={{marginTop: '0.5rem', fontSize: '0.875rem'}}>
+                                            <div className="error-text"
+                                                 style={{marginTop: '0.5rem', fontSize: '0.875rem'}}>
                                                 No plants available in this region
                                             </div>
                                         )}
@@ -424,21 +428,22 @@ function DetailViewSection({
                                     paddingTop: '1.5rem',
                                     borderTop: '1px solid var(--divider)'
                                 }}>
-                                    <button 
-                                        className="cancel-button" 
+                                    <button
+                                        className="cancel-button"
                                         onClick={handleCloseRegionTransfer}
                                         disabled={transferLoading}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        className="primary-button" 
+                                    <button
+                                        className="primary-button"
                                         onClick={handleRegionTransferConfirm}
                                         disabled={transferLoading || !selectedRegion || !selectedPlant}
                                     >
                                         {transferLoading ? (
                                             <>
-                                                <i className="fas fa-spinner fa-spin" style={{marginRight: '0.5rem'}}></i>
+                                                <i className="fas fa-spinner fa-spin"
+                                                   style={{marginRight: '0.5rem'}}></i>
                                                 Transferring...
                                             </>
                                         ) : (

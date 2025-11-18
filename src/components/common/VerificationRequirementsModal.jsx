@@ -69,6 +69,7 @@ export default function VerificationRequirementsModal({
                 setCanDelete(false);
             }
         }
+
         checkDeletePermission();
     }, []);
 
@@ -83,47 +84,47 @@ export default function VerificationRequirementsModal({
             setExpandedSection([])
             return
         }
-        
+
         setTimeout(() => {
-            setSectionsReady(prev => ({ ...prev, checklist: true }))
+            setSectionsReady(prev => ({...prev, checklist: true}))
         }, 50)
-        
+
         if (assignedOperator) {
             fetchOperatorData().then(() => {
                 setTimeout(() => {
-                    setSectionsReady(prev => ({ ...prev, operator: true }))
+                    setSectionsReady(prev => ({...prev, operator: true}))
                 }, 150)
             })
         } else {
             setTimeout(() => {
-                setSectionsReady(prev => ({ ...prev, operator: true }))
+                setSectionsReady(prev => ({...prev, operator: true}))
             }, 150)
         }
-        
+
         if (itemId && service) {
             fetchIssues().then(() => {
                 setTimeout(() => {
-                    setSectionsReady(prev => ({ ...prev, issues: true }))
+                    setSectionsReady(prev => ({...prev, issues: true}))
                 }, 250)
             })
             fetchComments().then(() => {
                 setTimeout(() => {
-                    setSectionsReady(prev => ({ ...prev, comments: true }))
+                    setSectionsReady(prev => ({...prev, comments: true}))
                 }, 350)
             })
         } else {
             setTimeout(() => {
-                setSectionsReady(prev => ({ ...prev, issues: true, comments: true }))
+                setSectionsReady(prev => ({...prev, issues: true, comments: true}))
             }, 250)
         }
     }, [open, assignedOperator, itemId])
 
     useEffect(() => {
         if (!open) return
-        
+
         const allSectionsReady = Object.values(sectionsReady).every(ready => ready)
         if (!allSectionsReady) return
-        
+
         const sectionsToExpand = []
 
         if (missingFields.length > 0 || serviceOverdue) {
@@ -396,119 +397,122 @@ export default function VerificationRequirementsModal({
 
                 <div className="verification-content">
                     {sectionsReady.checklist && (
-                    <div className="verification-section">
-                        <button
-                            className={`section-header ${isSectionExpanded('checklist') ? 'expanded' : ''}`}
-                            onClick={() => toggleSection('checklist')}
-                        >
-                            <div className="section-title">
-                                <i className="fas fa-tasks"></i>
-                                <span>Required Information</span>
-                                {serviceOverdue && <span className="status-badge warning">Service Overdue</span>}
-                                {!serviceOverdue && !requiredFieldsOk && <span className="status-badge incomplete">Incomplete</span>}
-                                {!serviceOverdue && requiredFieldsOk && <span className="status-badge complete">Complete</span>}
-                            </div>
-                            <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`}></i>
-                        </button>
-                        {isSectionExpanded('checklist') && (
-                            <div className="section-content">
-                                <div className="verification-fields">
-                                    {needsVin && (
-                                        <div className="form-group">
-                                            <label htmlFor="verify-vin">VIN {!vinOk &&
-                                                <span className="required-indicator">Required</span>}</label>
-                                            <input
-                                                id="verify-vin"
-                                                className={`form-control ${vin && !vinOk ? 'error' : ''}`}
-                                                type="text"
-                                                placeholder="17 characters (no I, O, Q)"
-                                                value={vin}
-                                                onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
-                                            />
-                                            <div className="vin-hint">17 characters. Letters I, O, and Q are not used.
-                                            </div>
-                                            {vin && !vinOk && (
-                                                <div className="vin-errors">
-                                                    {vinInfo.reasons.map(r => <div key={r}
-                                                                                   className="warning-text">{r}</div>)}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {needsMake && (
-                                        <div className="form-group">
-                                            <label htmlFor="verify-make">Make {!makeOk &&
-                                                <span className="required-indicator">Required</span>}</label>
-                                            <input
-                                                id="verify-make"
-                                                className="form-control"
-                                                type="text"
-                                                placeholder="Make"
-                                                value={make}
-                                                onChange={e => setMake(e.target.value)}
-                                            />
-                                        </div>
-                                    )}
-                                    {needsModel && (
-                                        <div className="form-group">
-                                            <label htmlFor="verify-model">Model {!modelOk &&
-                                                <span className="required-indicator">Required</span>}</label>
-                                            <input
-                                                id="verify-model"
-                                                className="form-control"
-                                                type="text"
-                                                placeholder="Model"
-                                                value={model}
-                                                onChange={e => setModel(e.target.value)}
-                                            />
-                                        </div>
-                                    )}
-                                    {needsYear && (
-                                        <div className="form-group">
-                                            <label htmlFor="verify-year">Year {!yearOk &&
-                                                <span className="required-indicator">Required</span>}</label>
-                                            <input
-                                                id="verify-year"
-                                                className="form-control"
-                                                type="text"
-                                                placeholder="Year"
-                                                value={year}
-                                                onChange={e => setYear(e.target.value)}
-                                            />
-                                        </div>
-                                    )}
-                                    {(!lastServiceDate || serviceOverdue) && (
-                                        <div className="form-group">
-                                            <label htmlFor="verify-last-service">Last Service Date</label>
-                                            <input
-                                                id="verify-last-service"
-                                                className="form-control"
-                                                type="date"
-                                                value={lastServiceDate ? (lastServiceDate instanceof Date ? lastServiceDate.toISOString().split('T')[0] : String(lastServiceDate).split('T')[0]) : ''}
-                                                onChange={e => setLastServiceDate(e.target.value ? new Date(e.target.value) : null)}
-                                            />
-                                            {lastServiceDate && serviceOverdue && (
-                                                <div className="modal-note warning">
-                                                    <i className="fas fa-exclamation-triangle"></i>
-                                                    <span>Service is overdue. You can still verify but service is recommended.</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {typeof lastChipDate !== 'undefined' && !lastChipDate && (
-                                        <div className="form-group">
-                                            <label htmlFor="verify-last-chip">Last Chip Date</label>
-                                            <input
-                                                id="verify-last-chip"
-                                                className="form-control"
-                                                type="date"
-                                                value={lastChipDate ? (lastChipDate instanceof Date ? lastChipDate.toISOString().split('T')[0] : String(lastChipDate).split('T')[0]) : ''}
-                                                onChange={e => setLastChipDate(e.target.value ? new Date(e.target.value) : null)}
-                                            />
-                                        </div>
-                                    )}
+                        <div className="verification-section">
+                            <button
+                                className={`section-header ${isSectionExpanded('checklist') ? 'expanded' : ''}`}
+                                onClick={() => toggleSection('checklist')}
+                            >
+                                <div className="section-title">
+                                    <i className="fas fa-tasks"></i>
+                                    <span>Required Information</span>
+                                    {serviceOverdue && <span className="status-badge warning">Service Overdue</span>}
+                                    {!serviceOverdue && !requiredFieldsOk &&
+                                        <span className="status-badge incomplete">Incomplete</span>}
+                                    {!serviceOverdue && requiredFieldsOk &&
+                                        <span className="status-badge complete">Complete</span>}
                                 </div>
-                            </div>
+                                <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`}></i>
+                            </button>
+                            {isSectionExpanded('checklist') && (
+                                <div className="section-content">
+                                    <div className="verification-fields">
+                                        {needsVin && (
+                                            <div className="form-group">
+                                                <label htmlFor="verify-vin">VIN {!vinOk &&
+                                                    <span className="required-indicator">Required</span>}</label>
+                                                <input
+                                                    id="verify-vin"
+                                                    className={`form-control ${vin && !vinOk ? 'error' : ''}`}
+                                                    type="text"
+                                                    placeholder="17 characters (no I, O, Q)"
+                                                    value={vin}
+                                                    onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                                />
+                                                <div className="vin-hint">17 characters. Letters I, O, and Q are not
+                                                    used.
+                                                </div>
+                                                {vin && !vinOk && (
+                                                    <div className="vin-errors">
+                                                        {vinInfo.reasons.map(r => <div key={r}
+                                                                                       className="warning-text">{r}</div>)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                        {needsMake && (
+                                            <div className="form-group">
+                                                <label htmlFor="verify-make">Make {!makeOk &&
+                                                    <span className="required-indicator">Required</span>}</label>
+                                                <input
+                                                    id="verify-make"
+                                                    className="form-control"
+                                                    type="text"
+                                                    placeholder="Make"
+                                                    value={make}
+                                                    onChange={e => setMake(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
+                                        {needsModel && (
+                                            <div className="form-group">
+                                                <label htmlFor="verify-model">Model {!modelOk &&
+                                                    <span className="required-indicator">Required</span>}</label>
+                                                <input
+                                                    id="verify-model"
+                                                    className="form-control"
+                                                    type="text"
+                                                    placeholder="Model"
+                                                    value={model}
+                                                    onChange={e => setModel(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
+                                        {needsYear && (
+                                            <div className="form-group">
+                                                <label htmlFor="verify-year">Year {!yearOk &&
+                                                    <span className="required-indicator">Required</span>}</label>
+                                                <input
+                                                    id="verify-year"
+                                                    className="form-control"
+                                                    type="text"
+                                                    placeholder="Year"
+                                                    value={year}
+                                                    onChange={e => setYear(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
+                                        {(!lastServiceDate || serviceOverdue) && (
+                                            <div className="form-group">
+                                                <label htmlFor="verify-last-service">Last Service Date</label>
+                                                <input
+                                                    id="verify-last-service"
+                                                    className="form-control"
+                                                    type="date"
+                                                    value={lastServiceDate ? (lastServiceDate instanceof Date ? lastServiceDate.toISOString().split('T')[0] : String(lastServiceDate).split('T')[0]) : ''}
+                                                    onChange={e => setLastServiceDate(e.target.value ? new Date(e.target.value) : null)}
+                                                />
+                                                {lastServiceDate && serviceOverdue && (
+                                                    <div className="modal-note warning">
+                                                        <i className="fas fa-exclamation-triangle"></i>
+                                                        <span>Service is overdue. You can still verify but service is recommended.</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                        {typeof lastChipDate !== 'undefined' && !lastChipDate && (
+                                            <div className="form-group">
+                                                <label htmlFor="verify-last-chip">Last Chip Date</label>
+                                                <input
+                                                    id="verify-last-chip"
+                                                    className="form-control"
+                                                    type="date"
+                                                    value={lastChipDate ? (lastChipDate instanceof Date ? lastChipDate.toISOString().split('T')[0] : String(lastChipDate).split('T')[0]) : ''}
+                                                    onChange={e => setLastChipDate(e.target.value ? new Date(e.target.value) : null)}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             )}
                         </div>
                     )}
@@ -522,9 +526,12 @@ export default function VerificationRequirementsModal({
                                 <div className="section-title">
                                     <i className="fas fa-user"></i>
                                     <span>Operator Information</span>
-                                    {!operatorOk && !phoneOk && !ratingOk && <span className="status-badge incomplete">Phone & Rating Required</span>}
-                                    {!operatorOk && !phoneOk && ratingOk && <span className="status-badge incomplete">Phone Required</span>}
-                                    {!operatorOk && phoneOk && !ratingOk && <span className="status-badge incomplete">Rating Required</span>}
+                                    {!operatorOk && !phoneOk && !ratingOk &&
+                                        <span className="status-badge incomplete">Phone & Rating Required</span>}
+                                    {!operatorOk && !phoneOk && ratingOk &&
+                                        <span className="status-badge incomplete">Phone Required</span>}
+                                    {!operatorOk && phoneOk && !ratingOk &&
+                                        <span className="status-badge incomplete">Rating Required</span>}
                                     {operatorOk && <span className="status-badge complete">Complete</span>}
                                 </div>
                                 <i className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`}></i>
@@ -558,7 +565,8 @@ export default function VerificationRequirementsModal({
                                                 <tr className={!ratingOk ? 'highlight-row' : ''}>
                                                     <td className="table-label">
                                                         Performance Rating
-                                                        {!ratingOk && <span className="required-badge-inline">Required</span>}
+                                                        {!ratingOk &&
+                                                            <span className="required-badge-inline">Required</span>}
                                                     </td>
                                                     <td className="table-value">
                                                         <div className="rating-inline">
@@ -587,7 +595,8 @@ export default function VerificationRequirementsModal({
                                                 <tr className={!phoneOk ? 'highlight-row' : ''}>
                                                     <td className="table-label">
                                                         Phone Number
-                                                        {!phoneOk && <span className="required-badge-inline">Required</span>}
+                                                        {!phoneOk &&
+                                                            <span className="required-badge-inline">Required</span>}
                                                     </td>
                                                     <td className="table-value">
                                                         <div className="phone-control-compact">
@@ -619,18 +628,18 @@ export default function VerificationRequirementsModal({
                                                         )}
                                                     </td>
                                                 </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="no-data">
-                            <i className="fas fa-exclamation-triangle"></i>
-                            <p>Unable to load operator information</p>
-                            <p className="no-data-hint">The operator may have been removed or there was
-                                a connection issue</p>
-                        </div>
-                    )}
-                </div>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="no-data">
+                                            <i className="fas fa-exclamation-triangle"></i>
+                                            <p>Unable to load operator information</p>
+                                            <p className="no-data-hint">The operator may have been removed or there was
+                                                a connection issue</p>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                     )}
@@ -645,7 +654,8 @@ export default function VerificationRequirementsModal({
                                     <i className="fas fa-wrench"></i>
                                     <span>Maintenance Issues</span>
                                     {openIssues.length === 0 && <span className="status-badge complete">Complete</span>}
-                                    {openIssues.length > 0 && <span className="status-badge info">{openIssues.length} Open</span>}
+                                    {openIssues.length > 0 &&
+                                        <span className="status-badge info">{openIssues.length} Open</span>}
                                 </div>
                                 <i className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`}></i>
                             </button>
@@ -725,7 +735,8 @@ export default function VerificationRequirementsModal({
                                     <i className="fas fa-comments"></i>
                                     <span>Comments</span>
                                     {comments.length === 0 && <span className="status-badge complete">Complete</span>}
-                                    {comments.length > 0 && <span className="status-badge info">{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
+                                    {comments.length > 0 && <span
+                                        className="status-badge info">{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
                                 </div>
                                 <i className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`}></i>
                             </button>

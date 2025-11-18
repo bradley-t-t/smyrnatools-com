@@ -12,7 +12,13 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [plantModalTarget, setPlantModalTarget] = useState(null)
     const [newTrainer, setNewTrainer] = useState({trainerId: '', plant: '', position: 'Mixer Operator'})
-    const [newPending, setNewPending] = useState({name: '', plant: '', position: 'Mixer Operator', startDate: '', trainer: ''})
+    const [newPending, setNewPending] = useState({
+        name: '',
+        plant: '',
+        position: 'Mixer Operator',
+        startDate: '',
+        trainer: ''
+    })
 
     const snapshotData = form?.snapshot_data || {}
     const mixerTrainers = snapshotData.mixer_trainers || []
@@ -22,7 +28,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
     const mixerTraining = snapshotData.mixer_training || []
     const tractorTraining = snapshotData.tractor_training || []
     const hiringGoals = form?.hiring_goals || {}
-    
+
     const isMixerTrainersAccurate = React.useMemo(() => {
         if (!liveOperators.length || mixerTrainers.length === 0) return false
         const liveTrainers = liveOperators.filter(op => op.isTrainer && op.status !== 'Terminated' && op.position === 'Mixer Operator')
@@ -257,13 +263,13 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
             alert('Please select a trainer and plant')
             return
         }
-        
+
         const selectedOperator = liveOperators.find(op => op.employeeId === newTrainer.trainerId)
         if (!selectedOperator) {
             alert('Selected trainer not found')
             return
         }
-        
+
         const key = newTrainer.position === 'Mixer Operator' ? 'mixer_trainers' : 'tractor_trainers'
         const trainer = {
             id: selectedOperator.employeeId,
@@ -312,9 +318,9 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
     }
 
     function getAvailableTrainers(position) {
-        return liveOperators.filter(op => 
-            op.isTrainer && 
-            op.status !== 'Terminated' && 
+        return liveOperators.filter(op =>
+            op.isTrainer &&
+            op.status !== 'Terminated' &&
             op.position === position
         )
     }
@@ -422,7 +428,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <span>Mixer Trainers</span>
                             <span className="rmi-count-badge">{mixerTrainers.length}</span>
                             <div className="rmi-category-actions">
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-pull"
                                     onClick={pullMixerTrainers}
@@ -432,7 +438,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-sync-alt"></i>
                                     <span>Pull</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-add-new"
                                     onClick={() => {
@@ -445,7 +451,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-plus"></i>
                                     <span>Add</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-clear"
                                     onClick={clearMixerTrainers}
@@ -461,40 +467,40 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Trainer Name</th>
-                                            <th>Plant</th>
-                                            <th>Status</th>
-                                            {!readOnly && <th>Action</th>}
-                                        </tr>
+                                    <tr>
+                                        <th>Trainer Name</th>
+                                        <th>Plant</th>
+                                        <th>Status</th>
+                                        {!readOnly && <th>Action</th>}
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {mixerTrainers.map(trainer => (
-                                            <tr key={trainer.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                    {trainer.name}
-                                                </td>
-                                                <td>{getPlantName(trainer.plant)}</td>
-                                                <td>
+                                    {mixerTrainers.map(trainer => (
+                                        <tr key={trainer.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user-tie rmi-icon-small"></i>
+                                                {trainer.name}
+                                            </td>
+                                            <td>{getPlantName(trainer.plant)}</td>
+                                            <td>
                                                     <span className="rmi-status-badge rmi-status-active">
                                                         {trainer.status}
                                                     </span>
+                                            </td>
+                                            {!readOnly && (
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="rmi-delete-btn"
+                                                        onClick={() => removeTrainer('Mixer Operator', trainer.id)}
+                                                        title="Remove trainer"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
                                                 </td>
-                                                {!readOnly && (
-                                                    <td>
-                                                        <button 
-                                                            type="button"
-                                                            className="rmi-delete-btn"
-                                                            onClick={() => removeTrainer('Mixer Operator', trainer.id)}
-                                                            title="Remove trainer"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
+                                            )}
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -512,7 +518,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <span>Tractor Trainers</span>
                             <span className="rmi-count-badge">{tractorTrainers.length}</span>
                             <div className="rmi-category-actions">
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-pull"
                                     onClick={pullTractorTrainers}
@@ -522,7 +528,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-sync-alt"></i>
                                     <span>Pull</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-add-new"
                                     onClick={() => {
@@ -535,7 +541,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-plus"></i>
                                     <span>Add</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-clear"
                                     onClick={clearTractorTrainers}
@@ -551,40 +557,40 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Trainer Name</th>
-                                            <th>Plant</th>
-                                            <th>Status</th>
-                                            {!readOnly && <th>Action</th>}
-                                        </tr>
+                                    <tr>
+                                        <th>Trainer Name</th>
+                                        <th>Plant</th>
+                                        <th>Status</th>
+                                        {!readOnly && <th>Action</th>}
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {tractorTrainers.map(trainer => (
-                                            <tr key={trainer.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                    {trainer.name}
-                                                </td>
-                                                <td>{getPlantName(trainer.plant)}</td>
-                                                <td>
+                                    {tractorTrainers.map(trainer => (
+                                        <tr key={trainer.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user-tie rmi-icon-small"></i>
+                                                {trainer.name}
+                                            </td>
+                                            <td>{getPlantName(trainer.plant)}</td>
+                                            <td>
                                                     <span className="rmi-status-badge rmi-status-active">
                                                         {trainer.status}
                                                     </span>
+                                            </td>
+                                            {!readOnly && (
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="rmi-delete-btn"
+                                                        onClick={() => removeTrainer('Tractor Operator', trainer.id)}
+                                                        title="Remove trainer"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
                                                 </td>
-                                                {!readOnly && (
-                                                    <td>
-                                                        <button 
-                                                            type="button"
-                                                            className="rmi-delete-btn"
-                                                            onClick={() => removeTrainer('Tractor Operator', trainer.id)}
-                                                            title="Remove trainer"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
+                                            )}
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -618,7 +624,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <span>Mixer Operators</span>
                             <span className="rmi-count-badge">{mixerPending.length}</span>
                             <div className="rmi-category-actions">
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-pull"
                                     onClick={pullMixerPending}
@@ -628,11 +634,17 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-sync-alt"></i>
                                     <span>Pull</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-add-new"
                                     onClick={() => {
-                                        setNewPending({name: '', plant: '', position: 'Mixer Operator', startDate: '', trainer: ''})
+                                        setNewPending({
+                                            name: '',
+                                            plant: '',
+                                            position: 'Mixer Operator',
+                                            startDate: '',
+                                            trainer: ''
+                                        })
                                         setShowAddPendingModal(true)
                                     }}
                                     disabled={readOnly}
@@ -641,7 +653,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-plus"></i>
                                     <span>Add</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-clear"
                                     onClick={clearMixerPending}
@@ -657,40 +669,40 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Start Date</th>
-                                            {!readOnly && <th>Action</th>}
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Start Date</th>
+                                        {!readOnly && <th>Action</th>}
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {mixerPending.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
-                                                </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>
+                                    {mixerPending.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>
                                                     <span className="rmi-date-badge">
                                                         {op.startDate}
                                                     </span>
+                                            </td>
+                                            {!readOnly && (
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="rmi-delete-btn"
+                                                        onClick={() => removePending('Mixer Operator', op.id)}
+                                                        title="Remove pending operator"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
                                                 </td>
-                                                {!readOnly && (
-                                                    <td>
-                                                        <button 
-                                                            type="button"
-                                                            className="rmi-delete-btn"
-                                                            onClick={() => removePending('Mixer Operator', op.id)}
-                                                            title="Remove pending operator"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
+                                            )}
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -708,7 +720,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <span>Tractor Operators</span>
                             <span className="rmi-count-badge">{tractorPending.length}</span>
                             <div className="rmi-category-actions">
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-pull"
                                     onClick={pullTractorPending}
@@ -718,11 +730,17 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-sync-alt"></i>
                                     <span>Pull</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-add-new"
                                     onClick={() => {
-                                        setNewPending({name: '', plant: '', position: 'Tractor Operator', startDate: '', trainer: ''})
+                                        setNewPending({
+                                            name: '',
+                                            plant: '',
+                                            position: 'Tractor Operator',
+                                            startDate: '',
+                                            trainer: ''
+                                        })
                                         setShowAddPendingModal(true)
                                     }}
                                     disabled={readOnly}
@@ -731,7 +749,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-plus"></i>
                                     <span>Add</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-clear"
                                     onClick={clearTractorPending}
@@ -747,40 +765,40 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Start Date</th>
-                                            {!readOnly && <th>Action</th>}
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Start Date</th>
+                                        {!readOnly && <th>Action</th>}
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {tractorPending.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
-                                                </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>
+                                    {tractorPending.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>
                                                     <span className="rmi-date-badge">
                                                         {op.startDate}
                                                     </span>
+                                            </td>
+                                            {!readOnly && (
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="rmi-delete-btn"
+                                                        onClick={() => removePending('Tractor Operator', op.id)}
+                                                        title="Remove pending operator"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
                                                 </td>
-                                                {!readOnly && (
-                                                    <td>
-                                                        <button 
-                                                            type="button"
-                                                            className="rmi-delete-btn"
-                                                            onClick={() => removePending('Tractor Operator', op.id)}
-                                                            title="Remove pending operator"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
+                                            )}
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -814,7 +832,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <span>Mixer Operators</span>
                             <span className="rmi-count-badge">{mixerTraining.length}</span>
                             <div className="rmi-category-actions">
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-pull"
                                     onClick={pullMixerTraining}
@@ -824,11 +842,17 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-sync-alt"></i>
                                     <span>Pull</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-add-new"
                                     onClick={() => {
-                                        setNewPending({name: '', plant: '', position: 'Mixer Operator', startDate: '', trainer: ''})
+                                        setNewPending({
+                                            name: '',
+                                            plant: '',
+                                            position: 'Mixer Operator',
+                                            startDate: '',
+                                            trainer: ''
+                                        })
                                         setShowAddPendingModal(true)
                                     }}
                                     disabled={readOnly}
@@ -837,7 +861,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-plus"></i>
                                     <span>Add</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-clear"
                                     onClick={clearMixerTraining}
@@ -853,36 +877,36 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Trainer</th>
-                                            {!readOnly && <th>Action</th>}
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Trainer</th>
+                                        {!readOnly && <th>Action</th>}
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {mixerTraining.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
+                                    {mixerTraining.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>{op.trainer || '—'}</td>
+                                            {!readOnly && (
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="rmi-delete-btn"
+                                                        onClick={() => removeTraining('Mixer Operator', op.id)}
+                                                        title="Remove training operator"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
                                                 </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>{op.trainer || '—'}</td>
-                                                {!readOnly && (
-                                                    <td>
-                                                        <button 
-                                                            type="button"
-                                                            className="rmi-delete-btn"
-                                                            onClick={() => removeTraining('Mixer Operator', op.id)}
-                                                            title="Remove training operator"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
+                                            )}
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -900,7 +924,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <span>Tractor Operators</span>
                             <span className="rmi-count-badge">{tractorTraining.length}</span>
                             <div className="rmi-category-actions">
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-pull"
                                     onClick={pullTractorTraining}
@@ -910,11 +934,17 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-sync-alt"></i>
                                     <span>Pull</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-add-new"
                                     onClick={() => {
-                                        setNewPending({name: '', plant: '', position: 'Tractor Operator', startDate: '', trainer: ''})
+                                        setNewPending({
+                                            name: '',
+                                            plant: '',
+                                            position: 'Tractor Operator',
+                                            startDate: '',
+                                            trainer: ''
+                                        })
                                         setShowAddPendingModal(true)
                                     }}
                                     disabled={readOnly}
@@ -923,7 +953,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <i className="fas fa-plus"></i>
                                     <span>Add</span>
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-category-btn-new rmi-btn-clear"
                                     onClick={clearTractorTraining}
@@ -939,36 +969,36 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Trainer</th>
-                                            {!readOnly && <th>Action</th>}
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Trainer</th>
+                                        {!readOnly && <th>Action</th>}
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {tractorTraining.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
+                                    {tractorTraining.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>{op.trainer || '—'}</td>
+                                            {!readOnly && (
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="rmi-delete-btn"
+                                                        onClick={() => removeTraining('Tractor Operator', op.id)}
+                                                        title="Remove training operator"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
                                                 </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>{op.trainer || '—'}</td>
-                                                {!readOnly && (
-                                                    <td>
-                                                        <button 
-                                                            type="button"
-                                                            className="rmi-delete-btn"
-                                                            onClick={() => removeTraining('Tractor Operator', op.id)}
-                                                            title="Remove training operator"
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
+                                            )}
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -996,43 +1026,43 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                 <div className="rmi-goals-table-container">
                     <table className="rmi-goals-table">
                         <thead>
-                            <tr>
-                                <th className="rmi-goals-th-plant">Plant Name</th>
-                                <th className="rmi-goals-th-code">Code</th>
-                                <th className="rmi-goals-th-goal">Hiring Goal</th>
-                            </tr>
+                        <tr>
+                            <th className="rmi-goals-th-plant">Plant Name</th>
+                            <th className="rmi-goals-th-code">Code</th>
+                            <th className="rmi-goals-th-goal">Hiring Goal</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {plants?.map(plant => {
-                                const plantCode = plant.plant_code || plant.code
-                                const plantName = plant.name || plant.plant_name || plantCode
-                                return (
-                                    <tr key={plantCode}>
-                                        <td className="rmi-goals-td-plant">
-                                            <div className="rmi-goals-plant-cell">
-                                                <i className="fas fa-industry"></i>
-                                                <span>{plantName}</span>
-                                            </div>
-                                        </td>
-                                        <td className="rmi-goals-td-code">
+                        {plants?.map(plant => {
+                            const plantCode = plant.plant_code || plant.code
+                            const plantName = plant.name || plant.plant_name || plantCode
+                            return (
+                                <tr key={plantCode}>
+                                    <td className="rmi-goals-td-plant">
+                                        <div className="rmi-goals-plant-cell">
+                                            <i className="fas fa-industry"></i>
+                                            <span>{plantName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="rmi-goals-td-code">
                                             <span className="rmi-goals-code-badge">
                                                 {plantCode}
                                             </span>
-                                        </td>
-                                        <td className="rmi-goals-td-goal">
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                className="rmi-goals-input"
-                                                value={hiringGoals[plantCode] || ''}
-                                                onChange={(e) => handleHiringGoalChange(plantCode, e.target.value)}
-                                                placeholder="0"
-                                                disabled={readOnly}
-                                            />
-                                        </td>
-                                    </tr>
-                                )
-                            })}
+                                    </td>
+                                    <td className="rmi-goals-td-goal">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            className="rmi-goals-input"
+                                            value={hiringGoals[plantCode] || ''}
+                                            onChange={(e) => handleHiringGoalChange(plantCode, e.target.value)}
+                                            placeholder="0"
+                                            disabled={readOnly}
+                                        />
+                                    </td>
+                                </tr>
+                            )
+                        })}
                         </tbody>
                     </table>
                 </div>
@@ -1046,19 +1076,25 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                 <i className="fas fa-user-plus"></i>
                                 <div>
                                     <h2>Add Trainer</h2>
-                                    <span className="rmi-modal-subtitle">Select an existing trainer from your region</span>
+                                    <span
+                                        className="rmi-modal-subtitle">Select an existing trainer from your region</span>
                                 </div>
                             </div>
-                            <button type="button" className="rmi-modal-close-modern" onClick={() => setShowAddTrainerModal(false)}>
+                            <button type="button" className="rmi-modal-close-modern"
+                                    onClick={() => setShowAddTrainerModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
                         <div className="rmi-modal-body-modern">
                             <div className="rmi-form-group-modern">
                                 <label>Position *</label>
-                                <select 
+                                <select
                                     value={newTrainer.position}
-                                    onChange={e => setNewTrainer({...newTrainer, position: e.target.value, trainerId: ''})}
+                                    onChange={e => setNewTrainer({
+                                        ...newTrainer,
+                                        position: e.target.value,
+                                        trainerId: ''
+                                    })}
                                     className="rmi-form-select-modern"
                                 >
                                     <option value="Mixer Operator">Mixer Operator</option>
@@ -1067,7 +1103,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                             <div className="rmi-form-group-modern">
                                 <label>Select Trainer *</label>
-                                <select 
+                                <select
                                     value={newTrainer.trainerId}
                                     onChange={e => setNewTrainer({...newTrainer, trainerId: e.target.value})}
                                     className="rmi-form-select-modern"
@@ -1080,12 +1116,13 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     ))}
                                 </select>
                                 {getAvailableTrainers(newTrainer.position).length === 0 && (
-                                    <span className="rmi-form-helper-text">No trainers available for this position</span>
+                                    <span
+                                        className="rmi-form-helper-text">No trainers available for this position</span>
                                 )}
                             </div>
                             <div className="rmi-form-group-modern">
                                 <label>Assign to Plant *</label>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-plant-selector-btn"
                                     onClick={() => {
@@ -1100,10 +1137,12 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                         </div>
                         <div className="rmi-modal-footer-modern">
-                            <button type="button" className="rmi-modal-btn-modern rmi-btn-cancel-modern" onClick={() => setShowAddTrainerModal(false)}>
+                            <button type="button" className="rmi-modal-btn-modern rmi-btn-cancel-modern"
+                                    onClick={() => setShowAddTrainerModal(false)}>
                                 Cancel
                             </button>
-                            <button type="button" className="rmi-modal-btn-modern rmi-btn-save-modern" onClick={addTrainer}>
+                            <button type="button" className="rmi-modal-btn-modern rmi-btn-save-modern"
+                                    onClick={addTrainer}>
                                 <i className="fas fa-plus"></i>
                                 Add Trainer
                             </button>
@@ -1124,14 +1163,15 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                                     <span className="rmi-modal-subtitle">Add a new operator awaiting start date</span>
                                 </div>
                             </div>
-                            <button type="button" className="rmi-modal-close-modern" onClick={() => setShowAddPendingModal(false)}>
+                            <button type="button" className="rmi-modal-close-modern"
+                                    onClick={() => setShowAddPendingModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
                         <div className="rmi-modal-body-modern">
                             <div className="rmi-form-group-modern">
                                 <label>Position *</label>
-                                <select 
+                                <select
                                     value={newPending.position}
                                     onChange={e => setNewPending({...newPending, position: e.target.value})}
                                     className="rmi-form-select-modern"
@@ -1142,7 +1182,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                             <div className="rmi-form-group-modern">
                                 <label>Operator Name *</label>
-                                <input 
+                                <input
                                     type="text"
                                     value={newPending.name}
                                     onChange={e => setNewPending({...newPending, name: e.target.value})}
@@ -1152,7 +1192,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                             <div className="rmi-form-group-modern">
                                 <label>Assign to Plant *</label>
-                                <button 
+                                <button
                                     type="button"
                                     className="rmi-plant-selector-btn"
                                     onClick={() => {
@@ -1167,7 +1207,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                             <div className="rmi-form-group-modern">
                                 <label>Start Date *</label>
-                                <input 
+                                <input
                                     type="date"
                                     value={newPending.startDate}
                                     onChange={e => setNewPending({...newPending, startDate: e.target.value})}
@@ -1176,7 +1216,7 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                             <div className="rmi-form-group-modern">
                                 <label>Assigned Trainer</label>
-                                <input 
+                                <input
                                     type="text"
                                     value={newPending.trainer}
                                     onChange={e => setNewPending({...newPending, trainer: e.target.value})}
@@ -1186,10 +1226,12 @@ export function ReadyMixInstructorSubmitPlugin({form, setForm, readOnly, plants}
                             </div>
                         </div>
                         <div className="rmi-modal-footer-modern">
-                            <button type="button" className="rmi-modal-btn-modern rmi-btn-cancel-modern" onClick={() => setShowAddPendingModal(false)}>
+                            <button type="button" className="rmi-modal-btn-modern rmi-btn-cancel-modern"
+                                    onClick={() => setShowAddPendingModal(false)}>
                                 Cancel
                             </button>
-                            <button type="button" className="rmi-modal-btn-modern rmi-btn-save-modern" onClick={addPending}>
+                            <button type="button" className="rmi-modal-btn-modern rmi-btn-save-modern"
+                                    onClick={addPending}>
                                 <i className="fas fa-plus"></i>
                                 Add Operator
                             </button>
@@ -1261,27 +1303,27 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Trainer Name</th>
-                                            <th>Plant</th>
-                                            <th>Status</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Trainer Name</th>
+                                        <th>Plant</th>
+                                        <th>Status</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {mixerTrainers.map(trainer => (
-                                            <tr key={trainer.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                    {trainer.name}
-                                                </td>
-                                                <td>{getPlantName(trainer.plant)}</td>
-                                                <td>
+                                    {mixerTrainers.map(trainer => (
+                                        <tr key={trainer.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user-tie rmi-icon-small"></i>
+                                                {trainer.name}
+                                            </td>
+                                            <td>{getPlantName(trainer.plant)}</td>
+                                            <td>
                                                     <span className="rmi-status-badge rmi-status-active">
                                                         {trainer.status}
                                                     </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1303,27 +1345,27 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Trainer Name</th>
-                                            <th>Plant</th>
-                                            <th>Status</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Trainer Name</th>
+                                        <th>Plant</th>
+                                        <th>Status</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {tractorTrainers.map(trainer => (
-                                            <tr key={trainer.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                    {trainer.name}
-                                                </td>
-                                                <td>{getPlantName(trainer.plant)}</td>
-                                                <td>
+                                    {tractorTrainers.map(trainer => (
+                                        <tr key={trainer.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user-tie rmi-icon-small"></i>
+                                                {trainer.name}
+                                            </td>
+                                            <td>{getPlantName(trainer.plant)}</td>
+                                            <td>
                                                     <span className="rmi-status-badge rmi-status-active">
                                                         {trainer.status}
                                                     </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1361,27 +1403,27 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Start Date</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Start Date</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {mixerPending.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
-                                                </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>
+                                    {mixerPending.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>
                                                     <span className="rmi-date-badge">
                                                         {op.startDate}
                                                     </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1403,27 +1445,27 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Start Date</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Start Date</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {tractorPending.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
-                                                </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>
+                                    {tractorPending.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>
                                                     <span className="rmi-date-badge">
                                                         {op.startDate}
                                                     </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1461,23 +1503,23 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Trainer</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Trainer</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {mixerTraining.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
-                                                </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>{op.trainer || '—'}</td>
-                                            </tr>
-                                        ))}
+                                    {mixerTraining.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>{op.trainer || '—'}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1499,23 +1541,23 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                             <div className="rmi-table-wrapper">
                                 <table className="rmi-table">
                                     <thead>
-                                        <tr>
-                                            <th>Operator Name</th>
-                                            <th>Plant</th>
-                                            <th>Trainer</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Operator Name</th>
+                                        <th>Plant</th>
+                                        <th>Trainer</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        {tractorTraining.map(op => (
-                                            <tr key={op.id}>
-                                                <td className="rmi-name-cell">
-                                                    <i className="fas fa-user rmi-icon-small"></i>
-                                                    {op.name}
-                                                </td>
-                                                <td>{getPlantName(op.plant)}</td>
-                                                <td>{op.trainer || '—'}</td>
-                                            </tr>
-                                        ))}
+                                    {tractorTraining.map(op => (
+                                        <tr key={op.id}>
+                                            <td className="rmi-name-cell">
+                                                <i className="fas fa-user rmi-icon-small"></i>
+                                                {op.name}
+                                            </td>
+                                            <td>{getPlantName(op.plant)}</td>
+                                            <td>{op.trainer || '—'}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -1543,37 +1585,37 @@ export function ReadyMixInstructorReviewPlugin({form, plants}) {
                 <div className="rmi-goals-table-container">
                     <table className="rmi-goals-table">
                         <thead>
-                            <tr>
-                                <th className="rmi-goals-th-plant">Plant Name</th>
-                                <th className="rmi-goals-th-code">Code</th>
-                                <th className="rmi-goals-th-goal">Hiring Goal</th>
-                            </tr>
+                        <tr>
+                            <th className="rmi-goals-th-plant">Plant Name</th>
+                            <th className="rmi-goals-th-code">Code</th>
+                            <th className="rmi-goals-th-goal">Hiring Goal</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {plants?.map(plant => {
-                                const plantCode = plant.plant_code || plant.code
-                                const plantName = plant.name || plant.plant_name || plantCode
-                                return (
-                                    <tr key={plantCode}>
-                                        <td className="rmi-goals-td-plant">
-                                            <div className="rmi-goals-plant-cell">
-                                                <i className="fas fa-industry"></i>
-                                                <span>{plantName}</span>
-                                            </div>
-                                        </td>
-                                        <td className="rmi-goals-td-code">
+                        {plants?.map(plant => {
+                            const plantCode = plant.plant_code || plant.code
+                            const plantName = plant.name || plant.plant_name || plantCode
+                            return (
+                                <tr key={plantCode}>
+                                    <td className="rmi-goals-td-plant">
+                                        <div className="rmi-goals-plant-cell">
+                                            <i className="fas fa-industry"></i>
+                                            <span>{plantName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="rmi-goals-td-code">
                                             <span className="rmi-goals-code-badge">
                                                 {plantCode}
                                             </span>
-                                        </td>
-                                        <td className="rmi-goals-td-goal">
-                                            <div className="rmi-goals-display">
-                                                {hiringGoals[plantCode] || '0'}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
+                                    </td>
+                                    <td className="rmi-goals-td-goal">
+                                        <div className="rmi-goals-display">
+                                            {hiringGoals[plantCode] || '0'}
+                                        </div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
                         </tbody>
                     </table>
                 </div>

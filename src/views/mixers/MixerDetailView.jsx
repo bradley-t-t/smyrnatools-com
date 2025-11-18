@@ -271,14 +271,14 @@ function MixerDetailView({mixerId, onClose}) {
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status')
                 ? overrideValues.status
                 : status
-            
+
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const {data: openIssues} = await supabase
                     .from('mixers_maintenance')
                     .select('id')
                     .eq('mixer_id', mixer.id)
                     .is('time_completed', null)
-                
+
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage('Cannot change status to "In Shop" without having at least one open issue. Please add an issue first.')
@@ -286,7 +286,7 @@ function MixerDetailView({mixerId, onClose}) {
                     return
                 }
             }
-            
+
             if (originalValues.status === 'Active' && statusValue !== 'Active' && assignedOperatorValue) {
                 assignedOperatorValue = null
             }
@@ -355,7 +355,7 @@ function MixerDetailView({mixerId, onClose}) {
             setHasUnsavedChanges(false)
         } catch (error) {
             let errorMessage = 'Unknown error'
-            
+
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('mixers_truck_number_key')) {
                     errorMessage = `This truck number already exists. Please use a different truck number.`
@@ -363,7 +363,7 @@ function MixerDetailView({mixerId, onClose}) {
                     errorMessage = error.message
                 }
             }
-            
+
             alert(`Error saving changes: ${errorMessage}`)
         } finally {
             setIsSaving(false)

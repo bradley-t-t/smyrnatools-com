@@ -78,8 +78,8 @@ function PlantDropdownModal({
                             const code = plant.plantCode || plant.plant_code;
                             const isSelected = allowMultiple && localSelectedCodes.includes(code);
                             return (
-                                <div 
-                                    key={code} 
+                                <div
+                                    key={code}
                                     className={`plant-option ${isSelected ? 'selected' : ''}`}
                                     onClick={() => handlePlantClick(code)}
                                 >
@@ -87,7 +87,8 @@ function PlantDropdownModal({
                                         <input
                                             type="checkbox"
                                             checked={isSelected}
-                                            onChange={() => {}}
+                                            onChange={() => {
+                                            }}
                                             className="plant-checkbox"
                                         />
                                     )}

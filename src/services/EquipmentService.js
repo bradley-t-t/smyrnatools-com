@@ -96,9 +96,16 @@ class EquipmentServiceImpl {
         const updated = json?.data ? new Equipment(json.data) : null
         try {
             if (updated && typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('notifications-refresh', {detail: {type: 'equipment', id, plant: updated.assignedPlant}}))
+                window.dispatchEvent(new CustomEvent('notifications-refresh', {
+                    detail: {
+                        type: 'equipment',
+                        id,
+                        plant: updated.assignedPlant
+                    }
+                }))
             }
-        } catch {}
+        } catch {
+        }
         return updated
     }
 
@@ -271,9 +278,16 @@ class EquipmentServiceImpl {
         const equipment = new Equipment(json?.data)
         try {
             if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('notifications-refresh', {detail: {type: 'equipment', id: equipmentId, plant: equipment.assignedPlant}}))
+                window.dispatchEvent(new CustomEvent('notifications-refresh', {
+                    detail: {
+                        type: 'equipment',
+                        id: equipmentId,
+                        plant: equipment.assignedPlant
+                    }
+                }))
             }
-        } catch {}
+        } catch {
+        }
         return this._attachIsVerified(equipment)
     }
 }

@@ -682,7 +682,7 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                 {rmiLoading ? (
                     <div className="rpt-empty">Loading RMI report data...</div>
                 ) : rmiReport ? (
-                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants} />
+                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants}/>
                 ) : (
                     <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
                 )}
@@ -768,7 +768,7 @@ export function GeneralManagerReviewPlugin({form, plants = [], weekIso}) {
                 {loading ? (
                     <div className="rpt-empty">Loading RMI report data...</div>
                 ) : rmiReport ? (
-                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants} />
+                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants}/>
                 ) : (
                     <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
                 )}

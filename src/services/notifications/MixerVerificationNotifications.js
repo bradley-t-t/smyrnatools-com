@@ -37,6 +37,13 @@ async function getNotifications({userId, selectedRegion}) {
     const mixers = (allMixers || []).filter(m => String(m.status || '').toLowerCase() !== 'retired')
     const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
     if (scopedPlants.size === 0) return []
+    const now = new Date()
+    const centralParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now)
+    const mp = {}
+    centralParts.forEach(p=>{mp[p.type]=p.value})
+    const dayIndex = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(mp.weekday)
+    const hour = parseInt(mp.hour,10)
+    const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
 
     if (pmNode) {
         const userPlant = await UserService.getUserPlant(userId).catch(() => null)
@@ -49,11 +56,13 @@ async function getNotifications({userId, selectedRegion}) {
         const missingCount = unverified.length
         if (missingCount <= 0) return []
         const plural = missingCount === 1 ? 'mixer' : 'mixers'
+        const titlePhase = pastDue ? 'Past Due' : 'Due'
+        const severity = pastDue ? 'error' : 'warning'
         return [{
             id: `mixers-verify-${userPlantCode}`,
-            title: 'Mixer Verifications Past Due',
+            title: `Mixer Verifications ${titlePhase}`,
             subtitle: `You have ${missingCount} unverified ${plural}.`,
-            severity: 'warning',
+            severity,
             type: 'mixers.verifications'
         }]
     }
@@ -73,11 +82,13 @@ async function getNotifications({userId, selectedRegion}) {
         const missingCount = unverified.length
         if (missingCount > 0) {
             const plural = missingCount === 1 ? 'mixer' : 'mixers'
+            const titlePhase = pastDue ? 'Past Due' : 'Due'
+            const severity = pastDue ? 'error' : 'warning'
             notifications.push({
                 id: `mixers-verify-${code}`,
-                title: `Plant ${code} Mixer Verifications Past Due`,
+                title: `Plant ${code} Mixer Verifications ${titlePhase}`,
                 subtitle: `This plant has ${missingCount} unverified ${plural}.`,
-                severity: 'warning',
+                severity,
                 type: 'mixers.verifications',
                 plantCode: code
             })
@@ -86,4 +97,4 @@ async function getNotifications({userId, selectedRegion}) {
     return notifications
 }
 
-export default { id: 'mixers.verifications', getNotifications }
+export default {id: 'mixers.verifications', getNotifications}

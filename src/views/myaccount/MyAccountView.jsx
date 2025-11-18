@@ -80,13 +80,13 @@ function MyAccountView({userId}) {
             return
         }
         try {
-            const { error } = await supabase
+            const {error} = await supabase
                 .from('users_sessions')
                 .delete()
                 .eq('id', sessionId)
-            
+
             if (error) throw error
-            
+
             setSessions(sessions.filter(s => s.id !== sessionId))
             setMessage('Session revoked successfully')
             setTimeout(() => setMessage(''), 3000)
@@ -112,28 +112,28 @@ function MyAccountView({userId}) {
                     throw new Error('No active session or user ID')
                 }
                 setIsAuthenticated(true)
-                
+
                 const [profileData, userData, highestRole, regionsList] = await Promise.all([
                     supabase.from('users_profiles').select('first_name, last_name, plant_code').eq('id', uid).single().then(r => r.data).catch(() => null),
                     supabase.from('users').select('email').eq('id', uid).single().then(r => r.data).catch(() => null),
                     UserService.getHighestRole(uid).catch(() => null),
                     UserService.getPermittedRegions(uid).catch(() => [])
                 ])
-                
+
                 const userEmail = session?.user?.email || userData?.email || ''
                 if (userEmail) setEmail(userEmail)
-                
+
                 if (cancelled) return
-                
+
                 if (highestRole?.name) setUserRole(highestRole.name)
-                
+
                 if (profileData) {
                     setUser({...profileData})
                     if (profileData.first_name) setFirstName(profileData.first_name)
                     if (profileData.last_name) setLastName(profileData.last_name)
                     if (profileData.plant_code) setPlantCode(profileData.plant_code)
                 }
-                
+
                 if (regionsList && regionsList.length) {
                     setPermittedRegions(regionsList)
                     const currentSelCode = preferences.selectedRegion?.code
@@ -151,31 +151,31 @@ function MyAccountView({userId}) {
                     updatePreferences('selectedRegion', {code: '', name: '', type: ''})
                     setRegionName('')
                 }
-                
+
                 if (uid) {
                     const userAgent = navigator.userAgent
                     const currentBrowser = getBrowserInfo(userAgent)
                     const currentOS = getOSInfo(userAgent)
                     const currentDevice = getDeviceInfo(userAgent)
-                    
-                    const { data: existingSessions } = await supabase
+
+                    const {data: existingSessions} = await supabase
                         .from('users_sessions')
                         .select('*')
                         .eq('user_id', uid)
                         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-                        .order('last_active', { ascending: false })
-                    
+                        .order('last_active', {ascending: false})
+
                     let matchingSession = null
                     const duplicates = []
-                    
+
                     if (existingSessions && existingSessions.length > 0) {
                         const sessionsByDevice = {}
-                        
+
                         for (const session of existingSessions) {
                             const key = `${session.browser}_${session.os}_${session.device}`
-                            
-                            if (session.browser === currentBrowser && 
-                                session.os === currentOS && 
+
+                            if (session.browser === currentBrowser &&
+                                session.os === currentOS &&
                                 session.device === currentDevice) {
                                 if (!matchingSession) {
                                     matchingSession = session
@@ -183,14 +183,14 @@ function MyAccountView({userId}) {
                                     duplicates.push(session.id)
                                 }
                             }
-                            
+
                             if (sessionsByDevice[key]) {
                                 duplicates.push(session.id)
                             } else {
                                 sessionsByDevice[key] = session
                             }
                         }
-                        
+
                         if (duplicates.length > 0) {
                             try {
                                 await supabase
@@ -202,15 +202,15 @@ function MyAccountView({userId}) {
                             }
                         }
                     }
-                    
+
                     let currentSessId
                     if (matchingSession) {
                         currentSessId = matchingSession.id
                         sessionStorage.setItem('sessionId', currentSessId)
-                        
+
                         try {
                             await supabase.from('users_sessions')
-                                .update({ last_active: new Date().toISOString() })
+                                .update({last_active: new Date().toISOString()})
                                 .eq('id', currentSessId)
                         } catch (err) {
                             console.error('Failed to update session:', err)
@@ -218,7 +218,7 @@ function MyAccountView({userId}) {
                     } else {
                         currentSessId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                         sessionStorage.setItem('sessionId', currentSessId)
-                        
+
                         try {
                             await supabase.from('users_sessions').upsert({
                                 id: currentSessId,
@@ -229,22 +229,22 @@ function MyAccountView({userId}) {
                                 user_agent: userAgent,
                                 last_active: new Date().toISOString(),
                                 created_at: new Date().toISOString()
-                            }, { onConflict: 'id' })
+                            }, {onConflict: 'id'})
                         } catch (err) {
                             console.error('Failed to create session:', err)
                         }
                     }
-                    
+
                     setCurrentSessionId(currentSessId)
-                    
-                    const { data: userSessions } = await supabase
+
+                    const {data: userSessions} = await supabase
                         .from('users_sessions')
                         .select('*')
                         .eq('user_id', uid)
                         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-                        .order('last_active', { ascending: false })
+                        .order('last_active', {ascending: false})
                         .limit(10)
-                    
+
                     if (userSessions && userSessions.length > 0) {
                         const sessionsList = userSessions.map(s => ({
                             id: s.id,
@@ -363,7 +363,7 @@ function MyAccountView({userId}) {
                     console.error('Failed to delete session:', err)
                 }
             }
-            
+
             await AuthService.signOut();
             await supabase.auth.signOut();
             sessionStorage.removeItem('userId');
@@ -396,7 +396,7 @@ function MyAccountView({userId}) {
     }
 
     if (loading) {
-        return <LoadingScreen fullPage={true} message="Loading your account..." />
+        return <LoadingScreen fullPage={true} message="Loading your account..."/>
     }
 
     return (
@@ -439,7 +439,8 @@ function MyAccountView({userId}) {
                     className="fas fa-shield-alt"></i> Security
                 </button>
             </div>
-            <div className="account-tab-content account-slide-in" style={{display: activeTab === 'profile' ? 'block' : 'none', animationDelay: '0.2s'}}>
+            <div className="account-tab-content account-slide-in"
+                 style={{display: activeTab === 'profile' ? 'block' : 'none', animationDelay: '0.2s'}}>
                 <div className="account-section">
                     <div className="section-header">
                         <h2><i className="fas fa-id-card" style={{color: 'var(--myaccount-accent)'}}></i> Personal
@@ -530,7 +531,8 @@ function MyAccountView({userId}) {
                     </div>
                 </div>
             </div>
-            <div className="account-tab-content account-slide-in" style={{display: activeTab === 'security' ? 'block' : 'none', animationDelay: '0.2s'}}>
+            <div className="account-tab-content account-slide-in"
+                 style={{display: activeTab === 'security' ? 'block' : 'none', animationDelay: '0.2s'}}>
                 <div className="account-section">
                     <div className="section-header">
                         <h2><i className="fas fa-shield-alt" style={{color: 'var(--myaccount-accent)'}}></i> Account
@@ -563,15 +565,18 @@ function MyAccountView({userId}) {
                                                 <div className="session-main">
                                                     <div className="session-device-info">
                                                         <div className="session-browser">{session.browser}</div>
-                                                        <div className="session-platform">{session.os} • {session.device}</div>
+                                                        <div
+                                                            className="session-platform">{session.os} • {session.device}</div>
                                                     </div>
-                                                    <div className="session-time">{formatSessionTime(session.lastActive)}</div>
+                                                    <div
+                                                        className="session-time">{formatSessionTime(session.lastActive)}</div>
                                                 </div>
                                                 <div className="session-actions">
                                                     {session.isCurrent ? (
-                                                        <span className="session-badge current-badge">Current Session</span>
+                                                        <span
+                                                            className="session-badge current-badge">Current Session</span>
                                                     ) : (
-                                                        <button 
+                                                        <button
                                                             className="session-revoke-btn"
                                                             onClick={() => handleRevokeSession(session.id)}
                                                             title="Revoke this session"

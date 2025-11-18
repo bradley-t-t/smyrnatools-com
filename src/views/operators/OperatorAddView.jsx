@@ -145,93 +145,93 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
             <AddViewSection title="Add New Operator" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                            <label htmlFor="name">Name*</label>
-                            <input id="name" type="text" className="ios-input" value={name}
-                                   onChange={(e) => setName(e.target.value)} placeholder="Enter full name" required/>
+                        <label htmlFor="name">Name*</label>
+                        <input id="name" type="text" className="ios-input" value={name}
+                               onChange={(e) => setName(e.target.value)} placeholder="Enter full name" required/>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="phone">Phone</label>
+                        <input id="phone" type="tel" className="ios-input" value={phone}
+                               onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-5555"/>
+                    </div>
+                    <div className="form-row-horizontal">
+                        <div className="form-group">
+                            <label htmlFor="assignedPlant">Assigned Plant*</label>
+                            <button
+                                type="button"
+                                className="ios-select"
+                                onClick={() => setIsPlantModalOpen(true)}
+                                aria-label="Select assigned plant"
+                            >
+                                {plantDisplayText}
+                            </button>
                         </div>
                         <div className="form-group">
-                            <label htmlFor="phone">Phone</label>
-                            <input id="phone" type="tel" className="ios-input" value={phone}
-                                   onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-5555"/>
+                            <label htmlFor="status">Status</label>
+                            <select id="status" className="ios-select" value={status}
+                                    onChange={(e) => setStatus(e.target.value)}>
+                                <option value="Active">Active</option>
+                                <option value="Light Duty">Light Duty</option>
+                                <option value="Terminated">Terminated</option>
+                                {hasTrainingPermission && <option value="Pending Start">Pending Start</option>}
+                                {hasTrainingPermission && <option value="Training">Training</option>}
+                                <option value="No Hire">No Hire</option>
+                            </select>
                         </div>
-                        <div className="form-row-horizontal">
+                    </div>
+                    {status === 'Pending Start' && (
+                        <div className="form-group">
+                            <label htmlFor="pendingStartDate">Pending Start Date</label>
+                            <input id="pendingStartDate" type="date" className="ios-input" value={pendingStartDate}
+                                   onChange={e => setPendingStartDate(e.target.value)}/>
+                        </div>
+                    )}
+                    <div className="form-row-horizontal">
+                        <div className="form-group">
+                            <label htmlFor="position">Position</label>
+                            <select id="position" className="ios-select" value={position}
+                                    onChange={(e) => setPosition(e.target.value)}>
+                                <option value="">Select Position</option>
+                                <option value="Mixer Operator">Mixer Operator</option>
+                                <option value="Tractor Operator">Tractor Operator</option>
+                            </select>
+                        </div>
+                        {hasTrainingPermission && (
                             <div className="form-group">
-                                <label htmlFor="assignedPlant">Assigned Plant*</label>
-                                <button
-                                    type="button"
-                                    className="ios-select"
-                                    onClick={() => setIsPlantModalOpen(true)}
-                                    aria-label="Select assigned plant"
-                                >
-                                    {plantDisplayText}
-                                </button>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="status">Status</label>
-                                <select id="status" className="ios-select" value={status}
-                                        onChange={(e) => setStatus(e.target.value)}>
-                                    <option value="Active">Active</option>
-                                    <option value="Light Duty">Light Duty</option>
-                                    <option value="Terminated">Terminated</option>
-                                    {hasTrainingPermission && <option value="Pending Start">Pending Start</option>}
-                                    {hasTrainingPermission && <option value="Training">Training</option>}
-                                    <option value="No Hire">No Hire</option>
+                                <label htmlFor="isTrainer">Trainer Status</label>
+                                <select id="isTrainer" className="ios-select" value={isTrainer ? 'true' : 'false'}
+                                        onChange={(e) => {
+                                            const isTrainerValue = e.target.value === 'true';
+                                            setIsTrainer(isTrainerValue);
+                                            if (isTrainerValue) {
+                                                setAssignedTrainer('0');
+                                            }
+                                        }}>
+                                    <option value="false">Not a Trainer</option>
+                                    <option value="true">Trainer</option>
                                 </select>
-                            </div>
-                        </div>
-                        {status === 'Pending Start' && (
-                            <div className="form-group">
-                                <label htmlFor="pendingStartDate">Pending Start Date</label>
-                                <input id="pendingStartDate" type="date" className="ios-input" value={pendingStartDate}
-                                       onChange={e => setPendingStartDate(e.target.value)}/>
                             </div>
                         )}
-                        <div className="form-row-horizontal">
-                            <div className="form-group">
-                                <label htmlFor="position">Position</label>
-                                <select id="position" className="ios-select" value={position}
-                                        onChange={(e) => setPosition(e.target.value)}>
-                                    <option value="">Select Position</option>
-                                    <option value="Mixer Operator">Mixer Operator</option>
-                                    <option value="Tractor Operator">Tractor Operator</option>
-                                </select>
-                            </div>
-                            {hasTrainingPermission && (
-                                <div className="form-group">
-                                    <label htmlFor="isTrainer">Trainer Status</label>
-                                    <select id="isTrainer" className="ios-select" value={isTrainer ? 'true' : 'false'}
-                                            onChange={(e) => {
-                                                const isTrainerValue = e.target.value === 'true';
-                                                setIsTrainer(isTrainerValue);
-                                                if (isTrainerValue) {
-                                                    setAssignedTrainer('0');
-                                                }
-                                            }}>
-                                        <option value="false">Not a Trainer</option>
-                                        <option value="true">Trainer</option>
-                                    </select>
-                                </div>
+                    </div>
+                    {hasTrainingPermission && (status === 'Training' || status === 'Pending Start') && (
+                        <div className="form-group">
+                            <label htmlFor="assignedTrainer">Assigned Trainer</label>
+                            <select id="assignedTrainer" className="ios-select" value={assignedTrainer}
+                                    onChange={(e) => setAssignedTrainer(e.target.value)} disabled={isTrainer}>
+                                <option value="0">None</option>
+                                {operators.filter(operator => operator.isTrainer).map(trainer => (
+                                    <option key={trainer.employeeId}
+                                            value={trainer.employeeId}>{trainer.name}</option>
+                                ))}
+                            </select>
+                            {operators.filter(op => op.isTrainer).length === 0 && (
+                                <div className="warning-message">No trainers available</div>
                             )}
                         </div>
-                        {hasTrainingPermission && (status === 'Training' || status === 'Pending Start') && (
-                            <div className="form-group">
-                                <label htmlFor="assignedTrainer">Assigned Trainer</label>
-                                <select id="assignedTrainer" className="ios-select" value={assignedTrainer}
-                                        onChange={(e) => setAssignedTrainer(e.target.value)} disabled={isTrainer}>
-                                    <option value="0">None</option>
-                                    {operators.filter(operator => operator.isTrainer).map(trainer => (
-                                        <option key={trainer.employeeId}
-                                                value={trainer.employeeId}>{trainer.name}</option>
-                                    ))}
-                                </select>
-                                {operators.filter(op => op.isTrainer).length === 0 && (
-                                    <div className="warning-message">No trainers available</div>
-                                )}
-                            </div>
-                        )}
-                        <button type="submit" className="ios-button-primary"
-                                disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Operator'}</button>
-                    </form>
+                    )}
+                    <button type="submit" className="ios-button-primary"
+                            disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Operator'}</button>
+                </form>
             </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal

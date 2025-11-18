@@ -27,7 +27,7 @@ function OfflineOverlay({onRetry}) {
                         Your connection appears to be offline or unstable. Please check your network and try again.
                     </p>
                     <div className="offline-actions">
-                        <button 
+                        <button
                             className={`offline-button retry-button ${isRetrying ? 'retrying' : ''}`}
                             onClick={handleRetry}
                             disabled={isRetrying}

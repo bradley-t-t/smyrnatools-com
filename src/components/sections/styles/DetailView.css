@@ -520,7 +520,7 @@
 }
 
 .edit-instructions {
-    color: var(--edit-instructions-color) ;
+    color: var(--edit-instructions-color);
     background-color: var(--accent);
     border-left: 3px solid var(--accent);
     font-size: 14px;
@@ -532,7 +532,7 @@
 }
 
 .dark-mode .edit-instructions {
-    color: var(--text-light) ;
+    color: var(--text-light);
     background-color: var(--accent);
 }
 

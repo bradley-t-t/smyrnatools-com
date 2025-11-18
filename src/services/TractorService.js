@@ -100,7 +100,10 @@ export class TractorService {
 
         const {res, json} = await APIUtility.post('/tractor-service/update', {id, tractor, userId})
         if (!res.ok) throw new Error(json?.error || 'Failed to update tractor')
-        try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-refresh')) } catch {}
+        try {
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-refresh'))
+        } catch {
+        }
         return Tractor.fromApiFormat(json?.data)
     }
 
@@ -114,7 +117,10 @@ export class TractorService {
         if (!userId) throw new Error('User ID is required')
         const {res, json} = await APIUtility.post('/tractor-service/verify', {id, userId})
         if (!res.ok) throw new Error(json?.error || 'Failed to verify tractor')
-        try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-refresh')) } catch {}
+        try {
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-refresh'))
+        } catch {
+        }
         return Tractor.fromApiFormat(json?.data)
     }
 

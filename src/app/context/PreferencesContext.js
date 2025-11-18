@@ -133,7 +133,8 @@ export const PreferencesProvider = ({children}) => {
                                 }
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 }
                 setPreferences(prefs)
                 if (!originalSelectedRegion.code && prefs.selectedRegion.code) {
@@ -241,7 +242,7 @@ export const PreferencesProvider = ({children}) => {
     const resetTrailerFilters = (options = {}) => {
         let newFilters = {...defaultPreferences.trailerFilters}
         if (options.keepViewMode && options.currentViewMode !== undefined) {
-                newFilters.viewMode = options.currentViewMode
+            newFilters.viewMode = options.currentViewMode
         }
         updatePreferences('trailerFilters', newFilters)
     }

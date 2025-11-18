@@ -75,13 +75,13 @@ const menuItems = [
 ]
 
 export default function Navigation({
-    selectedView,
-    onSelectView,
-    children,
-    userName = '',
-    userId = null,
-    listStatusFilter = ''
-}) {
+                                       selectedView,
+                                       onSelectView,
+                                       children,
+                                       userName = '',
+                                       userId = null,
+                                       listStatusFilter = ''
+                                   }) {
     const {preferences, updatePreferences} = usePreferences()
     const [visibleMenuItems, setVisibleMenuItems] = useState([])
     const [exitingItems, setExitingItems] = useState([])
@@ -128,7 +128,9 @@ export default function Navigation({
             clearRetryTimers()
             refresh()
             ;[250, 1000, 2000].forEach(delay => {
-                const t = setTimeout(() => { refresh() }, delay)
+                const t = setTimeout(() => {
+                    refresh()
+                }, delay)
                 notifRetryTimeoutsRef.current.push(t)
             })
         }
@@ -191,6 +193,7 @@ export default function Navigation({
                 setPermittedRegions([])
             }
         }
+
         fetchPermittedRegions()
     }, [userId, regionCode, updatePreferences])
 
@@ -200,13 +203,13 @@ export default function Navigation({
                 setVisibleMenuItems([])
                 return
             }
-            
+
             try {
                 const permissions = await UserService.getUserPermissions(userId)
-                let filtered = menuItems.filter(item => 
+                let filtered = menuItems.filter(item =>
                     item.permission && permissions.includes(item.permission)
                 )
-                
+
                 if (regionType === 'Office') {
                     filtered = filtered.filter(item => OFFICE_VISIBLE_ITEMS.includes(item.id) || OFFICE_ONLY_ITEMS.includes(item.id))
                 } else if (regionType === 'Aggregate') {
@@ -220,16 +223,16 @@ export default function Navigation({
                 const assetItemsToAdd = filtered.filter(item => assetItems.includes(item.id))
 
                 const isInitialLoad = lastMenuItemsRef.current.length === 0 && filtered.length > 0
-                
+
                 if (isInitialLoad) {
                     setVisibleMenuItems(assetItemsToAdd)
                     setIsMenuReady(true)
-                    
+
                     itemsForAnimation.forEach((item, index) => {
                         const timeout = setTimeout(() => {
                             setVisibleMenuItems(prev => [...prev, item])
                             setEnteringItemIds(prev => new Set([...prev, item.id]))
-                            
+
                             setTimeout(() => {
                                 setEnteringItemIds(prev => {
                                     const newSet = new Set(prev)
@@ -240,7 +243,7 @@ export default function Navigation({
                         }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
                         enterTimeoutsRef.current.push(timeout)
                     })
-                    
+
                     lastMenuItemsRef.current = filtered
                     return
                 }
@@ -309,7 +312,7 @@ export default function Navigation({
                         const timeout = setTimeout(() => {
                             setVisibleMenuItems(prev => [...prev, item])
                             setEnteringItemIds(prev => new Set([...prev, item.id]))
-                            
+
                             setTimeout(() => {
                                 setEnteringItemIds(prev => {
                                     const newSet = new Set(prev)
@@ -364,7 +367,7 @@ export default function Navigation({
                 type: r.type || r.region_type || ''
             }
             updatePreferences('selectedRegion', newRegion)
-            
+
             window.dispatchEvent(new CustomEvent('region-changed', {
                 detail: newRegion
             }))
@@ -447,7 +450,7 @@ export default function Navigation({
                                             setShowAssetsDropdown(!showAssetsDropdown)
                                         }}
                                         title="Assets"
-                                        style={{ position: 'relative' }}
+                                        style={{position: 'relative'}}
                                     >
                                         <span className="menu-icon">
                                             <i className="fas fa-truck"></i>
@@ -455,7 +458,7 @@ export default function Navigation({
                                         <span className="menu-text">
                                             Assets
                                         </span>
-                                        <span className="menu-icon" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                                        <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
                                             <i className={`fas fa-chevron-${showAssetsDropdown ? 'up' : 'down'}`}></i>
                                         </span>
                                         {showAssetsDropdown && (
@@ -518,9 +521,9 @@ export default function Navigation({
                     </ul>
                 </nav>
                 <div className="navbar-right">
-                    <select 
-                        className="region-selector" 
-                        value={regionCode || ''} 
+                    <select
+                        className="region-selector"
+                        value={regionCode || ''}
                         onChange={handleRegionChange}
                         aria-label="Region"
                     >
@@ -560,7 +563,10 @@ export default function Navigation({
                             const rect = e.currentTarget.getBoundingClientRect()
                             setNotificationsAnchor(rect)
                             if (typeof window !== 'undefined') {
-                                try { window.dispatchEvent(new CustomEvent('notifications-refresh')) } catch {}
+                                try {
+                                    window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                                } catch {
+                                }
                             }
                             setShowNotifications(true)
                         }}
@@ -579,9 +585,12 @@ export default function Navigation({
                 <NotificationsModal isOpen={showNotifications} onClose={() => {
                     setShowNotifications(false)
                     if (typeof window !== 'undefined') {
-                        try { window.dispatchEvent(new CustomEvent('notifications-refresh')) } catch {}
+                        try {
+                            window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                        } catch {
+                        }
                     }
-                }} anchorRect={notificationsAnchor} />
+                }} anchorRect={notificationsAnchor}/>
             )}
         </div>
     )

@@ -67,7 +67,7 @@ function OnlineUsersOverlay() {
                             const primaryRole = userRoles.length > 0 ? userRoles[0] : null;
                             const region = user.regionCode ? RegionService.getRegionByCode(user.regionCode) : null;
                             const regionName = region?.regionName || region?.region_name || null;
-                            
+
                             return (
                                 <div key={user.id} className="ouo-online-user">
                                     <div className="ouo-user-avatar">{avatarChar}</div>
@@ -76,7 +76,8 @@ function OnlineUsersOverlay() {
                                         {(primaryRole || regionName) && (
                                             <div className="ouo-user-meta">
                                                 {primaryRole && <span className="ouo-user-role">{primaryRole}</span>}
-                                                {primaryRole && regionName && <span className="ouo-meta-separator">•</span>}
+                                                {primaryRole && regionName &&
+                                                    <span className="ouo-meta-separator">•</span>}
                                                 {regionName && <span className="ouo-user-region">{regionName}</span>}
                                             </div>
                                         )}

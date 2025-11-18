@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {PickupTruckService} from '../../services/PickupTruckService'
 import {PlantService} from '../../services/PlantService'
-import {supabase} from '../../services/DatabaseService'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import {UserService} from '../../services/UserService'
@@ -236,7 +235,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
             return updated
         } catch (e) {
             let errorMessage = 'Error saving changes'
-            
+
             if (e?.message && typeof e.message === 'string') {
                 if (e.message.includes('duplicate key') && e.message.includes('pickup_trucks_truck_number_key')) {
                     errorMessage = `This truck number already exists. Please use a different truck number.`
@@ -244,7 +243,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     errorMessage = e.message
                 }
             }
-            
+
             setMessage(errorMessage)
             setTimeout(() => setMessage(''), 4000)
             return null
@@ -352,8 +351,12 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                     {showHistory &&
                         <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
                     {showComments &&
-                        <PickupTruckCommentModal pickupId={pickup?.id} pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id} onClose={() => setShowComments(false)}/>}
-                    {showIssues && <PickupTruckIssueModal pickupId={pickup?.id} pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id} onClose={() => setShowIssues(false)}/>}
+                        <PickupTruckCommentModal pickupId={pickup?.id}
+                                                 pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                                 onClose={() => setShowComments(false)}/>}
+                    {showIssues && <PickupTruckIssueModal pickupId={pickup?.id}
+                                                          pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                                          onClose={() => setShowIssues(false)}/>}
                 </>
             }
         >

@@ -262,14 +262,14 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status')
                 ? overrideValues.status
                 : status;
-            
+
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const {data: openIssues} = await supabase
                     .from('trailers_maintenance')
                     .select('id')
                     .eq('trailer_id', trailer.id)
                     .is('time_completed', null)
-                
+
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage('Cannot change status to "In Shop" without having at least one open issue. Please add an issue first.')
@@ -277,7 +277,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
                     return
                 }
             }
-            
+
             if (!['Cement', 'End Dump'].includes(trailerTypeValue)) {
                 trailerTypeValue = 'Cement';
             }
@@ -335,7 +335,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
             setHasUnsavedChanges(false);
         } catch (error) {
             let errorMessage = 'Unknown error'
-            
+
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('trailers_trailer_number_key')) {
                     errorMessage = `This trailer number already exists. Please use a different trailer number.`
@@ -343,7 +343,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
                     errorMessage = error.message
                 }
             }
-            
+
             alert(`Error saving changes: ${errorMessage}`);
         } finally {
             setIsSaving(false);

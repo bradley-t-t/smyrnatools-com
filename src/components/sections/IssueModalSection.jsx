@@ -40,6 +40,7 @@ function IssueModalSection({
                 setCanDelete(false);
             }
         }
+
         checkDeletePermission();
     }, []);
 
@@ -180,7 +181,7 @@ function IssueModalSection({
                     </button>
                 </div>
                 <div className="issue-modal-content">
-                    <ErrorMessage message={error} onDismiss={() => setError(null)} />
+                    <ErrorMessage message={error} onDismiss={() => setError(null)}/>
                     <form onSubmit={handleAddIssue} className="issue-modal-add-section">
                         <div className="issue-modal-form-row">
                             <textarea
@@ -234,7 +235,8 @@ function IssueModalSection({
                                         {openIssues.map(issue => (
                                             <div key={issue.id} className="issue-modal-item">
                                                 <div className="issue-modal-item-top">
-                                                    <span className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
+                                                    <span
+                                                        className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     <div className="issue-modal-meta">
@@ -279,7 +281,8 @@ function IssueModalSection({
                                         {resolvedIssues.map(issue => (
                                             <div key={issue.id} className="issue-modal-item resolved">
                                                 <div className="issue-modal-item-top">
-                                                    <span className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
+                                                    <span
+                                                        className={`issue-modal-severity ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     <div className="issue-modal-meta">

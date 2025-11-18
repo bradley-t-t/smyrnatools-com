@@ -275,14 +275,14 @@ function TractorDetailView({tractorId, onClose}) {
             };
             let assignedOperatorValue = Object.prototype.hasOwnProperty.call(overrideValues, 'assignedOperator') ? overrideValues.assignedOperator : assignedOperator;
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status') ? overrideValues.status : status;
-            
+
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const {data: openIssues} = await supabase
                     .from('tractors_maintenance')
                     .select('id')
                     .eq('tractor_id', tractor.id)
                     .is('time_completed', null)
-                
+
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage('Cannot change status to "In Shop" without having at least one open issue. Please add an issue first.')
@@ -290,7 +290,7 @@ function TractorDetailView({tractorId, onClose}) {
                     return
                 }
             }
-            
+
             if ((!assignedOperatorValue || assignedOperatorValue === '' || assignedOperatorValue === null) && statusValue === 'Active') statusValue = 'Spare';
             if (assignedOperatorValue && statusValue !== 'Active') statusValue = 'Active';
             if (['In Shop', 'Retired', 'Spare'].includes(statusValue) && assignedOperatorValue) assignedOperatorValue = null;
@@ -357,7 +357,7 @@ function TractorDetailView({tractorId, onClose}) {
             setHasUnsavedChanges(false);
         } catch (error) {
             let errorMessage = 'Unknown error'
-            
+
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('tractors_truck_number_key')) {
                     errorMessage = `This truck number already exists. Please use a different truck number.`
@@ -365,7 +365,7 @@ function TractorDetailView({tractorId, onClose}) {
                     errorMessage = error.message
                 }
             }
-            
+
             alert(`Error saving changes: ${errorMessage}`);
         } finally {
             setIsSaving(false);

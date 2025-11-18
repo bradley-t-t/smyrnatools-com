@@ -62,7 +62,9 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
             const codes = await RegionService.getAllowedPlantCodes(regionCode)
             if (mounted) setAllowedCodes(codes)
         })()
-        return () => { mounted = false }
+        return () => {
+            mounted = false
+        }
     }, [preferences?.selectedRegion?.code])
 
     const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
@@ -88,7 +90,7 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
 
     return (
         <div className="dm-report-plugin">
-            <DailyRecapSection form={form} handleChange={handleChange} readOnly={readOnly} />
+            <DailyRecapSection form={form} handleChange={handleChange} readOnly={readOnly}/>
             <div className="dm-report-header">
                 <h3 className="dm-report-title">Weekly Completed Maintenance Items</h3>
                 <div className="dm-report-stats">
@@ -119,42 +121,42 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
                     <div className="dm-items-table-wrapper">
                         <table className="dm-items-table">
                             <thead>
-                                <tr>
-                                    <th className="dm-th-description">Description</th>
-                                    <th className="dm-th-plant">Plant</th>
-                                    <th className="dm-th-deadline">Deadline</th>
-                                    <th className="dm-th-completed">Completed</th>
-                                </tr>
+                            <tr>
+                                <th className="dm-th-description">Description</th>
+                                <th className="dm-th-plant">Plant</th>
+                                <th className="dm-th-deadline">Deadline</th>
+                                <th className="dm-th-completed">Completed</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {finalFiltered.map(item => (
-                                    <tr key={item.id} className={`dm-item-row ${item.isOverdue ? 'dm-item-overdue' : ''}`}>
-                                        <td className="dm-td-description">
-                                            <div className="dm-item-desc-wrapper">
-                                                <i
-                                                    className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon`}
-                                                    style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
-                                                />
-                                                <span className="dm-item-text" title={item.description}>
+                            {finalFiltered.map(item => (
+                                <tr key={item.id} className={`dm-item-row ${item.isOverdue ? 'dm-item-overdue' : ''}`}>
+                                    <td className="dm-td-description">
+                                        <div className="dm-item-desc-wrapper">
+                                            <i
+                                                className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon`}
+                                                style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
+                                            />
+                                            <span className="dm-item-text" title={item.description}>
                                                     {truncateText(item.description, 80)}
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td className="dm-td-plant">
+                                        </div>
+                                    </td>
+                                    <td className="dm-td-plant">
                                             <span className="dm-plant-badge" title={getPlantName(item.plant_code)}>
                                                 {truncateText(getPlantName(item.plant_code), 25)}
                                             </span>
-                                        </td>
-                                        <td className="dm-td-deadline">
-                                            {item.deadline ? ReportUtility.formatDate(item.deadline) : '—'}
-                                        </td>
-                                        <td className="dm-td-completed">
+                                    </td>
+                                    <td className="dm-td-deadline">
+                                        {item.deadline ? ReportUtility.formatDate(item.deadline) : '—'}
+                                    </td>
+                                    <td className="dm-td-completed">
                                             <span className="dm-completed-badge">
                                                 {item.completed_at ? ReportUtility.formatDate(item.completed_at) : '—'}
                                             </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
@@ -179,14 +181,17 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
             const codes = await RegionService.getAllowedPlantCodes(regionCode)
             if (mounted) setAllowedCodes(codes)
         })()
-        return () => { mounted = false }
+        return () => {
+            mounted = false
+        }
     }, [preferences?.selectedRegion?.code])
 
     const plantCodes = plants ? new Set(plants.map(p => p.plant_code || p.code).filter(Boolean)) : null
     const baseFiltered = maintenanceItems && plantCodes ? maintenanceItems.filter(item => plantCodes.has(item.plant_code)) : maintenanceItems || []
     const finalFiltered = allowedCodes ? baseFiltered.filter(item => allowedCodes.has(String(item.plant_code || '').trim().toUpperCase())) : baseFiltered
 
-    function handleChange() {}
+    function handleChange() {
+    }
 
     function getPlantName(plantCode) {
         const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
@@ -203,7 +208,7 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
 
     return (
         <div className="dm-report-plugin">
-            <DailyRecapSection form={form} handleChange={handleChange} readOnly={true} />
+            <DailyRecapSection form={form} handleChange={handleChange} readOnly={true}/>
             <div className="dm-report-header">
                 <h3 className="dm-report-title">Weekly Completed Maintenance Items</h3>
                 <div className="dm-report-stats">
@@ -234,42 +239,42 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
                     <div className="dm-items-table-wrapper">
                         <table className="dm-items-table">
                             <thead>
-                                <tr>
-                                    <th className="dm-th-description">Description</th>
-                                    <th className="dm-th-plant">Plant</th>
-                                    <th className="dm-th-deadline">Deadline</th>
-                                    <th className="dm-th-completed">Completed</th>
-                                </tr>
+                            <tr>
+                                <th className="dm-th-description">Description</th>
+                                <th className="dm-th-plant">Plant</th>
+                                <th className="dm-th-deadline">Deadline</th>
+                                <th className="dm-th-completed">Completed</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {finalFiltered.map(item => (
-                                    <tr key={item.id} className={`dm-item-row ${item.isOverdue ? 'dm-item-overdue' : ''}`}>
-                                        <td className="dm-td-description">
-                                            <div className="dm-item-desc-wrapper">
-                                                <i
-                                                    className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon`}
-                                                    style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
-                                                />
-                                                <span className="dm-item-text" title={item.description}>
+                            {finalFiltered.map(item => (
+                                <tr key={item.id} className={`dm-item-row ${item.isOverdue ? 'dm-item-overdue' : ''}`}>
+                                    <td className="dm-td-description">
+                                        <div className="dm-item-desc-wrapper">
+                                            <i
+                                                className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon`}
+                                                style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
+                                            />
+                                            <span className="dm-item-text" title={item.description}>
                                                     {truncateText(item.description, 80)}
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td className="dm-td-plant">
+                                        </div>
+                                    </td>
+                                    <td className="dm-td-plant">
                                             <span className="dm-plant-badge" title={getPlantName(item.plant_code)}>
                                                 {truncateText(getPlantName(item.plant_code), 25)}
                                             </span>
-                                        </td>
-                                        <td className="dm-td-deadline">
-                                            {item.deadline ? ReportUtility.formatDate(item.deadline) : '—'}
-                                        </td>
-                                        <td className="dm-td-completed">
+                                    </td>
+                                    <td className="dm-td-deadline">
+                                        {item.deadline ? ReportUtility.formatDate(item.deadline) : '—'}
+                                    </td>
+                                    <td className="dm-td-completed">
                                             <span className="dm-completed-badge">
                                                 {item.completed_at ? ReportUtility.formatDate(item.completed_at) : '—'}
                                             </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>

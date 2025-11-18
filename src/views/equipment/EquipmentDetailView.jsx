@@ -246,16 +246,16 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 setMessage('Error saving changes: User ID is required');
                 return null;
             }
-            
+
             const statusValue = overrides.status ?? status;
-            
+
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const {data: openIssues} = await supabase
                     .from('heavy_equipment_maintenance')
                     .select('id')
                     .eq('equipment_id', equipment.id)
                     .is('time_completed', null)
-                
+
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage('Cannot change status to "In Shop" without having at least one open issue. Please add an issue first.')
@@ -263,7 +263,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                     return null
                 }
             }
-            
+
             const updatedEquipment = {
                 identifyingNumber,
                 assignedPlant,
@@ -314,9 +314,9 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 stack: error.stack,
                 equipmentId: equipment?.id
             });
-            
+
             let errorMessage = 'Unknown error'
-            
+
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('equipment_equipment_number_key')) {
                     errorMessage = `This equipment number already exists. Please use a different equipment number.`
@@ -324,7 +324,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                     errorMessage = error.message
                 }
             }
-            
+
             setMessage('Error saving changes: ' + errorMessage);
             return null;
         } finally {

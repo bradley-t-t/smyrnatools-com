@@ -35,7 +35,7 @@ const FormatUtility = {
     compareVINs: (vinA, vinB) => {
         const a = String(vinA || '').toUpperCase()
         const b = String(vinB || '').toUpperCase()
-        
+
         if (!a && !b) return 0
         if (!a) return 1
         if (!b) return -1

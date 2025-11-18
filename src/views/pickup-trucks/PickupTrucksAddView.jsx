@@ -116,82 +116,82 @@ function PickupTrucksAddView({onClose, onAdded}) {
             <AddViewSection title="Add Pickup Truck" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit} autoComplete="off">
                     <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Plant*</label>
-                                        <button
-                                            type="button"
-                                            className="ios-select"
-                                            onClick={() => setIsPlantModalOpen(true)}
-                                            aria-label="Select plant"
-                                        >
-                                            {plantDisplayText}
-                                        </button>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Status</label>
-                                        <select className="ios-select" value={status}
-                                                onChange={e => setStatus(e.target.value)}>
-                                            <option value="Active">Active</option>
-                                            <option value="Stationary">Stationary</option>
-                                            <option value="Spare">Spare</option>
-                                            <option value="In Shop">In Shop</option>
-                                            <option value="Retired">Retired</option>
-                                            <option value="Sold">Sold</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>VIN</label>
-                                        <input type="text" className="ios-input" value={vin}
-                                               onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
-                                               placeholder="Enter VIN (no I, O, Q)"/>
-                                        <div className="vin-hint">Letters I, O, and Q are not used.</div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Year</label>
-                                        <input type="text" className="ios-input" value={year}
-                                               onChange={e => setYear(e.target.value)} placeholder="Enter year"/>
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Make</label>
-                                        <input type="text" className="ios-input" value={make}
-                                               onChange={e => setMake(e.target.value)} placeholder="Enter make"/>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Model</label>
-                                        <input type="text" className="ios-input" value={model}
-                                               onChange={e => setModel(e.target.value)} placeholder="Enter model"/>
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Assigned</label>
-                                        <input type="text" className="ios-input" value={assigned}
-                                               onChange={e => setAssigned(e.target.value)} placeholder="Enter name"/>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Mileage</label>
-                                        <input type="number" className="ios-input" value={mileage}
-                                               onChange={e => setMileage(e.target.value)} placeholder="Enter mileage"/>
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label>Comments</label>
-                                        <textarea className="ios-input" rows={3} value={comments}
-                                                  onChange={e => setComments(e.target.value)} placeholder="Notes"/>
-                                    </div>
-                                </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Plant*</label>
+                                <button
+                                    type="button"
+                                    className="ios-select"
+                                    onClick={() => setIsPlantModalOpen(true)}
+                                    aria-label="Select plant"
+                                >
+                                    {plantDisplayText}
+                                </button>
                             </div>
-                            <div className="form-actions">
-                                <button type="submit" className="ios-button-primary"
-                                        disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Pickup'}</button>
+                            <div className="form-group">
+                                <label>Status</label>
+                                <select className="ios-select" value={status}
+                                        onChange={e => setStatus(e.target.value)}>
+                                    <option value="Active">Active</option>
+                                    <option value="Stationary">Stationary</option>
+                                    <option value="Spare">Spare</option>
+                                    <option value="In Shop">In Shop</option>
+                                    <option value="Retired">Retired</option>
+                                    <option value="Sold">Sold</option>
+                                </select>
                             </div>
-                        </form>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>VIN</label>
+                                <input type="text" className="ios-input" value={vin}
+                                       onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                       placeholder="Enter VIN (no I, O, Q)"/>
+                                <div className="vin-hint">Letters I, O, and Q are not used.</div>
+                            </div>
+                            <div className="form-group">
+                                <label>Year</label>
+                                <input type="text" className="ios-input" value={year}
+                                       onChange={e => setYear(e.target.value)} placeholder="Enter year"/>
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Make</label>
+                                <input type="text" className="ios-input" value={make}
+                                       onChange={e => setMake(e.target.value)} placeholder="Enter make"/>
+                            </div>
+                            <div className="form-group">
+                                <label>Model</label>
+                                <input type="text" className="ios-input" value={model}
+                                       onChange={e => setModel(e.target.value)} placeholder="Enter model"/>
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Assigned</label>
+                                <input type="text" className="ios-input" value={assigned}
+                                       onChange={e => setAssigned(e.target.value)} placeholder="Enter name"/>
+                            </div>
+                            <div className="form-group">
+                                <label>Mileage</label>
+                                <input type="number" className="ios-input" value={mileage}
+                                       onChange={e => setMileage(e.target.value)} placeholder="Enter mileage"/>
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group wide">
+                                <label>Comments</label>
+                                <textarea className="ios-input" rows={3} value={comments}
+                                          onChange={e => setComments(e.target.value)} placeholder="Notes"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="form-actions">
+                        <button type="submit" className="ios-button-primary"
+                                disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Pickup'}</button>
+                    </div>
+                </form>
             </AddViewSection>
             {isPlantModalOpen && (
                 <PlantDropdownModal

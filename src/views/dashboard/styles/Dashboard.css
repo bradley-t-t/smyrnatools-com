@@ -270,7 +270,7 @@
     .skeleton-card:before, .loader, .mini-loader, .filtering-indicator {
         animation: none
     }
-    
+
     .slide-in-hero,
     .slide-in-section,
     .slide-in-card,
@@ -1185,80 +1185,80 @@
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .status-bars-date-range {
         width: 100%;
         justify-content: flex-start;
         flex-wrap: wrap;
     }
-    
+
     .compact-metrics-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
     }
-    
+
     .compact-metric-card {
         padding: 0.625rem;
     }
-    
+
     .metric-card-header {
         font-size: 0.6875rem;
         margin-bottom: 0.375rem;
     }
-    
+
     .stat-value {
         font-size: 1rem;
     }
-    
+
     .stat-label {
         font-size: 0.5625rem;
     }
-    
+
     .date-quick-filters {
         width: 100%;
         margin-right: 0;
         margin-bottom: 0.5rem;
     }
-    
+
     .date-filter-btn {
         flex: 1;
         padding: 0.5rem 0.5rem;
         font-size: 0.75rem;
     }
-    
+
     .date-range-input {
         flex: 1;
         min-width: 120px;
     }
-    
+
     .status-metrics-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .status-metric-card {
         padding: 1rem;
     }
-    
+
     .status-metric-icon {
         width: 40px;
         height: 40px;
         font-size: 1.25rem;
     }
-    
+
     .status-metric-value {
         font-size: 1.5rem;
     }
-    
+
     .asset-status-bar-row {
         flex-direction: column;
         align-items: stretch;
         gap: 0.5rem;
     }
-    
+
     .asset-status-label {
         min-width: auto;
     }
-    
+
     .asset-status-bar {
         height: 36px;
     }
@@ -1268,7 +1268,7 @@
     .date-quick-filters {
         flex-wrap: wrap;
     }
-    
+
     .date-filter-btn {
         font-size: 0.75rem;
         padding: 0.5rem 0.75rem;

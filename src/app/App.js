@@ -316,16 +316,16 @@ function AppContent() {
         if (storedUserId) {
             setUserId(storedUserId)
         }
-        
+
         const handleAuthSuccess = (event) => {
             const userId = event.detail?.userId || sessionStorage.getItem('userId')
             if (userId) {
                 setUserId(userId)
             }
         }
-        
+
         window.addEventListener('authSuccess', handleAuthSuccess)
-        
+
         return () => {
             window.removeEventListener('authSuccess', handleAuthSuccess)
         }
@@ -339,11 +339,11 @@ function AppContent() {
                 setRolesLoaded(false)
                 return
             }
-            
+
             if (rolesLoaded) {
                 return
             }
-            
+
             try {
                 const roles = await UserService.getUserRoles(userId)
                 if (cancelled) return
@@ -372,7 +372,7 @@ function AppContent() {
         if (userId && !rolesLoaded) {
             loadRoles()
         }
-        
+
         return () => {
             cancelled = true
         }

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
-import { UserService } from '../../services/UserService';
-import { supabase } from '../../services/DatabaseService';
+import {UserService} from '../../services/UserService';
+import {supabase} from '../../services/DatabaseService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import './styles/Roles.css';
 
@@ -104,9 +104,9 @@ function RolesView() {
             const uniquePermissions = [...new Set(permissionsArray)];
             const sortedPermissions = uniquePermissions.sort((a, b) => a.localeCompare(b));
 
-            const { data, error: updateError } = await supabase
+            const {data, error: updateError} = await supabase
                 .from('users_roles')
-                .update({ permissions: sortedPermissions })
+                .update({permissions: sortedPermissions})
                 .eq('id', editingRole);
 
             if (updateError) {
@@ -144,7 +144,7 @@ function RolesView() {
         setError('');
 
         try {
-            const { error: createError } = await supabase
+            const {error: createError} = await supabase
                 .from('users_roles')
                 .insert([{
                     name: newRoleName.trim(),
@@ -182,9 +182,9 @@ function RolesView() {
         if (!hasITAccess) return;
 
         try {
-            const { error: updateError } = await supabase
+            const {error: updateError} = await supabase
                 .from('users_roles')
-                .update({ weight: editedWeight })
+                .update({weight: editedWeight})
                 .eq('id', roleId);
 
             if (updateError) {
@@ -209,7 +209,7 @@ function RolesView() {
 
     const searchPermissions = (query) => {
         setSearchQuery(query);
-        
+
         if (!query.trim()) {
             setSearchResults([]);
             return;
@@ -220,10 +220,10 @@ function RolesView() {
 
         roles.forEach(role => {
             if (role.permissions && Array.isArray(role.permissions)) {
-                const matchingPermissions = role.permissions.filter(perm => 
+                const matchingPermissions = role.permissions.filter(perm =>
                     perm.toLowerCase().includes(lowerQuery)
                 );
-                
+
                 if (matchingPermissions.length > 0) {
                     results.push({
                         role: role,
@@ -269,9 +269,9 @@ function RolesView() {
                     const updatedPermissions = role.permissions.filter(p => p !== permissionToRemove);
                     const sortedPermissions = updatedPermissions.sort((a, b) => a.localeCompare(b));
 
-                    const { error: updateError } = await supabase
+                    const {error: updateError} = await supabase
                         .from('users_roles')
-                        .update({ permissions: sortedPermissions })
+                        .update({permissions: sortedPermissions})
                         .eq('id', role.id);
 
                     if (updateError) {
@@ -284,7 +284,7 @@ function RolesView() {
 
             UserService.clearCache();
             await loadData();
-            
+
             const updatedResults = searchResults
                 .map(result => {
                     const updatedPermissions = result.matchingPermissions.filter(p => p !== permissionToRemove);
@@ -294,7 +294,7 @@ function RolesView() {
                     };
                 })
                 .filter(result => result.matchingPermissions.length > 0);
-            
+
             setSearchResults(updatedResults);
 
             setMessage(`Successfully removed "${permissionToRemove}" from ${rolesModified} ${rolesModified === 1 ? 'role' : 'roles'}`);
@@ -322,9 +322,9 @@ function RolesView() {
             const updatedPermissions = role.permissions.filter(p => p !== permissionToRemove);
             const sortedPermissions = updatedPermissions.sort((a, b) => a.localeCompare(b));
 
-            const { error: updateError } = await supabase
+            const {error: updateError} = await supabase
                 .from('users_roles')
-                .update({ permissions: sortedPermissions })
+                .update({permissions: sortedPermissions})
                 .eq('id', roleId);
 
             if (updateError) {
@@ -333,7 +333,7 @@ function RolesView() {
 
             UserService.clearCache();
             await loadData();
-            
+
             const updatedResults = searchResults
                 .map(result => {
                     if (result.role.id === roleId) {
@@ -346,7 +346,7 @@ function RolesView() {
                     return result;
                 })
                 .filter(result => result.matchingPermissions.length > 0);
-            
+
             setSearchResults(updatedResults);
 
             setMessage(`Successfully removed "${permissionToRemove}" from "${roleName}"`);
@@ -389,7 +389,7 @@ function RolesView() {
                 const duplicatesRemoved = trimmedPermissions.length - uniquePermissions.length;
                 const sortedPermissions = uniquePermissions.sort((a, b) => a.localeCompare(b));
 
-                const permissionsChanged = 
+                const permissionsChanged =
                     JSON.stringify(role.permissions) !== JSON.stringify(sortedPermissions);
 
                 if (permissionsChanged) {
@@ -405,9 +405,9 @@ function RolesView() {
                         emptyRemoved: emptyRemoved
                     });
 
-                    const { error: updateError } = await supabase
+                    const {error: updateError} = await supabase
                         .from('users_roles')
-                        .update({ permissions: sortedPermissions })
+                        .update({permissions: sortedPermissions})
                         .eq('id', role.id);
 
                     if (updateError) {
@@ -419,13 +419,13 @@ function RolesView() {
             UserService.clearCache();
             await loadData();
             setCleanupResults(results);
-            
+
             if (results.cleaned === 0) {
                 setMessage('All roles are already clean! No changes needed.');
             } else {
                 setMessage(`Cleanup complete! ${results.cleaned} ${results.cleaned === 1 ? 'role' : 'roles'} cleaned.`);
             }
-            
+
             setTimeout(() => setMessage(''), 5000);
         } catch (err) {
             console.error('Error cleaning up roles:', err);
@@ -438,7 +438,7 @@ function RolesView() {
     if (isLoading) {
         return (
             <div className="roles-view">
-                <LoadingScreen message="Loading roles..." inline={true} />
+                <LoadingScreen message="Loading roles..." inline={true}/>
             </div>
         );
     }
@@ -449,14 +449,14 @@ function RolesView() {
                 <div className="roles-header-content">
                     <h1>Roles & Permissions</h1>
                     <p className="roles-subtitle">
-                        {hasITAccess 
-                            ? 'View and manage all roles and their permission nodes' 
+                        {hasITAccess
+                            ? 'View and manage all roles and their permission nodes'
                             : 'View all roles and their permission nodes'}
                     </p>
                 </div>
                 <div className="roles-header-actions">
                     {hasITAccess && (
-                        <button 
+                        <button
                             className="cleanup-button"
                             onClick={() => setShowCleanupModal(true)}
                         >
@@ -465,7 +465,7 @@ function RolesView() {
                         </button>
                     )}
                     {hasITAccess && (
-                        <button 
+                        <button
                             className="create-role-button"
                             onClick={() => setShowCreateModal(true)}
                         >
@@ -483,7 +483,7 @@ function RolesView() {
             </div>
 
             <div className="roles-search-trigger">
-                <button 
+                <button
                     className="search-trigger-button"
                     onClick={openSearch}
                 >
@@ -507,7 +507,7 @@ function RolesView() {
                                     autoFocus
                                 />
                             </div>
-                            <button 
+                            <button
                                 className="close-search-button"
                                 onClick={closeSearch}
                                 title="Close search"
@@ -519,11 +519,13 @@ function RolesView() {
                             <>
                                 <div className="search-results-header-info">
                                     <div className="search-results-info">
-                                        <span className="search-results-count">{searchResults.length} {searchResults.length === 1 ? 'role' : 'roles'} found</span>
-                                        <span className="search-results-query">matching &ldquo;{searchQuery.trim()}&rdquo;</span>
+                                        <span
+                                            className="search-results-count">{searchResults.length} {searchResults.length === 1 ? 'role' : 'roles'} found</span>
+                                        <span
+                                            className="search-results-query">matching &ldquo;{searchQuery.trim()}&rdquo;</span>
                                     </div>
                                     {hasITAccess && searchQuery.trim() && (
-                                        <button 
+                                        <button
                                             className="bulk-remove-button"
                                             onClick={() => removePermissionFromAll(searchQuery.trim())}
                                             title={`Remove exact matches of "${searchQuery.trim()}" from all roles`}
@@ -541,13 +543,14 @@ function RolesView() {
                                                 <div key={index} className="search-result-item">
                                                     <div className="search-result-item-header">
                                                         <div className="search-result-role-info">
-                                                            <span className="search-result-role-name">{result.role.name}</span>
+                                                            <span
+                                                                className="search-result-role-name">{result.role.name}</span>
                                                             <span className="search-result-match-count">
                                                                 {result.matchingPermissions.length} {result.matchingPermissions.length === 1 ? 'match' : 'matches'}
                                                             </span>
                                                         </div>
                                                         {hasITAccess && hasExactMatch && (
-                                                            <button 
+                                                            <button
                                                                 className="single-remove-button"
                                                                 onClick={() => removePermissionFromRole(searchQuery.trim(), result.role.id, result.role.name)}
                                                                 title={`Remove exact match from this role`}
@@ -560,9 +563,11 @@ function RolesView() {
                                                         {result.matchingPermissions.map((perm, pIndex) => {
                                                             const isExact = perm === searchQuery.trim();
                                                             return (
-                                                                <div key={pIndex} className={`permission-item ${isExact ? 'exact-match' : 'partial-match'}`}>
+                                                                <div key={pIndex}
+                                                                     className={`permission-item ${isExact ? 'exact-match' : 'partial-match'}`}>
                                                                     <span className="permission-text">{perm}</span>
-                                                                    {isExact && <span className="exact-badge">exact</span>}
+                                                                    {isExact &&
+                                                                        <span className="exact-badge">exact</span>}
                                                                 </div>
                                                             );
                                                         })}
@@ -602,25 +607,25 @@ function RolesView() {
 
             {!searchQuery && (
                 <>
-            <div className="roles-list">
-                {roles.map((role) => {
-                    const isExpanded = expandedRoles.has(role.id);
-                    const isEditing = editingRole === role.id;
-                    const permissionCount = getPermissionCount(role);
-                    const permissions = formatPermissions(role.permissions);
+                    <div className="roles-list">
+                        {roles.map((role) => {
+                            const isExpanded = expandedRoles.has(role.id);
+                            const isEditing = editingRole === role.id;
+                            const permissionCount = getPermissionCount(role);
+                            const permissions = formatPermissions(role.permissions);
 
-                    return (
-                        <div key={role.id} className={`role-card ${isExpanded ? 'expanded' : ''}`}>
-                            <div className="role-card-header" onClick={() => !isEditing && toggleRole(role.id)}>
-                                <div className="role-card-title">
-                                    <div className="role-icon">
-                                        <i className="fas fa-user-shield"></i>
-                                    </div>
-                                    <div className="role-info">
-                                        <h3>{role.name}</h3>
-                                        <div className="role-meta">
-                                            {editingWeight === role.id && hasITAccess ? (
-                                                <span className="role-weight editing">
+                            return (
+                                <div key={role.id} className={`role-card ${isExpanded ? 'expanded' : ''}`}>
+                                    <div className="role-card-header" onClick={() => !isEditing && toggleRole(role.id)}>
+                                        <div className="role-card-title">
+                                            <div className="role-icon">
+                                                <i className="fas fa-user-shield"></i>
+                                            </div>
+                                            <div className="role-info">
+                                                <h3>{role.name}</h3>
+                                                <div className="role-meta">
+                                                    {editingWeight === role.id && hasITAccess ? (
+                                                        <span className="role-weight editing">
                                                     <i className="fas fa-weight-hanging"></i>
                                                     Weight:
                                                     <input
@@ -630,7 +635,7 @@ function RolesView() {
                                                         className="weight-input"
                                                         onClick={(e) => e.stopPropagation()}
                                                     />
-                                                    <button 
+                                                    <button
                                                         className="weight-save-btn"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -639,7 +644,7 @@ function RolesView() {
                                                     >
                                                         <i className="fas fa-check"></i>
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         className="weight-cancel-btn"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -649,127 +654,130 @@ function RolesView() {
                                                         <i className="fas fa-times"></i>
                                                     </button>
                                                 </span>
-                                            ) : (
-                                                <span 
-                                                    className="role-weight"
-                                                    onClick={(e) => {
-                                                        if (hasITAccess) {
-                                                            e.stopPropagation();
-                                                            startEditingWeight(role);
-                                                        }
-                                                    }}
-                                                    style={hasITAccess ? {cursor: 'pointer'} : {}}
-                                                    title={hasITAccess ? 'Click to edit weight' : ''}
-                                                >
+                                                    ) : (
+                                                        <span
+                                                            className="role-weight"
+                                                            onClick={(e) => {
+                                                                if (hasITAccess) {
+                                                                    e.stopPropagation();
+                                                                    startEditingWeight(role);
+                                                                }
+                                                            }}
+                                                            style={hasITAccess ? {cursor: 'pointer'} : {}}
+                                                            title={hasITAccess ? 'Click to edit weight' : ''}
+                                                        >
                                                     <i className="fas fa-weight-hanging"></i>
                                                     Weight: {role.weight || 0}
-                                                    {hasITAccess && <i className="fas fa-pencil-alt" style={{marginLeft: '0.375rem', fontSize: '0.625rem'}}></i>}
+                                                            {hasITAccess && <i className="fas fa-pencil-alt" style={{
+                                                                marginLeft: '0.375rem',
+                                                                fontSize: '0.625rem'
+                                                            }}></i>}
                                                 </span>
-                                            )}
-                                            <span className="role-permissions-count">
+                                                    )}
+                                                    <span className="role-permissions-count">
                                                 <i className="fas fa-key"></i>
-                                                {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
+                                                        {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
                                             </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="role-card-actions">
+                                            {hasITAccess && !isEditing && (
+                                                <button
+                                                    className="role-edit-button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        startEditing(role);
+                                                    }}
+                                                >
+                                                    <i className="fas fa-edit"></i>
+                                                    Edit
+                                                </button>
+                                            )}
+                                            {!isEditing && (
+                                                <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} expand-icon`}></i>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
-                                <div className="role-card-actions">
-                                    {hasITAccess && !isEditing && (
-                                        <button
-                                            className="role-edit-button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                e.preventDefault();
-                                                startEditing(role);
-                                            }}
-                                        >
-                                            <i className="fas fa-edit"></i>
-                                            Edit
-                                        </button>
-                                    )}
-                                    {!isEditing && (
-                                        <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} expand-icon`}></i>
-                                    )}
-                                </div>
-                            </div>
 
-                            {isExpanded && (
-                                <div className="role-card-content">
-                                    {isEditing ? (
-                                        <div className="role-edit-section">
-                                            <div className="edit-header">
-                                                <h4>Edit Permissions for {role.name}</h4>
-                                                <p>Enter one permission node per line</p>
-                                            </div>
-                                            <textarea
-                                                className="permissions-editor"
-                                                value={editedPermissions}
-                                                onChange={(e) => setEditedPermissions(e.target.value)}
-                                                placeholder="Enter permissions (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;mixers.edit"
-                                                rows={12}
-                                            />
-                                            <div className="edit-actions">
-                                                <button
-                                                    className="save-button"
-                                                    onClick={savePermissions}
-                                                    disabled={isSaving}
-                                                >
-                                                    {isSaving ? (
-                                                        <>
-                                                            <i className="fas fa-spinner fa-spin"></i>
-                                                            Saving...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <i className="fas fa-save"></i>
-                                                            Save Changes
-                                                        </>
-                                                    )}
-                                                </button>
-                                                <button
-                                                    className="cancel-button"
-                                                    onClick={cancelEditing}
-                                                    disabled={isSaving}
-                                                >
-                                                    <i className="fas fa-times"></i>
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="permissions-list">
-                                            {permissionCount === 0 ? (
-                                                <div className="no-permissions">
-                                                    <i className="fas fa-info-circle"></i>
-                                                    No permissions assigned to this role
+                                    {isExpanded && (
+                                        <div className="role-card-content">
+                                            {isEditing ? (
+                                                <div className="role-edit-section">
+                                                    <div className="edit-header">
+                                                        <h4>Edit Permissions for {role.name}</h4>
+                                                        <p>Enter one permission node per line</p>
+                                                    </div>
+                                                    <textarea
+                                                        className="permissions-editor"
+                                                        value={editedPermissions}
+                                                        onChange={(e) => setEditedPermissions(e.target.value)}
+                                                        placeholder="Enter permissions (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;mixers.edit"
+                                                        rows={12}
+                                                    />
+                                                    <div className="edit-actions">
+                                                        <button
+                                                            className="save-button"
+                                                            onClick={savePermissions}
+                                                            disabled={isSaving}
+                                                        >
+                                                            {isSaving ? (
+                                                                <>
+                                                                    <i className="fas fa-spinner fa-spin"></i>
+                                                                    Saving...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <i className="fas fa-save"></i>
+                                                                    Save Changes
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            className="cancel-button"
+                                                            onClick={cancelEditing}
+                                                            disabled={isSaving}
+                                                        >
+                                                            <i className="fas fa-times"></i>
+                                                            Cancel
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ) : (
-                                                <div className="permissions-grid">
-                                                    {permissions.map((permission, index) => (
-                                                        <div key={index} className="permission-node">
-                                                            <i className="fas fa-check-circle"></i>
-                                                            <span>{permission}</span>
+                                                <div className="permissions-list">
+                                                    {permissionCount === 0 ? (
+                                                        <div className="no-permissions">
+                                                            <i className="fas fa-info-circle"></i>
+                                                            No permissions assigned to this role
                                                         </div>
-                                                    ))}
+                                                    ) : (
+                                                        <div className="permissions-grid">
+                                                            {permissions.map((permission, index) => (
+                                                                <div key={index} className="permission-node">
+                                                                    <i className="fas fa-check-circle"></i>
+                                                                    <span>{permission}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+                            );
+                        })}
+                    </div>
 
-            {roles.length === 0 && !isLoading && (
-                <div className="no-roles">
-                    <i className="fas fa-users-slash"></i>
-                    <h3>No Roles Found</h3>
-                    <p>There are no roles configured in the system.</p>
-                </div>
-            )}
-            </>
+                    {roles.length === 0 && !isLoading && (
+                        <div className="no-roles">
+                            <i className="fas fa-users-slash"></i>
+                            <h3>No Roles Found</h3>
+                            <p>There are no roles configured in the system.</p>
+                        </div>
+                    )}
+                </>
             )}
 
             {showCreateModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
@@ -862,135 +870,137 @@ function RolesView() {
                         </div>
                         <div className="modal-content-scrollable">
                             <div className="modal-body-content">
-                            {!cleanupResults ? (
-                                <>
-                                    <p className="cleanup-description">
-                                        This will automatically clean up all roles by:
-                                    </p>
-                                    <ul className="cleanup-actions-list">
-                                        <li>
-                                            <i className="fas fa-check-circle"></i>
-                                            Removing duplicate permission nodes
-                                        </li>
-                                        <li>
-                                            <i className="fas fa-check-circle"></i>
-                                            Removing empty or whitespace-only entries
-                                        </li>
-                                        <li>
-                                            <i className="fas fa-check-circle"></i>
-                                            Sorting permissions alphabetically
-                                        </li>
-                                        <li>
-                                            <i className="fas fa-check-circle"></i>
-                                            Trimming whitespace from all entries
-                                        </li>
-                                    </ul>
-                                    <p className="cleanup-warning">
-                                        <i className="fas fa-info-circle"></i>
-                                        This action will process all {roles.length} roles in the system.
-                                    </p>
-                                </>
-                            ) : (
-                                <div className="cleanup-results">
-                                    <div className="cleanup-summary">
-                                        <div className="cleanup-stat">
-                                            <i className="fas fa-users-cog"></i>
-                                            <div>
-                                                <div className="cleanup-stat-value">{cleanupResults.processed}</div>
-                                                <div className="cleanup-stat-label">Roles Processed</div>
+                                {!cleanupResults ? (
+                                    <>
+                                        <p className="cleanup-description">
+                                            This will automatically clean up all roles by:
+                                        </p>
+                                        <ul className="cleanup-actions-list">
+                                            <li>
+                                                <i className="fas fa-check-circle"></i>
+                                                Removing duplicate permission nodes
+                                            </li>
+                                            <li>
+                                                <i className="fas fa-check-circle"></i>
+                                                Removing empty or whitespace-only entries
+                                            </li>
+                                            <li>
+                                                <i className="fas fa-check-circle"></i>
+                                                Sorting permissions alphabetically
+                                            </li>
+                                            <li>
+                                                <i className="fas fa-check-circle"></i>
+                                                Trimming whitespace from all entries
+                                            </li>
+                                        </ul>
+                                        <p className="cleanup-warning">
+                                            <i className="fas fa-info-circle"></i>
+                                            This action will process all {roles.length} roles in the system.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <div className="cleanup-results">
+                                        <div className="cleanup-summary">
+                                            <div className="cleanup-stat">
+                                                <i className="fas fa-users-cog"></i>
+                                                <div>
+                                                    <div className="cleanup-stat-value">{cleanupResults.processed}</div>
+                                                    <div className="cleanup-stat-label">Roles Processed</div>
+                                                </div>
+                                            </div>
+                                            <div className="cleanup-stat">
+                                                <i className="fas fa-broom"></i>
+                                                <div>
+                                                    <div className="cleanup-stat-value">{cleanupResults.cleaned}</div>
+                                                    <div className="cleanup-stat-label">Roles Cleaned</div>
+                                                </div>
+                                            </div>
+                                            <div className="cleanup-stat">
+                                                <i className="fas fa-copy"></i>
+                                                <div>
+                                                    <div
+                                                        className="cleanup-stat-value">{cleanupResults.duplicatesRemoved}</div>
+                                                    <div className="cleanup-stat-label">Duplicates Removed</div>
+                                                </div>
+                                            </div>
+                                            <div className="cleanup-stat">
+                                                <i className="fas fa-trash"></i>
+                                                <div>
+                                                    <div
+                                                        className="cleanup-stat-value">{cleanupResults.emptyPermissionsRemoved}</div>
+                                                    <div className="cleanup-stat-label">Empty Entries Removed</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="cleanup-stat">
-                                            <i className="fas fa-broom"></i>
-                                            <div>
-                                                <div className="cleanup-stat-value">{cleanupResults.cleaned}</div>
-                                                <div className="cleanup-stat-label">Roles Cleaned</div>
-                                            </div>
-                                        </div>
-                                        <div className="cleanup-stat">
-                                            <i className="fas fa-copy"></i>
-                                            <div>
-                                                <div className="cleanup-stat-value">{cleanupResults.duplicatesRemoved}</div>
-                                                <div className="cleanup-stat-label">Duplicates Removed</div>
-                                            </div>
-                                        </div>
-                                        <div className="cleanup-stat">
-                                            <i className="fas fa-trash"></i>
-                                            <div>
-                                                <div className="cleanup-stat-value">{cleanupResults.emptyPermissionsRemoved}</div>
-                                                <div className="cleanup-stat-label">Empty Entries Removed</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {cleanupResults.details.length > 0 && (
-                                        <div className="cleanup-details">
-                                            <h4>Changes Made:</h4>
-                                            {cleanupResults.details.map((detail, index) => (
-                                                <div key={index} className="cleanup-detail-item">
-                                                    <div className="cleanup-detail-role">{detail.roleName}</div>
-                                                    <div className="cleanup-detail-changes">
-                                                        {detail.before} → {detail.after} permissions
-                                                        {detail.duplicatesRemoved > 0 && (
-                                                            <span className="cleanup-detail-badge">
+
+                                        {cleanupResults.details.length > 0 && (
+                                            <div className="cleanup-details">
+                                                <h4>Changes Made:</h4>
+                                                {cleanupResults.details.map((detail, index) => (
+                                                    <div key={index} className="cleanup-detail-item">
+                                                        <div className="cleanup-detail-role">{detail.roleName}</div>
+                                                        <div className="cleanup-detail-changes">
+                                                            {detail.before} → {detail.after} permissions
+                                                            {detail.duplicatesRemoved > 0 && (
+                                                                <span className="cleanup-detail-badge">
                                                                 -{detail.duplicatesRemoved} duplicates
                                                             </span>
-                                                        )}
-                                                        {detail.emptyRemoved > 0 && (
-                                                            <span className="cleanup-detail-badge">
+                                                            )}
+                                                            {detail.emptyRemoved > 0 && (
+                                                                <span className="cleanup-detail-badge">
                                                                 -{detail.emptyRemoved} empty
                                                             </span>
-                                                        )}
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        <div className="modal-footer">
-                            {!cleanupResults ? (
-                                <>
-                                    <button
-                                        className="save-button cleanup-confirm-button"
-                                        onClick={cleanupAllRoles}
-                                        disabled={isCleaningUp}
-                                    >
-                                        {isCleaningUp ? (
-                                            <>
-                                                <i className="fas fa-spinner fa-spin"></i>
-                                                Cleaning Up...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="fas fa-broom"></i>
-                                                Start Cleanup
-                                            </>
+                                                ))}
+                                            </div>
                                         )}
-                                    </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                {!cleanupResults ? (
+                                    <>
+                                        <button
+                                            className="save-button cleanup-confirm-button"
+                                            onClick={cleanupAllRoles}
+                                            disabled={isCleaningUp}
+                                        >
+                                            {isCleaningUp ? (
+                                                <>
+                                                    <i className="fas fa-spinner fa-spin"></i>
+                                                    Cleaning Up...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="fas fa-broom"></i>
+                                                    Start Cleanup
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            className="cancel-button"
+                                            onClick={() => setShowCleanupModal(false)}
+                                            disabled={isCleaningUp}
+                                        >
+                                            <i className="fas fa-times"></i>
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
                                     <button
-                                        className="cancel-button"
-                                        onClick={() => setShowCleanupModal(false)}
-                                        disabled={isCleaningUp}
+                                        className="save-button"
+                                        onClick={() => {
+                                            setShowCleanupModal(false);
+                                            setCleanupResults(null);
+                                        }}
                                     >
-                                        <i className="fas fa-times"></i>
-                                        Cancel
+                                        <i className="fas fa-check"></i>
+                                        Done
                                     </button>
-                                </>
-                            ) : (
-                                <button
-                                    className="save-button"
-                                    onClick={() => {
-                                        setShowCleanupModal(false);
-                                        setCleanupResults(null);
-                                    }}
-                                >
-                                    <i className="fas fa-check"></i>
-                                    Done
-                                </button>
-                            )}
-                        </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>,

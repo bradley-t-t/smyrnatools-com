@@ -215,7 +215,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
 
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyEquipment) return;
-        
+
         try {
             const updates = {};
             if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyEquipment.vin || '')) {
@@ -233,17 +233,17 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             if (verifyLastServiceDate && verifyLastServiceDate !== verifyEquipment.lastServiceDate) {
                 updates.lastServiceDate = verifyLastServiceDate;
             }
-            
+
             if (Object.keys(updates).length > 0) {
                 await EquipmentService.updateEquipment(verifyEquipment.id, updates);
             }
-            
+
             const verified = await EquipmentService.verifyEquipment(verifyEquipment.id);
-            
-            setEquipments(prevEquipments => prevEquipments.map(e => 
+
+            setEquipments(prevEquipments => prevEquipments.map(e =>
                 e.id === verifyEquipment.id ? verified : e
             ));
-            
+
             setShowVerifyModal(false);
             setVerifyEquipment(null);
         } catch (error) {

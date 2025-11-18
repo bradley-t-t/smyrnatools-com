@@ -301,7 +301,7 @@ function HistoryViewSection({item, type, onClose}) {
             const operatorId = entry.newValue || entry.new_value;
             const operatorName = getOperatorName(operatorId);
             const isEmpty = !operatorId || operatorId === '0' || operatorId === 'null' || operatorName === 'None';
-            
+
             return {
                 date: new Date(entry.changedAt || entry.changed_at),
                 operator: isEmpty ? 'Empty' : operatorName,
@@ -480,14 +480,14 @@ function HistoryViewSection({item, type, onClose}) {
         if (statusEntries.length > 0) {
             const firstEntry = statusEntries[0];
             const oldStatus = firstEntry.oldValue || firstEntry.old_value;
-            
+
             if (oldStatus && oldStatus !== 'null' && oldStatus !== '') {
                 const oldestHistoryEntry = history.length > 0
                     ? new Date(Math.min(...history.map(h => new Date(h.changedAt || h.changed_at))))
                     : new Date(firstEntry.changedAt || firstEntry.changed_at);
                 const firstChangeDate = new Date(firstEntry.changedAt || firstEntry.changed_at);
                 const initialDays = Math.round((firstChangeDate - oldestHistoryEntry) / (1000 * 60 * 60 * 24));
-                
+
                 if (initialDays > 0) {
                     statusPeriods.push({
                         status: oldStatus,
@@ -509,13 +509,13 @@ function HistoryViewSection({item, type, onClose}) {
             const timestamp = entry.changedAt || entry.changed_at;
             const changedBy = entry.changedBy || entry.changed_by;
             const startDate = new Date(timestamp);
-            
+
             const nextEntry = statusEntries[index + 1];
             const endDate = nextEntry ? new Date(nextEntry.changedAt || nextEntry.changed_at) : new Date();
             const endTimestamp = nextEntry ? nextEntry.changedAt || nextEntry.changed_at : null;
             const endChangedBy = nextEntry ? nextEntry.changedBy || nextEntry.changed_by : null;
             const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
-            
+
             statusPeriods.push({
                 status: status,
                 startDate: startDate,
@@ -787,8 +787,8 @@ function HistoryViewSection({item, type, onClose}) {
         const currentOperator = lastEntry ? (lastEntry.isEmpty ? 'Empty' : lastEntry.operator) : null;
         const mostFrequentOperator = Object.keys(operatorDurations).length > 0
             ? Object.entries(operatorDurations)
-                .filter(([op]) => op !== 'Empty')
-                .reduce((a, b) => !a || b[1] > a[1] ? b : a, null)?.[0] || 'Not Assigned'
+            .filter(([op]) => op !== 'Empty')
+            .reduce((a, b) => !a || b[1] > a[1] ? b : a, null)?.[0] || 'Not Assigned'
             : null;
 
 
@@ -797,12 +797,12 @@ function HistoryViewSection({item, type, onClose}) {
         while (j < operatorData.length) {
             const entry = operatorData[j];
             const {days, endIndex} = calculateDuration(j, entry.operator);
-            
+
             let statusPeriods = [];
             if (entry.isEmpty) {
                 const periodStart = new Date(entry.timestamp);
                 const periodEnd = endIndex < operatorData.length ? new Date(operatorData[endIndex].timestamp) : new Date();
-                
+
                 const statusChangesInPeriod = statusData.filter(statusEntry => {
                     const statusDate = new Date(statusEntry.timestamp);
                     return statusDate >= periodStart && statusDate < periodEnd;
@@ -812,27 +812,27 @@ function HistoryViewSection({item, type, onClose}) {
                     const statusDaysMap = {};
                     let currentStatus = statusChangesInPeriod[0];
                     let statusStart = periodStart;
-                    
+
                     for (let k = 1; k < statusChangesInPeriod.length; k++) {
                         const nextStatus = statusChangesInPeriod[k];
                         const statusEnd = new Date(nextStatus.timestamp);
                         const statusDays = Math.round((statusEnd - statusStart) / (1000 * 60 * 60 * 24));
-                        
+
                         if (!statusDaysMap[currentStatus.status]) {
                             statusDaysMap[currentStatus.status] = 0;
                         }
                         statusDaysMap[currentStatus.status] += statusDays;
-                        
+
                         currentStatus = nextStatus;
                         statusStart = statusEnd;
                     }
-                    
+
                     const lastStatusDays = Math.round((periodEnd - statusStart) / (1000 * 60 * 60 * 24));
                     if (!statusDaysMap[currentStatus.status]) {
                         statusDaysMap[currentStatus.status] = 0;
                     }
                     statusDaysMap[currentStatus.status] += lastStatusDays;
-                    
+
                     statusPeriods = Object.entries(statusDaysMap).map(([status, totalDays]) => ({
                         status: status,
                         days: totalDays
@@ -845,7 +845,7 @@ function HistoryViewSection({item, type, onClose}) {
                     });
                 }
             }
-            
+
             consolidatedTimeline.push({
                 operator: entry.operator,
                 startDate: entry.timestamp,
@@ -891,7 +891,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 <div className="timeline-card-header">
                                     <span className="timeline-operator-name">{entry.operator}</span>
                                     {entry.isCurrent && <span className="current-badge">Current</span>}
-                                    {entry.isEmpty && !entry.isCurrent && <span className="empty-badge">No Operator</span>}
+                                    {entry.isEmpty && !entry.isCurrent &&
+                                        <span className="empty-badge">No Operator</span>}
                                 </div>
                                 <div className="timeline-card-meta">
                                     <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
@@ -923,7 +924,7 @@ function HistoryViewSection({item, type, onClose}) {
 
     const renderOverviewChart = () => {
         const currentStatus = item.status || 'Unknown';
-        
+
         const oldestEntry = history.length > 0
             ? new Date(Math.min(...history.map(h => new Date(h.changedAt || h.changed_at))))
             : new Date();
@@ -960,12 +961,17 @@ function HistoryViewSection({item, type, onClose}) {
         }
 
         const getStatusColor = (status) => {
-            switch(status) {
-                case 'Active': return 'var(--success)';
-                case 'Spare': return '#9333ea';
-                case 'In Shop': return '#3b82f6';
-                case 'Retired': return 'var(--error)';
-                default: return 'var(--accent)';
+            switch (status) {
+                case 'Active':
+                    return 'var(--success)';
+                case 'Spare':
+                    return '#9333ea';
+                case 'In Shop':
+                    return '#3b82f6';
+                case 'Retired':
+                    return 'var(--error)';
+                default:
+                    return 'var(--accent)';
             }
         };
 
@@ -977,9 +983,9 @@ function HistoryViewSection({item, type, onClose}) {
                         <div className="utilization-bar">
                             {statusPercentages.map((item, index) => (
                                 parseFloat(item.percentage) > 0 && (
-                                    <div 
+                                    <div
                                         key={index}
-                                        className="utilization-segment" 
+                                        className="utilization-segment"
                                         style={{
                                             width: `${item.percentage}%`,
                                             background: getStatusColor(item.status)
@@ -995,8 +1001,8 @@ function HistoryViewSection({item, type, onClose}) {
                     <div className="utilization-legend">
                         {statusPercentages.map((item, index) => (
                             <div key={index} className="legend-item">
-                                <div 
-                                    className="legend-color" 
+                                <div
+                                    className="legend-color"
                                     style={{background: getStatusColor(item.status)}}
                                 ></div>
                                 <div className="legend-details">
@@ -1032,7 +1038,7 @@ function HistoryViewSection({item, type, onClose}) {
                     {allStatusPeriodsData.length === 0 ? (
                         <div className="timeline-entry timeline-entry-current">
                             <div className="timeline-marker">
-                                <div 
+                                <div
                                     className="timeline-dot"
                                     style={{background: getStatusColor(currentStatus)}}
                                 ></div>
@@ -1049,7 +1055,11 @@ function HistoryViewSection({item, type, onClose}) {
                                     </span>
                                 </div>
                                 <div className="timeline-card-meta">
-                                    <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic'}}>
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        color: 'var(--text-secondary)',
+                                        fontStyle: 'italic'
+                                    }}>
                                         No status changes recorded
                                     </span>
                                 </div>
@@ -1060,7 +1070,7 @@ function HistoryViewSection({item, type, onClose}) {
                             <div key={index}
                                  className={`timeline-entry ${period.isCurrent ? 'timeline-entry-current' : ''} ${period.status === 'In Shop' ? 'timeline-entry-shop' : ''}`}>
                                 <div className="timeline-marker">
-                                    <div 
+                                    <div
                                         className="timeline-dot"
                                         style={{background: getStatusColor(period.status)}}
                                     ></div>
@@ -1077,7 +1087,8 @@ function HistoryViewSection({item, type, onClose}) {
                                             {period.endTimestamp && ` - ${FormatUtility.formatDate(period.endTimestamp)}`}
                                             {!period.endTimestamp && ' - Present'}
                                         </span>
-                                        <span className="timeline-duration">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
+                                        <span
+                                            className="timeline-duration">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
                                     </div>
                                     <div className="timeline-card-meta">
                                         <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>
@@ -1240,17 +1251,20 @@ function HistoryViewSection({item, type, onClose}) {
                                 issue.severity === 'High' ? 'high' :
                                     issue.severity === 'Medium' ? 'medium' : 'low';
                             return (
-                                <div key={`issue-${issue.id}`} className={`timeline-entry timeline-issue ${entry.isCompleted ? 'timeline-issue-completed' : ''}`}>
+                                <div key={`issue-${issue.id}`}
+                                     className={`timeline-entry timeline-issue ${entry.isCompleted ? 'timeline-issue-completed' : ''}`}>
                                     <div className="timeline-marker">
                                         <div className={`timeline-dot timeline-dot-${severityClass}`}></div>
                                         {index < combinedTimeline.length - 1 && <div className="timeline-line"></div>}
                                     </div>
-                                    <div className={`timeline-card timeline-card-issue timeline-card-issue-${severityClass}`}>
+                                    <div
+                                        className={`timeline-card timeline-card-issue timeline-card-issue-${severityClass}`}>
                                         <div className="timeline-issue-header">
                                             <div className="timeline-issue-content">
                                                 <div className="timeline-issue-badges">
                                                     <i className={entry.isCompleted ? "fas fa-check-circle" : "fas fa-exclamation-circle"}></i>
-                                                    <span className={`issue-severity-badge ${getSeverityClass(issue.severity)}`}>
+                                                    <span
+                                                        className={`issue-severity-badge ${getSeverityClass(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     {entry.isCompleted && (
@@ -2103,12 +2117,13 @@ function HistoryViewSection({item, type, onClose}) {
                     {consolidatedTimeline.map((entry, index) => {
                         const durationText = entry.duration === 0 ? 'Less than a day' :
                             entry.duration === 1 ? '1 day' :
-                            entry.duration < 30 ? `${entry.duration} days` :
-                            entry.duration < 365 ? `${Math.round(entry.duration / 30.44)} months` :
-                            `${(entry.duration / 365.25).toFixed(1)} years`;
+                                entry.duration < 30 ? `${entry.duration} days` :
+                                    entry.duration < 365 ? `${Math.round(entry.duration / 30.44)} months` :
+                                        `${(entry.duration / 365.25).toFixed(1)} years`;
 
                         return (
-                            <div key={index} className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
+                            <div key={index}
+                                 className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
                                 <div className="timeline-marker">
                                     <div className="timeline-dot"></div>
                                     {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
@@ -2175,7 +2190,7 @@ function HistoryViewSection({item, type, onClose}) {
                         {sortedHistory.map((entry, index) => {
                             const fieldName = entry.fieldName || entry.field_name;
                             const isCreatedEntry = fieldName === 'created';
-                            
+
                             return (
                                 <div key={entry.id || index} className="history-item">
                                     <div className="history-item-header">
@@ -2195,11 +2210,13 @@ function HistoryViewSection({item, type, onClose}) {
                                     ) : (
                                         <div className="history-change">
                                             <div className="history-old-value">
-                                                <span className="value-label">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
+                                                <span
+                                                    className="value-label">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
                                             </div>
                                             <div className="history-arrow">→</div>
                                             <div className="history-new-value">
-                                                <span className="value-label">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
+                                                <span
+                                                    className="value-label">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
                                             </div>
                                         </div>
                                     )}
