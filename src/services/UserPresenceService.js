@@ -88,7 +88,7 @@ class UserPresenceService {
 
     handleBeforeUnload() {
         if (this.currentUserId) {
-            this.setUserOffline(this.currentUserId, {keepalive: true})
+            this.setUserOffline(this.currentUserId, {keepalive: true}).catch(() => {})
         }
     }
 
