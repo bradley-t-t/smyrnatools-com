@@ -8,14 +8,18 @@ const TABLES = {
     USER_ROLES: "users_permissions",
     ROLES: "users_roles"
 };
-const corsHeaders = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    "Access-Control-Max-Age": "86400",
-    "Connection": "keep-alive"
-};
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com'];
+    const isAllowed = origin && allowedOrigins.includes(origin);
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-info, apikey',
+        'Access-Control-Allow-Credentials': 'true'
+    };
+}
 const ValidationUtility = {
     sanitizeString(str) {
         return typeof str === "string" ? str.trim().replace(/[<>"'&]/g, "") : "";
@@ -92,16 +96,20 @@ const normalizeName = (val) => {
     const str = ValidationUtility.sanitizeString(val);
     return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 };
-const createErrorResponse = (message, status = 500, details = {}) => {
-    return new Response(JSON.stringify({
-        error: message,
-        ...details
-    }), {
-        status,
-        headers: corsHeaders
-    });
-};
+
 Deno.serve(async (req) => {
+    const origin = req.headers.get("origin");
+    const corsHeaders = getCorsHeaders(origin);
+    
+    const createErrorResponse = (message, status = 500, details = {}) => {
+        return new Response(JSON.stringify({
+            error: message,
+            ...details
+        }), {
+            status,
+            headers: corsHeaders
+        });
+    };
     if (req.method === "OPTIONS") {
         return new Response(null, {status: 204, headers: corsHeaders});
     }

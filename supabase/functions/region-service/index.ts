@@ -1,21 +1,29 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 
-const corsHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "*",
-    "Access-Control-Max-Age": "86400",
-    "Connection": "keep-alive"
-};
+function getCorsHeaders(origin: string | null): Record<string, string> {
+    const allowedOrigins = ["http://localhost:3000", "https://smyrnatools.com"];
+    const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[1];
+    
+    return {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400",
+        "Connection": "keep-alive"
+    };
+}
 
-function handleOptions() {
-    return new Response(null, {status: 204, headers: corsHeaders});
+function handleOptions(origin: string | null) {
+    return new Response(null, {status: 204, headers: getCorsHeaders(origin)});
 }
 
 Deno.serve(async (req) => {
-    if (req.method === "OPTIONS") return handleOptions();
+    const origin = req.headers.get("origin");
+    if (req.method === "OPTIONS") return handleOptions(origin);
+    const corsHeaders = getCorsHeaders(origin);
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();
@@ -237,30 +245,32 @@ Deno.serve(async (req) => {
                     headers: corsHeaders
                 });
                 const regionId = regionData.id as string;
-                let rows: any[] = [];
-                const {data: dataPlural, error: errorPlural} = await supabase
+                const {data: regionPlantsData, error: regionPlantsError} = await supabase
                     .from("regions_plants")
-                    .select("plant_code, plants!inner(plant_code, plant_name)")
+                    .select("plant_code")
                     .eq("region_id", regionId);
-                if (errorPlural) return new Response(JSON.stringify({error: errorPlural.message}), {
+                if (regionPlantsError) return new Response(JSON.stringify({error: regionPlantsError.message}), {
                     status: 400,
                     headers: corsHeaders
                 });
-                rows = dataPlural ?? [];
-                if (!rows.length) {
-                    const {data: dataSing, error: errorSing} = await supabase
-                        .from("region_plants")
-                        .select("plant_code, plants!inner(plant_code, plant_name)")
-                        .eq("region_id", regionId);
-                    if (errorSing) return new Response(JSON.stringify({error: errorSing.message}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                    rows = dataSing ?? [];
+                
+                if (!regionPlantsData || regionPlantsData.length === 0) {
+                    return new Response(JSON.stringify({data: []}), {headers: corsHeaders});
                 }
-                const out = (rows ?? []).map((row: any) => ({
-                    plant_code: row.plants?.plant_code ?? row.plant_code,
-                    plant_name: row.plants?.plant_name ?? null
+                
+                const plantCodes = regionPlantsData.map((rp: any) => rp.plant_code);
+                const {data: plantsData, error: plantsError} = await supabase
+                    .from("plants")
+                    .select("plant_code, plant_name")
+                    .in("plant_code", plantCodes);
+                if (plantsError) return new Response(JSON.stringify({error: plantsError.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                
+                const out = (plantsData ?? []).map((plant: any) => ({
+                    plant_code: plant.plant_code,
+                    plant_name: plant.plant_name
                 }));
                 return new Response(JSON.stringify({data: out}), {headers: corsHeaders});
             }

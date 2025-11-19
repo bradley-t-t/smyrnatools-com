@@ -1,17 +1,23 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 
-const corsHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "*",
-    "Access-Control-Max-Age": "86400",
-    "Connection": "keep-alive"
-};
+function getCorsHeaders(origin: string | null): Record<string, string> {
+    const allowedOrigins = ["http://localhost:3000", "https://smyrnatools.com"];
+    const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[1];
+    
+    return {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400",
+        "Connection": "keep-alive"
+    };
+}
 
-function handleOptions() {
-    return new Response(null, {status: 204, headers: corsHeaders});
+function handleOptions(origin: string | null) {
+    return new Response(null, {status: 204, headers: getCorsHeaders(origin)});
 }
 
 function nowIso() {
@@ -19,7 +25,9 @@ function nowIso() {
 }
 
 Deno.serve(async (req) => {
-    if (req.method === "OPTIONS") return handleOptions();
+    const origin = req.headers.get("origin");
+    if (req.method === "OPTIONS") return handleOptions(origin);
+    const corsHeaders = getCorsHeaders(origin);
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();

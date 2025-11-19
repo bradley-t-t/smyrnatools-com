@@ -49,26 +49,38 @@ const userUtility = {
         return !uuid || uuid === '' || uuid === '0' ? null : uuid;
     }
 };
+function getCorsHeaders(origin: string | null): Record<string, string> {
+    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com'];
+    const isAllowed = origin && allowedOrigins.includes(origin);
+    return {
+        'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-info, apikey',
+        'Access-Control-Allow-Credentials': 'true'
+    };
+}
+
+function handleOptions(origin: string | null): Response {
+    return new Response(null, {
+        status: 204,
+        headers: getCorsHeaders(origin)
+    });
+}
+
 console.info('User Utility Edge Function initialized');
 Deno.serve(async (req) => {
+    const origin = req.headers.get("origin");
+    if (req.method === "OPTIONS") return handleOptions(origin);
+    const corsHeaders = getCorsHeaders(origin);
     const url = new URL(req.url);
     const path = url.pathname.replace(/^\/user-utility\/?/, '');
-    if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            }
-        });
-    }
     switch (path) {
         case 'generate-uuid':
-            return handleGenerateUUID();
+            return handleGenerateUUID(corsHeaders);
         case 'validate-uuid':
-            return handleValidateUUID(req);
+            return handleValidateUUID(req, corsHeaders);
         case 'safe-uuid':
-            return handleSafeUUID(req);
+            return handleSafeUUID(req, corsHeaders);
         default:
             return new Response(JSON.stringify({
                 available_endpoints: [
@@ -78,27 +90,21 @@ Deno.serve(async (req) => {
                 ]
             }), {
                 status: 200,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
+                headers: corsHeaders
             });
     }
 });
 
-function handleGenerateUUID() {
+function handleGenerateUUID(corsHeaders: Record<string, string>) {
     const uuid = userUtility.generateUUID();
     return new Response(JSON.stringify({
         uuid
     }), {
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        }
+        headers: corsHeaders
     });
 }
 
-async function handleValidateUUID(req) {
+async function handleValidateUUID(req: Request, corsHeaders: Record<string, string>) {
     try {
         let uuid;
         if (req.method === 'GET') {
@@ -113,10 +119,7 @@ async function handleValidateUUID(req) {
                 error: 'UUID parameter is required'
             }), {
                 status: 400,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
+                headers: corsHeaders
             });
         }
         const isValid = userUtility.isValidUUID(uuid);
@@ -124,25 +127,19 @@ async function handleValidateUUID(req) {
             uuid,
             isValid
         }), {
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
+            headers: corsHeaders
         });
     } catch (error) {
         return new Response(JSON.stringify({
             error: error.message
         }), {
             status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
+            headers: corsHeaders
         });
     }
 }
 
-async function handleSafeUUID(req) {
+async function handleSafeUUID(req: Request, corsHeaders: Record<string, string>) {
     try {
         let uuid;
         if (req.method === 'GET') {
@@ -157,10 +154,7 @@ async function handleSafeUUID(req) {
                 error: 'UUID parameter is required'
             }), {
                 status: 400,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
+                headers: corsHeaders
             });
         }
         const safeUuid = userUtility.safeUUID(uuid);
@@ -168,20 +162,14 @@ async function handleSafeUUID(req) {
             original: uuid,
             safeUuid
         }), {
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
+            headers: corsHeaders
         });
     } catch (error) {
         return new Response(JSON.stringify({
             error: error.message
         }), {
             status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
+            headers: corsHeaders
         });
     }
 }
