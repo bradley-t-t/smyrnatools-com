@@ -1,7 +1,7 @@
-import {UserService} from '../UserService'
-import {RegionService} from '../RegionService'
-import {TractorService} from '../TractorService'
-import TractorUtility from '../../utils/TractorUtility'
+import {UserService} from '../services/UserService'
+import {RegionService} from '../services/RegionService'
+import {EquipmentService} from '../services/EquipmentService'
+import EquipmentUtility from '../utils/EquipmentUtility'
 
 async function getRegionScopedPlantCodes(userId, selectedRegion) {
     const code = selectedRegion?.code || ''
@@ -29,14 +29,14 @@ async function getRegionScopedPlantCodes(userId, selectedRegion) {
 
 async function getNotifications({userId, selectedRegion}) {
     if (!userId) return []
-    const tmNode = await UserService.hasPermission(userId, 'notifications.tractor_manager').catch(() => false)
+    const emNode = await UserService.hasPermission(userId, 'notifications.equipment_manager').catch(() => false)
     const dmNode = await UserService.hasPermission(userId, 'notifications.district_manager').catch(() => false)
     const gmNode = await UserService.hasPermission(userId, 'notifications.general_manager').catch(() => false)
-    if (!tmNode && !dmNode && !gmNode) return []
+    if (!emNode && !dmNode && !gmNode) return []
     const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
     if (scopedPlants.size === 0) return []
-    const all = await TractorService.getAllTractors().catch(() => [])
-    const tractors = (all || []).filter(t => String(t.status || '').toLowerCase() !== 'retired')
+    const all = await EquipmentService.getAllEquipments().catch(() => [])
+    const equipments = (all || []).filter(e => String(e.status || '').toLowerCase() !== 'retired')
     const byPlant = new Map()
     const now = new Date()
     const centralParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now)
@@ -45,24 +45,24 @@ async function getNotifications({userId, selectedRegion}) {
     const dayIndex = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(mp.weekday)
     const hour = parseInt(mp.hour,10)
     const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
-    tractors.forEach(t => {
-        const code = String(t.assignedPlant || '').toUpperCase()
+    equipments.forEach(e => {
+        const code = String(e.assignedPlant || '').toUpperCase()
         if (!scopedPlants.has(code)) return
         if (!byPlant.has(code)) byPlant.set(code, [])
-        byPlant.get(code).push(t)
+        byPlant.get(code).push(e)
     })
     const notifications = []
     byPlant.forEach((list, code) => {
-        const unverifiedCount = list.reduce((acc, t) => acc + (!TractorUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy, t.latestHistoryDate) ? 1 : 0), 0)
+        const unverifiedCount = list.reduce((acc, e) => acc + (!EquipmentUtility.isVerified(e.updatedLast, e.updatedAt, e.updatedBy, e.latestHistoryDate) ? 1 : 0), 0)
         if (unverifiedCount > 0) {
             const titlePhase = pastDue ? 'Past Due' : 'Due'
             const severity = pastDue ? 'error' : 'warning'
             notifications.push({
-                id: `tractors-verify-${code}`,
-                title: `Plant ${code} Tractor Verifications ${titlePhase}`,
-                subtitle: `This plant has ${unverifiedCount} unverified tractors.`,
+                id: `equipment-verify-${code}`,
+                title: `Plant ${code} Equipment Verifications ${titlePhase}`,
+                subtitle: `This plant has ${unverifiedCount} unverified equipment.`,
                 severity,
-                type: 'tractors.verifications',
+                type: 'equipment.verifications',
                 plantCode: code
             })
         }
@@ -70,4 +70,4 @@ async function getNotifications({userId, selectedRegion}) {
     return notifications
 }
 
-export default {id: 'tractors.verifications', getNotifications}
+export default {id: 'equipment.verifications', getNotifications}

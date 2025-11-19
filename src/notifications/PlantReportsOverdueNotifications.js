@@ -1,6 +1,6 @@
-import {UserService} from '../UserService'
-import {RegionService} from '../RegionService'
-import {supabase} from '../DatabaseService'
+import {UserService} from '../services/UserService'
+import {RegionService} from '../services/RegionService'
+import {supabase} from '../services/DatabaseService'
 
 function getPreviousWeekMonday(date=new Date()) {
   const d=new Date(date)
@@ -27,7 +27,7 @@ async function fetchReportsForWeek(weekMondayIso, reportNames) {
     const {data,error} = await supabase.from('reports').select('*').eq('week',weekMondayIso)
     if (error || !Array.isArray(data)) return results
     data.forEach(r=>{
-      const isSubmitted = r.completed===true
+      const isSubmitted = r.completed===true && r.submitted_at != null
       if(!isSubmitted) return
       const reportType=r.type||r.report_name||''
       if (reportNames.includes(reportType)) results[reportType].push(r)
@@ -92,47 +92,49 @@ async function getNotifications({userId, selectedRegion}) {
     return []
   }
   
-  const regionCode=selectedRegion?.code||''
-  const allowedPlants=regionCode?await RegionService.getAllowedPlantCodes(regionCode).catch(()=>new Set()):new Set()
-  const scopedPlants=allowedPlants instanceof Set?allowedPlants:new Set(Array.isArray(allowedPlants)?allowedPlants:[])
-  
-  const plantUserMap=new Map()
-  for(const pmReport of reportsByType.plant_manager){
-    const uid=pmReport?.user_id||pmReport?.userId||''
-    if(!uid) continue
-    const userPlantRaw=await UserService.getUserPlant(uid).catch(()=>null)
-    const userPlantCode=typeof userPlantRaw==='string'?userPlantRaw:(userPlantRaw?.plant_code||userPlantRaw?.plantCode||'')
-    if(userPlantCode){
-      const up=String(userPlantCode).toUpperCase()
-      if(!plantUserMap.has(up)) plantUserMap.set(up,[])
-      plantUserMap.get(up).push(uid)
-    }
-  }
-  
-  const overduePlants=[]
-  scopedPlants.forEach(code=>{
-    const up=String(code).toUpperCase()
-    const hasPM=plantUserMap.has(up)&&plantUserMap.get(up).length>0
-    const hasProd=reportsByType.plant_production.some(r=>{
-      const plantVal=r?.plant_code||r?.data?.plant_code||r?.data?.plant||''
-      return String(plantVal).toUpperCase()===up
-    })
-    if(!hasPM || !hasProd) {
-      overduePlants.push({code:up, missingPM:!hasPM, missingProd:!hasProd})
-    }
-  })
-  
   const notifications=[]
-  overduePlants.forEach(p=>{
-    notifications.push({
-      id:`reports-overdue-${p.code}`,
-      title:`${p.code}'s Plant Manager Reports are Overdue`,
-      subtitle:`Week ${weekRangeStr}`,
-      severity:'error',
-      type:'reports.overdue',
-      plantCode:p.code
+  
+  if (dmNode || gmNode) {
+    const regionCode=selectedRegion?.code||''
+    const allowedPlants=regionCode?await RegionService.getAllowedPlantCodes(regionCode).catch(()=>new Set()):new Set()
+    const scopedPlants=allowedPlants instanceof Set?allowedPlants:new Set(Array.isArray(allowedPlants)?allowedPlants:[])
+    
+    const submittedPMPlantsSet=new Set()
+    for(const pmReport of reportsByType.plant_manager){
+      const uid=pmReport?.user_id||pmReport?.userId||''
+      if(!uid) continue
+      const userPlantRaw=await UserService.getUserPlant(uid).catch(()=>null)
+      const userPlantCode=typeof userPlantRaw==='string'?userPlantRaw:(userPlantRaw?.plant_code||userPlantRaw?.plantCode||'')
+      if(userPlantCode){
+        submittedPMPlantsSet.add(String(userPlantCode).toUpperCase())
+      }
+    }
+    
+    const submittedProdPlantsSet=new Set()
+    for(const prodReport of reportsByType.plant_production){
+      const plantVal=prodReport?.plant_code||prodReport?.data?.plant_code||prodReport?.data?.plant||''
+      if(plantVal){
+        submittedProdPlantsSet.add(String(plantVal).toUpperCase())
+      }
+    }
+    
+    scopedPlants.forEach(code=>{
+      const up=String(code).toUpperCase()
+      const hasPM=submittedPMPlantsSet.has(up)
+      const hasProd=submittedProdPlantsSet.has(up)
+      
+      if(!hasPM || !hasProd) {
+        notifications.push({
+          id:`reports-overdue-${up}`,
+          title:`Plant ${up}'s Manager Reports Overdue`,
+          subtitle:`Week ${weekRangeStr}`,
+          severity:'error',
+          type:'reports.overdue',
+          plantCode:up
+        })
+      }
     })
-  })
+  }
   
   return notifications
 }

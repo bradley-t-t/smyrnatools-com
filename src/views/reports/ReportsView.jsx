@@ -514,6 +514,7 @@ function ReportsView() {
             ]);
             setShowForm(null);
             setManagerEditUser(null);
+            window.dispatchEvent(new CustomEvent('notifications-refresh'));
         }
     }
 

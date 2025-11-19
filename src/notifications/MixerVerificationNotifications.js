@@ -1,7 +1,7 @@
-import {UserService} from '../UserService'
-import {RegionService} from '../RegionService'
-import {MixerService} from '../MixerService'
-import MixerUtility from '../../utils/MixerUtility'
+import {UserService} from '../services/UserService'
+import {RegionService} from '../services/RegionService'
+import {MixerService} from '../services/MixerService'
+import MixerUtility from '../utils/MixerUtility'
 
 async function getRegionScopedPlantCodes(userId, selectedRegion) {
     const code = selectedRegion?.code || ''

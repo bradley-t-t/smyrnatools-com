@@ -1,9 +1,24 @@
-import MixerVerificationProvider from './notifications/MixerVerificationNotifications'
-import EquipmentVerificationProvider from './notifications/EquipmentVerificationNotifications'
-import TractorVerificationProvider from './notifications/TractorVerificationNotifications'
-import PlantReportsOverdueProvider from './notifications/PlantReportsOverdueNotifications'
+import MixerVerificationProvider from '../notifications/MixerVerificationNotifications'
+import EquipmentVerificationProvider from '../notifications/EquipmentVerificationNotifications'
+import TractorVerificationProvider from '../notifications/TractorVerificationNotifications'
+import PlantReportsOverdueProvider from '../notifications/PlantReportsOverdueNotifications'
+import DistrictManagerReportProvider from '../notifications/DistrictManagerReportNotifications'
+import GeneralManagerReportProvider from '../notifications/GeneralManagerReportNotifications'
+import SafetyManagerReportProvider from '../notifications/SafetyManagerReportNotifications'
+import AggregateProductionReportProvider from '../notifications/AggregateProductionReportNotifications'
+import ReadyMixInstructorReportProvider from '../notifications/ReadyMixInstructorReportNotifications'
 
-const providers = [MixerVerificationProvider, EquipmentVerificationProvider, TractorVerificationProvider, PlantReportsOverdueProvider]
+const providers = [
+    MixerVerificationProvider, 
+    EquipmentVerificationProvider, 
+    TractorVerificationProvider, 
+    PlantReportsOverdueProvider,
+    DistrictManagerReportProvider,
+    GeneralManagerReportProvider,
+    SafetyManagerReportProvider,
+    AggregateProductionReportProvider,
+    ReadyMixInstructorReportProvider
+]
 
 const NotificationsService = {
     async getNotifications(userId, selectedRegion) {

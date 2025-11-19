@@ -106,6 +106,10 @@
     border-radius: 3px 3px 0 0;
 }
 
+.navbar-right .menu-item.active::after {
+    display: none;
+}
+
 @keyframes menuItemSlideIn {
     from {
         opacity: 0;
