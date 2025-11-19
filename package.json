@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
     "@jridgewell/set-array": "^1.2.1",
     "@supabase/supabase-js": "^2.39.7",
     "@testing-library/dom": "^10.4.0",

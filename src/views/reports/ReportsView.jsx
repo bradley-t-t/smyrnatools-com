@@ -396,8 +396,8 @@ function ReportsView() {
             user_id: userId,
             data: {...formData, week: weekIso},
             week: monday?.toISOString() || null,
-            completed,
-            submitted_at: new Date().toISOString(),
+            completed: completed === true,
+            submitted_at: completed ? new Date().toISOString() : null,
             report_date_range_start: monday?.toISOString() || null,
             report_date_range_end: saturday?.toISOString() || null
         };

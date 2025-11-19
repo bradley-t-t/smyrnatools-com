@@ -1,8 +1,9 @@
 import MixerVerificationProvider from './notifications/MixerVerificationNotifications'
 import EquipmentVerificationProvider from './notifications/EquipmentVerificationNotifications'
 import TractorVerificationProvider from './notifications/TractorVerificationNotifications'
+import PlantReportsOverdueProvider from './notifications/PlantReportsOverdueNotifications'
 
-const providers = [MixerVerificationProvider, EquipmentVerificationProvider, TractorVerificationProvider]
+const providers = [MixerVerificationProvider, EquipmentVerificationProvider, TractorVerificationProvider, PlantReportsOverdueProvider]
 
 const NotificationsService = {
     async getNotifications(userId, selectedRegion) {

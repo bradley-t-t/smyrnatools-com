@@ -1212,6 +1212,91 @@
     background: var(--accent-dark);
 }
 
+.rpts-sbmt-btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--divider);
+}
+
+.rpts-sbmt-btn-confirm:disabled:hover {
+    background: var(--divider);
+}
+
+.rpts-sbmt-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.rpts-sbmt-modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1.5px solid var(--divider);
+}
+
+.rpts-sbmt-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+}
+
+.rpts-sbmt-modal-text {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.rpts-sbmt-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+    border: 1.5px solid var(--divider);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.rpts-sbmt-checkbox-label:hover {
+    background: var(--card-bg);
+    border-color: var(--accent);
+}
+
+.rpts-sbmt-checkbox-label input[type="checkbox"] {
+    margin-top: 2px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.rpts-sbmt-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+}
+
 .rpts-sbmt-operator-count {
     font-weight: 600;
     color: var(--text-primary);
