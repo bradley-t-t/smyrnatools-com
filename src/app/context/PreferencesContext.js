@@ -22,38 +22,38 @@ const defaultPreferences = {
         searchText: '',
         selectedPlant: '',
         statusFilter: '',
-        viewMode: 'grid'
+        viewMode: 'list'
     },
     operatorFilters: {
         searchText: '',
         selectedPlant: '',
         statusFilter: '',
         positionFilter: '',
-        viewMode: 'grid'
+        viewMode: 'list'
     },
     managerFilters: {
         searchText: '',
         selectedPlant: '',
         roleFilter: '',
-        viewMode: 'grid'
+        viewMode: 'list'
     },
     tractorFilters: {
         searchText: '',
         selectedPlant: '',
         statusFilter: '',
-        viewMode: 'grid'
+        viewMode: 'list'
     },
     trailerFilters: {
         searchText: '',
         selectedPlant: '',
         typeFilter: '',
-        viewMode: 'grid'
+        viewMode: 'list'
     },
     equipmentFilters: {
         searchText: '',
         selectedPlant: '',
         statusFilter: '',
-        viewMode: 'grid'
+        viewMode: 'list'
     },
     lastViewedFilters: null,
     selectedRegion: {code: '', name: '', type: ''},
@@ -85,28 +85,28 @@ export const PreferencesProvider = ({children}) => {
                             defaultViewMode: data.default_view_mode === undefined ? null : data.default_view_mode,
                             mixerFilters: data.mixer_filters ? {
                                 ...data.mixer_filters,
-                                viewMode: data.mixer_filters.viewMode || 'grid'
+                                viewMode: data.mixer_filters.viewMode || 'list'
                             } : {...defaultPreferences.mixerFilters},
                             operatorFilters: data.operator_filters ? {
                                 ...data.operator_filters,
-                                viewMode: data.operator_filters.viewMode || 'grid',
+                                viewMode: data.operator_filters.viewMode || 'list',
                                 positionFilter: data.operator_filters.positionFilter === undefined ? '' : data.operator_filters.positionFilter
                             } : {...defaultPreferences.operatorFilters},
                             managerFilters: data.manager_filters ? {
                                 ...data.manager_filters,
-                                viewMode: data.manager_filters.viewMode || 'grid'
+                                viewMode: data.manager_filters.viewMode || 'list'
                             } : {...defaultPreferences.managerFilters},
                             tractorFilters: data.tractor_filters ? {
                                 ...data.tractor_filters,
-                                viewMode: data.tractor_filters.viewMode || 'grid'
+                                viewMode: data.tractor_filters.viewMode || 'list'
                             } : {...defaultPreferences.tractorFilters},
                             trailerFilters: data.trailer_filters ? {
                                 ...data.trailer_filters,
-                                viewMode: data.trailer_filters.viewMode || 'grid'
+                                viewMode: data.trailer_filters.viewMode || 'list'
                             } : {...defaultPreferences.trailerFilters},
                             equipmentFilters: data.equipment_filters ? {
                                 ...data.equipment_filters,
-                                viewMode: data.equipment_filters.viewMode || 'grid'
+                                viewMode: data.equipment_filters.viewMode || 'list'
                             } : {...defaultPreferences.equipmentFilters},
                             lastViewedFilters: data.last_viewed_filters,
                             selectedRegion: data.selected_region ? {...defaultPreferences.selectedRegion, ...data.selected_region} : defaultPreferences.selectedRegion,

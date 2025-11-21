@@ -94,8 +94,8 @@ export function AuthProvider({children}) {
         if (!userId) return
         try {
             const now = new Date().toISOString()
-            const baseFilters = {searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'grid'}
-            const roleFilters = {searchText: '', selectedPlant: '', roleFilter: '', viewMode: 'grid'}
+            const baseFilters = {searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'list'}
+            const roleFilters = {searchText: '', selectedPlant: '', roleFilter: '', viewMode: 'list'}
             await supabase
                 .from('users_preferences')
                 .upsert({
