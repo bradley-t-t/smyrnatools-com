@@ -66,6 +66,113 @@
     color: var(--text-primary)
 }
 
+.notifications-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+}
+
+.notification-category {
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    background: var(--bg-secondary);
+    animation: categorySlideIn 0.2s ease both;
+}
+
+.notification-category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+
+.notification-category-header:hover {
+    background: var(--bg-secondary);
+}
+
+.notification-category.collapsed .notification-category-header {
+    border-bottom: none;
+}
+
+.notification-category-header i {
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 20px;
+    text-align: center;
+}
+
+.notification-category-title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.notification-category-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: var(--accent);
+    color: var(--text-light);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 11px;
+}
+
+.notification-category-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.notification-category-toggle:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.notification-category-toggle i {
+    font-size: 12px;
+    width: auto;
+    transition: transform 0.2s ease;
+}
+
+.notification-category-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+}
+
+@keyframes categorySlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .notifications-content {
     max-height: 60vh;
     overflow: auto
@@ -76,58 +183,62 @@
     gap: 10px;
     align-items: center;
     justify-content: center;
-    padding: 18px;
-    color: var(--text-secondary)
+    padding: 32px 18px;
+    color: var(--text-secondary);
 }
 
 .notifications-spinner {
-    animation: spin 1s linear infinite
-}
-
-.notifications-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px
+    animation: spin 1s linear infinite;
 }
 
 .notifications-empty {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     align-items: center;
     justify-content: center;
-    padding: 24px;
-    color: var(--text-secondary)
+    padding: 40px 24px;
+    color: var(--text-secondary);
+}
+
+.notifications-empty i {
+    font-size: 32px;
+    opacity: 0.5;
+    margin-bottom: 4px;
+}
+
+.notifications-empty span {
+    font-size: 14px;
 }
 
 .notification-item {
     display: flex;
     gap: 8px;
     align-items: flex-start;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid var(--border-light);
-    border-radius: 10px;
-    background: var(--bg-secondary);
+    border-radius: 8px;
+    background: var(--bg-primary);
     transition: background .15s ease, border-color .15s ease;
     animation: itemSlideIn .18s ease both;
-    border-left: 3px solid transparent
+    border-left: 3px solid transparent;
 }
 
 .notification-item:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--card-border-hover)
+    background: var(--bg-secondary);
+    border-color: var(--card-border-hover);
 }
 
 .notification-item.warning {
-    border-left-color: var(--warning)
+    border-left-color: var(--warning);
 }
 
 .notification-item.info {
-    border-left-color: var(--info)
+    border-left-color: var(--info);
 }
 
 .notification-item.error {
-    border-left-color: var(--error)
+    border-left-color: var(--error);
 }
 
 .notification-body {

@@ -29,15 +29,19 @@ async function getRegionScopedPlantCodes(userId, selectedRegion) {
 
 async function getNotifications({userId, selectedRegion}) {
     if (!userId) return []
+    
     const emNode = await UserService.hasPermission(userId, 'notifications.equipment_manager').catch(() => false)
-    const dmNode = await UserService.hasPermission(userId, 'notifications.district_manager').catch(() => false)
-    const gmNode = await UserService.hasPermission(userId, 'notifications.general_manager').catch(() => false)
-    if (!emNode && !dmNode && !gmNode) return []
+    
+    if (!emNode) return []
+    
+    const hasMultiple = await UserService.hasPermission(userId, 'notifications.multiple').catch(() => false)
+    
     const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
     if (scopedPlants.size === 0) return []
+    
     const all = await EquipmentService.getAllEquipments().catch(() => [])
     const equipments = (all || []).filter(e => String(e.status || '').toLowerCase() !== 'retired')
-    const byPlant = new Map()
+    
     const now = new Date()
     const centralParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now)
     const mp = {}
@@ -45,29 +49,57 @@ async function getNotifications({userId, selectedRegion}) {
     const dayIndex = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(mp.weekday)
     const hour = parseInt(mp.hour,10)
     const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
-    equipments.forEach(e => {
-        const code = String(e.assignedPlant || '').toUpperCase()
-        if (!scopedPlants.has(code)) return
-        if (!byPlant.has(code)) byPlant.set(code, [])
-        byPlant.get(code).push(e)
-    })
-    const notifications = []
-    byPlant.forEach((list, code) => {
-        const unverifiedCount = list.reduce((acc, e) => acc + (!EquipmentUtility.isVerified(e.updatedLast, e.updatedAt, e.updatedBy, e.latestHistoryDate) ? 1 : 0), 0)
-        if (unverifiedCount > 0) {
-            const titlePhase = pastDue ? 'Past Due' : 'Due'
-            const severity = pastDue ? 'error' : 'warning'
-            notifications.push({
-                id: `equipment-verify-${code}`,
-                title: `Plant ${code} Equipment Verifications ${titlePhase}`,
-                subtitle: `This plant has ${unverifiedCount} unverified equipment.`,
-                severity,
-                type: 'equipment.verifications',
-                plantCode: code
-            })
-        }
-    })
-    return notifications
+    
+    if (hasMultiple) {
+        const byPlant = new Map()
+        equipments.forEach(e => {
+            const code = String(e.assignedPlant || '').toUpperCase()
+            if (!scopedPlants.has(code)) return
+            if (!byPlant.has(code)) byPlant.set(code, [])
+            byPlant.get(code).push(e)
+        })
+        
+        const notifications = []
+        byPlant.forEach((list, code) => {
+            const unverifiedCount = list.reduce((acc, e) => acc + (!EquipmentUtility.isVerified(e.updatedLast, e.updatedAt, e.updatedBy, e.latestHistoryDate) ? 1 : 0), 0)
+            if (unverifiedCount > 0) {
+                const titlePhase = pastDue ? 'Past Due' : 'Due'
+                const severity = pastDue ? 'error' : 'warning'
+                notifications.push({
+                    id: `equipment-verify-${code}`,
+                    title: `Plant ${code} Equipment Verifications ${titlePhase}`,
+                    subtitle: `This plant has ${unverifiedCount} unverified equipment.`,
+                    severity,
+                    type: 'equipment.verifications',
+                    plantCode: code
+                })
+            }
+        })
+        return notifications
+    }
+    
+    const userPlant = await UserService.getUserPlant(userId).catch(() => null)
+    const userPlantCode = typeof userPlant === 'string' ? userPlant : (userPlant?.plant_code || userPlant?.plantCode || '')
+    if (!userPlantCode) return []
+    
+    const userPlantCodeUpper = String(userPlantCode).toUpperCase()
+    if (!scopedPlants.has(userPlantCodeUpper)) return []
+    
+    const equipmentsAtPlant = equipments.filter(e => String(e.assignedPlant || '').toUpperCase() === userPlantCodeUpper)
+    const unverifiedCount = equipmentsAtPlant.reduce((acc, e) => acc + (!EquipmentUtility.isVerified(e.updatedLast, e.updatedAt, e.updatedBy, e.latestHistoryDate) ? 1 : 0), 0)
+    
+    if (unverifiedCount === 0) return []
+    
+    const titlePhase = pastDue ? 'Past Due' : 'Due'
+    const severity = pastDue ? 'error' : 'warning'
+    
+    return [{
+        id: `equipment-verify-${userPlantCodeUpper}`,
+        title: `Equipment Verifications ${titlePhase}`,
+        subtitle: `You have ${unverifiedCount} unverified equipment.`,
+        severity,
+        type: 'equipment.verifications'
+    }]
 }
 
 export default {id: 'equipment.verifications', getNotifications}

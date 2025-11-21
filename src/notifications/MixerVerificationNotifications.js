@@ -29,14 +29,37 @@ async function getRegionScopedPlantCodes(userId, selectedRegion) {
 
 async function getNotifications({userId, selectedRegion}) {
     if (!userId) return []
+    
     const pmNode = await UserService.hasPermission(userId, 'notifications.plant_manager').catch(() => false)
-    const dmNode = await UserService.hasPermission(userId, 'notifications.district_manager').catch(() => false)
-    const gmNode = await UserService.hasPermission(userId, 'notifications.general_manager').catch(() => false)
-    if (!pmNode && !dmNode && !gmNode) return []
+    
+    if (!pmNode) {
+        console.log('MixerVerificationNotifications: No notifications.plant_manager permission')
+        return []
+    }
+    
+    const hasMultiple = await UserService.hasPermission(userId, 'notifications.multiple').catch(() => false)
+    
+    console.log('MixerVerificationNotifications DEBUG:', {
+        userId,
+        pmNode,
+        hasMultiple,
+        selectedRegion: selectedRegion?.code
+    })
+    
     const allMixers = await MixerService.getAllMixers().catch(() => [])
     const mixers = (allMixers || []).filter(m => String(m.status || '').toLowerCase() !== 'retired')
+    
+    console.log('MixerVerificationNotifications: Total active mixers:', mixers.length)
+    
     const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
-    if (scopedPlants.size === 0) return []
+    
+    console.log('MixerVerificationNotifications: Scoped plants:', Array.from(scopedPlants))
+    
+    if (scopedPlants.size === 0) {
+        console.log('MixerVerificationNotifications: No scoped plants')
+        return []
+    }
+    
     const now = new Date()
     const centralParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now)
     const mp = {}
@@ -45,56 +68,61 @@ async function getNotifications({userId, selectedRegion}) {
     const hour = parseInt(mp.hour,10)
     const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
 
-    if (pmNode) {
-        const userPlant = await UserService.getUserPlant(userId).catch(() => null)
-        const userPlantCodeRaw = typeof userPlant === 'string' ? userPlant : (userPlant?.plant_code || userPlant?.plantCode || '')
-        const userPlantCode = userPlantCodeRaw ? String(userPlantCodeRaw).toUpperCase() : ''
-        if (!userPlantCode || !scopedPlants.has(userPlantCode)) return []
-        const mixersAtPlant = mixers.filter(m => String(m.assignedPlant || '').toUpperCase() === userPlantCode)
-        if (!mixersAtPlant.length) return []
-        const unverified = mixersAtPlant.filter(m => !MixerUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy))
-        const missingCount = unverified.length
-        if (missingCount <= 0) return []
-        const plural = missingCount === 1 ? 'mixer' : 'mixers'
-        const titlePhase = pastDue ? 'Past Due' : 'Due'
-        const severity = pastDue ? 'error' : 'warning'
-        return [{
-            id: `mixers-verify-${userPlantCode}`,
-            title: `Mixer Verifications ${titlePhase}`,
-            subtitle: `You have ${missingCount} unverified ${plural}.`,
-            severity,
-            type: 'mixers.verifications'
-        }]
+    if (hasMultiple) {
+        console.log('MixerVerificationNotifications: Using notifications.multiple - showing all plants')
+        
+        const byPlant = new Map()
+        mixers.forEach(m => {
+            const code = String(m.assignedPlant || '').toUpperCase()
+            if (!scopedPlants.has(code)) return
+            if (!byPlant.has(code)) byPlant.set(code, [])
+            byPlant.get(code).push(m)
+        })
+
+        const notifications = []
+        byPlant.forEach((mixersAtPlant, code) => {
+            if (!mixersAtPlant.length) return
+            const unverified = mixersAtPlant.filter(m => !MixerUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy))
+            const missingCount = unverified.length
+            if (missingCount > 0) {
+                const plural = missingCount === 1 ? 'mixer' : 'mixers'
+                const titlePhase = pastDue ? 'Past Due' : 'Due'
+                const severity = pastDue ? 'error' : 'warning'
+                notifications.push({
+                    id: `mixers-verify-${code}`,
+                    title: `Plant ${code} Mixer Verifications ${titlePhase}`,
+                    subtitle: `This plant has ${missingCount} unverified ${plural}.`,
+                    severity,
+                    type: 'mixers.verifications',
+                    plantCode: code
+                })
+            }
+        })
+        
+        console.log('MixerVerificationNotifications (notifications.multiple): Returning', notifications.length, 'notifications')
+        return notifications
     }
 
-    const byPlant = new Map()
-    mixers.forEach(m => {
-        const code = String(m.assignedPlant || '').toUpperCase()
-        if (!scopedPlants.has(code)) return
-        if (!byPlant.has(code)) byPlant.set(code, [])
-        byPlant.get(code).push(m)
-    })
-
-    const notifications = []
-    byPlant.forEach((mixersAtPlant, code) => {
-        if (!mixersAtPlant.length) return
-        const unverified = mixersAtPlant.filter(m => !MixerUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy))
-        const missingCount = unverified.length
-        if (missingCount > 0) {
-            const plural = missingCount === 1 ? 'mixer' : 'mixers'
-            const titlePhase = pastDue ? 'Past Due' : 'Due'
-            const severity = pastDue ? 'error' : 'warning'
-            notifications.push({
-                id: `mixers-verify-${code}`,
-                title: `Plant ${code} Mixer Verifications ${titlePhase}`,
-                subtitle: `This plant has ${missingCount} unverified ${plural}.`,
-                severity,
-                type: 'mixers.verifications',
-                plantCode: code
-            })
-        }
-    })
-    return notifications
+    console.log('MixerVerificationNotifications: Using single plant mode')
+    const userPlant = await UserService.getUserPlant(userId).catch(() => null)
+    const userPlantCodeRaw = typeof userPlant === 'string' ? userPlant : (userPlant?.plant_code || userPlant?.plantCode || '')
+    const userPlantCode = userPlantCodeRaw ? String(userPlantCodeRaw).toUpperCase() : ''
+    if (!userPlantCode || !scopedPlants.has(userPlantCode)) return []
+    const mixersAtPlant = mixers.filter(m => String(m.assignedPlant || '').toUpperCase() === userPlantCode)
+    if (!mixersAtPlant.length) return []
+    const unverified = mixersAtPlant.filter(m => !MixerUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy))
+    const missingCount = unverified.length
+    if (missingCount <= 0) return []
+    const plural = missingCount === 1 ? 'mixer' : 'mixers'
+    const titlePhase = pastDue ? 'Past Due' : 'Due'
+    const severity = pastDue ? 'error' : 'warning'
+    return [{
+        id: `mixers-verify-${userPlantCode}`,
+        title: `Mixer Verifications ${titlePhase}`,
+        subtitle: `You have ${missingCount} unverified ${plural}.`,
+        severity,
+        type: 'mixers.verifications'
+    }]
 }
 
 export default {id: 'mixers.verifications', getNotifications}

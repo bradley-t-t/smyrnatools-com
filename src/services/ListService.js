@@ -133,6 +133,11 @@ class ListServiceImpl {
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete list item')
         CacheUtility.delete('list:items-with-profiles')
         await this.fetchListItems({force: true})
+        if (typeof window !== 'undefined') {
+            try {
+                window.dispatchEvent(new CustomEvent('notifications-refresh'))
+            } catch {}
+        }
         return true
     }
 
