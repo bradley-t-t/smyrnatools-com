@@ -38,10 +38,10 @@ function ListAddView({onClose, onItemAdded, item = null}) {
             setCanBypassPlantRestriction(hasPermission);
             if (!hasPermission) {
                 const plantData = await UserService.getUserPlant(user.id);
-                if (plantData?.plant_code) {
-                    setUserPlantCode(plantData.plant_code);
-                    setPlantCode(plantData.plant_code);
-                    setPlantRestrictionMessage(`You can only create items for your assigned plant (${plantData.plant_code}).`);
+                if (plantData) {
+                    setUserPlantCode(plantData);
+                    setPlantCode(plantData);
+                    setPlantRestrictionMessage(`You can only create items for your assigned plant (${plantData}).`);
                 }
             }
         }
@@ -81,6 +81,14 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     const visiblePlants = plants.filter(p => canBypassPlantRestriction || !userPlantCode || p.plant_code === userPlantCode);
     const selectedPlantObj = visiblePlants.find(p => p.plant_code === plantCode);
     const plantDisplayText = plantCode ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'Select Plant';
+
+    console.log('ListAddView DEBUG:', {
+        canBypassPlantRestriction,
+        userPlantCode,
+        plantCode,
+        selectedPlantObj,
+        shouldShowMessage: !canBypassPlantRestriction && !!userPlantCode
+    });
 
     const validate = () => {
         const newErrors = {};
@@ -222,17 +230,38 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                         </button>
                                     )}
                                 </div>
-                            ) : userPlantCode && (
+                            ) : !canBypassPlantRestriction && (
                                 <div className="form-group">
                                     <label htmlFor="plantCode">Plant*</label>
-                                    <input
-                                        id="plantCode"
-                                        type="text"
-                                        className="ios-input"
-                                        value={plantDisplayText}
-                                        disabled
-                                        style={{backgroundColor: 'var(--bg-tertiary)', cursor: 'not-allowed'}}
-                                    />
+                                    {userPlantCode ? (
+                                        <>
+                                            <input
+                                                id="plantCode"
+                                                type="text"
+                                                className="ios-input plant-input-disabled"
+                                                value={plantDisplayText}
+                                                disabled
+                                            />
+                                            <div className="plant-assignment-info">
+                                                <i className="fas fa-info-circle"></i>
+                                                <span>You are creating items for Plant {userPlantCode}{selectedPlantObj?.plant_name ? ` (${selectedPlantObj.plant_name})` : ''} because you are assigned there.</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <input
+                                                id="plantCode"
+                                                type="text"
+                                                className="ios-input plant-input-disabled"
+                                                value="No Plant Assigned"
+                                                disabled
+                                            />
+                                            <div className="plant-assignment-info">
+                                                <i className="fas fa-exclamation-triangle"></i>
+                                                <span>You need to be assigned to a plant before you can create list items. Please contact your administrator.</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                             <div className="form-group">

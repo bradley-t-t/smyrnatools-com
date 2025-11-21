@@ -125,6 +125,30 @@
     font-size: 16px;
 }
 
+.plant-assignment-info {
+    background-color: var(--accent-border);
+    color: var(--accent-dark);
+    padding: 12px 16px;
+    margin-top: 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--accent);
+}
+
+.plant-assignment-info i {
+    font-size: 16px;
+    color: var(--accent);
+}
+
+.plant-input-disabled {
+    background-color: var(--bg-tertiary);
+    cursor: not-allowed;
+}
+
 .error-message {
     color: var(--error);
     background-color: var(--error-bg);
