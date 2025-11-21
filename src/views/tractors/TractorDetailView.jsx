@@ -7,6 +7,7 @@ import TractorHistoryView from './TractorHistoryView';
 import TractorCommentModal from './TractorCommentModal';
 import TractorIssueModal from './TractorIssueModal';
 import {TractorUtility} from "../../utils/TractorUtility";
+import DateUtility from '../../utils/DateUtility';
 import {Tractor} from "../../models/tractors/Tractor";
 import OperatorSelectModal from "../mixers/OperatorSelectModal";
 import {usePreferences} from '../../app/context/PreferencesContext';
@@ -909,7 +910,7 @@ function TractorDetailView({tractorId, onClose}) {
                             <div className="form-group">
                                 <label>Last Service Date</label>
                                 <input type="date" value={lastServiceDate ? formatDate(lastServiceDate) : ''}
-                                       onChange={e => setLastServiceDate(e.target.value ? new Date(e.target.value) : null)}
+                                       onChange={e => setLastServiceDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
                                        className="form-control" readOnly={!canEditTractor}/>
                                 {lastServiceDate && TractorUtility.isServiceOverdue(lastServiceDate) &&
                                     <div className="warning-text">Service overdue</div>}

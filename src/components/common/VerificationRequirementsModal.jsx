@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import {ValidationUtility} from '../../utils/ValidationUtility'
 import {UserService} from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
+import DateUtility from '../../utils/DateUtility'
 import LoadingScreen from './LoadingScreen'
 import {supabase} from '../../services/DatabaseService'
 import './styles/VerificationRequirementsModal.css'
@@ -489,7 +490,7 @@ export default function VerificationRequirementsModal({
                                                     className="form-control"
                                                     type="date"
                                                     value={lastServiceDate ? (lastServiceDate instanceof Date ? lastServiceDate.toISOString().split('T')[0] : String(lastServiceDate).split('T')[0]) : ''}
-                                                    onChange={e => setLastServiceDate(e.target.value ? new Date(e.target.value) : null)}
+                                                    onChange={e => setLastServiceDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
                                                 />
                                                 {lastServiceDate && serviceOverdue && (
                                                     <div className="modal-note warning">
@@ -507,7 +508,7 @@ export default function VerificationRequirementsModal({
                                                     className="form-control"
                                                     type="date"
                                                     value={lastChipDate ? (lastChipDate instanceof Date ? lastChipDate.toISOString().split('T')[0] : String(lastChipDate).split('T')[0]) : ''}
-                                                    onChange={e => setLastChipDate(e.target.value ? new Date(e.target.value) : null)}
+                                                    onChange={e => setLastChipDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
                                                 />
                                             </div>
                                         )}

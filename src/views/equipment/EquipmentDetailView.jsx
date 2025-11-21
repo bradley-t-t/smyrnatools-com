@@ -7,6 +7,7 @@ import {usePreferences} from '../../app/context/PreferencesContext';
 import EquipmentCommentModal from './EquipmentCommentModal';
 import EquipmentIssueModal from './EquipmentIssueModal';
 import EquipmentUtility from '../../utils/EquipmentUtility';
+import DateUtility from '../../utils/DateUtility';
 import EquipmentHistoryView from './EquipmentHistoryView';
 import {RegionService} from '../../services/RegionService';
 import ThemeUtility from '../../utils/ThemeUtility';
@@ -744,7 +745,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                             <div className="form-group">
                                 <label>Last Service Date</label>
                                 <input type="date" value={lastServiceDate ? formatDate(lastServiceDate) : ''}
-                                       onChange={e => setLastServiceDate(e.target.value ? new Date(e.target.value) : null)}
+                                       onChange={e => setLastServiceDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
                                        className="form-control" readOnly={!canEditEquipment}/>
                                 {lastServiceDate && EquipmentUtility.isServiceOverdue(lastServiceDate) &&
                                     <div className="warning-text">Service overdue</div>}
