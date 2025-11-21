@@ -9,19 +9,7 @@ html, body, #root {
     overflow-x: hidden;
 }
 
-.layout-container {
-    width: 100%;
-    max-width: 100vw;
-    overflow-x: hidden;
-}
-
 .content-container {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
-.mixer-detail-view {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;

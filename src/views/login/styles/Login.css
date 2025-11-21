@@ -58,14 +58,6 @@
     }
 }
 
-.login-fade-in {
-    animation: fadeIn 0.4s ease-out;
-}
-
-.login-slide-in-left {
-    animation: slideInFromLeft 0.6s ease-out backwards;
-}
-
 .login-slide-in-right {
     animation: slideInFromRight 0.6s ease-out backwards;
     animation-delay: 0.2s;
@@ -383,37 +375,6 @@
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
-}
-
-.login-notification {
-    position: fixed;
-    z-index: 9999;
-    right: 32px;
-    bottom: 32px;
-    min-width: 280px;
-    max-width: 350px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    padding: 16px 20px;
-    border-radius: var(--radius-md);
-    font-size: 15px;
-    font-weight: 500;
-    box-shadow: var(--shadow-md);
-    animation: login-notification-fadein 0.3s;
-}
-
-.login-notification.error {
-    background: var(--danger-bg);
-    color: var(--danger);
-    border-left: 5px solid var(--danger);
-}
-
-.login-notification.success {
-    background: var(--success-bg);
-    color: var(--success);
-    border-left: 5px solid var(--success);
 }
 
 @keyframes login-notification-fadein {

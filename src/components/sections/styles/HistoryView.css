@@ -437,18 +437,6 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.active-segment {
-    background: var(--success);
-}
-
-.spare-segment {
-    background: var(--text-secondary);
-}
-
-.shop-segment {
-    background: var(--warning);
-}
-
 .utilization-legend {
     display: flex;
     gap: 1.5rem;
@@ -741,40 +729,8 @@
     opacity: 0.7;
 }
 
-.timeline-dot-high {
-    background: var(--error);
-}
-
-.timeline-dot-medium {
-    background: var(--warning);
-}
-
-.timeline-dot-low {
-    background: var(--info);
-}
-
-.timeline-dot-completed {
-    background: var(--text-secondary);
-}
-
 .timeline-card-issue {
     border-left: 3px solid var(--divider);
-}
-
-.timeline-card-issue-high {
-    border-left-color: var(--error);
-}
-
-.timeline-card-issue-medium {
-    border-left-color: var(--warning);
-}
-
-.timeline-card-issue-low {
-    border-left-color: var(--info);
-}
-
-.timeline-card-issue-completed {
-    border-left-color: var(--text-secondary);
 }
 
 .timeline-issue-header {

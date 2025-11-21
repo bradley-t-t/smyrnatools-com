@@ -116,53 +116,6 @@
     font-size: 1.1rem;
 }
 
-.comments-badge {
-    position: absolute;
-    top: 16px;
-    right: 92px;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--comments-badge-bg);
-    color: var(--comments-badge-text);
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-}
-
-.comment-icon {
-    margin-right: 6px;
-    font-size: 0.85rem;
-    color: var(--comments-badge-icon);
-}
-
-.issues-badge {
-    position: absolute;
-    top: 16px;
-    right: 42px;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--danger);
-    color: var(--text-light);
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-}
-
-.issues-icon {
-    margin-right: 6px;
-    font-size: 0.85rem;
-}
-
 .verification-flag {
     position: absolute;
     top: 16px;

@@ -50,34 +50,10 @@
     margin-bottom: 24px;
 }
 
-.main-content {
-    max-width: 1800px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 0 24px;
-    box-sizing: border-box;
-    overflow-y: auto;
-    flex: 1;
-}
-
 @media (min-width: 768px) {
-    .main-content {
-        padding: 0 32px;
-    }
-}
-
-.full-width-wrapper {
-    width: 100vw;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
 }
 
 @media (min-width: 1200px) {
-    .main-content {
-        padding: 0 48px;
-    }
 }
 
 .btn {
@@ -110,12 +86,3 @@
     background-color: var(--bg-secondary);
 }
 
-.btn-danger {
-    background-color: var(--error);
-    color: var(--text-light);
-}
-
-.btn-danger:hover {
-    background-color: var(--error);
-    opacity: 0.85;
-}

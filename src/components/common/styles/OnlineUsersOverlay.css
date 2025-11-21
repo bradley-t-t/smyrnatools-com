@@ -424,10 +424,3 @@
     color: var(--text-primary);
 }
 
-.ouo-overlay-region-controls {
-    padding: 6px 10px 0 10px;
-}
-
-.ouo-overlay-region-controls .ouo-region-select {
-    width: 100%;
-}

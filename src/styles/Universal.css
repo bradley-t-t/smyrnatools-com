@@ -180,21 +180,6 @@ label {
     padding: 7px 12px;
 }
 
-.add-operator-link {
-    color: var(--accent);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
-    font-size: 14px;
-    margin-top: 4px;
-}
-
-.add-operator-link:hover {
-    text-decoration: underline;
-}
-
 .form-actions {
     display: flex;
     justify-content: flex-end;

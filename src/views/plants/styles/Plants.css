@@ -5,15 +5,6 @@
     color: var(--text-primary);
 }
 
-.plants-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
 .plant-badge {
     display: flex;
     align-items: center;
@@ -21,35 +12,6 @@
     font-size: 16px;
     color: var(--primary);
     font-weight: 600;
-}
-
-.plant-icon {
-    font-size: 16px;
-}
-
-.plant-card-body {
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    font-size: 15px;
-}
-
-.plant-detail-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.plant-detail-label {
-    color: var(--text-secondary);
-    font-weight: 500;
-    min-width: 80px;
-}
-
-.plant-detail-value {
-    color: var(--text-primary);
-    font-weight: 400;
 }
 
 .plants-list-table-container {
@@ -146,10 +108,6 @@
     background-color: var(--status-spare);
 }
 
-.status-in-shop {
-    background-color: var(--status-inshop);
-}
-
 .status-retired {
     background-color: var(--status-retired);
 }
@@ -232,55 +190,5 @@
     gap: 16px;
     flex: 1;
     justify-content: flex-end;
-}
-
-.header-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-
-.history-button,
-.issues-button,
-.comments-button {
-    background-color: var(--accent);
-    color: var(--text-light);
-    border-radius: 6px;
-    min-width: 110px;
-    justify-content: center;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-
-.history-button:hover,
-.issues-button:hover,
-.comments-button:hover {
-    background-color: var(--accent-dark);
-}
-
-.verify-button {
-    background-color: var(--accent);
-    color: var(--text-light);
-    border-radius: 6px;
-    min-width: 110px;
-    justify-content: center;
-}
-
-.verify-button:hover {
-    background-color: var(--accent-dark);
 }
 

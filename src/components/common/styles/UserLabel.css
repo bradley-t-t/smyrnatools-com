@@ -119,32 +119,6 @@
     color: var(--text-primary);
 }
 
-.size-small .user-initials {
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-}
-
-.size-small .user-name {
-    font-size: 12px;
-}
-
-.size-medium .user-initials {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-}
-
-.size-large .user-initials {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
-}
-
-.size-large .user-name {
-    font-size: 16px;
-}
-
 .user-label.loading .loading-placeholder {
     background-color: #e0e0e0;
     border-radius: 4px;
@@ -201,18 +175,6 @@
 
 .user-label.size-large .user-name {
     font-size: 16px;
-}
-
-.user-label-loading {
-    font-size: 14px;
-    color: #757575;
-    font-style: italic;
-}
-
-.user-label-loading {
-    font-size: 14px;
-    color: #757575;
-    font-style: italic;
 }
 
 .user-initials {

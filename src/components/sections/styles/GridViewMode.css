@@ -116,10 +116,3 @@
     margin-left: 5px;
 }
 
-.comments-badge {
-    position: absolute;
-    top: 12px;
-    right: 92px;
-    z-index: 4;
-    display: flex;
-}

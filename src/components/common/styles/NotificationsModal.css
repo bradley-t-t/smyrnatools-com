@@ -1,22 +1,4 @@
-.notifications-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--modal-bg);
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    z-index: 1400
-}
 
-.notifications-modal {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: 12px;
-    margin: 12px;
-    max-width: 380px;
-    width: 92%;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .2)
-}
 
 .notifications-layer {
     position: fixed;

@@ -299,42 +299,6 @@
     height: 20px;
 }
 
-.toggle-button {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.toggle-button.complete {
-    background-color: var(--accent-light);
-    color: var(--accent);
-}
-
-.toggle-button.complete:hover {
-    background-color: var(--accent-light-theme);
-}
-
-.toggle-button.undo {
-    background-color: var(--success);
-    color: var(--text-light);
-}
-
-.toggle-button.undo:hover {
-    background-color: var(--success);
-    opacity: 0.85;
-}
-
-.toggle-button:active {
-    transform: scale(0.98);
-}
-
 @media (max-width: 700px) {
     .list-item-card .card-header {
         flex-direction: column;

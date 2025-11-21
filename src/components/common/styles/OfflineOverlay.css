@@ -105,16 +105,6 @@
     }
 }
 
-.reload-button {
-    background-color: var(--text-secondary);
-    color: white;
-}
-
-.reload-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
 @keyframes fadeIn {
     from {
         opacity: 0;

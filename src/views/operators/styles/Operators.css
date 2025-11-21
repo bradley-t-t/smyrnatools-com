@@ -9,25 +9,6 @@
     background: transparent;
 }
 
-.filtered-indicator {
-    font-size: 0.7em;
-    color: var(--text-secondary);
-    font-weight: normal;
-    margin-left: 10px;
-}
-
-.operator-card-wrapper {
-    min-height: 270px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
-}
-
-.overview-metrics {
-    padding: var(--spacing-lg);
-}
-
 .duplicate-warning-icon {
     color: var(--warning);
     margin-left: 6px;
@@ -91,25 +72,6 @@
     flex: 1 1 0;
     min-width: 180px;
     margin-bottom: 0;
-}
-
-.checkbox-field {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-right: 10px;
-    box-sizing: border-box;
-}
-
-.checkbox-field input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-.checkbox-field label {
-    font-size: 14px;
-    color: var(--text-primary);
 }
 
 .ios-button {

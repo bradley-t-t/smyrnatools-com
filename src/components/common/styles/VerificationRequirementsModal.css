@@ -792,12 +792,6 @@
     font-weight: 400
 }
 
-.info-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem
-}
-
 .info-label {
     font-size: 0.8125rem;
     font-weight: 600;
@@ -810,21 +804,6 @@
     font-weight: 500
 }
 
-.rating-display {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem
-}
-
-.rating-display .fa-star {
-    font-size: 1.125rem;
-    color: var(--border-medium)
-}
-
-.rating-display .fa-star.filled {
-    color: var(--accent)
-}
-
 .rating-label {
     font-size: 0.875rem;
     font-weight: 600;
@@ -835,15 +814,6 @@
 .rating-label.no-rating {
     color: var(--text-secondary);
     font-weight: 500
-}
-
-.phone-row {
-    gap: 0.5rem
-}
-
-.phone-input-group {
-    display: flex;
-    gap: 0.5rem
 }
 
 .phone-input {

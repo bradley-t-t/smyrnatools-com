@@ -31,11 +31,9 @@ function findCssFiles(dir) {
                         cssFiles.push(fullPath);
                     }
                 } catch (statError) {
-                    console.error('Error accessing:', fullPath, statError.message);
                 }
             }
         } catch (error) {
-            console.error('Error scanning directory', directory, ':', error.message);
         }
     }
     
@@ -49,10 +47,16 @@ function extractClassNames(cssContent) {
     
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (line.startsWith('.') && line.includes('{')) {
-            const match = line.match(/^\.([\w-]+)/);
-            if (match) {
-                classNames.add(match[1]);
+        
+        if (line.startsWith('.')) {
+            const match = line.match(/^\.([\w-]+)(?:\s|:|,|\{)/);
+            if (match && !line.includes('@media') && !line.includes(' th:') && !line.includes(' td:')) {
+                const potentialClass = match[1];
+                
+                const beforeClass = line.substring(0, line.indexOf('.' + potentialClass));
+                if (!beforeClass.trim() || beforeClass.trim().endsWith(',')) {
+                    classNames.add(potentialClass);
+                }
             }
         }
     }
@@ -62,7 +66,7 @@ function extractClassNames(cssContent) {
 
 function isClassUsed(className, searchDir, cssFilePath) {
     try {
-        const grepCommand = `grep -r "\\b${className}\\b" ${searchDir} --include="*.jsx" --include="*.js" --include="*.tsx" --include="*.ts" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build -l 2>/dev/null || true`;
+        const grepCommand = `grep -r "\\b${className}\\b" "${searchDir}" --include="*.jsx" --include="*.js" --include="*.tsx" --include="*.ts" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build -l 2>/dev/null || true`;
         const result = execSync(grepCommand, { encoding: 'utf-8', maxBuffer: 50 * 1024 * 1024 });
         
         const files = result.trim().split('\n').filter(f => {
@@ -78,71 +82,115 @@ function isClassUsed(className, searchDir, cssFilePath) {
     }
 }
 
-function removeUnusedClasses(cssContent, unusedClasses) {
-    let newContent = cssContent;
-    let removedCount = 0;
+function isPartOfCommaSeparatedSelector(lines, startIndex) {
+    for (let i = startIndex - 1; i >= Math.max(0, startIndex - 10); i--) {
+        const line = lines[i].trim();
+        if (line.includes('{')) {
+            return false;
+        }
+        if (line.endsWith(',')) {
+            return true;
+        }
+        if (line === '') {
+            continue;
+        }
+        if (!line.endsWith(',') && line !== '') {
+            return false;
+        }
+    }
     
-    for (const className of unusedClasses) {
-        const lines = newContent.split('\n');
-        const newLines = [];
-        let skip = false;
-        let braceCount = 0;
+    for (let i = startIndex + 1; i < Math.min(lines.length, startIndex + 10); i++) {
+        const line = lines[i].trim();
+        if (line.includes('{')) {
+            return false;
+        }
+        if (line.startsWith('.') && line.includes(',')) {
+            return true;
+        }
+        if (line === '') {
+            continue;
+        }
+        break;
+    }
+    
+    return false;
+}
+
+function removeUnusedClasses(cssContent, unusedClasses) {
+    const lines = cssContent.split('\n');
+    const result = [];
+    const removed = [];
+    let i = 0;
+    
+    while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
         
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const trimmed = line.trim();
-            
-            if (!skip && trimmed.startsWith(`.${className}`) && (trimmed.includes('{') || trimmed.includes(','))) {
-                if (trimmed.includes(',')) {
-                    newLines.push(line);
-                } else {
-                    skip = true;
-                    braceCount = (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
-                    if (braceCount <= 0) {
-                        skip = false;
-                        removedCount++;
-                    }
-                }
-            } else if (skip) {
-                braceCount += (line.match(/{/g) || []).length;
-                braceCount -= (line.match(/}/g) || []).length;
-                if (braceCount <= 0) {
-                    skip = false;
-                    removedCount++;
-                }
-            } else {
-                newLines.push(line);
+        let matchedClass = null;
+        for (const className of unusedClasses) {
+            if (trimmed.startsWith(`.${className}`) && 
+                (trimmed.includes('{') || trimmed === `.${className}` || trimmed.endsWith(',') || trimmed.endsWith('{'))) {
+                matchedClass = className;
+                break;
             }
         }
         
-        newContent = newLines.join('\n');
+        if (matchedClass) {
+            if (isPartOfCommaSeparatedSelector(lines, i)) {
+                result.push(line);
+                i++;
+            } else {
+                let ruleStart = i;
+                let braceCount = 0;
+                let foundOpenBrace = false;
+                
+                while (i < lines.length) {
+                    const currentLine = lines[i];
+                    
+                    if (currentLine.includes('{')) {
+                        foundOpenBrace = true;
+                        braceCount += (currentLine.match(/{/g) || []).length;
+                        braceCount -= (currentLine.match(/}/g) || []).length;
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                
+                if (foundOpenBrace) {
+                    while (i < lines.length && braceCount > 0) {
+                        const currentLine = lines[i];
+                        braceCount += (currentLine.match(/{/g) || []).length;
+                        braceCount -= (currentLine.match(/}/g) || []).length;
+                        i++;
+                    }
+                    removed.push(matchedClass);
+                } else {
+                    for (let j = ruleStart; j < i; j++) {
+                        result.push(lines[j]);
+                    }
+                }
+            }
+        } else {
+            result.push(line);
+            i++;
+        }
     }
     
+    let newContent = result.join('\n');
     newContent = newContent.replace(/\n\n\n+/g, '\n\n');
     
-    return { newContent, removedCount };
+    return { newContent, removedCount: removed.length, removedClasses: removed };
 }
 
 function processCssFile(cssFilePath, searchDir) {
-    console.log('\n' + '='.repeat(60));
-    console.log('Processing:', cssFilePath);
-    console.log('='.repeat(60));
-    
     const cssContent = fs.readFileSync(cssFilePath, 'utf-8');
     const classNames = extractClassNames(cssContent);
-    
-    console.log('Found', classNames.length, 'unique CSS classes');
     
     const usedClasses = new Set();
     const unusedClasses = [];
     
-    let checked = 0;
-    const total = classNames.length;
-    
     for (const className of classNames) {
-        checked++;
-        process.stdout.write(`\rChecking: ${checked}/${total} (${Math.round(checked/total*100)}%)`);
-        
         if (isClassUsed(className, searchDir, cssFilePath)) {
             usedClasses.add(className);
         } else {
@@ -150,22 +198,11 @@ function processCssFile(cssFilePath, searchDir) {
         }
     }
     
-    console.log(`\nUsed: ${usedClasses.size} | Unused: ${unusedClasses.length}`);
-    
     if (unusedClasses.length === 0) {
-        console.log('No unused classes found!');
-        return { processed: true, removed: 0, linesRemoved: 0 };
+        return { processed: true, removed: 0, linesRemoved: 0, fileName: cssFilePath, removedClasses: [] };
     }
     
-    console.log(`\nRemoving ${unusedClasses.length} unused classes:`);
-    unusedClasses.slice(0, 10).forEach((className, index) => {
-        console.log(`   ${index + 1}. .${className}`);
-    });
-    if (unusedClasses.length > 10) {
-        console.log(`   ... and ${unusedClasses.length - 10} more`);
-    }
-    
-    const { newContent, removedCount } = removeUnusedClasses(cssContent, unusedClasses);
+    const { newContent, removedCount, removedClasses } = removeUnusedClasses(cssContent, unusedClasses);
     
     fs.writeFileSync(cssFilePath, newContent, 'utf-8');
     
@@ -173,10 +210,7 @@ function processCssFile(cssFilePath, searchDir) {
     const newLines = newContent.split('\n').length;
     const linesRemoved = originalLines - newLines;
     
-    console.log('Cleaned:', removedCount, 'classes removed,', linesRemoved, 'lines reduced');
-    console.log('  ', originalLines, '->', newLines, 'lines');
-    
-    return { processed: true, removed: removedCount, linesRemoved };
+    return { processed: true, removed: removedCount, linesRemoved, fileName: cssFilePath, removedClasses };
 }
 
 const cssFiles = findCssFiles(cssDir);
@@ -186,16 +220,14 @@ if (cssFiles.length === 0) {
     process.exit(1);
 }
 
-console.log('Found', cssFiles.length, 'CSS file(s):\n');
-cssFiles.forEach((file, index) => {
-    console.log('  ', index + 1 + '.', file);
-});
+console.log('Found', cssFiles.length, 'CSS file(s)\n');
 
 const results = {
     totalFiles: cssFiles.length,
     processedFiles: 0,
     totalRemoved: 0,
-    totalLinesRemoved: 0
+    totalLinesRemoved: 0,
+    fileResults: []
 };
 
 for (const cssFile of cssFiles) {
@@ -204,17 +236,35 @@ for (const cssFile of cssFiles) {
         results.processedFiles++;
         results.totalRemoved += result.removed;
         results.totalLinesRemoved += result.linesRemoved;
+        if (result.removed > 0) {
+            results.fileResults.push(result);
+        }
     } catch (error) {
-        console.error('\nError processing', cssFile, ':', error.message);
+        console.error('Error processing', cssFile, ':', error.message);
     }
 }
 
-console.log('\n' + '='.repeat(60));
+console.log('='.repeat(60));
 console.log('SUMMARY');
 console.log('='.repeat(60));
 console.log('Files processed:', results.processedFiles + '/' + results.totalFiles);
 console.log('Total classes removed:', results.totalRemoved);
 console.log('Total lines removed:', results.totalLinesRemoved);
 console.log('='.repeat(60) + '\n');
+
+if (results.fileResults.length > 0) {
+    console.log('Files with removed classes:\n');
+    results.fileResults.forEach(file => {
+        console.log('  ' + file.fileName);
+        console.log('    Removed:', file.removed, 'classes,', file.linesRemoved, 'lines');
+        if (file.removedClasses.length <= 10) {
+            file.removedClasses.forEach(cls => console.log('      - .' + cls));
+        } else {
+            file.removedClasses.slice(0, 10).forEach(cls => console.log('      - .' + cls));
+            console.log('      ... and', file.removedClasses.length - 10, 'more');
+        }
+        console.log('');
+    });
+}
 
 console.log('CSS cleanup complete!\n');
