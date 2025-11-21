@@ -1,11 +1,13 @@
 import MixerVerificationProvider from '../notifications/MixerVerificationNotifications'
 import EquipmentVerificationProvider from '../notifications/EquipmentVerificationNotifications'
 import TractorVerificationProvider from '../notifications/TractorVerificationNotifications'
+import OverdueListProvider from '../notifications/OverdueListNotifications'
 
 const providers = [
     MixerVerificationProvider, 
     EquipmentVerificationProvider, 
-    TractorVerificationProvider
+    TractorVerificationProvider,
+    OverdueListProvider
 ]
 
 const NotificationsService = {
