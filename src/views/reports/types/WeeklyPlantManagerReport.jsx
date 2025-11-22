@@ -230,8 +230,18 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                     const reportsByWeek = new Map()
                     const allReportDates = []
 
+                    const today = new Date()
+                    const currentSunday = new Date(today)
+                    currentSunday.setDate(today.getDate() - today.getDay())
+                    currentSunday.setHours(0, 0, 0, 0)
+
                     filteredData.forEach(report => {
                         const weekStr = report.week.split('T')[0]
+                        const weekDate = new Date(weekStr + 'T12:00:00')
+                        
+                        if (weekDate >= currentSunday) {
+                            return
+                        }
 
                         if (reportsByWeek.has(weekStr)) {
                             const existing = reportsByWeek.get(weekStr)
@@ -258,11 +268,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                     const allWeeks = []
                     let currentDate = new Date(firstDate + 'T12:00:00')
                     const endDate = new Date(lastDate + 'T12:00:00')
-
-                    const today = new Date()
-                    const currentSunday = new Date(today)
-                    currentSunday.setDate(today.getDate() - today.getDay())
-                    currentSunday.setHours(0, 0, 0, 0)
 
                     const lastSunday = new Date(currentSunday)
                     lastSunday.setDate(currentSunday.getDate() - 7)
@@ -337,7 +342,17 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                         missingWeeks
                     })
 
-                    totals.avgYph = totals.totalHours > 0 ? totals.totalYards / totals.totalHours : 0
+                    const weeksWithHours = submittedWeeks.filter(w => w.hours > 0)
+                    const yardsWithHours = weeksWithHours.reduce((sum, w) => sum + w.yardage, 0)
+                    const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
+                    totals.avgYph = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
+
+                    const targetYPH = 3.0
+                    const yardageEfficiency = totals.totalYards > 0 ? ((totals.totalYards - totals.totalLost) / totals.totalYards * 100) : 0
+                    const yphEfficiency = totals.avgYph > 0 ? Math.min((totals.avgYph / targetYPH) * 100, 100) : 0
+                    const baseEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                    const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
+                    totals.avgEfficiency = totals.avgYph > 0 ? Math.max(baseEfficiency - avgYardageLost, 0) : 0
 
                     setYearlyTotals(totals)
                 }
@@ -589,6 +604,22 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
 
                             <div className="pm-metric-card">
                                 <div className="pm-metric-header">
+                                    <i className="fas fa-percentage pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Average Efficiency</span>
+                                </div>
+                                <div className="pm-metric-value" style={{
+                                    fontSize: '1.8rem',
+                                    color: yearlyTotals.avgEfficiency >= 90 ? 'var(--success)' : 
+                                           yearlyTotals.avgEfficiency >= 80 ? 'var(--warning)' : 
+                                           'var(--danger)'
+                                }}>
+                                    {yearlyTotals.avgEfficiency.toFixed(1)}%
+                                </div>
+                                <div className="pm-metric-grade">overall performance</div>
+                            </div>
+
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
                                     <i className="fas fa-calendar-week pm-metric-icon"></i>
                                     <span className="pm-metric-title">Weekly Average</span>
                                 </div>
@@ -619,30 +650,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                                 </div>
                                 <div className="pm-metric-grade">weeks reported</div>
                             </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-trophy pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Efficiency Rating</span>
-                                </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
-                                    {(() => {
-                                        const submittedWeeks = yearlyTotals.weeklyBreakdown.filter(w => !w.isMissing && !w.isNotSubmitted)
-                                        if (submittedWeeks.length === 0) return '0.0'
-
-                                        const targetYPH = 4.0
-                                        const weeklyEfficiencies = submittedWeeks.map(week => {
-                                            const yardageEfficiency = week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage * 100) : 0
-                                            const yphEfficiency = Math.min((week.yph / targetYPH) * 100, 100)
-                                            return (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
-                                        })
-
-                                        const avgEfficiency = weeklyEfficiencies.reduce((sum, eff) => sum + eff, 0) / weeklyEfficiencies.length
-                                        return avgEfficiency.toFixed(1)
-                                    })()}%
-                                </div>
-                                <div className="pm-metric-grade">combined efficiency</div>
-                            </div>
                         </div>
                     )}
 
@@ -668,11 +675,12 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                                         const weekDate = new Date(week.week + 'T12:00:00')
                                         const weekLabel = ReportUtility.formatDate(weekDate)
                                         const userName = week.userId ? (userNames[week.userId] || 'Loading...') : null
-                                        const dailyAvg = Math.round(week.yardage / 6)
-                                        const yardageEfficiency = week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage * 100) : 0
-                                        const targetYPH = 4.0
-                                        const yphEfficiency = Math.min((week.yph / targetYPH) * 100, 100)
-                                        const overallEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                                            const dailyAvg = Math.round(week.yardage / 6)
+                                            const yardageEfficiency = week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage * 100) : 0
+                                            const targetYPH = 3.0
+                                            const yphEfficiency = week.hours > 0 ? Math.min((week.yph / targetYPH) * 100, 100) : 0
+                                            const baseEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                                            const overallEfficiency = week.hours > 0 ? Math.max(baseEfficiency - week.lost, 0) : 0
                                         return (
                                             <tr key={idx}
                                                 className={week.isMissing || week.isNotSubmitted ? 'pm-week-missing' : ''}>

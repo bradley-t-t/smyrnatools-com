@@ -199,6 +199,8 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     let totalHours = 0
                     let totalLost = 0
                     let validReports = 0
+                    let yardsWithHours = 0
+                    let hoursForYPH = 0
 
                     let currentDate = new Date(firstDate + 'T12:00:00')
                     const endDate = new Date(Math.max(new Date(lastDate + 'T12:00:00').getTime(), lastSunday.getTime()))
@@ -223,11 +225,14 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                                     const hours = parseFloat(report.data?.total_hours || 0)
                                     const lost = parseFloat(report.data?.total_yards_lost || 0)
 
-                                    if (yardage > 0 && hours > 0) {
-                                        totalYardage += yardage
-                                        totalHours += hours
-                                        totalLost += lost
-                                        validReports++
+                                    totalYardage += yardage
+                                    totalHours += hours
+                                    totalLost += lost
+                                    validReports++
+
+                                    if (hours > 0) {
+                                        yardsWithHours += yardage
+                                        hoursForYPH += hours
                                     }
                                 }
                             }
@@ -261,7 +266,7 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         }
                     }
 
-                    const avgYPH = totalYardage / totalHours
+                    const avgYPH = hoursForYPH > 0 ? yardsWithHours / hoursForYPH : 0
                     const avgYardageWeekly = totalYardage / validReports
                     const avgYardageDaily = avgYardageWeekly / 6
                     const avgYardageLost = totalLost / validReports
@@ -270,10 +275,11 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     const avgHoursOverall = totalHours / validReports
                     const avgYardageOverall = totalYardage / validReports
 
-                    const targetYPH = 4.0
-                    const yardageEfficiency = ((totalYardage - totalLost) / totalYardage * 100)
-                    const yphEfficiency = Math.min((avgYPH / targetYPH) * 100, 100)
-                    const avgEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                    const targetYPH = 3.0
+                    const yardageEfficiency = totalYardage > 0 ? ((totalYardage - totalLost) / totalYardage * 100) : 0
+                    const yphEfficiency = avgYPH > 0 ? Math.min((avgYPH / targetYPH) * 100, 100) : 0
+                    const baseEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                    const avgEfficiency = avgYPH > 0 ? Math.max(baseEfficiency - avgYardageLost, 0) : 0
 
                     return {
                         avgYPH,
@@ -296,7 +302,6 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                 }
 
                 const overall = calculateMetrics(filteredReports)
-                setOverallMetrics(overall)
 
                 if (!dashboardPlant && plantCodes.length > 1) {
                     const plantMetricsArray = []
@@ -319,10 +324,18 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         const codeB = String(b.plantCode || '').trim()
                         return codeA.localeCompare(codeB)
                     })
+
+                    if (plantMetricsArray.length > 0) {
+                        overall.dataIntegrity = plantMetricsArray.reduce((sum, plant) => sum + (plant.dataIntegrity || 0), 0) / plantMetricsArray.length
+                        overall.avgEfficiency = plantMetricsArray.reduce((sum, plant) => sum + (plant.avgEfficiency || 0), 0) / plantMetricsArray.length
+                    }
+
                     setPlantMetrics(plantMetricsArray)
                 } else {
                     setPlantMetrics([])
                 }
+
+                setOverallMetrics(overall)
 
             } catch (err) {
                 if (mounted) {
@@ -353,7 +366,9 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
         avgHoursDaily: 0,
         avgYardageLost: 0,
         reportCount: 0,
-        dataIntegrity: 100
+        dataIntegrity: 100,
+        totalYardage: 0,
+        totalHours: 0
     }
 
     const getEfficiencyColor = (efficiency) => {
@@ -374,6 +389,23 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
             <div className="section-title">Plant Performance - YTD {new Date().getFullYear()}</div>
 
             <div className="dashboard-grid inner-grid">
+                <div className="kpi-card slide-in-card">
+                    <div className="kpi-title">Total YTD Yards</div>
+                    <div className="kpi-value">{Math.round(metricsToShow.totalYardage).toLocaleString()}</div>
+                </div>
+
+                <div className="kpi-card slide-in-card">
+                    <div className="kpi-title">Total YTD Hours</div>
+                    <div className="kpi-value">{Math.round(metricsToShow.totalHours).toLocaleString()}</div>
+                </div>
+
+                <div className="kpi-card slide-in-card">
+                    <div className="kpi-title">Data Integrity</div>
+                    <div className="kpi-value" style={{color: (metricsToShow.dataIntegrity ?? 100) >= 90 ? 'var(--success)' : (metricsToShow.dataIntegrity ?? 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
+                        {(metricsToShow.dataIntegrity ?? 100).toFixed(1)}%
+                    </div>
+                </div>
+
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Efficiency</div>
                     <div className="kpi-value" style={{color: getEfficiencyColor(metricsToShow.avgEfficiency)}}>
@@ -450,8 +482,8 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                                                 <div className="plant-name-display">{plant.plantName}</div>
                                             </td>
                                             <td className="numeric-cell">
-                                                <span style={{color: (plant.dataIntegrity || 100) >= 90 ? 'var(--success)' : (plant.dataIntegrity || 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
-                                                    {(plant.dataIntegrity || 100).toFixed(1)}%
+                                                <span style={{color: (plant.dataIntegrity ?? 100) >= 90 ? 'var(--success)' : (plant.dataIntegrity ?? 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
+                                                    {(plant.dataIntegrity ?? 100).toFixed(1)}%
                                                 </span>
                                             </td>
                                             <td className="numeric-cell">
@@ -459,11 +491,53 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                                                     {plant.avgEfficiency.toFixed(1)}%
                                                 </span>
                                             </td>
-                                            <td className="numeric-cell">{plant.avgYPH.toFixed(2)}</td>
+                                            <td className="numeric-cell">
+                                                {!isFinite(plant.avgYPH) || plant.avgYPH === 0 ? (
+                                                    <span style={{
+                                                        padding: '0.25rem 0.5rem',
+                                                        borderRadius: '0.25rem',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '500',
+                                                        backgroundColor: 'var(--danger)',
+                                                        color: 'white',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>No Operators</span>
+                                                ) : (
+                                                    plant.avgYPH.toFixed(2)
+                                                )}
+                                            </td>
                                             <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
                                             <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
-                                            <td className="numeric-cell">{Math.round(plant.avgWeeklyHours).toLocaleString()}</td>
-                                            <td className="numeric-cell">{Math.round(plant.avgHoursDaily).toLocaleString()}</td>
+                                            <td className="numeric-cell">
+                                                {plant.avgWeeklyHours === 0 ? (
+                                                    <span style={{
+                                                        padding: '0.25rem 0.5rem',
+                                                        borderRadius: '0.25rem',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '500',
+                                                        backgroundColor: 'var(--danger)',
+                                                        color: 'white',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>No Operators</span>
+                                                ) : (
+                                                    Math.round(plant.avgWeeklyHours).toLocaleString()
+                                                )}
+                                            </td>
+                                            <td className="numeric-cell">
+                                                {plant.avgHoursDaily === 0 ? (
+                                                    <span style={{
+                                                        padding: '0.25rem 0.5rem',
+                                                        borderRadius: '0.25rem',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '500',
+                                                        backgroundColor: 'var(--danger)',
+                                                        color: 'white',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>No Operators</span>
+                                                ) : (
+                                                    Math.round(plant.avgHoursDaily).toLocaleString()
+                                                )}
+                                            </td>
                                             <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
                                         </tr>
                                     ))}
