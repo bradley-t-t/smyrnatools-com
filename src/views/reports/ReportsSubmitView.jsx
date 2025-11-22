@@ -192,7 +192,11 @@ function ReportsSubmitView({
         setError('')
         setSuccess(false)
         try {
-            await onSubmit(form, 'submit')
+            const submitData = {...form}
+            if (report.name === 'plant_manager' && user && user.plant_code && !submitData.plant) {
+                submitData.plant = user.plant_code
+            }
+            await onSubmit(submitData, 'submit')
             setSuccess(true)
             await EmailUtility.sendReportSubmittedEmail({report, weekVerbose})
         } catch (err) {
@@ -724,7 +728,7 @@ function ReportsSubmitView({
                             operatorOptions={operatorOptions}
                             setDebugMsg={setDebugMsg}
                             allReports={report.name === 'general_manager' ? allReports : undefined}
-                            weekIso={(report.name === 'general_manager' || report.name === 'aggregate_production') ? report.weekIso : undefined}
+                            weekIso={(report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'plant_manager') ? report.weekIso : undefined}
                             setForm={setForm}
                             plants={plants}
                             readOnly={readOnly}

@@ -300,6 +300,9 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                                 operatorOptions={operatorOptions}
                                 plants={plants}
                                 weekIso={report.weekIso || initialData?.week}
+                                user={completedByUser || user}
+                                assignedPlant={assignedPlant}
+                                reportUserId={initialData?.user_id}
                             />
                         )}
                         {report.name === 'aggregate_production' && (

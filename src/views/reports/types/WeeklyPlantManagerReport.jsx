@@ -2,11 +2,58 @@ import React, {useEffect, useState} from 'react'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {supabase} from '../../../services/DatabaseService'
 import {ReportUtility} from '../../../utils/ReportUtility'
+import {UserService} from '../../../services/UserService'
 import '../styles/Reports.css'
 
-function WeeklyTrendsSection({currentWeekIso, plantCode, currentYph, currentLost}) {
+function WeeklyTrendsSection({currentWeekIso, plantCode}) {
     const [historicalData, setHistoricalData] = useState([])
     const [loading, setLoading] = useState(true)
+    const [yearlyTotals, setYearlyTotals] = useState(null)
+    const [yearlyLoading, setYearlyLoading] = useState(true)
+    const [userNames, setUserNames] = useState({})
+    const [timelineUserNames, setTimelineUserNames] = useState({})
+    
+    // ...existing useEffect for fetchHistoricalReports...
+    
+    useEffect(() => {
+        let mounted = true
+        
+        async function fetchTimelineUserNames() {
+            if (!historicalData || historicalData.length === 0) return
+            
+            const userIds = new Set()
+            historicalData.forEach(report => {
+                if (report.userId) {
+                    userIds.add(report.userId)
+                }
+            })
+            
+            if (userIds.size === 0) return
+            
+            try {
+                const namesMap = {}
+                await Promise.all(
+                    Array.from(userIds).map(async (id) => {
+                        const firstName = await UserService.getUserFirstName(id)
+                        const lastName = await UserService.getUserLastName(id)
+                        const fullName = `${firstName} ${lastName}`.trim()
+                        namesMap[id] = fullName || 'Unknown User'
+                    })
+                )
+                if (mounted) {
+                    setTimelineUserNames(namesMap)
+                }
+            } catch (err) {
+                console.error('Error fetching timeline user names:', err)
+            }
+        }
+        
+        fetchTimelineUserNames()
+        
+        return () => {
+            mounted = false
+        }
+    }, [historicalData])
     
     useEffect(() => {
         let mounted = true
@@ -16,7 +63,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, currentYph, currentLost
                 setLoading(false)
                 return
             }
-            
+
             try {
                 const currentDate = new Date(currentWeekIso)
                 const currentMonth = currentDate.getMonth()
@@ -25,29 +72,77 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, currentYph, currentLost
                 const startOfMonth = new Date(currentYear, currentMonth, 1)
                 const endOfMonth = new Date(currentYear, currentMonth + 1, 0)
                 
+                console.log('WeeklyTrendsSection: Date range', { 
+                    startOfMonth: startOfMonth.toISOString(), 
+                    endOfMonth: endOfMonth.toISOString() 
+                })
+                
+                const {data: plantUsers, error: usersError} = await supabase
+                    .from('users_profiles')
+                    .select('id')
+                    .eq('plant_code', plantCode)
+                
+                if (usersError) throw usersError
+                
+                const userIds = plantUsers.map(u => u.id)
+                console.log('Monthly timeline: Found', userIds.length, 'users for plant', plantCode)
+                
+                if (userIds.length === 0) {
+                    setHistoricalData([])
+                    setLoading(false)
+                    return
+                }
+                
                 const {data, error} = await supabase
                     .from('reports')
                     .select('*')
-                    .eq('report_type', 'plant_manager')
-                    .eq('data->plant', plantCode)
-                    .gte('week_iso', startOfMonth.toISOString().split('T')[0])
-                    .lte('week_iso', endOfMonth.toISOString().split('T')[0])
-                    .order('week_iso', {ascending: true})
+                    .eq('report_name', 'plant_manager')
+                    .in('user_id', userIds)
+                    .eq('completed', true)
+                    .gte('week', startOfMonth.toISOString())
+                    .lte('week', endOfMonth.toISOString())
+                    .order('week', {ascending: true})
                 
                 if (error) throw error
                 
+                console.log('WeeklyTrendsSection: Query returned', data?.length || 0, 'reports')
+                
                 if (mounted && data) {
-                    const reports = data
-                        .filter(r => r.week_iso !== currentWeekIso)
-                        .map(r => ({
-                            weekIso: r.week_iso,
-                            yph: parseFloat(r.data?.total_yards_delivered || 0) / parseFloat(r.data?.total_operator_hours || 1),
-                            lost: parseFloat(r.data?.yardage_lost || 0),
-                            yards: parseFloat(r.data?.total_yards_delivered || 0),
-                            hours: parseFloat(r.data?.total_operator_hours || 0)
-                        }))
-                        .filter(r => !isNaN(r.yph) && r.hours > 0)
+                    const currentWeekDateOnly = currentWeekIso.split('T')[0]
                     
+                    const reportsByWeek = new Map()
+                    
+                    data.forEach(r => {
+                        const weekStr = r.week.split('T')[0]
+                        if (reportsByWeek.has(weekStr)) {
+                            const existing = reportsByWeek.get(weekStr)
+                            const existingDate = new Date(existing.submitted_at || existing.updated_at || 0)
+                            const rDate = new Date(r.submitted_at || r.updated_at || 0)
+                            if (rDate > existingDate) {
+                                reportsByWeek.set(weekStr, r)
+                            }
+                        } else {
+                            reportsByWeek.set(weekStr, r)
+                        }
+                    })
+                    
+                    const reports = Array.from(reportsByWeek.values())
+                        .map(r => {
+                            const weekStr = r.week.split('T')[0]
+                            return {
+                                weekIso: weekStr,
+                                yph: parseFloat(r.data?.yardage || 0) / parseFloat(r.data?.total_hours || 1),
+                                lost: parseFloat(r.data?.total_yards_lost || 0),
+                                yards: parseFloat(r.data?.yardage || 0),
+                                hours: parseFloat(r.data?.total_hours || 0),
+                                isCurrentWeek: weekStr === currentWeekDateOnly,
+                                userId: r.user_id
+                            }
+                        })
+                        .filter(r => !isNaN(r.yph) && r.hours > 0)
+                        .sort((a, b) => new Date(a.weekIso) - new Date(b.weekIso))
+                    
+                    console.log('WeeklyTrendsSection: Final filtered to', reports.length, 'valid reports')
                     setHistoricalData(reports)
                 }
             } catch (err) {
@@ -63,6 +158,256 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, currentYph, currentLost
             mounted = false
         }
     }, [currentWeekIso, plantCode])
+    
+    useEffect(() => {
+        let mounted = true
+        
+        async function fetchYearlyTotals() {
+            if (!plantCode || !currentWeekIso) {
+                setYearlyLoading(false)
+                return
+            }
+            
+            try {
+                const currentYear = new Date(currentWeekIso).getFullYear()
+                const startOfYear = new Date(currentYear, 0, 1)
+                const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
+                
+                console.log('Fetching yearly totals for plant', plantCode, 'year', currentYear)
+                
+                const {data: plantUsers, error: usersError} = await supabase
+                    .from('users_profiles')
+                    .select('id')
+                    .eq('plant_code', plantCode)
+                
+                if (usersError) throw usersError
+                
+                const userIds = plantUsers.map(u => u.id)
+                console.log('Found', userIds.length, 'users assigned to plant', plantCode)
+                
+                if (userIds.length === 0) {
+                    setYearlyTotals({
+                        totalYards: 0,
+                        totalHours: 0,
+                        totalLost: 0,
+                        reportCount: 0,
+                        year: currentYear,
+                        weeklyBreakdown: [],
+                        notSubmittedWeeks: [],
+                        missingWeeks: [],
+                        avgYph: 0
+                    })
+                    setYearlyLoading(false)
+                    return
+                }
+                
+                const {data, error} = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .in('user_id', userIds)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+                    .order('week', {ascending: false})
+                
+                if (error) throw error
+                
+                console.log('Yearly query - plantCode:', plantCode)
+                console.log('Yearly query - returned reports:', data?.length || 0)
+                
+                const filteredData = data
+                
+                console.log('Yearly query - filtered to plant reports:', filteredData.length)
+                
+                if (filteredData.length > 0) {
+                    console.log('Yearly query - Report user_ids:', filteredData.map(r => ({ week: r.week.split('T')[0], user_id: r.user_id, completed: r.completed })))
+                }
+                
+                if (mounted && filteredData) {
+                    console.log('Processing', filteredData.length, 'reports for yearly summary')
+                    
+                    if (filteredData.length === 0) {
+                        setYearlyTotals({
+                            totalYards: 0,
+                            totalHours: 0,
+                            totalLost: 0,
+                            reportCount: 0,
+                            year: currentYear,
+                            weeklyBreakdown: [],
+                            notSubmittedWeeks: [],
+                            missingWeeks: [],
+                            avgYph: 0
+                        })
+                        return
+                    }
+                    
+                    const reportsByWeek = new Map()
+                    const allReportDates = []
+                    
+                    filteredData.forEach(report => {
+                        const weekStr = report.week.split('T')[0]
+                        
+                        if (reportsByWeek.has(weekStr)) {
+                            const existing = reportsByWeek.get(weekStr)
+                            if (report.completed && !existing.completed) {
+                                reportsByWeek.set(weekStr, report)
+                            } else if (report.completed === existing.completed) {
+                                const existingDate = new Date(existing.submitted_at || existing.updated_at || 0)
+                                const reportDate = new Date(report.submitted_at || report.updated_at || 0)
+                                if (reportDate > existingDate) {
+                                    reportsByWeek.set(weekStr, report)
+                                }
+                            }
+                        } else {
+                            reportsByWeek.set(weekStr, report)
+                            allReportDates.push(weekStr)
+                        }
+                    })
+                    
+                    allReportDates.sort()
+                    const firstDate = allReportDates[0]
+                    const lastDate = allReportDates[allReportDates.length - 1]
+                    
+                    console.log('Date range:', firstDate, 'to', lastDate)
+                    
+                    const allWeeks = []
+                    let currentDate = new Date(firstDate + 'T12:00:00')
+                    const endDate = new Date(lastDate + 'T12:00:00')
+                    
+                    const today = new Date()
+                    const currentSunday = new Date(today)
+                    currentSunday.setDate(today.getDate() - today.getDay())
+                    currentSunday.setHours(0, 0, 0, 0)
+                    
+                    const lastSunday = new Date(currentSunday)
+                    lastSunday.setDate(currentSunday.getDate() - 7)
+                    
+                    console.log('Today:', today.toISOString().split('T')[0])
+                    console.log('Current week Sunday:', currentSunday.toISOString().split('T')[0])
+                    console.log('Last week Sunday:', lastSunday.toISOString().split('T')[0])
+                    
+                    while (currentDate <= endDate || currentDate <= lastSunday) {
+                        const year = currentDate.getFullYear()
+                        const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+                        const day = String(currentDate.getDate()).padStart(2, '0')
+                        const weekStr = `${year}-${month}-${day}`
+                        
+                        const report = reportsByWeek.get(weekStr)
+                        
+                        if (report) {
+                            const yardage = parseFloat(report.data?.yardage || 0)
+                            const hours = parseFloat(report.data?.total_hours || 0)
+                            const lost = parseFloat(report.data?.total_yards_lost || 0)
+                            const yph = hours > 0 ? yardage / hours : 0
+                            
+                            allWeeks.push({
+                                week: weekStr,
+                                yardage,
+                                hours,
+                                yph,
+                                lost,
+                                isMissing: false,
+                                isNotSubmitted: !report.completed,
+                                userId: report.user_id
+                            })
+                        } else if (currentDate >= new Date(firstDate + 'T12:00:00') && currentDate < currentSunday) {
+                            allWeeks.push({
+                                week: weekStr,
+                                yardage: 0,
+                                hours: 0,
+                                yph: 0,
+                                lost: 0,
+                                isMissing: true,
+                                isNotSubmitted: false,
+                                userId: null
+                            })
+                        }
+                        
+                        currentDate.setDate(currentDate.getDate() + 7)
+                    }
+                    
+                    allWeeks.reverse()
+                    
+                    const submittedWeeks = allWeeks.filter(w => !w.isMissing && !w.isNotSubmitted)
+                    const notSubmittedWeeks = allWeeks.filter(w => w.isNotSubmitted)
+                    const missingWeeks = allWeeks.filter(w => w.isMissing)
+                    
+                    console.log('Submitted:', submittedWeeks.length, 'Not submitted:', notSubmittedWeeks.length, 'Missing:', missingWeeks.length)
+                    
+                    const totals = submittedWeeks.reduce((acc, week) => {
+                        return {
+                            totalYards: acc.totalYards + week.yardage,
+                            totalHours: acc.totalHours + week.hours,
+                            totalLost: acc.totalLost + week.lost,
+                            reportCount: acc.reportCount + 1,
+                            year: currentYear,
+                            weeklyBreakdown: allWeeks,
+                            notSubmittedWeeks,
+                            missingWeeks
+                        }
+                    }, {totalYards: 0, totalHours: 0, totalLost: 0, reportCount: 0, year: currentYear, weeklyBreakdown: allWeeks, notSubmittedWeeks, missingWeeks})
+                    
+                    totals.avgYph = totals.totalHours > 0 ? totals.totalYards / totals.totalHours : 0
+                    
+                    console.log('Yearly totals calculated:', totals)
+                    console.log('Yearly totals - reportCount:', totals.reportCount)
+                    console.log('Yearly totals - weeklyBreakdown length:', totals.weeklyBreakdown?.length)
+                    console.log('Yearly totals - missingWeeks length:', totals.missingWeeks?.length)
+                    setYearlyTotals(totals)
+                }
+            } catch (err) {
+                console.error('Error fetching yearly totals:', err)
+            } finally {
+                if (mounted) setYearlyLoading(false)
+            }
+        }
+        
+        fetchYearlyTotals()
+        
+        return () => {
+            mounted = false
+        }
+    }, [plantCode, currentWeekIso])
+    
+    useEffect(() => {
+        let mounted = true
+        
+        async function fetchUserNames() {
+            if (!yearlyTotals || !yearlyTotals.weeklyBreakdown) return
+            
+            const userIds = new Set()
+            yearlyTotals.weeklyBreakdown.forEach(week => {
+                if (week.userId) {
+                    userIds.add(week.userId)
+                }
+            })
+            
+            if (userIds.size === 0) return
+            
+            try {
+                const namesMap = {}
+                await Promise.all(
+                    Array.from(userIds).map(async (id) => {
+                        const firstName = await UserService.getUserFirstName(id)
+                        const lastName = await UserService.getUserLastName(id)
+                        const fullName = `${firstName} ${lastName}`.trim()
+                        namesMap[id] = fullName || 'Unknown User'
+                    })
+                )
+                if (mounted) {
+                    setUserNames(namesMap)
+                }
+            } catch (err) {
+                console.error('Error fetching user names:', err)
+            }
+        }
+        
+        fetchUserNames()
+        
+        return () => {
+            mounted = false
+        }
+    }, [yearlyTotals])
     
     if (loading) {
         return (
@@ -81,20 +426,27 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, currentYph, currentLost
         )
     }
     
+    const monthName = new Date(currentWeekIso).toLocaleString('default', { month: 'long', year: 'numeric' })
+    
     if (historicalData.length === 0) {
-        return null
+        return (
+            <div className="pm-trends-section">
+                <div className="pm-trends-header">
+                    <h3 className="pm-trends-title">
+                        <i className="fas fa-calendar-alt"></i>
+                        {monthName} - Weekly Performance
+                    </h3>
+                    <p className="pm-trends-subtitle">
+                        No reports found for this month
+                    </p>
+                </div>
+            </div>
+        )
     }
     
-    const avgYph = historicalData.reduce((sum, r) => sum + r.yph, 0) / historicalData.length
-    const avgLost = historicalData.reduce((sum, r) => sum + r.lost, 0) / historicalData.length
-    const totalYards = historicalData.reduce((sum, r) => sum + r.yards, 0)
-    
-    const yphVariance = currentYph && avgYph ? ((currentYph - avgYph) / avgYph) * 100 : 0
-    const lostVariance = currentLost !== null && avgLost ? ((currentLost - avgLost) / avgLost) * 100 : 0
-    
-    const formatVariance = (variance) => {
-        const sign = variance > 0 ? '+' : ''
-        return `${sign}${variance.toFixed(1)}%`
+    const calculateVariance = (current, previous) => {
+        if (!previous) return null
+        return ((current - previous) / previous) * 100
     }
     
     return (
@@ -102,116 +454,329 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, currentYph, currentLost
             <div className="pm-trends-header">
                 <h3 className="pm-trends-title">
                     <i className="fas fa-chart-line"></i>
-                    Monthly Performance Trends
+                    {monthName} Performance Timeline
                 </h3>
                 <p className="pm-trends-subtitle">
-                    Comparing this week to {historicalData.length} previous {historicalData.length === 1 ? 'week' : 'weeks'} this month
+                    {historicalData.length} {historicalData.length === 1 ? 'week' : 'weeks'} of data
                 </p>
             </div>
             
-            <div className="pm-trends-grid">
-                <div className="pm-trend-card">
-                    <div className="pm-trend-header">
-                        <i className="fas fa-tachometer-alt pm-trend-icon"></i>
-                        <span className="pm-trend-label">Yards per Hour</span>
-                    </div>
-                    <div className="pm-trend-comparison">
-                        <div className="pm-trend-item">
-                            <span className="pm-trend-sublabel">Previous Avg</span>
-                            <span className="pm-trend-value">{avgYph.toFixed(2)}</span>
-                        </div>
-                        <div className="pm-trend-arrow">
-                            <i className={`fas fa-arrow-${yphVariance >= 0 ? 'up' : 'down'}`} 
-                               style={{color: yphVariance >= 0 ? 'var(--success)' : 'var(--error)'}}></i>
-                        </div>
-                        <div className="pm-trend-item">
-                            <span className="pm-trend-sublabel">This Week</span>
-                            <span className="pm-trend-value">{currentYph ? currentYph.toFixed(2) : '--'}</span>
-                        </div>
-                    </div>
-                    <div className={`pm-trend-variance ${yphVariance >= 0 ? 'positive' : 'negative'}`}>
-                        {formatVariance(yphVariance)} vs. monthly average
-                    </div>
+            <div className="pm-timeline-wrapper">
+                <div className="pm-timeline-track">
+                    <div className="pm-timeline-line-full"></div>
                 </div>
-                
-                <div className="pm-trend-card">
-                    <div className="pm-trend-header">
-                        <i className="fas fa-exclamation-triangle pm-trend-icon"></i>
-                        <span className="pm-trend-label">Yardage Lost</span>
-                    </div>
-                    <div className="pm-trend-comparison">
-                        <div className="pm-trend-item">
-                            <span className="pm-trend-sublabel">Previous Avg</span>
-                            <span className="pm-trend-value">{avgLost.toFixed(0)}</span>
-                        </div>
-                        <div className="pm-trend-arrow">
-                            <i className={`fas fa-arrow-${lostVariance <= 0 ? 'down' : 'up'}`} 
-                               style={{color: lostVariance <= 0 ? 'var(--success)' : 'var(--error)'}}></i>
-                        </div>
-                        <div className="pm-trend-item">
-                            <span className="pm-trend-sublabel">This Week</span>
-                            <span className="pm-trend-value">{currentLost !== null ? currentLost : '--'}</span>
-                        </div>
-                    </div>
-                    <div className={`pm-trend-variance ${lostVariance <= 0 ? 'positive' : 'negative'}`}>
-                        {formatVariance(lostVariance)} vs. monthly average
-                    </div>
-                </div>
-                
-                <div className="pm-trend-card pm-trend-card-full">
-                    <div className="pm-trend-header">
-                        <i className="fas fa-calendar-week pm-trend-icon"></i>
-                        <span className="pm-trend-label">Week-by-Week Breakdown</span>
-                    </div>
-                    <div className="pm-weeks-table">
-                        {historicalData.map((report, idx) => {
-                            const weekDate = new Date(report.weekIso)
-                            const weekLabel = ReportUtility.formatDate(weekDate)
-                            return (
-                                <div key={idx} className="pm-week-row">
-                                    <div className="pm-week-date">{weekLabel}</div>
-                                    <div className="pm-week-metrics">
-                                        <div className="pm-week-metric">
-                                            <span className="pm-week-metric-label">YPH:</span>
-                                            <span className="pm-week-metric-value">{report.yph.toFixed(2)}</span>
+                <div className="pm-timeline">
+                    {historicalData.map((report, idx) => {
+                        const weekDate = new Date(report.weekIso)
+                        const weekLabel = ReportUtility.formatDate(weekDate)
+                        const previousReport = idx > 0 ? historicalData[idx - 1] : null
+                        const yphVariance = calculateVariance(report.yph, previousReport?.yph)
+                        const lostVariance = calculateVariance(report.lost, previousReport?.lost)
+                        const userName = report.userId ? (timelineUserNames[report.userId] || 'Loading...') : 'Unknown'
+                        
+                        return (
+                            <div key={idx} className={`pm-timeline-item ${report.isCurrentWeek ? 'pm-timeline-current' : ''}`}>
+                                <div className="pm-timeline-dot-wrapper">
+                                    <div className="pm-timeline-dot"></div>
+                                </div>
+                                <div className="pm-timeline-content">
+                                    <div className="pm-timeline-date">
+                                        {weekLabel}
+                                        {report.isCurrentWeek && <span className="pm-timeline-badge">Current</span>}
+                                    </div>
+                                    <div className="pm-timeline-submitter">
+                                        <i className="fas fa-user"></i> {userName}
+                                    </div>
+                                    <div className="pm-timeline-metrics">
+                                        <div className="pm-timeline-metric">
+                                            <span className="pm-timeline-metric-value">{report.yph.toFixed(2)}</span>
+                                            <span className="pm-timeline-metric-label">YPH</span>
+                                            {yphVariance !== null && (
+                                                <span className={`pm-timeline-variance ${yphVariance >= 0 ? 'positive' : 'negative'}`}>
+                                                    <i className={`fas fa-arrow-${yphVariance >= 0 ? 'up' : 'down'}`}></i>
+                                                    {Math.abs(yphVariance).toFixed(1)}%
+                                                </span>
+                                            )}
                                         </div>
-                                        <div className="pm-week-metric">
-                                            <span className="pm-week-metric-label">Lost:</span>
-                                            <span className="pm-week-metric-value">{report.lost.toFixed(0)}</span>
-                                        </div>
-                                        <div className="pm-week-metric">
-                                            <span className="pm-week-metric-label">Yards:</span>
-                                            <span className="pm-week-metric-value">{report.yards.toFixed(0)}</span>
+                                        <div className="pm-timeline-metric">
+                                            <span className="pm-timeline-metric-value">{report.lost.toFixed(0)}</span>
+                                            <span className="pm-timeline-metric-label">Lost</span>
+                                            {lostVariance !== null && (
+                                                <span className={`pm-timeline-variance ${lostVariance <= 0 ? 'positive' : 'negative'}`}>
+                                                    <i className={`fas fa-arrow-${lostVariance <= 0 ? 'down' : 'up'}`}></i>
+                                                    {Math.abs(lostVariance).toFixed(1)}%
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            )
-                        })}
-                    </div>
-                </div>
-                
-                <div className="pm-trend-summary">
-                    <div className="pm-summary-stat">
-                        <i className="fas fa-cube pm-summary-icon"></i>
-                        <div className="pm-summary-content">
-                            <span className="pm-summary-label">Total Yards (Month)</span>
-                            <span className="pm-summary-value">{totalYards.toFixed(0)}</span>
-                        </div>
-                    </div>
-                    <div className="pm-summary-stat">
-                        <i className="fas fa-clipboard-list pm-summary-icon"></i>
-                        <div className="pm-summary-content">
-                            <span className="pm-summary-label">Weeks Recorded</span>
-                            <span className="pm-summary-value">{historicalData.length}</span>
-                        </div>
-                    </div>
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
+            
+            {yearlyLoading && (
+                <div className="pm-yearly-summary">
+                    <div className="pm-yearly-header">
+                        <h4 className="pm-yearly-title">
+                            <i className="fas fa-calendar-alt"></i>
+                            Year-to-Date Totals
+                        </h4>
+                    </div>
+                    <div className="pm-trends-loading">
+                        <i className="fas fa-circle-notch fa-spin"></i>
+                        <span>Loading yearly data...</span>
+                    </div>
+                </div>
+            )}
+            
+            {!yearlyLoading && yearlyTotals && (
+                <div className="pm-yearly-summary">
+                    <div className="pm-yearly-header">
+                        <h4 className="pm-yearly-title">
+                            <i className="fas fa-calendar-alt"></i>
+                            {yearlyTotals.year} Year-to-Date Totals
+                        </h4>
+                        <span className="pm-yearly-subtitle">{yearlyTotals.reportCount} reports submitted</span>
+                    </div>
+                    
+                    {yearlyTotals.reportCount > 0 && (
+                        <div className="pm-metrics-grid" style={{marginTop: '20px'}}>
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-box pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Total Yardage</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {yearlyTotals.totalYards.toLocaleString()}
+                                </div>
+                                <div className="pm-metric-grade">yards produced</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-clock pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Total Hours</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {yearlyTotals.totalHours.toLocaleString()}
+                                </div>
+                                <div className="pm-metric-grade">man-hours worked</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-tachometer-alt pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Average YPH</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {yearlyTotals.avgYph.toFixed(2)}
+                                </div>
+                                <div className="pm-metric-grade">yards per hour</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Total Lost</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {yearlyTotals.totalLost.toLocaleString()}
+                                </div>
+                                <div className="pm-metric-grade">yards lost</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-chart-pie pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Average Lost</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {Math.round(yearlyTotals.totalLost / yearlyTotals.reportCount).toLocaleString()}
+                                </div>
+                                <div className="pm-metric-grade">yards lost per week</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-calendar-week pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Weekly Average</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {Math.round(yearlyTotals.totalYards / yearlyTotals.reportCount).toLocaleString()}
+                                </div>
+                                <div className="pm-metric-grade">yards per week</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-calendar-day pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Daily Average</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {Math.round(yearlyTotals.totalYards / (yearlyTotals.reportCount * 7)).toLocaleString()}
+                                </div>
+                                <div className="pm-metric-grade">yards per day</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-chart-line pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Total Weeks</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {yearlyTotals.reportCount}
+                                </div>
+                                <div className="pm-metric-grade">weeks reported</div>
+                            </div>
+                            
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
+                                    <i className="fas fa-trophy pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Efficiency Rating</span>
+                                </div>
+                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                    {(() => {
+                                        const submittedWeeks = yearlyTotals.weeklyBreakdown.filter(w => !w.isMissing && !w.isNotSubmitted)
+                                        if (submittedWeeks.length === 0) return '0.0'
+                                        
+                                        const targetYPH = 4.0
+                                        const weeklyEfficiencies = submittedWeeks.map(week => {
+                                            const yardageEfficiency = week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage * 100) : 0
+                                            const yphEfficiency = Math.min((week.yph / targetYPH) * 100, 100)
+                                            return (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                                        })
+                                        
+                                        const avgEfficiency = weeklyEfficiencies.reduce((sum, eff) => sum + eff, 0) / weeklyEfficiencies.length
+                                        return avgEfficiency.toFixed(1)
+                                    })()}%
+                                </div>
+                                <div className="pm-metric-grade">combined efficiency</div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {yearlyTotals.weeklyBreakdown && yearlyTotals.weeklyBreakdown.length > 0 && (
+                        <div className="pm-weekly-breakdown">
+                            <h5 className="pm-weekly-breakdown-title">Weekly Breakdown</h5>
+                            <div className="pm-weekly-breakdown-table-wrapper">
+                                <table className="pm-weekly-breakdown-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Submitted By</th>
+                                            <th>Week Starting</th>
+                                            <th>Yardage</th>
+                                            <th>Hours</th>
+                                            <th>YPH</th>
+                                            <th>Daily Avg</th>
+                                            <th>Lost</th>
+                                            <th>Efficiency</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {yearlyTotals.weeklyBreakdown.map((week, idx) => {
+                                            const weekDate = new Date(week.week + 'T12:00:00')
+                                            const weekLabel = ReportUtility.formatDate(weekDate)
+                                            const userName = week.userId ? (userNames[week.userId] || 'Loading...') : null
+                                            const dailyAvg = Math.round(week.yardage / 7)
+                                            const yardageEfficiency = week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage * 100) : 0
+                                            const targetYPH = 4.0
+                                            const yphEfficiency = Math.min((week.yph / targetYPH) * 100, 100)
+                                            const overallEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                                            return (
+                                                <tr key={idx} className={week.isMissing || week.isNotSubmitted ? 'pm-week-missing' : ''}>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isNotSubmitted && <span className="pm-not-submitted-badge">Not Submitted</span>}
+                                                        {week.isMissing && <span className="pm-missing-badge">Missing</span>}
+                                                        {!week.isMissing && !week.isNotSubmitted && userName}
+                                                    </td>
+                                                    <td className="pm-week-label-cell">
+                                                        {weekLabel}
+                                                    </td>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isMissing || week.isNotSubmitted ? '--' : week.yardage.toLocaleString()}
+                                                    </td>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isMissing || week.isNotSubmitted ? '--' : week.hours.toLocaleString()}
+                                                    </td>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isMissing || week.isNotSubmitted ? '--' : week.yph.toFixed(2)}
+                                                    </td>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isMissing || week.isNotSubmitted ? '--' : dailyAvg.toLocaleString()}
+                                                    </td>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isMissing || week.isNotSubmitted ? '--' : week.lost.toLocaleString()}
+                                                    </td>
+                                                    <td className="pm-breakdown-value">
+                                                        {week.isMissing || week.isNotSubmitted ? '--' : `${overallEfficiency.toFixed(1)}%`}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {yearlyTotals.notSubmittedWeeks && yearlyTotals.notSubmittedWeeks.length > 0 && (
+                                <div className="pm-missing-weeks-notice pm-not-submitted-notice">
+                                    <div className="pm-missing-notice-header">
+                                        <i className="fas fa-exclamation-circle"></i>
+                                        <span className="pm-missing-notice-title">
+                                            {yearlyTotals.notSubmittedWeeks.length} Draft {yearlyTotals.notSubmittedWeeks.length === 1 ? 'Report' : 'Reports'}
+                                        </span>
+                                    </div>
+                                    <div className="pm-missing-notice-body">
+                                        The following weeks have saved drafts that need to be submitted:
+                                        <div className="pm-missing-weeks-list">
+                                            {yearlyTotals.notSubmittedWeeks.map((week, idx) => {
+                                                const weekDate = new Date(week.week + 'T12:00:00')
+                                                const weekLabel = ReportUtility.formatDate(weekDate)
+                                                return (
+                                                    <span key={idx} className="pm-missing-week-chip">
+                                                        {weekLabel}
+                                                    </span>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {yearlyTotals.missingWeeks && yearlyTotals.missingWeeks.length > 0 && (
+                                <div className="pm-missing-weeks-notice">
+                                    <div className="pm-missing-notice-header">
+                                        <i className="fas fa-exclamation-triangle"></i>
+                                        <span className="pm-missing-notice-title">
+                                            {yearlyTotals.missingWeeks.length} Missing {yearlyTotals.missingWeeks.length === 1 ? 'Report' : 'Reports'}
+                                        </span>
+                                    </div>
+                                    <div className="pm-missing-notice-body">
+                                        The following weeks need reports to be created and submitted:
+                                        <div className="pm-missing-weeks-list">
+                                            {yearlyTotals.missingWeeks.map((week, idx) => {
+                                                const weekDate = new Date(week.week + 'T12:00:00')
+                                                const weekLabel = ReportUtility.formatDate(weekDate)
+                                                return (
+                                                    <span key={idx} className="pm-missing-week-chip">
+                                                        {weekLabel}
+                                                    </span>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
 
-export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso}) {
+export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso, user}) {
     const {preferences} = usePreferences()
     const isDark = preferences.themeMode === 'dark'
     const formatYph = v => {
@@ -219,7 +784,9 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
         return Number.isFinite(n) ? n.toFixed(2) : '--'
     }
     
-    const plantCode = form?.plant || ''
+    const plantCode = form?.plant || user?.plant_code || ''
+    
+    console.log('PlantManagerSubmitPlugin:', { user, plantCode, weekIso, form, 'form.plant': form?.plant, 'user.plant_code': user?.plant_code })
     
     return (
         <div className="pm-report-container">
@@ -278,14 +845,12 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
             <WeeklyTrendsSection 
                 currentWeekIso={weekIso} 
                 plantCode={plantCode}
-                currentYph={yph}
-                currentLost={lost}
             />
         </div>
     )
 }
 
-export function PlantManagerReviewPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso}) {
+export function PlantManagerReviewPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso, user, assignedPlant, reportUserId}) {
     const {preferences} = usePreferences()
     const isDark = preferences.themeMode === 'dark'
     const formatYph = v => {
@@ -293,7 +858,10 @@ export function PlantManagerReviewPlugin({yph, yphGrade, yphLabel, lost, lostGra
         return Number.isFinite(n) ? n.toFixed(2) : '--'
     }
     
-    const plantCode = form?.plant || ''
+    const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
+    const userId = reportUserId || user?.id
+    
+    console.log('PlantManagerReviewPlugin:', { user, plantCode, weekIso, form, assignedPlant, reportUserId, userId })
     
     return (
         <div className="pm-report-container">
@@ -352,8 +920,6 @@ export function PlantManagerReviewPlugin({yph, yphGrade, yphLabel, lost, lostGra
             <WeeklyTrendsSection 
                 currentWeekIso={weekIso} 
                 plantCode={plantCode}
-                currentYph={yph}
-                currentLost={lost}
             />
         </div>
     )

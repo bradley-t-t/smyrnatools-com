@@ -192,6 +192,40 @@ UserService.getUserPlant = async function (userId) {
     return json ?? null
 }
 
+UserService.getUserFirstName = async function (userId) {
+    if (!userId) return ''
+    const id = typeof userId === 'object' && userId.id ? userId.id : userId
+    try {
+        const {data, error} = await supabase
+            .from('users_profiles')
+            .select('first_name')
+            .eq('id', id)
+            .maybeSingle()
+        if (error) throw error
+        return data?.first_name || ''
+    } catch (err) {
+        console.error('Error fetching user first name:', err)
+        return ''
+    }
+}
+
+UserService.getUserLastName = async function (userId) {
+    if (!userId) return ''
+    const id = typeof userId === 'object' && userId.id ? userId.id : userId
+    try {
+        const {data, error} = await supabase
+            .from('users_profiles')
+            .select('last_name')
+            .eq('id', id)
+            .maybeSingle()
+        if (error) throw error
+        return data?.last_name || ''
+    } catch (err) {
+        console.error('Error fetching user last name:', err)
+        return ''
+    }
+}
+
 UserService.getAllUsersWithProfilesAndRoles = async function () {
     const [{data: users, error: usersError}, {data: profiles, error: profilesError}, {
         data: permissions,
