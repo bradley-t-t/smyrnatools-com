@@ -328,6 +328,8 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     if (plantMetricsArray.length > 0) {
                         overall.dataIntegrity = plantMetricsArray.reduce((sum, plant) => sum + (plant.dataIntegrity || 0), 0) / plantMetricsArray.length
                         overall.avgEfficiency = plantMetricsArray.reduce((sum, plant) => sum + (plant.avgEfficiency || 0), 0) / plantMetricsArray.length
+                        overall.totalYardage = plantMetricsArray.reduce((sum, plant) => sum + (plant.totalYardage || 0), 0)
+                        overall.totalHours = plantMetricsArray.reduce((sum, plant) => sum + (plant.totalHours || 0), 0)
                     }
 
                     setPlantMetrics(plantMetricsArray)
