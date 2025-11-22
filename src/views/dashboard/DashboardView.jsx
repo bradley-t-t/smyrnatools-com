@@ -1392,7 +1392,7 @@ export default function DashboardView() {
                     </div>
                 ) : (
                     <div className="group-grid">
-                        <PlantPerformanceSection 
+                        <PlantPerformanceSection
                             dashboardPlant={dashboardPlant}
                             regionPlants={regionPlants}
                             allPlants={allPlants}

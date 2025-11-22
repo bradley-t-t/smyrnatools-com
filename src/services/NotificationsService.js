@@ -4,8 +4,8 @@ import TractorVerificationProvider from '../notifications/TractorVerificationNot
 import OverdueListProvider from '../notifications/OverdueListNotifications'
 
 const providers = [
-    MixerVerificationProvider, 
-    EquipmentVerificationProvider, 
+    MixerVerificationProvider,
+    EquipmentVerificationProvider,
     TractorVerificationProvider,
     OverdueListProvider
 ]

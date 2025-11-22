@@ -49,6 +49,7 @@ const userUtility = {
         return !uuid || uuid === '' || uuid === '0' ? null : uuid;
     }
 };
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
     const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com'];
     const isAllowed = origin && allowedOrigins.includes(origin);

@@ -13,7 +13,7 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
     const panelRef = useRef(null)
 
     const title = useMemo(() => 'Notifications', [])
-    
+
     const toggleCategory = (categoryKey) => {
         setCollapsedCategories(prev => {
             const next = new Set(prev)
@@ -32,7 +32,7 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
         const equipmentVerifications = items.filter(n => n.type === 'equipment.verifications')
         const tasks = items.filter(n => n.type?.includes('list.overdue'))
         const reports = items.filter(n => n.type?.includes('reports'))
-        
+
         return {
             mixerVerifications,
             tractorVerifications,
@@ -41,10 +41,10 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
             reports
         }
     }, [items])
-    
+
     const categories = useMemo(() => {
         const cats = []
-        
+
         if (categorizedItems.mixerVerifications.length > 0) {
             cats.push({
                 key: 'mixerVerifications',
@@ -53,7 +53,7 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                 items: categorizedItems.mixerVerifications
             })
         }
-        
+
         if (categorizedItems.tractorVerifications.length > 0) {
             cats.push({
                 key: 'tractorVerifications',
@@ -62,7 +62,7 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                 items: categorizedItems.tractorVerifications
             })
         }
-        
+
         if (categorizedItems.equipmentVerifications.length > 0) {
             cats.push({
                 key: 'equipmentVerifications',
@@ -71,7 +71,7 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                 items: categorizedItems.equipmentVerifications
             })
         }
-        
+
         if (categorizedItems.tasks.length > 0) {
             cats.push({
                 key: 'tasks',
@@ -80,7 +80,7 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                 items: categorizedItems.tasks
             })
         }
-        
+
         if (categorizedItems.reports.length > 0) {
             cats.push({
                 key: 'reports',
@@ -89,10 +89,10 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                 items: categorizedItems.reports
             })
         }
-        
+
         return cats
     }, [categorizedItems])
-    
+
     useEffect(() => {
         setCollapsedCategories(new Set(categories.map(c => c.key)))
     }, [categories])
@@ -176,12 +176,16 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                             {categories.map((category, catIdx) => {
                                 const isCollapsed = collapsedCategories.has(category.key)
                                 return (
-                                    <div key={category.key} className={`notification-category ${isCollapsed ? 'collapsed' : ''}`} style={{animationDelay: `${catIdx * 50}ms`}}>
-                                        <div className="notification-category-header" onClick={() => toggleCategory(category.key)}>
+                                    <div key={category.key}
+                                         className={`notification-category ${isCollapsed ? 'collapsed' : ''}`}
+                                         style={{animationDelay: `${catIdx * 50}ms`}}>
+                                        <div className="notification-category-header"
+                                             onClick={() => toggleCategory(category.key)}>
                                             <i className={category.icon}></i>
                                             <span className="notification-category-title">{category.label}</span>
                                             <span className="notification-category-badge">{category.items.length}</span>
-                                            <button className="notification-category-toggle" aria-label={isCollapsed ? 'Expand' : 'Collapse'}>
+                                            <button className="notification-category-toggle"
+                                                    aria-label={isCollapsed ? 'Expand' : 'Collapse'}>
                                                 <i className={`fas fa-chevron-${isCollapsed ? 'down' : 'up'}`}></i>
                                             </button>
                                         </div>

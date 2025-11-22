@@ -28,13 +28,13 @@ async function getRegionScopedPlantCodes(userId, selectedRegion) {
 
 async function getNotifications({userId, selectedRegion}) {
     if (!userId) return []
-    
+
     const hasListItems = await UserService.hasPermission(userId, 'notifications.list_items').catch(() => false)
-    
+
     if (!hasListItems) return []
-    
+
     const hasMultiple = await UserService.hasPermission(userId, 'notifications.multiple').catch(() => false)
-    
+
     try {
         await ListService.fetchListItems({force: false})
     } catch (err) {
@@ -49,13 +49,13 @@ async function getNotifications({userId, selectedRegion}) {
             return []
         }
     }
-    
+
     const allItems = ListService.listItems || []
-    
+
     if (hasMultiple) {
         const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
         if (scopedPlants.size === 0) return []
-        
+
         const byPlant = new Map()
         allItems.forEach(item => {
             const plantCode = String(item.plant_code || '').toUpperCase()
@@ -65,7 +65,7 @@ async function getNotifications({userId, selectedRegion}) {
                 byPlant.get(plantCode).push(item)
             }
         })
-        
+
         const notifications = []
         byPlant.forEach((items, plantCode) => {
             const overdueCount = items.length
@@ -82,30 +82,30 @@ async function getNotifications({userId, selectedRegion}) {
                 })
             }
         })
-        
+
         return notifications
     }
-    
+
     const userPlant = await UserService.getUserPlant(userId).catch(() => null)
     const userPlantCode = typeof userPlant === 'string' ? userPlant : (userPlant?.plant_code || userPlant?.plantCode || '')
-    
+
     if (!userPlantCode) return []
-    
+
     const userPlantCodeUpper = String(userPlantCode).toUpperCase()
-    
+
     const overdueItems = allItems.filter(item => {
         const itemPlantCode = String(item.plant_code || '').toUpperCase()
-        return itemPlantCode === userPlantCodeUpper && 
-               !item.completed && 
-               ListService.isOverdue(item)
+        return itemPlantCode === userPlantCodeUpper &&
+            !item.completed &&
+            ListService.isOverdue(item)
     })
-    
+
     const overdueCount = overdueItems.length
-    
+
     if (overdueCount === 0) return []
-    
+
     const plural = overdueCount === 1 ? 'item' : 'items'
-    
+
     return [{
         id: `list-overdue-${userPlantCodeUpper}`,
         title: `You have Overdue Tasks`,

@@ -29,16 +29,16 @@ async function getRegionScopedPlantCodes(userId, selectedRegion) {
 
 async function getNotifications({userId, selectedRegion}) {
     if (!userId) return []
-    
+
     const pmNode = await UserService.hasPermission(userId, 'notifications.plant_manager').catch(() => false)
-    
+
     if (!pmNode) {
         return []
     }
-    
+
     const hasMultiple = await UserService.hasPermission(userId, 'notifications.multiple').catch(() => false)
-    
-    
+
+
     let allMixers = []
     try {
         allMixers = await MixerService.getAllMixers().catch(() => [])
@@ -54,27 +54,35 @@ async function getNotifications({userId, selectedRegion}) {
             return []
         }
     }
-    
+
     const mixers = (allMixers || []).filter(m => String(m.status || '').toLowerCase() !== 'retired')
-    
-    
+
+
     const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
-    
-    
+
+
     if (scopedPlants.size === 0) {
         return []
     }
-    
+
     const now = new Date()
-    const centralParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now)
+    const centralParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Chicago',
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).formatToParts(now)
     const mp = {}
-    centralParts.forEach(p=>{mp[p.type]=p.value})
-    const dayIndex = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(mp.weekday)
-    const hour = parseInt(mp.hour,10)
-    const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
+    centralParts.forEach(p => {
+        mp[p.type] = p.value
+    })
+    const dayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(mp.weekday)
+    const hour = parseInt(mp.hour, 10)
+    const pastDue = (dayIndex === 5 && hour >= 10) || dayIndex === 6 || dayIndex === 0 || (dayIndex === 1 && hour < 17)
 
     if (hasMultiple) {
-        
+
         const byPlant = new Map()
         mixers.forEach(m => {
             const code = String(m.assignedPlant || '').toUpperCase()
@@ -102,7 +110,7 @@ async function getNotifications({userId, selectedRegion}) {
                 })
             }
         })
-        
+
         return notifications
     }
 

@@ -14,17 +14,17 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
         async function fetchPerformanceMetrics() {
             setLoading(true)
             try {
-                
+
                 const currentYear = new Date().getFullYear()
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
 
                 let plantCodes = []
                 let plantNames = {}
-                
+
                 if (dashboardPlant && dashboardPlant.trim() !== '') {
                     plantCodes = [dashboardPlant]
-                    const plantData = [...(regionPlants || []), ...(allPlants || [])].find(p => 
+                    const plantData = [...(regionPlants || []), ...(allPlants || [])].find(p =>
                         (p.plantCode || p.plant_code) === dashboardPlant
                     )
                     if (plantData) {
@@ -64,7 +64,7 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     .in('plant_code', plantCodes)
 
                 if (profilesError) throw profilesError
-                
+
 
                 const userIdsByPlant = {}
                 profilesData.forEach(p => {
@@ -96,7 +96,7 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     .lte('week', endOfYear.toISOString())
 
                 if (reportsError) throw reportsError
-                
+
                 if (reports && reports.length > 0) {
                 }
 
@@ -132,10 +132,10 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
 
                     const avgYPH = totalYardage / totalHours
                     const avgYardageWeekly = totalYardage / validReports
-                    const avgYardageDaily = avgYardageWeekly / 7
+                    const avgYardageDaily = avgYardageWeekly / 6
                     const avgYardageLost = totalLost / validReports
                     const avgWeeklyHours = totalHours / validReports
-                    const avgHoursDaily = avgWeeklyHours / 7
+                    const avgHoursDaily = avgWeeklyHours / 6
                     const avgHoursOverall = totalHours / validReports
                     const avgYardageOverall = totalYardage / validReports
 
@@ -166,11 +166,11 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
 
                 if (!dashboardPlant && plantCodes.length > 1) {
                     const plantMetricsArray = []
-                    
+
                     Object.keys(userIdsByPlant).forEach(plantCode => {
                         const plantReports = reports.filter(r => userIdsByPlant[plantCode].includes(r.user_id))
                         const metrics = calculateMetrics(plantReports)
-                        
+
                         if (metrics) {
                             plantMetricsArray.push({
                                 plantCode,
@@ -237,7 +237,7 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
     return (
         <div className="group-section slide-in-section">
             <div className="section-title">Plant Performance - YTD {new Date().getFullYear()}</div>
-            
+
             <div className="dashboard-grid inner-grid">
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Efficiency</div>
@@ -295,33 +295,37 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         <div className="training-table-content">
                             <table className="training-table">
                                 <thead>
-                                    <tr>
-                                        <th>Plant</th>
-                                        <th>Avg Efficiency</th>
-                                        <th>Avg YPH</th>
-                                        <th>Avg Yards/Week</th>
-                                        <th>Avg Yards/Day</th>
-                                        <th>Avg Yards Lost</th>
-                                    </tr>
+                                <tr>
+                                    <th style={{textAlign: 'left'}}>Plant</th>
+                                    <th style={{textAlign: 'right'}}>Avg Efficiency</th>
+                                    <th style={{textAlign: 'right'}}>Avg YPH</th>
+                                    <th style={{textAlign: 'right'}}>Avg Yards/Week</th>
+                                    <th style={{textAlign: 'right'}}>Avg Yards/Day</th>
+                                    <th style={{textAlign: 'right'}}>Avg Hours/Week</th>
+                                    <th style={{textAlign: 'right'}}>Avg Hours/Day</th>
+                                    <th style={{textAlign: 'right'}}>Avg Yards Lost</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {plantMetrics.map((plant) => (
-                                        <tr key={plant.plantCode}>
-                                            <td>
-                                                <div className="plant-code-display">{plant.plantCode}</div>
-                                                <div className="plant-name-display">{plant.plantName}</div>
-                                            </td>
-                                            <td className="numeric-cell">
+                                {plantMetrics.map((plant) => (
+                                    <tr key={plant.plantCode}>
+                                        <td>
+                                            <div className="plant-code-display">{plant.plantCode}</div>
+                                            <div className="plant-name-display">{plant.plantName}</div>
+                                        </td>
+                                        <td className="numeric-cell">
                                                 <span style={{color: getEfficiencyColor(plant.avgEfficiency)}}>
                                                     {plant.avgEfficiency.toFixed(1)}%
                                                 </span>
-                                            </td>
-                                            <td className="numeric-cell">{plant.avgYPH.toFixed(2)}</td>
-                                            <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
-                                            <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
-                                            <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
-                                        </tr>
-                                    ))}
+                                        </td>
+                                        <td className="numeric-cell">{plant.avgYPH.toFixed(2)}</td>
+                                        <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
+                                        <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
+                                        <td className="numeric-cell">{Math.round(plant.avgWeeklyHours).toLocaleString()}</td>
+                                        <td className="numeric-cell">{Math.round(plant.avgHoursDaily).toLocaleString()}</td>
+                                        <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
                         </div>

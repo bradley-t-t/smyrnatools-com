@@ -159,9 +159,9 @@ function LoginView() {
                     setIsSubmitting(false);
                     return;
                 }
-                
+
                 const result = await signIn(email, password);
-                
+
                 if (!result || !result.id) {
                     throw new Error('Sign in failed - no user data returned');
                 }
@@ -170,7 +170,7 @@ function LoginView() {
                 if (!userId) {
                     throw new Error('Sign in failed - session not created');
                 }
-                
+
                 if (userId) {
                     await createSession(userId)
                 }

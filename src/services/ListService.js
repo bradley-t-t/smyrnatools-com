@@ -136,7 +136,8 @@ class ListServiceImpl {
         if (typeof window !== 'undefined') {
             try {
                 window.dispatchEvent(new CustomEvent('notifications-refresh'))
-            } catch {}
+            } catch {
+            }
         }
         return true
     }

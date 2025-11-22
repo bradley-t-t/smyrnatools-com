@@ -60,29 +60,29 @@ export function AuthProvider({children}) {
         setLoading(true)
         try {
             const {res, json} = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/sign-in`, {email, password})
-            
+
             if (!res.ok) {
                 const errorMsg = json?.error || json?.message || 'Invalid email or password'
                 setError(errorMsg)
                 setLoading(false)
                 throw new Error(errorMsg)
             }
-            
+
             if (!json || !json.id) {
                 const errorMsg = 'Sign in failed - invalid response from server'
                 setError(errorMsg)
                 setLoading(false)
                 throw new Error(errorMsg)
             }
-            
+
             setUser(json)
             sessionStorage.setItem('userId', json.id)
             setLoading(false)
-            
+
             setTimeout(() => {
                 window.dispatchEvent(new CustomEvent('authSuccess', {detail: {userId: json.id}}))
             }, 3000)
-            
+
             setTimeout(() => loadUserProfile(json.id).catch(() => {
             }), 4000)
             return json

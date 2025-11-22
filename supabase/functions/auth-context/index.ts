@@ -20,6 +20,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
         'Access-Control-Allow-Credentials': 'true'
     };
 }
+
 const ValidationUtility = {
     sanitizeString(str) {
         return typeof str === "string" ? str.trim().replace(/[<>"'&]/g, "") : "";
@@ -100,7 +101,7 @@ const normalizeName = (val) => {
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     const corsHeaders = getCorsHeaders(origin);
-    
+
     const createErrorResponse = (message, status = 500, details = {}) => {
         return new Response(JSON.stringify({
             error: message,

@@ -9,7 +9,7 @@ const PERMISSIONS_TABLE = 'users_permissions';
 function getCorsHeaders(origin: string | null): Record<string, string> {
     const allowedOrigins = ["http://localhost:3000", "https://smyrnatools.com"];
     const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[1];
-    
+
     return {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": allowedOrigin,

@@ -4,7 +4,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 function getCorsHeaders(origin: string | null): Record<string, string> {
     const allowedOrigins = ["http://localhost:3000", "https://smyrnatools.com"];
     const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[1];
-    
+
     return {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": allowedOrigin,
@@ -253,11 +253,11 @@ Deno.serve(async (req) => {
                     status: 400,
                     headers: corsHeaders
                 });
-                
+
                 if (!regionPlantsData || regionPlantsData.length === 0) {
                     return new Response(JSON.stringify({data: []}), {headers: corsHeaders});
                 }
-                
+
                 const plantCodes = regionPlantsData.map((rp: any) => rp.plant_code);
                 const {data: plantsData, error: plantsError} = await supabase
                     .from("plants")
@@ -267,7 +267,7 @@ Deno.serve(async (req) => {
                     status: 400,
                     headers: corsHeaders
                 });
-                
+
                 const out = (plantsData ?? []).map((plant: any) => ({
                     plant_code: plant.plant_code,
                     plant_name: plant.plant_name

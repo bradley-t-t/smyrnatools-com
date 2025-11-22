@@ -95,7 +95,6 @@ function App() {
                     setPlantLoading(false)
                 }
             }
-            }
         }
 
         if (user) {
