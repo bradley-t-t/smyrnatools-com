@@ -38,8 +38,16 @@ async function getNotifications({userId, selectedRegion}) {
     try {
         await ListService.fetchListItems({force: false})
     } catch (err) {
-        console.error('Error fetching list items for notifications:', err)
-        return []
+        if (err.message && err.message.includes('Load failed')) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            try {
+                await ListService.fetchListItems({force: true})
+            } catch (retryErr) {
+                return []
+            }
+        } else {
+            return []
+        }
     }
     
     const allItems = ListService.listItems || []

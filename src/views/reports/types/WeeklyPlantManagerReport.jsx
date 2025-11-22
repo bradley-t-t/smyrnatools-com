@@ -72,10 +72,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 const startOfMonth = new Date(currentYear, currentMonth, 1)
                 const endOfMonth = new Date(currentYear, currentMonth + 1, 0)
                 
-                console.log('WeeklyTrendsSection: Date range', { 
-                    startOfMonth: startOfMonth.toISOString(), 
-                    endOfMonth: endOfMonth.toISOString() 
-                })
                 
                 const {data: plantUsers, error: usersError} = await supabase
                     .from('users_profiles')
@@ -85,7 +81,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 if (usersError) throw usersError
                 
                 const userIds = plantUsers.map(u => u.id)
-                console.log('Monthly timeline: Found', userIds.length, 'users for plant', plantCode)
                 
                 if (userIds.length === 0) {
                     setHistoricalData([])
@@ -105,7 +100,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 
                 if (error) throw error
                 
-                console.log('WeeklyTrendsSection: Query returned', data?.length || 0, 'reports')
                 
                 if (mounted && data) {
                     const currentWeekDateOnly = currentWeekIso.split('T')[0]
@@ -142,7 +136,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                         .filter(r => !isNaN(r.yph) && r.hours > 0)
                         .sort((a, b) => new Date(a.weekIso) - new Date(b.weekIso))
                     
-                    console.log('WeeklyTrendsSection: Final filtered to', reports.length, 'valid reports')
                     setHistoricalData(reports)
                 }
             } catch (err) {
@@ -173,7 +166,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
                 
-                console.log('Fetching yearly totals for plant', plantCode, 'year', currentYear)
                 
                 const {data: plantUsers, error: usersError} = await supabase
                     .from('users_profiles')
@@ -183,7 +175,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 if (usersError) throw usersError
                 
                 const userIds = plantUsers.map(u => u.id)
-                console.log('Found', userIds.length, 'users assigned to plant', plantCode)
                 
                 if (userIds.length === 0) {
                     setYearlyTotals({
@@ -212,19 +203,14 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 
                 if (error) throw error
                 
-                console.log('Yearly query - plantCode:', plantCode)
-                console.log('Yearly query - returned reports:', data?.length || 0)
                 
                 const filteredData = data
                 
-                console.log('Yearly query - filtered to plant reports:', filteredData.length)
                 
                 if (filteredData.length > 0) {
-                    console.log('Yearly query - Report user_ids:', filteredData.map(r => ({ week: r.week.split('T')[0], user_id: r.user_id, completed: r.completed })))
                 }
                 
                 if (mounted && filteredData) {
-                    console.log('Processing', filteredData.length, 'reports for yearly summary')
                     
                     if (filteredData.length === 0) {
                         setYearlyTotals({
@@ -268,7 +254,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                     const firstDate = allReportDates[0]
                     const lastDate = allReportDates[allReportDates.length - 1]
                     
-                    console.log('Date range:', firstDate, 'to', lastDate)
                     
                     const allWeeks = []
                     let currentDate = new Date(firstDate + 'T12:00:00')
@@ -282,9 +267,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                     const lastSunday = new Date(currentSunday)
                     lastSunday.setDate(currentSunday.getDate() - 7)
                     
-                    console.log('Today:', today.toISOString().split('T')[0])
-                    console.log('Current week Sunday:', currentSunday.toISOString().split('T')[0])
-                    console.log('Last week Sunday:', lastSunday.toISOString().split('T')[0])
                     
                     while (currentDate <= endDate || currentDate <= lastSunday) {
                         const year = currentDate.getFullYear()
@@ -332,7 +314,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                     const notSubmittedWeeks = allWeeks.filter(w => w.isNotSubmitted)
                     const missingWeeks = allWeeks.filter(w => w.isMissing)
                     
-                    console.log('Submitted:', submittedWeeks.length, 'Not submitted:', notSubmittedWeeks.length, 'Missing:', missingWeeks.length)
                     
                     const totals = submittedWeeks.reduce((acc, week) => {
                         return {
@@ -349,10 +330,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                     
                     totals.avgYph = totals.totalHours > 0 ? totals.totalYards / totals.totalHours : 0
                     
-                    console.log('Yearly totals calculated:', totals)
-                    console.log('Yearly totals - reportCount:', totals.reportCount)
-                    console.log('Yearly totals - weeklyBreakdown length:', totals.weeklyBreakdown?.length)
-                    console.log('Yearly totals - missingWeeks length:', totals.missingWeeks?.length)
                     setYearlyTotals(totals)
                 }
             } catch (err) {
@@ -786,7 +763,6 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
     
     const plantCode = form?.plant || user?.plant_code || ''
     
-    console.log('PlantManagerSubmitPlugin:', { user, plantCode, weekIso, form, 'form.plant': form?.plant, 'user.plant_code': user?.plant_code })
     
     return (
         <div className="pm-report-container">
@@ -861,7 +837,6 @@ export function PlantManagerReviewPlugin({yph, yphGrade, yphLabel, lost, lostGra
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
     const userId = reportUserId || user?.id
     
-    console.log('PlantManagerReviewPlugin:', { user, plantCode, weekIso, form, assignedPlant, reportUserId, userId })
     
     return (
         <div className="pm-report-container">

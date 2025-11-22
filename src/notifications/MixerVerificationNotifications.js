@@ -33,30 +33,35 @@ async function getNotifications({userId, selectedRegion}) {
     const pmNode = await UserService.hasPermission(userId, 'notifications.plant_manager').catch(() => false)
     
     if (!pmNode) {
-        console.log('MixerVerificationNotifications: No notifications.plant_manager permission')
         return []
     }
     
     const hasMultiple = await UserService.hasPermission(userId, 'notifications.multiple').catch(() => false)
     
-    console.log('MixerVerificationNotifications DEBUG:', {
-        userId,
-        pmNode,
-        hasMultiple,
-        selectedRegion: selectedRegion?.code
-    })
     
-    const allMixers = await MixerService.getAllMixers().catch(() => [])
+    let allMixers = []
+    try {
+        allMixers = await MixerService.getAllMixers().catch(() => [])
+    } catch (err) {
+        if (err.message && err.message.includes('Load failed')) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            try {
+                allMixers = await MixerService.getAllMixers({force: true}).catch(() => [])
+            } catch (retryErr) {
+                return []
+            }
+        } else {
+            return []
+        }
+    }
+    
     const mixers = (allMixers || []).filter(m => String(m.status || '').toLowerCase() !== 'retired')
     
-    console.log('MixerVerificationNotifications: Total active mixers:', mixers.length)
     
     const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
     
-    console.log('MixerVerificationNotifications: Scoped plants:', Array.from(scopedPlants))
     
     if (scopedPlants.size === 0) {
-        console.log('MixerVerificationNotifications: No scoped plants')
         return []
     }
     
@@ -69,7 +74,6 @@ async function getNotifications({userId, selectedRegion}) {
     const pastDue = (dayIndex===5 && hour>=10) || dayIndex===6 || dayIndex===0 || (dayIndex===1 && hour<17)
 
     if (hasMultiple) {
-        console.log('MixerVerificationNotifications: Using notifications.multiple - showing all plants')
         
         const byPlant = new Map()
         mixers.forEach(m => {
@@ -99,11 +103,9 @@ async function getNotifications({userId, selectedRegion}) {
             }
         })
         
-        console.log('MixerVerificationNotifications (notifications.multiple): Returning', notifications.length, 'notifications')
         return notifications
     }
 
-    console.log('MixerVerificationNotifications: Using single plant mode')
     const userPlant = await UserService.getUserPlant(userId).catch(() => null)
     const userPlantCodeRaw = typeof userPlant === 'string' ? userPlant : (userPlant?.plant_code || userPlant?.plantCode || '')
     const userPlantCode = userPlantCodeRaw ? String(userPlantCodeRaw).toUpperCase() : ''

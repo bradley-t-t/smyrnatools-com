@@ -639,14 +639,6 @@
     gap: 1rem;
 }
 
-.status-bars-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-    padding-left: 0.25rem;
-}
-
 .status-bars-date-range {
     display: flex;
     align-items: center;

@@ -91,10 +91,10 @@ function App() {
                     setPlantLoading(false)
                 }
             } catch (error) {
-                console.error('[PlantCheck] Error checking plant:', error)
                 if (active) {
                     setPlantLoading(false)
                 }
+            }
             }
         }
 

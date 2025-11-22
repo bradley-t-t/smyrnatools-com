@@ -82,13 +82,6 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     const selectedPlantObj = visiblePlants.find(p => p.plant_code === plantCode);
     const plantDisplayText = plantCode ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'Select Plant';
 
-    console.log('ListAddView DEBUG:', {
-        canBypassPlantRestriction,
-        userPlantCode,
-        plantCode,
-        selectedPlantObj,
-        shouldShowMessage: !canBypassPlantRestriction && !!userPlantCode
-    });
 
     const validate = () => {
         const newErrors = {};

@@ -98,7 +98,6 @@ function LoginView() {
                 created_at: new Date().toISOString()
             }, {onConflict: 'id'})
         } catch (error) {
-            console.error('Failed to create session:', error)
         }
     }
 
@@ -125,12 +124,14 @@ function LoginView() {
                 if (!email || !password || !confirmPassword || !firstName || !lastName) {
                     setErrorMessage('Please complete all fields.');
                     setSuccessMessage('');
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
                     setIsSubmitting(false);
                     return;
                 }
                 if (password !== confirmPassword) {
                     setErrorMessage('Passwords do not match.');
                     setSuccessMessage('');
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
                     setIsSubmitting(false);
                     return;
                 }
@@ -146,6 +147,7 @@ function LoginView() {
                     await createSession(userId)
                 }
 
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
                 setErrorMessage('');
                 setSuccessMessage('Account created successfully. Redirecting...');
                 setTimeout(() => forceReload(), 1000);
@@ -153,29 +155,41 @@ function LoginView() {
                 if (!email || !password) {
                     setErrorMessage('Please enter your email and password.');
                     setSuccessMessage('');
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
                     setIsSubmitting(false);
                     return;
                 }
-                await signIn(email, password);
+                
+                const result = await signIn(email, password);
+                
+                if (!result || !result.id) {
+                    throw new Error('Sign in failed - no user data returned');
+                }
 
                 const userId = sessionStorage.getItem('userId')
+                if (!userId) {
+                    throw new Error('Sign in failed - session not created');
+                }
+                
                 if (userId) {
                     await createSession(userId)
                 }
 
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
                 setErrorMessage('');
                 setSuccessMessage('Signed in successfully. Redirecting...');
-                setTimeout(() => forceReload(), 800);
+                setTimeout(() => forceReload(), 3500);
             }
         } catch (err) {
-            setErrorMessage(err?.message || 'An authentication error occurred. Please try again.');
-            setSuccessMessage('');
-            setIsSubmitting(false);
-        } finally {
+            console.error('Login error:', err);
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
                 timeoutRef.current = null;
             }
+            const errorMsg = err?.message || err?.error || 'An authentication error occurred. Please try again.';
+            setErrorMessage(errorMsg);
+            setSuccessMessage('');
+            setIsSubmitting(false);
         }
     };
 

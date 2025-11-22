@@ -14,10 +14,6 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
         async function fetchPerformanceMetrics() {
             setLoading(true)
             try {
-                console.log('=== PlantPerformanceSection Debug ===')
-                console.log('dashboardPlant:', dashboardPlant, 'type:', typeof dashboardPlant)
-                console.log('regionPlants:', regionPlants?.length || 0)
-                console.log('allPlants:', allPlants?.length || 0)
                 
                 const currentYear = new Date().getFullYear()
                 const startOfYear = new Date(currentYear, 0, 1)
@@ -52,7 +48,6 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     })
                 }
 
-                console.log('Plant codes found:', plantCodes)
 
                 if (plantCodes.length === 0) {
                     if (mounted) {
@@ -70,7 +65,6 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
 
                 if (profilesError) throw profilesError
                 
-                console.log('User profiles found:', profilesData?.length || 0)
 
                 const userIdsByPlant = {}
                 profilesData.forEach(p => {
@@ -91,8 +85,6 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     return
                 }
 
-                console.log('Querying reports for', allUserIds.length, 'users')
-                console.log('Date range:', startOfYear.toISOString(), 'to', endOfYear.toISOString())
 
                 const {data: reports, error: reportsError} = await supabase
                     .from('reports')
@@ -105,9 +97,7 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
 
                 if (reportsError) throw reportsError
                 
-                console.log('Reports found:', reports?.length || 0)
                 if (reports && reports.length > 0) {
-                    console.log('Sample report:', reports[0])
                 }
 
                 if (!mounted) return
@@ -202,7 +192,6 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
 
             } catch (err) {
                 if (mounted) {
-                    setOverallMetrics(null)
                     setPlantMetrics([])
                 }
             } finally {
@@ -221,33 +210,15 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
         return null
     }
 
-    if (!overallMetrics) {
-        if (loading) {
-            return null
-        }
-        return (
-            <div className="group-section slide-in-section">
-                <div className="section-title">Plant Performance - YTD {new Date().getFullYear()}</div>
-                <div className="performance-empty">
-                    <i className="fas fa-chart-line"></i>
-                    <p>No plant manager reports found for the selected filter</p>
-                    <span className="performance-empty-hint">Reports will appear here once plant managers submit weekly reports</span>
-                </div>
-            </div>
-        )
-    }
-
-    if (overallMetrics.reportCount === 0) {
-        return (
-            <div className="group-section slide-in-section">
-                <div className="section-title">Plant Performance - YTD {new Date().getFullYear()}</div>
-                <div className="performance-empty">
-                    <i className="fas fa-chart-line"></i>
-                    <p>No plant manager reports found for the selected filter</p>
-                    <span className="performance-empty-hint">Reports will appear here once plant managers submit weekly reports</span>
-                </div>
-            </div>
-        )
+    const metricsToShow = overallMetrics || {
+        avgEfficiency: 0,
+        avgYPH: 0,
+        avgYardageWeekly: 0,
+        avgYardageDaily: 0,
+        avgWeeklyHours: 0,
+        avgHoursDaily: 0,
+        avgYardageLost: 0,
+        reportCount: 0
     }
 
     const getEfficiencyColor = (efficiency) => {
@@ -270,40 +241,40 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
             <div className="dashboard-grid inner-grid">
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Efficiency</div>
-                    <div className="kpi-value" style={{color: getEfficiencyColor(overallMetrics.avgEfficiency)}}>
-                        {overallMetrics.avgEfficiency.toFixed(1)}%
+                    <div className="kpi-value" style={{color: getEfficiencyColor(metricsToShow.avgEfficiency)}}>
+                        {metricsToShow.avgEfficiency.toFixed(1)}%
                     </div>
                 </div>
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg YPH</div>
-                    <div className="kpi-value">{overallMetrics.avgYPH.toFixed(2)}</div>
+                    <div className="kpi-value">{metricsToShow.avgYPH.toFixed(2)}</div>
                 </div>
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Weekly Yards</div>
-                    <div className="kpi-value">{Math.round(overallMetrics.avgYardageWeekly).toLocaleString()}</div>
+                    <div className="kpi-value">{Math.round(metricsToShow.avgYardageWeekly).toLocaleString()}</div>
                 </div>
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Daily Yards</div>
-                    <div className="kpi-value">{Math.round(overallMetrics.avgYardageDaily).toLocaleString()}</div>
+                    <div className="kpi-value">{Math.round(metricsToShow.avgYardageDaily).toLocaleString()}</div>
                 </div>
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Weekly Hours</div>
-                    <div className="kpi-value">{Math.round(overallMetrics.avgWeeklyHours).toLocaleString()}</div>
+                    <div className="kpi-value">{Math.round(metricsToShow.avgWeeklyHours).toLocaleString()}</div>
                 </div>
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Daily Hours</div>
-                    <div className="kpi-value">{Math.round(overallMetrics.avgHoursDaily).toLocaleString()}</div>
+                    <div className="kpi-value">{Math.round(metricsToShow.avgHoursDaily).toLocaleString()}</div>
                 </div>
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Avg Yards Lost</div>
                     <div className="kpi-value" style={{color: 'var(--warning)'}}>
-                        {Math.round(overallMetrics.avgYardageLost).toLocaleString()}
+                        {Math.round(metricsToShow.avgYardageLost).toLocaleString()}
                     </div>
                 </div>
             </div>

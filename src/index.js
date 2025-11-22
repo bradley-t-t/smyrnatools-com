@@ -7,7 +7,7 @@ import App from './app/App.js';
 import {PreferencesProvider} from './app/context/PreferencesContext';
 import {AuthProvider} from './app/context/AuthContext';
 import vitalsUtility from './utils/VitalsUtility';
-
+import './utils/APIErrorHandler';
 
 document.head.appendChild(Object.assign(document.createElement('meta'), {
     name: 'viewport',
