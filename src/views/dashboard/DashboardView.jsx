@@ -13,7 +13,8 @@ import VerifiedUtility from '../../utils/VerifiedUtility'
 import {UserService} from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 import {usePreferences} from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal';
+import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import PlantPerformanceSection from '../../components/sections/PlantPerformanceSection'
 
 export default function DashboardView() {
     const {preferences} = usePreferences()
@@ -1322,6 +1323,17 @@ export default function DashboardView() {
                 {showSkeleton ? (
                     <div className="group-grid">
                         <div className="group-section">
+                            <div className="section-title">Plant Performance - YTD {new Date().getFullYear()}</div>
+                            <div className="dashboard-grid inner-grid">
+                                {Array.from({length: 7}).map((_, i) => (
+                                    <div className="kpi-card skeleton-card" key={`perf-${i}`}>
+                                        <div className="skeleton-line w40"/>
+                                        <div className="skeleton-line w60 tall"/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="group-section">
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
                                 {Array.from({length: 5}).map((_, i) => (
@@ -1380,6 +1392,12 @@ export default function DashboardView() {
                     </div>
                 ) : (
                     <div className="group-grid">
+                        <PlantPerformanceSection 
+                            dashboardPlant={dashboardPlant}
+                            regionPlants={regionPlants}
+                            allPlants={allPlants}
+                            showSkeleton={showSkeleton}
+                        />
                         <div className="group-section slide-in-section">
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
@@ -1612,7 +1630,7 @@ export default function DashboardView() {
 
                             <div className="status-bars-section">
                                 <div className="status-bars-header">
-                                    <h3 className="status-bars-title">Historical Status Distribution</h3>
+                                    <div className="section-title">Historical Status Distribution</div>
                                     <div className="status-bars-date-range">
                                         <div className="date-quick-filters">
                                             <button
