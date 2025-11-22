@@ -90,15 +90,11 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     .from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
-                    .eq('completed', true)
                     .in('user_id', allUserIds)
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
 
                 if (reportsError) throw reportsError
-
-                if (reports && reports.length > 0) {
-                }
 
                 if (!mounted) return
 
@@ -109,26 +105,161 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                     return
                 }
 
+                const now = new Date()
+                const currentWeekStart = new Date(now)
+                currentWeekStart.setDate(now.getDate() - now.getDay())
+                currentWeekStart.setHours(0, 0, 0, 0)
+
+                const filteredReports = reports.filter(report => {
+                    const reportDate = new Date(report.week)
+                    return reportDate < currentWeekStart
+                })
+
+                if (filteredReports.length === 0) {
+                    setOverallMetrics(null)
+                    setPlantMetrics([])
+                    setLoading(false)
+                    return
+                }
+
                 const calculateMetrics = (reportsList) => {
+                    if (reportsList.length === 0) {
+                        return {
+                            avgYPH: 0,
+                            avgYardageDaily: 0,
+                            avgYardageWeekly: 0,
+                            avgYardageLost: 0,
+                            avgWeeklyHours: 0,
+                            avgHoursDaily: 0,
+                            avgEfficiency: 0,
+                            avgHoursOverall: 0,
+                            avgYardageOverall: 0,
+                            reportCount: 0,
+                            totalYardage: 0,
+                            totalHours: 0,
+                            totalLost: 0,
+                            dataIntegrity: 100,
+                            submittedReports: 0,
+                            totalExpectedReports: 0
+                        }
+                    }
+
+                    const reportsByWeek = new Map()
+                    const allReportDates = []
+
+                    reportsList.forEach(report => {
+                        const weekStr = report.week.split('T')[0]
+                        if (reportsByWeek.has(weekStr)) {
+                            const existing = reportsByWeek.get(weekStr)
+                            if (report.completed && !existing.completed) {
+                                reportsByWeek.set(weekStr, report)
+                            }
+                        } else {
+                            reportsByWeek.set(weekStr, report)
+                            allReportDates.push(weekStr)
+                        }
+                    })
+
+                    if (allReportDates.length === 0) {
+                        return {
+                            avgYPH: 0,
+                            avgYardageDaily: 0,
+                            avgYardageWeekly: 0,
+                            avgYardageLost: 0,
+                            avgWeeklyHours: 0,
+                            avgHoursDaily: 0,
+                            avgEfficiency: 0,
+                            avgHoursOverall: 0,
+                            avgYardageOverall: 0,
+                            reportCount: 0,
+                            totalYardage: 0,
+                            totalHours: 0,
+                            totalLost: 0,
+                            dataIntegrity: 100,
+                            submittedReports: 0,
+                            totalExpectedReports: 0
+                        }
+                    }
+
+                    allReportDates.sort()
+                    const firstDate = allReportDates[0]
+                    const lastDate = allReportDates[allReportDates.length - 1]
+
+                    const today = new Date()
+                    const currentSunday = new Date(today)
+                    currentSunday.setDate(today.getDate() - today.getDay())
+                    currentSunday.setHours(0, 0, 0, 0)
+
+                    const lastSunday = new Date(currentSunday)
+                    lastSunday.setDate(currentSunday.getDate() - 7)
+
+                    let expectedWeeks = 0
+                    let submittedReports = 0
                     let totalYardage = 0
                     let totalHours = 0
                     let totalLost = 0
                     let validReports = 0
 
-                    reportsList.forEach(report => {
-                        const yardage = parseFloat(report.data?.yardage || 0)
-                        const hours = parseFloat(report.data?.total_hours || 0)
-                        const lost = parseFloat(report.data?.total_yards_lost || 0)
+                    let currentDate = new Date(firstDate + 'T12:00:00')
+                    const endDate = new Date(Math.max(new Date(lastDate + 'T12:00:00').getTime(), lastSunday.getTime()))
 
-                        if (yardage > 0 && hours > 0) {
-                            totalYardage += yardage
-                            totalHours += hours
-                            totalLost += lost
-                            validReports++
+                    while (currentDate <= endDate) {
+                        if (currentDate < currentSunday) {
+                            expectedWeeks++
+
+                            const year = currentDate.getFullYear()
+                            const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+                            const day = String(currentDate.getDate()).padStart(2, '0')
+                            const weekStr = `${year}-${month}-${day}`
+
+                            const report = reportsByWeek.get(weekStr)
+
+                            if (report) {
+                                const isCompleted = report.completed === true
+                                if (isCompleted) {
+                                    submittedReports++
+
+                                    const yardage = parseFloat(report.data?.yardage || 0)
+                                    const hours = parseFloat(report.data?.total_hours || 0)
+                                    const lost = parseFloat(report.data?.total_yards_lost || 0)
+
+                                    if (yardage > 0 && hours > 0) {
+                                        totalYardage += yardage
+                                        totalHours += hours
+                                        totalLost += lost
+                                        validReports++
+                                    }
+                                }
+                            }
                         }
-                    })
 
-                    if (validReports === 0) return null
+                        currentDate.setDate(currentDate.getDate() + 7)
+                    }
+
+                    const dataIntegrity = expectedWeeks > 0 
+                        ? (submittedReports / expectedWeeks) * 100 
+                        : 100
+
+                    if (validReports === 0) {
+                        return {
+                            avgYPH: 0,
+                            avgYardageDaily: 0,
+                            avgYardageWeekly: 0,
+                            avgYardageLost: 0,
+                            avgWeeklyHours: 0,
+                            avgHoursDaily: 0,
+                            avgEfficiency: 0,
+                            avgHoursOverall: 0,
+                            avgYardageOverall: 0,
+                            reportCount: 0,
+                            totalYardage: 0,
+                            totalHours: 0,
+                            totalLost: 0,
+                            dataIntegrity,
+                            submittedReports,
+                            totalExpectedReports: expectedWeeks
+                        }
+                    }
 
                     const avgYPH = totalYardage / totalHours
                     const avgYardageWeekly = totalYardage / validReports
@@ -157,18 +288,21 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         reportCount: validReports,
                         totalYardage,
                         totalHours,
-                        totalLost
+                        totalLost,
+                        dataIntegrity,
+                        submittedReports,
+                        totalExpectedReports: expectedWeeks
                     }
                 }
 
-                const overall = calculateMetrics(reports)
+                const overall = calculateMetrics(filteredReports)
                 setOverallMetrics(overall)
 
                 if (!dashboardPlant && plantCodes.length > 1) {
                     const plantMetricsArray = []
 
                     Object.keys(userIdsByPlant).forEach(plantCode => {
-                        const plantReports = reports.filter(r => userIdsByPlant[plantCode].includes(r.user_id))
+                        const plantReports = filteredReports.filter(r => userIdsByPlant[plantCode].includes(r.user_id))
                         const metrics = calculateMetrics(plantReports)
 
                         if (metrics) {
@@ -218,7 +352,8 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
         avgWeeklyHours: 0,
         avgHoursDaily: 0,
         avgYardageLost: 0,
-        reportCount: 0
+        reportCount: 0,
+        dataIntegrity: 100
     }
 
     const getEfficiencyColor = (efficiency) => {
@@ -295,37 +430,43 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         <div className="training-table-content">
                             <table className="training-table">
                                 <thead>
-                                <tr>
-                                    <th style={{textAlign: 'left'}}>Plant</th>
-                                    <th style={{textAlign: 'right'}}>Avg Efficiency</th>
-                                    <th style={{textAlign: 'right'}}>Avg YPH</th>
-                                    <th style={{textAlign: 'right'}}>Avg Yards/Week</th>
-                                    <th style={{textAlign: 'right'}}>Avg Yards/Day</th>
-                                    <th style={{textAlign: 'right'}}>Avg Hours/Week</th>
-                                    <th style={{textAlign: 'right'}}>Avg Hours/Day</th>
-                                    <th style={{textAlign: 'right'}}>Avg Yards Lost</th>
-                                </tr>
+                                    <tr>
+                                        <th style={{textAlign: 'left'}}>Plant</th>
+                                        <th style={{textAlign: 'right'}}>Data Integrity</th>
+                                        <th style={{textAlign: 'right'}}>Avg Efficiency</th>
+                                        <th style={{textAlign: 'right'}}>Avg YPH</th>
+                                        <th style={{textAlign: 'right'}}>Avg Yards/Week</th>
+                                        <th style={{textAlign: 'right'}}>Avg Yards/Day</th>
+                                        <th style={{textAlign: 'right'}}>Avg Hours/Week</th>
+                                        <th style={{textAlign: 'right'}}>Avg Hours/Day</th>
+                                        <th style={{textAlign: 'right'}}>Avg Yards Lost</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {plantMetrics.map((plant) => (
-                                    <tr key={plant.plantCode}>
-                                        <td>
-                                            <div className="plant-code-display">{plant.plantCode}</div>
-                                            <div className="plant-name-display">{plant.plantName}</div>
-                                        </td>
-                                        <td className="numeric-cell">
+                                    {plantMetrics.map((plant) => (
+                                        <tr key={plant.plantCode}>
+                                            <td>
+                                                <div className="plant-code-display">{plant.plantCode}</div>
+                                                <div className="plant-name-display">{plant.plantName}</div>
+                                            </td>
+                                            <td className="numeric-cell">
+                                                <span style={{color: (plant.dataIntegrity || 100) >= 90 ? 'var(--success)' : (plant.dataIntegrity || 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
+                                                    {(plant.dataIntegrity || 100).toFixed(1)}%
+                                                </span>
+                                            </td>
+                                            <td className="numeric-cell">
                                                 <span style={{color: getEfficiencyColor(plant.avgEfficiency)}}>
                                                     {plant.avgEfficiency.toFixed(1)}%
                                                 </span>
-                                        </td>
-                                        <td className="numeric-cell">{plant.avgYPH.toFixed(2)}</td>
-                                        <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
-                                        <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
-                                        <td className="numeric-cell">{Math.round(plant.avgWeeklyHours).toLocaleString()}</td>
-                                        <td className="numeric-cell">{Math.round(plant.avgHoursDaily).toLocaleString()}</td>
-                                        <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="numeric-cell">{plant.avgYPH.toFixed(2)}</td>
+                                            <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
+                                            <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
+                                            <td className="numeric-cell">{Math.round(plant.avgWeeklyHours).toLocaleString()}</td>
+                                            <td className="numeric-cell">{Math.round(plant.avgHoursDaily).toLocaleString()}</td>
+                                            <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
