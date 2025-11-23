@@ -5,7 +5,7 @@ import {ReportUtility} from '../../../utils/ReportUtility'
 import {UserService} from '../../../services/UserService'
 import '../styles/Reports.css'
 
-function WeeklyTrendsSection({currentWeekIso, plantCode}) {
+function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
     const [historicalData, setHistoricalData] = useState([])
     const [loading, setLoading] = useState(true)
     const [yearlyTotals, setYearlyTotals] = useState(null)
@@ -13,7 +13,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
     const [userNames, setUserNames] = useState({})
     const [timelineUserNames, setTimelineUserNames] = useState({})
 
-    // ...existing useEffect for fetchHistoricalReports...
+    const effectivePlantCode = plantCode || user?.plant_code || ''
 
     useEffect(() => {
         let mounted = true
@@ -59,7 +59,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
         let mounted = true
 
         async function fetchHistoricalReports() {
-            if (!currentWeekIso || !plantCode) {
+            if (!currentWeekIso || !effectivePlantCode) {
                 setLoading(false)
                 return
             }
@@ -72,27 +72,10 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 const startOfMonth = new Date(currentYear, currentMonth, 1)
                 const endOfMonth = new Date(currentYear, currentMonth + 1, 0)
 
-
-                const {data: plantUsers, error: usersError} = await supabase
-                    .from('users_profiles')
-                    .select('id')
-                    .eq('plant_code', plantCode)
-
-                if (usersError) throw usersError
-
-                const userIds = plantUsers.map(u => u.id)
-
-                if (userIds.length === 0) {
-                    setHistoricalData([])
-                    setLoading(false)
-                    return
-                }
-
                 const {data, error} = await supabase
                     .from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
-                    .in('user_id', userIds)
                     .eq('completed', true)
                     .gte('week', startOfMonth.toISOString())
                     .lte('week', endOfMonth.toISOString())
@@ -100,13 +83,40 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
 
                 if (error) throw error
 
+                if (!mounted) {
+                    setLoading(false)
+                    return
+                }
 
-                if (mounted && data) {
+                const userIds = [...new Set(data.map(r => r.user_id).filter(Boolean))]
+                const usersMap = {}
+
+                if (userIds.length > 0) {
+                    const {data: usersData} = await supabase
+                        .from('users_profiles')
+                        .select('id, plant_code')
+                        .in('id', userIds)
+
+                    if (usersData) {
+                        usersData.forEach(u => {
+                            usersMap[u.id] = u.plant_code
+                        })
+                    }
+                }
+
+                const filteredByPlant = data.filter(report => {
+                    const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
+                    const matches = reportPlant === effectivePlantCode || 
+                           (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
+                    return matches
+                })
+
+                if (mounted && filteredByPlant) {
                     const currentWeekDateOnly = currentWeekIso.split('T')[0]
 
                     const reportsByWeek = new Map()
 
-                    data.forEach(r => {
+                    filteredByPlant.forEach(r => {
                         const weekStr = r.week.split('T')[0]
                         if (reportsByWeek.has(weekStr)) {
                             const existing = reportsByWeek.get(weekStr)
@@ -129,11 +139,12 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                                 lost: parseFloat(r.data?.total_yards_lost || 0),
                                 yards: parseFloat(r.data?.yardage || 0),
                                 hours: parseFloat(r.data?.total_hours || 0),
+                                data: r.data,
                                 isCurrentWeek: weekStr === currentWeekDateOnly,
                                 userId: r.user_id
                             }
                         })
-                        .filter(r => !isNaN(r.yph) && r.hours > 0)
+                        .filter(r => !isNaN(r.yph))
                         .sort((a, b) => new Date(a.weekIso) - new Date(b.weekIso))
 
                     setHistoricalData(reports)
@@ -150,13 +161,13 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
         return () => {
             mounted = false
         }
-    }, [currentWeekIso, plantCode])
+    }, [currentWeekIso, effectivePlantCode])
 
     useEffect(() => {
         let mounted = true
 
         async function fetchYearlyTotals() {
-            if (!plantCode || !currentWeekIso) {
+            if (!effectivePlantCode || !currentWeekIso) {
                 setYearlyLoading(false)
                 return
             }
@@ -166,49 +177,42 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
 
-
-                const {data: plantUsers, error: usersError} = await supabase
-                    .from('users_profiles')
-                    .select('id')
-                    .eq('plant_code', plantCode)
-
-                if (usersError) throw usersError
-
-                const userIds = plantUsers.map(u => u.id)
-
-                if (userIds.length === 0) {
-                    setYearlyTotals({
-                        totalYards: 0,
-                        totalHours: 0,
-                        totalLost: 0,
-                        reportCount: 0,
-                        year: currentYear,
-                        weeklyBreakdown: [],
-                        notSubmittedWeeks: [],
-                        missingWeeks: [],
-                        avgYph: 0
-                    })
-                    setYearlyLoading(false)
-                    return
-                }
-
                 const {data, error} = await supabase
                     .from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
-                    .in('user_id', userIds)
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
                     .order('week', {ascending: false})
 
                 if (error) throw error
 
-
-                const filteredData = data
-
-
-                if (filteredData.length > 0) {
+                if (!mounted) {
+                    setYearlyLoading(false)
+                    return
                 }
+
+                const userIds = [...new Set(data.map(r => r.user_id).filter(Boolean))]
+                const usersMap = {}
+
+                if (userIds.length > 0) {
+                    const {data: usersData} = await supabase
+                        .from('users_profiles')
+                        .select('id, plant_code')
+                        .in('id', userIds)
+
+                    if (usersData) {
+                        usersData.forEach(u => {
+                            usersMap[u.id] = u.plant_code
+                        })
+                    }
+                }
+
+                const filteredData = data.filter(report => {
+                    const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
+                    return reportPlant === effectivePlantCode || 
+                           (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
+                })
 
                 if (mounted && filteredData) {
 
@@ -368,7 +372,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
         return () => {
             mounted = false
         }
-    }, [plantCode, currentWeekIso])
+    }, [effectivePlantCode, currentWeekIso])
 
     useEffect(() => {
         let mounted = true
@@ -549,6 +553,22 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                         <div className="pm-metrics-grid" style={{marginTop: '20px'}}>
                             <div className="pm-metric-card">
                                 <div className="pm-metric-header">
+                                    <i className="fas fa-percentage pm-metric-icon"></i>
+                                    <span className="pm-metric-title">Average Efficiency</span>
+                                </div>
+                                <div className="pm-metric-value" style={{
+                                    fontSize: '1.8rem',
+                                    color: yearlyTotals.avgEfficiency >= 90 ? 'var(--success)' : 
+                                           yearlyTotals.avgEfficiency >= 80 ? 'var(--warning)' : 
+                                           'var(--danger)'
+                                }}>
+                                    {yearlyTotals.avgEfficiency.toFixed(1)}%
+                                </div>
+                                <div className="pm-metric-grade">overall performance</div>
+                            </div>
+
+                            <div className="pm-metric-card">
+                                <div className="pm-metric-header">
                                     <i className="fas fa-box pm-metric-icon"></i>
                                     <span className="pm-metric-title">Total Yardage</span>
                                 </div>
@@ -600,22 +620,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
                                     {Math.round(yearlyTotals.totalLost / yearlyTotals.reportCount).toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">yards lost per week</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-percentage pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Average Efficiency</span>
-                                </div>
-                                <div className="pm-metric-value" style={{
-                                    fontSize: '1.8rem',
-                                    color: yearlyTotals.avgEfficiency >= 90 ? 'var(--success)' : 
-                                           yearlyTotals.avgEfficiency >= 80 ? 'var(--warning)' : 
-                                           'var(--danger)'
-                                }}>
-                                    {yearlyTotals.avgEfficiency.toFixed(1)}%
-                                </div>
-                                <div className="pm-metric-grade">overall performance</div>
                             </div>
 
                             <div className="pm-metric-card">
@@ -779,12 +783,37 @@ function WeeklyTrendsSection({currentWeekIso, plantCode}) {
 export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso, user}) {
     const {preferences} = usePreferences()
     const isDark = preferences.themeMode === 'dark'
+    const [userPlantCode, setUserPlantCode] = useState(user?.plant_code || '')
+    
+    useEffect(() => {
+        async function fetchUserPlant() {
+            if (!user?.id || user?.plant_code) return
+            
+            try {
+                const {data, error} = await supabase
+                    .from('users_profiles')
+                    .select('plant_code')
+                    .eq('id', user.id)
+                    .single()
+                
+                if (error) throw error
+                if (data?.plant_code) {
+                    setUserPlantCode(data.plant_code)
+                }
+            } catch (err) {
+                console.error('Error fetching user plant:', err)
+            }
+        }
+        
+        fetchUserPlant()
+    }, [user?.id, user?.plant_code])
+    
     const formatYph = v => {
         const n = typeof v === 'number' ? v : (typeof v === 'string' ? Number(v) : NaN)
         return Number.isFinite(n) ? n.toFixed(2) : '--'
     }
 
-    const plantCode = form?.plant || user?.plant_code || ''
+    const plantCode = form?.plant || userPlantCode || ''
 
 
     return (
@@ -847,7 +876,8 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
 
             <WeeklyTrendsSection
                 currentWeekIso={weekIso}
-                plantCode={plantCode}
+                plantCode={plantCode || userPlantCode || ''}
+                user={{...user, plant_code: userPlantCode}}
             />
         </div>
     )
@@ -875,7 +905,7 @@ export function PlantManagerReviewPlugin({
 
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
     const userId = reportUserId || user?.id
-
+    const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
 
     return (
         <div className="pm-report-container">
@@ -937,7 +967,8 @@ export function PlantManagerReviewPlugin({
 
             <WeeklyTrendsSection
                 currentWeekIso={weekIso}
-                plantCode={plantCode}
+                plantCode={timelinePlantCode || user?.plant_code || ''}
+                user={user}
             />
         </div>
     )
