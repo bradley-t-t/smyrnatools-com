@@ -34,6 +34,7 @@ import DashboardView from '../views/dashboard/DashboardView'
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 import ListDetailView from '../views/list/ListDetailView'
+import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
 
 function VersionPopup({version}) {
     if (!version) return null
@@ -503,6 +504,8 @@ function AppContent() {
                 }}/>
             case 'Roles':
                 return <RolesView/>
+            case 'Leaderboards':
+                return <LeaderboardsView/>
             default:
                 return <div className="coming-soon"><h2>{selectedView.view} view is coming soon!</h2><p>This feature is
                     under

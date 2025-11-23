@@ -24,9 +24,10 @@ function RolesView() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [showSearchModal, setShowSearchModal] = useState(false);
-    const [showCleanupModal, setShowCleanupModal] = useState(false);
-    const [isCleaningUp, setIsCleaningUp] = useState(false);
-    const [cleanupResults, setCleanupResults] = useState(null);
+    const [showBulkAddModal, setShowBulkAddModal] = useState(false);
+    const [selectedRoles, setSelectedRoles] = useState(new Set());
+    const [bulkPermissionText, setBulkPermissionText] = useState('');
+    const [isBulkAdding, setIsBulkAdding] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -115,6 +116,11 @@ function RolesView() {
 
             UserService.clearCache();
             await loadData();
+            
+            const newExpanded = new Set(expandedRoles);
+            newExpanded.delete(editingRole);
+            setExpandedRoles(newExpanded);
+            
             setEditingRole(null);
             setEditedPermissions('');
             setMessage('Permissions updated successfully (duplicates removed, sorted alphabetically)');
@@ -357,81 +363,90 @@ function RolesView() {
         }
     };
 
-    const cleanupAllRoles = async () => {
-        if (!hasITAccess) return;
+    const toggleRoleSelection = (roleId) => {
+        const newSelection = new Set(selectedRoles);
+        if (newSelection.has(roleId)) {
+            newSelection.delete(roleId);
+        } else {
+            newSelection.add(roleId);
+        }
+        setSelectedRoles(newSelection);
+    };
 
-        setIsCleaningUp(true);
+    const openBulkAddModal = () => {
+        setShowBulkAddModal(true);
+        setSelectedRoles(new Set());
+        setBulkPermissionText('');
         setError('');
+        setMessage('');
+    };
+
+    const closeBulkAddModal = () => {
+        setShowBulkAddModal(false);
+        setSelectedRoles(new Set());
+        setBulkPermissionText('');
+    };
+
+    const bulkAddPermission = async () => {
+        if (!hasITAccess || selectedRoles.size === 0 || !bulkPermissionText.trim()) {
+            return;
+        }
+
+        const permissionsToAdd = bulkPermissionText
+            .split('\n')
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+
+        if (permissionsToAdd.length === 0) {
+            setError('Please enter at least one permission node');
+            return;
+        }
+
+        setIsBulkAdding(true);
+        setError('');
+        setMessage('');
 
         try {
-            const results = {
-                processed: 0,
-                cleaned: 0,
-                duplicatesRemoved: 0,
-                emptyPermissionsRemoved: 0,
-                details: []
-            };
+            let rolesModified = 0;
 
-            for (const role of roles) {
-                results.processed++;
+            for (const roleId of selectedRoles) {
+                const role = roles.find(r => r.id === roleId);
+                if (!role) continue;
 
-                if (!role.permissions || !Array.isArray(role.permissions)) {
-                    continue;
-                }
-
-                const originalCount = role.permissions.length;
-                const trimmedPermissions = role.permissions
-                    .map(p => p.trim())
-                    .filter(p => p.length > 0);
-
-                const emptyRemoved = originalCount - trimmedPermissions.length;
-                const uniquePermissions = [...new Set(trimmedPermissions)];
-                const duplicatesRemoved = trimmedPermissions.length - uniquePermissions.length;
+                const existingPermissions = Array.isArray(role.permissions) ? role.permissions : [];
+                const combinedPermissions = [...existingPermissions, ...permissionsToAdd];
+                const uniquePermissions = [...new Set(combinedPermissions)];
                 const sortedPermissions = uniquePermissions.sort((a, b) => a.localeCompare(b));
 
-                const permissionsChanged =
-                    JSON.stringify(role.permissions) !== JSON.stringify(sortedPermissions);
+                const permissionsChanged = JSON.stringify(existingPermissions.sort()) !== JSON.stringify(sortedPermissions);
 
                 if (permissionsChanged) {
-                    results.cleaned++;
-                    results.duplicatesRemoved += duplicatesRemoved;
-                    results.emptyPermissionsRemoved += emptyRemoved;
-
-                    results.details.push({
-                        roleName: role.name,
-                        before: originalCount,
-                        after: sortedPermissions.length,
-                        duplicatesRemoved: duplicatesRemoved,
-                        emptyRemoved: emptyRemoved
-                    });
-
                     const {error: updateError} = await supabase
                         .from('users_roles')
                         .update({permissions: sortedPermissions})
-                        .eq('id', role.id);
+                        .eq('id', roleId);
 
                     if (updateError) {
                         throw updateError;
                     }
+
+                    rolesModified++;
                 }
             }
 
             UserService.clearCache();
             await loadData();
-            setCleanupResults(results);
+            closeBulkAddModal();
 
-            if (results.cleaned === 0) {
-                setMessage('All roles are already clean! No changes needed.');
-            } else {
-                setMessage(`Cleanup complete! ${results.cleaned} ${results.cleaned === 1 ? 'role' : 'roles'} cleaned.`);
-            }
-
+            const permText = permissionsToAdd.length === 1 ? 'permission' : 'permissions';
+            const roleText = rolesModified === 1 ? 'role' : 'roles';
+            setMessage(`Successfully added ${permissionsToAdd.length} ${permText} to ${rolesModified} ${roleText}`);
             setTimeout(() => setMessage(''), 5000);
         } catch (err) {
-            console.error('Error cleaning up roles:', err);
-            setError(`Cleanup failed: ${err.message}`);
+            console.error('Error adding permissions:', err);
+            setError(`Failed to add permissions: ${err.message}`);
         } finally {
-            setIsCleaningUp(false);
+            setIsBulkAdding(false);
         }
     };
 
@@ -457,11 +472,11 @@ function RolesView() {
                 <div className="roles-header-actions">
                     {hasITAccess && (
                         <button
-                            className="cleanup-button"
-                            onClick={() => setShowCleanupModal(true)}
+                            className="bulk-add-button"
+                            onClick={openBulkAddModal}
                         >
-                            <i className="fas fa-broom"></i>
-                            Cleanup
+                            <i className="fas fa-layer-group"></i>
+                            Bulk Add Permissions
                         </button>
                     )}
                     {hasITAccess && (
@@ -851,156 +866,98 @@ function RolesView() {
                 document.body
             )}
 
-            {showCleanupModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
-                <div className="modal-backdrop" onClick={() => !isCleaningUp && setShowCleanupModal(false)}>
-                    <div className="modal-content cleanup-modal" onClick={(e) => e.stopPropagation()}>
+            {showBulkAddModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+                <div className="modal-backdrop" onClick={() => !isBulkAdding && closeBulkAddModal()}>
+                    <div className="modal-content bulk-add-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <div className="modal-header-content">
-                                <i className="fas fa-broom"></i>
+                                <i className="fas fa-layer-group"></i>
                                 <div>
-                                    <h2>Cleanup All Roles</h2>
-                                    <span className="modal-subtitle">Database Maintenance</span>
+                                    <h2>Bulk Add Permissions</h2>
+                                    <span className="modal-subtitle">Add permission nodes to multiple roles</span>
                                 </div>
                             </div>
-                            {!isCleaningUp && !cleanupResults && (
-                                <button className="modal-close" onClick={() => setShowCleanupModal(false)}>
+                            {!isBulkAdding && (
+                                <button className="modal-close" onClick={closeBulkAddModal}>
                                     <i className="fas fa-times"></i>
                                 </button>
                             )}
                         </div>
                         <div className="modal-content-scrollable">
                             <div className="modal-body-content">
-                                {!cleanupResults ? (
-                                    <>
-                                        <p className="cleanup-description">
-                                            This will automatically clean up all roles by:
-                                        </p>
-                                        <ul className="cleanup-actions-list">
-                                            <li>
-                                                <i className="fas fa-check-circle"></i>
-                                                Removing duplicate permission nodes
-                                            </li>
-                                            <li>
-                                                <i className="fas fa-check-circle"></i>
-                                                Removing empty or whitespace-only entries
-                                            </li>
-                                            <li>
-                                                <i className="fas fa-check-circle"></i>
-                                                Sorting permissions alphabetically
-                                            </li>
-                                            <li>
-                                                <i className="fas fa-check-circle"></i>
-                                                Trimming whitespace from all entries
-                                            </li>
-                                        </ul>
-                                        <p className="cleanup-warning">
-                                            <i className="fas fa-info-circle"></i>
-                                            This action will process all {roles.length} roles in the system.
-                                        </p>
-                                    </>
-                                ) : (
-                                    <div className="cleanup-results">
-                                        <div className="cleanup-summary">
-                                            <div className="cleanup-stat">
-                                                <i className="fas fa-users-cog"></i>
-                                                <div>
-                                                    <div className="cleanup-stat-value">{cleanupResults.processed}</div>
-                                                    <div className="cleanup-stat-label">Roles Processed</div>
-                                                </div>
+                                <div className="form-group">
+                                    <label>Select Roles</label>
+                                    <div className="roles-selection-list">
+                                        {roles.map(role => (
+                                            <div key={role.id} className="role-selection-item">
+                                                <label className="role-checkbox-label">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedRoles.has(role.id)}
+                                                        onChange={() => toggleRoleSelection(role.id)}
+                                                        disabled={isBulkAdding}
+                                                    />
+                                                    <span className="role-checkbox-name">{role.name}</span>
+                                                    <span className="role-checkbox-count">
+                                                        {getPermissionCount(role)} permissions
+                                                    </span>
+                                                </label>
                                             </div>
-                                            <div className="cleanup-stat">
-                                                <i className="fas fa-broom"></i>
-                                                <div>
-                                                    <div className="cleanup-stat-value">{cleanupResults.cleaned}</div>
-                                                    <div className="cleanup-stat-label">Roles Cleaned</div>
-                                                </div>
-                                            </div>
-                                            <div className="cleanup-stat">
-                                                <i className="fas fa-copy"></i>
-                                                <div>
-                                                    <div
-                                                        className="cleanup-stat-value">{cleanupResults.duplicatesRemoved}</div>
-                                                    <div className="cleanup-stat-label">Duplicates Removed</div>
-                                                </div>
-                                            </div>
-                                            <div className="cleanup-stat">
-                                                <i className="fas fa-trash"></i>
-                                                <div>
-                                                    <div
-                                                        className="cleanup-stat-value">{cleanupResults.emptyPermissionsRemoved}</div>
-                                                    <div className="cleanup-stat-label">Empty Entries Removed</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {cleanupResults.details.length > 0 && (
-                                            <div className="cleanup-details">
-                                                <h4>Changes Made:</h4>
-                                                {cleanupResults.details.map((detail, index) => (
-                                                    <div key={index} className="cleanup-detail-item">
-                                                        <div className="cleanup-detail-role">{detail.roleName}</div>
-                                                        <div className="cleanup-detail-changes">
-                                                            {detail.before} → {detail.after} permissions
-                                                            {detail.duplicatesRemoved > 0 && (
-                                                                <span className="cleanup-detail-badge">
-                                                                -{detail.duplicatesRemoved} duplicates
-                                                            </span>
-                                                            )}
-                                                            {detail.emptyRemoved > 0 && (
-                                                                <span className="cleanup-detail-badge">
-                                                                -{detail.emptyRemoved} empty
-                                                            </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>
+                                        Permission Nodes to Add
+                                        <span className="label-hint">(one per line)</span>
+                                    </label>
+                                    <textarea
+                                        className="permissions-editor"
+                                        value={bulkPermissionText}
+                                        onChange={(e) => setBulkPermissionText(e.target.value)}
+                                        placeholder="Enter permission nodes (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;reports.view"
+                                        rows={8}
+                                        disabled={isBulkAdding}
+                                    />
+                                </div>
+                                {selectedRoles.size > 0 && bulkPermissionText.trim() && (
+                                    <div className="bulk-add-summary">
+                                        <i className="fas fa-info-circle"></i>
+                                        <span>
+                                            Will add <strong>{bulkPermissionText.split('\n').filter(p => p.trim()).length}</strong> permission
+                                            {bulkPermissionText.split('\n').filter(p => p.trim()).length === 1 ? '' : 's'} to{' '}
+                                            <strong>{selectedRoles.size}</strong> role{selectedRoles.size === 1 ? '' : 's'}
+                                        </span>
                                     </div>
                                 )}
                             </div>
-                            <div className="modal-footer">
-                                {!cleanupResults ? (
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                className="save-button"
+                                onClick={bulkAddPermission}
+                                disabled={selectedRoles.size === 0 || !bulkPermissionText.trim() || isBulkAdding}
+                            >
+                                {isBulkAdding ? (
                                     <>
-                                        <button
-                                            className="save-button cleanup-confirm-button"
-                                            onClick={cleanupAllRoles}
-                                            disabled={isCleaningUp}
-                                        >
-                                            {isCleaningUp ? (
-                                                <>
-                                                    <i className="fas fa-spinner fa-spin"></i>
-                                                    Cleaning Up...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <i className="fas fa-broom"></i>
-                                                    Start Cleanup
-                                                </>
-                                            )}
-                                        </button>
-                                        <button
-                                            className="cancel-button"
-                                            onClick={() => setShowCleanupModal(false)}
-                                            disabled={isCleaningUp}
-                                        >
-                                            <i className="fas fa-times"></i>
-                                            Cancel
-                                        </button>
+                                        <i className="fas fa-spinner fa-spin"></i>
+                                        Adding...
                                     </>
                                 ) : (
-                                    <button
-                                        className="save-button"
-                                        onClick={() => {
-                                            setShowCleanupModal(false);
-                                            setCleanupResults(null);
-                                        }}
-                                    >
-                                        <i className="fas fa-check"></i>
-                                        Done
-                                    </button>
+                                    <>
+                                        <i className="fas fa-plus"></i>
+                                        Add to Selected Roles
+                                    </>
                                 )}
-                            </div>
+                            </button>
+                            <button
+                                className="cancel-button"
+                                onClick={closeBulkAddModal}
+                                disabled={isBulkAdding}
+                            >
+                                <i className="fas fa-times"></i>
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>,

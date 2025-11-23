@@ -13,7 +13,7 @@ const ANIMATION_TIMING = {
 }
 
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
-const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions']
+const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards']
 const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
 const OFFICE_ONLY_ITEMS = ['Roles']
 
@@ -41,6 +41,8 @@ const getIconForMenuItem = (id) => {
             return <i className="fas fa-map-marker-alt"></i>
         case 'List':
             return <i className="fas fa-list"></i>
+        case 'Leaderboards':
+            return <i className="fas fa-trophy"></i>
         case 'Archive':
             return <i className="fas fa-archive"></i>
         case 'Settings':
@@ -68,6 +70,7 @@ const menuItems = [
     {text: 'Operators', id: 'Operators', permission: 'operators.view', alwaysVisible: false},
     {text: 'Managers', id: 'Managers', permission: 'managers.view', alwaysVisible: false},
     {text: 'List', id: 'List', permission: 'list.view', alwaysVisible: false},
+    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view', alwaysVisible: false},
     {text: 'Reports', id: 'Reports', permission: 'reports.view', alwaysVisible: false},
     {text: 'Plants', id: 'Plants', permission: 'plants.view', alwaysVisible: false},
     {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false},
@@ -494,7 +497,7 @@ export default function Navigation({
                             result.push(...otherItems.map((item) => {
                                 const isExiting = exitingIds.has(item.id)
                                 const isEntering = enteringItemIds.has(item.id)
-                                const isActive = item.id === 'List' ? selectedView === 'List' : selectedView === item.id
+                                const isActive = selectedView === item.id
 
                                 return (
                                     <li
