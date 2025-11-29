@@ -555,13 +555,26 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                                     </tr>
                                     <tr>
                                         <td>Notes</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.notes))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td colSpan={2}><input type="text" value={form[f.notes] ?? ''}
-                                                               onChange={e => setForm(prev => ({
-                                                                   ...prev,
-                                                                   [f.notes]: e.target.value
-                                                               }))} disabled={readOnly} className="rpt-input"/></td>
+                                        <td>
+                                            <textarea 
+                                                value={String(getLastWeekValue(f.notes))} 
+                                                disabled
+                                                className="rpt-input"
+                                                style={{minHeight: '100px', maxHeight: '200px', resize: 'vertical'}}
+                                            />
+                                        </td>
+                                        <td colSpan={2}>
+                                            <textarea 
+                                                value={form[f.notes] ?? ''}
+                                                onChange={e => setForm(prev => ({
+                                                    ...prev,
+                                                    [f.notes]: e.target.value
+                                                }))} 
+                                                disabled={readOnly} 
+                                                className="rpt-input"
+                                                style={{minHeight: '100px', maxHeight: '200px', resize: 'vertical'}}
+                                            />
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
