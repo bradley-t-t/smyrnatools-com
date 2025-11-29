@@ -472,7 +472,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                             return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
                                                                                                 style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                                         })()}
-                                        {item.cleanlinessRating && item.cleanlinessRating <= 3 && (
+                                        {item.cleanlinessRating && item.cleanlinessRating < 3 && (
                                             <span 
                                                 className="downed-badge" 
                                                 title="This truck cannot run loads until the cleanliness is 4 stars or better. Do not ignore this warning."

@@ -80,7 +80,7 @@ function MixerCard({
                                     ></i>
                                 ))}
                             </div>
-                            {mixer.cleanlinessRating <= 3 && (
+                            {mixer.cleanlinessRating < 3 && (
                                 <span 
                                     className="downed-badge" 
                                     title="This truck cannot run loads until the cleanliness is 4 stars or better. Do not ignore this warning."

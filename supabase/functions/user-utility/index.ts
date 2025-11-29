@@ -51,7 +51,7 @@ const userUtility = {
 };
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
-    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com'];
+    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com', 'https://db.smyrnatools.com'];
     const isAllowed = origin && allowedOrigins.includes(origin);
     return {
         'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],

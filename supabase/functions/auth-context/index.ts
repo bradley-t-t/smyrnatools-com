@@ -10,7 +10,7 @@ const TABLES = {
 };
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
-    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com'];
+    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com', 'https://db.smyrnatools.com'];
     const isAllowed = origin && allowedOrigins.includes(origin);
     return {
         'Content-Type': 'application/json',

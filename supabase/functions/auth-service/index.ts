@@ -4,7 +4,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 const USERS_TABLE = "users";
 const PROFILES_TABLE = "users_profiles";
 const CORS_TIMEOUT = 5000;
-const ALLOWED_ORIGINS = ["http://localhost:3000", "https://smyrnatools.com"];
+const ALLOWED_ORIGINS = ["http://localhost:3000", "https://smyrnatools.com", "https://www.smyrnatools.com", "https://db.smyrnatools.com"];
 
 function getCorsHeaders(origin: string | null) {
     const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[1];
