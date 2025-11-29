@@ -475,7 +475,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                         {item.cleanlinessRating && item.cleanlinessRating < 3 && (
                                             <span 
                                                 className="downed-badge" 
-                                                title="This truck cannot run loads until the cleanliness is 4 stars or better. Do not ignore this warning."
+                                                title="This truck cannot run loads until the cleanliness is 3 stars or better. Do not ignore this warning."
                                                 style={{
                                                     backgroundColor: 'var(--error)',
                                                     color: 'white',
