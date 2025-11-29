@@ -461,12 +461,38 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
                             }}></span>{item.status}</td>
                             <td style={{width: '18%'}}>{operator?.name || 'Not Assigned'}</td>
-                            <td style={{width: '12%'}}>{(() => {
-                                const rating = Math.round(item.cleanlinessRating || 0);
-                                const stars = rating > 0 ? rating : 1;
-                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                    style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
-                            })()}</td>
+                            <td style={{width: '12%'}}>
+                                {item.status === 'Retired' ? (
+                                    <span style={{color: 'var(--text-secondary)'}}>N/A</span>
+                                ) : (
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                        {(() => {
+                                            const rating = Math.round(item.cleanlinessRating || 0);
+                                            const stars = rating > 0 ? rating : 1;
+                                            return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
+                                                                                                style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
+                                        })()}
+                                        {item.cleanlinessRating && item.cleanlinessRating <= 3 && (
+                                            <span 
+                                                className="downed-badge" 
+                                                title="This truck cannot run loads until the cleanliness is 4 stars or better. Do not ignore this warning."
+                                                style={{
+                                                    backgroundColor: 'var(--error)',
+                                                    color: 'white',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'help',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                DOWNED
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </td>
                             <td style={{width: '16%'}}>{item.vinNumber || item.vin}</td>
                             <td style={{width: '10%'}}>
                                 {item.status === 'Retired' ? (

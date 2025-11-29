@@ -67,15 +67,36 @@ function MixerCard({
             <div className="detail-row">
                 <div className="detail-label">Cleanliness</div>
                 <div className="detail-value">
-                    {mixer.cleanlinessRating ? (
-                        <div className="stars-container">
-                            {[...Array(5)].map((_, i) => (
-                                <i
-                                    key={i}
-                                    className={`fas fa-star ${i < mixer.cleanlinessRating ? 'filled-star' : 'empty-star'}`}
-                                    aria-hidden="true"
-                                ></i>
-                            ))}
+                    {mixer.status === 'Retired' ? (
+                        <span style={{color: 'var(--text-secondary)'}}>N/A</span>
+                    ) : mixer.cleanlinessRating ? (
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                            <div className="stars-container">
+                                {[...Array(5)].map((_, i) => (
+                                    <i
+                                        key={i}
+                                        className={`fas fa-star ${i < mixer.cleanlinessRating ? 'filled-star' : 'empty-star'}`}
+                                        aria-hidden="true"
+                                    ></i>
+                                ))}
+                            </div>
+                            {mixer.cleanlinessRating <= 3 && (
+                                <span 
+                                    className="downed-badge" 
+                                    title="This truck cannot run loads until the cleanliness is 4 stars or better. Do not ignore this warning."
+                                    style={{
+                                        backgroundColor: 'var(--error)',
+                                        color: 'white',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 'bold',
+                                        cursor: 'help'
+                                    }}
+                                >
+                                    DOWNED
+                                </span>
+                            )}
                         </div>
                     ) : 'Not Rated'}
                 </div>

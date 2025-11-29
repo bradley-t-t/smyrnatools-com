@@ -6,15 +6,16 @@ import {TractorService} from '../../services/TractorService'
 import {TrailerService} from '../../services/TrailerService'
 import {EquipmentService} from '../../services/EquipmentService'
 import {OperatorService} from '../../services/OperatorService'
+import {usePreferences} from '../../app/context/PreferencesContext'
+import {RegionService} from '../../services/RegionService'
 
 export default function LeaderboardsView() {
+    const {preferences} = usePreferences()
     const [loading, setLoading] = useState(true)
     const [plantMetrics, setPlantMetrics] = useState([])
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
 
-    useEffect(() => {
-        document.title = 'Leaderboards - Smyrna Ready Mix'
-    }, [])
+    const selectedRegionCode = preferences.selectedRegion?.code || null
 
     useEffect(() => {
         let mounted = true
@@ -22,6 +23,39 @@ export default function LeaderboardsView() {
         async function fetchLeaderboardData() {
             setLoading(true)
             try {
+                if (!selectedRegionCode) {
+                    if (mounted) {
+                        setPlantMetrics([])
+                        setLoading(false)
+                    }
+                    return
+                }
+
+                const selectedRegion = RegionService.getRegionByCode(selectedRegionCode)
+                if (selectedRegion?.type !== 'Concrete') {
+                    if (mounted) {
+                        setPlantMetrics([])
+                        setLoading(false)
+                    }
+                    return
+                }
+
+                const plantsInRegion = await RegionService.fetchRegionPlants(selectedRegionCode)
+                
+                if (!plantsInRegion || plantsInRegion.length === 0) {
+                    if (mounted) {
+                        setPlantMetrics([])
+                        setLoading(false)
+                    }
+                    return
+                }
+
+                const plantCodesInRegion = plantsInRegion.map(p => p.plantCode)
+                const plantNames = {}
+                plantsInRegion.forEach(p => {
+                    plantNames[p.plantCode] = p.plantName
+                })
+
                 const currentYear = new Date().getFullYear()
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
@@ -29,6 +63,7 @@ export default function LeaderboardsView() {
                 const {data: profilesData, error: profilesError} = await supabase
                     .from('users_profiles')
                     .select('id, plant_code')
+                    .in('plant_code', plantCodesInRegion)
                     .not('plant_code', 'is', null)
 
                 if (profilesError) throw profilesError
@@ -83,17 +118,6 @@ export default function LeaderboardsView() {
                     setPlantMetrics([])
                     setLoading(false)
                     return
-                }
-
-                const {data: plantsData} = await supabase
-                    .from('plants')
-                    .select('plant_code, plant_name')
-
-                const plantNames = {}
-                if (plantsData) {
-                    plantsData.forEach(p => {
-                        plantNames[p.plant_code] = p.plant_name
-                    })
                 }
 
                 const [mixersData, tractorsData, trailersData, equipmentData, operatorsData] = await Promise.all([
@@ -304,7 +328,7 @@ export default function LeaderboardsView() {
         return () => {
             mounted = false
         }
-    }, [])
+    }, [selectedRegionCode])
 
     const getEfficiencyColor = (efficiency) => {
         if (efficiency >= 90) return 'var(--success)'
