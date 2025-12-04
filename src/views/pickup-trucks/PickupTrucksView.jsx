@@ -156,7 +156,7 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
             const inRegion = regionPlantCodes.size === 0 || regionPlantCodes.has(String(p.assignedPlant || '').trim().toUpperCase())
             return matchesSearch && matchesPlant && matchesStatus && inRegion
         })
-        return list.sort((a, b) => {
+        return FleetUtility.sortWithRetiredLast(list, (a, b) => {
             if (!sortKey) {
                 return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'assigned')
             }
@@ -186,7 +186,7 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                 if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
                 return 0
             }
-        })
+        }, 'status')
     }, [pickups, searchText, selectedPlant, statusFilter, regionPlantCodes, sortKey, sortDirection])
 
     const duplicateVINs = useMemo(() => {

@@ -5,6 +5,7 @@ import {TractorHistory} from '../models/tractors/TractorHistory'
 import {UserService} from './UserService'
 import {TractorComment} from '../models/tractors/TractorComment'
 import {ValidationUtility} from '../utils/ValidationUtility'
+import CleanupUtility from '../utils/CleanupUtility'
 
 export class TractorService {
     static async getAllTractors() {
@@ -320,5 +321,13 @@ export class TractorService {
             }
         }
         return tractorsList
+    }
+
+    static async cleanupNullOperators(tractors = null) {
+        return CleanupUtility.cleanupNullOperators(
+            tractors,
+            (id, updates, userId) => this.updateTractor(id, updates, userId),
+            () => this.getAllTractors()
+        );
     }
 }

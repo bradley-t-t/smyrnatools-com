@@ -209,54 +209,58 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         updatePreferences(prev => ({...prev, trailerFilters: {...prev.trailerFilters, searchText: value}}))
     }, 300), [updatePreferences])
 
-    const filteredTrailers = useMemo(() => trailers.filter(trailer => {
-        const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
-        const trailerMatch = (trailer.trailerNumber || '').toLowerCase().includes(normalizedSearch)
-        const tractorMatch = trailer.assignedTractor && tractors.find(t => t.id === trailer.assignedTractor)?.truckNumber.toLowerCase().includes(normalizedSearch)
-        const vinRaw = (trailer.vinNumber || trailer.vin || '').toLowerCase()
-        const vinNoSpaces = vinRaw.replace(/\s+/g, '')
-        const vinMatch = vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
-        const matchesSearch = !normalizedSearch || trailerMatch || tractorMatch || vinMatch
-        const matchesPlant = !selectedPlant || trailer.assignedPlant === selectedPlant
-        const matchesRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(trailer.assignedPlant)
-        let matchesType = true
-        if (typeFilter && typeFilter !== 'All Types') {
-            matchesType = ['Cement', 'End Dump'].includes(typeFilter) ? trailer.trailerType === typeFilter : typeFilter === 'Past Due Service' ? TrailerUtility.isServiceOverdue(trailer.lastServiceDate) : typeFilter === 'Verified' ? trailer.isVerified() : typeFilter === 'Not Verified' ? !trailer.isVerified() : typeFilter === 'Open Issues' ? (Number(trailer.openIssuesCount || 0) > 0) : false
-        }
-        return matchesSearch && matchesPlant && matchesRegion && matchesType
-    }).sort((a, b) => {
-        if (!sortKey) {
-            return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
-        }
-        const prop = sortMappings[sortKey]
-        let aVal, bVal;
-        if (sortKey === 'Trailer #') {
-            aVal = parseFloat(a.trailerNumber) || 0
-            bVal = parseFloat(b.trailerNumber) || 0
-        } else if (sortKey === 'Tractor') {
-            const tractorA = tractors.find(t => t.id === a.assignedTractor)
-            const tractorB = tractors.find(t => t.id === b.assignedTractor)
-            aVal = tractorA?.truckNumber || ''
-            bVal = tractorB?.truckNumber || ''
-        } else if (sortKey === 'VIN') {
-            const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
-            return sortDirection === 'asc' ? comparison : -comparison
-        } else if (prop) {
-            aVal = a[prop]
-            bVal = b[prop]
-        } else {
-            return 0
-        }
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-        } else {
-            aVal = String(aVal || '').toLowerCase()
-            bVal = String(bVal || '').toLowerCase()
-            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-            return 0
-        }
-    }), [trailers, tractors, selectedPlant, searchText, typeFilter, preferences.selectedRegion?.code, regionPlantCodes, sortKey, sortDirection])
+    const filteredTrailers = useMemo(() => {
+        const filtered = trailers.filter(trailer => {
+            const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
+            const trailerMatch = (trailer.trailerNumber || '').toLowerCase().includes(normalizedSearch)
+            const tractorMatch = trailer.assignedTractor && tractors.find(t => t.id === trailer.assignedTractor)?.truckNumber.toLowerCase().includes(normalizedSearch)
+            const vinRaw = (trailer.vinNumber || trailer.vin || '').toLowerCase()
+            const vinNoSpaces = vinRaw.replace(/\s+/g, '')
+            const vinMatch = vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
+            const matchesSearch = !normalizedSearch || trailerMatch || tractorMatch || vinMatch
+            const matchesPlant = !selectedPlant || trailer.assignedPlant === selectedPlant
+            const matchesRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(trailer.assignedPlant)
+            let matchesType = true
+            if (typeFilter && typeFilter !== 'All Types') {
+                matchesType = ['Cement', 'End Dump'].includes(typeFilter) ? trailer.trailerType === typeFilter : typeFilter === 'Past Due Service' ? TrailerUtility.isServiceOverdue(trailer.lastServiceDate) : typeFilter === 'Verified' ? trailer.isVerified() : typeFilter === 'Not Verified' ? !trailer.isVerified() : typeFilter === 'Open Issues' ? (Number(trailer.openIssuesCount || 0) > 0) : false
+            }
+            return matchesSearch && matchesPlant && matchesRegion && matchesType
+        });
+        
+        return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
+            }
+            const prop = sortMappings[sortKey]
+            let aVal, bVal;
+            if (sortKey === 'Trailer #') {
+                aVal = parseFloat(a.trailerNumber) || 0
+                bVal = parseFloat(b.trailerNumber) || 0
+            } else if (sortKey === 'Tractor') {
+                const tractorA = tractors.find(t => t.id === a.assignedTractor)
+                const tractorB = tractors.find(t => t.id === b.assignedTractor)
+                aVal = tractorA?.truckNumber || ''
+                bVal = tractorB?.truckNumber || ''
+            } else if (sortKey === 'VIN') {
+                const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+                return sortDirection === 'asc' ? comparison : -comparison
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        }, 'status');
+    }, [trailers, tractors, selectedPlant, searchText, typeFilter, preferences.selectedRegion?.code, regionPlantCodes, sortKey, sortDirection])
 
     const content = useMemo(() => {
         if (isLoading) return <div className="global-loading-container loading-container"><LoadingScreen

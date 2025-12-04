@@ -23,6 +23,7 @@ import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
+import CleanupUtility from '../../utils/CleanupUtility'
 
 function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView}) {
     const {
@@ -181,14 +182,52 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
     async function fetchTractors(codes) {
         try {
             const processedBase = await TractorService.fetchTractorsWithDetails(codes)
+            
+            const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
+            
             setTractors(processedBase)
             setAllTractors(processedBase)
             setTractorsLoaded(true)
             loadDetailsForTractors(processedBase)
-            setTimeout(() => {
-                TractorService.ensureSpareIfNoOperator(processedBase).catch(() => {
-                })
-            }, 0)
+            
+            if (cleanupResult.fixed > 0) {
+                setTimeout(async () => {
+                    const refreshed = await TractorService.fetchTractorsWithDetails(codes)
+                    setTractors(refreshed)
+                    setAllTractors(refreshed)
+                    loadDetailsForTractors(refreshed)
+                    
+                    setTimeout(() => {
+                        runVerificationCheck(refreshed)
+                    }, 1000)
+                }, 500)
+            } else {
+                setTimeout(() => {
+                    runVerificationCheck(processedBase)
+                }, 1000)
+            }
+        } catch (error) {
+        }
+    }
+
+    async function runVerificationCheck(tractorsToCheck) {
+        if (!tractorsToCheck || tractorsToCheck.length === 0) return
+        
+        try {
+            const verificationResult = await CleanupUtility.verificationCheck(
+                tractorsToCheck,
+                TractorService.updateTractor,
+                'tractor',
+                operators
+            )
+            
+            if (verificationResult.fixed > 0) {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
+                setTractors(refreshedTractors)
+                setAllTractors(refreshedTractors)
+                loadDetailsForTractors(refreshedTractors)
+            }
         } catch (error) {
         }
     }
@@ -279,59 +318,63 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
         }
     }, [verifyTractor, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate]);
 
-    const filteredTractors = useMemo(() => tractors.filter(tractor => {
-        const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
-        const truckMatch = (tractor.truckNumber || '').toLowerCase().includes(normalizedSearch)
-        const operatorMatch = tractor.assignedOperator && operators.find(op => op.employeeId === tractor.assignedOperator)?.name.toLowerCase().includes(normalizedSearch)
-        const vinRaw = (tractor.vinNumber || tractor.vin || '').toLowerCase()
-        const vinNoSpaces = vinRaw.replace(/\s+/g, '')
-        const vinMatch = vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
-        const matchesSearch = !normalizedSearch || truckMatch || operatorMatch || vinMatch
-        const matchesPlant = !selectedPlant || tractor.assignedPlant === selectedPlant
-        const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(tractor.assignedPlant || '').trim().toUpperCase())
-        let matchesStatus = true
-        if (statusFilter && statusFilter !== 'All Statuses') {
-            matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? tractor.status === statusFilter : statusFilter === 'Past Due Service' ? TractorUtility.isServiceOverdue(tractor.lastServiceDate) : statusFilter === 'Verified' ? tractor.isVerified() : statusFilter === 'Not Verified' ? (!tractor.isVerified() && tractor.status !== 'Retired') : statusFilter === 'Open Issues' ? (Number(tractor.openIssuesCount || 0) > 0) : false
-        }
-        const matchesFreight = !freightFilter || tractor.freight === freightFilter
-        return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
-    }).sort((a, b) => {
-        if (!sortKey) {
-            return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
-        }
-        const prop = sortMappings[sortKey]
-        let aVal, bVal;
-        if (sortKey === 'Verified') {
-            aVal = a.status === 'Retired' ? 0 : (a.isVerified() ? 2 : 1)
-            bVal = b.status === 'Retired' ? 0 : (b.isVerified() ? 2 : 1)
-        } else if (sortKey === 'Operator') {
-            aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
-            bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
-        } else if (sortKey === 'Plant') {
-            aVal = plants.find(p => p.code === a.assignedPlant)?.name || a.assignedPlant
-            bVal = plants.find(p => p.code === b.assignedPlant)?.name || b.assignedPlant
-        } else if (sortKey === 'Truck #') {
-            aVal = parseFloat(a.truckNumber) || 0
-            bVal = parseFloat(b.truckNumber) || 0
-        } else if (sortKey === 'VIN') {
-            const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
-            return sortDirection === 'asc' ? comparison : -comparison
-        } else if (prop) {
-            aVal = a[prop]
-            bVal = b[prop]
-        } else {
-            return 0
-        }
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-        } else {
-            aVal = String(aVal || '').toLowerCase()
-            bVal = String(bVal || '').toLowerCase()
-            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-            return 0
-        }
-    }), [tractors, operators, selectedPlant, searchText, statusFilter, freightFilter, regionPlantCodes, sortKey, sortDirection, plants])
+    const filteredTractors = useMemo(() => {
+        const filtered = tractors.filter(tractor => {
+            const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
+            const truckMatch = (tractor.truckNumber || '').toLowerCase().includes(normalizedSearch)
+            const operatorMatch = tractor.assignedOperator && operators.find(op => op.employeeId === tractor.assignedOperator)?.name.toLowerCase().includes(normalizedSearch)
+            const vinRaw = (tractor.vinNumber || tractor.vin || '').toLowerCase()
+            const vinNoSpaces = vinRaw.replace(/\s+/g, '')
+            const vinMatch = vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
+            const matchesSearch = !normalizedSearch || truckMatch || operatorMatch || vinMatch
+            const matchesPlant = !selectedPlant || tractor.assignedPlant === selectedPlant
+            const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(tractor.assignedPlant || '').trim().toUpperCase())
+            let matchesStatus = true
+            if (statusFilter && statusFilter !== 'All Statuses') {
+                matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? tractor.status === statusFilter : statusFilter === 'Past Due Service' ? TractorUtility.isServiceOverdue(tractor.lastServiceDate) : statusFilter === 'Verified' ? tractor.isVerified() : statusFilter === 'Not Verified' ? (!tractor.isVerified() && tractor.status !== 'Retired') : statusFilter === 'Open Issues' ? (Number(tractor.openIssuesCount || 0) > 0) : false
+            }
+            const matchesFreight = !freightFilter || tractor.freight === freightFilter
+            return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
+        });
+        
+        return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
+            }
+            const prop = sortMappings[sortKey]
+            let aVal, bVal;
+            if (sortKey === 'Verified') {
+                aVal = a.status === 'Retired' ? 0 : (a.isVerified() ? 2 : 1)
+                bVal = b.status === 'Retired' ? 0 : (b.isVerified() ? 2 : 1)
+            } else if (sortKey === 'Operator') {
+                aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
+                bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
+            } else if (sortKey === 'Plant') {
+                aVal = plants.find(p => p.code === a.assignedPlant)?.name || a.assignedPlant
+                bVal = plants.find(p => p.code === b.assignedPlant)?.name || b.assignedPlant
+            } else if (sortKey === 'Truck #') {
+                aVal = parseFloat(a.truckNumber) || 0
+                bVal = parseFloat(b.truckNumber) || 0
+            } else if (sortKey === 'VIN') {
+                const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+                return sortDirection === 'asc' ? comparison : -comparison
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        }, 'status');
+    }, [tractors, operators, selectedPlant, searchText, statusFilter, freightFilter, regionPlantCodes, sortKey, sortDirection, plants])
 
     const debouncedSetSearchText = useCallback(AsyncUtility.debounce(value => {
         setSearchText(value);

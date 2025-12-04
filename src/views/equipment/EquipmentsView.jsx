@@ -21,6 +21,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
+import CleanupUtility from '../../utils/CleanupUtility'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const {preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters} = usePreferences();
@@ -130,6 +131,12 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
             setEquipments(processedBase)
             loadDetailsForEquipments(processedBase)
+            
+            if (processedBase && processedBase.length > 0) {
+                setTimeout(() => {
+                    runVerificationCheck(processedBase)
+                }, 1000)
+            }
         } catch {
             setEquipments([]);
         }
@@ -140,6 +147,25 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             const data = await PlantService.fetchPlants(codes);
             setPlants(data);
         } catch {
+        }
+    }
+
+    async function runVerificationCheck(equipmentsToCheck) {
+        if (!equipmentsToCheck || equipmentsToCheck.length === 0) return
+        
+        try {
+            const verificationResult = await CleanupUtility.verificationCheck(
+                equipmentsToCheck,
+                EquipmentService.updateEquipment,
+                'equipment'
+            )
+            
+            if (verificationResult.fixed > 0) {
+                const refreshedEquipments = await EquipmentService.fetchEquipmentsWithDetails()
+                setEquipments(refreshedEquipments)
+                loadDetailsForEquipments(refreshedEquipments)
+            }
+        } catch (error) {
         }
     }
 
@@ -257,44 +283,48 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         safeUpdateEquipmentFilter('searchText', value);
     }, 300), [safeUpdateEquipmentFilter]);
 
-    const filteredEquipments = useMemo(() => equipments.filter(equipment => {
-        const matchesSearch = !searchText.trim() || equipment.identifyingNumber?.toLowerCase().includes(searchText.toLowerCase()) || equipment.equipmentType?.toLowerCase().includes(searchText.toLowerCase());
-        const matchesPlant = !selectedPlant || equipment.assignedPlant === selectedPlant;
-        const matchesRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(equipment.assignedPlant);
-        let matchesStatus = true;
-        if (statusFilter && statusFilter !== 'All Statuses') {
-            matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? equipment.status === statusFilter : statusFilter === 'Past Due Service' ? EquipmentUtility.isServiceOverdue(equipment.lastServiceDate) : statusFilter === 'Verified' ? EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy) : statusFilter === 'Not Verified' ? (!EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy) && equipment.status !== 'Retired') : statusFilter === 'Open Issues' ? Number(equipment.openIssuesCount || 0) > 0 : false
-        }
-        const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter;
-        return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType;
-    }).sort((a, b) => {
-        if (!sortKey) {
-            return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
-        }
-        const prop = sortMappings[sortKey]
-        let aVal, bVal;
-        if (sortKey === 'Verified') {
-            aVal = a.status === 'Retired' ? 0 : (EquipmentUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy) ? 2 : 1)
-            bVal = b.status === 'Retired' ? 0 : (EquipmentUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy) ? 2 : 1)
-        } else if (sortKey === 'Equipment #') {
-            aVal = parseFloat(a.identifyingNumber) || 0
-            bVal = parseFloat(b.identifyingNumber) || 0
-        } else if (prop) {
-            aVal = a[prop]
-            bVal = b[prop]
-        } else {
-            return 0
-        }
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-        } else {
-            aVal = String(aVal || '').toLowerCase()
-            bVal = String(bVal || '').toLowerCase()
-            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-            return 0
-        }
-    }), [equipments, selectedPlant, searchText, statusFilter, equipmentTypeFilter, preferences.selectedRegion?.code, regionPlantCodes, sortKey, sortDirection]);
+    const filteredEquipments = useMemo(() => {
+        const filtered = equipments.filter(equipment => {
+            const matchesSearch = !searchText.trim() || equipment.identifyingNumber?.toLowerCase().includes(searchText.toLowerCase()) || equipment.equipmentType?.toLowerCase().includes(searchText.toLowerCase());
+            const matchesPlant = !selectedPlant || equipment.assignedPlant === selectedPlant;
+            const matchesRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(equipment.assignedPlant);
+            let matchesStatus = true;
+            if (statusFilter && statusFilter !== 'All Statuses') {
+                matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter) ? equipment.status === statusFilter : statusFilter === 'Past Due Service' ? EquipmentUtility.isServiceOverdue(equipment.lastServiceDate) : statusFilter === 'Verified' ? EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy) : statusFilter === 'Not Verified' ? (!EquipmentUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy) && equipment.status !== 'Retired') : statusFilter === 'Open Issues' ? Number(equipment.openIssuesCount || 0) > 0 : false
+            }
+            const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter;
+            return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType;
+        });
+        
+        return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
+            }
+            const prop = sortMappings[sortKey]
+            let aVal, bVal;
+            if (sortKey === 'Verified') {
+                aVal = a.status === 'Retired' ? 0 : (EquipmentUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy) ? 2 : 1)
+                bVal = b.status === 'Retired' ? 0 : (EquipmentUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy) ? 2 : 1)
+            } else if (sortKey === 'Equipment #') {
+                aVal = parseFloat(a.identifyingNumber) || 0
+                bVal = parseFloat(b.identifyingNumber) || 0
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        }, 'status');
+    }, [equipments, selectedPlant, searchText, statusFilter, equipmentTypeFilter, preferences.selectedRegion?.code, regionPlantCodes, sortKey, sortDirection]);
 
     useEffect(() => {
         if (preferences.equipmentFilters?.viewMode !== undefined && preferences.equipmentFilters?.viewMode !== null) setViewMode(preferences.equipmentFilters.viewMode)

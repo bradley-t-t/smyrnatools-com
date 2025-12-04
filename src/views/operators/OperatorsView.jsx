@@ -265,61 +265,75 @@ function OperatorsView({
         return assigned
     }, [mixers, tractors, selectedPlant, positionFilter])
 
-    const filteredOperators = operators.filter(operator => {
-        const matchesSearch = searchText.trim() === '' || operator.name.toLowerCase().includes(searchText.toLowerCase()) || operator.employeeId.toLowerCase().includes(searchText.toLowerCase())
-        const matchesPlant = selectedPlant === '' || operator.plantCode === selectedPlant
-        const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(operator.plantCode || '').trim().toUpperCase())
-        let matchesStatus = true
-        if (statusFilter && statusFilter !== 'All Statuses') {
-            if (statuses.includes(statusFilter)) matchesStatus = operator.status === statusFilter
-            else if (statusFilter === 'Trainer') matchesStatus = operator.isTrainer === true || String(operator.isTrainer).toLowerCase() === 'true'
-            else if (statusFilter === 'Not Trainer') matchesStatus = operator.isTrainer !== true && String(operator.isTrainer).toLowerCase() !== 'true'
-            else if (statusFilter === 'Unassigned Active') matchesStatus = operator.status === 'Active' && !assignedOperatorsSet.has(operator.employeeId)
-        }
-        let matchesPosition = true
-        if (positionFilter) {
-            const pos = String(operator.position || '').trim().toLowerCase()
-            if (positionFilter === 'Mixer') matchesPosition = pos === 'mixer operator' || pos === 'mixer'
-            else if (positionFilter === 'Tractor') matchesPosition = pos === 'tractor operator' || pos === 'tractor'
-        }
-        return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesPosition
-    }).sort((a, b) => {
-        if (!sortKey) {
-            if (a.status === 'Active' && b.status !== 'Active') return -1
-            if (a.status !== 'Active' && b.status === 'Active') return 1
-            if (a.status === 'Training' && b.status !== 'Training') return -1
-            if (a.status !== 'Training' && b.status === 'Training') return 1
-            if (a.status === 'Pending Start' && b.status !== 'Pending Start') return -1
-            if (a.status !== 'Pending Start' && b.status === 'Pending Start') return 1
-            if (a.status === 'Terminated' && b.status !== 'Terminated') return 1
-            if (a.status !== 'Terminated' && b.status === 'Terminated') return -1
-            if (a.status === 'No Hire' && b.status !== 'No Hire') return 1
-            if (a.status !== 'No Hire' && b.status === 'No Hire') return -1
-            if (a.status !== b.status) return a.status.localeCompare(b.status)
-            const nameA = a.name.split(' ').pop().toLowerCase()
-            const nameB = b.name.split(' ').pop().toLowerCase()
-            return nameA.localeCompare(nameB)
-        }
-        const prop = sortMappings[sortKey]
-        if (!prop) return 0;
-        let aVal, bVal;
-        if (sortKey === 'Trainer') {
-            aVal = trainers.find(t => t.employeeId === a.assignedTrainer)?.name || ''
-            bVal = trainers.find(t => t.employeeId === b.assignedTrainer)?.name || ''
-        } else {
-            aVal = a[prop]
-            bVal = b[prop]
-        }
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-        } else {
-            aVal = String(aVal || '').toLowerCase()
-            bVal = String(bVal || '').toLowerCase()
-            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-            return 0
-        }
-    })
+    const filteredOperators = (() => {
+        const filtered = operators.filter(operator => {
+            const matchesSearch = searchText.trim() === '' || operator.name.toLowerCase().includes(searchText.toLowerCase()) || operator.employeeId.toLowerCase().includes(searchText.toLowerCase())
+            const matchesPlant = selectedPlant === '' || operator.plantCode === selectedPlant
+            const matchesRegion = !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(operator.plantCode || '').trim().toUpperCase())
+            let matchesStatus = true
+            if (statusFilter && statusFilter !== 'All Statuses') {
+                if (statuses.includes(statusFilter)) matchesStatus = operator.status === statusFilter
+                else if (statusFilter === 'Trainer') matchesStatus = operator.isTrainer === true || String(operator.isTrainer).toLowerCase() === 'true'
+                else if (statusFilter === 'Not Trainer') matchesStatus = operator.isTrainer !== true && String(operator.isTrainer).toLowerCase() !== 'true'
+                else if (statusFilter === 'Unassigned Active') matchesStatus = operator.status === 'Active' && !assignedOperatorsSet.has(operator.employeeId)
+            }
+            let matchesPosition = true
+            if (positionFilter) {
+                const pos = String(operator.position || '').trim().toLowerCase()
+                if (positionFilter === 'Mixer') matchesPosition = pos === 'mixer operator' || pos === 'mixer'
+                else if (positionFilter === 'Tractor') matchesPosition = pos === 'tractor operator' || pos === 'tractor'
+            }
+            return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesPosition
+        });
+        
+        const sortFn = (a, b) => {
+            if (!sortKey) {
+                if (a.status === 'Active' && b.status !== 'Active') return -1
+                if (a.status !== 'Active' && b.status === 'Active') return 1
+                if (a.status === 'Training' && b.status !== 'Training') return -1
+                if (a.status !== 'Training' && b.status === 'Training') return 1
+                if (a.status === 'Pending Start' && b.status !== 'Pending Start') return -1
+                if (a.status !== 'Pending Start' && b.status === 'Pending Start') return 1
+                if (a.status !== b.status) return a.status.localeCompare(b.status)
+                const nameA = a.name.split(' ').pop().toLowerCase()
+                const nameB = b.name.split(' ').pop().toLowerCase()
+                return nameA.localeCompare(nameB)
+            }
+            const prop = sortMappings[sortKey]
+            if (!prop) return 0;
+            let aVal, bVal;
+            if (sortKey === 'Trainer') {
+                aVal = trainers.find(t => t.employeeId === a.assignedTrainer)?.name || ''
+                bVal = trainers.find(t => t.employeeId === b.assignedTrainer)?.name || ''
+            } else {
+                aVal = a[prop]
+                bVal = b[prop]
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        };
+
+        const terminatedStatuses = ['Terminated', 'No Hire'];
+        const nonTerminated = [];
+        const terminated = [];
+        
+        filtered.forEach(op => {
+            if (terminatedStatuses.includes(op.status)) {
+                terminated.push(op);
+            } else {
+                nonTerminated.push(op);
+            }
+        });
+        
+        return [...nonTerminated.sort(sortFn), ...terminated.sort(sortFn)];
+    })()
 
     const handleSelectOperator = (operator) => {
         setSelectedOperator(operator)

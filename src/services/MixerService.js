@@ -7,6 +7,7 @@ import {MixerComment} from '../models/mixers/MixerComment'
 import {MixerImage} from '../models/mixers/MixerImage'
 import {v4 as uuidv4} from 'uuid'
 import {ValidationUtility} from '../utils/ValidationUtility'
+import CleanupUtility from '../utils/CleanupUtility'
 
 class MixerServiceImpl {
     static async getAllMixers() {
@@ -70,7 +71,9 @@ class MixerServiceImpl {
     }
 
     static async addMixer(mixer, userId) {
-        if (mixer && typeof mixer === 'object') mixer.vin = (mixer.vin || '').toUpperCase()
+        if (mixer && typeof mixer === 'object' && 'vin' in mixer && mixer.vin) {
+            mixer.vin = mixer.vin.toUpperCase()
+        }
         const {res, json} = await APIUtility.post('/mixer-service/create', {userId, mixer})
         if (!res.ok) throw new Error(json?.error || 'Failed to create mixer')
         return new Mixer(json?.data)
@@ -97,7 +100,9 @@ class MixerServiceImpl {
             userId = typeof user === 'object' && user !== null ? user.id : user
         }
         if (!userId) throw new Error('User ID is required')
-        if (mixer && typeof mixer === 'object') mixer.vin = (mixer.vin || '').toUpperCase()
+        if (mixer && typeof mixer === 'object' && 'vin' in mixer && mixer.vin) {
+            mixer.vin = mixer.vin.toUpperCase()
+        }
 
         if (_prevMixerState && _prevMixerState.assignedPlant !== mixer.assignedPlant) {
             mixer.assignedOperator = null
@@ -310,6 +315,7 @@ class MixerServiceImpl {
         const base = await this.getAllMixers().catch(() => [])
         const processedBase = (Array.isArray(base) ? base : []).map(m => {
             const mixer = {...m}
+            
             mixer.isVerified = () => MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
             if (typeof mixer.openIssuesCount !== 'number') mixer.openIssuesCount = 0
             if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
@@ -322,15 +328,42 @@ class MixerServiceImpl {
     }
 
     static async ensureSpareIfNoOperator(mixersList) {
-        const toUpdate = (mixersList || []).filter(m => m.status === 'Active' && (!m.assignedOperator || m.assignedOperator === '0'))
+        const toUpdate = (mixersList || []).filter(m => {
+            const hasNoOperator = !m.assignedOperator || 
+                                 m.assignedOperator === '0' || 
+                                 m.assignedOperator === 0 || 
+                                 m.assignedOperator === null || 
+                                 m.assignedOperator === 'null'
+            return m.status === 'Active' && hasNoOperator
+        })
+        
         for (const m of toUpdate) {
             try {
-                await this.updateMixer(m.id, {...m, status: 'Spare'})
+                const updates = {
+                    status: 'Spare',
+                    assignedOperator: null,
+                    updatedLast: null,
+                    updatedAt: null,
+                    updatedBy: null
+                }
+                await this.updateMixer(m.id, updates)
                 m.status = 'Spare'
-            } catch {
+                m.assignedOperator = null
+                m.updatedLast = null
+                m.updatedAt = null
+                m.updatedBy = null
+            } catch (error) {
             }
         }
         return mixersList
+    }
+
+    static async cleanupNullOperators(mixers = null) {
+        return CleanupUtility.cleanupNullOperators(
+            mixers,
+            (id, updates, userId) => this.updateMixer(id, updates, userId),
+            () => this.getAllMixers()
+        );
     }
 
     static async verifyMixer(mixerId, userId) {

@@ -23,6 +23,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import {ValidationUtility} from '../../utils/ValidationUtility'
+import CleanupUtility from '../../utils/CleanupUtility'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -199,14 +200,52 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     async function fetchMixersWithDetails(codes) {
         try {
             const processedBase = await MixerService.fetchMixersWithDetails(codes)
-            setMixers(processedBase)
-            setAllMixers(processedBase)
-            setMixersLoaded(true)
-            loadDetailsForMixers(processedBase)
-            setTimeout(() => {
-                MixerService.ensureSpareIfNoOperator(processedBase).catch(() => {
-                })
-            }, 0)
+            
+            const cleanupResult = await MixerService.cleanupNullOperators(processedBase)
+            
+            if (cleanupResult.fixed > 0) {
+                const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
+                setMixers(refreshedMixers)
+                setAllMixers(refreshedMixers)
+                setMixersLoaded(true)
+                loadDetailsForMixers(refreshedMixers)
+                
+                setTimeout(() => {
+                    runVerificationCheck(refreshedMixers)
+                }, 1000)
+            } else {
+                setMixers(processedBase)
+                setAllMixers(processedBase)
+                setMixersLoaded(true)
+                loadDetailsForMixers(processedBase)
+                
+                setTimeout(() => {
+                    runVerificationCheck(processedBase)
+                }, 1000)
+            }
+        } catch (error) {
+            console.error('[MIXERS VIEW] Error fetching mixers:', error)
+        }
+    }
+
+    async function runVerificationCheck(mixersToCheck) {
+        if (!mixersToCheck || mixersToCheck.length === 0) return
+        
+        try {
+            const verificationResult = await CleanupUtility.verificationCheck(
+                mixersToCheck,
+                MixerService.updateMixer,
+                'mixer',
+                operators
+            )
+            
+            if (verificationResult.fixed > 0) {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
+                setMixers(refreshedMixers)
+                setAllMixers(refreshedMixers)
+                loadDetailsForMixers(refreshedMixers)
+            }
         } catch (error) {
         }
     }
@@ -329,7 +368,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     }, [searchText, allMixers, regionPlantCodes]);
 
     const filteredMixers = useMemo(() => {
-        return mixers
+        const filtered = mixers
             .filter(mixer => {
                 const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
                 const truckMatch = (mixer.truckNumber || '').toLowerCase().includes(normalizedSearch)
@@ -349,44 +388,45 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                     statusFilter === 'Open Issues' ? (Number(mixer.openIssuesCount || 0) > 0) : false
                 }
                 return matchesSearch && matchesPlant && matchesRegion && matchesStatus
-            })
-            .sort((a, b) => {
-                if (!sortKey) {
-                    return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
-                }
-                const prop = sortMappings[sortKey]
-                let aVal, bVal;
-                if (sortKey === 'Verified') {
-                    aVal = a.status === 'Retired' ? 0 : (a.isVerified() ? 2 : 1)
-                    bVal = b.status === 'Retired' ? 0 : (b.isVerified() ? 2 : 1)
-                } else if (sortKey === 'Operator') {
-                    aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
-                    bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
-                } else if (sortKey === 'Plant') {
-                    aVal = plants.find(p => p.code === a.assignedPlant)?.name || a.assignedPlant
-                    bVal = plants.find(p => p.code === b.assignedPlant)?.name || b.assignedPlant
-                } else if (sortKey === 'Truck #') {
-                    aVal = parseFloat(a.truckNumber) || 0
-                    bVal = parseFloat(b.truckNumber) || 0
-                } else if (sortKey === 'VIN') {
-                    const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
-                    return sortDirection === 'asc' ? comparison : -comparison
-                } else if (prop) {
-                    aVal = a[prop]
-                    bVal = b[prop]
-                } else {
-                    return 0
-                }
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-                } else {
-                    aVal = String(aVal || '').toLowerCase()
-                    bVal = String(bVal || '').toLowerCase()
-                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-                    return 0
-                }
-            })
+            });
+        
+        return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
+            }
+            const prop = sortMappings[sortKey]
+            let aVal, bVal;
+            if (sortKey === 'Verified') {
+                aVal = a.status === 'Retired' ? 0 : (a.isVerified() ? 2 : 1)
+                bVal = b.status === 'Retired' ? 0 : (b.isVerified() ? 2 : 1)
+            } else if (sortKey === 'Operator') {
+                aVal = operators.find(op => op.employeeId === a.assignedOperator)?.name || ''
+                bVal = operators.find(op => op.employeeId === b.assignedOperator)?.name || ''
+            } else if (sortKey === 'Plant') {
+                aVal = plants.find(p => p.code === a.assignedPlant)?.name || a.assignedPlant
+                bVal = plants.find(p => p.code === b.assignedPlant)?.name || b.assignedPlant
+            } else if (sortKey === 'Truck #') {
+                aVal = parseFloat(a.truckNumber) || 0
+                bVal = parseFloat(b.truckNumber) || 0
+            } else if (sortKey === 'VIN') {
+                const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+                return sortDirection === 'asc' ? comparison : -comparison
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        }, 'status');
     }, [mixers, operators, selectedPlant, searchText, statusFilter, regionPlantCodes, sortKey, sortDirection, plants])
 
     const debouncedSetSearchText = useCallback(AsyncUtility.debounce((value) => {

@@ -37,5 +37,27 @@ export function countUnassignedActiveOperators(items, operators, searchText, {
     return count;
 }
 
-const FleetUtility = {compareByStatusThenNumber, countUnassignedActiveOperators};
+export function sortWithRetiredLast(items, sortFn, statusField = 'status') {
+    if (!items || items.length === 0) return items;
+    
+    const retiredStatuses = ['Retired', 'Terminated'];
+    const retiredItems = [];
+    const activeItems = [];
+    
+    items.forEach(item => {
+        const status = item?.[statusField];
+        if (retiredStatuses.includes(status)) {
+            retiredItems.push(item);
+        } else {
+            activeItems.push(item);
+        }
+    });
+    
+    const sortedActive = sortFn ? activeItems.sort(sortFn) : activeItems;
+    const sortedRetired = sortFn ? retiredItems.sort(sortFn) : retiredItems;
+    
+    return [...sortedActive, ...sortedRetired];
+}
+
+const FleetUtility = {compareByStatusThenNumber, countUnassignedActiveOperators, sortWithRetiredLast};
 export default FleetUtility;
