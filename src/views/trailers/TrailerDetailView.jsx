@@ -296,13 +296,17 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
                     ? overrideValues.prevAssignedTractor
                     : trailer.assignedTractor
             };
+            
+            let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating;
+            if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1;
+            
             const updatedTrailer = new Trailer({
                 id: trailer.id,
                 trailer_number: overrideValues.trailerNumber ?? trailerNumber,
                 assigned_plant: overrideValues.assignedPlant ?? assignedPlant,
                 trailer_type: trailerTypeValue,
                 assigned_tractor: assignedTractorValue || null,
-                cleanliness_rating: (overrideValues.cleanlinessRating ?? cleanlinessRating) || null,
+                cleanliness_rating: cleanlinessValue,
                 updated_at: new Date().toISOString(),
                 updated_by: userId,
                 updated_last: trailer.updatedLast,

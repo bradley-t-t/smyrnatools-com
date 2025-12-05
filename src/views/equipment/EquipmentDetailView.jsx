@@ -265,13 +265,19 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                 }
             }
 
+            let cleanlinessValue = cleanlinessRating;
+            if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1;
+            
+            let conditionValue = conditionRating;
+            if (!conditionValue || isNaN(conditionValue) || conditionValue < 1) conditionValue = 1;
+
             const updatedEquipment = {
                 identifyingNumber,
                 assignedPlant,
                 equipmentType,
                 status,
-                cleanlinessRating: cleanlinessRating || null,
-                conditionRating: conditionRating || null,
+                cleanlinessRating: cleanlinessValue,
+                conditionRating: conditionValue,
                 lastServiceDate,
                 hoursMileage: hoursMileage ? parseFloat(hoursMileage) : null,
                 equipmentMake: make,

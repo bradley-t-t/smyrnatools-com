@@ -302,6 +302,10 @@ function MixerDetailView({mixerId, onClose}) {
                     ? overrideValues.prevAssignedOperator
                     : mixer.assignedOperator
             }
+            
+            let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating;
+            if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1;
+            
             const updatedMixer = {
                 ...mixer,
                 id: mixer.id,
@@ -309,7 +313,7 @@ function MixerDetailView({mixerId, onClose}) {
                 assignedOperator: assignedOperatorValue || null,
                 assignedPlant: overrideValues.assignedPlant ?? assignedPlant,
                 status: statusValue,
-                cleanlinessRating: (overrideValues.cleanlinessRating ?? cleanlinessRating) || null,
+                cleanlinessRating: cleanlinessValue,
                 lastServiceDate: DateUtility.toDbDate(overrideValues.lastServiceDate ?? lastServiceDate),
                 lastChipDate: DateUtility.toDbDate(overrideValues.lastChipDate ?? lastChipDate),
                 vin: ((overrideValues.vin ?? vin) || '').toUpperCase(),

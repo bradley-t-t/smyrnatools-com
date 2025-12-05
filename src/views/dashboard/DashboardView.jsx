@@ -1323,17 +1323,6 @@ export default function DashboardView() {
                 {showSkeleton ? (
                     <div className="group-grid">
                         <div className="group-section">
-                            <div className="section-title">Plant Performance - YTD {new Date().getFullYear()}</div>
-                            <div className="dashboard-grid inner-grid">
-                                {Array.from({length: 7}).map((_, i) => (
-                                    <div className="kpi-card skeleton-card" key={`perf-${i}`}>
-                                        <div className="skeleton-line w40"/>
-                                        <div className="skeleton-line w60 tall"/>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="group-section">
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">
                                 {Array.from({length: 5}).map((_, i) => (
@@ -1392,12 +1381,6 @@ export default function DashboardView() {
                     </div>
                 ) : (
                     <div className="group-grid">
-                        <PlantPerformanceSection
-                            dashboardPlant={dashboardPlant}
-                            regionPlants={regionPlants}
-                            allPlants={allPlants}
-                            showSkeleton={showSkeleton}
-                        />
                         <div className="group-section slide-in-section">
                             <div className="section-title">Fleet</div>
                             <div className="dashboard-grid inner-grid">

@@ -59,6 +59,19 @@ class CleanupUtility {
             };
         }
 
+        const getFieldValue = (item, fieldType) => {
+            switch (fieldType) {
+                case 'make':
+                    return item.make || item.equipmentMake || item.tractorMake || item.trailerMake;
+                case 'model':
+                    return item.model || item.equipmentModel || item.tractorModel || item.trailerModel;
+                case 'year':
+                    return item.year || item.yearMade || item.tractorYear || item.trailerYear;
+                default:
+                    return null;
+            }
+        };
+
         const invalidItems = items.filter(item => {
             const isMarkedVerified = VerifiedUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy);
             
@@ -67,9 +80,9 @@ class CleanupUtility {
             }
 
             const hasValidVIN = item.vin && ValidationUtility.isVIN(item.vin);
-            const hasMake = !!item.make;
-            const hasModel = !!item.model;
-            const hasYear = !!item.year;
+            const hasMake = !!getFieldValue(item, 'make');
+            const hasModel = !!getFieldValue(item, 'model');
+            const hasYear = !!getFieldValue(item, 'year');
             const isRetired = item.status === 'Retired';
 
             if (isRetired) {
@@ -133,6 +146,19 @@ class CleanupUtility {
     static _getVerificationIssues(item, assetType, operators = []) {
         const issues = [];
 
+        const getFieldValue = (item, fieldType) => {
+            switch (fieldType) {
+                case 'make':
+                    return item.make || item.equipmentMake || item.tractorMake || item.trailerMake;
+                case 'model':
+                    return item.model || item.equipmentModel || item.tractorModel || item.trailerModel;
+                case 'year':
+                    return item.year || item.yearMade || item.tractorYear || item.trailerYear;
+                default:
+                    return null;
+            }
+        };
+
         if (item.status === 'Retired') {
             issues.push('Retired assets cannot be verified');
         }
@@ -141,15 +167,15 @@ class CleanupUtility {
             issues.push('Invalid or missing VIN');
         }
 
-        if (!item.make) {
+        if (!getFieldValue(item, 'make')) {
             issues.push('Missing Make');
         }
 
-        if (!item.model) {
+        if (!getFieldValue(item, 'model')) {
             issues.push('Missing Model');
         }
 
-        if (!item.year) {
+        if (!getFieldValue(item, 'year')) {
             issues.push('Missing Year');
         }
 

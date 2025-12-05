@@ -130,15 +130,17 @@ export default function LeaderboardsView() {
 
                 const fleetCountsByPlant = {}
                 Object.keys(userIdsByPlant).forEach(plantCode => {
-                    const mixerCount = mixersData.filter(m => {
+                    const plantMixers = mixersData.filter(m => {
                         const plant = m.assignedPlant || m.assigned_plant
                         return plant === plantCode && m.status !== 'Retired'
-                    }).length
+                    })
+                    const mixerCount = plantMixers.length
 
-                    const tractorCount = tractorsData.filter(t => {
+                    const plantTractors = tractorsData.filter(t => {
                         const plant = t.assignedPlant || t.assigned_plant
                         return plant === plantCode && t.status !== 'Retired'
-                    }).length
+                    })
+                    const tractorCount = plantTractors.length
 
                     const trailerCount = trailersData.filter(t => {
                         const plant = t.assignedPlant || t.assigned_plant
@@ -150,7 +152,31 @@ export default function LeaderboardsView() {
                         return plant === plantCode && e.status !== 'Retired'
                     }).length
 
-                    const operatorCount = operatorsData.filter(o => {
+                    const mixerOperatorIds = new Set(
+                        plantMixers
+                            .filter(m => m.assignedOperator && m.assignedOperator !== '0')
+                            .map(m => m.assignedOperator)
+                    )
+
+                    const tractorOperatorIds = new Set(
+                        plantTractors
+                            .filter(t => t.assignedOperator && t.assignedOperator !== '0')
+                            .map(t => t.assignedOperator)
+                    )
+
+                    const mixerOperatorCount = operatorsData.filter(o => {
+                        const plant = o.plantCode || o.plant_code
+                        const opId = o.employeeId || o.employee_id
+                        return plant === plantCode && o.status === 'Active' && mixerOperatorIds.has(opId)
+                    }).length
+
+                    const tractorOperatorCount = operatorsData.filter(o => {
+                        const plant = o.plantCode || o.plant_code
+                        const opId = o.employeeId || o.employee_id
+                        return plant === plantCode && o.status === 'Active' && tractorOperatorIds.has(opId)
+                    }).length
+
+                    const totalOperators = operatorsData.filter(o => {
                         const plant = o.plantCode || o.plant_code
                         return plant === plantCode && o.status === 'Active'
                     }).length
@@ -160,10 +186,13 @@ export default function LeaderboardsView() {
                         tractors: tractorCount,
                         trailers: trailerCount,
                         equipment: equipmentCount,
-                        operators: operatorCount,
+                        mixerOperators: mixerOperatorCount,
+                        tractorOperators: tractorOperatorCount,
+                        operators: totalOperators,
                         totalAssets: mixerCount + tractorCount + trailerCount + equipmentCount
                     }
                 })
+
 
                 const calculateMetrics = (reportsList) => {
                     if (reportsList.length === 0) {
@@ -544,8 +573,16 @@ export default function LeaderboardsView() {
                                                 <span className="stat-value">{plant.mixers || 0}</span>
                                             </div>
                                             <div className="stat-item">
+                                                <span className="stat-label">Mixer Operators</span>
+                                                <span className="stat-value">{plant.mixerOperators || 0}</span>
+                                            </div>
+                                            <div className="stat-item">
                                                 <span className="stat-label">Tractors</span>
                                                 <span className="stat-value">{plant.tractors || 0}</span>
+                                            </div>
+                                            <div className="stat-item">
+                                                <span className="stat-label">Tractor Operators</span>
+                                                <span className="stat-value">{plant.tractorOperators || 0}</span>
                                             </div>
                                             <div className="stat-item">
                                                 <span className="stat-label">Trailers</span>
@@ -554,10 +591,6 @@ export default function LeaderboardsView() {
                                             <div className="stat-item">
                                                 <span className="stat-label">Equipment</span>
                                                 <span className="stat-value">{plant.equipment || 0}</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Operators</span>
-                                                <span className="stat-value">{plant.operators || 0}</span>
                                             </div>
                                         </div>
                                     </div>
