@@ -1014,10 +1014,6 @@
     }
 }
 
-.cleanup-modal {
-    max-width: 700px;
-}
-
 .modal-header {
     background: var(--background);
     display: flex;

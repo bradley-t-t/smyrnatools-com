@@ -43,6 +43,7 @@ class CleanupUtility {
     }
 
     static async verificationCheck(items, updateItemFn, assetType = 'mixer', operators = []) {
+        
         if (!items || items.length === 0) {
             return { total: 0, fixed: 0, invalidItems: [] };
         }
@@ -79,7 +80,9 @@ class CleanupUtility {
                 return false;
             }
 
-            const hasValidVIN = item.vin && ValidationUtility.isVIN(item.vin);
+            const hasValidVIN = assetType === 'equipment' 
+                ? true
+                : (item.vin && ValidationUtility.isVIN(item.vin));
             const hasMake = !!getFieldValue(item, 'make');
             const hasModel = !!getFieldValue(item, 'model');
             const hasYear = !!getFieldValue(item, 'year');
@@ -89,11 +92,23 @@ class CleanupUtility {
                 return true;
             }
 
-            if (!hasValidVIN || !hasMake || !hasModel || !hasYear) {
+            if (!hasValidVIN) {
                 return true;
             }
 
-            if (assetType === 'mixer' && item.status === 'Active') {
+            if (!hasMake) {
+                return true;
+            }
+
+            if (!hasModel) {
+                return true;
+            }
+
+            if (!hasYear) {
+                return true;
+            }
+
+            if ((assetType === 'mixer' || assetType === 'tractor') && item.status === 'Active') {
                 const hasValidOperator = item.assignedOperator && 
                     item.assignedOperator !== '0' && 
                     item.assignedOperator !== 0 &&
@@ -119,6 +134,7 @@ class CleanupUtility {
             return { total: 0, fixed: 0, invalidItems: [] };
         }
 
+
         const results = await Promise.allSettled(
             invalidItems.map(item => {
                 const oneWeekAgo = new Date();
@@ -131,6 +147,7 @@ class CleanupUtility {
         );
         
         const fixed = results.filter(r => r.status === 'fulfilled').length;
+        
         
         return { 
             total: invalidItems.length, 
@@ -163,8 +180,11 @@ class CleanupUtility {
             issues.push('Retired assets cannot be verified');
         }
 
-        if (!item.vin || !ValidationUtility.isVIN(item.vin)) {
-            issues.push('Invalid or missing VIN');
+        if (assetType !== 'equipment') {
+            const hasValidVIN = item.vin && ValidationUtility.isVIN(item.vin);
+            if (!hasValidVIN) {
+                issues.push('Invalid or missing VIN');
+            }
         }
 
         if (!getFieldValue(item, 'make')) {
@@ -179,7 +199,7 @@ class CleanupUtility {
             issues.push('Missing Year');
         }
 
-        if (assetType === 'mixer' && item.status === 'Active') {
+        if ((assetType === 'mixer' || assetType === 'tractor') && item.status === 'Active') {
             const hasValidOperator = item.assignedOperator && 
                 item.assignedOperator !== '0' && 
                 item.assignedOperator !== 0 &&
@@ -187,7 +207,7 @@ class CleanupUtility {
                 item.assignedOperator !== undefined;
 
             if (!hasValidOperator) {
-                issues.push('Missing or invalid operator for active mixer');
+                issues.push(`Missing or invalid operator for active ${assetType}`);
             } else if (operators && operators.length > 0) {
                 const operatorExists = operators.some(op => op.employeeId === item.assignedOperator);
                 if (!operatorExists) {
