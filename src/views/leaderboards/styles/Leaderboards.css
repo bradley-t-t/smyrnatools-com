@@ -104,6 +104,68 @@
     overflow: hidden;
 }
 
+.efficiency-calculation-info {
+    margin: 16px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--divider);
+}
+
+.efficiency-calculation-info .info-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.efficiency-calculation-info .info-header i {
+    color: var(--accent);
+    font-size: 16px;
+}
+
+.efficiency-calculation-info .info-header span {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.efficiency-calculation-info .info-content p {
+    font-size: 13px;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.efficiency-calculation-info .info-content ul {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.efficiency-calculation-info .info-content li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+
+.efficiency-calculation-info .info-content li strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.efficiency-calculation-info .info-content li ul {
+    margin: 4px 0 0 0;
+}
+
+.efficiency-calculation-info .info-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--divider);
+}
+
 .leaderboard-header {
     padding: 16px 20px;
     border-bottom: 1px solid var(--divider);
@@ -243,6 +305,20 @@
 .stat-item {
     text-align: right;
     min-width: 55px;
+}
+
+.stat-item.stat-highlight {
+    padding: 4px 8px;
+    background: var(--primary-alpha-10);
+    border-radius: 4px;
+}
+
+.stat-item.stat-highlight .stat-label {
+    color: var(--primary);
+}
+
+.stat-item.stat-highlight .stat-value {
+    color: var(--primary);
 }
 
 .stat-label {

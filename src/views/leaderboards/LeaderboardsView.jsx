@@ -181,6 +181,36 @@ export default function LeaderboardsView() {
                         return plant === plantCode && o.status === 'Active'
                     }).length
 
+                    const activeMixers = plantMixers.filter(m => m.status === 'Active')
+                    const mixersWithCleanliness = activeMixers.filter(m => {
+                        const rating = m.cleanlinessRating || m.cleanliness_rating
+                        return rating !== null && rating !== undefined && rating > 0
+                    })
+                    
+                    console.info(`[CLEANLINESS DEBUG] Plant ${plantCode}:`, {
+                        totalMixers: plantMixers.length,
+                        activeMixers: activeMixers.length,
+                        mixersWithCleanliness: mixersWithCleanliness.length,
+                        cleanlinessValues: mixersWithCleanliness.map(m => {
+                            const rating = m.cleanlinessRating || m.cleanliness_rating
+                            return {
+                                truckNumber: m.truckNumber || m.truck_number,
+                                cleanliness: rating
+                            }
+                        })
+                    })
+                    
+                    const avgMixerCleanliness = mixersWithCleanliness.length > 0
+                        ? mixersWithCleanliness.reduce((sum, m) => {
+                            const rating = m.cleanlinessRating || m.cleanliness_rating
+                            return sum + (parseFloat(rating) || 0)
+                        }, 0) / mixersWithCleanliness.length
+                        : 0
+
+                    const avgFleetCleanliness = Math.floor(avgMixerCleanliness)
+                    
+                    console.info(`[CLEANLINESS DEBUG] Plant ${plantCode} Average (floored):`, avgFleetCleanliness, 'from', avgMixerCleanliness)
+
                     fleetCountsByPlant[plantCode] = {
                         mixers: mixerCount,
                         tractors: tractorCount,
@@ -189,12 +219,13 @@ export default function LeaderboardsView() {
                         mixerOperators: mixerOperatorCount,
                         tractorOperators: tractorOperatorCount,
                         operators: totalOperators,
-                        totalAssets: mixerCount + tractorCount + trailerCount + equipmentCount
+                        totalAssets: mixerCount + tractorCount + trailerCount + equipmentCount,
+                        avgFleetCleanliness: avgFleetCleanliness
                     }
                 })
 
 
-                const calculateMetrics = (reportsList) => {
+                const calculateMetrics = (reportsList, avgFleetCleanliness = 0) => {
                     if (reportsList.length === 0) {
                         return null
                     }
@@ -272,6 +303,11 @@ export default function LeaderboardsView() {
 
                     const submittedWeeks = allWeeks.filter(w => !w.isMissing && !w.isNotSubmitted)
                     const totalExpectedReports = allWeeks.length
+                    
+                    const missingReports = allWeeks.filter(w => w.isMissing)
+                    const incompleteReports = allWeeks.filter(w => w.isNotSubmitted)
+                    const missingCount = missingReports.length
+                    const incompleteCount = incompleteReports.length
 
                     if (submittedWeeks.length === 0) return null
 
@@ -297,7 +333,59 @@ export default function LeaderboardsView() {
                     const yardageEfficiency = totals.totalYards > 0 ? ((totals.totalYards - totals.totalLost) / totals.totalYards * 100) : 0
                     const yphEfficiency = avgYPH > 0 ? Math.min((avgYPH / targetYPH) * 100, 100) : 0
                     const baseEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
-                    const avgEfficiency = avgYPH > 0 ? Math.max(baseEfficiency - avgYardageLost, 0) : 0
+                    
+                    console.info('[CLEANLINESS MODIFIER DEBUG]', {
+                        avgFleetCleanliness,
+                        avgFleetCleanlinessType: typeof avgFleetCleanliness,
+                        condition1: avgFleetCleanliness >= 5,
+                        condition2: avgFleetCleanliness >= 4,
+                        condition3: avgFleetCleanliness >= 3,
+                        condition4: avgFleetCleanliness > 0
+                    })
+                    
+                    let cleanlinessModifier = 0
+                    if (avgFleetCleanliness >= 5) {
+                        cleanlinessModifier = 5
+                        console.info('[CLEANLINESS MODIFIER] Applied +5% boost (5 stars)')
+                    } else if (avgFleetCleanliness >= 4) {
+                        cleanlinessModifier = 2.5
+                        console.info('[CLEANLINESS MODIFIER] Applied +2.5% boost (4 stars)')
+                    } else if (avgFleetCleanliness >= 3) {
+                        cleanlinessModifier = -2.5
+                        console.info('[CLEANLINESS MODIFIER] Applied -2.5% penalty (3 stars)')
+                    } else if (avgFleetCleanliness > 0) {
+                        cleanlinessModifier = -5
+                        console.info('[CLEANLINESS MODIFIER] Applied -5% penalty (<3 stars)')
+                    }  else {
+                        console.info('[CLEANLINESS MODIFIER] No modifier applied (0 cleanliness)')
+                    }
+                    
+                    const reportDeduction = (missingCount + incompleteCount)
+                    
+                    console.info('[MISSING/INCOMPLETE REPORTS]', {
+                        missingCount,
+                        incompleteCount,
+                        totalMissingOrIncomplete: missingCount + incompleteCount,
+                        deduction: `-${reportDeduction}%`,
+                        breakdown: `${missingCount} missing + ${incompleteCount} incomplete = ${missingCount + incompleteCount} reports × 1% = -${reportDeduction}%`
+                    })
+                    
+                    const avgEfficiency = avgYPH > 0 ? Math.max(baseEfficiency + cleanlinessModifier - reportDeduction, 0) : 0
+
+                    console.info('[EFFICIENCY CALCULATION]', {
+                        avgFleetCleanliness: avgFleetCleanliness.toFixed(2),
+                        avgYPH: avgYPH.toFixed(2),
+                        targetYPH,
+                        totalYards: totals.totalYards,
+                        totalLost: totals.totalLost,
+                        yardageEfficiency: yardageEfficiency.toFixed(2) + '%',
+                        yphEfficiency: yphEfficiency.toFixed(2) + '%',
+                        baseEfficiency: baseEfficiency.toFixed(2) + '%',
+                        cleanlinessModifier: cleanlinessModifier.toFixed(2) + '%',
+                        reportDeduction: `-${reportDeduction.toFixed(2)}%`,
+                        finalEfficiency: avgEfficiency.toFixed(2) + '%',
+                        calculation: `(${yphEfficiency.toFixed(2)}% × 0.9) + (${yardageEfficiency.toFixed(2)}% × 0.1) + ${cleanlinessModifier.toFixed(2)}% - ${reportDeduction.toFixed(2)}% = ${avgEfficiency.toFixed(2)}%`
+                    })
 
                     const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports * 100) : 100
 
@@ -321,21 +409,35 @@ export default function LeaderboardsView() {
 
                 Object.keys(userIdsByPlant).forEach(plantCode => {
                     const plantReports = filteredReports.filter(r => userIdsByPlant[plantCode].includes(r.user_id))
-                    const metrics = calculateMetrics(plantReports)
+                    const fleetData = fleetCountsByPlant[plantCode] || {
+                        mixers: 0,
+                        tractors: 0,
+                        trailers: 0,
+                        equipment: 0,
+                        operators: 0,
+                        totalAssets: 0,
+                        avgFleetCleanliness: 0
+                    }
+                    
+                    console.info(`\n======= PLANT ${plantCode} (${plantNames[plantCode] || plantCode}) =======`)
+                    console.info('Fleet Data:', {
+                        mixers: fleetData.mixers,
+                        avgFleetCleanliness: fleetData.avgFleetCleanliness?.toFixed(2) || '0.00',
+                        avgFleetCleanlinessRaw: fleetData.avgFleetCleanliness,
+                        reportCount: plantReports.length
+                    })
+                    
+                    const avgCleanlinessToUse = fleetData.avgFleetCleanliness || 0
+                    console.info('Using avgFleetCleanliness:', avgCleanlinessToUse)
+                    
+                    const metrics = calculateMetrics(plantReports, avgCleanlinessToUse)
 
                     if (metrics) {
                         plantMetricsArray.push({
                             plantCode,
                             plantName: plantNames[plantCode] || plantCode,
                             ...metrics,
-                            ...(fleetCountsByPlant[plantCode] || {
-                                mixers: 0,
-                                tractors: 0,
-                                trailers: 0,
-                                equipment: 0,
-                                operators: 0,
-                                totalAssets: 0
-                            })
+                            ...fleetData
                         })
                     }
                 })
@@ -536,6 +638,33 @@ export default function LeaderboardsView() {
                         <span className="results-count">{categoryData.length} plants</span>
                     </div>
 
+                    {selectedCategory === 'efficiency' && (
+                        <div className="efficiency-calculation-info">
+                            <div className="info-header">
+                                <i className="fas fa-info-circle"></i>
+                                <span>How Efficiency is Calculated</span>
+                            </div>
+                            <div className="info-content">
+                                <p>Efficiency is calculated using multiple factors:</p>
+                                <ul>
+                                    <li><strong>Yards Per Hour (90%):</strong> Primary metric - measures productivity against target of 3.0 YPH</li>
+                                    <li><strong>Yardage Efficiency (10%):</strong> Ratio of delivered yards vs yards lost (accounts for waste/lost concrete)</li>
+                                    <li><strong>Fleet Cleanliness Modifier:</strong> 
+                                        <ul>
+                                            <li>5 stars: +5% bonus</li>
+                                            <li>4 stars: +2.5% bonus</li>
+                                            <li>3 stars: -2.5% penalty</li>
+                                            <li>&lt;3 stars: -5% penalty</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Report Completion Penalty:</strong> -1% for each missing or incomplete report</li>
+                                </ul>
+                                <p className="info-note">Formula: (YPH Efficiency × 90%) + (Yardage Efficiency × 10%) + Cleanliness Modifier + Report Penalty</p>
+                                <p className="info-note">Higher efficiency indicates better plant performance across production, quality, fleet maintenance, and reporting compliance.</p>
+                            </div>
+                        </div>
+                    )}
+
                     {categoryData.length === 0 ? (
                         <div className="leaderboard-empty">
                             <i className="fas fa-inbox"></i>
@@ -592,6 +721,12 @@ export default function LeaderboardsView() {
                                                 <span className="stat-label">Equipment</span>
                                                 <span className="stat-value">{plant.equipment || 0}</span>
                                             </div>
+                                            {selectedCategory === 'efficiency' && plant.avgFleetCleanliness > 0 && (
+                                                <div className="stat-item">
+                                                    <span className="stat-label">Avg Cleanliness</span>
+                                                    <span className="stat-value">{plant.avgFleetCleanliness.toFixed(1)}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )

@@ -54,6 +54,7 @@ function ReportsView() {
     const [overduePageSize, setOverduePageSize] = useState(10);
     const [overdueCurrentPage, setOverdueCurrentPage] = useState(1);
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
+    const [reviewedByCurrentUser, setReviewedByCurrentUser] = useState(new Set());
 
     async function fetchProfilesFor(userIds) {
         const missing = userIds.filter(id => !userProfiles[id]);
@@ -75,7 +76,7 @@ function ReportsView() {
         const isoList = weeks.map(w => new Date(w).toISOString());
         let query = supabase
             .from('reports')
-            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
+            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
             .in('week', isoList);
         if (scope === 'my') {
             const allowedMy = regionType === 'office'
@@ -96,6 +97,25 @@ function ReportsView() {
             return;
         }
         if (!Array.isArray(data)) return;
+        
+        const reportIds = data.map(r => r.id).filter(id => id != null);
+        if (reportIds.length > 0 && scope === 'review' && user?.id) {
+            const {data: reviewedData} = await supabase
+                .from('reports_reviewed')
+                .select('report_id')
+                .in('report_id', reportIds)
+                .eq('reviewed_by_user_id', user.id);
+            
+            if (reviewedData && Array.isArray(reviewedData)) {
+                const reviewedSet = new Set(reviewedData.map(r => r.report_id));
+                setReviewedByCurrentUser(prev => {
+                    const newSet = new Set(prev);
+                    reviewedSet.forEach(id => newSet.add(id));
+                    return newSet;
+                });
+            }
+        }
+        
         setLocalReports(prev => {
             const existingIds = new Set(prev.map(r => r.id));
             const mapped = data
@@ -110,8 +130,7 @@ function ReportsView() {
                     userId: r.user_id,
                     week: r.week || r.data?.week || null,
                     report_date_range_start: r.report_date_range_start ? new Date(r.report_date_range_start) : null,
-                    report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null,
-                    been_reviewed: !!r.been_reviewed
+                    report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null
                 }));
             return [...prev, ...mapped];
         });
@@ -417,12 +436,12 @@ function ReportsView() {
                 .from('reports')
                 .update(upsertData)
                 .eq('id', existing.id)
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
                 .single()
             : await supabase
                 .from('reports')
                 .insert([upsertData])
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
                 .single();
         const {data, error} = response;
         if (error) {
@@ -484,12 +503,12 @@ function ReportsView() {
                 .from('reports')
                 .update(upsertData)
                 .eq('id', existing.id)
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
                 .single()
             : await supabase
                 .from('reports')
                 .insert([upsertData])
-                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
+                .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
                 .single();
         const {data, error} = response;
         if (error) {
@@ -521,11 +540,20 @@ function ReportsView() {
     async function handleReview(report) {
         if (report.userId !== user?.id) {
             const {error} = await supabase
-                .from('reports')
-                .update({been_reviewed: true})
-                .eq('id', report.id);
+                .from('reports_reviewed')
+                .upsert({
+                    report_id: report.id,
+                    reviewed_by_user_id: user.id,
+                    reviewed_at: new Date().toISOString()
+                }, {
+                    onConflict: 'report_id,reviewed_by_user_id'
+                });
             if (!error) {
-                setLocalReports(prev => prev.map(r => r.id === report.id ? {...r, been_reviewed: true} : r));
+                setReviewedByCurrentUser(prev => {
+                    const newSet = new Set(prev);
+                    newSet.add(report.id);
+                    return newSet;
+                });
             }
         }
         setReviewData(report);
@@ -555,7 +583,7 @@ function ReportsView() {
         }
         const {data, error} = await supabase
             .from('reports')
-            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week,been_reviewed')
+            .select('id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week')
             .eq('report_name', item.name)
             .eq('user_id', user.id)
             .eq('week', new Date(item.weekIso).toISOString())
@@ -857,7 +885,7 @@ function ReportsView() {
                                                                 <td className="rpt-td">{getUserName(report.userId)}</td>
                                                                 <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
                                                                 <td className="rpt-td">
-                                                                    {report.been_reviewed ? (
+                                                                    {reviewedByCurrentUser.has(report.id) ? (
                                                                         <>
                                                                             <i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed
                                                                         </>

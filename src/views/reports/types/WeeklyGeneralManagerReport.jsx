@@ -288,7 +288,6 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                     setRmiReport(null)
                 }
             } catch (error) {
-                console.error('Error fetching RMI report:', error)
                 setRmiReport(null)
             } finally {
                 setRmiLoading(false)
@@ -757,7 +756,6 @@ export function GeneralManagerReviewPlugin({form, plants = [], weekIso}) {
                     setRmiReport(null)
                 }
             } catch (error) {
-                console.error('Error fetching RMI report:', error)
                 setRmiReport(null)
             } finally {
                 setLoading(false)

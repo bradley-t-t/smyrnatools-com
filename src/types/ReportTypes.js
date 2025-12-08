@@ -71,7 +71,8 @@ const reportTypes = [
             {name: "fill_dirt", label: "Fill Dirt", type: "number", required: true},
             {name: "black_dirt", label: "Black Dirt", type: "number", required: true},
             {name: "select_fill", label: "Select Fill", type: "number", required: true},
-            {name: "crushed_concrete", label: "Crushed Concrete", type: "number", required: true},
+            {name: "crushed_concrete", label: "Freeport Crushed Concrete", type: "number", required: true},
+            {name: "houston_crushed_concrete", label: "Houston Crushed Concrete", type: "number", required: true},
             {name: "three_by_five_crushed", label: "3 x 5 Crushed", type: "number", required: true},
             {name: "stabilized_sand", label: "Stabilized Sand", type: "number", required: true},
             {name: "stabilized_crushed_concrete", label: "Stabilized Crushed Concrete", type: "number", required: true},
@@ -82,7 +83,6 @@ const reportTypes = [
             {name: "crushed_asphalt", label: "Crushed Asphalt", type: "number", required: true},
             {name: "screened_sand", label: "Screened Sand", type: "number", required: true},
             {name: "washout", label: "Washout", type: "number", required: true},
-            {name: "paverstone_base", label: "Paverstone Base", type: "number", required: true},
             {name: "rip_rap", label: "Rip Rap", type: "number", required: true}
         ]
     }),

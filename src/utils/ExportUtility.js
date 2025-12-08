@@ -347,7 +347,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         header(ws.getCell(r, 1), 'Aggregate Production');
         r += 2;
         const aggregateReport = await fetchAggregateProductionReport(weekIso);
-        const aggFields = [['sand', 'Sand'], ['fill_dirt', 'Fill Dirt'], ['black_dirt', 'Black Dirt'], ['select_fill', 'Select Fill'], ['crushed_concrete', 'Crushed Concrete'], ['three_by_five_crushed', '3 x 5 Crushed'], ['stabilized_sand', 'Stabilized Sand'], ['stabilized_crushed_concrete', 'Stabilized Crushed Concrete'], ['beach_quality_sand', 'Beach Quality Sand'], ['limestone_one_inch', 'Limestone - 1"'], ['white_screened_sand', 'White Screened Sand'], ['pea_gravel_three_eighths', '3/8" Pea Gravel'], ['crushed_asphalt', 'Crushed Asphalt'], ['screened_sand', 'Screened Sand'], ['washout', 'Washout'], ['paverstone_base', 'Paverstone Base'], ['rip_rap', 'Rip Rap']];
+        const aggFields = [['sand', 'Sand'], ['fill_dirt', 'Fill Dirt'], ['black_dirt', 'Black Dirt'], ['select_fill', 'Select Fill'], ['crushed_concrete', 'Freeport Crushed Concrete'], ['houston_crushed_concrete', 'Houston Crushed Concrete'], ['three_by_five_crushed', '3 x 5 Crushed'], ['stabilized_sand', 'Stabilized Sand'], ['stabilized_crushed_concrete', 'Stabilized Crushed Concrete'], ['beach_quality_sand', 'Beach Quality Sand'], ['limestone_one_inch', 'Limestone - 1"'], ['white_screened_sand', 'White Screened Sand'], ['pea_gravel_three_eighths', '3/8" Pea Gravel'], ['crushed_asphalt', 'Crushed Asphalt'], ['screened_sand', 'Screened Sand'], ['washout', 'Washout'], ['rip_rap', 'Rip Rap']];
         header(ws.getCell(r, 1), 'Material');
         header(ws.getCell(r, 2), 'Value');
         r++;
