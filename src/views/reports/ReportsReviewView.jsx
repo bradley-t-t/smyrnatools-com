@@ -257,7 +257,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                         {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' || report.name === 'ready_mix_instructor' ? null : (
                             <div className="rpts-form-fields-grid">
                                 {report.fields.map(field => (
-                                    (report.name === 'safety_manager' && field.name === 'issues') ? null : (
+                                    (report.name === 'safety_manager' && field.name === 'issues') || field.type === 'table' ? null : (
                                         <div key={field.name} className="rpts-form-field-wide">
                                             <label>
                                                 {field.name === 'yardage' ? 'Total Yardage' : field.label}

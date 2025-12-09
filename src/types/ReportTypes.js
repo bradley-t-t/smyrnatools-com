@@ -43,6 +43,7 @@ const reportTypes = [
             {name: "total_hours", label: "Total Hours", type: "number", required: true},
             {name: "total_yards_lost", label: "Total Yards Lost", type: "number", required: true},
             {name: "yards_resold", label: "Yards Resold", type: "number", required: true},
+            {name: "operators_sent_to_help", label: "Operators Sent to Other Plants", type: "table", required: false}
         ]
     }),
     createReportType({

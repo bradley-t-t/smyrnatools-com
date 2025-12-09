@@ -684,33 +684,75 @@ function ReportsSubmitView({
                                     </div>
                                 </div>
                             </>
-                        ) : report.name === 'general_manager' ? null : report.name === 'aggregate_production' ? null : report.name === 'safety_manager' ? null : report.name === 'district_manager' ? null : (
-                            report.fields.map(field => (
-                                field.name === 'issues' ? null : (
-                                    <div key={field.name} className="rpts-sbmt-field-wide">
-                                        <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}{field.required &&
-                                            <span className="rpts-sbmt-required">*</span>}</label>
-                                        {field.type === 'textarea' ? (
-                                            <textarea value={form[field.name] ?? ''}
-                                                      onChange={e => handleChange(e, field.name)}
-                                                      required={field.required} disabled={readOnly}/>
-                                        ) : field.type === 'select' ? (
-                                            <select value={form[field.name] ?? ''}
-                                                    onChange={e => handleChange(e, field.name)}
-                                                    required={field.required} disabled={readOnly}>
-                                                <option value="">Select...</option>
-                                                {field.options?.map(opt => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <input type={field.type} value={form[field.name] ?? ''}
-                                                   onChange={e => handleChange(e, field.name)} required={field.required}
-                                                   disabled={readOnly}/>
-                                        )}
-                                    </div>
-                                )
-                            ))
+                        ) : report.name === 'general_manager' ? null : report.name === 'aggregate_production' ? null : report.name === 'safety_manager' ? null : report.name === 'district_manager' ? null : report.name === 'plant_manager' ? (
+                            <div className="pm-metrics-section rpts-sbmt-grid-col-span-all">
+                                <div className="pm-metrics-header">
+                                    <h3 className="pm-metrics-title">
+                                        <i className="fas fa-clipboard-list"></i>
+                                        Weekly Production Data
+                                    </h3>
+                                    <p className="pm-metrics-subtitle">
+                                        Enter the key production metrics for this reporting period
+                                    </p>
+                                </div>
+                                <div className="pm-metrics-grid">
+                                    {report.fields.map(field => (
+                                        field.name === 'issues' || field.type === 'table' ? null : (
+                                            <div key={field.name} className="rpts-sbmt-field-wide">
+                                                <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}{field.required &&
+                                                    <span className="rpts-sbmt-required">*</span>}</label>
+                                                {field.type === 'textarea' ? (
+                                                    <textarea value={form[field.name] ?? ''}
+                                                              onChange={e => handleChange(e, field.name)}
+                                                              required={field.required} disabled={readOnly}/>
+                                                ) : field.type === 'select' ? (
+                                                    <select value={form[field.name] ?? ''}
+                                                            onChange={e => handleChange(e, field.name)}
+                                                            required={field.required} disabled={readOnly}>
+                                                        <option value="">Select...</option>
+                                                        {field.options?.map(opt => (
+                                                            <option key={opt} value={opt}>{opt}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <input type={field.type} value={form[field.name] ?? ''}
+                                                           onChange={e => handleChange(e, field.name)} required={field.required}
+                                                           disabled={readOnly}/>
+                                                )}
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rpts-sbmt-fields-container">
+                                {report.fields.map(field => (
+                                    field.name === 'issues' || field.type === 'table' ? null : (
+                                        <div key={field.name} className="rpts-sbmt-field-wide">
+                                            <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}{field.required &&
+                                                <span className="rpts-sbmt-required">*</span>}</label>
+                                            {field.type === 'textarea' ? (
+                                                <textarea value={form[field.name] ?? ''}
+                                                          onChange={e => handleChange(e, field.name)}
+                                                          required={field.required} disabled={readOnly}/>
+                                            ) : field.type === 'select' ? (
+                                                <select value={form[field.name] ?? ''}
+                                                        onChange={e => handleChange(e, field.name)}
+                                                        required={field.required} disabled={readOnly}>
+                                                    <option value="">Select...</option>
+                                                    {field.options?.map(opt => (
+                                                        <option key={opt} value={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <input type={field.type} value={form[field.name] ?? ''}
+                                                       onChange={e => handleChange(e, field.name)} required={field.required}
+                                                       disabled={readOnly}/>
+                                            )}
+                                        </div>
+                                    )
+                                ))}
+                            </div>
                         )}
                     </div>
                     {PluginComponent && (
@@ -734,6 +776,7 @@ function ReportsSubmitView({
                             readOnly={readOnly}
                             user={user}
                             userId={targetUserId}
+                            onChange={handleChange}
                         />
                     )}
                     {error && <div className="rpts-sbmt-error">{error}</div>}

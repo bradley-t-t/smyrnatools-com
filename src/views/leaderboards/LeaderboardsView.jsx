@@ -99,6 +99,57 @@ export default function LeaderboardsView() {
 
                 if (!mounted) return
 
+                const hoursAdjustmentsByPlant = {}
+                plantCodesInRegion.forEach(plantCode => {
+                    hoursAdjustmentsByPlant[plantCode] = {
+                        hoursAdded: 0,
+                        hoursSubtracted: 0,
+                        details: []
+                    }
+                })
+
+                reports.forEach(report => {
+                    if (!report.data?.operators_sent_to_help) return
+
+                    const sendingPlantProfile = profilesData.find(p => p.id === report.user_id)
+                    if (!sendingPlantProfile) return
+
+                    const sendingPlantCode = sendingPlantProfile.plant_code
+
+                    report.data.operators_sent_to_help.forEach(entry => {
+                        const {destination_plant, operators} = entry
+                        if (!operators || operators.length === 0) return
+
+                        const totalHours = operators.reduce((sum, op) => sum + (parseFloat(op.hours) || 0), 0)
+
+                        if (hoursAdjustmentsByPlant[sendingPlantCode]) {
+                            hoursAdjustmentsByPlant[sendingPlantCode].hoursSubtracted += totalHours
+                            hoursAdjustmentsByPlant[sendingPlantCode].details.push({
+                                type: 'sent',
+                                to: destination_plant,
+                                hours: totalHours,
+                                week: report.week,
+                                operatorCount: operators.length
+                            })
+                        }
+
+                        if (hoursAdjustmentsByPlant[destination_plant]) {
+                            hoursAdjustmentsByPlant[destination_plant].hoursAdded += totalHours
+                            hoursAdjustmentsByPlant[destination_plant].details.push({
+                                type: 'received',
+                                from: sendingPlantCode,
+                                hours: totalHours,
+                                week: report.week,
+                                operatorCount: operators.length
+                            })
+                        }
+                    })
+                })
+
+                Object.keys(hoursAdjustmentsByPlant).forEach(plantCode => {
+                    const adjustments = hoursAdjustmentsByPlant[plantCode]
+                })
+
                 if (!reports || reports.length === 0) {
                     setPlantMetrics([])
                     setLoading(false)
@@ -210,7 +261,7 @@ export default function LeaderboardsView() {
                 })
 
 
-                const calculateMetrics = (reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, plantCode = '', plantName = '') => {
+                const calculateMetrics = (reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, plantCode = '', plantName = '', hoursAdjustments = null) => {
                     if (reportsList.length === 0) {
                         return null
                     }
@@ -303,14 +354,30 @@ export default function LeaderboardsView() {
                         reportCount: acc.reportCount + 1
                     }), {totalYards: 0, totalHours: 0, totalLost: 0, reportCount: 0})
 
+                    let adjustedTotalHours = totals.totalHours
+                    if (hoursAdjustments) {
+                        const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
+                        adjustedTotalHours = totals.totalHours + netAdjustment
+                        
+                        if (netAdjustment !== 0) {
+                        }
+                    }
+
                     const weeksWithHours = submittedWeeks.filter(w => w.hours > 0)
                     const yardsWithHours = weeksWithHours.reduce((sum, w) => sum + w.yardage, 0)
                     const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
-                    const avgYPH = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
+                    
+                    let adjustedHoursTotal = hoursTotal
+                    if (hoursAdjustments) {
+                        const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
+                        adjustedHoursTotal = hoursTotal + netAdjustment
+                    }
+                    
+                    const avgYPH = adjustedHoursTotal > 0 ? yardsWithHours / adjustedHoursTotal : 0
 
                     const avgYardageWeekly = totals.reportCount > 0 ? totals.totalYards / totals.reportCount : 0
                     const avgYardageDaily = avgYardageWeekly / 6
-                    const avgWeeklyHours = totals.reportCount > 0 ? totals.totalHours / totals.reportCount : 0
+                    const avgWeeklyHours = totals.reportCount > 0 ? adjustedTotalHours / totals.reportCount : 0
                     const avgHoursDaily = avgWeeklyHours / 6
                     const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
                     
@@ -380,8 +447,16 @@ export default function LeaderboardsView() {
                     
                     const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
                     const mixerOperatorCount = fleetData.mixerOperators || 1
+                    const hoursAdjustments = hoursAdjustmentsByPlant[plantCode] || null
                     
-                    const metrics = calculateMetrics(plantReports, avgCleanlinessActual, mixerOperatorCount, plantCode, plantNames[plantCode] || plantCode)
+                    const metrics = calculateMetrics(
+                        plantReports, 
+                        avgCleanlinessActual, 
+                        mixerOperatorCount, 
+                        plantCode, 
+                        plantNames[plantCode] || plantCode,
+                        hoursAdjustments
+                    )
 
                     if (metrics) {
                         plantMetricsArray.push({

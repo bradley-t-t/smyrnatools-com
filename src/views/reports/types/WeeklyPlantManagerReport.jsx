@@ -3,6 +3,9 @@ import {usePreferences} from '../../../app/context/PreferencesContext'
 import {supabase} from '../../../services/DatabaseService'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {UserService} from '../../../services/UserService'
+import {RegionService} from '../../../services/RegionService'
+import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import OperatorSelectModal from '../../mixers/OperatorSelectModal'
 import '../styles/Reports.css'
 
 function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
@@ -780,7 +783,446 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
     )
 }
 
-export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso, user}) {
+function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantCode}) {
+    const [plants, setPlants] = useState([])
+    const [operators, setOperators] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [showPlantModal, setShowPlantModal] = useState(false)
+    const [selectedEntryIdForPlant, setSelectedEntryIdForPlant] = useState(null)
+    const [showOperatorModal, setShowOperatorModal] = useState(false)
+    const [selectedEntryIdForOperator, setSelectedEntryIdForOperator] = useState(null)
+    const [selectedOperatorIndex, setSelectedOperatorIndex] = useState(null)
+
+    const weekStartDate = weekIso ? new Date(weekIso + 'T00:00:00') : new Date()
+    const weekEndDate = new Date(weekStartDate)
+    weekEndDate.setDate(weekEndDate.getDate() + 5)
+    
+    const minDate = weekStartDate.toISOString().split('T')[0]
+    const maxDate = weekEndDate.toISOString().split('T')[0]
+
+    const currentPlantCode = plantCode || user?.plant_code
+
+    useEffect(() => {
+        async function fetchData() {
+            if (!currentPlantCode) {
+                setLoading(false)
+                return
+            }
+
+            try {
+                const regions = await RegionService.fetchRegionsByPlantCode(currentPlantCode)
+                if (regions && regions.length > 0) {
+                    const regionCode = regions[0].regionCode || regions[0].region_code
+                    const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                    setPlants(regionPlants || [])
+                }
+
+                const {data: operatorsData} = await supabase
+                    .from('operators')
+                    .select('employee_id, name, status, plant_code, smyrna_id, position')
+                    .eq('status', 'Active')
+                    .eq('plant_code', currentPlantCode)
+                    .eq('position', 'Mixer Operator')
+                    .order('name')
+
+                const transformedOperators = (operatorsData || []).map(op => ({
+                    employeeId: op.employee_id,
+                    name: op.name,
+                    plantCode: op.plant_code,
+                    status: op.status,
+                    smyrnaId: op.smyrna_id,
+                    position: op.position
+                }))
+
+                setOperators(transformedOperators)
+            } catch (err) {
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchData()
+    }, [currentPlantCode])
+
+    const addEntry = () => {
+        const defaultDate = minDate || new Date().toISOString().split('T')[0]
+        
+        const newEntry = {
+            id: Date.now(),
+            date: defaultDate,
+            destination_plant: '',
+            operators: [{operator_id: '', hours: ''}]
+        }
+        
+        onUpdate([...(entries || []), newEntry])
+    }
+
+    const removeEntry = (entryId) => {
+        onUpdate((entries || []).filter(e => e.id !== entryId))
+    }
+
+    const updateEntry = (entryId, field, value) => {
+        onUpdate((entries || []).map(e => 
+            e.id === entryId ? {...e, [field]: value} : e
+        ))
+    }
+
+    const addOperator = (entryId) => {
+        onUpdate((entries || []).map(e => 
+            e.id === entryId 
+                ? {...e, operators: [...e.operators, {operator_id: '', hours: ''}]}
+                : e
+        ))
+    }
+
+    const removeOperator = (entryId, operatorIndex) => {
+        onUpdate((entries || []).map(e => 
+            e.id === entryId 
+                ? {...e, operators: e.operators.filter((_, i) => i !== operatorIndex)}
+                : e
+        ))
+    }
+
+    const updateOperator = (entryId, operatorIndex, field, value) => {
+        onUpdate((entries || []).map(e => 
+            e.id === entryId 
+                ? {
+                    ...e, 
+                    operators: e.operators.map((op, i) => 
+                        i === operatorIndex ? {...op, [field]: value} : op
+                    )
+                  }
+                : e
+        ))
+    }
+
+    const getDayName = (dateString) => {
+        const date = new Date(dateString + 'T12:00:00')
+        return date.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'})
+    }
+
+    if (loading) {
+        return (
+            <div className="pm-operators-help-section">
+                <div className="pm-operators-help-header">
+                    <h4 className="pm-operators-help-title">
+                        <i className="fas fa-hands-helping"></i>
+                        Operators Sent to Other Plants
+                    </h4>
+                </div>
+                <div style={{padding: '20px', textAlign: 'center'}}>
+                    <i className="fas fa-circle-notch fa-spin"></i>
+                    <span style={{marginLeft: '10px'}}>Loading...</span>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="pm-operators-help-section">
+            <div className="pm-operators-help-header">
+                <h4 className="pm-operators-help-title">
+                    <i className="fas fa-hands-helping"></i>
+                    Operators Sent to Other Plants
+                </h4>
+                <p className="pm-operators-help-subtitle">
+                    Track operators sent to help other plants during this week
+                </p>
+            </div>
+
+            <div style={{
+                backgroundColor: '#f0f7ff',
+                border: '1px solid #d0e4ff',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '20px',
+                fontSize: '14px',
+                lineHeight: '1.6'
+            }}>
+                <div style={{ 
+                    fontWeight: '600', 
+                    marginBottom: '8px', 
+                    color: '#0066cc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <i className="fas fa-info-circle"></i>
+                    Instructions for Tracking Operator Assistance
+                </div>
+                <ul style={{ 
+                    margin: '0', 
+                    paddingLeft: '20px', 
+                    color: '#333'
+                }}>
+                    <li style={{ marginBottom: '6px' }}>Record each operator who assisted another plant, including total hours worked (including travel time)</li>
+                    <li style={{ marginBottom: '6px' }}>Create a separate entry for each day an operator helped a different plant</li>
+                    <li style={{ marginBottom: '6px' }}>For partial days, enter the actual hours worked (e.g., 4 hours for a half-day)</li>
+                    <li style={{ marginBottom: '6px' }}>If an operator helped multiple plants in one day, add individual entries for each plant</li>
+                    <li>This data contributes to plant efficiency calculations and leaderboard rankings</li>
+                </ul>
+            </div>
+
+            {!readOnly && (
+                <button 
+                    type="button"
+                    className="pm-add-entry-btn"
+                    onClick={addEntry}
+                >
+                    <i className="fas fa-plus"></i>
+                    Add Entry
+                </button>
+            )}
+
+            <div className="pm-operators-help-list">
+                {(!entries || entries.length === 0) && (
+                    <div className="pm-no-entries">
+                        <i className="fas fa-info-circle"></i>
+                        <span>No operators were sent to other plants this week</span>
+                    </div>
+                )}
+
+                {(entries || []).map((entry) => (
+                    <div key={entry.id} className="pm-help-entry">
+                        <div className="pm-help-entry-header">
+                            <div className="pm-help-entry-main">
+                                <div className="pm-help-entry-field">
+                                    <label>Date</label>
+                                    {readOnly ? (
+                                        <div className="pm-help-entry-value">
+                                            {getDayName(entry.date)}
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type="date"
+                                            value={entry.date || ''}
+                                            onChange={(e) => updateEntry(entry.id, 'date', e.target.value)}
+                                            className="pm-help-entry-input"
+                                            min={minDate}
+                                            max={maxDate}
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="pm-help-entry-field">
+                                    <label>Destination Plant</label>
+                                    {readOnly ? (
+                                        <div className="pm-help-entry-value">
+                                            {entry.destination_plant 
+                                                ? (() => {
+                                                    const plant = plants.find(p => p.plant_code === entry.destination_plant);
+                                                    return plant ? `${plant.plant_code} - ${plant.plant_name}` : entry.destination_plant;
+                                                  })()
+                                                : 'No plant selected'}
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="pm-help-entry-select"
+                                            onClick={() => {
+                                                setSelectedEntryIdForPlant(entry.id)
+                                                setShowPlantModal(true)
+                                            }}
+                                            style={{textAlign: 'left', cursor: 'pointer'}}
+                                        >
+                                            {entry.destination_plant 
+                                                ? (() => {
+                                                    const plant = plants.find(p => p.plant_code === entry.destination_plant);
+                                                    return plant ? `${plant.plant_code} - ${plant.plant_name}` : entry.destination_plant;
+                                                  })()
+                                                : 'Select Plant'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {!readOnly && (
+                                <button
+                                    type="button"
+                                    className="pm-help-entry-remove"
+                                    onClick={() => removeEntry(entry.id)}
+                                    title="Remove entry"
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="pm-help-operators-section">
+                            <div className="pm-help-operators-header">
+                                <span className="pm-help-operators-label">
+                                    <i className="fas fa-users"></i>
+                                    Operators
+                                </span>
+                                {!readOnly && (
+                                    <button
+                                        type="button"
+                                        className="pm-add-operator-btn"
+                                        onClick={() => addOperator(entry.id)}
+                                    >
+                                        <i className="fas fa-plus"></i>
+                                        Add Operator
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="pm-help-operators-list">
+                                {entry.operators.map((op, opIdx) => {
+                                    const selectedOperator = operators.find(o => o.employeeId === op.operator_id)
+                                    
+                                    return (
+                                        <div key={opIdx} className="pm-help-operator-row">
+                                            <div className="pm-help-operator-field">
+                                                <label>Operator</label>
+                                                {readOnly ? (
+                                                    <div className="pm-help-entry-value">
+                                                        {selectedOperator 
+                                                            ? selectedOperator.name
+                                                            : 'Unknown'}
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className="pm-help-operator-select"
+                                                        onClick={() => {
+                                                            setSelectedEntryIdForOperator(entry.id)
+                                                            setSelectedOperatorIndex(opIdx)
+                                                            setShowOperatorModal(true)
+                                                        }}
+                                                        style={{textAlign: 'left', cursor: 'pointer'}}
+                                                    >
+                                                        {selectedOperator 
+                                                            ? selectedOperator.name
+                                                            : 'Select Operator'}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="pm-help-operator-field">
+                                                <label>Hours</label>
+                                                {readOnly ? (
+                                                    <div className="pm-help-entry-value">
+                                                        {op.hours || '0'} hrs
+                                                    </div>
+                                                ) : (
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.5"
+                                                        value={op.hours || ''}
+                                                        onChange={(e) => updateOperator(entry.id, opIdx, 'hours', e.target.value)}
+                                                        className="pm-help-operator-input"
+                                                        placeholder="0"
+                                                    />
+                                                )}
+                                            </div>
+
+                                            {!readOnly && (
+                                                <button
+                                                    type="button"
+                                                    className="pm-help-operator-remove"
+                                                    onClick={() => removeOperator(entry.id, opIdx)}
+                                                    title="Remove operator"
+                                                >
+                                                    <i className="fas fa-times"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {showPlantModal && !loading && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => {
+                        setShowPlantModal(false)
+                        setSelectedEntryIdForPlant(null)
+                    }}
+                    onSelect={(plantCode) => {
+                        if (selectedEntryIdForPlant) {
+                            updateEntry(selectedEntryIdForPlant, 'destination_plant', plantCode)
+                        }
+                        setShowPlantModal(false)
+                        setSelectedEntryIdForPlant(null)
+                    }}
+                    plants={plants.filter(p => p.plant_code !== currentPlantCode)}
+                    currentValue={selectedEntryIdForPlant 
+                        ? entries.find(e => e.id === selectedEntryIdForPlant)?.destination_plant 
+                        : ''}
+                />
+            )}
+
+            {showOperatorModal && !loading && (
+                <OperatorSelectModal
+                    isOpen={showOperatorModal}
+                    onClose={() => {
+                        setShowOperatorModal(false)
+                        setSelectedEntryIdForOperator(null)
+                        setSelectedOperatorIndex(null)
+                    }}
+                    onSelect={(operatorId) => {
+                        if (selectedEntryIdForOperator !== null && selectedOperatorIndex !== null) {
+                            updateOperator(selectedEntryIdForOperator, selectedOperatorIndex, 'operator_id', operatorId)
+                        }
+                        setShowOperatorModal(false)
+                        setSelectedEntryIdForOperator(null)
+                        setSelectedOperatorIndex(null)
+                    }}
+                    currentValue={
+                        selectedEntryIdForOperator !== null && selectedOperatorIndex !== null
+                            ? entries.find(e => e.id === selectedEntryIdForOperator)?.operators[selectedOperatorIndex]?.operator_id
+                            : ''
+                    }
+                    operators={operators.filter(op => {
+                        if (!selectedEntryIdForOperator) return true
+                        const currentEntry = entries.find(e => e.id === selectedEntryIdForOperator)
+                        if (!currentEntry) return true
+                        const alreadySelected = currentEntry.operators
+                            .filter((_, idx) => idx !== selectedOperatorIndex)
+                            .map(o => o.operator_id)
+                        return !alreadySelected.includes(op.employeeId)
+                    })}
+                    assignedPlant={currentPlantCode}
+                    mixers={[]}
+                    onRefresh={async () => {
+                        setLoading(true)
+                        try {
+                            const {data: operatorsData} = await supabase
+                                .from('operators')
+                                .select('employee_id, name, status, plant_code, smyrna_id, position')
+                                .eq('status', 'Active')
+                                .eq('plant_code', currentPlantCode)
+                                .eq('position', 'Mixer Operator')
+                                .order('name')
+
+                            const transformedOperators = (operatorsData || []).map(op => ({
+                                employeeId: op.employee_id,
+                                name: op.name,
+                                plantCode: op.plant_code,
+                                status: op.status,
+                                smyrnaId: op.smyrna_id,
+                                position: op.position
+                            }))
+
+                            setOperators(transformedOperators)
+                        } catch (err) {
+                            console.error('Error refreshing operators:', err)
+                        } finally {
+                            setLoading(false)
+                        }
+                    }}
+                />
+            )}
+        </div>
+    )
+}
+
+export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, form, weekIso, user, setForm}) {
     const {preferences} = usePreferences()
     const isDark = preferences.themeMode === 'dark'
     const [userPlantCode, setUserPlantCode] = useState(user?.plant_code || '')
@@ -815,9 +1257,21 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
 
     const plantCode = form?.plant || userPlantCode || ''
 
+    const handleOperatorsUpdate = (entries) => {
+        setForm({...form, operators_sent_to_help: entries})
+    }
 
     return (
         <div className="pm-report-container">
+            <OperatorsSentToHelp
+                entries={form?.operators_sent_to_help || []}
+                onUpdate={handleOperatorsUpdate}
+                weekIso={weekIso}
+                readOnly={false}
+                user={user}
+                plantCode={plantCode}
+            />
+
             <div className="pm-metrics-section">
                 <div className="pm-metrics-header">
                     <h3 className="pm-metrics-title">
@@ -909,6 +1363,15 @@ export function PlantManagerReviewPlugin({
 
     return (
         <div className="pm-report-container">
+            <OperatorsSentToHelp
+                entries={form?.operators_sent_to_help || []}
+                onUpdate={() => {}}
+                weekIso={weekIso}
+                readOnly={true}
+                user={user}
+                plantCode={plantCode}
+            />
+
             <div className="pm-metrics-section">
                 <div className="pm-metrics-header">
                     <h3 className="pm-metrics-title">

@@ -44,18 +44,6 @@
     margin-left: 12px;
 }
 
-.leaderboards-loading {
-    padding: 4rem 2rem;
-    text-align: center;
-    color: var(--text-secondary);
-}
-
-.leaderboards-loading i {
-    font-size: 1.5rem;
-    color: var(--accent);
-    margin-bottom: 0.75rem;
-}
-
 .leaderboards-categories {
     display: flex;
     gap: 0;
