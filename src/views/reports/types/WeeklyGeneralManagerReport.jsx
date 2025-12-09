@@ -558,8 +558,7 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                                             <textarea 
                                                 value={String(getLastWeekValue(f.notes))} 
                                                 disabled
-                                                className="rpt-input"
-                                                style={{minHeight: '100px', maxHeight: '200px', resize: 'vertical'}}
+                                                className="rpt-input rpt-textarea-notes"
                                             />
                                         </td>
                                         <td colSpan={2}>
@@ -570,8 +569,7 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                                                     [f.notes]: e.target.value
                                                 }))} 
                                                 disabled={readOnly} 
-                                                className="rpt-input"
-                                                style={{minHeight: '100px', maxHeight: '200px', resize: 'vertical'}}
+                                                className="rpt-input rpt-textarea-notes"
                                             />
                                         </td>
                                     </tr>
@@ -655,10 +653,8 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                             </div>
                         )
                     })()}
+                    <div className="rpt-section-title">Aggregate Production</div>
                     <div className="rpt-card rpt-p-16">
-                        <div className="rpt-card-header">
-                            <div className="rpt-card-title">Aggregate Production</div>
-                        </div>
                         {aggReport ? (
                             <table className="rpt-plant-summary-table rpt-agg-table">
                                 <thead>
@@ -687,7 +683,7 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                 </div>
             )}
 
-            <div style={{marginTop: '40px'}}>
+            <div className="rpt-section-spacing">
                 <div className="rpt-card-header">
                     <div className="rpt-card-title">Ready Mix Instructor Report</div>
                 </div>
@@ -772,7 +768,7 @@ export function GeneralManagerReviewPlugin({form, plants = [], weekIso}) {
             </div>
             <div className="rpt-empty">Review view for General Manager reports.</div>
 
-            <div style={{marginTop: '40px'}}>
+            <div className="rpt-section-spacing">
                 <div className="rpt-card-header">
                     <div className="rpt-card-title">Ready Mix Instructor Report</div>
                 </div>

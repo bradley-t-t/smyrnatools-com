@@ -199,51 +199,73 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     return (
         <div className="rpts-reports-review-view">
             <div className="rpts-reports-review-container">
-                <div className="rpts-review-top-bar">
-                    <button className="rpts-report-form-back" onClick={onBack} type="button">
-                        <i className="fas fa-arrow-left"></i> Back
-                    </button>
-                    <div className="rpts-form-title">
-                        {reportTitle}
-                    </div>
-                    <div className="rpts-context">
-                        {weekVerbose ? (
-                            <div className="rpts-context-chip">
-                                <i className="far fa-calendar-alt"></i>
-                                <span>{weekVerbose}</span>
-                            </div>
-                        ) : null}
-                        {reportDateVerbose ? (
-                            <div className="rpts-context-chip">
-                                <i className="far fa-calendar-check"></i>
-                                <span>{reportDateVerbose}</span>
-                            </div>
-                        ) : null}
-                    </div>
-                    {report.name === 'general_manager' && (
-                        <button type="button" className="rpts-manager-edit-button" disabled={exporting}
-                                onClick={handleExport}>
-                            {exporting ? 'Exporting...' : 'Export'}
-                        </button>
-                    )}
-                    {hasManagerEditPermission && showManagerEditButton && (
-                        <button type="button" className="rpts-manager-edit-button"
-                                onClick={() => onManagerEdit(report, initialData)}>
-                            Manager Edit
-                        </button>
-                    )}
-                </div>
-                <div className="rpts-reports-review-status">
-                    <div className="rpts-status-badges">
-                        <div className="rpts-context-chip">{statusText}</div>
-                        <div className="rpts-context-chip">{ownerName}</div>
-                        <div className="rpts-context-chip">Assigned Plant: {assignedPlant}</div>
-                    </div>
-                    {submittedAt && (
-                        <div className="rpts-submitted-at">
-                            {isSubmitted ? 'Submitted at' : 'Last saved'}: {submittedAt}
+                <div className="rpts-report-header">
+                    <div className="rpts-report-header-top">
+                        <div className="rpts-report-header-left">
+                            <button className="rpts-report-back-btn" onClick={onBack} type="button">
+                                <i className="fas fa-arrow-left"></i> Back
+                            </button>
+                            <h1 className="rpts-report-header-title">{reportTitle}</h1>
                         </div>
-                    )}
+                        <div className="rpts-report-header-actions">
+                            <div className={`rpts-report-status-badge ${isSubmitted ? 'submitted' : 'draft'}`}>
+                                <i className={`fas ${isSubmitted ? 'fa-check-circle' : 'fa-save'}`}></i>
+                                {statusText}
+                            </div>
+                            {report.name === 'general_manager' && (
+                                <button type="button" className="rpts-manager-edit-button" disabled={exporting}
+                                        onClick={handleExport}>
+                                    <i className="fas fa-file-export"></i>
+                                    {exporting ? 'Exporting...' : 'Export'}
+                                </button>
+                            )}
+                            {hasManagerEditPermission && showManagerEditButton && (
+                                <button type="button" className="rpts-manager-edit-button"
+                                        onClick={() => onManagerEdit(report, initialData)}>
+                                    <i className="fas fa-edit"></i>
+                                    Manager Edit
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="rpts-report-header-divider"></div>
+                    <div className="rpts-report-header-meta">
+                        {weekVerbose && (
+                            <div className="rpts-report-meta-item">
+                                <i className="far fa-calendar-alt"></i>
+                                <span>Week:</span>
+                                <strong>{weekVerbose}</strong>
+                            </div>
+                        )}
+                        {reportDateVerbose && (
+                            <div className="rpts-report-meta-item">
+                                <i className="far fa-calendar-check"></i>
+                                <span>Report Date:</span>
+                                <strong>{reportDateVerbose}</strong>
+                            </div>
+                        )}
+                        {ownerName && (
+                            <div className="rpts-report-meta-item">
+                                <i className="fas fa-user"></i>
+                                <span>Submitted By:</span>
+                                <strong>{ownerName}</strong>
+                            </div>
+                        )}
+                        {assignedPlant && (
+                            <div className="rpts-report-meta-item">
+                                <i className="fas fa-industry"></i>
+                                <span>Plant:</span>
+                                <strong>{assignedPlant}</strong>
+                            </div>
+                        )}
+                        {submittedAt && (
+                            <div className="rpts-report-meta-item">
+                                <i className="far fa-clock"></i>
+                                <span>{isSubmitted ? 'Submitted:' : 'Saved:'}</span>
+                                <strong>{submittedAt}</strong>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
                 {isPlantShutdown && (
@@ -254,7 +276,32 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                 )}
                 <div className="rpts-form-body-wide">
                     <>
-                        {report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' || report.name === 'ready_mix_instructor' ? null : (
+                        {report.name === 'plant_manager' ? (
+                            <div className="pm-metrics-section pm-production-data-section">
+                                <div className="pm-metrics-header">
+                                    <h3 className="pm-metrics-title">
+                                        <i className="fas fa-clipboard-list"></i>
+                                        Weekly Production Data
+                                    </h3>
+                                    <p className="pm-metrics-subtitle">
+                                        Key production metrics for this reporting period
+                                    </p>
+                                </div>
+                                <div className="pm-production-grid">
+                                    {report.fields.map(field => (
+                                        field.name === 'issues' || field.type === 'table' ? null : (
+                                            <div key={field.name} className="pm-production-field">
+                                                <div className="pm-production-field-header">
+                                                    <i className={`fas ${field.name === 'yardage' ? 'fa-box' : field.name === 'total_hours' ? 'fa-clock' : field.name === 'total_yards_lost' ? 'fa-exclamation-triangle' : 'fa-recycle'} pm-production-field-icon`}></i>
+                                                    <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}</label>
+                                                </div>
+                                                <input type={field.type} value={form[field.name] ?? ''} readOnly disabled className="pm-production-input"/>
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+                            </div>
+                        ) : report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' || report.name === 'ready_mix_instructor' ? null : (
                             <div className="rpts-form-fields-grid">
                                 {report.fields.map(field => (
                                     (report.name === 'safety_manager' && field.name === 'issues') || field.type === 'table' ? null : (

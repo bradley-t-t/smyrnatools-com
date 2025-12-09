@@ -444,48 +444,63 @@ function ReportsSubmitView({
 
     const weekVerbose = ReportUtility.getWeekVerbose(report.weekIso)
     const reportDateVerbose = form.report_date ? ReportUtility.formatVerboseDate(form.report_date) : ''
+    const isCompleted = initialData?.completed || false
 
     return (
         <div className="rpts-sbmt-root">
             <div className="rpts-sbmt-container">
                 {managerEditUser && (
                     <div className="rpts-sbmt-edit-banner">
-                        Editing {editingUserName}s Report
+                        <i className="fas fa-edit"></i>
+                        {`Editing ${editingUserName}'s Report`}
                     </div>
                 )}
-                <div className="rpts-review-top-bar">
-                    <button className="rpts-report-form-back" onClick={handleBackClick} type="button">
-                        <i className="fas fa-arrow-left"></i> Back
-                    </button>
-                    <div className="rpts-form-title">
-                        {report.title || ''}
+                <div className="rpts-report-header">
+                    <div className="rpts-report-header-top">
+                        <div className="rpts-report-header-left">
+                            <button className="rpts-report-back-btn" onClick={handleBackClick} type="button">
+                                <i className="fas fa-arrow-left"></i> Back
+                            </button>
+                            <h1 className="rpts-report-header-title">{report.title || ''}</h1>
+                        </div>
+                        <div className="rpts-report-header-actions">
+                            <div className={`rpts-report-status-badge ${isCompleted ? 'submitted' : 'draft'}`}>
+                                <i className={`fas ${isCompleted ? 'fa-check-circle' : 'fa-edit'}`}></i>
+                                {readOnly ? 'View Only' : (isCompleted ? 'Submitted' : 'Editing')}
+                            </div>
+                            {isGM && (
+                                <button type="button" className="rpts-manager-edit-button" onClick={handleExport}
+                                        disabled={exporting}>
+                                    <i className="fas fa-file-export"></i>
+                                    {exporting ? 'Exporting...' : 'Export'}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                    <div className="rpts-context">
-                        {weekVerbose ? (
-                            <div className="rpts-context-chip">
+                    <div className="rpts-report-header-divider"></div>
+                    <div className="rpts-report-header-meta">
+                        {weekVerbose && (
+                            <div className="rpts-report-meta-item">
                                 <i className="far fa-calendar-alt"></i>
-                                <span>{weekVerbose}</span>
+                                <span>Week:</span>
+                                <strong>{weekVerbose}</strong>
                             </div>
-                        ) : null}
-                        {reportDateVerbose ? (
-                            <div className="rpts-context-chip">
+                        )}
+                        {reportDateVerbose && (
+                            <div className="rpts-report-meta-item">
                                 <i className="far fa-calendar-check"></i>
-                                <span>{reportDateVerbose}</span>
+                                <span>Report Date:</span>
+                                <strong>{reportDateVerbose}</strong>
                             </div>
-                        ) : null}
-                        {(report.name === 'plant_production' && form.plant) ? (
-                            <div className="rpts-context-chip">
+                        )}
+                        {(report.name === 'plant_production' && form.plant) && (
+                            <div className="rpts-report-meta-item">
                                 <i className="fas fa-industry"></i>
-                                <span>Plant {form.plant}</span>
+                                <span>Plant:</span>
+                                <strong>{form.plant}</strong>
                             </div>
-                        ) : null}
+                        )}
                     </div>
-                    {isGM && (
-                        <button type="button" className="rpts-manager-edit-button" onClick={handleExport}
-                                disabled={exporting}>
-                            {exporting ? 'Exporting...' : 'Export'}
-                        </button>
-                    )}
                 </div>
                 {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
                 <form className="rpts-sbmt-body" onSubmit={handleSubmit}>
@@ -528,15 +543,7 @@ function ReportsSubmitView({
                                             className="rpts-sbmt-input rpts-sbmt-date"
                                         />
                                         {report.name === 'plant_production' && (
-                                            <div style={{
-                                                background: '#e3f2fd',
-                                                border: '1px solid #2196f3',
-                                                borderRadius: '8px',
-                                                padding: '8px 12px',
-                                                marginTop: '8px',
-                                                fontSize: '14px',
-                                                color: '#0d47a1'
-                                            }}>
+                                            <div className="rpts-sbmt-next-report-notice">
                                                 Next Report {ReportUtility.formatDate(nextForcedReportDate)}
                                             </div>
                                         )}
@@ -685,7 +692,7 @@ function ReportsSubmitView({
                                 </div>
                             </>
                         ) : report.name === 'general_manager' ? null : report.name === 'aggregate_production' ? null : report.name === 'safety_manager' ? null : report.name === 'district_manager' ? null : report.name === 'plant_manager' ? (
-                            <div className="pm-metrics-section rpts-sbmt-grid-col-span-all">
+                            <div className="pm-metrics-section pm-production-data-section rpts-sbmt-grid-col-span-all">
                                 <div className="pm-metrics-header">
                                     <h3 className="pm-metrics-title">
                                         <i className="fas fa-clipboard-list"></i>
@@ -695,20 +702,25 @@ function ReportsSubmitView({
                                         Enter the key production metrics for this reporting period
                                     </p>
                                 </div>
-                                <div className="pm-metrics-grid">
+                                <div className="pm-production-grid">
                                     {report.fields.map(field => (
                                         field.name === 'issues' || field.type === 'table' ? null : (
-                                            <div key={field.name} className="rpts-sbmt-field-wide">
-                                                <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}{field.required &&
-                                                    <span className="rpts-sbmt-required">*</span>}</label>
+                                            <div key={field.name} className="pm-production-field">
+                                                <div className="pm-production-field-header">
+                                                    <i className={`fas ${field.name === 'yardage' ? 'fa-box' : field.name === 'total_hours' ? 'fa-clock' : field.name === 'total_yards_lost' ? 'fa-exclamation-triangle' : 'fa-recycle'} pm-production-field-icon`}></i>
+                                                    <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}{field.required &&
+                                                        <span className="rpts-sbmt-required">*</span>}</label>
+                                                </div>
                                                 {field.type === 'textarea' ? (
                                                     <textarea value={form[field.name] ?? ''}
                                                               onChange={e => handleChange(e, field.name)}
-                                                              required={field.required} disabled={readOnly}/>
+                                                              required={field.required} disabled={readOnly}
+                                                              className="pm-production-input"/>
                                                 ) : field.type === 'select' ? (
                                                     <select value={form[field.name] ?? ''}
                                                             onChange={e => handleChange(e, field.name)}
-                                                            required={field.required} disabled={readOnly}>
+                                                            required={field.required} disabled={readOnly}
+                                                            className="pm-production-input">
                                                         <option value="">Select...</option>
                                                         {field.options?.map(opt => (
                                                             <option key={opt} value={opt}>{opt}</option>
@@ -717,7 +729,8 @@ function ReportsSubmitView({
                                                 ) : (
                                                     <input type={field.type} value={form[field.name] ?? ''}
                                                            onChange={e => handleChange(e, field.name)} required={field.required}
-                                                           disabled={readOnly}/>
+                                                           disabled={readOnly}
+                                                           className="pm-production-input"/>
                                                 )}
                                             </div>
                                         )

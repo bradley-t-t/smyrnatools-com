@@ -732,11 +732,11 @@ function ReportsView() {
                                         <div>
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
-                                                    <div style={{width: '20%'}}>Week</div>
-                                                    <div style={{width: '25%'}}>Report Type</div>
-                                                    <div style={{width: '20%'}}>Status</div>
-                                                    <div style={{width: '20%'}}>Due Date</div>
-                                                    <div style={{width: '15%'}}>Actions</div>
+                                                    <div className="rpt-header-col-week">Week</div>
+                                                    <div className="rpt-header-col-report-type">Report Type</div>
+                                                    <div className="rpt-header-col-status">Status</div>
+                                                    <div className="rpt-header-col-due-date">Due Date</div>
+                                                    <div className="rpt-header-col-actions">Actions</div>
                                                 </div>
                                             </div>
                                             <div className="rpt-table-wrapper">
@@ -847,12 +847,12 @@ function ReportsView() {
                                         <div>
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
-                                                    <div style={{width: '18%'}}>Week</div>
-                                                    <div style={{width: '22%'}}>Report Type</div>
-                                                    <div style={{width: '20%'}}>Submitted By</div>
-                                                    <div style={{width: '16%'}}>Submitted Date</div>
-                                                    <div style={{width: '12%'}}>Reviewed</div>
-                                                    <div style={{width: '12%'}}>Actions</div>
+                                                    <div className="rpt-header-col-week-review">Week</div>
+                                                    <div className="rpt-header-col-report-type-review">Report Type</div>
+                                                    <div className="rpt-header-col-submitted-by">Submitted By</div>
+                                                    <div className="rpt-header-col-submitted-date">Submitted Date</div>
+                                                    <div className="rpt-header-col-reviewed">Reviewed</div>
+                                                    <div className="rpt-header-col-actions-review">Actions</div>
                                                 </div>
                                             </div>
                                             <div className="rpt-table-wrapper">
@@ -960,10 +960,10 @@ function ReportsView() {
                                         <div>
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
-                                                    <div style={{width: '22%'}}>Week</div>
-                                                    <div style={{width: '26%'}}>Report Type</div>
-                                                    <div style={{width: '26%'}}>Owed By</div>
-                                                    <div style={{width: '26%'}}>Due Date</div>
+                                                    <div className="rpt-header-col-week-overdue">Week</div>
+                                                    <div className="rpt-header-col-report-type-overdue">Report Type</div>
+                                                    <div className="rpt-header-col-owed-by">Owed By</div>
+                                                    <div className="rpt-header-col-due-date-overdue">Due Date</div>
                                                 </div>
                                             </div>
                                             <div className="rpt-table-wrapper">

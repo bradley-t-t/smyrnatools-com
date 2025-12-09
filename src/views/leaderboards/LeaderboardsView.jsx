@@ -147,7 +147,6 @@ export default function LeaderboardsView() {
                 })
 
                 Object.keys(hoursAdjustmentsByPlant).forEach(plantCode => {
-                    const adjustments = hoursAdjustmentsByPlant[plantCode]
                 })
 
                 if (!reports || reports.length === 0) {
@@ -261,7 +260,7 @@ export default function LeaderboardsView() {
                 })
 
 
-                const calculateMetrics = (reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, plantCode = '', plantName = '', hoursAdjustments = null) => {
+                const calculateMetrics = (reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, _plantCode = '', _plantName = '', hoursAdjustments = null) => {
                     if (reportsList.length === 0) {
                         return null
                     }
@@ -620,26 +619,75 @@ export default function LeaderboardsView() {
                     {selectedCategory === 'efficiency' && (
                         <div className="efficiency-calculation-info">
                             <div className="info-header">
-                                <i className="fas fa-info-circle"></i>
+                                <i className="fas fa-calculator"></i>
                                 <span>How Efficiency is Calculated</span>
                             </div>
-                            <div className="info-content">
-                                <p>Efficiency is calculated using multiple factors:</p>
-                                <ul>
-                                    <li><strong>Yards Per Hour (90%):</strong> Primary metric - measures productivity against target of 3.0 YPH</li>
-                                    <li><strong>Loads Efficiency (10%):</strong> Measures load volume per mixer operator against target of 3 loads/operator/day.</li>
-                                    <li><strong>Fleet Cleanliness Modifier:</strong>
-                                        <ul>
-                                            <li>5 stars: +5% bonus</li>
-                                            <li>4 stars: +2.5% bonus</li>
-                                            <li>3 stars: -2.5% penalty</li>
-                                            <li>&lt;3 stars: -5% penalty</li>
-                                        </ul>
-                                    </li>
-                                    <li><strong>Report Completion Penalty:</strong> -1% for each missing or incomplete report</li>
-                                </ul>
-                                <p className="info-note">Formula: (YPH Efficiency × 90%) + (Loads Efficiency × 10%) + Cleanliness Modifier - Report Penalty</p>
-                                <p className="info-note">Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance.</p>
+                            <div className="info-grid">
+                                <div className="info-card info-card-primary">
+                                    <div className="info-card-header">
+                                        <i className="fas fa-tachometer-alt"></i>
+                                        <span>Yards Per Hour</span>
+                                        <span className="weight-badge">90%</span>
+                                    </div>
+                                    <p>Primary productivity metric measured against target of 3.0 YPH</p>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-card-header">
+                                        <i className="fas fa-truck-loading"></i>
+                                        <span>Loads Efficiency</span>
+                                        <span className="weight-badge">10%</span>
+                                    </div>
+                                    <p>Load volume per mixer operator against target of 3 loads/operator/day</p>
+                                </div>
+                                <div className="info-card info-card-modifiers">
+                                    <div className="info-card-header">
+                                        <i className="fas fa-broom"></i>
+                                        <span>Fleet Cleanliness</span>
+                                        <span className="weight-badge modifier">Modifier</span>
+                                    </div>
+                                    <div className="modifier-grid">
+                                        <div className="modifier-item modifier-bonus">
+                                            <span className="modifier-stars">5 stars</span>
+                                            <span className="modifier-value">+5%</span>
+                                        </div>
+                                        <div className="modifier-item modifier-bonus">
+                                            <span className="modifier-stars">4 stars</span>
+                                            <span className="modifier-value">+2.5%</span>
+                                        </div>
+                                        <div className="modifier-item modifier-penalty">
+                                            <span className="modifier-stars">3 stars</span>
+                                            <span className="modifier-value">-2.5%</span>
+                                        </div>
+                                        <div className="modifier-item modifier-penalty">
+                                            <span className="modifier-stars">&lt;3 stars</span>
+                                            <span className="modifier-value">-5%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="info-card info-card-penalty">
+                                    <div className="info-card-header">
+                                        <i className="fas fa-file-alt"></i>
+                                        <span>Report Completion</span>
+                                        <span className="weight-badge penalty">Penalty</span>
+                                    </div>
+                                    <p>-1% for each missing or incomplete report</p>
+                                </div>
+                            </div>
+                            <div className="info-formula">
+                                <div className="formula-label">Formula</div>
+                                <div className="formula-content">
+                                    <span className="formula-part">(YPH × 90%)</span>
+                                    <span className="formula-operator">+</span>
+                                    <span className="formula-part">(Loads × 10%)</span>
+                                    <span className="formula-operator">+</span>
+                                    <span className="formula-part">Cleanliness</span>
+                                    <span className="formula-operator">-</span>
+                                    <span className="formula-part">Report Penalty</span>
+                                </div>
+                            </div>
+                            <div className="info-footer">
+                                <i className="fas fa-lightbulb"></i>
+                                <span>Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance. Help sent to your plant counts against your metrics, help sent to others helps your metrics.</span>
                             </div>
                         </div>
                     )}

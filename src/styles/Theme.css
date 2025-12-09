@@ -112,6 +112,17 @@
     --bg-hover: #f1f3f4;
     --star-unselected: #dadce0;
     --star-unselected-dark: #dadce0;
+    --info-bg: #e3f2fd;
+    --info-border: #d0e4ff;
+    --info-dark: #0d47a1;
+    --success-light: #22c55e;
+    --success-hover-light: #16a34a;
+    --badge-this-week-text: #22c55e;
+    --badge-last-week-text: #3b82f6;
+    --badge-older-text: #800000;
+    --mixer-color: #3b82f6;
+    --tractor-color: #8b5cf6;
+    --accent-dark-fallback: #4338ca;
 }
 
 .blue-light-mode {
@@ -422,6 +433,19 @@
     --status-completed-bg: #4ade80;
     --status-overdue-bg: #f87171;
     --status-pending-bg: #fbbf24;
+    --radius-sm: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-xxl: 24px;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    --border-radius: var(--radius-sm);
+    --border-radius-lg: var(--radius-lg);
+    --border-radius-full: 9999px;
     --gradient-accent: linear-gradient(120deg, var(--accent-dark) 0%, var(--accent) 55%, var(--accent-light) 100%);
     --gradient-accent-soft: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.25) 0%, rgba(var(--accent-primary-rgb), 0.06) 100%);
     --other-accent: #f87171;
@@ -584,7 +608,7 @@
     --transition-all: all 0.2s ease;
     --radius-input: 8px;
     --radius-md: 10px;
-    --shadow-xs: 0 1px 2px rgba(18, 8, 10, 0.4);
+    --shadow-xs: 0 1px 1px rgba(18, 8, 10, 0.4);
     --badge-bg: var(--bg-tertiary);
     --badge-bg-hover: #422d31;
     --bg-content: var(--background);
@@ -596,6 +620,19 @@
     --status-completed-bg: #4ade80;
     --status-overdue-bg: #ef4444;
     --status-pending-bg: #fbbf24;
+    --radius-sm: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-xxl: 24px;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    --border-radius: var(--radius-sm);
+    --border-radius-lg: var(--radius-lg);
+    --border-radius-full: 9999px;
     --gradient-accent: linear-gradient(120deg, var(--accent-dark) 0%, var(--accent) 55%, var(--accent-light) 100%);
     --gradient-accent-soft: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.25) 0%, rgba(var(--accent-primary-rgb), 0.06) 100%);
     --other-accent: #ef4444;

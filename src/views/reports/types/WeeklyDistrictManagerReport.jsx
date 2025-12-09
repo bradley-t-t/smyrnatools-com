@@ -134,8 +134,7 @@ export function DistrictManagerSubmitPlugin({maintenanceItems, plants, form, set
                                     <td className="dm-td-description">
                                         <div className="dm-item-desc-wrapper">
                                             <i
-                                                className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon`}
-                                                style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
+                                                className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon ${item.completed ? 'dm-item-icon-success' : item.isOverdue ? 'dm-item-icon-error' : 'dm-item-icon-pending'}`}
                                             />
                                             <span className="dm-item-text" title={item.description}>
                                                     {truncateText(item.description, 80)}
@@ -253,7 +252,6 @@ export function DistrictManagerReviewPlugin({maintenanceItems, plants, form}) {
                                         <div className="dm-item-desc-wrapper">
                                             <i
                                                 className={`fas ${item.completed ? 'fa-check-circle' : item.isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'} dm-item-icon`}
-                                                style={{color: item.completed ? 'var(--success)' : item.isOverdue ? 'var(--error)' : 'var(--accent)'}}
                                             />
                                             <span className="dm-item-text" title={item.description}>
                                                     {truncateText(item.description, 80)}

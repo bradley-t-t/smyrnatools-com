@@ -553,18 +553,13 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                     </div>
 
                     {yearlyTotals.reportCount > 0 && (
-                        <div className="pm-metrics-grid" style={{marginTop: '20px'}}>
+                        <div className="pm-metrics-grid pm-metrics-grid-spacing">
                             <div className="pm-metric-card">
                                 <div className="pm-metric-header">
                                     <i className="fas fa-percentage pm-metric-icon"></i>
                                     <span className="pm-metric-title">Average Efficiency</span>
                                 </div>
-                                <div className="pm-metric-value" style={{
-                                    fontSize: '1.8rem',
-                                    color: yearlyTotals.avgEfficiency >= 90 ? 'var(--success)' : 
-                                           yearlyTotals.avgEfficiency >= 80 ? 'var(--warning)' : 
-                                           'var(--danger)'
-                                }}>
+                                <div className={`pm-metric-value pm-metric-value-lg ${yearlyTotals.avgEfficiency >= 90 ? 'pm-metric-value-success' : yearlyTotals.avgEfficiency >= 80 ? 'pm-metric-value-warning' : 'pm-metric-value-danger'}`}>
                                     {yearlyTotals.avgEfficiency.toFixed(1)}%
                                 </div>
                                 <div className="pm-metric-grade">overall performance</div>
@@ -575,7 +570,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-box pm-metric-icon"></i>
                                     <span className="pm-metric-title">Total Yardage</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {yearlyTotals.totalYards.toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">yards produced</div>
@@ -586,7 +581,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-clock pm-metric-icon"></i>
                                     <span className="pm-metric-title">Total Hours</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {yearlyTotals.totalHours.toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">man-hours worked</div>
@@ -597,7 +592,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-tachometer-alt pm-metric-icon"></i>
                                     <span className="pm-metric-title">Average YPH</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {yearlyTotals.avgYph.toFixed(2)}
                                 </div>
                                 <div className="pm-metric-grade">yards per hour</div>
@@ -608,7 +603,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
                                     <span className="pm-metric-title">Total Lost</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {yearlyTotals.totalLost.toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">yards lost</div>
@@ -619,7 +614,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-chart-pie pm-metric-icon"></i>
                                     <span className="pm-metric-title">Average Lost</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {Math.round(yearlyTotals.totalLost / yearlyTotals.reportCount).toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">yards lost per week</div>
@@ -630,7 +625,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-calendar-week pm-metric-icon"></i>
                                     <span className="pm-metric-title">Weekly Average</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {Math.round(yearlyTotals.totalYards / yearlyTotals.reportCount).toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">yards per week</div>
@@ -641,7 +636,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-calendar-day pm-metric-icon"></i>
                                     <span className="pm-metric-title">Daily Average</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {Math.round(yearlyTotals.totalYards / (yearlyTotals.reportCount * 7)).toLocaleString()}
                                 </div>
                                 <div className="pm-metric-grade">yards per day</div>
@@ -652,7 +647,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                     <i className="fas fa-chart-line pm-metric-icon"></i>
                                     <span className="pm-metric-title">Total Weeks</span>
                                 </div>
-                                <div className="pm-metric-value" style={{fontSize: '1.8rem'}}>
+                                <div className="pm-metric-value pm-metric-value-lg">
                                     {yearlyTotals.reportCount}
                                 </div>
                                 <div className="pm-metric-grade">weeks reported</div>
@@ -793,7 +788,13 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
     const [selectedEntryIdForOperator, setSelectedEntryIdForOperator] = useState(null)
     const [selectedOperatorIndex, setSelectedOperatorIndex] = useState(null)
 
-    const weekStartDate = weekIso ? new Date(weekIso + 'T00:00:00') : new Date()
+    const getValidDate = (iso) => {
+        if (!iso) return new Date()
+        const d = new Date(iso + 'T00:00:00')
+        return isNaN(d.getTime()) ? new Date() : d
+    }
+    
+    const weekStartDate = getValidDate(weekIso)
     const weekEndDate = new Date(weekStartDate)
     weekEndDate.setDate(weekEndDate.getDate() + 5)
     
@@ -910,9 +911,9 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                         Operators Sent to Other Plants
                     </h4>
                 </div>
-                <div style={{padding: '20px', textAlign: 'center'}}>
+                <div className="pm-loading-container">
                     <i className="fas fa-circle-notch fa-spin"></i>
-                    <span style={{marginLeft: '10px'}}>Loading...</span>
+                    <span className="pm-loading-text">Loading...</span>
                 </div>
             </div>
         )
@@ -930,35 +931,16 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                 </p>
             </div>
 
-            <div style={{
-                backgroundColor: '#f0f7ff',
-                border: '1px solid #d0e4ff',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '20px',
-                fontSize: '14px',
-                lineHeight: '1.6'
-            }}>
-                <div style={{ 
-                    fontWeight: '600', 
-                    marginBottom: '8px', 
-                    color: '#0066cc',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                }}>
+            <div className="pm-instructions-box">
+                <div className="pm-instructions-header">
                     <i className="fas fa-info-circle"></i>
                     Instructions for Tracking Operator Assistance
                 </div>
-                <ul style={{ 
-                    margin: '0', 
-                    paddingLeft: '20px', 
-                    color: '#333'
-                }}>
-                    <li style={{ marginBottom: '6px' }}>Record each operator who assisted another plant, including total hours worked (including travel time)</li>
-                    <li style={{ marginBottom: '6px' }}>Create a separate entry for each day an operator helped a different plant</li>
-                    <li style={{ marginBottom: '6px' }}>For partial days, enter the actual hours worked (e.g., 4 hours for a half-day)</li>
-                    <li style={{ marginBottom: '6px' }}>If an operator helped multiple plants in one day, add individual entries for each plant</li>
+                <ul className="pm-instructions-list">
+                    <li>Record each operator who assisted another plant, including total hours worked (including travel time)</li>
+                    <li>Create a separate entry for each day an operator helped a different plant</li>
+                    <li>For partial days, enter the actual hours worked (e.g., 4 hours for a half-day)</li>
+                    <li>If an operator helped multiple plants in one day, add individual entries for each plant</li>
                     <li>This data contributes to plant efficiency calculations and leaderboard rankings</li>
                 </ul>
             </div>
@@ -1023,7 +1005,6 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                                                 setSelectedEntryIdForPlant(entry.id)
                                                 setShowPlantModal(true)
                                             }}
-                                            style={{textAlign: 'left', cursor: 'pointer'}}
                                         >
                                             {entry.destination_plant 
                                                 ? (() => {
@@ -1089,7 +1070,6 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                                                             setSelectedOperatorIndex(opIdx)
                                                             setShowOperatorModal(true)
                                                         }}
-                                                        style={{textAlign: 'left', cursor: 'pointer'}}
                                                     >
                                                         {selectedOperator 
                                                             ? selectedOperator.name
@@ -1289,12 +1269,10 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
                             <i className="fas fa-tachometer-alt pm-metric-icon"></i>
                             <span className="pm-metric-title">Yards per Man-Hour</span>
                         </div>
-                        <div className="pm-metric-value"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {formatYph(yph)}
                         </div>
-                        <div className="pm-metric-grade"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {yphLabel}
                         </div>
                         <div className="pm-metric-scale">
@@ -1310,12 +1288,10 @@ export function PlantManagerSubmitPlugin({yph, yphGrade, yphLabel, lost, lostGra
                             <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
                             <span className="pm-metric-title">Yardage Lost</span>
                         </div>
-                        <div className="pm-metric-value"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {lost !== null ? lost : '--'}
                         </div>
-                        <div className="pm-metric-grade"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {lostLabel}
                         </div>
                         <div className="pm-metric-scale">
@@ -1358,7 +1334,6 @@ export function PlantManagerReviewPlugin({
     }
 
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
-    const userId = reportUserId || user?.id
     const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
 
     return (
@@ -1389,12 +1364,10 @@ export function PlantManagerReviewPlugin({
                             <i className="fas fa-tachometer-alt pm-metric-icon"></i>
                             <span className="pm-metric-title">Yards per Man-Hour</span>
                         </div>
-                        <div className="pm-metric-value"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {formatYph(yph)}
                         </div>
-                        <div className="pm-metric-grade"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {yphLabel}
                         </div>
                         <div className="pm-metric-scale">
@@ -1410,12 +1383,10 @@ export function PlantManagerReviewPlugin({
                             <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
                             <span className="pm-metric-title">Yardage Lost</span>
                         </div>
-                        <div className="pm-metric-value"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {lost !== null ? lost : '--'}
                         </div>
-                        <div className="pm-metric-grade"
-                             style={{color: isDark ? 'var(--text-light)' : 'var(--text-primary)'}}>
+                        <div className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
                             {lostLabel}
                         </div>
                         <div className="pm-metric-scale">
