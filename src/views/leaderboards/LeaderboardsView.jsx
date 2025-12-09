@@ -8,6 +8,7 @@ import {EquipmentService} from '../../services/EquipmentService'
 import {OperatorService} from '../../services/OperatorService'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
+import LoadingScreen from '../../components/common/LoadingScreen'
 
 export default function LeaderboardsView() {
     const {preferences} = usePreferences()
@@ -209,7 +210,7 @@ export default function LeaderboardsView() {
                 })
 
 
-                const calculateMetrics = (reportsList, avgFleetCleanlinessRaw = 0, avgFleetCleanlinessFloored = 0) => {
+                const calculateMetrics = (reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, plantCode = '', plantName = '') => {
                     if (reportsList.length === 0) {
                         return null
                     }
@@ -312,26 +313,34 @@ export default function LeaderboardsView() {
                     const avgWeeklyHours = totals.reportCount > 0 ? totals.totalHours / totals.reportCount : 0
                     const avgHoursDaily = avgWeeklyHours / 6
                     const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
+                    
+                    const yardsPerLoad = 10
+                    const avgLoadsWeekly = totals.reportCount > 0 ? totals.totalYards / yardsPerLoad / totals.reportCount : 0
+                    const avgLoadsDaily = avgLoadsWeekly / 6
 
                     const targetYPH = 3.0
-                    const yardageEfficiency = totals.totalYards > 0 ? ((totals.totalYards - totals.totalLost) / totals.totalYards * 100) : 0
                     const yphEfficiency = avgYPH > 0 ? Math.min((avgYPH / targetYPH) * 100, 100) : 0
-                    const baseEfficiency = (yphEfficiency * 0.9) + (yardageEfficiency * 0.1)
+                    
+                    const loadsPerOperatorPerDay = mixerOperatorCount > 0 ? avgLoadsDaily / mixerOperatorCount : 0
+                    const targetLoadsPerOperatorPerDay = 3
+                    const loadsEfficiency = Math.min((loadsPerOperatorPerDay / targetLoadsPerOperatorPerDay) * 100, 100)
                     
                     let cleanlinessModifier = 0
-                    if (avgFleetCleanlinessFloored >= 5) {
+                    if (avgFleetCleanlinessActual >= 5) {
                         cleanlinessModifier = 5
-                    } else if (avgFleetCleanlinessFloored >= 4) {
+                    } else if (avgFleetCleanlinessActual >= 4) {
                         cleanlinessModifier = 2.5
-                    } else if (avgFleetCleanlinessFloored >= 3) {
+                    } else if (avgFleetCleanlinessActual >= 3) {
                         cleanlinessModifier = -2.5
-                    } else if (avgFleetCleanlinessFloored > 0) {
+                    } else if (avgFleetCleanlinessActual > 0) {
                         cleanlinessModifier = -5
                     }
                     
+                    const baseEfficiency = (yphEfficiency * 0.9) + (loadsEfficiency * 0.1)
+                    
                     const reportDeduction = (missingCount + incompleteCount)
                     
-                    const avgEfficiency = avgYPH > 0 ? Math.max(baseEfficiency + cleanlinessModifier - reportDeduction, 0) : 0
+                    const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency + cleanlinessModifier - reportDeduction, 0), 100) : 0
 
                     const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports * 100) : 100
 
@@ -342,7 +351,10 @@ export default function LeaderboardsView() {
                         avgYardageLost,
                         avgWeeklyHours,
                         avgHoursDaily,
+                        avgLoadsDaily,
+                        avgLoadsWeekly,
                         avgEfficiency,
+                        loadsEfficiency,
                         reportCount: totals.reportCount,
                         totalYardage: totals.totalYards,
                         totalHours: totals.totalHours,
@@ -366,10 +378,10 @@ export default function LeaderboardsView() {
                         avgFleetCleanlinessForEfficiency: 0
                     }
                     
-                    const avgCleanlinessRaw = fleetData.avgFleetCleanliness || 0
-                    const avgCleanlinessFloored = fleetData.avgFleetCleanlinessForEfficiency || 0
+                    const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
+                    const mixerOperatorCount = fleetData.mixerOperators || 1
                     
-                    const metrics = calculateMetrics(plantReports, avgCleanlinessRaw, avgCleanlinessFloored)
+                    const metrics = calculateMetrics(plantReports, avgCleanlinessActual, mixerOperatorCount, plantCode, plantNames[plantCode] || plantCode)
 
                     if (metrics) {
                         plantMetricsArray.push({
@@ -436,10 +448,6 @@ export default function LeaderboardsView() {
                 return plantMetrics
                     .filter(p => p.avgHoursDaily > 0)
                     .sort((a, b) => a.avgHoursDaily - b.avgHoursDaily)
-            case 'loss':
-                return plantMetrics
-                    .filter(p => p.avgYardageLost >= 0)
-                    .sort((a, b) => a.avgYardageLost - b.avgYardageLost)
             default:
                 return []
         }
@@ -465,33 +473,8 @@ export default function LeaderboardsView() {
                 return Math.round(plant.avgWeeklyHours).toLocaleString()
             case 'daily-hours':
                 return Math.round(plant.avgHoursDaily).toLocaleString()
-            case 'loss':
-                return Math.round(plant.avgYardageLost).toLocaleString()
             default:
                 return '--'
-        }
-    }
-
-    const getCategoryIcon = (category) => {
-        switch (category) {
-            case 'efficiency':
-                return 'fa-star'
-            case 'yph':
-                return 'fa-tachometer-alt'
-            case 'production':
-                return 'fa-chart-line'
-            case 'weekly-yardage':
-                return 'fa-calendar-week'
-            case 'daily-yardage':
-                return 'fa-calendar-day'
-            case 'weekly-hours':
-                return 'fa-clock'
-            case 'daily-hours':
-                return 'fa-hourglass-half'
-            case 'loss':
-                return 'fa-exclamation-triangle'
-            default:
-                return 'fa-trophy'
         }
     }
 
@@ -511,8 +494,6 @@ export default function LeaderboardsView() {
                 return 'Weekly Hours'
             case 'daily-hours':
                 return 'Daily Hours'
-            case 'loss':
-                return 'Lost Yardage'
             default:
                 return 'Leaderboard'
         }
@@ -521,22 +502,7 @@ export default function LeaderboardsView() {
     const categoryData = getCategoryData(selectedCategory)
 
     if (loading) {
-        return (
-            <div className="leaderboards-view">
-                <div className="leaderboards-header">
-                    <div className="leaderboards-header-inner">
-                        <div className="leaderboards-title-row">
-                            <h1 className="leaderboards-title">Performance Leaderboards</h1>
-                            <span className="leaderboards-subtitle">YTD {new Date().getFullYear()}</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="leaderboards-loading">
-                    <i className="fas fa-circle-notch fa-spin"></i>
-                    <div>Loading data...</div>
-                </div>
-            </div>
-        )
+        return <LoadingScreen message="Loading leaderboard data..." fullPage={true} />
     }
 
     return (
@@ -555,8 +521,7 @@ export default function LeaderboardsView() {
                             {id: 'weekly-yardage', label: 'Weekly Yards'},
                             {id: 'daily-yardage', label: 'Daily Yards'},
                             {id: 'weekly-hours', label: 'Weekly Hours'},
-                            {id: 'daily-hours', label: 'Daily Hours'},
-                            {id: 'loss', label: 'Loss'}
+                            {id: 'daily-hours', label: 'Daily Hours'}
                         ].map(cat => (
                             <button
                                 key={cat.id}
@@ -587,8 +552,8 @@ export default function LeaderboardsView() {
                                 <p>Efficiency is calculated using multiple factors:</p>
                                 <ul>
                                     <li><strong>Yards Per Hour (90%):</strong> Primary metric - measures productivity against target of 3.0 YPH</li>
-                                    <li><strong>Yardage Efficiency (10%):</strong> Ratio of delivered yards vs yards lost (accounts for waste/lost concrete)</li>
-                                    <li><strong>Fleet Cleanliness Modifier:</strong> 
+                                    <li><strong>Loads Efficiency (10%):</strong> Measures load volume per mixer operator against target of 3 loads/operator/day (10 yards per load)</li>
+                                    <li><strong>Fleet Cleanliness Modifier:</strong>
                                         <ul>
                                             <li>5 stars: +5% bonus</li>
                                             <li>4 stars: +2.5% bonus</li>
@@ -598,7 +563,7 @@ export default function LeaderboardsView() {
                                     </li>
                                     <li><strong>Report Completion Penalty:</strong> -1% for each missing or incomplete report</li>
                                 </ul>
-                                <p className="info-note">Formula: (YPH Efficiency × 90%) + (Yardage Efficiency × 10%) + Cleanliness Modifier + Report Penalty</p>
+                                <p className="info-note">Formula: (YPH Efficiency × 90%) + (Loads Efficiency × 10%) + Cleanliness Modifier - Report Penalty</p>
                                 <p className="info-note">Higher efficiency indicates better plant performance across production, quality, fleet maintenance, and reporting compliance.</p>
                             </div>
                         </div>
@@ -636,35 +601,64 @@ export default function LeaderboardsView() {
                                         </div>
 
                                         <div className="plant-stats">
-                                            <div className="stat-item">
-                                                <span className="stat-label">Mixers</span>
-                                                <span className="stat-value">{plant.mixers || 0}</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Mixer Operators</span>
-                                                <span className="stat-value">{plant.mixerOperators || 0}</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Tractors</span>
-                                                <span className="stat-value">{plant.tractors || 0}</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Tractor Operators</span>
-                                                <span className="stat-value">{plant.tractorOperators || 0}</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Trailers</span>
-                                                <span className="stat-value">{plant.trailers || 0}</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Equipment</span>
-                                                <span className="stat-value">{plant.equipment || 0}</span>
-                                            </div>
-                                            {selectedCategory === 'efficiency' && plant.avgFleetCleanliness > 0 && (
-                                                <div className="stat-item">
-                                                    <span className="stat-label">Avg Cleanliness</span>
-                                                    <span className="stat-value">{plant.avgFleetCleanliness.toFixed(1)}</span>
-                                                </div>
+                                            {selectedCategory === 'efficiency' ? (
+                                                <>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. YPH</span>
+                                                        <span className="stat-value">{plant.avgYPH.toFixed(2)}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Load Efficiency</span>
+                                                        <span className="stat-value">{plant.loadsEfficiency.toFixed(1)}%</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. Weekly Yards</span>
+                                                        <span className="stat-value">{Math.round(plant.avgYardageWeekly).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. Daily Yards</span>
+                                                        <span className="stat-value">{Math.round(plant.avgYardageDaily).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. Weekly Hours</span>
+                                                        <span className="stat-value">{Math.round(plant.avgWeeklyHours).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. Daily Hours</span>
+                                                        <span className="stat-value">{Math.round(plant.avgHoursDaily).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. Cleanliness</span>
+                                                        <span className="stat-value">{plant.avgFleetCleanliness > 0 ? plant.avgFleetCleanliness.toFixed(1) : 'N/A'}</span>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Mixers</span>
+                                                        <span className="stat-value">{plant.mixers || 0}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Mixer Operators</span>
+                                                        <span className="stat-value">{plant.mixerOperators || 0}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Tractors</span>
+                                                        <span className="stat-value">{plant.tractors || 0}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Tractor Operators</span>
+                                                        <span className="stat-value">{plant.tractorOperators || 0}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Trailers</span>
+                                                        <span className="stat-value">{plant.trailers || 0}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Equipment</span>
+                                                        <span className="stat-value">{plant.equipment || 0}</span>
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                     </div>
