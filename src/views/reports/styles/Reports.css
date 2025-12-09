@@ -3749,6 +3749,10 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 16px;
 }
 
 .pm-help-entry-field input {
