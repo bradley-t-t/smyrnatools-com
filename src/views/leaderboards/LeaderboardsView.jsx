@@ -552,7 +552,7 @@ export default function LeaderboardsView() {
                                 <p>Efficiency is calculated using multiple factors:</p>
                                 <ul>
                                     <li><strong>Yards Per Hour (90%):</strong> Primary metric - measures productivity against target of 3.0 YPH</li>
-                                    <li><strong>Loads Efficiency (10%):</strong> Measures load volume per mixer operator against target of 3 loads/operator/day (10 yards per load)</li>
+                                    <li><strong>Loads Efficiency (10%):</strong> Measures load volume per mixer operator against target of 3 loads/operator/day.</li>
                                     <li><strong>Fleet Cleanliness Modifier:</strong>
                                         <ul>
                                             <li>5 stars: +5% bonus</li>
@@ -564,7 +564,7 @@ export default function LeaderboardsView() {
                                     <li><strong>Report Completion Penalty:</strong> -1% for each missing or incomplete report</li>
                                 </ul>
                                 <p className="info-note">Formula: (YPH Efficiency × 90%) + (Loads Efficiency × 10%) + Cleanliness Modifier - Report Penalty</p>
-                                <p className="info-note">Higher efficiency indicates better plant performance across production, quality, fleet maintenance, and reporting compliance.</p>
+                                <p className="info-note">Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance.</p>
                             </div>
                         </div>
                     )}
