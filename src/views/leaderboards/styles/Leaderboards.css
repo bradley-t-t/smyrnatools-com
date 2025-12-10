@@ -82,7 +82,7 @@
 }
 
 .leaderboards-content {
-    padding: 20px 16px;
+    padding: 16px 12px;
 }
 
 .leaderboard-main {
@@ -93,8 +93,8 @@
 }
 
 .efficiency-calculation-info {
-    margin: 16px;
-    padding: 20px;
+    margin: 12px;
+    padding: 16px;
     background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid var(--divider);
@@ -103,34 +103,34 @@
 .efficiency-calculation-info .info-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--divider);
 }
 
 .efficiency-calculation-info .info-header i {
     color: var(--accent);
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .efficiency-calculation-info .info-header span {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .efficiency-calculation-info .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
 .efficiency-calculation-info .info-card {
     background: var(--bg-secondary);
-    border-radius: 10px;
-    padding: 16px;
+    border-radius: 8px;
+    padding: 12px;
     border: 1px solid var(--divider);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -147,28 +147,28 @@
 .efficiency-calculation-info .info-card-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 6px;
+    margin-bottom: 8px;
 }
 
 .efficiency-calculation-info .info-card-header i {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--accent);
-    width: 20px;
+    width: 18px;
     text-align: center;
 }
 
 .efficiency-calculation-info .info-card-header span {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .efficiency-calculation-info .weight-badge {
     margin-left: auto;
-    padding: 3px 8px;
+    padding: 2px 7px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     background: var(--accent) !important;
     color: #ffffff !important;
@@ -185,25 +185,25 @@
 }
 
 .efficiency-calculation-info .info-card p {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .efficiency-calculation-info .modifier-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
 }
 
 .efficiency-calculation-info .modifier-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .efficiency-calculation-info .modifier-item.modifier-bonus {
@@ -221,7 +221,7 @@
 
 .efficiency-calculation-info .modifier-value {
     font-weight: 800;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .efficiency-calculation-info .modifier-bonus .modifier-value {
@@ -234,40 +234,40 @@
 
 .efficiency-calculation-info .info-formula {
     background: var(--bg-secondary);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 16px;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
     border: 1px dashed var(--divider);
 }
 
 .efficiency-calculation-info .formula-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     color: var(--text-secondary);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .efficiency-calculation-info .formula-content {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .efficiency-calculation-info .formula-part {
     background: var(--card-bg);
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-primary);
     border: 1px solid var(--divider);
 }
 
 .efficiency-calculation-info .formula-operator {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--accent);
 }
@@ -275,8 +275,8 @@
 .efficiency-calculation-info .info-footer {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 8px;
+    padding: 10px 12px;
     background: rgba(59, 130, 246, 0.08);
     border-radius: 8px;
     border: 1px solid rgba(59, 130, 246, 0.15);
@@ -284,19 +284,19 @@
 
 .efficiency-calculation-info .info-footer i {
     color: var(--accent);
-    font-size: 14px;
+    font-size: 13px;
     margin-top: 2px;
     flex-shrink: 0;
 }
 
 .efficiency-calculation-info .info-footer span {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
 .leaderboard-header {
-    padding: 16px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--divider);
     display: flex;
     justify-content: space-between;
@@ -305,14 +305,14 @@
 }
 
 .leaderboard-header h2 {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
 }
 
 .results-count {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -404,40 +404,40 @@
 }
 
 .plant-code {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .plant-name {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
     font-weight: 500;
 }
 
 .metric-value {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
-    min-width: 100px;
+    min-width: 80px;
     text-align: right;
     letter-spacing: -0.02em;
 }
 
 .plant-stats {
     display: flex;
-    gap: 16px;
-    margin-left: 20px;
+    gap: 10px;
+    margin-left: 16px;
 }
 
 .stat-item {
     text-align: right;
-    min-width: 55px;
+    min-width: 50px;
 }
 
 .stat-item.stat-highlight {
-    padding: 4px 8px;
+    padding: 3px 6px;
     background: var(--primary-alpha-10);
     border-radius: 4px;
 }
@@ -451,17 +451,17 @@
 }
 
 .stat-label {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text-secondary);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .stat-value {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--text-primary);
 }

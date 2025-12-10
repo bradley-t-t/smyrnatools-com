@@ -146,7 +146,7 @@ export default function LeaderboardsView() {
                     })
                 })
 
-                Object.keys(hoursAdjustmentsByPlant).forEach(plantCode => {
+                Object.keys(hoursAdjustmentsByPlant).forEach(_plantCode => {
                 })
 
                 if (!reports || reports.length === 0) {
@@ -354,11 +354,23 @@ export default function LeaderboardsView() {
                     }), {totalYards: 0, totalHours: 0, totalLost: 0, reportCount: 0})
 
                     let adjustedTotalHours = totals.totalHours
+                    let helpGiven = 0
+                    let helpReceived = 0
+                    let helpRatio = 0
+                    
                     if (hoursAdjustments) {
                         const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
                         adjustedTotalHours = totals.totalHours + netAdjustment
                         
-                        if (netAdjustment !== 0) {
+                        helpGiven = hoursAdjustments.hoursSubtracted || 0
+                        helpReceived = hoursAdjustments.hoursAdded || 0
+                        
+                        if (helpReceived > 0) {
+                            helpRatio = helpGiven / helpReceived
+                        } else if (helpGiven > 0) {
+                            helpRatio = helpGiven
+                        } else {
+                            helpRatio = 0
                         }
                     }
 
@@ -404,7 +416,7 @@ export default function LeaderboardsView() {
                     
                     const baseEfficiency = (yphEfficiency * 0.9) + (loadsEfficiency * 0.1)
                     
-                    const reportDeduction = (missingCount + incompleteCount)
+                    const reportDeduction = (missingCount + incompleteCount) * 10
                     
                     const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency + cleanlinessModifier - reportDeduction, 0), 100) : 0
 
@@ -425,7 +437,12 @@ export default function LeaderboardsView() {
                         totalYardage: totals.totalYards,
                         totalHours: totals.totalHours,
                         totalLost: totals.totalLost,
-                        dataIntegrity
+                        dataIntegrity,
+                        helpGiven,
+                        helpReceived,
+                        helpRatio,
+                        missingReports: missingCount,
+                        incompleteReports: incompleteCount
                     }
                 }
 
@@ -522,6 +539,14 @@ export default function LeaderboardsView() {
                 return plantMetrics
                     .filter(p => p.avgHoursDaily > 0)
                     .sort((a, b) => a.avgHoursDaily - b.avgHoursDaily)
+            case 'help-given':
+                return plantMetrics
+                    .filter(p => p.helpGiven > 0)
+                    .sort((a, b) => b.helpGiven - a.helpGiven)
+            case 'help-received':
+                return plantMetrics
+                    .filter(p => p.helpReceived > 0)
+                    .sort((a, b) => b.helpReceived - a.helpReceived)
             default:
                 return []
         }
@@ -547,6 +572,10 @@ export default function LeaderboardsView() {
                 return Math.round(plant.avgWeeklyHours).toLocaleString()
             case 'daily-hours':
                 return Math.round(plant.avgHoursDaily).toLocaleString()
+            case 'help-given':
+                return `${Math.round(plant.helpGiven)} hours`
+            case 'help-received':
+                return `${Math.round(plant.helpReceived)} hours`
             default:
                 return '--'
         }
@@ -568,6 +597,10 @@ export default function LeaderboardsView() {
                 return 'Weekly Hours'
             case 'daily-hours':
                 return 'Daily Hours'
+            case 'help-given':
+                return 'Most Help Given'
+            case 'help-received':
+                return 'Most Help Received'
             default:
                 return 'Leaderboard'
         }
@@ -595,7 +628,9 @@ export default function LeaderboardsView() {
                             {id: 'weekly-yardage', label: 'Weekly Yards'},
                             {id: 'daily-yardage', label: 'Daily Yards'},
                             {id: 'weekly-hours', label: 'Weekly Hours'},
-                            {id: 'daily-hours', label: 'Daily Hours'}
+                            {id: 'daily-hours', label: 'Daily Hours'},
+                            {id: 'help-given', label: 'Help Given'},
+                            {id: 'help-received', label: 'Help Received'}
                         ].map(cat => (
                             <button
                                 key={cat.id}
@@ -670,7 +705,7 @@ export default function LeaderboardsView() {
                                         <span>Report Completion</span>
                                         <span className="weight-badge penalty">Penalty</span>
                                     </div>
-                                    <p>-1% for each missing or incomplete report</p>
+                                    <p>-10% for each missing or incomplete report</p>
                                 </div>
                             </div>
                             <div className="info-formula">
@@ -681,13 +716,15 @@ export default function LeaderboardsView() {
                                     <span className="formula-part">(Loads × 10%)</span>
                                     <span className="formula-operator">+</span>
                                     <span className="formula-part">Cleanliness</span>
+                                    <span className="formula-operator">+</span>
+                                    <span className="formula-part">Help Impact</span>
                                     <span className="formula-operator">-</span>
                                     <span className="formula-part">Report Penalty</span>
                                 </div>
                             </div>
                             <div className="info-footer">
                                 <i className="fas fa-lightbulb"></i>
-                                <span>Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance. Help sent to your plant counts against your metrics, help sent to others helps your metrics.</span>
+                                <span>Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance. Help Impact: Hours sent to help other plants are subtracted from your total hours (benefiting your YPH), while hours received from other plants are added to your total hours (reducing your YPH). This ensures fair comparison across plants with different collaboration patterns.</span>
                             </div>
                         </div>
                     )}
@@ -753,6 +790,62 @@ export default function LeaderboardsView() {
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Cleanliness</span>
                                                         <span className="stat-value">{plant.avgFleetCleanliness > 0 ? plant.avgFleetCleanliness.toFixed(1) : 'N/A'}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Help Net Balance</span>
+                                                        <span className="stat-value" style={{
+                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' : 
+                                                                   plant.helpGiven < plant.helpReceived ? 'var(--danger)' : 
+                                                                   'inherit'
+                                                        }}>
+                                                            {plant.helpGiven > 0 || plant.helpReceived > 0 
+                                                                ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
+                                                                : 'N/A'
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Missing Reports</span>
+                                                        <span className="stat-value" style={{
+                                                            color: (plant.missingReports || 0) + (plant.incompleteReports || 0) > 0 ? 'var(--danger)' : 'var(--success)'
+                                                        }}>
+                                                            {(plant.missingReports || 0) + (plant.incompleteReports || 0)}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            ) : selectedCategory === 'help-given' || selectedCategory === 'help-received' ? (
+                                                <>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Help Given</span>
+                                                        <span className="stat-value">{Math.round(plant.helpGiven)} hours</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Help Received</span>
+                                                        <span className="stat-value">{Math.round(plant.helpReceived)} hours</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Net Balance</span>
+                                                        <span className="stat-value" style={{
+                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' : 
+                                                                   plant.helpGiven < plant.helpReceived ? 'var(--danger)' : 
+                                                                   'inherit'
+                                                        }}>
+                                                            {plant.helpGiven > plant.helpReceived ? '+' : ''}{Math.round(plant.helpGiven - plant.helpReceived)} hours
+                                                        </span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. YPH</span>
+                                                        <span className="stat-value">{plant.avgYPH.toFixed(2)}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Total Yards</span>
+                                                        <span className="stat-value">{Math.round(plant.totalYardage).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Efficiency</span>
+                                                        <span className="stat-value" style={{color: getEfficiencyColor(plant.avgEfficiency)}}>
+                                                            {plant.avgEfficiency.toFixed(1)}%
+                                                        </span>
                                                     </div>
                                                 </>
                                             ) : (
