@@ -167,7 +167,7 @@ export function SafetyManagerSubmitPlugin({form, setForm, plants, readOnly}) {
                                 <label className="rpt-label">Plant<span className="rpt-required">*</span></label>
                                 <select disabled={readOnly} value={issue.plant}
                                         onChange={e => updateIssue(issue.id, {plant: e.target.value})}
-                                        className="rpt-select">
+                                        className="rpt-input rpt-select">
                                     <option value="">Select...</option>
                                     {plants.map(p => (
                                         <option key={p.plant_code} value={p.plant_code}>{p.plant_code}</option>
@@ -201,11 +201,13 @@ export function SafetyManagerSubmitPlugin({form, setForm, plants, readOnly}) {
                                 )}
                             </div>
                         </div>
-                        <div className="rpt-mt-16">
-                            <label className="rpt-label">Description<span className="rpt-required">*</span></label>
-                            <textarea disabled={readOnly} value={issue.description}
-                                      onChange={e => updateIssue(issue.id, {description: e.target.value})}
-                                      className="rpt-textarea"/>
+                        <div className="rpt-form-row-full">
+                            <div className="rpt-field">
+                                <label className="rpt-label">Description<span className="rpt-required">*</span></label>
+                                <textarea disabled={readOnly} value={issue.description}
+                                          onChange={e => updateIssue(issue.id, {description: e.target.value})}
+                                          className="rpt-textarea"/>
+                            </div>
                         </div>
                     </div>
                 ))}
