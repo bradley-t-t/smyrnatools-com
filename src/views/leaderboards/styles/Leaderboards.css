@@ -404,14 +404,14 @@
 }
 
 .plant-code {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
 
 .plant-name {
-    font-size: 11px;
+    font-size: 14px;
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -426,9 +426,12 @@
 }
 
 .plant-stats {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(60px, 1fr));
     gap: 10px;
     margin-left: 16px;
+    width: 100%;
+    max-width: 800px;
 }
 
 .stat-item {
@@ -437,8 +440,8 @@
 }
 
 .stat-item.stat-highlight {
-    padding: 3px 6px;
-    background: var(--primary-alpha-10);
+    padding: 2px 5px;
+    background: rgba(59, 130, 246, 0.08);
     border-radius: 4px;
 }
 

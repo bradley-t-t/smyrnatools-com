@@ -392,6 +392,9 @@ export default function LeaderboardsView() {
                     const avgHoursDaily = avgWeeklyHours / 6
                     const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
                     
+                    const avgMonthlyYards = avgYardageWeekly * 4.33
+                    const avgMonthlyHours = avgWeeklyHours * 4.33
+                    
                     const yardsPerLoad = 10
                     const avgLoadsWeekly = totals.reportCount > 0 ? totals.totalYards / yardsPerLoad / totals.reportCount : 0
                     const avgLoadsDaily = avgLoadsWeekly / 6
@@ -442,7 +445,9 @@ export default function LeaderboardsView() {
                         helpReceived,
                         helpRatio,
                         missingReports: missingCount,
-                        incompleteReports: incompleteCount
+                        incompleteReports: incompleteCount,
+                        avgMonthlyYards,
+                        avgMonthlyHours
                     }
                 }
 
@@ -531,6 +536,10 @@ export default function LeaderboardsView() {
                 return plantMetrics
                     .filter(p => p.avgYardageDaily > 0)
                     .sort((a, b) => b.avgYardageDaily - a.avgYardageDaily)
+            case 'monthly-yardage':
+                return plantMetrics
+                    .filter(p => p.avgMonthlyYards > 0)
+                    .sort((a, b) => b.avgMonthlyYards - a.avgMonthlyYards)
             case 'weekly-hours':
                 return plantMetrics
                     .filter(p => p.avgWeeklyHours > 0)
@@ -539,6 +548,10 @@ export default function LeaderboardsView() {
                 return plantMetrics
                     .filter(p => p.avgHoursDaily > 0)
                     .sort((a, b) => a.avgHoursDaily - b.avgHoursDaily)
+            case 'monthly-hours':
+                return plantMetrics
+                    .filter(p => p.avgMonthlyHours > 0)
+                    .sort((a, b) => a.avgMonthlyHours - b.avgMonthlyHours)
             case 'help-given':
                 return plantMetrics
                     .filter(p => p.helpGiven > 0)
@@ -568,10 +581,14 @@ export default function LeaderboardsView() {
                 return Math.round(plant.avgYardageWeekly).toLocaleString()
             case 'daily-yardage':
                 return Math.round(plant.avgYardageDaily).toLocaleString()
+            case 'monthly-yardage':
+                return Math.round(plant.avgMonthlyYards).toLocaleString()
             case 'weekly-hours':
                 return Math.round(plant.avgWeeklyHours).toLocaleString()
             case 'daily-hours':
                 return Math.round(plant.avgHoursDaily).toLocaleString()
+            case 'monthly-hours':
+                return Math.round(plant.avgMonthlyHours).toLocaleString()
             case 'help-given':
                 return `${Math.round(plant.helpGiven)} hours`
             case 'help-received':
@@ -593,10 +610,14 @@ export default function LeaderboardsView() {
                 return 'Weekly Yardage'
             case 'daily-yardage':
                 return 'Daily Yardage'
+            case 'monthly-yardage':
+                return 'Monthly Yardage'
             case 'weekly-hours':
                 return 'Weekly Hours'
             case 'daily-hours':
                 return 'Daily Hours'
+            case 'monthly-hours':
+                return 'Monthly Hours'
             case 'help-given':
                 return 'Most Help Given'
             case 'help-received':
@@ -625,8 +646,10 @@ export default function LeaderboardsView() {
                             {id: 'efficiency', label: 'Efficiency'},
                             {id: 'yph', label: 'YPH'},
                             {id: 'production', label: 'Total Yards'},
+                            {id: 'monthly-yardage', label: 'Monthly Yards'},
                             {id: 'weekly-yardage', label: 'Weekly Yards'},
                             {id: 'daily-yardage', label: 'Daily Yards'},
+                            {id: 'monthly-hours', label: 'Monthly Hours'},
                             {id: 'weekly-hours', label: 'Weekly Hours'},
                             {id: 'daily-hours', label: 'Daily Hours'},
                             {id: 'help-given', label: 'Help Given'},
@@ -780,12 +803,20 @@ export default function LeaderboardsView() {
                                                         <span className="stat-value">{Math.round(plant.avgYardageDaily).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
+                                                        <span className="stat-label">Avg. Monthly Yards</span>
+                                                        <span className="stat-value">{Math.round(plant.avgMonthlyYards).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
                                                         <span className="stat-label">Avg. Weekly Hours</span>
                                                         <span className="stat-value">{Math.round(plant.avgWeeklyHours).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Daily Hours</span>
                                                         <span className="stat-value">{Math.round(plant.avgHoursDaily).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Avg. Monthly Hours</span>
+                                                        <span className="stat-value">{Math.round(plant.avgMonthlyHours).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Cleanliness</span>
