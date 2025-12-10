@@ -167,7 +167,9 @@ export default function Navigation({
             }
         }
         if (showAssetsDropdown) {
-            document.addEventListener('mousedown', handleClickOutside)
+            setTimeout(() => {
+                document.addEventListener('mousedown', handleClickOutside)
+            }, 0)
         }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside)
@@ -446,14 +448,13 @@ export default function Navigation({
                                 result.push(
                                     <li
                                         key="assets-dropdown"
-                                        className={`menu-item ${isAssetsActive ? 'active' : ''}`}
+                                        className={`menu-item assets-dropdown-toggle ${isAssetsActive ? 'active' : ''}`}
                                         ref={assetsDropdownRef}
                                         onClick={(e) => {
-                                            e.stopPropagation()
-                                            setShowAssetsDropdown(!showAssetsDropdown)
+                                            setShowAssetsDropdown(prev => !prev)
                                         }}
                                         title="Assets"
-                                        style={{position: 'relative'}}
+                                        style={{position: 'relative', overflow: 'visible'}}
                                     >
                                         <span className="menu-icon">
                                             <i className="fas fa-truck"></i>
@@ -465,7 +466,7 @@ export default function Navigation({
                                             <i className={`fas fa-chevron-${showAssetsDropdown ? 'up' : 'down'}`}></i>
                                         </span>
                                         {showAssetsDropdown && (
-                                            <div className="assets-dropdown">
+                                            <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
                                                 {assetItems.map(assetId => {
                                                     const item = visibleMenuItems.find(i => i.id === assetId)
                                                     if (!item) return null

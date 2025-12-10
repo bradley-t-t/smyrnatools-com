@@ -60,7 +60,7 @@
     align-items: center;
     padding: 0;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .navbar-menu ul {
@@ -73,6 +73,7 @@
     flex-wrap: nowrap;
     min-width: 0;
     flex: 1;
+    overflow: visible;
 }
 
 .menu-item {
@@ -89,6 +90,10 @@
     user-select: none;
     flex-shrink: 1;
     min-width: 0;
+}
+
+.menu-item.assets-dropdown-toggle {
+    position: relative;
 }
 
 @media (max-width: 1400px) {
