@@ -1,6 +1,8 @@
 import React from 'react';
 import MixerUtility from '../../utils/MixerUtility';
 import CardSection from '../../components/sections/CardSection';
+import '../../components/sections/styles/DetailView.css';
+import './styles/Mixers.css';
 
 function MixerCard({
                        mixer,
@@ -50,7 +52,17 @@ function MixerCard({
             </div>
             <div className="detail-row">
                 <div className="detail-label">Status</div>
-                <div className="detail-value">{mixer.status || 'Unknown'}</div>
+                <div className="detail-value" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span>{mixer.status || 'Unknown'}</span>
+                    {mixer.status === 'In Shop' && mixer.downInYard && (
+                        <span 
+                            className="in-yard-badge" 
+                            title="This mixer is down in the yard"
+                        >
+                            IN YARD
+                        </span>
+                    )}
+                </div>
             </div>
             <div className="detail-row">
                 <div className="detail-label">Last Service</div>

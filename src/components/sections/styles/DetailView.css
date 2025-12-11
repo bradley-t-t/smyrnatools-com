@@ -1600,3 +1600,176 @@ select.form-control option {
     color: var(--text-primary);
     padding: 8px;
 }
+
+.down-in-yard-container {
+    animation: slideDownYard 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform-origin: top;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transition: all 0.3s ease;
+}
+
+.down-in-yard-container:hover {
+    background: transparent;
+}
+
+@keyframes slideDownYard {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px;
+    }
+}
+
+.down-in-yard-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    margin-top: 8px;
+    transition: all 0.2s ease;
+}
+
+.down-in-yard-toggle:hover {
+    background: var(--bg-tertiary);
+    border-color: rgba(147, 51, 234, 0.3);
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    padding: 0;
+    width: 100%;
+}
+
+.toggle-label:hover:not(.disabled) {
+    opacity: 0.9;
+}
+
+.toggle-label.disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    background: var(--bg-tertiary);
+    border-radius: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1.5px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--text-light) 0%, var(--text-secondary) 100%);
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-checkbox:checked + .toggle-switch {
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+    border-color: #7c3aed;
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(147, 51, 234, 0.3), 0 0 16px rgba(147, 51, 234, 0.15);
+}
+
+.toggle-checkbox:checked + .toggle-switch .toggle-slider {
+    transform: translateX(24px);
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-checkbox:focus + .toggle-switch {
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(147, 51, 234, 0.2);
+}
+
+.toggle-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.2px;
+    flex-grow: 1;
+}
+
+.down-in-yard-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+    color: white;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    cursor: help;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(147, 51, 234, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: pulseGlowPurple 2.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.down-in-yard-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.down-in-yard-badge:hover::before {
+    left: 100%;
+}
+
+.down-in-yard-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes pulseGlowPurple {
+    0%, 100% {
+        box-shadow: 0 2px 6px rgba(147, 51, 234, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 0 4px 16px rgba(147, 51, 234, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+}

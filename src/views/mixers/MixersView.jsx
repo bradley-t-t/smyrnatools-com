@@ -9,6 +9,7 @@ import {usePreferences} from '../../app/context/PreferencesContext';
 import MixerCard from './MixerCard';
 import '../../styles/FilterStyles.css';
 import './styles/Mixers.css';
+import '../../components/sections/styles/DetailView.css';
 import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
 import MixerCommentModal from './MixerCommentModal'
@@ -494,12 +495,24 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
                             <td style={{width: '10%'}}>{plant?.name || item.assignedPlant}</td>
                             <td style={{width: '12%'}}>{item.truckNumber}</td>
-                            <td style={{width: '12%'}}><span className="item-status-dot" style={{
-                                display: 'inline-block',
-                                verticalAlign: 'middle',
-                                marginRight: '8px',
-                                backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
-                            }}></span>{item.status}</td>
+                            <td style={{width: '12%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                    <span className="item-status-dot" style={{
+                                        display: 'inline-block',
+                                        verticalAlign: 'middle',
+                                        backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
+                                    }}></span>
+                                    <span>{item.status}</span>
+                                    {item.status === 'In Shop' && item.downInYard && (
+                                        <span 
+                                            className="in-yard-badge" 
+                                            title="This mixer is down in the yard"
+                                        >
+                                            IN YARD
+                                        </span>
+                                    )}
+                                </div>
+                            </td>
                             <td style={{width: '18%'}}>{operator?.name || 'Not Assigned'}</td>
                             <td style={{width: '12%'}}>
                                 {item.status === 'Retired' ? (

@@ -281,3 +281,31 @@ label {
     }
 }
 
+
+    50% {
+        box-shadow: 0 2px 12px rgba(234, 88, 12, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                    0 0 20px rgba(234, 88, 12, 0.2);
+    }
+}
+
+.toggle-label:not(.disabled):hover .toggle-switch {
+    border-color: var(--accent);
+}
+
+.toggle-label:not(.disabled):hover .toggle-checkbox:checked + .toggle-switch {
+    border-color: var(--warning);
+    filter: brightness(1.1);
+}
+
+.toggle-label:active:not(.disabled) .toggle-slider {
+    width: 24px;
+}
+
+.toggle-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: color 0.2s ease;
+}
+

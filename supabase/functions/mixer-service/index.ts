@@ -280,6 +280,7 @@ Deno.serve(async (req) => {
                         return y != null && Number.isFinite(Number(y)) ? Number(y) : current.year;
                     })(),
                     status,
+                    down_in_yard: "downInYard" in mixer ? (mixer.downInYard === true || mixer.downInYard === "true") : current.down_in_yard,
                     updated_last: typeof mixer?.updatedLast === "string" ? mixer.updatedLast : current.updated_last
                 };
 
@@ -302,7 +303,8 @@ Deno.serve(async (req) => {
                     {field: "make"},
                     {field: "model"},
                     {field: "year"},
-                    {field: "status"}
+                    {field: "status"},
+                    {field: "down_in_yard"}
                 ];
                 for (const f of fields) {
                     const beforeVal = (current as any)[f.field];

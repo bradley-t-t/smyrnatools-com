@@ -59,6 +59,7 @@ function MixerDetailView({mixerId, onClose}) {
     const [missingFields, setMissingFields] = useState([])
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
+    const [downInYard, setDownInYard] = useState(false)
 
     useEffect(() => {
         async function fetchData() {
@@ -85,18 +86,20 @@ function MixerDetailView({mixerId, onClose}) {
                 setMake(mixerData.make || '')
                 setModel(mixerData.model || '')
                 setYear(mixerData.year || '')
+                setDownInYard(mixerData.downInYard || false)
                 setOriginalValues({
                     truckNumber: mixerData.truckNumber || '',
                     assignedOperator: mixerData.assignedOperator || '',
                     assignedPlant: mixerData.assignedPlant || '',
                     status: mixerData.status || '',
                     cleanlinessRating: mixerData.cleanlinessRating || 0,
-                    lastServiceDate: mixerData.lastServiceDate ? new Date(mixerData.lastServiceDate) : null,
-                    lastChipDate: mixerData.lastChipDate ? new Date(mixerData.lastChipDate) : null,
+                    lastServiceDate: mixerData.lastServiceDate ? DateUtility.parseLocalDate(mixerData.lastServiceDate) : null,
+                    lastChipDate: mixerData.lastChipDate ? DateUtility.parseLocalDate(mixerData.lastChipDate) : null,
                     vin: (mixerData.vin || '').toUpperCase(),
                     make: mixerData.make || '',
                     model: mixerData.model || '',
-                    year: mixerData.year || ''
+                    year: mixerData.year || '',
+                    downInYard: mixerData.downInYard || false
                 })
                 document.documentElement.style.setProperty('--rating-value', mixerData.cleanlinessRating || 0)
                 if (mixerData.updatedBy) {
@@ -191,9 +194,10 @@ function MixerDetailView({mixerId, onClose}) {
             vin !== originalValues.vin ||
             make !== originalValues.make ||
             model !== originalValues.model ||
-            year !== originalValues.year
+            year !== originalValues.year ||
+            downInYard !== originalValues.downInYard
         setHasUnsavedChanges(hasChanges)
-    }, [truckNumber, assignedPlant, status, cleanlinessRating, lastServiceDate, lastChipDate, vin, make, model, year, originalValues, isLoading])
+    }, [truckNumber, assignedPlant, status, cleanlinessRating, lastServiceDate, lastChipDate, vin, make, model, year, downInYard, originalValues, isLoading])
 
     useEffect(() => {
         const handleBeforeUnload = e => {
@@ -306,6 +310,8 @@ function MixerDetailView({mixerId, onClose}) {
             let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating;
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1;
             
+            const finalDownInYard = statusValue === 'In Shop' ? (overrideValues.downInYard ?? downInYard) : false;
+            
             const updatedMixer = {
                 ...mixer,
                 id: mixer.id,
@@ -320,6 +326,7 @@ function MixerDetailView({mixerId, onClose}) {
                 make: overrideValues.make ?? make,
                 model: overrideValues.model ?? model,
                 year: overrideValues.year ?? year,
+                downInYard: finalDownInYard,
                 updatedAt: new Date().toISOString(),
                 updatedBy: userId,
                 updatedLast: mixer.updatedLast
@@ -354,7 +361,8 @@ function MixerDetailView({mixerId, onClose}) {
                 vin: updatedMixer.vin,
                 make: updatedMixer.make,
                 model: updatedMixer.model,
-                year: updatedMixer.year
+                year: updatedMixer.year,
+                downInYard: updatedMixer.downInYard
             })
             setHasUnsavedChanges(false)
         } catch (error) {
@@ -802,6 +810,29 @@ function MixerDetailView({mixerId, onClose}) {
                                     <option value="Retired">Retired</option>
                                 </select>
                             </div>
+                            {status === 'In Shop' && (
+                                <div className="down-in-yard-container">
+                                    <div className="down-in-yard-toggle">
+                                        <label className={`toggle-label ${!canEditMixer ? 'disabled' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={downInYard}
+                                                onChange={(e) => {
+                                                    if (canEditMixer) {
+                                                        setDownInYard(e.target.checked);
+                                                    }
+                                                }}
+                                                disabled={!canEditMixer}
+                                                className="toggle-checkbox"
+                                            />
+                                            <span className="toggle-switch">
+                                                <span className="toggle-slider"></span>
+                                            </span>
+                                            <span className="toggle-text">In Yard</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
                             <div className="form-group">
                                 <label>Assigned Plant</label>
                                 <button className="operator-select-button form-control"

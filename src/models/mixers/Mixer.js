@@ -19,6 +19,7 @@ export class Mixer {
         this.make = data.make ?? ''
         this.model = data.model ?? ''
         this.year = data.year ?? ''
+        this.downInYard = data.down_in_yard ?? false
         this.latestHistoryDate = data.latestHistoryDate ?? null
         this.openIssuesCount = data.openIssuesCount ?? 0
         this.commentsCount = data.commentsCount ?? 0
@@ -54,7 +55,8 @@ export class Mixer {
             vin: (this.vin || '').toUpperCase(),
             make: this.make,
             model: this.model,
-            year: this.year
+            year: this.year,
+            down_in_yard: this.downInYard
         };
 
         if (this.id) apiObject.id = this.id;
