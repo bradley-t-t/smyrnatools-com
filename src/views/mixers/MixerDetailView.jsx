@@ -810,6 +810,11 @@ function MixerDetailView({mixerId, onClose}) {
                                     <option value="Retired">Retired</option>
                                 </select>
                             </div>
+                            {status === 'Spare' && (
+                                <div className="spare-status-note">
+                                    If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with down toggled, not as a spare
+                                </div>
+                            )}
                             {status === 'In Shop' && (
                                 <div className="down-in-yard-container">
                                     <div className="down-in-yard-toggle">
@@ -830,6 +835,9 @@ function MixerDetailView({mixerId, onClose}) {
                                             </span>
                                             <span className="toggle-text">In Yard</span>
                                         </label>
+                                    </div>
+                                    <div className="down-in-yard-note">
+                                        Trucks that are down in the yard need to have this toggled on, but also need say &quot;In Shop&quot; as the status
                                     </div>
                                 </div>
                             )}

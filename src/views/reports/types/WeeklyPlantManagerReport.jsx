@@ -527,135 +527,9 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                 </div>
             </div>
 
-            {yearlyLoading && (
-                <div className="pm-yearly-summary">
-                    <div className="pm-yearly-header">
-                        <h4 className="pm-yearly-title">
-                            <i className="fas fa-calendar-alt"></i>
-                            Year-to-Date Totals
-                        </h4>
-                    </div>
-                    <div className="pm-trends-loading">
-                        <i className="fas fa-circle-notch fa-spin"></i>
-                        <span>Loading yearly data...</span>
-                    </div>
-                </div>
-            )}
 
-            {!yearlyLoading && yearlyTotals && (
-                <div className="pm-yearly-summary">
-                    <div className="pm-yearly-header">
-                        <h4 className="pm-yearly-title">
-                            <i className="fas fa-calendar-alt"></i>
-                            {yearlyTotals.year} Year-to-Date Totals
-                        </h4>
-                        <span className="pm-yearly-subtitle">{yearlyTotals.reportCount} reports submitted</span>
-                    </div>
 
-                    {yearlyTotals.reportCount > 0 && (
-                        <div className="pm-metrics-grid pm-metrics-grid-spacing">
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-percentage pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Average Efficiency</span>
-                                </div>
-                                <div className={`pm-metric-value pm-metric-value-lg ${yearlyTotals.avgEfficiency >= 90 ? 'pm-metric-value-success' : yearlyTotals.avgEfficiency >= 80 ? 'pm-metric-value-warning' : 'pm-metric-value-danger'}`}>
-                                    {yearlyTotals.avgEfficiency.toFixed(1)}%
-                                </div>
-                                <div className="pm-metric-grade">overall performance</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-box pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Total Yardage</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {yearlyTotals.totalYards.toLocaleString()}
-                                </div>
-                                <div className="pm-metric-grade">yards produced</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-clock pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Total Hours</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {yearlyTotals.totalHours.toLocaleString()}
-                                </div>
-                                <div className="pm-metric-grade">man-hours worked</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-tachometer-alt pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Average YPH</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {yearlyTotals.avgYph.toFixed(2)}
-                                </div>
-                                <div className="pm-metric-grade">yards per hour</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Total Lost</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {yearlyTotals.totalLost.toLocaleString()}
-                                </div>
-                                <div className="pm-metric-grade">yards lost</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-chart-pie pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Average Lost</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {Math.round(yearlyTotals.totalLost / yearlyTotals.reportCount).toLocaleString()}
-                                </div>
-                                <div className="pm-metric-grade">yards lost per week</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-calendar-week pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Weekly Average</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {Math.round(yearlyTotals.totalYards / yearlyTotals.reportCount).toLocaleString()}
-                                </div>
-                                <div className="pm-metric-grade">yards per week</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-calendar-day pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Daily Average</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {Math.round(yearlyTotals.totalYards / (yearlyTotals.reportCount * 7)).toLocaleString()}
-                                </div>
-                                <div className="pm-metric-grade">yards per day</div>
-                            </div>
-
-                            <div className="pm-metric-card">
-                                <div className="pm-metric-header">
-                                    <i className="fas fa-chart-line pm-metric-icon"></i>
-                                    <span className="pm-metric-title">Total Weeks</span>
-                                </div>
-                                <div className="pm-metric-value pm-metric-value-lg">
-                                    {yearlyTotals.reportCount}
-                                </div>
-                                <div className="pm-metric-grade">weeks reported</div>
-                            </div>
-                        </div>
-                    )}
-
-                    {yearlyTotals.weeklyBreakdown && yearlyTotals.weeklyBreakdown.length > 0 && (
+            {yearlyTotals && yearlyTotals.weeklyBreakdown && yearlyTotals.weeklyBreakdown.length > 0 && (
                         <div className="pm-weekly-breakdown">
                             <h5 className="pm-weekly-breakdown-title">Weekly Breakdown</h5>
                             <div className="pm-weekly-breakdown-table-wrapper">
@@ -772,8 +646,6 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                             )}
                         </div>
                     )}
-                </div>
-            )}
         </div>
     )
 }
