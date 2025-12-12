@@ -285,13 +285,13 @@ const LeaderboardsUtility = {
         
         let cleanlinessModifier = 0
         if (avgFleetCleanlinessActual >= 5) {
-            cleanlinessModifier = 5
+            cleanlinessModifier = 10
         } else if (avgFleetCleanlinessActual >= 4) {
-            cleanlinessModifier = 2.5
+            cleanlinessModifier = 5
         } else if (avgFleetCleanlinessActual >= 3) {
-            cleanlinessModifier = -2.5
-        } else if (avgFleetCleanlinessActual > 0) {
             cleanlinessModifier = -5
+        } else if (avgFleetCleanlinessActual > 0) {
+            cleanlinessModifier = -10
         }
         
         const baseEfficiency = (yphEfficiency * 0.9) + (loadsEfficiency * 0.1)

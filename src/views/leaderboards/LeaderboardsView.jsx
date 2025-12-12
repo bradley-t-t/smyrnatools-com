@@ -16,6 +16,8 @@ export default function LeaderboardsView() {
     const [loading, setLoading] = useState(true)
     const [plantMetrics, setPlantMetrics] = useState([])
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
+    const [helpDetailsModal, setHelpDetailsModal] = useState({isOpen: false, plant: null, details: null})
+    const [hoursAdjustmentsData, setHoursAdjustmentsData] = useState({})
 
     const selectedRegionCode = preferences.selectedRegion?.code || null
 
@@ -101,6 +103,7 @@ export default function LeaderboardsView() {
                 if (!mounted) return
 
                 const hoursAdjustmentsByPlant = LeaderboardsUtility.calculateHoursAdjustments(reports, profilesData, plantCodesInRegion)
+                setHoursAdjustmentsData(hoursAdjustmentsByPlant)
 
                 if (!reports || reports.length === 0) {
                     setPlantMetrics([])
@@ -310,19 +313,19 @@ export default function LeaderboardsView() {
                                     <div className="modifier-grid">
                                         <div className="modifier-item modifier-bonus">
                                             <span className="modifier-stars">5 stars</span>
-                                            <span className="modifier-value">+5%</span>
+                                            <span className="modifier-value">+10%</span>
                                         </div>
                                         <div className="modifier-item modifier-bonus">
                                             <span className="modifier-stars">4 stars</span>
-                                            <span className="modifier-value">+2.5%</span>
+                                            <span className="modifier-value">+5%</span>
                                         </div>
                                         <div className="modifier-item modifier-penalty">
                                             <span className="modifier-stars">3 stars</span>
-                                            <span className="modifier-value">-2.5%</span>
+                                            <span className="modifier-value">-5%</span>
                                         </div>
                                         <div className="modifier-item modifier-penalty">
                                             <span className="modifier-stars">&lt;3 stars</span>
-                                            <span className="modifier-value">-5%</span>
+                                            <span className="modifier-value">-10%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -426,8 +429,19 @@ export default function LeaderboardsView() {
                                                         <span className="stat-label">Avg. Cleanliness</span>
                                                         <span className="stat-value">{plant.avgFleetCleanliness > 0 ? plant.avgFleetCleanliness.toFixed(1) : 'N/A'}</span>
                                                     </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Help Net Balance</span>
+                                                    <div 
+                                                        className="stat-item stat-item-clickable"
+                                                        onClick={() => {
+                                                            const details = hoursAdjustmentsData[plant.plantCode]
+                                                            if (details && (details.hoursAdded > 0 || details.hoursSubtracted > 0)) {
+                                                                setHelpDetailsModal({isOpen: true, plant, details})
+                                                            }
+                                                        }}
+                                                    >
+                                                        <span className="stat-label">
+                                                            Help Net Balance
+                                                            {(plant.helpGiven > 0 || plant.helpReceived > 0) && <i className="fas fa-info-circle help-info-icon"></i>}
+                                                        </span>
                                                         <span className="stat-value" style={{
                                                             color: plant.helpGiven > plant.helpReceived ? 'var(--success)' : 
                                                                    plant.helpGiven < plant.helpReceived ? 'var(--danger)' : 
@@ -519,6 +533,81 @@ export default function LeaderboardsView() {
                     )}
                 </div>
             </div>
+
+            {helpDetailsModal.isOpen && helpDetailsModal.details && (
+                <div className="help-details-modal-overlay" onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                    <div className="help-details-modal" onClick={e => e.stopPropagation()}>
+                        <div className="help-details-modal-header">
+                            <h3>
+                                <i className="fas fa-exchange-alt"></i>
+                                Help Details - Plant {helpDetailsModal.plant?.plantCode}
+                            </h3>
+                            <button className="close-btn" onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div className="help-details-modal-summary">
+                            <div className="summary-item summary-given">
+                                <span className="summary-label">Total Help Given</span>
+                                <span className="summary-value">{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
+                            </div>
+                            <div className="summary-item summary-received">
+                                <span className="summary-label">Total Help Received</span>
+                                <span className="summary-value">{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
+                            </div>
+                            <div className={`summary-item summary-net ${helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? 'net-positive' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? 'net-negative' : ''}`}>
+                                <span className="summary-label">Net Balance</span>
+                                <span className="summary-value">
+                                    {helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '+' : ''}
+                                    {Math.round(helpDetailsModal.details.hoursSubtracted - helpDetailsModal.details.hoursAdded)} hours
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="help-details-modal-content">
+                            {helpDetailsModal.details.details && helpDetailsModal.details.details.length > 0 ? (
+                                <div className="help-entries-list">
+                                    {helpDetailsModal.details.details
+                                        .sort((a, b) => new Date(b.week) - new Date(a.week))
+                                        .map((entry, idx) => {
+                                            const isSent = entry.type === 'sent'
+                                            return (
+                                                <div key={`entry-${idx}`} className={`help-entry ${isSent ? 'help-entry-sent' : 'help-entry-received'}`}>
+                                                    <div className="help-entry-main">
+                                                        <span className={`help-entry-indicator ${isSent ? 'indicator-positive' : 'indicator-negative'}`}>
+                                                            {isSent ? '+' : '-'}
+                                                        </span>
+                                                        <span className="help-entry-plant">
+                                                            {isSent ? `To Plant ${entry.to}` : `From Plant ${entry.from}`}
+                                                        </span>
+                                                        <span className="help-entry-hours">{Math.round(entry.hours)} hours</span>
+                                                    </div>
+                                                    <div className="help-entry-details">
+                                                        <span className="help-entry-date">
+                                                            <i className="fas fa-calendar"></i>
+                                                            {new Date(entry.week).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                                                        </span>
+                                                        <span className="help-entry-operators">
+                                                            <i className="fas fa-users"></i>
+                                                            {entry.operatorCount} operator{entry.operatorCount !== 1 ? 's' : ''}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </div>
+                            ) : (
+                                <div className="help-details-empty">
+                                    <i className="fas fa-info-circle"></i>
+                                    <p>No detailed help records available</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
