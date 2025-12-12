@@ -189,10 +189,11 @@ class UserPresenceService {
             const users = []
             for (const presence of presences || []) {
                 try {
-                    const [name, rolesData, profile] = await Promise.all([
+                    const [name, rolesData, profile, userRoleWeight] = await Promise.all([
                         UserService.getUserDisplayName(presence.user_id),
                         UserService.getUserRoles(presence.user_id),
-                        UserService.getUserProfile(presence.user_id).catch(() => null)
+                        UserService.getUserProfile(presence.user_id).catch(() => null),
+                        UserService.getUserWeight(presence.user_id).catch(() => 0)
                     ])
 
                     let roleNames = []
@@ -228,6 +229,7 @@ class UserPresenceService {
                         id: presence.user_id,
                         name,
                         roles: roleNames,
+                        roleWeight: userRoleWeight || 0,
                         regionCode,
                         lastSeen: presence.last_seen,
                         lastActivity: presence.last_activity

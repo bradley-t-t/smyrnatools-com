@@ -58,12 +58,14 @@ function OnlineUsersOverlay() {
     if (!preferences || preferences.showOnlineOverlay === false) return null;
     if (!isLoggedIn || loading || error || onlineUsers.length === 0) return null;
 
+    const sortedUsers = [...onlineUsers].sort((a, b) => (b.roleWeight || 0) - (a.roleWeight || 0));
+
     return (
         <div className={`ouo-online-users-overlay${isExpanded ? ' expanded' : ''}${isMinimized ? ' minimized' : ''}`}>
             {isMinimized ? (
                 <div className="ouo-online-users-minimized-compact" onClick={toggleMinimize} tabIndex={0}
                      aria-label="Show online users" role="button">
-                    <span className="ouo-user-count">{onlineUsers.length}</span>
+                    <span className="ouo-user-count">{sortedUsers.length}</span>
                     <button className="ouo-action-button ouo-icon-only" tabIndex={-1} aria-hidden="true">
                         <i className="fas fa-user"></i>
                     </button>
@@ -75,7 +77,7 @@ function OnlineUsersOverlay() {
                             <i className="fas fa-users"></i>
                             <span>Online Users</span>
                             <div
-                                className={`ouo-user-count${animateCount ? ' ouo-pulse' : ''}`}>{onlineUsers.length}</div>
+                                className={`ouo-user-count${animateCount ? ' ouo-pulse' : ''}`}>{sortedUsers.length}</div>
                         </div>
                         <div className="ouo-header-actions">
                             <button className="ouo-action-button ouo-circle" onClick={toggleExpand}
@@ -90,7 +92,7 @@ function OnlineUsersOverlay() {
                         </div>
                     </div>
                     <div className="ouo-online-users-list">
-                        {onlineUsers.slice(0, isExpanded ? onlineUsers.length : 3).map(user => {
+                        {sortedUsers.slice(0, isExpanded ? sortedUsers.length : 3).map(user => {
                             let displayName = typeof user.name === 'string' ? user.name : '';
                             let avatarChar = displayName.length > 0 ? displayName.charAt(0).toUpperCase() : 'U';
                             const userRoles = Array.isArray(user.roles) ? user.roles : [];
@@ -122,9 +124,9 @@ function OnlineUsersOverlay() {
                                 </div>
                             );
                         })}
-                        {!isExpanded && onlineUsers.length > 3 && (
+                        {!isExpanded && sortedUsers.length > 3 && (
                             <div className="ouo-more-users">
-                                <span>+{onlineUsers.length - 3} more</span>
+                                <span>+{sortedUsers.length - 3} more</span>
                                 <button className="ouo-action-button ouo-circle ouo-icon-only" title="Show more"
                                         aria-label="Show more users" onClick={toggleExpand}>
                                     <i className="fas fa-chevron-down"></i>

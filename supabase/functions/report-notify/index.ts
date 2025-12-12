@@ -99,6 +99,77 @@ async function filterRecipientsByEmailPreference(users, supabase) {
     })
 }
 
+async function getSubmitterRegions(supabase, submitterId) {
+    if (!submitterId) return null
+    const {data: profile} = await supabase
+        .from('users_profiles')
+        .select('regions, plant_code')
+        .eq('id', submitterId)
+        .maybeSingle()
+    if (!profile) return null
+    const regions = Array.isArray(profile.regions) ? profile.regions.filter(r => typeof r === 'string' && r.trim()) : []
+    if (regions.length > 0) return regions
+    if (profile.plant_code) {
+        const {data: regionPlants} = await supabase
+            .from('region_plants')
+            .select('region_code')
+            .eq('plant_code', profile.plant_code)
+        if (regionPlants && regionPlants.length > 0) {
+            return regionPlants.map(rp => rp.region_code).filter(Boolean)
+        }
+    }
+    return null
+}
+
+async function filterRecipientsByRegion(users, supabase, submitterRegions) {
+    if (!Array.isArray(users) || users.length === 0) return []
+    if (!submitterRegions || submitterRegions.length === 0) return users
+    const ids = users.map(u => u.id).filter(Boolean)
+    if (!ids.length) return []
+    const {data: profiles} = await supabase
+        .from('users_profiles')
+        .select('id, regions, plant_code')
+        .in('id', ids)
+    if (!profiles || profiles.length === 0) return []
+    const {data: allRolePerms} = await supabase
+        .from('users_roles')
+        .select('permissions')
+        .overlaps('permissions', ['regions.select.all'])
+    const hasAllRegionsRole = allRolePerms && allRolePerms.length > 0
+    let usersWithAllRegionsPerm = new Set()
+    if (hasAllRegionsRole) {
+        const roleIds = await supabase
+            .from('users_roles')
+            .select('id')
+            .overlaps('permissions', ['regions.select.all'])
+            .then(r => (r.data || []).map(role => role.id))
+        if (roleIds && roleIds.length > 0) {
+            const {data: perms} = await supabase
+                .from('users_permissions')
+                .select('user_id')
+                .in('role_id', roleIds)
+            if (perms) {
+                usersWithAllRegionsPerm = new Set(perms.map(p => p.user_id).filter(Boolean))
+            }
+        }
+    }
+    const {data: regionPlants} = await supabase
+        .from('region_plants')
+        .select('region_code, plant_code')
+        .in('region_code', submitterRegions)
+    const plantsInRegion = new Set((regionPlants || []).map(rp => rp.plant_code).filter(Boolean))
+    return users.filter(u => {
+        if (usersWithAllRegionsPerm.has(u.id)) return true
+        const profile = profiles.find(p => p.id === u.id)
+        if (!profile) return false
+        const userRegions = Array.isArray(profile.regions) ? profile.regions.filter(r => typeof r === 'string' && r.trim()) : []
+        const hasMatchingRegion = userRegions.some(r => submitterRegions.includes(r))
+        if (hasMatchingRegion) return true
+        if (profile.plant_code && plantsInRegion.has(profile.plant_code)) return true
+        return false
+    })
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === 'OPTIONS') return handleOptions(origin);
@@ -151,7 +222,11 @@ Deno.serve(async (req) => {
                 }
                 const reviewPerm = `reports.review.${reportName}`;
                 const toUsers = await findReviewerUsersByPermission(supabase, reviewPerm);
-                const prefUsers = await filterRecipientsByEmailPreference(toUsers, supabase)
+                
+                const submitterRegions = await getSubmitterRegions(supabase, submittedById);
+                const regionFilteredUsers = await filterRecipientsByRegion(toUsers, supabase, submitterRegions);
+                const prefUsers = await filterRecipientsByEmailPreference(regionFilteredUsers, supabase);
+                
                 const toEmails = Array.from(new Set(prefUsers.map(u => u.email).filter(e => typeof e === 'string' && isValidEmail(e))));
                 if (!toEmails.length) return new Response(JSON.stringify({
                     ok: true,
