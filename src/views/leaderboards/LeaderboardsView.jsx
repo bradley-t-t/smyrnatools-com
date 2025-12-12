@@ -233,8 +233,6 @@ export default function LeaderboardsView() {
         }
     }
 
-
-
     if (loading) {
         return <LoadingScreen message="Loading leaderboard data..." fullPage={true} />
     }
