@@ -193,6 +193,27 @@ Deno.serve(async (req) => {
                         headers: corsHeaders
                     });
                 }
+                const defaultPreferences = {
+                    user_id: userId,
+                    theme_mode: "old-dark",
+                    accent_color: "red",
+                    show_tips: false,
+                    show_online_overlay: true,
+                    default_view_mode: null,
+                    mixer_filters: null,
+                    operator_filters: null,
+                    manager_filters: null,
+                    tractor_filters: null,
+                    trailer_filters: null,
+                    equipment_filters: null,
+                    last_viewed_filters: null,
+                    selected_region: null,
+                    region_overlay_minimized: true,
+                    accept_report_submitted_emails: true,
+                    created_at: now,
+                    updated_at: now
+                };
+                await supabase.from("users_preferences").insert(defaultPreferences);
                 return new Response(JSON.stringify({userId, email: trimmedEmail}), {headers: corsHeaders});
             }
             case "sign-out": {

@@ -25,6 +25,7 @@
     min-height: 100vh;
     padding: 48px 16px 48px 16px;
     overflow: auto;
+    background: var(--background);
 }
 
 @keyframes fadeIn {
@@ -69,7 +70,7 @@
     width: 100%;
     max-width: 1200px;
     min-height: 600px;
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     --password-float-base: -150%;

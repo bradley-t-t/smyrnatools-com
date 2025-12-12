@@ -13,9 +13,9 @@ export function usePreferences() {
 }
 
 const defaultPreferences = {
-    themeMode: 'light',
+    themeMode: 'old-dark',
     accentColor: 'red',
-    showTips: true,
+    showTips: false,
     showOnlineOverlay: true,
     defaultViewMode: null,
     mixerFilters: {
@@ -78,9 +78,9 @@ export const PreferencesProvider = ({children}) => {
                     const data = await UserPreferencesService.getUserPreferences(user.id)
                     if (data) {
                         prefs = {
-                            themeMode: data.theme_mode,
-                            accentColor: data.accent_color,
-                            showTips: data.show_tips === undefined ? true : data.show_tips,
+                            themeMode: data.theme_mode || 'old-dark',
+                            accentColor: data.accent_color || 'red',
+                            showTips: data.show_tips === undefined ? false : data.show_tips,
                             showOnlineOverlay: data.show_online_overlay === undefined ? true : data.show_online_overlay,
                             defaultViewMode: data.default_view_mode === undefined ? null : data.default_view_mode,
                             mixerFilters: data.mixer_filters ? {

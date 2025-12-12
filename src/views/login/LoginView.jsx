@@ -28,6 +28,14 @@ function LoginView() {
     const [showRecovery, setShowRecovery] = useState(false);
 
     useEffect(() => {
+        document.documentElement.classList.remove('dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode')
+        document.documentElement.classList.add('old-dark-mode')
+        return () => {
+            document.documentElement.classList.remove('old-dark-mode')
+        }
+    }, [])
+
+    useEffect(() => {
         const handleAuthSuccess = () => {
             setTimeout(forceReload, 500);
         };

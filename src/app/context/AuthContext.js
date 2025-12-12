@@ -116,9 +116,9 @@ export function AuthProvider({children}) {
                 .upsert({
                     user_id: userId,
                     navbar_minimized: false,
-                    theme_mode: 'light',
+                    theme_mode: 'old-dark',
                     accent_color: 'red',
-                    show_tips: true,
+                    show_tips: false,
                     show_online_overlay: true,
                     default_view_mode: null,
                     mixer_filters: baseFilters,
