@@ -566,9 +566,10 @@ export default function LeaderboardsView() {
                         </div>
 
                         <div className="help-details-modal-content">
-                            {helpDetailsModal.details.details && helpDetailsModal.details.details.length > 0 ? (
+                            {helpDetailsModal.details.details && helpDetailsModal.details.details.filter(e => e.hours > 0 && e.operatorCount > 0).length > 0 ? (
                                 <div className="help-entries-list">
                                     {helpDetailsModal.details.details
+                                        .filter(entry => entry.hours > 0 && entry.operatorCount > 0)
                                         .sort((a, b) => new Date(b.week) - new Date(a.week))
                                         .map((entry, idx) => {
                                             const isSent = entry.type === 'sent'
