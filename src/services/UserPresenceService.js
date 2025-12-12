@@ -1,7 +1,6 @@
 import {supabase} from './DatabaseService';
 import {UserService} from './UserService';
 import {RegionService} from './RegionService';
-import APIUtility from '../utils/APIUtility'
 
 class UserPresenceService {
     constructor() {
@@ -11,10 +10,13 @@ class UserPresenceService {
         this.currentUserId = null
         this.heartbeatInterval = null
         this.cleanupInterval = null
+        this.activityRefreshInterval = null
+        this.lastActivityUpdate = 0
         this.onPresenceChange = this.handlePresenceChange.bind(this)
         this.onBeforeUnload = this.handleBeforeUnload.bind(this)
         this.onOnline = this.handleOnlineStatusChange.bind(this, true)
         this.onOffline = this.handleOnlineStatusChange.bind(this, false)
+        this.onUserActivity = this.handleUserActivity.bind(this)
     }
 
     async setup() {
@@ -35,6 +37,8 @@ class UserPresenceService {
             await this.setUserOnline(this.currentUserId)
             this.startHeartbeat()
             this.startCleanup()
+            this.startActivityRefresh()
+            this.setupActivityTracking()
             window.addEventListener('beforeunload', this.onBeforeUnload)
             window.addEventListener('online', this.onOnline)
             window.addEventListener('offline', this.onOffline)
@@ -45,28 +49,85 @@ class UserPresenceService {
         }
     }
 
-    async setUserOnline(userId, options = {}) {
-        if (!userId) return false
-        const {res, json} = await APIUtility.post('/user-presence-service/set-online', {userId}, options)
-        if (!res.ok || json?.success !== true) return false
-        return true
+    setupActivityTracking() {
+        document.addEventListener('click', this.onUserActivity)
+        document.addEventListener('keydown', this.onUserActivity)
+        document.addEventListener('mousemove', this.onUserActivity, {passive: true})
     }
 
-    async setUserOffline(userId, options = {}) {
-        if (!userId) return false
-        const {res, json} = await APIUtility.post('/user-presence-service/set-offline', {userId}, options)
-        if (!res.ok || json?.success !== true) return false
-        return true
+    handleUserActivity() {
+        const now = Date.now()
+        if (now - this.lastActivityUpdate < 30000) return
+        this.lastActivityUpdate = now
+        this.updateActivity()
     }
 
-    async updateHeartbeat(options = {}) {
+    async updateActivity() {
         if (!this.currentUserId) return false
-        const {
-            res,
-            json
-        } = await APIUtility.post('/user-presence-service/heartbeat', {userId: this.currentUserId}, options)
-        if (!res.ok || json?.success !== true) return false
-        return true
+        try {
+            const now = new Date().toISOString()
+            await supabase
+                .from('users_presence')
+                .update({last_activity: now, last_seen: now, updated_at: now})
+                .eq('user_id', this.currentUserId)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    startActivityRefresh() {
+        if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
+        this.activityRefreshInterval = setInterval(() => {
+            this.notifyListeners()
+        }, 60000)
+    }
+
+    async setUserOnline(userId) {
+        if (!userId) return false
+        try {
+            const now = new Date().toISOString()
+            await supabase
+                .from('users_presence')
+                .upsert({
+                    user_id: userId,
+                    is_online: true,
+                    last_seen: now,
+                    last_activity: now,
+                    updated_at: now
+                }, {onConflict: 'user_id'})
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    async setUserOffline(userId) {
+        if (!userId) return false
+        try {
+            const now = new Date().toISOString()
+            await supabase
+                .from('users_presence')
+                .update({is_online: false, last_seen: now, updated_at: now})
+                .eq('user_id', userId)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    async updateHeartbeat() {
+        if (!this.currentUserId) return false
+        try {
+            const now = new Date().toISOString()
+            await supabase
+                .from('users_presence')
+                .update({last_seen: now, updated_at: now})
+                .eq('user_id', this.currentUserId)
+            return true
+        } catch {
+            return false
+        }
     }
 
     startHeartbeat() {
@@ -77,8 +138,15 @@ class UserPresenceService {
     startCleanup() {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
         this.cleanupInterval = setInterval(async () => {
-            const {res} = await APIUtility.post('/user-presence-service/cleanup')
-            if (res.ok) this.notifyListeners()
+            try {
+                const staleTime = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+                await supabase
+                    .from('users_presence')
+                    .update({is_online: false, updated_at: new Date().toISOString()})
+                    .eq('is_online', true)
+                    .lt('last_seen', staleTime)
+                this.notifyListeners()
+            } catch {}
         }, 60000)
     }
 
@@ -88,8 +156,11 @@ class UserPresenceService {
 
     handleBeforeUnload() {
         if (this.currentUserId) {
-            this.setUserOffline(this.currentUserId, {keepalive: true}).catch(() => {
-            })
+            const now = new Date().toISOString()
+            navigator.sendBeacon && navigator.sendBeacon(
+                `${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users_presence?user_id=eq.${this.currentUserId}`,
+                JSON.stringify({is_online: false, last_seen: now})
+            )
         }
     }
 
@@ -109,19 +180,19 @@ class UserPresenceService {
 
     async getOnlineUsers() {
         try {
-            const {res, json} = await APIUtility.post('/user-presence-service/fetch-online-users')
-            if (!res.ok) return []
-            const presences = json?.data ?? []
+            const {data: presences, error} = await supabase
+                .from('users_presence')
+                .select('user_id, last_seen, last_activity')
+                .eq('is_online', true)
+                .order('last_activity', {ascending: false})
+            if (error) return []
             const users = []
-            for (const presence of presences) {
+            for (const presence of presences || []) {
                 try {
                     const [name, rolesData, profile] = await Promise.all([
                         UserService.getUserDisplayName(presence.user_id),
                         UserService.getUserRoles(presence.user_id),
-                        UserService.getUserProfile(presence.user_id).catch(err => {
-                            console.warn(`Failed to get profile for user ${presence.user_id}:`, err);
-                            return null;
-                        })
+                        UserService.getUserProfile(presence.user_id).catch(() => null)
                     ])
 
                     let roleNames = []
@@ -148,13 +219,9 @@ class UserPresenceService {
                                 const regions = await RegionService.fetchRegionsByPlantCode(profile.plant_code)
                                 if (regions && regions.length > 0) {
                                     regionCode = regions[0].regionCode || regions[0].region_code
-                                } else {
                                 }
-                            } catch (err) {
-                            }
-                        } else {
+                            } catch {}
                         }
-                    } else {
                     }
 
                     users.push({
@@ -162,10 +229,10 @@ class UserPresenceService {
                         name,
                         roles: roleNames,
                         regionCode,
-                        lastSeen: presence.last_seen
+                        lastSeen: presence.last_seen,
+                        lastActivity: presence.last_activity
                     })
-                } catch {
-                }
+                } catch {}
             }
             return users
         } catch {
@@ -186,8 +253,7 @@ class UserPresenceService {
             this.listeners.forEach(listener => {
                 try {
                     listener(users)
-                } catch {
-                }
+                } catch {}
             })
         })
     }
@@ -201,21 +267,28 @@ class UserPresenceService {
             clearInterval(this.cleanupInterval)
             this.cleanupInterval = null
         }
+        if (this.activityRefreshInterval) {
+            clearInterval(this.activityRefreshInterval)
+            this.activityRefreshInterval = null
+        }
+        document.removeEventListener('click', this.onUserActivity)
+        document.removeEventListener('keydown', this.onUserActivity)
+        document.removeEventListener('mousemove', this.onUserActivity)
         window.removeEventListener('beforeunload', this.onBeforeUnload)
         window.removeEventListener('online', this.onOnline)
         window.removeEventListener('offline', this.onOffline)
-        this.subscriptions.forEach(subscription => {
-            if (subscription?.unsubscribe) subscription.unsubscribe()
-        })
+        for (const sub of this.subscriptions) {
+            try {
+                supabase.removeChannel(sub)
+            } catch {}
+        }
         this.subscriptions = []
         this.listeners = []
-        if (this.currentUserId) {
-            this.setUserOffline(this.currentUserId)
-            this.currentUserId = null
-        }
         this.isSetup = false
+        this.currentUserId = null
     }
 }
 
 const instance = new UserPresenceService()
 export {instance as UserPresenceService}
+export default instance

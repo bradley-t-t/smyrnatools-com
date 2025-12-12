@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
                         user_id: userId,
                         is_online: true,
                         last_seen: now,
+                        last_activity: now,
                         updated_at: now
                     }, {onConflict: "user_id"});
                 if (error) return new Response(JSON.stringify({error: error.message}), {
@@ -136,6 +137,39 @@ Deno.serve(async (req) => {
                 });
                 return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
             }
+            case "update-activity": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                if ((!headerAuth || headerAuth.trim() === "") && body?.token) {
+                    supabase = createClient(
+                        Deno.env.get("SUPABASE_URL") ?? "",
+                        Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+                        {global: {headers: {Authorization: `Bearer ${body.token}`}}}
+                    );
+                }
+                const {userId} = body || {};
+                if (typeof userId !== "string" || !userId) return new Response(JSON.stringify({error: "User ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                const now = new Date().toISOString();
+                const {error} = await supabase
+                    .from("users_presence")
+                    .update({last_activity: now, last_seen: now, updated_at: now})
+                    .eq("user_id", userId);
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
+            }
             case "cleanup": {
                 const staleTime = new Date(Date.now() - 2 * 60 * 1000).toISOString();
                 const {error} = await supabase
@@ -152,9 +186,9 @@ Deno.serve(async (req) => {
             case "fetch-online-users": {
                 const {data, error} = await supabase
                     .from("users_presence")
-                    .select("user_id, last_seen")
+                    .select("user_id, last_seen, last_activity")
                     .eq("is_online", true)
-                    .order("last_seen", {ascending: false});
+                    .order("last_activity", {ascending: false});
                 if (error) return new Response(JSON.stringify({error: error.message}), {
                     status: 400,
                     headers: corsHeaders

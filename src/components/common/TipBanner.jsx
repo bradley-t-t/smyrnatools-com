@@ -9,6 +9,7 @@ function TipBanner() {
     const [isVisible, setIsVisible] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const accentColor = preferences.accentColor === 'red' ? '#b80017' : '#003896';
+    const isDarkMode = preferences.themeMode?.includes('dark') || false;
 
     const tips = [
         'Only trucks that are at a shop should be marked as "In Shop"',
@@ -39,7 +40,7 @@ function TipBanner() {
     if (!isAuthenticated || !isVisible || !preferences.showTips) return null;
 
     return (
-        <div className="tip-banner" style={{backgroundColor: preferences.themeMode === 'dark' ? '#2a2a2a' : '#ffffff'}}>
+        <div className={`tip-banner ${isDarkMode ? 'tip-banner-dark' : ''}`} style={{backgroundColor: isDarkMode ? '#2a2a2a' : '#ffffff'}}>
             <div className="tip-content">
                 <div className="tip-icon" style={{color: accentColor}}>
                     <i className="fas fa-lightbulb"></i>

@@ -4,14 +4,44 @@ import {usePreferences} from '../../app/context/PreferencesContext';
 import {RegionService} from '../../services/RegionService';
 import './styles/OnlineUsersOverlay.css';
 
+const formatLastActivity = (lastActivity) => {
+    if (!lastActivity) return null;
+    const now = new Date();
+    const activityDate = new Date(lastActivity);
+    if (isNaN(activityDate.getTime())) return null;
+    const diffMs = now - activityDate;
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffSeconds < 120) {
+        return 'Active now';
+    } else if (diffMinutes < 60) {
+        return `${diffMinutes}m ago`;
+    } else if (diffHours < 24) {
+        return `${diffHours}h ago`;
+    } else {
+        return `${diffDays}d ago`;
+    }
+};
+
 function OnlineUsersOverlay() {
     const {onlineUsers, loading, error} = usePresence();
     const {preferences} = usePreferences();
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMinimized, setIsMinimized] = useState(true);
     const [animateCount, setAnimateCount] = useState(false);
+    const [, setTick] = useState(0);
     const prevCountRef = useRef(onlineUsers.length);
     const isLoggedIn = true;
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTick(t => t + 1);
+        }, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (!loading && onlineUsers.length !== prevCountRef.current) {
@@ -67,12 +97,16 @@ function OnlineUsersOverlay() {
                             const primaryRole = userRoles.length > 0 ? userRoles[0] : null;
                             const region = user.regionCode ? RegionService.getRegionByCode(user.regionCode) : null;
                             const regionName = region?.regionName || region?.region_name || null;
+                            const activityText = formatLastActivity(user.lastActivity || user.lastSeen);
 
                             return (
                                 <div key={user.id} className="ouo-online-user">
                                     <div className="ouo-user-avatar">{avatarChar}</div>
                                     <div className="ouo-user-info">
-                                        <div className="ouo-user-name">{displayName || 'Unknown User'}</div>
+                                        <div className="ouo-user-name-row">
+                                            <span className="ouo-user-name">{displayName || 'Unknown User'}</span>
+                                            {activityText && <span className="ouo-user-activity">{activityText}</span>}
+                                        </div>
                                         {(primaryRole || regionName) && (
                                             <div className="ouo-user-meta">
                                                 {primaryRole && <span className="ouo-user-role">{primaryRole}</span>}

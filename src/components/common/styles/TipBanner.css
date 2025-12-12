@@ -71,20 +71,20 @@
     color: #333;
 }
 
-.tip-banner[data-theme="dark"] {
+.tip-banner-dark {
     background-color: #2a2a2a;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-.tip-banner[data-theme="dark"] .tip-text {
+.tip-banner-dark .tip-text {
     color: #e0e0e0;
 }
 
-.tip-banner[data-theme="dark"] .tip-close {
+.tip-banner-dark .tip-close {
     color: #aaa;
 }
 
-.tip-banner[data-theme="dark"] .tip-close:hover {
+.tip-banner-dark .tip-close:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: #ddd;
 }
