@@ -471,15 +471,12 @@
 
 .stat-item-clickable {
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.15s ease;
-    padding: 4px 6px;
-    border-radius: 6px;
-    margin: -4px -6px;
+    transition: background 0.2s ease;
+    border-radius: 4px;
 }
 
 .stat-item-clickable:hover {
     background: var(--bg-tertiary);
-    transform: scale(1.02);
 }
 
 .help-info-icon {

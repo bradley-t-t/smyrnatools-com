@@ -30,7 +30,8 @@ export class Operator {
             created_at: data.created_at ?? data.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
             updated_at: data.updated_at ?? data.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
             pending_start_date: data.pending_start_date ?? data.pendingStartDate ?? null,
-            phone: data.phone ?? null
+            phone: data.phone ?? null,
+            automatic_restriction: data.automatic_restriction ?? data.automaticRestriction ?? false
         });
     }
 
@@ -57,7 +58,8 @@ export class Operator {
             created_at: this.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
             updated_at: this.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
             pending_start_date: this.pendingStartDate ?? null,
-            phone: this.phone ?? null
+            phone: this.phone ?? null,
+            automatic_restriction: this.automaticRestriction ?? false
         };
     }
 }

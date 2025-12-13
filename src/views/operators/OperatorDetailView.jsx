@@ -40,6 +40,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
     const [showComments, setShowComments] = useState(false);
     const [canEditOperator, setCanEditOperator] = useState(false);
     const [canDeleteOperator, setCanDeleteOperator] = useState(false);
+    const [automaticRestriction, setAutomaticRestriction] = useState(false);
 
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
@@ -138,6 +139,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             setHasTrainingPermission(true);
             setRating(typeof data.rating === 'number' ? data.rating : Number(data.rating) || 0);
             setPhone(data.phone || '');
+            setAutomaticRestriction(data.automatic_restriction === true);
         } catch (error) {
         }
         setIsLoading(false);
@@ -221,7 +223,8 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             assigned_trainer: (['Training', 'Pending Start'].includes(status) && !isTrainer) ? assignedTrainer : null,
             pending_start_date: pendingForSave,
             rating: typeof rating === 'number' ? rating : Number(rating) || 0,
-            phone: phone || null
+            phone: phone || null,
+            automatic_restriction: automaticRestriction
         };
         try {
             const shouldUnassignEquipment =
@@ -277,7 +280,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                 try {
                     const currentUser = await UserService.getCurrentUser();
                     const changedBy = currentUser?.id || 'system';
-                    const fieldsToCheck = ['smyrna_id', 'name', 'status', 'plant_code', 'position', 'is_trainer', 'assigned_trainer', 'pending_start_date', 'rating', 'phone'];
+                    const fieldsToCheck = ['smyrna_id', 'name', 'status', 'plant_code', 'position', 'is_trainer', 'assigned_trainer', 'pending_start_date', 'rating', 'phone', 'automatic_restriction'];
                     for (const field of fieldsToCheck) {
                         const oldValue = operator[field];
                         const newValue = updateObj[field];
@@ -438,6 +441,30 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                                         </span>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                        <div className="down-in-yard-container">
+                            <div className="down-in-yard-toggle">
+                                <label className={`toggle-label ${!canEditOperator ? 'disabled' : ''}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={automaticRestriction}
+                                        onChange={(e) => {
+                                            if (canEditOperator) {
+                                                setAutomaticRestriction(e.target.checked);
+                                            }
+                                        }}
+                                        disabled={!canEditOperator}
+                                        className="toggle-checkbox"
+                                    />
+                                    <span className="toggle-switch">
+                                        <span className="toggle-slider"></span>
+                                    </span>
+                                    <span className="toggle-text">Automatic Only (CDL)</span>
+                                </label>
+                            </div>
+                            <div className="down-in-yard-note">
+                                Enable this if the operator has a CDL restriction that only allows them to drive automatic transmission trucks
                             </div>
                         </div>
                     </div>

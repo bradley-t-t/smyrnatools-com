@@ -80,10 +80,14 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
     return (
         <>
             <AddViewSection title="Add New Trailer" onClose={onClose} error={error}>
-                <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-row">
-                            <div className="form-group wide">
+                <form onSubmit={handleSubmit} autoComplete="off" className="add-form">
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-trailer"></i>
+                            <span>Basic Information</span>
+                        </div>
+                        <div className="add-form-row">
+                            <div className="form-group">
                                 <label htmlFor="trailerNumber">Trailer Number*</label>
                                 <input
                                     id="trailerNumber"
@@ -98,8 +102,13 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-row">
+
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-building"></i>
+                            <span>Assignment & Type</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
@@ -125,8 +134,13 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-row">
+
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-star"></i>
+                            <span>Condition</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label htmlFor="cleanlinessRating">Cleanliness Rating</label>
                                 <select
@@ -143,7 +157,8 @@ function TrailerAddView({plants, onClose, onTrailerAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+
+                    <div className="add-form-actions">
                         <button type="submit" className="ios-button-primary" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Trailer'}
                         </button>

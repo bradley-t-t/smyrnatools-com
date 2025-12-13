@@ -114,9 +114,13 @@ function PickupTrucksAddView({onClose, onAdded}) {
     return (
         <>
             <AddViewSection title="Add Pickup Truck" onClose={onClose} error={error}>
-                <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-row">
+                <form onSubmit={handleSubmit} autoComplete="off" className="add-form">
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-building"></i>
+                            <span>Assignment & Status</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label>Plant*</label>
                                 <button
@@ -141,7 +145,14 @@ function PickupTrucksAddView({onClose, onAdded}) {
                                 </select>
                             </div>
                         </div>
-                        <div className="form-row">
+                    </div>
+
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-car"></i>
+                            <span>Vehicle Information</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label>VIN</label>
                                 <input type="text" className="ios-input" value={vin}
@@ -155,7 +166,7 @@ function PickupTrucksAddView({onClose, onAdded}) {
                                        onChange={e => setYear(e.target.value)} placeholder="Enter year"/>
                             </div>
                         </div>
-                        <div className="form-row">
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label>Make</label>
                                 <input type="text" className="ios-input" value={make}
@@ -167,7 +178,14 @@ function PickupTrucksAddView({onClose, onAdded}) {
                                        onChange={e => setModel(e.target.value)} placeholder="Enter model"/>
                             </div>
                         </div>
-                        <div className="form-row">
+                    </div>
+
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-user"></i>
+                            <span>Usage Details</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label>Assigned</label>
                                 <input type="text" className="ios-input" value={assigned}
@@ -179,7 +197,7 @@ function PickupTrucksAddView({onClose, onAdded}) {
                                        onChange={e => setMileage(e.target.value)} placeholder="Enter mileage"/>
                             </div>
                         </div>
-                        <div className="form-row">
+                        <div className="add-form-row">
                             <div className="form-group wide">
                                 <label>Comments</label>
                                 <textarea className="ios-input" rows={3} value={comments}
@@ -187,7 +205,8 @@ function PickupTrucksAddView({onClose, onAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+
+                    <div className="add-form-actions">
                         <button type="submit" className="ios-button-primary"
                                 disabled={isSaving}>{isSaving ? 'Adding...' : 'Add Pickup'}</button>
                     </div>

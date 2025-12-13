@@ -110,10 +110,14 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
     return (
         <>
             <AddViewSection title="Add New Mixer" onClose={onClose} error={error}>
-                <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-row">
-                            <div className="form-group wide">
+                <form onSubmit={handleSubmit} autoComplete="off" className="add-form">
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-truck"></i>
+                            <span>Basic Information</span>
+                        </div>
+                        <div className="add-form-row">
+                            <div className="form-group">
                                 <label htmlFor="truckNumber">Truck Number*</label>
                                 <input
                                     id="truckNumber"
@@ -128,8 +132,13 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-row">
+
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-building"></i>
+                            <span>Assignment & Status</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
@@ -157,7 +166,8 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+
+                    <div className="add-form-actions">
                         <button type="submit" className="ios-button-primary" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Mixer'}
                         </button>

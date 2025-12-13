@@ -204,7 +204,8 @@ Deno.serve(async (req) => {
                     created_at: input?.created_at ?? undefined,
                     updated_at: now,
                     pending_start_date: input?.pending_start_date ?? null,
-                    phone: input?.phone ?? null
+                    phone: input?.phone ?? null,
+                    automatic_restriction: input?.automatic_restriction === true || String(input?.automatic_restriction).toLowerCase() === "true"
                 };
                 Object.keys(updateObj).forEach((k) => updateObj[k] === undefined && delete updateObj[k]);
                 const {data, error} = await supabase

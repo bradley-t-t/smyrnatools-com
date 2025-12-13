@@ -1,48 +1,18 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {EquipmentService} from '../../services/EquipmentService';
 import {AuthService} from '../../services/AuthService';
 import './styles/Equipment.css';
-import {usePreferences} from '../../app/context/PreferencesContext'
-import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import AddViewSection from '../../components/sections/AddViewSection';
 
 function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
-    const {preferences} = usePreferences()
     const [identifyingNumber, setIdentifyingNumber] = useState('');
     const [assignedPlant, setAssignedPlant] = useState('');
     const [equipmentType, setEquipmentType] = useState('');
     const [status, setStatus] = useState('Active');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
-    const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
-
-    useEffect(() => {
-        const code = preferences.selectedRegion?.code || ''
-        let cancelled = false
-
-        async function loadRegionPlants() {
-            if (!code) {
-                setRegionPlantCodes(null)
-                return
-            }
-            try {
-                const regionPlants = await RegionService.fetchRegionPlants(code)
-                if (cancelled) return
-                const codes = new Set(regionPlants.map(p => p.plantCode))
-                setRegionPlantCodes(codes)
-                if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
-            } catch {
-                setRegionPlantCodes(new Set())
-            }
-        }
-
-        loadRegionPlants()
-        return () => {
-            cancelled = true
-        }
-    }, [preferences.selectedRegion?.code, assignedPlant])
 
     const visiblePlants = useMemo(() => {
         const list = Array.isArray(plants) ? plants : []
@@ -91,10 +61,14 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
     return (
         <>
             <AddViewSection title="Add New Equipment" onClose={onClose} error={error}>
-                <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-row">
-                            <div className="form-group wide">
+                <form onSubmit={handleSubmit} autoComplete="off" className="add-form">
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-tools"></i>
+                            <span>Basic Information</span>
+                        </div>
+                        <div className="add-form-row">
+                            <div className="form-group">
                                 <label htmlFor="identifyingNumber">Identifying Number*</label>
                                 <input
                                     id="identifyingNumber"
@@ -109,8 +83,13 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-row">
+
+                    <div className="add-form-section">
+                        <div className="add-form-section-title">
+                            <i className="fas fa-building"></i>
+                            <span>Assignment & Classification</span>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
@@ -157,6 +136,8 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                                     <option value="Unknown">Unknown</option>
                                 </select>
                             </div>
+                        </div>
+                        <div className="add-form-row">
                             <div className="form-group">
                                 <label htmlFor="status">Status</label>
                                 <select
@@ -173,7 +154,8 @@ function EquipmentAddView({plants, onClose, onEquipmentAdded}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+
+                    <div className="add-form-actions">
                         <button type="submit" className="ios-button-primary" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Equipment'}
                         </button>

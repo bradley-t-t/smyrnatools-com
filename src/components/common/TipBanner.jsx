@@ -12,7 +12,6 @@ function TipBanner() {
     const isDarkMode = preferences.themeMode?.includes('dark') || false;
 
     const tips = [
-        'Only trucks that are at a shop should be marked as "In Shop"',
         'Be sure to keep your truck issues up to date',
         'Verify your assets by Friday at 10am weekly',
         'Whenever you make changes to an asset, you must re-verify it',
