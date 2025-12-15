@@ -338,7 +338,7 @@ const LeaderboardsUtility = {
         switch (category) {
             case 'efficiency':
                 return plantMetrics
-                    .filter(p => p.avgEfficiency > 0 && p.avgWeeklyHours > 0)
+                    .filter(p => typeof p.avgEfficiency === 'number' && p.avgWeeklyHours > 0)
                     .sort((a, b) => b.avgEfficiency - a.avgEfficiency)
             case 'yph':
                 return plantMetrics
