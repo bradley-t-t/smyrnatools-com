@@ -757,12 +757,19 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
     }
 
     const updateOperator = (entryId, operatorIndex, field, value) => {
+        let processedValue = value
+        if (field === 'hours') {
+            const numValue = parseFloat(value)
+            if (!isNaN(numValue) && numValue > 80) {
+                processedValue = '80'
+            }
+        }
         onUpdate((entries || []).map(e => 
             e.id === entryId 
                 ? {
                     ...e, 
                     operators: e.operators.map((op, i) => 
-                        i === operatorIndex ? {...op, [field]: value} : op
+                        i === operatorIndex ? {...op, [field]: processedValue} : op
                     )
                   }
                 : e
@@ -960,6 +967,7 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                                                     <input
                                                         type="number"
                                                         min="0"
+                                                        max="80"
                                                         step="0.5"
                                                         value={op.hours || ''}
                                                         onChange={(e) => updateOperator(entry.id, opIdx, 'hours', e.target.value)}
