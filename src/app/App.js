@@ -63,44 +63,92 @@ function UpdateLoadingScreen({version}) {
         return () => clearInterval(interval)
     }, [progress])
     return (
-        <div className="loading-screen full-page">
-            <div className="loading-content" style={{width: '640px', maxWidth: '95%'}}>
+        <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden',
+            background: '#000',
+            zIndex: 99999
+        }}>
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '177.78vh',
+                height: '100vh',
+                minWidth: '100vw',
+                minHeight: '56.25vw',
+                pointerEvents: 'none'
+            }}>
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/aBsTqfRqgiU?autoplay=1&mute=1&start=2&loop=1&playlist=aBsTqfRqgiU&controls=0&showinfo=0&rel=0&modestbranding=1&disablekb=1&fs=0&iv_load_policy=3"
+                    title="Update Video"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    style={{display: 'block', pointerEvents: 'none'}}
+                />
+            </div>
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'rgba(0, 0, 0, 0.6)',
+                pointerEvents: 'none'
+            }}/>
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                zIndex: 10,
+                width: '400px',
+                maxWidth: '90%'
+            }}>
+                <h1 style={{
+                    color: '#fff',
+                    fontSize: '2rem',
+                    fontWeight: 600,
+                    marginBottom: '16px',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.5)'
+                }}>Smyrna Tools is Updating</h1>
+                <p style={{
+                    color: 'rgba(255,255,255,0.8)',
+                    fontSize: '1rem',
+                    marginBottom: '32px'
+                }}>Please wait while we apply the latest updates...</p>
                 <div style={{
                     width: '100%',
-                    borderRadius: '12px',
+                    height: '8px',
+                    borderRadius: '4px',
+                    background: 'rgba(255,255,255,0.2)',
                     overflow: 'hidden',
-                    marginBottom: '24px',
-                    aspectRatio: '16/9',
-                    background: '#000'
-                }}>
-                    <iframe
-                        width="100%"
-                        height="100%"
-                        src="https://www.youtube.com/embed/aBsTqfRqgiU?autoplay=1&mute=1&start=2&loop=1&playlist=aBsTqfRqgiU"
-                        title="Update Video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        style={{display: 'block'}}
-                    />
-                </div>
-                <p className="loading-message">Smyrna Tools is Updating...</p>
-                <div style={{
-                    width: '100%',
-                    height: '12px',
-                    borderRadius: '6px',
-                    background: 'var(--card-bg)',
-                    marginTop: '32px',
-                    overflow: 'hidden'
+                    marginBottom: '16px'
                 }}>
                     <div style={{
                         width: `${progress}%`,
                         height: '100%',
-                        background: 'var(--accent)',
-                        transition: 'width 0.3s'
+                        background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+                        borderRadius: '4px',
+                        transition: 'width 0.3s ease'
                     }}/>
                 </div>
-                <VersionPopup version={version}/>
+                <span style={{
+                    color: 'rgba(255,255,255,0.6)',
+                    fontSize: '0.875rem'
+                }}>Version {version}</span>
             </div>
         </div>
     )
