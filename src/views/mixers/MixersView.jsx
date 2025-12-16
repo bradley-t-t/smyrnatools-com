@@ -25,6 +25,7 @@ import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import {ValidationUtility} from '../../utils/ValidationUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
+import RecapModalSection from '../../components/sections/RecapModalSection'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -759,6 +760,13 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 itemId={verifyMixer.id}
                                 service={MixerService}
                                 status={verifyMixer.status}
+                            />
+                        )}
+                        {selectedPlant && (
+                            <RecapModalSection
+                                plantCode={selectedPlant}
+                                plantName={plants.find(p => String(p.plantCode) === String(selectedPlant))?.plantName}
+                                mixers={filteredMixers}
                             />
                         )}
                     </>
