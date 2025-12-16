@@ -67,7 +67,7 @@ function PlantDropdownModal({
                 <div className="plant-dropdown-modal-list">
                     {showAllPlants && !allowMultiple && (
                         <div className="plant-option" onClick={() => {
-                            onSelect('');
+                            onSelect('All');
                             onClose();
                         }}>All Plants
                         </div>
