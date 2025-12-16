@@ -70,7 +70,7 @@ function UpdateLoadingScreen({version}) {
             width: '100vw',
             height: '100vh',
             overflow: 'hidden',
-            background: '#000',
+            background: '#111827',
             zIndex: 99999
         }}>
             <div style={{
@@ -100,54 +100,61 @@ function UpdateLoadingScreen({version}) {
                 left: 0,
                 width: '100%',
                 height: '100%',
-                background: 'rgba(0, 0, 0, 0.6)',
+                background: 'rgba(17, 24, 39, 0.7)',
                 pointerEvents: 'none'
             }}/>
             <div style={{
                 position: 'absolute',
-                top: '50%',
+                bottom: '60px',
                 left: '50%',
-                transform: 'translate(-50%, -50%)',
+                transform: 'translateX(-50%)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
                 zIndex: 10,
-                width: '400px',
-                maxWidth: '90%'
+                width: '420px',
+                maxWidth: '90%',
+                background: 'rgba(31, 41, 55, 0.85)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: '12px',
+                padding: '24px 32px',
+                border: '1px solid rgba(255,255,255,0.1)'
             }}>
                 <h1 style={{
                     color: '#fff',
-                    fontSize: '2rem',
+                    fontSize: '1.25rem',
                     fontWeight: 600,
-                    marginBottom: '16px',
-                    textShadow: '0 2px 8px rgba(0,0,0,0.5)'
-                }}>Smyrna Tools is Updating</h1>
+                    marginBottom: '8px',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+                }}>Updating Smyrna Tools</h1>
                 <p style={{
-                    color: 'rgba(255,255,255,0.8)',
-                    fontSize: '1rem',
-                    marginBottom: '32px'
+                    color: 'rgba(255,255,255,0.6)',
+                    fontSize: '0.875rem',
+                    marginBottom: '20px',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
                 }}>Please wait while we apply the latest updates...</p>
                 <div style={{
                     width: '100%',
-                    height: '8px',
-                    borderRadius: '4px',
-                    background: 'rgba(255,255,255,0.2)',
+                    height: '6px',
+                    borderRadius: '3px',
+                    background: 'rgba(255,255,255,0.1)',
                     overflow: 'hidden',
-                    marginBottom: '16px'
+                    marginBottom: '12px'
                 }}>
                     <div style={{
                         width: `${progress}%`,
                         height: '100%',
-                        background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
-                        borderRadius: '4px',
+                        background: 'linear-gradient(90deg, #1e40af, #3b82f6)',
+                        borderRadius: '3px',
                         transition: 'width 0.3s ease'
                     }}/>
                 </div>
                 <span style={{
-                    color: 'rgba(255,255,255,0.6)',
-                    fontSize: '0.875rem'
+                    color: 'rgba(255,255,255,0.5)',
+                    fontSize: '0.75rem',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
                 }}>Version {version}</span>
             </div>
         </div>
