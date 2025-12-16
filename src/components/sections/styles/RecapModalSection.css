@@ -2,7 +2,7 @@
     position: fixed;
     right: 0;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(100%);
     background: var(--accent);
     color: white;
     padding: 1rem 0.75rem;
@@ -14,12 +14,26 @@
     align-items: center;
     gap: 0.5rem;
     box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.2s ease, box-shadow 0.2s ease;
     writing-mode: vertical-rl;
     text-orientation: mixed;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.recap-tab:hover {
+.recap-tab.visible {
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.recap-tab.hidden {
+    transform: translateY(-50%) translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.recap-tab.visible:hover {
     padding-right: 1rem;
     box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.2);
 }

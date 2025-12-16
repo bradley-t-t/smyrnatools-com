@@ -767,6 +767,18 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 plantCode={selectedPlant}
                                 plantName={plants.find(p => String(p.plantCode) === String(selectedPlant))?.plantName}
                                 mixers={filteredMixers}
+                                mixersLoaded={mixersLoaded}
+                                isLoading={isLoading}
+                            />
+                        )}
+                        {!selectedPlant && (
+                            <RecapModalSection
+                                plantCode=""
+                                plantName=""
+                                mixers={filteredMixers}
+                                isAllPlants={true}
+                                mixersLoaded={mixersLoaded}
+                                isLoading={isLoading}
                             />
                         )}
                     </>

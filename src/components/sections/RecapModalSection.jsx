@@ -5,7 +5,7 @@ import {UserService} from '../../services/UserService'
 import {OperatorService} from '../../services/OperatorService'
 import './styles/RecapModalSection.css'
 
-function RecapModalSection({plantCode, plantName, mixers}) {
+function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, mixersLoaded = true, isLoading: externalLoading = false}) {
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [history, setHistory] = useState([])
@@ -13,6 +13,7 @@ function RecapModalSection({plantCode, plantName, mixers}) {
     const [operatorNames, setOperatorNames] = useState({})
     const [dateFilter, setDateFilter] = useState('week')
     const [expandedAssets, setExpandedAssets] = useState({})
+    const [isTabVisible, setIsTabVisible] = useState(false)
 
     const mixerIds = useMemo(() => {
         if (!mixers || !Array.isArray(mixers)) return []
@@ -56,17 +57,21 @@ function RecapModalSection({plantCode, plantName, mixers}) {
             }
             
             if (h.field_name === 'assigned_plant') {
-                const oldPlant = h.old_value
-                const newPlant = h.new_value
-                const wasAtThisPlant = oldPlant === plantCode
-                const isAtThisPlant = newPlant === plantCode
-                
-                if (!wasAtThisPlant && isAtThisPlant) {
-                    runnableNet++
+                if (isAllPlants) {
                     transfersNet++
-                } else if (wasAtThisPlant && !isAtThisPlant) {
-                    runnableNet--
-                    transfersNet++
+                } else {
+                    const oldPlant = h.old_value
+                    const newPlant = h.new_value
+                    const wasAtThisPlant = oldPlant === plantCode
+                    const isAtThisPlant = newPlant === plantCode
+                    
+                    if (!wasAtThisPlant && isAtThisPlant) {
+                        runnableNet++
+                        transfersNet++
+                    } else if (wasAtThisPlant && !isAtThisPlant) {
+                        runnableNet--
+                        transfersNet++
+                    }
                 }
             }
         })
@@ -77,7 +82,7 @@ function RecapModalSection({plantCode, plantName, mixers}) {
             downNet,
             transfersNet
         }
-    }, [history, plantCode])
+    }, [history, plantCode, isAllPlants])
 
     const mixerLookup = useMemo(() => {
         const lookup = {}
@@ -213,6 +218,18 @@ function RecapModalSection({plantCode, plantName, mixers}) {
         }
     }, [isOpen, mixerIds, dateFilter])
 
+    useEffect(() => {
+        if (!mixersLoaded || externalLoading) {
+            setIsTabVisible(false)
+            return
+        }
+        
+        const timer = setTimeout(() => {
+            setIsTabVisible(true)
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [mixersLoaded, externalLoading])
+
     const formatFieldName = (fieldName) => {
         if (!fieldName) return 'Unknown Field'
         const mappings = {
@@ -311,10 +328,13 @@ function RecapModalSection({plantCode, plantName, mixers}) {
         }))
     }
 
-    if (!plantCode) return null
+    if (!plantCode && !isAllPlants) return null
+
+    const displayTitle = isAllPlants ? 'All Plants Recap' : `Plant ${plantCode} Recap`
+    const displaySubtitle = isAllPlants ? 'All Fleet Changes' : (plantName || 'Changes History')
 
     const tab = (
-        <div className="recap-tab" onClick={handleToggle}>
+        <div className={`recap-tab ${isTabVisible ? 'visible' : 'hidden'}`} onClick={handleToggle}>
             <i className="fa-solid fa-clock-rotate-left"></i>
             <span>Recap</span>
         </div>
@@ -327,8 +347,8 @@ function RecapModalSection({plantCode, plantName, mixers}) {
                     <div className="recap-modal-header-content">
                         <i className="fa-solid fa-clock-rotate-left"></i>
                         <div>
-                            <h2>Plant {plantCode} Recap</h2>
-                            <span className="recap-modal-subtitle">{plantName || 'Changes History'}</span>
+                            <h2>{displayTitle}</h2>
+                            <span className="recap-modal-subtitle">{displaySubtitle}</span>
                         </div>
                     </div>
                     <button className="recap-modal-close-button" onClick={() => setIsOpen(false)}>
