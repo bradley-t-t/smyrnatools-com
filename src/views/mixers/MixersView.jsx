@@ -369,6 +369,15 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         }
     }, [searchText, allMixers, regionPlantCodes]);
 
+    const filteredOperatorsForRecap = useMemo(() => {
+        return operators.filter(op => {
+            if (op.position !== 'Mixer Operator') return false
+            const opPlant = op.plantCode || op.assignedPlant || ''
+            if (!selectedPlant) return !regionPlantCodes || regionPlantCodes.size === 0 || regionPlantCodes.has(String(opPlant).trim().toUpperCase())
+            return String(opPlant) === String(selectedPlant)
+        })
+    }, [operators, selectedPlant, regionPlantCodes])
+
     const filteredMixers = useMemo(() => {
         const filtered = mixers
             .filter(mixer => {
@@ -767,6 +776,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 plantCode={selectedPlant}
                                 plantName={plants.find(p => String(p.plantCode) === String(selectedPlant))?.plantName}
                                 mixers={filteredMixers}
+                                operators={filteredOperatorsForRecap}
                                 mixersLoaded={mixersLoaded}
                                 isLoading={isLoading}
                             />
@@ -776,6 +786,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                 plantCode=""
                                 plantName=""
                                 mixers={filteredMixers}
+                                operators={filteredOperatorsForRecap}
                                 isAllPlants={true}
                                 mixersLoaded={mixersLoaded}
                                 isLoading={isLoading}

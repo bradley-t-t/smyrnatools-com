@@ -374,6 +374,14 @@
     overflow: hidden;
 }
 
+.recap-asset-group.operator .recap-asset-header > i:not(.recap-expand-icon) {
+    color: var(--status-active, #4caf50);
+}
+
+.recap-asset-group.mixer .recap-asset-header > i:not(.recap-expand-icon) {
+    color: var(--accent);
+}
+
 .recap-asset-header {
     display: flex;
     align-items: center;
@@ -398,6 +406,23 @@
 
 .recap-asset-header > i:not(.recap-expand-icon) {
     font-size: 1rem;
+    color: var(--accent);
+}
+
+.recap-asset-type-icon {
+    font-size: 1rem;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.recap-asset-group.mixer .recap-asset-type-icon {
+    color: var(--accent);
+}
+
+.recap-asset-group.operator .recap-asset-type-icon {
     color: var(--accent);
 }
 

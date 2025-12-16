@@ -5,10 +5,11 @@ import {UserService} from '../../services/UserService'
 import {OperatorService} from '../../services/OperatorService'
 import './styles/RecapModalSection.css'
 
-function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, mixersLoaded = true, isLoading: externalLoading = false}) {
+function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllPlants = false, mixersLoaded = true, isLoading: externalLoading = false}) {
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [history, setHistory] = useState([])
+    const [mixerHistory, setMixerHistory] = useState([])
+    const [operatorHistory, setOperatorHistory] = useState([])
     const [userNames, setUserNames] = useState({})
     const [operatorNames, setOperatorNames] = useState({})
     const [dateFilter, setDateFilter] = useState('week')
@@ -20,8 +21,14 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
         return mixers.map(m => m.id).filter(Boolean)
     }, [mixers])
 
+    const operatorIds = useMemo(() => {
+        if (!operators || !Array.isArray(operators)) return []
+        return operators.map(o => o.employeeId || o.employee_id).filter(Boolean)
+    }, [operators])
+
     const changeMetrics = useMemo(() => {
-        if (!history || history.length === 0) {
+        const allHistory = [...mixerHistory, ...operatorHistory]
+        if (!allHistory || allHistory.length === 0) {
             return {
                 operatorsNet: 0,
                 runnableNet: 0,
@@ -35,7 +42,7 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
         let downNet = 0
         let transfersNet = 0
         
-        history.forEach(h => {
+        mixerHistory.forEach(h => {
             if (h.field_name === 'assigned_operator') {
                 const oldVal = h.old_value
                 const newVal = h.new_value
@@ -82,7 +89,7 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
             downNet,
             transfersNet
         }
-    }, [history, plantCode, isAllPlants])
+    }, [mixerHistory, operatorHistory, plantCode, isAllPlants])
 
     const mixerLookup = useMemo(() => {
         const lookup = {}
@@ -94,30 +101,74 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
         return lookup
     }, [mixers])
 
+    const operatorLookup = useMemo(() => {
+        const lookup = {}
+        if (operators && Array.isArray(operators)) {
+            operators.forEach(o => {
+                const id = o.employeeId || o.employee_id
+                if (id) lookup[id] = o
+            })
+        }
+        return lookup
+    }, [operators])
+
     const groupedHistory = useMemo(() => {
-        if (!history || history.length === 0) return []
+        const allHistory = [...mixerHistory, ...operatorHistory]
+        if (!allHistory || allHistory.length === 0) return []
         const groups = {}
-        history.forEach(entry => {
+        
+        mixerHistory.forEach(entry => {
             const mixerId = entry.mixer_id
-            if (!groups[mixerId]) {
-                groups[mixerId] = {
-                    mixerId,
-                    truckNumber: null,
+            const key = `mixer_${mixerId}`
+            if (!groups[key]) {
+                groups[key] = {
+                    id: mixerId,
+                    type: 'mixer',
+                    name: null,
                     changes: []
                 }
             }
-            groups[mixerId].changes.push(entry)
+            groups[key].changes.push(entry)
         })
+        
+        operatorHistory.forEach(entry => {
+            const operatorId = entry.operator_id
+            const key = `operator_${operatorId}`
+            if (!groups[key]) {
+                groups[key] = {
+                    id: operatorId,
+                    type: 'operator',
+                    name: null,
+                    changes: []
+                }
+            }
+            groups[key].changes.push(entry)
+        })
+        
         Object.values(groups).forEach(group => {
-            const mixer = mixerLookup[group.mixerId]
-            if (mixer) {
-                group.truckNumber = mixer.truckNumber || mixer.truck_number || 'Unknown'
-            } else {
-                const truckNumberChange = group.changes.find(c => c.field_name === 'truck_number')
-                if (truckNumberChange) {
-                    group.truckNumber = truckNumberChange.new_value || truckNumberChange.old_value || 'Unknown'
+            if (group.type === 'mixer') {
+                const mixer = mixerLookup[group.id]
+                if (mixer) {
+                    group.name = mixer.truckNumber || mixer.truck_number || 'Unknown'
                 } else {
-                    group.truckNumber = 'Unknown'
+                    const truckNumberChange = group.changes.find(c => c.field_name === 'truck_number')
+                    if (truckNumberChange) {
+                        group.name = truckNumberChange.new_value || truckNumberChange.old_value || 'Unknown'
+                    } else {
+                        group.name = 'Unknown'
+                    }
+                }
+            } else if (group.type === 'operator') {
+                const operator = operatorLookup[group.id]
+                if (operator) {
+                    group.name = operator.name || 'Unknown Operator'
+                } else {
+                    const nameChange = group.changes.find(c => c.field_name === 'name')
+                    if (nameChange) {
+                        group.name = nameChange.new_value || nameChange.old_value || 'Unknown Operator'
+                    } else {
+                        group.name = 'Unknown Operator'
+                    }
                 }
             }
             group.changes.sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at))
@@ -127,10 +178,10 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
             const bLatest = b.changes[0]?.changed_at || ''
             return new Date(bLatest) - new Date(aLatest)
         })
-    }, [history, mixerLookup])
+    }, [mixerHistory, operatorHistory, mixerLookup, operatorLookup])
 
     const fetchHistory = async () => {
-        if (mixerIds.length === 0) return
+        if (mixerIds.length === 0 && operatorIds.length === 0) return
 
         setIsLoading(true)
         try {
@@ -145,38 +196,61 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
                 startDate = new Date('2020-01-01')
             }
 
-            const {data, error} = await supabase
-                .from('mixers_history')
-                .select('*')
-                .in('mixer_id', mixerIds)
-                .gte('changed_at', startDate.toISOString())
-                .order('changed_at', {ascending: false})
-                .limit(500)
+            let mixerData = []
+            if (mixerIds.length > 0) {
+                const {data, error} = await supabase
+                    .from('mixers_history')
+                    .select('*')
+                    .in('mixer_id', mixerIds)
+                    .gte('changed_at', startDate.toISOString())
+                    .order('changed_at', {ascending: false})
+                    .limit(500)
 
-            if (error) throw error
+                if (!error) mixerData = data || []
+            }
 
-            const filtered = (data || []).filter(entry => {
-                const oldVal = entry.old_value
-                const newVal = entry.new_value
-                if (oldVal === newVal) return false
-                if (!oldVal && !newVal) return false
-                if (oldVal === 'null' && !newVal) return false
-                if (!oldVal && newVal === 'null') return false
-                return true
-            })
+            let operatorData = []
+            if (operatorIds.length > 0) {
+                const {data, error} = await supabase
+                    .from('operators_history')
+                    .select('*')
+                    .in('operator_id', operatorIds)
+                    .gte('changed_at', startDate.toISOString())
+                    .order('changed_at', {ascending: false})
+                    .limit(500)
 
-            setHistory(filtered)
+                if (!error) operatorData = data || []
+            }
 
+            const filterHistory = (entries) => {
+                return (entries || []).filter(entry => {
+                    const oldVal = entry.old_value
+                    const newVal = entry.new_value
+                    if (oldVal === newVal) return false
+                    if (!oldVal && !newVal) return false
+                    if (oldVal === 'null' && !newVal) return false
+                    if (!oldVal && newVal === 'null') return false
+                    return true
+                })
+            }
+
+            const filteredMixerHistory = filterHistory(mixerData)
+            const filteredOperatorHistory = filterHistory(operatorData)
+
+            setMixerHistory(filteredMixerHistory)
+            setOperatorHistory(filteredOperatorHistory)
+
+            const allHistory = [...filteredMixerHistory, ...filteredOperatorHistory]
             const userIds = new Set()
-            const operatorIds = new Set()
-            filtered.forEach(entry => {
+            const opIdsForNames = new Set()
+            allHistory.forEach(entry => {
                 if (entry.changed_by) userIds.add(entry.changed_by)
                 if (entry.field_name === 'assigned_operator') {
                     if (entry.old_value && entry.old_value !== 'null' && entry.old_value !== '' && entry.old_value !== '0') {
-                        operatorIds.add(entry.old_value)
+                        opIdsForNames.add(entry.old_value)
                     }
                     if (entry.new_value && entry.new_value !== 'null' && entry.new_value !== '' && entry.new_value !== '0') {
-                        operatorIds.add(entry.new_value)
+                        opIdsForNames.add(entry.new_value)
                     }
                 }
             })
@@ -195,7 +269,7 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
             setUserNames(names)
 
             const opNames = {...operatorNames}
-            for (const opId of operatorIds) {
+            for (const opId of opIdsForNames) {
                 if (!opNames[opId]) {
                     try {
                         const operator = await OperatorService.getOperatorById(opId)
@@ -213,10 +287,10 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
     }
 
     useEffect(() => {
-        if (isOpen && mixerIds.length > 0) {
+        if (isOpen && (mixerIds.length > 0 || operatorIds.length > 0)) {
             fetchHistory()
         }
-    }, [isOpen, mixerIds, dateFilter])
+    }, [isOpen, mixerIds, operatorIds, dateFilter])
 
     useEffect(() => {
         if (!mixersLoaded || externalLoading) {
@@ -246,7 +320,17 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
             'year': 'Year',
             'condition_rating': 'Condition',
             'verified': 'Verified',
-            'down_in_yard': 'Down In Yard'
+            'down_in_yard': 'Down In Yard',
+            'name': 'Name',
+            'plant_code': 'Plant',
+            'is_trainer': 'Trainer',
+            'assigned_trainer': 'Assigned Trainer',
+            'position': 'Position',
+            'smyrna_id': 'Smyrna ID',
+            'phone': 'Phone',
+            'pending_start_date': 'Pending Start Date',
+            'rating': 'Rating',
+            'automatic_restriction': 'Automatic Restriction'
         }
         return mappings[fieldName] || fieldName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     }
@@ -268,8 +352,19 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
                 return value
             }
         }
-        if (fieldName === 'down_in_yard') {
+        if (fieldName === 'down_in_yard' || fieldName === 'is_trainer' || fieldName === 'automatic_restriction') {
             return value === 'true' || value === true ? 'Yes' : 'No'
+        }
+        if (fieldName === 'rating') {
+            const num = parseFloat(value)
+            if (!isNaN(num)) return num.toFixed(1)
+        }
+        if (fieldName === 'pending_start_date') {
+            try {
+                return new Date(value).toLocaleDateString()
+            } catch {
+                return value
+            }
         }
         return String(value)
     }
@@ -304,6 +399,7 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
             'status': 'fa-solid fa-circle-dot',
             'assigned_operator': 'fa-solid fa-user',
             'assigned_plant': 'fa-solid fa-industry',
+            'plant_code': 'fa-solid fa-industry',
             'cleanliness_rating': 'fa-solid fa-sparkles',
             'last_service_date': 'fa-solid fa-wrench',
             'last_chip_date': 'fa-solid fa-hammer',
@@ -312,7 +408,16 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
             'model': 'fa-solid fa-tag',
             'year': 'fa-solid fa-calendar',
             'truck_number': 'fa-solid fa-truck',
-            'down_in_yard': 'fa-solid fa-parking'
+            'down_in_yard': 'fa-solid fa-parking',
+            'name': 'fa-solid fa-id-card',
+            'is_trainer': 'fa-solid fa-chalkboard-teacher',
+            'assigned_trainer': 'fa-solid fa-user-graduate',
+            'position': 'fa-solid fa-briefcase',
+            'smyrna_id': 'fa-solid fa-hashtag',
+            'phone': 'fa-solid fa-phone',
+            'pending_start_date': 'fa-solid fa-calendar-plus',
+            'rating': 'fa-solid fa-star',
+            'automatic_restriction': 'fa-solid fa-car-side'
         }
         return iconMap[fieldName] || 'fa-solid fa-pen'
     }
@@ -321,10 +426,10 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
         setIsOpen(!isOpen)
     }
 
-    const toggleAssetExpanded = (mixerId) => {
+    const toggleAssetExpanded = (assetKey) => {
         setExpandedAssets(prev => ({
             ...prev,
-            [mixerId]: !prev[mixerId]
+            [assetKey]: !prev[assetKey]
         }))
     }
 
@@ -332,6 +437,7 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
 
     const displayTitle = isAllPlants ? 'All Plants Recap' : `Plant ${plantCode} Recap`
     const displaySubtitle = isAllPlants ? 'All Fleet Changes' : (plantName || 'Changes History')
+    const totalChanges = mixerHistory.length + operatorHistory.length
 
     const tab = (
         <div className={`recap-tab ${isTabVisible ? 'visible' : 'hidden'}`} onClick={handleToggle}>
@@ -384,7 +490,7 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
                         </button>
                     </div>
                     <div className="recap-count">
-                        {history.length} change{history.length !== 1 ? 's' : ''}
+                        {totalChanges} change{totalChanges !== 1 ? 's' : ''}
                     </div>
                 </div>
 
@@ -450,16 +556,19 @@ function RecapModalSection({plantCode, plantName, mixers, isAllPlants = false, m
                         ) : (
                             <div className="recap-timeline">
                                 {groupedHistory.map((group, groupIndex) => {
-                                    const isExpanded = expandedAssets[group.mixerId] || false
+                                    const assetKey = `${group.type}_${group.id}`
+                                    const isExpanded = expandedAssets[assetKey] || false
+                                    const isMixer = group.type === 'mixer'
+                                    const assetIcon = isMixer ? 'fa-solid fa-truck' : 'fa-solid fa-hard-hat'
                                     return (
-                                        <div key={group.mixerId || groupIndex} className="recap-asset-group">
+                                        <div key={assetKey || groupIndex} className={`recap-asset-group ${group.type}`}>
                                             <div 
                                                 className="recap-asset-header" 
-                                                onClick={() => toggleAssetExpanded(group.mixerId)}
+                                                onClick={() => toggleAssetExpanded(assetKey)}
                                             >
                                                 <i className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} recap-expand-icon`}></i>
-                                                <i className="fa-solid fa-truck"></i>
-                                                <span className="recap-asset-title">Truck #{group.truckNumber}</span>
+                                                <i className={`${assetIcon} recap-asset-type-icon`}></i>
+                                                <span className="recap-asset-title">{group.name}</span>
                                                 <span className="recap-asset-count">{group.changes.length} change{group.changes.length !== 1 ? 's' : ''}</span>
                                             </div>
                                             {isExpanded && (
