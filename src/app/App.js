@@ -46,6 +46,8 @@ VersionPopup.propTypes = {version: PropTypes.string}
 
 function UpdateLoadingScreen({version}) {
     const [progress, setProgress] = useState(0)
+    const videoIds = ['aBsTqfRqgiU', 'vxwjha1yB2Q', 'G0Cc_KTjAh8', 'DSjJOZtAnmw']
+    const [selectedVideo] = useState(() => videoIds[Math.floor(Math.random() * videoIds.length)])
     useEffect(() => {
         const start = Date.now()
         const interval = setInterval(() => {
@@ -87,7 +89,7 @@ function UpdateLoadingScreen({version}) {
                 <iframe
                     width="100%"
                     height="100%"
-                    src="https://www.youtube.com/embed/aBsTqfRqgiU?autoplay=1&mute=1&start=2&loop=1&playlist=aBsTqfRqgiU&controls=0&showinfo=0&rel=0&modestbranding=1&disablekb=1&fs=0&iv_load_policy=3"
+                    src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&mute=1&start=0&loop=1&playlist=${selectedVideo}&controls=0&showinfo=0&rel=0&modestbranding=1&disablekb=1&fs=0&iv_load_policy=3`}
                     title="Update Video"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
