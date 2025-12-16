@@ -65,8 +65,26 @@ function UpdateLoadingScreen({version}) {
     }, [progress])
     return (
         <div className="loading-screen full-page">
-            <div className="loading-content">
-                <div className="loading-animation"><img src={SmyrnaLogo} alt="Loading" className="bouncing-logo"/></div>
+            <div className="loading-content" style={{width: '640px', maxWidth: '95%'}}>
+                <div style={{
+                    width: '100%',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    marginBottom: '24px',
+                    aspectRatio: '16/9',
+                    background: '#000'
+                }}>
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/aBsTqfRqgiU?autoplay=1&mute=1&start=2&loop=1&playlist=aBsTqfRqgiU"
+                        title="Update Video"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{display: 'block'}}
+                    />
+                </div>
                 <p className="loading-message">Smyrna Tools is Updating...</p>
                 <div style={{
                     width: '100%',
