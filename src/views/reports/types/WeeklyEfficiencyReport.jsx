@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {ReportService} from '../../../services/ReportService'
 import {ReportUtility} from '../../../utils/ReportUtility'
-import '../styles/report-styles/Reports.css'
+import '../styles/Reports.css'
 
 function getRows(form) {
     return Array.isArray(form.rows) ? form.rows : []

@@ -6,7 +6,7 @@ import {UserService} from '../../../services/UserService'
 import {RegionService} from '../../../services/RegionService'
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
 import OperatorSelectModal from '../../mixers/OperatorSelectModal'
-import '../styles/report-styles/Reports.css'
+import '../styles/Reports.css'
 
 function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
     const [historicalData, setHistoricalData] = useState([])

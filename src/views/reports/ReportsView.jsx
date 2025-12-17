@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import './styles/report-styles/Reports.css';
+import './styles/Reports.css';
 import ReportsSubmitView from './ReportsSubmitView';
 import ReportsReviewView from './ReportsReviewView';
 import {supabase} from '../../services/DatabaseService';

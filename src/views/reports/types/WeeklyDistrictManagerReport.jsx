@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import '../styles/report-styles/Reports.css'
+import '../styles/Reports.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'

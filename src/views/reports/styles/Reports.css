@@ -1,0 +1,9 @@
+@import 'report-styles/BaseReports.css';
+@import 'report-styles/ReportsCommon.css';
+@import 'report-styles/DistrictManagerReport.css';
+@import 'report-styles/ReadyMixInstructorReport.css';
+@import 'report-styles/SafetyManagerReport.css';
+@import 'report-styles/PlantManagerReport.css';
+@import 'report-styles/GeneralManagerReport.css';
+@import 'report-styles/AggregateProductionReport.css';
+@import 'report-styles/PlantProductionReport.css';
