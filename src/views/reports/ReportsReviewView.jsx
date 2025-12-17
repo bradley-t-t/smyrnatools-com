@@ -295,7 +295,8 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                                                     <i className={`fas ${field.name === 'yardage' ? 'fa-box' : field.name === 'total_hours' ? 'fa-clock' : field.name === 'total_yards_lost' ? 'fa-exclamation-triangle' : 'fa-recycle'} pm-production-field-icon`}></i>
                                                     <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}</label>
                                                 </div>
-                                                <input type={field.type} value={form[field.name] ?? ''} readOnly disabled className="pm-production-input"/>
+                                                <input type={field.type} value={form[field.name] ?? ''} readOnly
+                                                       disabled className="pm-production-input"/>
                                             </div>
                                         )
                                     ))}

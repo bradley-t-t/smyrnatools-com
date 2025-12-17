@@ -146,7 +146,8 @@ class UserPresenceService {
                     .eq('is_online', true)
                     .lt('last_seen', staleTime)
                 this.notifyListeners()
-            } catch {}
+            } catch {
+            }
         }, 60000)
     }
 
@@ -221,7 +222,8 @@ class UserPresenceService {
                                 if (regions && regions.length > 0) {
                                     regionCode = regions[0].regionCode || regions[0].region_code
                                 }
-                            } catch {}
+                            } catch {
+                            }
                         }
                     }
 
@@ -234,7 +236,8 @@ class UserPresenceService {
                         lastSeen: presence.last_seen,
                         lastActivity: presence.last_activity
                     })
-                } catch {}
+                } catch {
+                }
             }
             return users
         } catch {
@@ -255,7 +258,8 @@ class UserPresenceService {
             this.listeners.forEach(listener => {
                 try {
                     listener(users)
-                } catch {}
+                } catch {
+                }
             })
         })
     }
@@ -282,7 +286,8 @@ class UserPresenceService {
         for (const sub of this.subscriptions) {
             try {
                 supabase.removeChannel(sub)
-            } catch {}
+            } catch {
+            }
         }
         this.subscriptions = []
         this.listeners = []

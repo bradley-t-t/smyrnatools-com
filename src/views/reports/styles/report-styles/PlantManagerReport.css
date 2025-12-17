@@ -176,26 +176,31 @@
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.025em;
+    border: 1px solid var(--border-light);
 }
 
 .pm-metric-scale span.active.excellent {
-    background: var(--success-bg);
-    color: var(--success);
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
 }
 
 .pm-metric-scale span.active.good {
-    background: var(--info-bg);
-    color: var(--info);
+    background: var(--info);
+    color: #fff;
+    border-color: var(--info);
 }
 
 .pm-metric-scale span.active.average {
-    background: var(--warning-bg);
-    color: var(--warning);
+    background: var(--warning);
+    color: #fff;
+    border-color: var(--warning);
 }
 
 .pm-metric-scale span.active.poor {
-    background: var(--danger-bg);
-    color: var(--danger);
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
 }
 
 .pm-performance-text {
@@ -378,7 +383,7 @@
 }
 
 .pm-timeline-metric-value {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -410,16 +415,51 @@
     color: var(--danger);
 }
 
+.pm-timeline-item.pm-timeline-placeholder .pm-timeline-content {
+    background: var(--bg-tertiary);
+    border-style: dashed;
+    border-color: var(--border-light);
+    opacity: 0.7;
+}
+
+.pm-timeline-dot.pm-timeline-dot-placeholder {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+    box-shadow: 0 0 0 2px var(--border-light);
+}
+
+.pm-timeline-placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 0;
+    color: var(--text-secondary);
+}
+
+.pm-timeline-placeholder-content i {
+    font-size: 1.25rem;
+    opacity: 0.6;
+}
+
+.pm-timeline-placeholder-content span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 .pm-timeline-container {
     display: flex;
     gap: 1rem;
-    overflow-x: auto;
     padding-bottom: 0.5rem;
+    width: 100%;
 }
 
 .pm-timeline-week {
     flex: 1;
-    min-width: 180px;
+    min-width: 0;
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     padding: 1rem;

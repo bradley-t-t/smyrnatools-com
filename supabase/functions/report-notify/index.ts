@@ -222,11 +222,11 @@ Deno.serve(async (req) => {
                 }
                 const reviewPerm = `reports.review.${reportName}`;
                 const toUsers = await findReviewerUsersByPermission(supabase, reviewPerm);
-                
+
                 const submitterRegions = await getSubmitterRegions(supabase, submittedById);
                 const regionFilteredUsers = await filterRecipientsByRegion(toUsers, supabase, submitterRegions);
                 const prefUsers = await filterRecipientsByEmailPreference(regionFilteredUsers, supabase);
-                
+
                 const toEmails = Array.from(new Set(prefUsers.map(u => u.email).filter(e => typeof e === 'string' && isValidEmail(e))));
                 if (!toEmails.length) return new Response(JSON.stringify({
                     ok: true,

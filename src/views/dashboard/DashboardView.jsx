@@ -14,7 +14,6 @@ import {UserService} from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import PlantPerformanceSection from '../../components/sections/PlantPerformanceSection'
 
 export default function DashboardView() {
     const {preferences} = usePreferences()

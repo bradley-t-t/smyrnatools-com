@@ -39,7 +39,8 @@ function TipBanner() {
     if (!isAuthenticated || !isVisible || !preferences.showTips) return null;
 
     return (
-        <div className={`tip-banner ${isDarkMode ? 'tip-banner-dark' : ''}`} style={{backgroundColor: isDarkMode ? '#2a2a2a' : '#ffffff'}}>
+        <div className={`tip-banner ${isDarkMode ? 'tip-banner-dark' : ''}`}
+             style={{backgroundColor: isDarkMode ? '#2a2a2a' : '#ffffff'}}>
             <div className="tip-content">
                 <div className="tip-icon" style={{color: accentColor}}>
                     <i className="fas fa-lightbulb"></i>

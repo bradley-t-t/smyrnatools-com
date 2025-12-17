@@ -182,21 +182,21 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
     async function fetchTractors(codes) {
         try {
             const processedBase = await TractorService.fetchTractorsWithDetails(codes)
-            
+
             const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
-            
+
             setTractors(processedBase)
             setAllTractors(processedBase)
             setTractorsLoaded(true)
             loadDetailsForTractors(processedBase)
-            
+
             if (cleanupResult.fixed > 0) {
                 setTimeout(async () => {
                     const refreshed = await TractorService.fetchTractorsWithDetails(codes)
                     setTractors(refreshed)
                     setAllTractors(refreshed)
                     loadDetailsForTractors(refreshed)
-                    
+
                     setTimeout(() => {
                         runVerificationCheck(refreshed)
                     }, 1000)
@@ -212,7 +212,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
 
     async function runVerificationCheck(tractorsToCheck) {
         if (!tractorsToCheck || tractorsToCheck.length === 0) return
-        
+
         try {
             const verificationResult = await CleanupUtility.verificationCheck(
                 tractorsToCheck,
@@ -220,7 +220,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
                 'tractor',
                 operators
             )
-            
+
             if (verificationResult.fixed > 0) {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
@@ -336,7 +336,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
             const matchesFreight = !freightFilter || tractor.freight === freightFilter
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
         });
-        
+
         return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
             if (!sortKey) {
                 return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')

@@ -555,20 +555,20 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                                     <tr>
                                         <td>Notes</td>
                                         <td>
-                                            <textarea 
-                                                value={String(getLastWeekValue(f.notes))} 
+                                            <textarea
+                                                value={String(getLastWeekValue(f.notes))}
                                                 disabled
                                                 className="rpt-input rpt-textarea-notes"
                                             />
                                         </td>
                                         <td colSpan={2}>
-                                            <textarea 
+                                            <textarea
                                                 value={form[f.notes] ?? ''}
                                                 onChange={e => setForm(prev => ({
                                                     ...prev,
                                                     [f.notes]: e.target.value
-                                                }))} 
-                                                disabled={readOnly} 
+                                                }))}
+                                                disabled={readOnly}
                                                 className="rpt-input rpt-textarea-notes"
                                             />
                                         </td>

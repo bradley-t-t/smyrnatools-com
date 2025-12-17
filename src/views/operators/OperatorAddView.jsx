@@ -155,7 +155,8 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                             <div className="form-group">
                                 <label htmlFor="name">Name*</label>
                                 <input id="name" type="text" className="ios-input" value={name}
-                                       onChange={(e) => setName(e.target.value)} placeholder="Enter full name" required/>
+                                       onChange={(e) => setName(e.target.value)} placeholder="Enter full name"
+                                       required/>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="phone">Phone</label>
@@ -199,7 +200,8 @@ function OperatorAddView({plants, operators = [], onClose, onOperatorAdded, allo
                             <div className="add-form-row">
                                 <div className="form-group">
                                     <label htmlFor="pendingStartDate">Pending Start Date</label>
-                                    <input id="pendingStartDate" type="date" className="ios-input" value={pendingStartDate}
+                                    <input id="pendingStartDate" type="date" className="ios-input"
+                                           value={pendingStartDate}
                                            onChange={e => setPendingStartDate(e.target.value)}/>
                                 </div>
                             </div>

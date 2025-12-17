@@ -116,11 +116,11 @@ function RolesView() {
 
             UserService.clearCache();
             await loadData();
-            
+
             const newExpanded = new Set(expandedRoles);
             newExpanded.delete(editingRole);
             setExpandedRoles(newExpanded);
-            
+
             setEditingRole(null);
             setEditedPermissions('');
             setMessage('Permissions updated successfully (duplicates removed, sorted alphabetically)');

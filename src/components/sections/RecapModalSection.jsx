@@ -1,11 +1,19 @@
- import React, {useEffect, useState, useMemo} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import ReactDOM from 'react-dom'
 import {supabase} from '../../services/DatabaseService'
 import {UserService} from '../../services/UserService'
 import {OperatorService} from '../../services/OperatorService'
 import './styles/RecapModalSection.css'
 
-function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllPlants = false, mixersLoaded = true, isLoading: externalLoading = false}) {
+function RecapModalSection({
+                               plantCode,
+                               plantName,
+                               mixers,
+                               operators = [],
+                               isAllPlants = false,
+                               mixersLoaded = true,
+                               isLoading: externalLoading = false
+                           }) {
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [mixerHistory, setMixerHistory] = useState([])
@@ -36,12 +44,12 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                 transfersNet: 0
             }
         }
-        
+
         let operatorsNet = 0
         let runnableNet = 0
         let downNet = 0
         let transfersNet = 0
-        
+
         mixerHistory.forEach(h => {
             if (h.field_name === 'assigned_operator') {
                 const oldVal = h.old_value
@@ -51,18 +59,18 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                 if (!hadOperator && hasOperator) operatorsNet++
                 else if (hadOperator && !hasOperator) operatorsNet--
             }
-            
+
             if (h.field_name === 'status') {
                 const oldStatus = (h.old_value || '').toLowerCase()
                 const newStatus = (h.new_value || '').toLowerCase()
-                
+
                 const wasDown = oldStatus === 'in shop'
                 const isDown = newStatus === 'in shop'
-                
+
                 if (!wasDown && isDown) downNet++
                 else if (wasDown && !isDown) downNet--
             }
-            
+
             if (h.field_name === 'assigned_plant') {
                 if (isAllPlants) {
                     transfersNet++
@@ -71,7 +79,7 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                     const newPlant = h.new_value
                     const wasAtThisPlant = oldPlant === plantCode
                     const isAtThisPlant = newPlant === plantCode
-                    
+
                     if (!wasAtThisPlant && isAtThisPlant) {
                         runnableNet++
                         transfersNet++
@@ -82,7 +90,7 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                 }
             }
         })
-        
+
         return {
             operatorsNet,
             runnableNet,
@@ -116,7 +124,7 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
         const allHistory = [...mixerHistory, ...operatorHistory]
         if (!allHistory || allHistory.length === 0) return []
         const groups = {}
-        
+
         mixerHistory.forEach(entry => {
             const mixerId = entry.mixer_id
             const key = `mixer_${mixerId}`
@@ -130,7 +138,7 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
             }
             groups[key].changes.push(entry)
         })
-        
+
         operatorHistory.forEach(entry => {
             const operatorId = entry.operator_id
             const key = `operator_${operatorId}`
@@ -144,7 +152,7 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
             }
             groups[key].changes.push(entry)
         })
-        
+
         Object.values(groups).forEach(group => {
             if (group.type === 'mixer') {
                 const mixer = mixerLookup[group.id]
@@ -297,7 +305,7 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
             setIsTabVisible(false)
             return
         }
-        
+
         const timer = setTimeout(() => {
             setIsTabVisible(true)
         }, 2000)
@@ -501,7 +509,8 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                                 <i className="fa-solid fa-user"></i>
                             </div>
                             <div className="recap-metric-data">
-                                <span className={`recap-metric-value ${changeMetrics.operatorsNet > 0 ? 'positive' : changeMetrics.operatorsNet < 0 ? 'negative' : ''}`}>
+                                <span
+                                    className={`recap-metric-value ${changeMetrics.operatorsNet > 0 ? 'positive' : changeMetrics.operatorsNet < 0 ? 'negative' : ''}`}>
                                     {changeMetrics.operatorsNet === 0 ? 'No Change' : `${changeMetrics.operatorsNet > 0 ? '+' : ''}${changeMetrics.operatorsNet}`}
                                 </span>
                                 <span className="recap-metric-label">Operators</span>
@@ -512,7 +521,8 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                                 <i className="fa-solid fa-truck"></i>
                             </div>
                             <div className="recap-metric-data">
-                                <span className={`recap-metric-value ${changeMetrics.runnableNet > 0 ? 'positive' : changeMetrics.runnableNet < 0 ? 'negative' : ''}`}>
+                                <span
+                                    className={`recap-metric-value ${changeMetrics.runnableNet > 0 ? 'positive' : changeMetrics.runnableNet < 0 ? 'negative' : ''}`}>
                                     {changeMetrics.runnableNet === 0 ? 'No Change' : `${changeMetrics.runnableNet > 0 ? '+' : ''}${changeMetrics.runnableNet}`}
                                 </span>
                                 <span className="recap-metric-label">Runnable</span>
@@ -523,7 +533,8 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                                 <i className="fa-solid fa-wrench"></i>
                             </div>
                             <div className="recap-metric-data">
-                                <span className={`recap-metric-value ${changeMetrics.downNet > 0 ? 'negative' : changeMetrics.downNet < 0 ? 'positive' : ''}`}>
+                                <span
+                                    className={`recap-metric-value ${changeMetrics.downNet > 0 ? 'negative' : changeMetrics.downNet < 0 ? 'positive' : ''}`}>
                                     {changeMetrics.downNet === 0 ? 'No Change' : `${changeMetrics.downNet > 0 ? '+' : ''}${changeMetrics.downNet}`}
                                 </span>
                                 <span className="recap-metric-label">Down</span>
@@ -534,12 +545,13 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                                 <i className="fa-solid fa-right-left"></i>
                             </div>
                             <div className="recap-metric-data">
-                                <span className="recap-metric-value">{changeMetrics.transfersNet === 0 ? 'No Change' : changeMetrics.transfersNet}</span>
+                                <span
+                                    className="recap-metric-value">{changeMetrics.transfersNet === 0 ? 'No Change' : changeMetrics.transfersNet}</span>
                                 <span className="recap-metric-label">Transfers</span>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="recap-history-section">
                         {isLoading ? (
                             <div className="recap-loading">
@@ -562,14 +574,15 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                                     const assetIcon = isMixer ? 'fa-solid fa-truck' : 'fa-solid fa-hard-hat'
                                     return (
                                         <div key={assetKey || groupIndex} className={`recap-asset-group ${group.type}`}>
-                                            <div 
-                                                className="recap-asset-header" 
+                                            <div
+                                                className="recap-asset-header"
                                                 onClick={() => toggleAssetExpanded(assetKey)}
                                             >
                                                 <i className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} recap-expand-icon`}></i>
                                                 <i className={`${assetIcon} recap-asset-type-icon`}></i>
                                                 <span className="recap-asset-title">{group.name}</span>
-                                                <span className="recap-asset-count">{group.changes.length} change{group.changes.length !== 1 ? 's' : ''}</span>
+                                                <span
+                                                    className="recap-asset-count">{group.changes.length} change{group.changes.length !== 1 ? 's' : ''}</span>
                                             </div>
                                             {isExpanded && (
                                                 <div className="recap-asset-changes">
@@ -580,8 +593,10 @@ function RecapModalSection({plantCode, plantName, mixers, operators = [], isAllP
                                                             </div>
                                                             <div className="recap-entry-content">
                                                                 <div className="recap-entry-header">
-                                                                    <span className="recap-entry-field-inline">{formatFieldName(entry.field_name)}</span>
-                                                                    <span className="recap-timestamp">{formatDate(entry.changed_at)}</span>
+                                                                    <span
+                                                                        className="recap-entry-field-inline">{formatFieldName(entry.field_name)}</span>
+                                                                    <span
+                                                                        className="recap-timestamp">{formatDate(entry.changed_at)}</span>
                                                                 </div>
                                                                 <div className="recap-entry-values">
                                                                     <span className="recap-old-value">

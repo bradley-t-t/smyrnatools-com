@@ -241,8 +241,8 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         currentDate.setDate(currentDate.getDate() + 7)
                     }
 
-                    const dataIntegrity = expectedWeeks > 0 
-                        ? (submittedReports / expectedWeeks) * 100 
+                    const dataIntegrity = expectedWeeks > 0
+                        ? (submittedReports / expectedWeeks) * 100
                         : 100
 
                     if (validReports === 0) {
@@ -403,7 +403,8 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
 
                 <div className="kpi-card slide-in-card">
                     <div className="kpi-title">Data Integrity</div>
-                    <div className="kpi-value" style={{color: (metricsToShow.dataIntegrity ?? 100) >= 90 ? 'var(--success)' : (metricsToShow.dataIntegrity ?? 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
+                    <div className="kpi-value"
+                         style={{color: (metricsToShow.dataIntegrity ?? 100) >= 90 ? 'var(--success)' : (metricsToShow.dataIntegrity ?? 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
                         {(metricsToShow.dataIntegrity ?? 100).toFixed(1)}%
                     </div>
                 </div>
@@ -464,85 +465,86 @@ export default function PlantPerformanceSection({dashboardPlant, regionPlants, a
                         <div className="training-table-content">
                             <table className="training-table">
                                 <thead>
-                                    <tr>
-                                        <th style={{textAlign: 'left'}}>Plant</th>
-                                        <th style={{textAlign: 'right'}}>Data Integrity</th>
-                                        <th style={{textAlign: 'right'}}>Avg Efficiency</th>
-                                        <th style={{textAlign: 'right'}}>Avg YPH</th>
-                                        <th style={{textAlign: 'right'}}>Avg Yards/Week</th>
-                                        <th style={{textAlign: 'right'}}>Avg Yards/Day</th>
-                                        <th style={{textAlign: 'right'}}>Avg Hours/Week</th>
-                                        <th style={{textAlign: 'right'}}>Avg Hours/Day</th>
-                                        <th style={{textAlign: 'right'}}>Avg Yards Lost</th>
-                                    </tr>
+                                <tr>
+                                    <th style={{textAlign: 'left'}}>Plant</th>
+                                    <th style={{textAlign: 'right'}}>Data Integrity</th>
+                                    <th style={{textAlign: 'right'}}>Avg Efficiency</th>
+                                    <th style={{textAlign: 'right'}}>Avg YPH</th>
+                                    <th style={{textAlign: 'right'}}>Avg Yards/Week</th>
+                                    <th style={{textAlign: 'right'}}>Avg Yards/Day</th>
+                                    <th style={{textAlign: 'right'}}>Avg Hours/Week</th>
+                                    <th style={{textAlign: 'right'}}>Avg Hours/Day</th>
+                                    <th style={{textAlign: 'right'}}>Avg Yards Lost</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {plantMetrics.map((plant) => (
-                                        <tr key={plant.plantCode}>
-                                            <td>
-                                                <div className="plant-code-display">{plant.plantCode}</div>
-                                                <div className="plant-name-display">{plant.plantName}</div>
-                                            </td>
-                                            <td className="numeric-cell">
-                                                <span style={{color: (plant.dataIntegrity ?? 100) >= 90 ? 'var(--success)' : (plant.dataIntegrity ?? 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
+                                {plantMetrics.map((plant) => (
+                                    <tr key={plant.plantCode}>
+                                        <td>
+                                            <div className="plant-code-display">{plant.plantCode}</div>
+                                            <div className="plant-name-display">{plant.plantName}</div>
+                                        </td>
+                                        <td className="numeric-cell">
+                                                <span
+                                                    style={{color: (plant.dataIntegrity ?? 100) >= 90 ? 'var(--success)' : (plant.dataIntegrity ?? 100) >= 75 ? 'var(--warning)' : 'var(--danger)'}}>
                                                     {(plant.dataIntegrity ?? 100).toFixed(1)}%
                                                 </span>
-                                            </td>
-                                            <td className="numeric-cell">
+                                        </td>
+                                        <td className="numeric-cell">
                                                 <span style={{color: getEfficiencyColor(plant.avgEfficiency)}}>
                                                     {plant.avgEfficiency.toFixed(1)}%
                                                 </span>
-                                            </td>
-                                            <td className="numeric-cell">
-                                                {!isFinite(plant.avgYPH) || plant.avgYPH === 0 ? (
-                                                    <span style={{
-                                                        padding: '0.25rem 0.5rem',
-                                                        borderRadius: '0.25rem',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '500',
-                                                        backgroundColor: 'var(--danger)',
-                                                        color: 'white',
-                                                        whiteSpace: 'nowrap'
-                                                    }}>No Operators</span>
-                                                ) : (
-                                                    plant.avgYPH.toFixed(2)
-                                                )}
-                                            </td>
-                                            <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
-                                            <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
-                                            <td className="numeric-cell">
-                                                {plant.avgWeeklyHours === 0 ? (
-                                                    <span style={{
-                                                        padding: '0.25rem 0.5rem',
-                                                        borderRadius: '0.25rem',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '500',
-                                                        backgroundColor: 'var(--danger)',
-                                                        color: 'white',
-                                                        whiteSpace: 'nowrap'
-                                                    }}>No Operators</span>
-                                                ) : (
-                                                    Math.round(plant.avgWeeklyHours).toLocaleString()
-                                                )}
-                                            </td>
-                                            <td className="numeric-cell">
-                                                {plant.avgHoursDaily === 0 ? (
-                                                    <span style={{
-                                                        padding: '0.25rem 0.5rem',
-                                                        borderRadius: '0.25rem',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '500',
-                                                        backgroundColor: 'var(--danger)',
-                                                        color: 'white',
-                                                        whiteSpace: 'nowrap'
-                                                    }}>No Operators</span>
-                                                ) : (
-                                                    Math.round(plant.avgHoursDaily).toLocaleString()
-                                                )}
-                                            </td>
-                                            <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
-                                        </tr>
-                                    ))}
+                                        </td>
+                                        <td className="numeric-cell">
+                                            {!isFinite(plant.avgYPH) || plant.avgYPH === 0 ? (
+                                                <span style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    borderRadius: '0.25rem',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '500',
+                                                    backgroundColor: 'var(--danger)',
+                                                    color: 'white',
+                                                    whiteSpace: 'nowrap'
+                                                }}>No Operators</span>
+                                            ) : (
+                                                plant.avgYPH.toFixed(2)
+                                            )}
+                                        </td>
+                                        <td className="numeric-cell">{Math.round(plant.avgYardageWeekly).toLocaleString()}</td>
+                                        <td className="numeric-cell">{Math.round(plant.avgYardageDaily).toLocaleString()}</td>
+                                        <td className="numeric-cell">
+                                            {plant.avgWeeklyHours === 0 ? (
+                                                <span style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    borderRadius: '0.25rem',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '500',
+                                                    backgroundColor: 'var(--danger)',
+                                                    color: 'white',
+                                                    whiteSpace: 'nowrap'
+                                                }}>No Operators</span>
+                                            ) : (
+                                                Math.round(plant.avgWeeklyHours).toLocaleString()
+                                            )}
+                                        </td>
+                                        <td className="numeric-cell">
+                                            {plant.avgHoursDaily === 0 ? (
+                                                <span style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    borderRadius: '0.25rem',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '500',
+                                                    backgroundColor: 'var(--danger)',
+                                                    color: 'white',
+                                                    whiteSpace: 'nowrap'
+                                                }}>No Operators</span>
+                                            ) : (
+                                                Math.round(plant.avgHoursDaily).toLocaleString()
+                                            )}
+                                        </td>
+                                        <td className="numeric-cell warning-text">{Math.round(plant.avgYardageLost).toLocaleString()}</td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
                         </div>

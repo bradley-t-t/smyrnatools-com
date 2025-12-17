@@ -306,12 +306,12 @@ function MixerDetailView({mixerId, onClose}) {
                     ? overrideValues.prevAssignedOperator
                     : mixer.assignedOperator
             }
-            
+
             let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating;
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1;
-            
+
             const finalDownInYard = statusValue === 'In Shop' ? (overrideValues.downInYard ?? downInYard) : false;
-            
+
             const updatedMixer = {
                 ...mixer,
                 id: mixer.id,
@@ -812,7 +812,8 @@ function MixerDetailView({mixerId, onClose}) {
                             </div>
                             {status === 'Spare' && (
                                 <div className="spare-status-note">
-                                    If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with down toggled, not as a spare
+                                    If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with down
+                                    toggled, not as a spare
                                 </div>
                             )}
                             {status === 'In Shop' && (
@@ -837,7 +838,8 @@ function MixerDetailView({mixerId, onClose}) {
                                         </label>
                                     </div>
                                     <div className="down-in-yard-note">
-                                        Trucks that are down in the yard need to have this toggled on, but also need say &quot;In Shop&quot; as the status
+                                        Trucks that are down in the yard need to have this toggled on, but also need
+                                        say &quot;In Shop&quot; as the status
                                     </div>
                                 </div>
                             )}

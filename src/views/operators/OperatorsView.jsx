@@ -285,7 +285,7 @@ function OperatorsView({
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesPosition
         });
-        
+
         const sortFn = (a, b) => {
             if (!sortKey) {
                 if (a.status === 'Active' && b.status !== 'Active') return -1
@@ -323,7 +323,7 @@ function OperatorsView({
         const terminatedStatuses = ['Terminated', 'No Hire'];
         const nonTerminated = [];
         const terminated = [];
-        
+
         filtered.forEach(op => {
             if (terminatedStatuses.includes(op.status)) {
                 terminated.push(op);
@@ -331,7 +331,7 @@ function OperatorsView({
                 nonTerminated.push(op);
             }
         });
-        
+
         return [...nonTerminated.sort(sortFn), ...terminated.sort(sortFn)];
     })()
 

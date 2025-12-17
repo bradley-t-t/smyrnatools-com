@@ -1,8 +1,8 @@
 const LeaderboardsUtility = {
-    
+
     calculateHoursAdjustments(reports, profilesData, plantCodesInRegion) {
         const hoursAdjustmentsByPlant = {}
-        
+
         plantCodesInRegion.forEach(plantCode => {
             hoursAdjustmentsByPlant[plantCode] = {
                 hoursAdded: 0,
@@ -54,7 +54,7 @@ const LeaderboardsUtility = {
 
     calculateFleetCounts(plantCodesInRegion, mixersData, tractorsData, trailersData, equipmentData, operatorsData) {
         const fleetCountsByPlant = {}
-        
+
         plantCodesInRegion.forEach(plantCode => {
             const plantMixers = mixersData.filter(m => {
                 const plant = m.assignedPlant || m.assigned_plant
@@ -112,12 +112,12 @@ const LeaderboardsUtility = {
                 const rating = m.cleanlinessRating || m.cleanliness_rating
                 return rating !== null && rating !== undefined && rating > 0
             })
-            
+
             const avgMixerCleanliness = mixersWithCleanliness.length > 0
                 ? mixersWithCleanliness.reduce((sum, m) => {
-                    const rating = m.cleanlinessRating || m.cleanliness_rating
-                    return sum + (parseFloat(rating) || 0)
-                }, 0) / mixersWithCleanliness.length
+                const rating = m.cleanlinessRating || m.cleanliness_rating
+                return sum + (parseFloat(rating) || 0)
+            }, 0) / mixersWithCleanliness.length
                 : 0
 
             fleetCountsByPlant[plantCode] = {
@@ -215,7 +215,7 @@ const LeaderboardsUtility = {
 
         const submittedWeeks = allWeeks.filter(w => !w.isMissing && !w.isNotSubmitted)
         const totalExpectedReports = allWeeks.length
-        
+
         const missingReports = allWeeks.filter(w => w.isMissing)
         const incompleteReports = allWeeks.filter(w => w.isNotSubmitted)
         const missingCount = missingReports.length
@@ -234,14 +234,14 @@ const LeaderboardsUtility = {
         let helpGiven = 0
         let helpReceived = 0
         let helpRatio = 0
-        
+
         if (hoursAdjustments) {
             const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
             adjustedTotalHours = totals.totalHours + netAdjustment
-            
+
             helpGiven = hoursAdjustments.hoursSubtracted || 0
             helpReceived = hoursAdjustments.hoursAdded || 0
-            
+
             if (helpReceived > 0) {
                 helpRatio = helpGiven / helpReceived
             } else if (helpGiven > 0) {
@@ -254,13 +254,13 @@ const LeaderboardsUtility = {
         const weeksWithHours = submittedWeeks.filter(w => w.hours > 0)
         const yardsWithHours = weeksWithHours.reduce((sum, w) => sum + w.yardage, 0)
         const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
-        
+
         let adjustedHoursTotal = hoursTotal
         if (hoursAdjustments) {
             const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
             adjustedHoursTotal = hoursTotal + netAdjustment
         }
-        
+
         const avgYPH = adjustedHoursTotal > 0 ? yardsWithHours / adjustedHoursTotal : 0
 
         const avgYardageWeekly = totals.reportCount > 0 ? totals.totalYards / totals.reportCount : 0
@@ -268,21 +268,21 @@ const LeaderboardsUtility = {
         const avgWeeklyHours = totals.reportCount > 0 ? adjustedTotalHours / totals.reportCount : 0
         const avgHoursDaily = avgWeeklyHours / 6
         const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
-        
+
         const avgMonthlyYards = avgYardageWeekly * 4.33
         const avgMonthlyHours = avgWeeklyHours * 4.33
-        
+
         const yardsPerLoad = 10
         const avgLoadsWeekly = totals.reportCount > 0 ? totals.totalYards / yardsPerLoad / totals.reportCount : 0
         const avgLoadsDaily = avgLoadsWeekly / 6
 
         const targetYPH = 3.0
         const yphEfficiency = avgYPH > 0 ? Math.min((avgYPH / targetYPH) * 100, 100) : 0
-        
+
         const loadsPerOperatorPerDay = mixerOperatorCount > 0 ? avgLoadsDaily / mixerOperatorCount : 0
         const targetLoadsPerOperatorPerDay = 3
         const loadsEfficiency = Math.min((loadsPerOperatorPerDay / targetLoadsPerOperatorPerDay) * 100, 100)
-        
+
         let cleanlinessModifier = 0
         if (avgFleetCleanlinessActual >= 5) {
             cleanlinessModifier = 10
@@ -293,11 +293,11 @@ const LeaderboardsUtility = {
         } else if (avgFleetCleanlinessActual > 0) {
             cleanlinessModifier = -10
         }
-        
+
         const baseEfficiency = (yphEfficiency * 0.9) + (loadsEfficiency * 0.1)
-        
+
         const reportDeduction = (missingCount + incompleteCount) * 10
-        
+
         const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency + cleanlinessModifier - reportDeduction, 0), 100) : 0
 
         const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports * 100) : 100

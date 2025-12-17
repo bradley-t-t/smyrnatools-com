@@ -108,7 +108,7 @@
         padding: 9px 12px;
         gap: 6px;
     }
-    
+
     .menu-text {
         font-size: 13px;
     }
@@ -118,11 +118,11 @@
     .menu-item {
         padding: 9px 10px;
     }
-    
+
     .menu-text {
         display: none;
     }
-    
+
     .menu-item {
         width: 44px;
         height: 44px;

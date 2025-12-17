@@ -267,7 +267,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
 
             let cleanlinessValue = cleanlinessRating;
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1;
-            
+
             let conditionValue = conditionRating;
             if (!conditionValue || isNaN(conditionValue) || conditionValue < 1) conditionValue = 1;
 

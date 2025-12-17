@@ -202,16 +202,16 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     async function fetchMixersWithDetails(codes) {
         try {
             const processedBase = await MixerService.fetchMixersWithDetails(codes)
-            
+
             const cleanupResult = await MixerService.cleanupNullOperators(processedBase)
-            
+
             if (cleanupResult.fixed > 0) {
                 const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
                 setMixers(refreshedMixers)
                 setAllMixers(refreshedMixers)
                 setMixersLoaded(true)
                 loadDetailsForMixers(refreshedMixers)
-                
+
                 setTimeout(() => {
                     runVerificationCheck(refreshedMixers)
                 }, 1000)
@@ -220,7 +220,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 setAllMixers(processedBase)
                 setMixersLoaded(true)
                 loadDetailsForMixers(processedBase)
-                
+
                 setTimeout(() => {
                     runVerificationCheck(processedBase)
                 }, 1000)
@@ -232,7 +232,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
 
     async function runVerificationCheck(mixersToCheck) {
         if (!mixersToCheck || mixersToCheck.length === 0) return
-        
+
         try {
             const verificationResult = await CleanupUtility.verificationCheck(
                 mixersToCheck,
@@ -240,7 +240,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 'mixer',
                 operators
             )
-            
+
             if (verificationResult.fixed > 0) {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
@@ -400,7 +400,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 }
                 return matchesSearch && matchesPlant && matchesRegion && matchesStatus
             });
-        
+
         return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
             if (!sortKey) {
                 return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
@@ -514,8 +514,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                     }}></span>
                                     <span>{item.status}</span>
                                     {item.status === 'In Shop' && item.downInYard && (
-                                        <span 
-                                            className="in-yard-badge" 
+                                        <span
+                                            className="in-yard-badge"
                                             title="This mixer is down in the yard"
                                         >
                                             IN YARD
@@ -532,12 +532,13 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                                         {(() => {
                                             const rating = Math.round(item.cleanlinessRating || 0);
                                             const stars = rating > 0 ? rating : 1;
-                                            return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
+                                            return Array.from({length: stars}).map((_, i) => <i key={i}
+                                                                                                className="fas fa-star"
                                                                                                 style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
                                         })()}
                                         {item.cleanlinessRating && item.cleanlinessRating < 3 && (
-                                            <span 
-                                                className="downed-badge" 
+                                            <span
+                                                className="downed-badge"
                                                 title="This truck cannot run loads until the cleanliness is 3 stars or better. Do not ignore this warning."
                                                 style={{
                                                     backgroundColor: 'var(--error)',

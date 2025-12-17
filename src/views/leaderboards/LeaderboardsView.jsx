@@ -45,7 +45,7 @@ export default function LeaderboardsView() {
                 }
 
                 const plantsInRegion = await RegionService.fetchRegionPlants(selectedRegionCode)
-                
+
                 if (!plantsInRegion || plantsInRegion.length === 0) {
                     if (mounted) {
                         setPlantMetrics([])
@@ -159,14 +159,14 @@ export default function LeaderboardsView() {
                         avgFleetCleanliness: 0,
                         avgFleetCleanlinessForEfficiency: 0
                     }
-                    
+
                     const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
                     const mixerOperatorCount = fleetData.mixerOperators || 1
                     const hoursAdjustments = hoursAdjustmentsByPlant[plantCode] || null
-                    
+
                     const metrics = LeaderboardsUtility.calculateMetrics(
-                        plantReports, 
-                        avgCleanlinessActual, 
+                        plantReports,
+                        avgCleanlinessActual,
                         mixerOperatorCount,
                         currentWeekStart,
                         hoursAdjustments
@@ -237,7 +237,7 @@ export default function LeaderboardsView() {
     }
 
     if (loading) {
-        return <LoadingScreen message="Loading leaderboard data..." fullPage={true} />
+        return <LoadingScreen message="Loading leaderboard data..." fullPage={true}/>
     }
 
     return (
@@ -399,37 +399,45 @@ export default function LeaderboardsView() {
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Load Efficiency</span>
-                                                        <span className="stat-value">{plant.loadsEfficiency.toFixed(1)}%</span>
+                                                        <span
+                                                            className="stat-value">{plant.loadsEfficiency.toFixed(1)}%</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Weekly Yards</span>
-                                                        <span className="stat-value">{Math.round(plant.avgYardageWeekly).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.avgYardageWeekly).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Daily Yards</span>
-                                                        <span className="stat-value">{Math.round(plant.avgYardageDaily).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.avgYardageDaily).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Monthly Yards</span>
-                                                        <span className="stat-value">{Math.round(plant.avgMonthlyYards).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.avgMonthlyYards).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Weekly Hours</span>
-                                                        <span className="stat-value">{Math.round(plant.avgWeeklyHours).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.avgWeeklyHours).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Daily Hours</span>
-                                                        <span className="stat-value">{Math.round(plant.avgHoursDaily).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.avgHoursDaily).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Monthly Hours</span>
-                                                        <span className="stat-value">{Math.round(plant.avgMonthlyHours).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.avgMonthlyHours).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. Cleanliness</span>
-                                                        <span className="stat-value">{plant.avgFleetCleanliness > 0 ? plant.avgFleetCleanliness.toFixed(1) : 'N/A'}</span>
+                                                        <span
+                                                            className="stat-value">{plant.avgFleetCleanliness > 0 ? plant.avgFleetCleanliness.toFixed(1) : 'N/A'}</span>
                                                     </div>
-                                                    <div 
+                                                    <div
                                                         className="stat-item stat-item-clickable"
                                                         onClick={() => {
                                                             const details = hoursAdjustmentsData[plant.plantCode]
@@ -440,14 +448,15 @@ export default function LeaderboardsView() {
                                                     >
                                                         <span className="stat-label">
                                                             Help Net Balance
-                                                            {(plant.helpGiven > 0 || plant.helpReceived > 0) && <i className="fas fa-info-circle help-info-icon"></i>}
+                                                            {(plant.helpGiven > 0 || plant.helpReceived > 0) &&
+                                                                <i className="fas fa-info-circle help-info-icon"></i>}
                                                         </span>
                                                         <span className="stat-value" style={{
-                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' : 
-                                                                   plant.helpGiven < plant.helpReceived ? 'var(--danger)' : 
-                                                                   'inherit'
+                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' :
+                                                                plant.helpGiven < plant.helpReceived ? 'var(--danger)' :
+                                                                    'inherit'
                                                         }}>
-                                                            {plant.helpGiven > 0 || plant.helpReceived > 0 
+                                                            {plant.helpGiven > 0 || plant.helpReceived > 0
                                                                 ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
                                                                 : 'N/A'
                                                             }
@@ -466,18 +475,20 @@ export default function LeaderboardsView() {
                                                 <>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Help Given</span>
-                                                        <span className="stat-value">{Math.round(plant.helpGiven)} hours</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.helpGiven)} hours</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Help Received</span>
-                                                        <span className="stat-value">{Math.round(plant.helpReceived)} hours</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.helpReceived)} hours</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Net Balance</span>
                                                         <span className="stat-value" style={{
-                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' : 
-                                                                   plant.helpGiven < plant.helpReceived ? 'var(--danger)' : 
-                                                                   'inherit'
+                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' :
+                                                                plant.helpGiven < plant.helpReceived ? 'var(--danger)' :
+                                                                    'inherit'
                                                         }}>
                                                             {plant.helpGiven > plant.helpReceived ? '+' : ''}{Math.round(plant.helpGiven - plant.helpReceived)} hours
                                                         </span>
@@ -488,11 +499,13 @@ export default function LeaderboardsView() {
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Total Yards</span>
-                                                        <span className="stat-value">{Math.round(plant.totalYardage).toLocaleString()}</span>
+                                                        <span
+                                                            className="stat-value">{Math.round(plant.totalYardage).toLocaleString()}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Efficiency</span>
-                                                        <span className="stat-value" style={{color: LeaderboardsUtility.getEfficiencyColor(plant.avgEfficiency)}}>
+                                                        <span className="stat-value"
+                                                              style={{color: LeaderboardsUtility.getEfficiencyColor(plant.avgEfficiency)}}>
                                                             {plant.avgEfficiency.toFixed(1)}%
                                                         </span>
                                                     </div>
@@ -513,7 +526,8 @@ export default function LeaderboardsView() {
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Tractor Operators</span>
-                                                        <span className="stat-value">{plant.tractorOperators || 0}</span>
+                                                        <span
+                                                            className="stat-value">{plant.tractorOperators || 0}</span>
                                                     </div>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Trailers</span>
@@ -535,28 +549,33 @@ export default function LeaderboardsView() {
             </div>
 
             {helpDetailsModal.isOpen && helpDetailsModal.details && (
-                <div className="help-details-modal-overlay" onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                <div className="help-details-modal-overlay"
+                     onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
                     <div className="help-details-modal" onClick={e => e.stopPropagation()}>
                         <div className="help-details-modal-header">
                             <h3>
                                 <i className="fas fa-exchange-alt"></i>
                                 Help Details - Plant {helpDetailsModal.plant?.plantCode}
                             </h3>
-                            <button className="close-btn" onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                            <button className="close-btn"
+                                    onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
-                        
+
                         <div className="help-details-modal-summary">
                             <div className="summary-item summary-given">
                                 <span className="summary-label">Total Help Given</span>
-                                <span className="summary-value">{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
+                                <span
+                                    className="summary-value">{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
                             </div>
                             <div className="summary-item summary-received">
                                 <span className="summary-label">Total Help Received</span>
-                                <span className="summary-value">{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
+                                <span
+                                    className="summary-value">{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
                             </div>
-                            <div className={`summary-item summary-net ${helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? 'net-positive' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? 'net-negative' : ''}`}>
+                            <div
+                                className={`summary-item summary-net ${helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? 'net-positive' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? 'net-negative' : ''}`}>
                                 <span className="summary-label">Net Balance</span>
                                 <span className="summary-value">
                                     {helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '+' : ''}
@@ -574,20 +593,27 @@ export default function LeaderboardsView() {
                                         .map((entry, idx) => {
                                             const isSent = entry.type === 'sent'
                                             return (
-                                                <div key={`entry-${idx}`} className={`help-entry ${isSent ? 'help-entry-sent' : 'help-entry-received'}`}>
+                                                <div key={`entry-${idx}`}
+                                                     className={`help-entry ${isSent ? 'help-entry-sent' : 'help-entry-received'}`}>
                                                     <div className="help-entry-main">
-                                                        <span className={`help-entry-indicator ${isSent ? 'indicator-positive' : 'indicator-negative'}`}>
+                                                        <span
+                                                            className={`help-entry-indicator ${isSent ? 'indicator-positive' : 'indicator-negative'}`}>
                                                             {isSent ? '+' : '-'}
                                                         </span>
                                                         <span className="help-entry-plant">
                                                             {isSent ? `To Plant ${entry.to}` : `From Plant ${entry.from}`}
                                                         </span>
-                                                        <span className="help-entry-hours">{Math.round(entry.hours)} hours</span>
+                                                        <span
+                                                            className="help-entry-hours">{Math.round(entry.hours)} hours</span>
                                                     </div>
                                                     <div className="help-entry-details">
                                                         <span className="help-entry-date">
                                                             <i className="fas fa-calendar"></i>
-                                                            {new Date(entry.week).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                                                            {new Date(entry.week).toLocaleDateString('en-US', {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric'
+                                                            })}
                                                         </span>
                                                         <span className="help-entry-operators">
                                                             <i className="fas fa-users"></i>

@@ -97,7 +97,7 @@ function ReportsView() {
             return;
         }
         if (!Array.isArray(data)) return;
-        
+
         const reportIds = data.map(r => r.id).filter(id => id != null);
         if (reportIds.length > 0 && scope === 'review' && user?.id) {
             const {data: reviewedData} = await supabase
@@ -105,7 +105,7 @@ function ReportsView() {
                 .select('report_id')
                 .in('report_id', reportIds)
                 .eq('reviewed_by_user_id', user.id);
-            
+
             if (reviewedData && Array.isArray(reviewedData)) {
                 const reviewedSet = new Set(reviewedData.map(r => r.report_id));
                 setReviewedByCurrentUser(prev => {
@@ -115,7 +115,7 @@ function ReportsView() {
                 });
             }
         }
-        
+
         setLocalReports(prev => {
             const existingIds = new Set(prev.map(r => r.id));
             const mapped = data
@@ -961,7 +961,8 @@ function ReportsView() {
                                             <div className="rpt-sticky-header-wrapper">
                                                 <div className="rpt-list-headers header-row">
                                                     <div className="rpt-header-col-week-overdue">Week</div>
-                                                    <div className="rpt-header-col-report-type-overdue">Report Type</div>
+                                                    <div className="rpt-header-col-report-type-overdue">Report Type
+                                                    </div>
                                                     <div className="rpt-header-col-owed-by">Owed By</div>
                                                     <div className="rpt-header-col-due-date-overdue">Due Date</div>
                                                 </div>

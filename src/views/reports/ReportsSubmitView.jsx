@@ -728,7 +728,8 @@ function ReportsSubmitView({
                                                     </select>
                                                 ) : (
                                                     <input type={field.type} value={form[field.name] ?? ''}
-                                                           onChange={e => handleChange(e, field.name)} required={field.required}
+                                                           onChange={e => handleChange(e, field.name)}
+                                                           required={field.required}
                                                            disabled={readOnly}
                                                            className="pm-production-input"/>
                                                 )}
@@ -759,7 +760,8 @@ function ReportsSubmitView({
                                                 </select>
                                             ) : (
                                                 <input type={field.type} value={form[field.name] ?? ''}
-                                                       onChange={e => handleChange(e, field.name)} required={field.required}
+                                                       onChange={e => handleChange(e, field.name)}
+                                                       required={field.required}
                                                        disabled={readOnly}/>
                                             )}
                                         </div>

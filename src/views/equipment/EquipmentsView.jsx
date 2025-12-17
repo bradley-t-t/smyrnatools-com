@@ -131,7 +131,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
             setEquipments(processedBase)
             loadDetailsForEquipments(processedBase)
-            
+
             if (processedBase && processedBase.length > 0) {
                 setTimeout(() => {
                     runVerificationCheck(processedBase)
@@ -152,14 +152,14 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
 
     async function runVerificationCheck(equipmentsToCheck) {
         if (!equipmentsToCheck || equipmentsToCheck.length === 0) return
-        
+
         try {
             const verificationResult = await CleanupUtility.verificationCheck(
                 equipmentsToCheck,
                 EquipmentService.updateEquipment,
                 'equipment'
             )
-            
+
             if (verificationResult.fixed > 0) {
                 const refreshedEquipments = await EquipmentService.fetchEquipmentsWithDetails()
                 setEquipments(refreshedEquipments)
@@ -295,7 +295,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
             const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter;
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType;
         });
-        
+
         return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
             if (!sortKey) {
                 return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')

@@ -226,7 +226,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesType
         });
-        
+
         return FleetUtility.sortWithRetiredLast(filtered, (a, b) => {
             if (!sortKey) {
                 return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')

@@ -315,7 +315,7 @@ class MixerServiceImpl {
         const base = await this.getAllMixers().catch(() => [])
         const processedBase = (Array.isArray(base) ? base : []).map(m => {
             const mixer = {...m}
-            
+
             mixer.isVerified = () => MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
             if (typeof mixer.openIssuesCount !== 'number') mixer.openIssuesCount = 0
             if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
@@ -329,14 +329,14 @@ class MixerServiceImpl {
 
     static async ensureSpareIfNoOperator(mixersList) {
         const toUpdate = (mixersList || []).filter(m => {
-            const hasNoOperator = !m.assignedOperator || 
-                                 m.assignedOperator === '0' || 
-                                 m.assignedOperator === 0 || 
-                                 m.assignedOperator === null || 
-                                 m.assignedOperator === 'null'
+            const hasNoOperator = !m.assignedOperator ||
+                m.assignedOperator === '0' ||
+                m.assignedOperator === 0 ||
+                m.assignedOperator === null ||
+                m.assignedOperator === 'null'
             return m.status === 'Active' && hasNoOperator
         })
-        
+
         for (const m of toUpdate) {
             try {
                 const updates = {

@@ -55,8 +55,8 @@ function MixerCard({
                 <div className="detail-value" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>{mixer.status || 'Unknown'}</span>
                     {mixer.status === 'In Shop' && mixer.downInYard && (
-                        <span 
-                            className="in-yard-badge" 
+                        <span
+                            className="in-yard-badge"
                             title="This mixer is down in the yard"
                         >
                             IN YARD
@@ -93,8 +93,8 @@ function MixerCard({
                                 ))}
                             </div>
                             {mixer.cleanlinessRating < 3 && (
-                                <span 
-                                    className="downed-badge" 
+                                <span
+                                    className="downed-badge"
                                     title="This truck cannot run loads until the cleanliness is 3 stars or better. Do not ignore this warning."
                                     style={{
                                         backgroundColor: 'var(--error)',

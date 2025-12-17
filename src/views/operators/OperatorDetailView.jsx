@@ -464,7 +464,8 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                                 </label>
                             </div>
                             <div className="down-in-yard-note">
-                                Enable this if the operator has a CDL restriction that only allows them to drive automatic transmission trucks
+                                Enable this if the operator has a CDL restriction that only allows them to drive
+                                automatic transmission trucks
                             </div>
                         </div>
                     </div>
