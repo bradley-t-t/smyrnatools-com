@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react'
-import './styles/Reports.css'
+import './styles/report-styles/Reports.css'
 import {UserService} from '../../services/UserService'
 import {ReportService} from '../../services/ReportService'
 import {PlantManagerReviewPlugin} from './types/WeeklyPlantManagerReport'

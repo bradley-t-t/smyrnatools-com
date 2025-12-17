@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react'
-import '../styles/Reports.css'
+import '../styles/report-styles/SafetyManagerReport.css'
 import '../../../components/sections/styles/DetailView.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'

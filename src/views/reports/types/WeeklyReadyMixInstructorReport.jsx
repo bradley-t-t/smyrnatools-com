@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import ReactDOM from 'react-dom'
-import '../styles/Reports.css'
+import '../styles/report-styles/Reports.css'
 import {OperatorService} from '../../../services/OperatorService'
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
 
