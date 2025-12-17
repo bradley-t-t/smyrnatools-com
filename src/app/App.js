@@ -34,6 +34,12 @@ import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 import ListDetailView from '../views/list/ListDetailView'
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
+import Video1 from '../assets/videos/1.mp4'
+import Video2 from '../assets/videos/2.mp4'
+import Video3 from '../assets/videos/3.mp4'
+import Video4 from '../assets/videos/4.mp4'
+
+const updateVideos = [Video1, Video2, Video3, Video4]
 
 function VersionPopup({version}) {
     if (!version) return null
@@ -46,8 +52,7 @@ VersionPopup.propTypes = {version: PropTypes.string}
 
 function UpdateLoadingScreen({version}) {
     const [progress, setProgress] = useState(0)
-    const videoIds = ['aBsTqfRqgiU', 'vxwjha1yB2Q', 'G0Cc_KTjAh8', 'DSjJOZtAnmw']
-    const [selectedVideo] = useState(() => videoIds[Math.floor(Math.random() * videoIds.length)])
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * updateVideos.length))
     useEffect(() => {
         const start = Date.now()
         const interval = setInterval(() => {
@@ -75,27 +80,27 @@ function UpdateLoadingScreen({version}) {
             background: '#111827',
             zIndex: 99999
         }}>
-            <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '177.78vh',
-                height: '100vh',
-                minWidth: '100vw',
-                minHeight: '56.25vw',
-                pointerEvents: 'none'
-            }}>
-                <iframe
-                    width="100%"
-                    height="100%"
-                    src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&mute=1&start=0&loop=1&playlist=${selectedVideo}&controls=0&showinfo=0&rel=0&modestbranding=1&disablekb=1&fs=0&iv_load_policy=3`}
-                    title="Update Video"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    style={{display: 'block', pointerEvents: 'none'}}
-                />
-            </div>
+            <video
+                key={currentVideoIndex}
+                autoPlay
+                muted
+                playsInline
+                onEnded={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % updateVideos.length)}
+                style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    minWidth: '100%',
+                    minHeight: '100%',
+                    width: 'auto',
+                    height: 'auto',
+                    transform: 'translate(-50%, -50%)',
+                    objectFit: 'cover',
+                    pointerEvents: 'none'
+                }}
+            >
+                <source src={updateVideos[currentVideoIndex]} type="video/mp4"/>
+            </video>
             <div style={{
                 position: 'absolute',
                 top: 0,

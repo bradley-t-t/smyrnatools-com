@@ -8,6 +8,12 @@ import './styles/Login.css';
 import VersionPopup from '../../components/common/VersionPopup';
 import {useVersion} from '../../app/hooks/useVersion';
 import PasswordRecoveryView from './PasswordRecoveryView';
+import Video1 from '../../assets/videos/1.mp4';
+import Video2 from '../../assets/videos/2.mp4';
+import Video3 from '../../assets/videos/3.mp4';
+import Video4 from '../../assets/videos/4.mp4';
+
+const backgroundVideos = [Video1, Video2, Video3, Video4];
 
 function LoginView() {
     const version = useVersion();
@@ -26,6 +32,19 @@ function LoginView() {
         window.location.href = window.location.pathname
     };
     const [showRecovery, setShowRecovery] = useState(false);
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length));
+    const videoTimerRef = useRef(null);
+
+    useEffect(() => {
+        videoTimerRef.current = setInterval(() => {
+            setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length);
+        }, 180000);
+        return () => {
+            if (videoTimerRef.current) {
+                clearInterval(videoTimerRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         document.documentElement.classList.remove('dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode')
@@ -189,7 +208,6 @@ function LoginView() {
                 setTimeout(() => forceReload(), 3500);
             }
         } catch (err) {
-            console.error('Login error:', err);
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
                 timeoutRef.current = null;
@@ -207,6 +225,30 @@ function LoginView() {
 
     return (
         <div className="login-container">
+            <div className="login-video-background">
+                <video
+                    key={currentVideoIndex}
+                    autoPlay
+                    muted
+                    playsInline
+                    onEnded={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)}
+                    style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        minWidth: '100%',
+                        minHeight: '100%',
+                        width: 'auto',
+                        height: 'auto',
+                        transform: 'translate(-50%, -50%)',
+                        objectFit: 'cover',
+                        pointerEvents: 'none'
+                    }}
+                >
+                    <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
+                </video>
+            </div>
+            <div className="login-video-overlay"/>
             <VersionPopup version={version}/>
             <div className={"login-wrapper" + (isSignUp ? " sign-up-mode" : "")}>
                 <div className="login-info">
@@ -371,4 +413,3 @@ function LoginView() {
 }
 
 export default LoginView;
-
