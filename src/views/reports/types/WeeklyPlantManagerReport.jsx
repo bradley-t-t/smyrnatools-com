@@ -68,20 +68,23 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
             }
 
             try {
-                const currentDate = new Date(currentWeekIso)
+                const weekDateStr = currentWeekIso.split('T')[0]
+                const [year, month, day] = weekDateStr.split('-').map(Number)
+                const currentDate = new Date(year, month - 1, day)
                 const currentMonth = currentDate.getMonth()
                 const currentYear = currentDate.getFullYear()
 
-                const startOfMonth = new Date(currentYear, currentMonth, 1)
-                const endOfMonth = new Date(currentYear, currentMonth + 1, 0)
+                const startOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`
+                const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate()
+                const endOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
                 const {data, error} = await supabase
                     .from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
                     .eq('completed', true)
-                    .gte('week', startOfMonth.toISOString())
-                    .lte('week', endOfMonth.toISOString())
+                    .gte('week', startOfMonthStr)
+                    .lte('week', endOfMonthStr + 'T23:59:59.999Z')
                     .order('week', {ascending: true})
 
                 if (error) throw error
@@ -176,7 +179,9 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
             }
 
             try {
-                const currentYear = new Date(currentWeekIso).getFullYear()
+                const weekDateStr = currentWeekIso.split('T')[0]
+                const [yearNum] = weekDateStr.split('-').map(Number)
+                const currentYear = yearNum
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
 
@@ -434,7 +439,9 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
         )
     }
 
-    const monthName = new Date(currentWeekIso).toLocaleString('default', {month: 'long', year: 'numeric'})
+    const weekDateStrForMonth = currentWeekIso.split('T')[0]
+    const [yearForMonth, monthForMonth] = weekDateStrForMonth.split('-').map(Number)
+    const monthName = new Date(yearForMonth, monthForMonth - 1, 15).toLocaleString('default', {month: 'long', year: 'numeric'})
 
     if (historicalData.length === 0) {
         return (
@@ -475,8 +482,9 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                 </div>
                 <div className="pm-timeline">
                     {historicalData.map((report, idx) => {
-                        const weekDate = new Date(report.weekIso)
-                        const weekLabel = ReportUtility.formatDate(weekDate)
+                        const [year, month, day] = report.weekIso.split('-').map(Number)
+                        const weekDate = new Date(year, month - 1, day)
+                        const weekLabel = weekDate.toLocaleDateString()
                         const previousReport = idx > 0 ? historicalData[idx - 1] : null
                         const yphVariance = calculateVariance(report.yph, previousReport?.yph)
                         const lostVariance = calculateVariance(report.lost, previousReport?.lost)
