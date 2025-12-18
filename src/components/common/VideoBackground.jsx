@@ -1,11 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react'
 import './VideoBackground.css'
+import vid1 from '../../assets/videos/1.mp4'
+import vid2 from '../../assets/videos/2.mp4'
+import vid3 from '../../assets/videos/3.mp4'
+import vid4 from '../../assets/videos/4.mp4'
 
 const backgroundVideos = [
-    '/videos/1.mp4',
-    '/videos/2.mp4',
-    '/videos/3.mp4',
-    '/videos/4.mp4'
+    vid1,
+    vid2,
+    vid3,
+    vid4
 ]
 
 function VideoBackground({className = ''}) {
@@ -18,6 +22,7 @@ function VideoBackground({className = ''}) {
         videoTimerRef.current = setInterval(() => {
             setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)
         }, 180000)
+        
         return () => {
             if (videoTimerRef.current) {
                 clearInterval(videoTimerRef.current)
@@ -30,7 +35,6 @@ function VideoBackground({className = ''}) {
         
         const playVideo = () => {
             if (videoRef.current) {
-                videoRef.current.load()
                 videoRef.current.play().then(() => {
                     setShowVideo(true)
                 }).catch((err) => {
