@@ -782,3 +782,20 @@
     margin: 0;
     font-size: 14px;
 }
+
+.yph-dual-value {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.yph-dual-value em {
+    font-style: italic;
+    font-weight: 400;
+}
+
+.yph-dual-value strong {
+    font-weight: 700;
+}

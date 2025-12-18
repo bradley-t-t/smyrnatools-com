@@ -261,6 +261,7 @@ const LeaderboardsUtility = {
             adjustedHoursTotal = hoursTotal + netAdjustment
         }
 
+        const rawYPH = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
         const avgYPH = adjustedHoursTotal > 0 ? yardsWithHours / adjustedHoursTotal : 0
 
         const avgYardageWeekly = totals.reportCount > 0 ? totals.totalYards / totals.reportCount : 0
@@ -304,6 +305,7 @@ const LeaderboardsUtility = {
 
         return {
             avgYPH,
+            rawYPH,
             avgYardageDaily,
             avgYardageWeekly,
             avgYardageLost,
