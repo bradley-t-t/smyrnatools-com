@@ -10,6 +10,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
+import VideoBackground from '../../components/common/VideoBackground'
 
 export default function LeaderboardsView() {
     const {preferences} = usePreferences()
@@ -255,6 +256,7 @@ export default function LeaderboardsView() {
 
     return (
         <div className="leaderboards-view">
+            <VideoBackground/>
             <div className="leaderboards-header">
                 <div className="leaderboards-header-inner">
                     <div className="leaderboards-title-row">
