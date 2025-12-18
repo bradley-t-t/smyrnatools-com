@@ -10,15 +10,22 @@ class UserServiceImpl {
     }
 
     async getCurrentUser() {
-        const userId = sessionStorage.getItem('userId')
+        let userId = localStorage.getItem('smyrna_session')
+        if (!userId) {
+            userId = sessionStorage.getItem('userId')
+        }
         if (userId) {
             const {json} = await APIUtility.post(`${USER_FUNCTION}/current-user`, {userId})
             if (json && json.id) return {id: userId}
+            localStorage.removeItem('smyrna_session')
+            localStorage.removeItem('smyrna_session_expiry')
             sessionStorage.removeItem('userId')
         }
         const {json} = await APIUtility.post(`${USER_FUNCTION}/current-user`, {})
         if (!json) return null
-        if (json.id) sessionStorage.setItem('userId', json.id)
+        if (json.id) {
+            sessionStorage.setItem('userId', json.id)
+        }
         return json
     }
 

@@ -94,16 +94,20 @@ class AuthServiceImpl {
     }
 
     async restoreSession() {
-        const userId = sessionStorage.getItem('userId')
+        let userId = this._getStoredSession()
+        if (!userId) {
+            userId = sessionStorage.getItem('userId')
+        }
         if (!userId) return false
         const {json} = await APIUtility.post(`${AUTH_SERVICE_FUNCTION}/restore-session`, {userId})
         if (!json.success) {
-            sessionStorage.removeItem('userId')
+            this._clearSession()
             this.isAuthenticated = false
             return false
         }
         this.currentUser = {userId: json.user.userId, email: json.user.email}
         this.isAuthenticated = true
+        this._setSession(json.user.userId)
         this._notifyObservers()
         return true
     }
