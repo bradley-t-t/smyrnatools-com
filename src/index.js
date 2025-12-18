@@ -27,3 +27,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 vitalsUtility();
+
+// Register service worker for video caching
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('Service Worker registered for video caching')
+            })
+            .catch((error) => {
+                console.log('Service Worker registration failed:', error)
+            })
+    })
+}
