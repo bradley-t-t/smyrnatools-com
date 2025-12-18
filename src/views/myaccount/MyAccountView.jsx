@@ -397,10 +397,6 @@ function MyAccountView({userId}) {
                     </div>
                 </div>
             </div>
-            <div className="account-tabs account-slide-in" style={{animationDelay: '0.1s'}}>
-                <div className="skeleton-tab"></div>
-                <div className="skeleton-tab"></div>
-            </div>
             <div className="account-tab-content account-slide-in" style={{animationDelay: '0.2s'}}>
                 <div className="account-section">
                     <div className="section-header">
@@ -522,22 +518,20 @@ function MyAccountView({userId}) {
                                         <label htmlFor="first_name">First Name</label>
                                         <div className="input-with-icon">
                                             <i className="fas fa-user"
-                                               style={{color: 'var(--myaccount-accent)', marginRight: '8px'}}></i>
+                                               style={{color: 'var(--myaccount-accent)'}}></i>
                                             <input type="text" id="first_name" value={firstName}
                                                    onChange={(e) => setFirstName(e.target.value)}
-                                                   placeholder="Enter your first name" required
-                                                   style={{paddingLeft: '45px'}}/>
+                                                   placeholder="Enter your first name" required/>
                                         </div>
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="last_name">Last Name</label>
                                         <div className="input-with-icon">
                                             <i className="fas fa-user"
-                                               style={{color: 'var(--myaccount-accent)', marginRight: '8px'}}></i>
+                                               style={{color: 'var(--myaccount-accent)'}}></i>
                                             <input type="text" id="last_name" value={lastName}
                                                    onChange={(e) => setLastName(e.target.value)}
-                                                   placeholder="Enter your last name" required
-                                                   style={{paddingLeft: '45px'}}/>
+                                                   placeholder="Enter your last name" required/>
                                         </div>
                                     </div>
                                 </div>
@@ -716,21 +710,20 @@ function MyAccountView({userId}) {
                                 <label htmlFor="current_password">Current Password</label>
                                 <div className="input-with-icon">
                                     <i className="fas fa-lock"
-                                       style={{color: 'var(--myaccount-accent)', marginRight: '8px'}}></i>
+                                       style={{color: 'var(--myaccount-accent)'}}></i>
                                     <input type="password" id="current_password" value={currentPassword}
                                            onChange={(e) => setCurrentPassword(e.target.value)}
-                                           placeholder="Enter your current password" required
-                                           style={{paddingLeft: '45px'}}/>
+                                           placeholder="Enter your current password" required/>
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="new_password">New Password</label>
                                 <div className="input-with-icon">
                                     <i className="fas fa-lock"
-                                       style={{color: 'var(--myaccount-accent)', marginRight: '8px'}}></i>
+                                       style={{color: 'var(--myaccount-accent)'}}></i>
                                     <input type="password" id="new_password" value={newPassword}
                                            onChange={(e) => setNewPassword(e.target.value)}
-                                           placeholder="Enter new password" required style={{paddingLeft: '45px'}}/>
+                                           placeholder="Enter new password" required/>
                                 </div>
                                 <small>Password must be at least 8 characters</small>
                             </div>
@@ -738,10 +731,10 @@ function MyAccountView({userId}) {
                                 <label htmlFor="confirm_password">Confirm New Password</label>
                                 <div className="input-with-icon">
                                     <i className="fas fa-lock"
-                                       style={{color: 'var(--myaccount-accent)', marginRight: '8px'}}></i>
+                                       style={{color: 'var(--myaccount-accent)'}}></i>
                                     <input type="password" id="confirm_password" value={confirmPassword}
                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                           placeholder="Confirm new password" required style={{paddingLeft: '45px'}}/>
+                                           placeholder="Confirm new password" required/>
                                 </div>
                             </div>
                             <div className="modal-actions">

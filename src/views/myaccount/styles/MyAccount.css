@@ -1153,6 +1153,7 @@ body:has(.my-account-wrapper) {
 .skeleton-form-row {
     display: flex;
     gap: 1rem;
+    align-items: flex-start;
 }
 
 .skeleton-form-group {
@@ -1160,6 +1161,10 @@ body:has(.my-account-wrapper) {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.skeleton-form-group .skeleton-line {
+    height: 14px;
 }
 
 .skeleton-input {

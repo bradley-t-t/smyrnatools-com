@@ -313,7 +313,14 @@ label {
     height: 100vh;
     z-index: 0;
     overflow: hidden;
-    background: #000;
+    background: #ffffff;
+}
+
+html.dark-mode .video-background-container,
+html.blue-dark-mode .video-background-container,
+html.red-dark-mode .video-background-container,
+html.old-dark-mode .video-background-container {
+    background: #000000;
 }
 
 .video-background-fallback {
@@ -322,8 +329,15 @@ label {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #000;
+    background: #ffffff;
     z-index: 1;
+}
+
+html.dark-mode .video-background-fallback,
+html.blue-dark-mode .video-background-fallback,
+html.red-dark-mode .video-background-fallback,
+html.old-dark-mode .video-background-fallback {
+    background: #000000;
 }
 
 .video-background-video {
