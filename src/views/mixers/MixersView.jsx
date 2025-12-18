@@ -26,6 +26,7 @@ import ThemeUtility from '../../utils/ThemeUtility'
 import {ValidationUtility} from '../../utils/ValidationUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
 import RecapModalSection from '../../components/sections/RecapModalSection'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -666,6 +667,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
 
     return (
         <>
+            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top mixers-view${selectedMixer ? ' detail-open' : ''}`}>
                 {selectedMixer ? (

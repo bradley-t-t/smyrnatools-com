@@ -22,6 +22,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from "../../utils/ThemeUtility";
+import VideoBackground from '../../components/common/VideoBackground'
 
 function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const {preferences, saveLastViewedFilters, updateTrailerFilter, updatePreferences} = usePreferences()
@@ -445,78 +446,81 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const showReset = (searchText || selectedPlant || (typeFilter && typeFilter !== 'All Types'))
 
     return (
-        <div className="global-dashboard-container dashboard-container global-flush-top flush-top trailers-view">
-            {selectedTrailer ? (
-                <TrailerDetailView trailer={selectedTrailer} onClose={handleBackFromDetail}/>
-            ) : (
-                <>
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Trailer"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchInput}
-                        onSearchInputChange={v => {
-                            setSearchInput(v);
-                            debouncedSetSearchText(v)
-                        }}
-                        onClearSearch={() => {
-                            setSearchInput('');
-                            debouncedSetSearchText('')
-                        }}
-                        searchPlaceholder="Search by trailer or tractor..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants}
-                        regionPlantCodes={regionPlantCodes}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={v => {
-                            setSelectedPlant(v);
-                            updatePreferences('trailerFilters', {...preferences.trailerFilters, selectedPlant: v})
-                        }}
-                        statusFilter={typeFilter}
-                        statusOptions={filterOptions}
-                        onStatusFilterChange={v => {
-                            setTypeFilter(v);
-                            updatePreferences('trailerFilters', {...preferences.trailerFilters, typeFilter: v})
-                        }}
-                        showReset={showReset}
-                        onReset={() => {
-                            setSearchText('');
-                            setSearchInput('');
-                            setSelectedPlant('');
-                            setTypeFilter('');
-                            updatePreferences('trailerFilters', {
-                                ...preferences.trailerFilters,
-                                searchText: '',
-                                selectedPlant: '',
-                                typeFilter: ''
-                            })
-                        }}
-                        listLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
-                        colWidths={['12%', '14%', '12%', '10%', '14%', '16%', '12%', '10%']}
-                        forwardedRef={headerRef}
-                        onHeaderClick={handleHeaderClick}
-                        sortKey={sortKey}
-                        sortDirection={sortDirection}
-                    />
-                    <div className="global-content-container content-container">{content}</div>
-                    {showAddSheet && <TrailerAddView plants={plants} onClose={() => setShowAddSheet(false)}
-                                                     onTrailerAdded={newTrailer => setTrailers([...trailers, newTrailer])}/>}
-                    {showCommentModal &&
-                        <TrailerCommentModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
-                                             onClose={() => setShowCommentModal(false)}/>}
-                    {showIssueModal && <TrailerIssueModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
-                                                          onClose={() => setShowIssueModal(false)}/>}
-                    {showHistoryModal && selectedTrailerForHistory && (
-                        <HistoryViewSection
-                            item={selectedTrailerForHistory}
-                            type="trailer"
-                            onClose={() => setShowHistoryModal(false)}
+        <>
+            <VideoBackground/>
+            <div className="global-dashboard-container dashboard-container global-flush-top flush-top trailers-view">
+                {selectedTrailer ? (
+                    <TrailerDetailView trailer={selectedTrailer} onClose={handleBackFromDetail}/>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Trailer"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchInput}
+                            onSearchInputChange={v => {
+                                setSearchInput(v);
+                                debouncedSetSearchText(v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchInput('');
+                                debouncedSetSearchText('')
+                            }}
+                            searchPlaceholder="Search by trailer or tractor..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={v => {
+                                setSelectedPlant(v);
+                                updatePreferences('trailerFilters', {...preferences.trailerFilters, selectedPlant: v})
+                            }}
+                            statusFilter={typeFilter}
+                            statusOptions={filterOptions}
+                            onStatusFilterChange={v => {
+                                setTypeFilter(v);
+                                updatePreferences('trailerFilters', {...preferences.trailerFilters, typeFilter: v})
+                            }}
+                            showReset={showReset}
+                            onReset={() => {
+                                setSearchText('');
+                                setSearchInput('');
+                                setSelectedPlant('');
+                                setTypeFilter('');
+                                updatePreferences('trailerFilters', {
+                                    ...preferences.trailerFilters,
+                                    searchText: '',
+                                    selectedPlant: '',
+                                    typeFilter: ''
+                                })
+                            }}
+                            listLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
+                            colWidths={['12%', '14%', '12%', '10%', '14%', '16%', '12%', '10%']}
+                            forwardedRef={headerRef}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
                         />
-                    )}
-                </>
-            )}
-        </div>
+                        <div className="global-content-container content-container">{content}</div>
+                        {showAddSheet && <TrailerAddView plants={plants} onClose={() => setShowAddSheet(false)}
+                                                         onTrailerAdded={newTrailer => setTrailers([...trailers, newTrailer])}/>}
+                        {showCommentModal &&
+                            <TrailerCommentModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
+                                                 onClose={() => setShowCommentModal(false)}/>}
+                        {showIssueModal && <TrailerIssueModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
+                                                              onClose={() => setShowIssueModal(false)}/>}
+                        {showHistoryModal && selectedTrailerForHistory && (
+                            <HistoryViewSection
+                                item={selectedTrailerForHistory}
+                                type="trailer"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 

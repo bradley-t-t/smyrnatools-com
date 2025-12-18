@@ -9,6 +9,7 @@ import ListAddView from './ListAddView'
 import {RegionService} from '../../services/RegionService'
 import TopSection from '../../components/sections/TopSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const {preferences} = usePreferences()
@@ -236,10 +237,12 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const hasBulkPopup = selectedIds.size > 0
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top list-view${hasBulkPopup ? ' has-bulk-popup' : ''}`}>
-            <>
-                <TopSection
+        <>
+            <VideoBackground/>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top list-view${hasBulkPopup ? ' has-bulk-popup' : ''}`}>
+                <>
+                    <TopSection
                     title={title}
                     addButtonLabel="Add Item"
                     onAddClick={() => setShowAddSheet(true)}
@@ -367,7 +370,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                     />
                 )}
             </>
-        </div>
+            </div>
+        </>
     )
 }
 

@@ -10,6 +10,7 @@ import TopSection from '../../components/sections/TopSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import {PlantService} from '../../services/PlantService'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function ManagersView({title = 'Managers', onSelectManager}) {
     const {preferences, updateManagerFilter, resetManagerFilters} = usePreferences()
@@ -212,107 +213,110 @@ function ManagersView({title = 'Managers', onSelectManager}) {
     const isOfficeRegion = preferences.selectedRegion?.type === 'Office'
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top managers-view${showDetailView && selectedManager ? ' detail-open' : ''}`}>
-            {showDetailView && selectedManager ? (
-                <ManagerDetailView managerId={selectedManager.id} onClose={() => {
-                    setShowDetailView(false);
-                    fetchManagers()
-                }}/>
-            ) : (
-                <>
-                    <TopSection
-                        title={title}
-                        addButtonLabel={null}
-                        onAddClick={null}
-                        searchInput={searchText}
-                        onSearchInputChange={v => {
-                            setSearchText(v);
-                            updateManagerFilter('searchText', v)
-                        }}
-                        onClearSearch={() => {
-                            setSearchText('');
-                            updateManagerFilter('searchText', '')
-                        }}
-                        searchPlaceholder="Search by name or email..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
-                        regionPlantCodes={regionPlantCodes}
-                        isOfficeRegion={isOfficeRegion}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={v => {
-                            setSelectedPlant(v);
-                            updateManagerFilter('selectedPlant', v)
-                        }}
-                        statusFilter={statusFilterValue}
-                        statusOptions={statusOptions}
-                        onStatusFilterChange={v => {
-                            const val = v === 'All Roles' ? '' : v;
-                            setRoleFilter(val);
-                            updateManagerFilter('roleFilter', val)
-                        }}
-                        showReset={showReset}
-                        onReset={() => {
-                            const currentViewMode = viewMode;
-                            setSearchText('');
-                            setSelectedPlant('');
-                            setRoleFilter('');
-                            resetManagerFilters?.({keepViewMode: true, currentViewMode})
-                        }}
-                        listLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
-                        colWidths={['12%', '28%', '18%', '18%', '24%']}
-                        forwardedRef={headerRef}
-                        sticky={true}
-                        onHeaderClick={handleHeaderClick}
-                        sortKey={sortKey}
-                        sortDirection={sortDirection}
-                    />
-                    <div className="global-content-container content-container">
-                        {isLoading ? (
-                            <div className="global-loading-container loading-container"><LoadingScreen
-                                message="Loading managers..." inline={true}/></div>
-                        ) : filteredManagers.length === 0 ? (
-                            <div className="global-no-results-container no-results-container">
-                                <div className="no-results-icon"><i className="fas fa-user-tie"></i></div>
-                                <h3>No Managers Found</h3>
-                                <p>{searchText || selectedPlant || roleFilter ? "No managers match your search criteria." : "There are no managers in the system yet."}</p>
-                            </div>
-                        ) : viewMode === 'grid' ? (
-                            <GridViewModeSection
-                                filteredItems={filteredManagers}
-                                handleSelectItem={handleSelectManager}
-                                cardComponent={ManagerCard}
-                                itemPropName="manager"
-                                gridClassName="grid"
-                                getCardProps={(manager) => ({
-                                    plantName: getPlantName(manager.plantCode)
-                                })}
-                            />
-                        ) : (
-                            <ListViewModeSection
-                                filteredItems={filteredManagers}
-                                handleSelectItem={handleSelectManager}
-                                headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
-                                colWidths={['12%', '28%', '18%', '18%', '24%']}
-                                renderRow={(manager, handleSelect) => (
-                                    <tr key={manager.id} onClick={() => handleSelect(manager)}
-                                        style={{cursor: 'pointer'}}>
-                                        <td style={{width: '12%'}}>{manager.plantCode ? manager.plantCode : '---'}</td>
-                                        <td style={{width: '28%'}}>{manager.email ? manager.email : '---'}</td>
-                                        <td style={{width: '18%'}}>{manager.firstName ? manager.firstName : '---'}</td>
-                                        <td style={{width: '18%'}}>{manager.lastName ? manager.lastName : '---'}</td>
-                                        <td style={{width: '24%'}}>{manager.roleName ? manager.roleName : '---'}</td>
-                                    </tr>
-                                )}
-                                containerClassName="list-table-container"
-                                tableClassName="list-table"
-                            />
-                        )}
-                    </div>
-                </>
-            )}
-        </div>
+        <>
+            <VideoBackground/>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top managers-view${showDetailView && selectedManager ? ' detail-open' : ''}`}>
+                {showDetailView && selectedManager ? (
+                    <ManagerDetailView managerId={selectedManager.id} onClose={() => {
+                        setShowDetailView(false);
+                        fetchManagers()
+                    }}/>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel={null}
+                            onAddClick={null}
+                            searchInput={searchText}
+                            onSearchInputChange={v => {
+                                setSearchText(v);
+                                updateManagerFilter('searchText', v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchText('');
+                                updateManagerFilter('searchText', '')
+                            }}
+                            searchPlaceholder="Search by name or email..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
+                            regionPlantCodes={regionPlantCodes}
+                            isOfficeRegion={isOfficeRegion}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={v => {
+                                setSelectedPlant(v);
+                                updateManagerFilter('selectedPlant', v)
+                            }}
+                            statusFilter={statusFilterValue}
+                            statusOptions={statusOptions}
+                            onStatusFilterChange={v => {
+                                const val = v === 'All Roles' ? '' : v;
+                                setRoleFilter(val);
+                                updateManagerFilter('roleFilter', val)
+                            }}
+                            showReset={showReset}
+                            onReset={() => {
+                                const currentViewMode = viewMode;
+                                setSearchText('');
+                                setSelectedPlant('');
+                                setRoleFilter('');
+                                resetManagerFilters?.({keepViewMode: true, currentViewMode})
+                            }}
+                            listLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
+                            colWidths={['12%', '28%', '18%', '18%', '24%']}
+                            forwardedRef={headerRef}
+                            sticky={true}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
+                        />
+                        <div className="global-content-container content-container">
+                            {isLoading ? (
+                                <div className="global-loading-container loading-container"><LoadingScreen
+                                    message="Loading managers..." inline={true}/></div>
+                            ) : filteredManagers.length === 0 ? (
+                                <div className="global-no-results-container no-results-container">
+                                    <div className="no-results-icon"><i className="fas fa-user-tie"></i></div>
+                                    <h3>No Managers Found</h3>
+                                    <p>{searchText || selectedPlant || roleFilter ? "No managers match your search criteria." : "There are no managers in the system yet."}</p>
+                                </div>
+                            ) : viewMode === 'grid' ? (
+                                <GridViewModeSection
+                                    filteredItems={filteredManagers}
+                                    handleSelectItem={handleSelectManager}
+                                    cardComponent={ManagerCard}
+                                    itemPropName="manager"
+                                    gridClassName="grid"
+                                    getCardProps={(manager) => ({
+                                        plantName: getPlantName(manager.plantCode)
+                                    })}
+                                />
+                            ) : (
+                                <ListViewModeSection
+                                    filteredItems={filteredManagers}
+                                    handleSelectItem={handleSelectManager}
+                                    headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
+                                    colWidths={['12%', '28%', '18%', '18%', '24%']}
+                                    renderRow={(manager, handleSelect) => (
+                                        <tr key={manager.id} onClick={() => handleSelect(manager)}
+                                            style={{cursor: 'pointer'}}>
+                                            <td style={{width: '12%'}}>{manager.plantCode ? manager.plantCode : '---'}</td>
+                                            <td style={{width: '28%'}}>{manager.email ? manager.email : '---'}</td>
+                                            <td style={{width: '18%'}}>{manager.firstName ? manager.firstName : '---'}</td>
+                                            <td style={{width: '18%'}}>{manager.lastName ? manager.lastName : '---'}</td>
+                                            <td style={{width: '24%'}}>{manager.roleName ? manager.roleName : '---'}</td>
+                                        </tr>
+                                    )}
+                                    containerClassName="list-table-container"
+                                    tableClassName="list-table"
+                                />
+                            )}
+                        </div>
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 

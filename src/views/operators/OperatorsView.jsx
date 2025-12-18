@@ -19,6 +19,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function OperatorsView({
                            title = 'Operator Roster',
@@ -409,15 +410,17 @@ function OperatorsView({
     }
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top operators-view${showDetailView && selectedOperator ? ' detail-open' : ''}`}>
-            {showDetailView && selectedOperator && (
-                <OperatorDetailView
-                    operatorId={selectedOperator.employeeId}
-                    onClose={() => {
-                        setShowDetailView(false);
-                        fetchOperators()
-                    }}
+        <>
+            <VideoBackground/>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top operators-view${showDetailView && selectedOperator ? ' detail-open' : ''}`}>
+                {showDetailView && selectedOperator && (
+                    <OperatorDetailView
+                        operatorId={selectedOperator.employeeId}
+                        onClose={() => {
+                            setShowDetailView(false);
+                            fetchOperators()
+                        }}
                     onScheduledOffSaved={reloadAll}
                     allowedPlantCodes={regionPlantCodes}
                 />
@@ -598,7 +601,8 @@ function OperatorsView({
                     )}
                 </>
             )}
-        </div>
+            </div>
+        </>
     )
 }
 

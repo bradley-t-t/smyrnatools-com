@@ -365,8 +365,9 @@
 .content-area {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 0 24px;
-    background-color: var(--bg-content);
+    background-color: transparent;
 }
 
 .notifications-item {

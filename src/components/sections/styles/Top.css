@@ -3,7 +3,7 @@
     position: relative;
     box-sizing: border-box;
     margin-top: 0;
-    z-index: -100;
+    z-index: 1;
 }
 
 .top-section-sticky-header {
@@ -12,9 +12,7 @@
     left: 0;
     right: 0;
     z-index: 300;
-    background: var(--background);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: transparent;
     border-bottom: 1px solid var(--divider)
 }
 
@@ -359,7 +357,9 @@
     letter-spacing: .03em;
     font-size: 15px;
     text-transform: uppercase;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 100;
     border: 1px solid var(--divider);
     border-bottom: none;
     border-top-left-radius: 14px;

@@ -19,6 +19,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function PickupTrucksView({title = 'Pickup Trucks'}) {
     const {preferences} = usePreferences()
@@ -358,69 +359,72 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
     }
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top pickup-trucks-view${selectedId ? ' detail-open' : ''}`}>
-            {selectedId ? (
-                <PickupTrucksDetailView pickupId={selectedId} onClose={() => setSelectedId(null)}
-                                        onSaved={handleDetailSaved}/>
-            ) : (
-                <>
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Pickup"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchInput}
-                        onSearchInputChange={v => {
-                            setSearchInput(v);
-                            debouncedSetSearchText(v)
-                        }}
-                        onClearSearch={() => {
-                            setSearchInput('');
-                            debouncedSetSearchText('')
-                        }}
-                        searchPlaceholder="Search by VIN, make, model, year, or name..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants}
-                        regionPlantCodes={regionPlantCodes}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={v => setSelectedPlant(v)}
-                        statusFilter={statusFilter}
-                        statusOptions={statusOptions}
-                        onStatusFilterChange={v => setStatusFilter(v)}
-                        showReset={showReset}
-                        onReset={() => {
-                            setSearchText('');
-                            setSearchInput('');
-                            setSelectedPlant('');
-                            setStatusFilter('All Statuses')
-                        }}
-                        listLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage', 'More']}
-                        colWidths={['12%', '12%', '12%', '8%', '18%', '15%', '10%', '13%']}
-                        forwardedRef={headerRef}
-                        onHeaderClick={handleHeaderClick}
-                        sortKey={sortKey}
-                        sortDirection={sortDirection}
-                    />
-                    <div className="global-content-container content-container">{content}</div>
-                    {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}
-                                                          onAdded={newItem => setPickups([...pickups, newItem])}/>}
-                    {showCommentModal &&
-                        <PickupTruckCommentModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
-                                                 onClose={() => setShowCommentModal(false)}
-                                                 onSaved={handleCommentSaved}/>}
-                    {showIssueModal && <PickupTruckIssueModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
-                                                              onClose={() => setShowIssueModal(false)}/>}
-                    {showHistoryModal && selectedPickupForHistory && (
-                        <HistoryViewSection
-                            item={selectedPickupForHistory}
-                            type="pickup-truck"
-                            onClose={() => setShowHistoryModal(false)}
+        <>
+            <VideoBackground/>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top pickup-trucks-view${selectedId ? ' detail-open' : ''}`}>
+                {selectedId ? (
+                    <PickupTrucksDetailView pickupId={selectedId} onClose={() => setSelectedId(null)}
+                                            onSaved={handleDetailSaved}/>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Pickup"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchInput}
+                            onSearchInputChange={v => {
+                                setSearchInput(v);
+                                debouncedSetSearchText(v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchInput('');
+                                debouncedSetSearchText('')
+                            }}
+                            searchPlaceholder="Search by VIN, make, model, year, or name..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={v => setSelectedPlant(v)}
+                            statusFilter={statusFilter}
+                            statusOptions={statusOptions}
+                            onStatusFilterChange={v => setStatusFilter(v)}
+                            showReset={showReset}
+                            onReset={() => {
+                                setSearchText('');
+                                setSearchInput('');
+                                setSelectedPlant('');
+                                setStatusFilter('All Statuses')
+                            }}
+                            listLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage', 'More']}
+                            colWidths={['12%', '12%', '12%', '8%', '18%', '15%', '10%', '13%']}
+                            forwardedRef={headerRef}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
                         />
-                    )}
-                </>
-            )}
-        </div>
+                        <div className="global-content-container content-container">{content}</div>
+                        {showAddSheet && <PickupTrucksAddView onClose={() => setShowAddSheet(false)}
+                                                              onAdded={newItem => setPickups([...pickups, newItem])}/>}
+                        {showCommentModal &&
+                            <PickupTruckCommentModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
+                                                     onClose={() => setShowCommentModal(false)}
+                                                     onSaved={handleCommentSaved}/>}
+                        {showIssueModal && <PickupTruckIssueModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
+                                                                  onClose={() => setShowIssueModal(false)}/>}
+                        {showHistoryModal && selectedPickupForHistory && (
+                            <HistoryViewSection
+                                item={selectedPickupForHistory}
+                                type="pickup-truck"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 

@@ -7,6 +7,7 @@ import '../../components/sections/styles/DetailView.css';
 import {RegionService} from '../../services/RegionService';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import DetailViewSection from '../../components/sections/DetailViewSection';
+import VideoBackground from '../../components/common/VideoBackground';
 
 function ListDetailView({itemId, onClose}) {
     const {preferences} = usePreferences();
@@ -209,185 +210,194 @@ function ListDetailView({itemId, onClose}) {
 
     if (loading) {
         return (
-            <DetailViewSection
-                title="Task Details"
-                onClose={onClose}
-                isLoading={true}
-                loadingMessage="Loading item details..."
-            />
+            <>
+                <VideoBackground/>
+                <DetailViewSection
+                    title="Task Details"
+                    onClose={onClose}
+                    isLoading={true}
+                    loadingMessage="Loading item details..."
+                />
+            </>
         );
     }
 
     if (!item) {
         return (
-            <DetailViewSection
-                title="Item Not Found"
-                onClose={onClose}
-                notFound={true}
-                notFoundMessage="Item Not Found"
-                notFoundDescription="The requested item could not be found or has been deleted."
-            />
+            <>
+                <VideoBackground/>
+                <DetailViewSection
+                    title="Item Not Found"
+                    onClose={onClose}
+                    notFound={true}
+                    notFoundMessage="Item Not Found"
+                    notFoundDescription="The requested item could not be found or has been deleted."
+                />
+            </>
         );
     }
 
     return (
-        <DetailViewSection
-            title="Task Details"
-            onClose={onClose}
-            headerActions={null}
-            itemAssignedPlant={item?.plant_code}
-            onCanEditChange={setCanEditList}
-            footerActions={
-                canEditList && (
-                    <>
-                        <button className="primary-button save-button" onClick={handleSubmit}
-                                disabled={!hasUnsavedChanges || !canEditList}>
-                            Save Changes
-                        </button>
-                        {canDeleteList && (
-                            <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                    disabled={!canEditList}>
-                                Delete Item
+        <>
+            <VideoBackground/>
+            <DetailViewSection
+                title="Task Details"
+                onClose={onClose}
+                headerActions={null}
+                itemAssignedPlant={item?.plant_code}
+                onCanEditChange={setCanEditList}
+                footerActions={
+                    canEditList && (
+                        <>
+                            <button className="primary-button save-button" onClick={handleSubmit}
+                                    disabled={!hasUnsavedChanges || !canEditList}>
+                                Save Changes
                             </button>
-                        )}
-                    </>
-                )
-            }
-            message={message}
-            showDeleteConfirmation={showDeleteConfirmation}
-            onDeleteConfirm={handleDelete}
-            onDeleteCancel={() => setShowDeleteConfirmation(false)}
-            deleteTitle="Delete Item"
-            deleteMessage="Are you sure you want to delete this item? This action cannot be undone."
-        >
-            <div className="detail-card">
-                <div className="card-header">
-                    <h2>Task Information</h2>
-                </div>
-                <p className="edit-instructions">{canEditList ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this item.'}</p>
-                <div className="form-sections">
-                    <div className="form-section">
-                        <h3>Basic Information</h3>
-                        <div className="form-group">
-                            <label htmlFor="description">Description</label>
-                            <input
-                                type="text"
-                                id="description"
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                onBlur={() => setFormData(prev => ({
-                                    ...prev,
-                                    description: GrammarUtility.cleanDescription(prev.description)
-                                }))}
-                                disabled={!canEdit || !canEditList}
-                                required
-                                className="form-control"
-                            />
+                            {canDeleteList && (
+                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                        disabled={!canEditList}>
+                                    Delete Item
+                                </button>
+                            )}
+                        </>
+                    )
+                }
+                message={message}
+                showDeleteConfirmation={showDeleteConfirmation}
+                onDeleteConfirm={handleDelete}
+                onDeleteCancel={() => setShowDeleteConfirmation(false)}
+                deleteTitle="Delete Item"
+                deleteMessage="Are you sure you want to delete this item? This action cannot be undone."
+            >
+                <div className="detail-card">
+                    <div className="card-header">
+                        <h2>Task Information</h2>
+                    </div>
+                    <p className="edit-instructions">{canEditList ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this item.'}</p>
+                    <div className="form-sections">
+                        <div className="form-section">
+                            <h3>Basic Information</h3>
+                            <div className="form-group">
+                                <label htmlFor="description">Description</label>
+                                <input
+                                    type="text"
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    onBlur={() => setFormData(prev => ({
+                                        ...prev,
+                                        description: GrammarUtility.cleanDescription(prev.description)
+                                    }))}
+                                    disabled={!canEdit || !canEditList}
+                                    required
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="plantCode">Plant</label>
+                                <button className="operator-select-button" onClick={() => setShowPlantModal(true)}
+                                        disabled={!canEdit || !canEditList}>
+                                    {formData.plantCode ? `(${filteredPlants.find(p => p.plant_code === formData.plantCode)?.plant_code || formData.plantCode}) ${filteredPlants.find(p => p.plant_code === formData.plantCode)?.plant_name || ''}` : 'Select Plant'}
+                                </button>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="deadline">Deadline</label>
+                                <input
+                                    type="datetime-local"
+                                    id="deadline"
+                                    name="deadline"
+                                    value={formData.deadline}
+                                    onChange={handleChange}
+                                    disabled={!canEdit || !canEditList}
+                                    required
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="status">Status</label>
+                                <select id="status" value={status} onChange={e => setStatus(e.target.value)}
+                                        disabled={!canEdit || !canEditList} className="form-control">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="plantCode">Plant</label>
-                            <button className="operator-select-button" onClick={() => setShowPlantModal(true)}
-                                    disabled={!canEdit || !canEditList}>
-                                {formData.plantCode ? `(${filteredPlants.find(p => p.plant_code === formData.plantCode)?.plant_code || formData.plantCode}) ${filteredPlants.find(p => p.plant_code === formData.plantCode)?.plant_name || ''}` : 'Select Plant'}
-                            </button>
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="deadline">Deadline</label>
-                            <input
-                                type="datetime-local"
-                                id="deadline"
-                                name="deadline"
-                                value={formData.deadline}
-                                onChange={handleChange}
-                                disabled={!canEdit || !canEditList}
-                                required
-                                className="form-control"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="status">Status</label>
-                            <select id="status" value={status} onChange={e => setStatus(e.target.value)}
-                                    disabled={!canEdit || !canEditList} className="form-control">
-                                <option value="Pending">Pending</option>
-                                <option value="Completed">Completed</option>
-                            </select>
+                        <div className="form-section">
+                            <h3>Additional Details</h3>
+                            <div className="form-group">
+                                <label htmlFor="comments">Comments</label>
+                                <textarea
+                                    id="comments"
+                                    name="comments"
+                                    value={formData.comments}
+                                    onChange={handleChange}
+                                    onBlur={() => setFormData(prev => ({
+                                        ...prev,
+                                        comments: GrammarUtility.cleanComments(prev.comments)
+                                    }))}
+                                    disabled={!canEdit || !canEditList}
+                                    className="form-control"
+                                    rows="4"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Created By</label>
+                                <input
+                                    type="text"
+                                    value={creator ? `${creator.first_name} ${creator.last_name}` : 'Unknown'}
+                                    disabled
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Created On</label>
+                                <input
+                                    type="text"
+                                    value={ListService.formatDate(item.created_at)}
+                                    disabled
+                                    className="form-control"
+                                />
+                            </div>
+                            {item.completed && (
+                                <>
+                                    <div className="form-group">
+                                        <label>Completed By</label>
+                                        <input
+                                            type="text"
+                                            value={completer ? `${completer.first_name} ${completer.last_name}` : 'Unknown'}
+                                            disabled
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Completed On</label>
+                                        <input
+                                            type="text"
+                                            value={ListService.formatDate(item.completed_at)}
+                                            disabled
+                                            className="form-control"
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
-                    <div className="form-section">
-                        <h3>Additional Details</h3>
-                        <div className="form-group">
-                            <label htmlFor="comments">Comments</label>
-                            <textarea
-                                id="comments"
-                                name="comments"
-                                value={formData.comments}
-                                onChange={handleChange}
-                                onBlur={() => setFormData(prev => ({
-                                    ...prev,
-                                    comments: GrammarUtility.cleanComments(prev.comments)
-                                }))}
-                                disabled={!canEdit || !canEditList}
-                                className="form-control"
-                                rows="4"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Created By</label>
-                            <input
-                                type="text"
-                                value={creator ? `${creator.first_name} ${creator.last_name}` : 'Unknown'}
-                                disabled
-                                className="form-control"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Created On</label>
-                            <input
-                                type="text"
-                                value={ListService.formatDate(item.created_at)}
-                                disabled
-                                className="form-control"
-                            />
-                        </div>
-                        {item.completed && (
-                            <>
-                                <div className="form-group">
-                                    <label>Completed By</label>
-                                    <input
-                                        type="text"
-                                        value={completer ? `${completer.first_name} ${completer.last_name}` : 'Unknown'}
-                                        disabled
-                                        className="form-control"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Completed On</label>
-                                    <input
-                                        type="text"
-                                        value={ListService.formatDate(item.completed_at)}
-                                        disabled
-                                        className="form-control"
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </div>
                 </div>
-            </div>
-            {showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={code => {
-                        setFormData(prev => ({...prev, plantCode: code}));
-                        setShowPlantModal(false);
-                    }}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
-        </DetailViewSection>
+                {showPlantModal && (
+                    <PlantDropdownModal
+                        isOpen={showPlantModal}
+                        onClose={() => setShowPlantModal(false)}
+                        plants={filteredPlants}
+                        onSelect={code => {
+                            setFormData(prev => ({...prev, plantCode: code}));
+                            setShowPlantModal(false);
+                        }}
+                        searchPlaceholder="Search plants..."
+                    />
+                )}
+            </DetailViewSection>
+        </>
     );
 }
 

@@ -22,6 +22,7 @@ import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const {preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters} = usePreferences();
@@ -531,42 +532,44 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const showReset = (searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || equipmentTypeFilter)
 
     return (
-        <div
-            className={`global-dashboard-container dashboard-container global-flush-top flush-top equipments-view${selectedEquipment ? ' detail-open' : ''}`}>
-            {selectedEquipment ? (
-                <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={handleCloseDetailView}/>
-            ) : (
-                <>
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Equipment"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchInput}
-                        onSearchInputChange={v => {
-                            setSearchInput(v);
-                            debouncedSetSearchText(v)
-                        }}
-                        onClearSearch={() => {
-                            setSearchInput('');
-                            debouncedSetSearchText('')
-                        }}
-                        searchPlaceholder="Search by identifying number or equipment type..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants}
-                        regionPlantCodes={regionPlantCodes}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={v => {
-                            setSelectedPlant(v);
-                            safeUpdateEquipmentFilter('selectedPlant', v)
-                        }}
-                        statusFilter={statusFilter}
-                        statusOptions={filterOptions}
-                        onStatusFilterChange={v => {
-                            setStatusFilter(v);
-                            safeUpdateEquipmentFilter('statusFilter', v)
-                        }}
-                        customFilters={<div className="filter-wrapper"><select className="ios-select"
+        <>
+            <VideoBackground/>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top equipments-view${selectedEquipment ? ' detail-open' : ''}`}>
+                {selectedEquipment ? (
+                    <EquipmentDetailView equipmentId={selectedEquipment.id} onClose={handleCloseDetailView}/>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Equipment"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchInput}
+                            onSearchInputChange={v => {
+                                setSearchInput(v);
+                                debouncedSetSearchText(v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchInput('');
+                                debouncedSetSearchText('')
+                            }}
+                            searchPlaceholder="Search by identifying number or equipment type..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={v => {
+                                setSelectedPlant(v);
+                                safeUpdateEquipmentFilter('selectedPlant', v)
+                            }}
+                            statusFilter={statusFilter}
+                            statusOptions={filterOptions}
+                            onStatusFilterChange={v => {
+                                setStatusFilter(v);
+                                safeUpdateEquipmentFilter('statusFilter', v)
+                            }}
+                            customFilters={<div className="filter-wrapper"><select className="ios-select"
                                                                                value={equipmentTypeFilter}
                                                                                onChange={e => {
                                                                                    setEquipmentTypeFilter(e.target.value);
@@ -575,73 +578,74 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                             <option value="">All Types</option>
                             {equipmentTypeOptions.slice(1).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                         </select></div>}
-                        showReset={showReset}
-                        onReset={() => {
-                            setSearchText('');
-                            setSearchInput('');
-                            setSelectedPlant('');
-                            setStatusFilter('');
-                            setEquipmentTypeFilter('');
-                            resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
-                        }}
-                        listLabels={['Plant', 'Type', 'Equipment #', 'Make & Model', 'Status', 'Cleanliness', 'Condition', 'Verified', 'More']}
-                        colWidths={['10%', '15%', '10%', '15%', '8%', '10%', '10%', '10%', '12%']}
-                        forwardedRef={headerRef}
-                        sticky={true}
-                        onHeaderClick={handleHeaderClick}
-                        sortKey={sortKey}
-                        sortDirection={sortDirection}
-                    />
-                    <div className="global-content-container content-container">{content}</div>
-                    {showAddSheet && <EquipmentAddView plants={plants} onClose={() => setShowAddSheet(false)}
-                                                       onEquipmentAdded={newEquipment => setEquipments([...equipments, newEquipment])}/>}
-                    {showCommentModal &&
-                        <EquipmentCommentModal equipmentId={modalEquipmentId} equipmentNumber={modalEquipmentNumber}
-                                               onClose={() => setShowCommentModal(false)}/>}
-                    {showIssueModal &&
-                        <EquipmentIssueModal equipmentId={modalEquipmentId} equipmentNumber={modalEquipmentNumber}
-                                             onClose={() => setShowIssueModal(false)}/>}
-                    {showHistoryModal && selectedEquipmentForHistory && (
-                        <HistoryViewSection
-                            item={selectedEquipmentForHistory}
-                            type="equipment"
-                            onClose={() => setShowHistoryModal(false)}
-                        />
-                    )}
-                    {showVerifyModal && verifyEquipment && (
-                        <VerificationRequirementsModal
-                            open={showVerifyModal}
-                            onClose={() => {
-                                setShowVerifyModal(false);
-                                setVerifyEquipment(null);
+                            showReset={showReset}
+                            onReset={() => {
+                                setSearchText('');
+                                setSearchInput('');
+                                setSelectedPlant('');
+                                setStatusFilter('');
+                                setEquipmentTypeFilter('');
+                                resetEquipmentFilters({keepViewMode: true, currentViewMode: viewMode})
                             }}
-                            onSaveAndVerify={handleSaveAndVerify}
-                            missingFields={[
-                                ...(!verifyEquipment.make && !verifyEquipment.equipmentMake ? ['Make'] : []),
-                                ...(!verifyEquipment.model && !verifyEquipment.equipmentModel ? ['Model'] : []),
-                                ...(!verifyEquipment.year && !verifyEquipment.yearMade ? ['Year'] : [])
-                            ]}
-                            vin={verifyVin}
-                            make={verifyMake}
-                            model={verifyModel}
-                            year={verifyYear}
-                            lastServiceDate={verifyLastServiceDate}
-                            setVin={setVerifyVin}
-                            setMake={setVerifyMake}
-                            setModel={setVerifyModel}
-                            setYear={setVerifyYear}
-                            setLastServiceDate={setVerifyLastServiceDate}
-                            isServiceOverdue={EquipmentUtility.isServiceOverdue}
-                            assignedOperator={verifyEquipment.assignedOperator}
-                            itemType="equipment"
-                            itemId={verifyEquipment.id}
-                            service={EquipmentService}
-                            status={verifyEquipment.status}
+                            listLabels={['Plant', 'Type', 'Equipment #', 'Make & Model', 'Status', 'Cleanliness', 'Condition', 'Verified', 'More']}
+                            colWidths={['10%', '15%', '10%', '15%', '8%', '10%', '10%', '10%', '12%']}
+                            forwardedRef={headerRef}
+                            sticky={true}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
                         />
-                    )}
-                </>
-            )}
-        </div>
+                        <div className="global-content-container content-container">{content}</div>
+                        {showAddSheet && <EquipmentAddView plants={plants} onClose={() => setShowAddSheet(false)}
+                                                           onEquipmentAdded={newEquipment => setEquipments([...equipments, newEquipment])}/>}
+                        {showCommentModal &&
+                            <EquipmentCommentModal equipmentId={modalEquipmentId} equipmentNumber={modalEquipmentNumber}
+                                                   onClose={() => setShowCommentModal(false)}/>}
+                        {showIssueModal &&
+                            <EquipmentIssueModal equipmentId={modalEquipmentId} equipmentNumber={modalEquipmentNumber}
+                                                 onClose={() => setShowIssueModal(false)}/>}
+                        {showHistoryModal && selectedEquipmentForHistory && (
+                            <HistoryViewSection
+                                item={selectedEquipmentForHistory}
+                                type="equipment"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                        {showVerifyModal && verifyEquipment && (
+                            <VerificationRequirementsModal
+                                open={showVerifyModal}
+                                onClose={() => {
+                                    setShowVerifyModal(false);
+                                    setVerifyEquipment(null);
+                                }}
+                                onSaveAndVerify={handleSaveAndVerify}
+                                missingFields={[
+                                    ...(!verifyEquipment.make && !verifyEquipment.equipmentMake ? ['Make'] : []),
+                                    ...(!verifyEquipment.model && !verifyEquipment.equipmentModel ? ['Model'] : []),
+                                    ...(!verifyEquipment.year && !verifyEquipment.yearMade ? ['Year'] : [])
+                                ]}
+                                vin={verifyVin}
+                                make={verifyMake}
+                                model={verifyModel}
+                                year={verifyYear}
+                                lastServiceDate={verifyLastServiceDate}
+                                setVin={setVerifyVin}
+                                setMake={setVerifyMake}
+                                setModel={setVerifyModel}
+                                setYear={setVerifyYear}
+                                setLastServiceDate={setVerifyLastServiceDate}
+                                isServiceOverdue={EquipmentUtility.isServiceOverdue}
+                                assignedOperator={verifyEquipment.assignedOperator}
+                                itemType="equipment"
+                                itemId={verifyEquipment.id}
+                                service={EquipmentService}
+                                status={verifyEquipment.status}
+                            />
+                        )}
+                    </>
+                )}
+                </div>
+            </>
     );
 }
 

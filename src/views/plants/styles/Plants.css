@@ -1,8 +1,13 @@
 .plants-view {
     width: 100%;
     min-height: 100vh;
-    background: var(--background);
+    background: transparent;
     color: var(--text-primary);
+    overflow: hidden;
+}
+
+.plants-view .content-container {
+    overflow: hidden;
 }
 
 .plant-badge {
@@ -24,9 +29,9 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background: var(--card-bg);
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
     font-size: 15px;
     table-layout: fixed;
 }
@@ -79,10 +84,16 @@
 
 .plants-list-table tbody tr {
     transition: background 0.15s;
+    background: transparent;
+}
+
+.plants-list-table tbody tr:nth-child(even) {
+    background: var(--background);
 }
 
 .plants-list-table tbody tr:hover {
-    background: rgba(49, 130, 206, 0.06);
+    background: var(--divider);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .plants-list-table td {
@@ -128,7 +139,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-secondary);
+    background-color: transparent;
     overflow-y: auto;
     overflow-x: hidden;
     color: var(--text-primary);

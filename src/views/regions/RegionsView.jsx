@@ -7,6 +7,7 @@ import RegionsDetailView from './RegionsDetailView'
 import RegionsAddView from './RegionsAddView'
 import TopSection from '../../components/sections/TopSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function RegionsView({title = 'Regions'}) {
     const [regions, setRegions] = useState([])
@@ -87,8 +88,10 @@ function RegionsView({title = 'Regions'}) {
     }
 
     return (
-        <div className="global-dashboard-container dashboard-container regions-view">
-            {selectedRegion ? (
+        <>
+            <VideoBackground/>
+            <div className="global-dashboard-container dashboard-container regions-view">
+                {selectedRegion ? (
                 <RegionsDetailView
                     region={selectedRegion}
                     onClose={() => setSelectedRegion(null)}
@@ -158,7 +161,8 @@ function RegionsView({title = 'Regions'}) {
                     )}
                 </>
             )}
-        </div>
+            </div>
+        </>
     )
 }
 

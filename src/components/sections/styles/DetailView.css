@@ -3,7 +3,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-primary);
+    background-color: transparent;
     overflow-y: auto;
     overflow-x: hidden;
     color: var(--text-primary);
@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     padding: 16px;
-    background-color: var(--detail-header-bg);
+    background-color: color-mix(in srgb, var(--detail-header-bg) 50%, transparent);
     border-bottom: 1px solid var(--border-light);
     position: sticky;
     top: 0;
@@ -280,7 +280,7 @@
 }
 
 .form-section {
-    background-color: var(--bg-secondary);
+    background-color: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -310,7 +310,7 @@
     box-sizing: border-box;
     padding: 8px 12px;
     border: 1px solid var(--border-light);
-    background-color: var(--bg-primary);
+    background-color: color-mix(in srgb, var(--bg-primary) 50%, transparent);
     color: var(--text-primary);
     border-radius: 6px;
     font-size: 14px;
@@ -320,7 +320,7 @@
 .form-control:focus {
     outline: none;
     border-color: var(--accent);
-    background-color: var(--bg-primary);
+    background-color: color-mix(in srgb, var(--bg-primary) 70%, transparent);
 }
 
 .form-control:disabled {
@@ -472,7 +472,7 @@
 }
 
 .verification-card {
-    background-color: var(--bg-primary);
+    background-color: color-mix(in srgb, var(--bg-primary) 50%, transparent);
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
     margin: 20px 0 24px;
@@ -485,7 +485,7 @@
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
-    background-color: var(--bg-tertiary);
+    background-color: color-mix(in srgb, var(--bg-tertiary) 50%, transparent);
     border-bottom: 1px solid var(--border-light);
 }
 

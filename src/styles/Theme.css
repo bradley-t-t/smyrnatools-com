@@ -946,7 +946,7 @@ button.primary:hover {
 
 .dark-mode .dashboard-container,
 .dark-mode .App {
-    background-color: var(--background);
+    background-color: transparent;
 }
 
 .dark-mode .no-results-container {

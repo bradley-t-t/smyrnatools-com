@@ -1,8 +1,13 @@
 .regions-view {
     width: 100%;
     min-height: 100vh;
-    background: var(--background);
+    background: transparent;
     color: var(--text-primary);
+    overflow: hidden;
+}
+
+.regions-view .content-container {
+    overflow: hidden;
 }
 
 .region-icon {
@@ -19,9 +24,9 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background: var(--card-bg);
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
     font-size: 15px;
     table-layout: fixed;
 }
@@ -50,10 +55,16 @@
 
 .regions-list-table tbody tr {
     transition: background 0.15s;
+    background: transparent;
+}
+
+.regions-list-table tbody tr:nth-child(even) {
+    background: var(--background);
 }
 
 .regions-list-table tbody tr:hover {
-    background: rgba(49, 130, 206, 0.06);
+    background: var(--divider);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .regions-list-table td {
@@ -292,7 +303,7 @@ label {
 .region-detail-view {
     width: 100%;
     min-height: 100vh;
-    background: var(--bg-secondary);
+    background: transparent;
     color: var(--text-primary);
     display: flex;
     flex-direction: column;

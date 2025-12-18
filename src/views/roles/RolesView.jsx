@@ -4,6 +4,7 @@ import {UserService} from '../../services/UserService';
 import {supabase} from '../../services/DatabaseService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import './styles/Roles.css';
+import VideoBackground from '../../components/common/VideoBackground';
 
 function RolesView() {
     const [roles, setRoles] = useState([]);
@@ -459,8 +460,10 @@ function RolesView() {
     }
 
     return (
-        <div className="roles-view">
-            <div className="roles-header">
+        <>
+            <VideoBackground/>
+            <div className="roles-view">
+                <div className="roles-header">
                 <div className="roles-header-content">
                     <h1>Roles & Permissions</h1>
                     <p className="roles-subtitle">
@@ -963,7 +966,8 @@ function RolesView() {
                 </div>,
                 document.body
             )}
-        </div>
+            </div>
+        </>
     );
 }
 

@@ -8,6 +8,7 @@ import PlantsDetailView from './PlantsDetailView'
 import PlantsAddView from './PlantsAddView'
 import TopSection from '../../components/sections/TopSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function PlantsView({title = 'Plants'}) {
     const [plants, setPlants] = useState([])
@@ -126,84 +127,87 @@ function PlantsView({title = 'Plants'}) {
     }
 
     return (
-        <div className="global-dashboard-container dashboard-container plants-view">
-            {selectedPlant ? (
-                <PlantsDetailView
-                    plant={selectedPlant}
-                    onClose={() => setSelectedPlant(null)}
-                    onDelete={handlePlantDeleted}
-                    onUpdate={handlePlantUpdated}
-                />
-            ) : (
-                <>
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Plant"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchText}
-                        onSearchInputChange={setSearchText}
-                        onClearSearch={() => setSearchText('')}
-                        searchPlaceholder="Search by plant name or code..."
-                        forwardedRef={headerRef}
-                        hideViewModeToggle={true}
-                        viewMode="list"
-                        listLabels={headerLabels}
-                        colWidths={colWidths}
-                        customFilters={customFilters}
-                        showReset={showReset}
-                        onReset={onReset}
-                        hidePlantFilter={true}
+        <>
+            <VideoBackground/>
+            <div className="global-dashboard-container dashboard-container plants-view">
+                {selectedPlant ? (
+                    <PlantsDetailView
+                        plant={selectedPlant}
+                        onClose={() => setSelectedPlant(null)}
+                        onDelete={handlePlantDeleted}
+                        onUpdate={handlePlantUpdated}
                     />
-                    <div className="global-content-container content-container">
-                        {isLoading ? (
-                            <div className="global-loading-container loading-container">
-                                <LoadingScreen message="Loading plants..." inline={true}/>
-                            </div>
-                        ) : filteredPlants.length === 0 ? (
-                            <div className="global-no-results-container no-results-container">
-                                <div className="no-results-icon">
-                                    <i className="fas fa-seedling"></i>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Plant"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchText}
+                            onSearchInputChange={setSearchText}
+                            onClearSearch={() => setSearchText('')}
+                            searchPlaceholder="Search by plant name or code..."
+                            forwardedRef={headerRef}
+                            hideViewModeToggle={true}
+                            viewMode="list"
+                            listLabels={headerLabels}
+                            colWidths={colWidths}
+                            customFilters={customFilters}
+                            showReset={showReset}
+                            onReset={onReset}
+                            hidePlantFilter={true}
+                        />
+                        <div className="global-content-container content-container">
+                            {isLoading ? (
+                                <div className="global-loading-container loading-container">
+                                    <LoadingScreen message="Loading plants..." inline={true}/>
                                 </div>
-                                <h3>No Plants Found</h3>
-                                <p>{searchText ? "No plants match your search criteria." : "There are no plants in the system yet."}</p>
-                                <button className="global-primary-button primary-button"
-                                        onClick={() => setShowAddSheet(true)}>Add Plant
-                                </button>
-                            </div>
-                        ) : (
-                            <ListViewModeSection
-                                filteredItems={filteredPlants}
-                                handleSelectItem={handleSelectPlant}
-                                headerLabels={headerLabels}
-                                colWidths={colWidths}
-                                renderRow={(plant) => {
-                                    const region = plantRegionMap[plant.plant_code || plant.plantCode]
-                                    const regionName = region?.regionName || 'N/A'
-                                    const plantType = region?.type === 'Concrete' ? 'Concrete Plant' : region?.type === 'Aggregate' ? 'Aggregate Location' : region?.type === 'Office' ? 'Office Location' : 'N/A'
-                                    return (
-                                        <tr key={plant.plant_code || plant.plantCode} style={{cursor: 'pointer'}}
-                                            onClick={() => handleSelectPlant(plant.plant_code || plant.plantCode)}>
-                                            <td style={{width: '20%'}}>{plant.plant_code || plant.plantCode}</td>
-                                            <td style={{width: '30%'}}>{plant.plant_name || plant.plantName}</td>
-                                            <td style={{width: '25%'}}>{regionName}</td>
-                                            <td style={{width: '25%'}}>{plantType}</td>
-                                        </tr>
-                                    )
-                                }}
-                                containerClassName="plants-list-table-container"
-                                tableClassName="plants-list-table"
+                            ) : filteredPlants.length === 0 ? (
+                                <div className="global-no-results-container no-results-container">
+                                    <div className="no-results-icon">
+                                        <i className="fas fa-seedling"></i>
+                                    </div>
+                                    <h3>No Plants Found</h3>
+                                    <p>{searchText ? "No plants match your search criteria." : "There are no plants in the system yet."}</p>
+                                    <button className="global-primary-button primary-button"
+                                            onClick={() => setShowAddSheet(true)}>Add Plant
+                                    </button>
+                                </div>
+                            ) : (
+                                <ListViewModeSection
+                                    filteredItems={filteredPlants}
+                                    handleSelectItem={handleSelectPlant}
+                                    headerLabels={headerLabels}
+                                    colWidths={colWidths}
+                                    renderRow={(plant) => {
+                                        const region = plantRegionMap[plant.plant_code || plant.plantCode]
+                                        const regionName = region?.regionName || 'N/A'
+                                        const plantType = region?.type === 'Concrete' ? 'Concrete Plant' : region?.type === 'Aggregate' ? 'Aggregate Location' : region?.type === 'Office' ? 'Office Location' : 'N/A'
+                                        return (
+                                            <tr key={plant.plant_code || plant.plantCode} style={{cursor: 'pointer'}}
+                                                onClick={() => handleSelectPlant(plant.plant_code || plant.plantCode)}>
+                                                <td style={{width: '20%'}}>{plant.plant_code || plant.plantCode}</td>
+                                                <td style={{width: '30%'}}>{plant.plant_name || plant.plantName}</td>
+                                                <td style={{width: '25%'}}>{regionName}</td>
+                                                <td style={{width: '25%'}}>{plantType}</td>
+                                            </tr>
+                                        )
+                                    }}
+                                    containerClassName="plants-list-table-container"
+                                    tableClassName="plants-list-table"
+                                />
+                            )}
+                        </div>
+                        {showAddSheet && (
+                            <PlantsAddView
+                                onClose={() => setShowAddSheet(false)}
+                                onPlantAdded={handlePlantAdded}
                             />
                         )}
-                    </div>
-                    {showAddSheet && (
-                        <PlantsAddView
-                            onClose={() => setShowAddSheet(false)}
-                            onPlantAdded={handlePlantAdded}
-                        />
-                    )}
-                </>
-            )}
-        </div>
+                    </>
+                )}
+                </div>
+            </>
     )
 }
 

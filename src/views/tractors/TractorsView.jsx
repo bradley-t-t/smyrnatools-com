@@ -24,6 +24,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
+import VideoBackground from '../../components/common/VideoBackground'
 
 function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView}) {
     const {
@@ -615,6 +616,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
 
     return (
         <>
+            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
                 {selectedTractor ? (
