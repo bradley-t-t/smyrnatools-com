@@ -113,7 +113,9 @@ function RecapModalSection({
         const lookup = {}
         if (operators && Array.isArray(operators)) {
             operators.forEach(o => {
-                const id = o.employeeId || o.employee_id
+                const employeeId = o.employeeId || o.employee_id
+                const id = o.id
+                if (employeeId) lookup[employeeId] = o
                 if (id) lookup[id] = o
             })
         }
@@ -170,6 +172,7 @@ function RecapModalSection({
                 const operator = operatorLookup[group.id]
                 if (operator) {
                     group.name = operator.name || 'Unknown Operator'
+                    group.status = operator.status || 'Unknown'
                 } else {
                     const nameChange = group.changes.find(c => c.field_name === 'name')
                     if (nameChange) {
@@ -177,6 +180,7 @@ function RecapModalSection({
                     } else {
                         group.name = 'Unknown Operator'
                     }
+                    group.status = 'Unknown'
                 }
             }
             group.changes.sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at))
@@ -204,31 +208,29 @@ function RecapModalSection({
                 startDate = new Date('2020-01-01')
             }
 
-            let mixerData = []
-            if (mixerIds.length > 0) {
-                const {data, error} = await supabase
-                    .from('mixers_history')
-                    .select('*')
-                    .in('mixer_id', mixerIds)
-                    .gte('changed_at', startDate.toISOString())
-                    .order('changed_at', {ascending: false})
-                    .limit(500)
+            const [mixerResult, operatorResult] = await Promise.all([
+                mixerIds.length > 0
+                    ? supabase
+                        .from('mixers_history')
+                        .select('id,mixer_id,field_name,old_value,new_value,changed_at,changed_by')
+                        .in('mixer_id', mixerIds)
+                        .gte('changed_at', startDate.toISOString())
+                        .order('changed_at', {ascending: false})
+                        .limit(500)
+                    : Promise.resolve({data: [], error: null}),
+                operatorIds.length > 0
+                    ? supabase
+                        .from('operators_history')
+                        .select('id,operator_id,field_name,old_value,new_value,changed_at,changed_by')
+                        .in('operator_id', operatorIds)
+                        .gte('changed_at', startDate.toISOString())
+                        .order('changed_at', {ascending: false})
+                        .limit(500)
+                    : Promise.resolve({data: [], error: null})
+            ])
 
-                if (!error) mixerData = data || []
-            }
-
-            let operatorData = []
-            if (operatorIds.length > 0) {
-                const {data, error} = await supabase
-                    .from('operators_history')
-                    .select('*')
-                    .in('operator_id', operatorIds)
-                    .gte('changed_at', startDate.toISOString())
-                    .order('changed_at', {ascending: false})
-                    .limit(500)
-
-                if (!error) operatorData = data || []
-            }
+            const mixerData = !mixerResult.error ? (mixerResult.data || []) : []
+            const operatorData = !operatorResult.error ? (operatorResult.data || []) : []
 
             const filterHistory = (entries) => {
                 return (entries || []).filter(entry => {
@@ -263,30 +265,50 @@ function RecapModalSection({
                 }
             })
 
-            const names = {...userNames}
-            for (const userId of userIds) {
-                if (!names[userId]) {
+            const userIdsToFetch = [...userIds].filter(id => !userNames[id])
+            const opIdsToFetch = [...opIdsForNames].filter(id => !operatorNames[id])
+
+            const [userNamesResults, opNamesResults] = await Promise.all([
+                Promise.all(userIdsToFetch.map(async userId => {
                     try {
                         const displayName = await UserService.getUserDisplayName(userId)
-                        names[userId] = displayName || 'Unknown'
+                        return {id: userId, name: displayName || 'Unknown'}
                     } catch {
-                        names[userId] = 'Unknown'
+                        return {id: userId, name: 'Unknown'}
                     }
-                }
-            }
+                })),
+                Promise.all(opIdsToFetch.map(async opId => {
+                    try {
+                        const operator = await OperatorService.getOperatorById(opId)
+                        return {
+                            id: opId,
+                            data: {
+                                name: operator?.name || 'Unknown Operator',
+                                status: operator?.status || 'Unknown'
+                            }
+                        }
+                    } catch {
+                        return {
+                            id: opId,
+                            data: {
+                                name: 'Unknown Operator',
+                                status: 'Unknown'
+                            }
+                        }
+                    }
+                }))
+            ])
+
+            const names = {...userNames}
+            userNamesResults.forEach(result => {
+                names[result.id] = result.name
+            })
             setUserNames(names)
 
             const opNames = {...operatorNames}
-            for (const opId of opIdsForNames) {
-                if (!opNames[opId]) {
-                    try {
-                        const operator = await OperatorService.getOperatorById(opId)
-                        opNames[opId] = operator?.name || 'Unknown Operator'
-                    } catch {
-                        opNames[opId] = 'Unknown Operator'
-                    }
-                }
-            }
+            opNamesResults.forEach(result => {
+                opNames[result.id] = result.data
+            })
             setOperatorNames(opNames)
         } catch (err) {
         } finally {
@@ -347,7 +369,20 @@ function RecapModalSection({
         if (value === null || value === undefined || value === '' || value === 'null') return 'None'
         if (fieldName === 'assigned_operator') {
             if (value === '0') return 'None'
-            return operatorNames[value] || value
+            const opData = operatorNames[value]
+            if (opData) {
+                const isTerminated = opData.status === 'Terminated'
+                if (isTerminated) {
+                    return (
+                        <span className="operator-terminated">
+                            <span className="operator-name-strikethrough">{opData.name}</span>
+                            <span className="terminated-badge">Terminated</span>
+                        </span>
+                    )
+                }
+                return opData.name
+            }
+            return value
         }
         if (fieldName === 'cleanliness_rating' || fieldName === 'condition_rating') {
             const num = parseInt(value)
@@ -571,6 +606,7 @@ function RecapModalSection({
                                     const assetKey = `${group.type}_${group.id}`
                                     const isExpanded = expandedAssets[assetKey] || false
                                     const isMixer = group.type === 'mixer'
+                                    const isTerminated = group.type === 'operator' && group.status === 'Terminated'
                                     const assetIcon = isMixer ? 'fa-solid fa-truck' : 'fa-solid fa-hard-hat'
                                     return (
                                         <div key={assetKey || groupIndex} className={`recap-asset-group ${group.type}`}>
@@ -580,7 +616,14 @@ function RecapModalSection({
                                             >
                                                 <i className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} recap-expand-icon`}></i>
                                                 <i className={`${assetIcon} recap-asset-type-icon`}></i>
-                                                <span className="recap-asset-title">{group.name}</span>
+                                                {isTerminated ? (
+                                                    <span className="recap-asset-title operator-terminated">
+                                                        <span className="operator-name-strikethrough">{group.name}</span>
+                                                        <span className="terminated-badge">Terminated</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="recap-asset-title">{group.name}</span>
+                                                )}
                                                 <span
                                                     className="recap-asset-count">{group.changes.length} change{group.changes.length !== 1 ? 's' : ''}</span>
                                             </div>

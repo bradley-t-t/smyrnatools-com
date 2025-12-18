@@ -16,6 +16,7 @@ export default function LeaderboardsView() {
     const [loading, setLoading] = useState(true)
     const [plantMetrics, setPlantMetrics] = useState([])
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
     const [helpDetailsModal, setHelpDetailsModal] = useState({isOpen: false, plant: null, details: null})
     const [hoursAdjustmentsData, setHoursAdjustmentsData] = useState({})
 
@@ -246,7 +247,18 @@ export default function LeaderboardsView() {
                 <div className="leaderboards-header-inner">
                     <div className="leaderboards-title-row">
                         <h1 className="leaderboards-title">Performance Leaderboards</h1>
-                        <span className="leaderboards-subtitle">YTD {new Date().getFullYear()}</span>
+                        <div className="leaderboards-year-selector">
+                            <span className="year-label">YTD</span>
+                            <select
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                                className="year-select"
+                            >
+                                {Array.from({length: new Date().getFullYear() - 2024}, (_, i) => 2025 + i).map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                     <div className="leaderboards-categories">
                         {[
