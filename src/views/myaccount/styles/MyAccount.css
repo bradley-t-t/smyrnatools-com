@@ -173,11 +173,16 @@ html.blue-dark-mode .myaccount-video-background {
 
 .account-section {
     margin-bottom: 2.5rem;
+    background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+    border-radius: 12px;
+    padding: 1rem;
 }
 
 .section-header {
     margin-bottom: 1rem;
     border-radius: 12px;
+    background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+    padding: 1rem;
 }
 
 .section-header h2 {
@@ -196,7 +201,7 @@ html.blue-dark-mode .myaccount-video-background {
 }
 
 .account-card {
-    background-color: rgba(var(--bg-primary-rgb, 30, 30, 30), 0.85);
+    background-color: color-mix(in srgb, rgba(var(--bg-primary-rgb, 30, 30, 30), 0.85) 50%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
@@ -205,6 +210,7 @@ html.blue-dark-mode .myaccount-video-background {
 }
 
 .account-card.elevated {
+    background-color: color-mix(in srgb, rgba(var(--bg-primary-rgb, 30, 30, 30), 0.85) 50%, transparent);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -307,6 +313,9 @@ html.blue-dark-mode .myaccount-video-background {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
+    background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+    border-radius: 12px;
+    padding: 1rem;
 }
 
 .info-item {
@@ -479,7 +488,7 @@ button.save-button:disabled {
 }
 
 .security-action-card {
-    background: var(--bg-primary);
+    background: color-mix(in srgb, var(--bg-primary) 50%, transparent);
     border: 1px solid var(--border-light);
     border-radius: 12px;
     padding: 1.5rem;
