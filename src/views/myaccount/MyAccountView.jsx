@@ -4,7 +4,6 @@ import {AuthService} from '../../services/AuthService';
 import {UserService} from "../../services/UserService";
 import {usePreferences} from '../../app/context/PreferencesContext';
 import './styles/MyAccount.css';
-import LoadingScreen from "../../components/common/LoadingScreen";
 import Video1 from '../../assets/videos/1.mp4';
 import Video2 from '../../assets/videos/2.mp4';
 import Video3 from '../../assets/videos/3.mp4';
@@ -399,6 +398,73 @@ function MyAccountView({userId}) {
         document.documentElement.style.setProperty('--myaccount-accent', `var(--accent)`)
     }, [preferences.accentColor])
 
+    const renderSkeletonContent = () => (
+        <div className="my-account-container account-fade-in">
+            <div className="account-hero account-slide-in">
+                <div className="account-avatar skeleton-avatar">
+                    <div className="skeleton-circle"></div>
+                </div>
+                <div className="account-hero-content">
+                    <div className="skeleton-line w60 tall" style={{marginBottom: '0.5rem'}}></div>
+                    <div className="skeleton-line w40" style={{marginBottom: '1rem'}}></div>
+                    <div className="account-badges-row">
+                        <div className="skeleton-badge"></div>
+                        <div className="skeleton-badge"></div>
+                    </div>
+                </div>
+            </div>
+            <div className="account-tabs account-slide-in" style={{animationDelay: '0.1s'}}>
+                <div className="skeleton-tab"></div>
+                <div className="skeleton-tab"></div>
+            </div>
+            <div className="account-tab-content account-slide-in" style={{animationDelay: '0.2s'}}>
+                <div className="account-section">
+                    <div className="section-header">
+                        <div className="skeleton-line w40 tall"></div>
+                        <div className="skeleton-line w60" style={{marginTop: '0.5rem'}}></div>
+                    </div>
+                    <div className="account-card elevated skeleton-card">
+                        <div className="skeleton-form">
+                            <div className="skeleton-form-row">
+                                <div className="skeleton-form-group">
+                                    <div className="skeleton-line w30"></div>
+                                    <div className="skeleton-input"></div>
+                                </div>
+                                <div className="skeleton-form-group">
+                                    <div className="skeleton-line w30"></div>
+                                    <div className="skeleton-input"></div>
+                                </div>
+                            </div>
+                            <div className="skeleton-button"></div>
+                        </div>
+                    </div>
+                </div>
+                <div className="account-section">
+                    <div className="section-header">
+                        <div className="skeleton-line w40 tall"></div>
+                        <div className="skeleton-line w50" style={{marginTop: '0.5rem'}}></div>
+                    </div>
+                    <div className="account-card elevated skeleton-card">
+                        <div className="info-grid">
+                            <div className="skeleton-info-item">
+                                <div className="skeleton-line w20"></div>
+                                <div className="skeleton-line w60"></div>
+                            </div>
+                            <div className="skeleton-info-item">
+                                <div className="skeleton-line w20"></div>
+                                <div className="skeleton-line w40"></div>
+                            </div>
+                            <div className="skeleton-info-item">
+                                <div className="skeleton-line w20"></div>
+                                <div className="skeleton-line w50"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     const handleChangeRegion = (e) => {
         const code = e.target.value
         if (!code) {
@@ -412,10 +478,6 @@ function MyAccountView({userId}) {
         const type = r.type || r.region_type || ''
         updatePreferences('selectedRegion', {code, name, type});
         setRegionName(name)
-    }
-
-    if (loading) {
-        return <LoadingScreen fullPage={true} message="Loading your account..."/>
     }
 
     return (
@@ -433,6 +495,7 @@ function MyAccountView({userId}) {
                 </video>
                 <div className="myaccount-video-overlay"></div>
             </div>
+            {loading ? renderSkeletonContent() : (
             <div className="my-account-container account-fade-in">
                 <div className="account-hero account-slide-in">
                     <div className="account-avatar" style={{borderColor: 'var(--myaccount-accent)'}}>
@@ -640,7 +703,8 @@ function MyAccountView({userId}) {
                             <div className="myaccount-logout-container">
                                 <button className="myaccount-logout-button" onClick={handleSignOut}>
                                     <div className="myaccount-logout-icon"><i className="fas fa-sign-out-alt"></i></div>
-                                    <div className="myaccount-logout-content"><span className="myaccount-logout-title">Sign Out</span>
+                                    <div className="myaccount-logout-content">
+                                        <span className="myaccount-logout-title">Sign Out</span>
                                     </div>
                                 </button>
                             </div>
@@ -648,7 +712,8 @@ function MyAccountView({userId}) {
                     </div>
                 </div>
             </div>
-            {showPasswordModal && (
+            )}
+            {!loading && showPasswordModal && (
                 <div className="modal-overlay" onClick={() => !loading && setShowPasswordModal(false)}
                      style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                     <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{margin: '0 auto'}}>
