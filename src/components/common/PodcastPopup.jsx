@@ -103,10 +103,17 @@ function PodcastPopup() {
 
     return (
         <div className={`podcast-popup ${isMinimized ? 'minimized' : ''}`}>
+            {episode.audioUrl && (
+                <audio 
+                    ref={audioRef} 
+                    src={episode.audioUrl}
+                    onEnded={() => setIsPlaying(false)}
+                />
+            )}
             {isMinimized ? (
                 <div className="podcast-minimized" onClick={handleMinimize}>
                     <i className="fas fa-podcast"></i>
-                    <span>New Episode</span>
+                    <span>{isPlaying ? 'Playing...' : 'New Episode'}</span>
                 </div>
             ) : (
                 <>
@@ -148,13 +155,6 @@ function PodcastPopup() {
                             <span>{isPlaying ? 'Pause' : 'Listen Now'}</span>
                         </button>
                     </div>
-                    {episode.audioUrl && (
-                        <audio 
-                            ref={audioRef} 
-                            src={episode.audioUrl}
-                            onEnded={() => setIsPlaying(false)}
-                        />
-                    )}
                 </>
             )}
         </div>
