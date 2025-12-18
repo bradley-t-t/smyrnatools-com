@@ -14,12 +14,7 @@ import {UserService} from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import Video1 from '../../assets/videos/1.mp4'
-import Video2 from '../../assets/videos/2.mp4'
-import Video3 from '../../assets/videos/3.mp4'
-import Video4 from '../../assets/videos/4.mp4'
-
-const backgroundVideos = [Video1, Video2, Video3, Video4]
+import VideoBackground from '../../components/common/VideoBackground'
 
 export default function DashboardView() {
     const {preferences} = usePreferences()
@@ -102,7 +97,6 @@ export default function DashboardView() {
     const [historyStartDate, setHistoryStartDate] = useState('')
     const [historyEndDate, setHistoryEndDate] = useState('')
     const [oldestHistoryDate, setOldestHistoryDate] = useState('')
-    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length))
 
     const allMixersRef = useRef([])
     const allTractorsRef = useRef([])
@@ -117,7 +111,6 @@ export default function DashboardView() {
     const filterTimeoutRef = useRef(null)
     const plantSetRef = useRef(new Set())
     const countsRef = useRef({mixers: {}, tractors: {}, trailers: {}, equipment: {}})
-    const videoTimerRef = useRef(null)
     const historyRecordsRef = useRef({
         mixers: [],
         tractors: [],
@@ -531,17 +524,6 @@ export default function DashboardView() {
 
     useEffect(() => () => {
         if (filterTimeoutRef.current) clearTimeout(filterTimeoutRef.current)
-    }, [])
-
-    useEffect(() => {
-        videoTimerRef.current = setInterval(() => {
-            setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)
-        }, 180000)
-        return () => {
-            if (videoTimerRef.current) {
-                clearInterval(videoTimerRef.current)
-            }
-        }
     }, [])
 
     const fetchIssueCommentCounts = useCallback(async () => {
@@ -1252,20 +1234,7 @@ export default function DashboardView() {
 
     return (
         <div className="global-dashboard-container dashboard-container" data-filtering={isFiltering || undefined}>
-            <div className="dashboard-video-background">
-                <video
-                    key={currentVideoIndex}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    className="dashboard-background-video"
-                >
-                    <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
-                </video>
-                <div className="dashboard-video-overlay"></div>
-            </div>
+            <VideoBackground/>
             <div className="dashboard-header">
                 <h1>Dashboard</h1>
                 <div className="dashboard-actions">

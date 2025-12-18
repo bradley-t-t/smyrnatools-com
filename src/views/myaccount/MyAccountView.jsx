@@ -1,15 +1,10 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {supabase} from '../../services/DatabaseService';
 import {AuthService} from '../../services/AuthService';
 import {UserService} from "../../services/UserService";
 import {usePreferences} from '../../app/context/PreferencesContext';
 import './styles/MyAccount.css';
-import Video1 from '../../assets/videos/1.mp4';
-import Video2 from '../../assets/videos/2.mp4';
-import Video3 from '../../assets/videos/3.mp4';
-import Video4 from '../../assets/videos/4.mp4';
-
-const backgroundVideos = [Video1, Video2, Video3, Video4];
+import VideoBackground from '../../components/common/VideoBackground';
 
 function MyAccountView({userId}) {
     const {preferences, updatePreferences} = usePreferences();
@@ -33,8 +28,6 @@ function MyAccountView({userId}) {
     const [regionsLoaded, setRegionsLoaded] = useState(false)
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
-    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length))
-    const videoTimerRef = useRef(null)
 
     const getBrowserInfo = (userAgent) => {
         if (userAgent.includes('Firefox')) return 'Firefox'
@@ -383,16 +376,7 @@ function MyAccountView({userId}) {
         }
     }
 
-    useEffect(() => {
-        videoTimerRef.current = setInterval(() => {
-            setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)
-        }, 180000)
-        return () => {
-            if (videoTimerRef.current) {
-                clearInterval(videoTimerRef.current)
-            }
-        }
-    }, [])
+
 
     useEffect(() => {
         document.documentElement.style.setProperty('--myaccount-accent', `var(--accent)`)
@@ -482,20 +466,7 @@ function MyAccountView({userId}) {
 
     return (
         <div className="my-account-wrapper">
-            <div className="myaccount-video-background">
-                <video
-                    key={currentVideoIndex}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    className="myaccount-background-video"
-                >
-                    <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
-                </video>
-                <div className="myaccount-video-overlay"></div>
-            </div>
+            <VideoBackground/>
             {loading ? renderSkeletonContent() : (
             <div className="my-account-container account-fade-in">
                 <div className="account-hero account-slide-in">
