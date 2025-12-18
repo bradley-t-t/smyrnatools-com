@@ -52,6 +52,41 @@ const LeaderboardsUtility = {
         return hoursAdjustmentsByPlant
     },
 
+    calculateSafetyIncidents(safetyReports, plantCodesInRegion) {
+        const safetyByPlant = {}
+
+        plantCodesInRegion.forEach(plantCode => {
+            safetyByPlant[plantCode] = {
+                impactfulIncidents: 0,
+                totalIncidents: 0,
+                details: []
+            }
+        })
+
+        safetyReports.forEach(report => {
+            if (!report.data?.issues || !Array.isArray(report.data.issues)) return
+
+            report.data.issues.forEach(issue => {
+                const plantCode = issue.plant
+                if (!plantCode || plantCode === 'All' || !safetyByPlant[plantCode]) return
+
+                safetyByPlant[plantCode].totalIncidents++
+
+                if (issue.affectsEfficiency === true) {
+                    safetyByPlant[plantCode].impactfulIncidents++
+                    safetyByPlant[plantCode].details.push({
+                        description: issue.description,
+                        tags: issue.tags || [],
+                        date: issue.date,
+                        week: report.week
+                    })
+                }
+            })
+        })
+
+        return safetyByPlant
+    },
+
     calculateFleetCounts(plantCodesInRegion, mixersData, tractorsData, trailersData, equipmentData, operatorsData) {
         const fleetCountsByPlant = {}
 
@@ -137,7 +172,7 @@ const LeaderboardsUtility = {
         return fleetCountsByPlant
     },
 
-    calculateMetrics(reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, currentWeekStart, hoursAdjustments = null) {
+    calculateMetrics(reportsList, avgFleetCleanlinessActual = 0, mixerOperatorCount = 1, currentWeekStart, hoursAdjustments = null, safetyIncidents = null) {
         if (reportsList.length === 0) {
             return null
         }
@@ -299,7 +334,11 @@ const LeaderboardsUtility = {
 
         const reportDeduction = (missingCount + incompleteCount) * 10
 
-        const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency + cleanlinessModifier - reportDeduction, 0), 100) : 0
+        const impactfulIncidents = safetyIncidents?.impactfulIncidents || 0
+        const totalSafetyIncidents = safetyIncidents?.totalIncidents || 0
+        const safetyDeduction = impactfulIncidents * 1
+
+        const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency + cleanlinessModifier - reportDeduction - safetyDeduction, 0), 100) : 0
 
         const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports * 100) : 100
 
@@ -326,7 +365,9 @@ const LeaderboardsUtility = {
             missingReports: missingCount,
             incompleteReports: incompleteCount,
             avgMonthlyYards,
-            avgMonthlyHours
+            avgMonthlyHours,
+            impactfulIncidents,
+            totalSafetyIncidents
         }
     },
 

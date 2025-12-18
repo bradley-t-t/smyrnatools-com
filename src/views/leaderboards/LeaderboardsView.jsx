@@ -91,13 +91,21 @@ export default function LeaderboardsView() {
                     return
                 }
 
-                const {data: reports, error: reportsError} = await supabase
-                    .from('reports')
-                    .select('*')
-                    .eq('report_name', 'plant_manager')
-                    .in('user_id', allUserIds)
-                    .gte('week', startOfYear.toISOString())
-                    .lte('week', endOfYear.toISOString())
+                const [{data: reports, error: reportsError}, {data: safetyReports}] = await Promise.all([
+                    supabase
+                        .from('reports')
+                        .select('*')
+                        .eq('report_name', 'plant_manager')
+                        .in('user_id', allUserIds)
+                        .gte('week', startOfYear.toISOString())
+                        .lte('week', endOfYear.toISOString()),
+                    supabase
+                        .from('reports')
+                        .select('*')
+                        .eq('report_name', 'safety_manager')
+                        .gte('week', startOfYear.toISOString())
+                        .lte('week', endOfYear.toISOString())
+                ])
 
                 if (reportsError) throw reportsError
 
@@ -105,6 +113,8 @@ export default function LeaderboardsView() {
 
                 const hoursAdjustmentsByPlant = LeaderboardsUtility.calculateHoursAdjustments(reports, profilesData, plantCodesInRegion)
                 setHoursAdjustmentsData(hoursAdjustmentsByPlant)
+
+                const safetyByPlant = LeaderboardsUtility.calculateSafetyIncidents(safetyReports || [], plantCodesInRegion)
 
                 if (!reports || reports.length === 0) {
                     setPlantMetrics([])
@@ -164,13 +174,15 @@ export default function LeaderboardsView() {
                     const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
                     const mixerOperatorCount = fleetData.mixerOperators || 1
                     const hoursAdjustments = hoursAdjustmentsByPlant[plantCode] || null
+                    const safetyIncidents = safetyByPlant[plantCode] || null
 
                     const metrics = LeaderboardsUtility.calculateMetrics(
                         plantReports,
                         avgCleanlinessActual,
                         mixerOperatorCount,
                         currentWeekStart,
-                        hoursAdjustments
+                        hoursAdjustments,
+                        safetyIncidents
                     )
 
                     if (metrics) {
@@ -349,6 +361,14 @@ export default function LeaderboardsView() {
                                     </div>
                                     <p>-10% for each missing or incomplete report</p>
                                 </div>
+                                <div className="info-card info-card-penalty">
+                                    <div className="info-card-header">
+                                        <i className="fas fa-exclamation-triangle"></i>
+                                        <span>Safety Incidents</span>
+                                        <span className="weight-badge penalty">Penalty</span>
+                                    </div>
+                                    <p>-1% for each impactful safety incident</p>
+                                </div>
                             </div>
                             <div className="info-formula">
                                 <div className="formula-label">Formula</div>
@@ -362,6 +382,8 @@ export default function LeaderboardsView() {
                                     <span className="formula-part">Help Impact</span>
                                     <span className="formula-operator">-</span>
                                     <span className="formula-part">Report Penalty</span>
+                                    <span className="formula-operator">-</span>
+                                    <span className="formula-part">Safety Penalty</span>
                                 </div>
                             </div>
                             <div className="info-footer">
@@ -476,6 +498,14 @@ export default function LeaderboardsView() {
                                                                 ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
                                                                 : 'N/A'
                                                             }
+                                                        </span>
+                                                    </div>
+                                                    <div className="stat-item">
+                                                        <span className="stat-label">Impactful Incidents</span>
+                                                        <span className="stat-value" style={{
+                                                            color: (plant.impactfulIncidents || 0) > 0 ? 'var(--danger)' : 'var(--success)'
+                                                        }}>
+                                                            {plant.impactfulIncidents || 0}
                                                         </span>
                                                     </div>
                                                     <div className="stat-item">
