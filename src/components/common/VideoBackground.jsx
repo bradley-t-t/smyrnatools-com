@@ -17,34 +17,69 @@ function VideoBackground({className = ''}) {
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
     const videoTimerRef = useRef(null)
+    const blobCacheRef = useRef(new Map())
+    const [currentBlobUrl, setCurrentBlobUrl] = useState(null)
 
     useEffect(() => {
+        const preloadVideos = async () => {
+            for (let i = 0; i < backgroundVideos.length; i++) {
+                const videoSrc = backgroundVideos[i]
+                if (!blobCacheRef.current.has(videoSrc)) {
+                    try {
+                        const response = await fetch(videoSrc)
+                        const blob = await response.blob()
+                        const blobUrl = URL.createObjectURL(blob)
+                        blobCacheRef.current.set(videoSrc, blobUrl)
+                    } catch (error) {
+                        console.error('Failed to preload video:', videoSrc, error)
+                    }
+                }
+            }
+        }
+
+        preloadVideos()
+
         videoTimerRef.current = setInterval(() => {
             setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)
         }, 180000)
-        
+
         return () => {
             if (videoTimerRef.current) {
                 clearInterval(videoTimerRef.current)
             }
+            // Clean up blob URLs on unmount
+            blobCacheRef.current.forEach(blobUrl => {
+                URL.revokeObjectURL(blobUrl)
+            })
+            blobCacheRef.current.clear()
         }
     }, [])
 
     useEffect(() => {
-        setShowVideo(false)
-        
-        const playVideo = () => {
-            if (videoRef.current) {
-                videoRef.current.play().then(() => {
-                    setShowVideo(true)
-                }).catch((err) => {
-                    console.error('Video play failed:', err)
-                    setShowVideo(true)
-                })
+        const videoSrc = backgroundVideos[currentVideoIndex]
+        const blobUrl = blobCacheRef.current.get(videoSrc)
+
+        if (blobUrl) {
+            setCurrentBlobUrl(blobUrl)
+            setShowVideo(false)
+
+            const playVideo = () => {
+                if (videoRef.current) {
+                    videoRef.current.play().then(() => {
+                        setShowVideo(true)
+                    }).catch((err) => {
+                        console.error('Video play failed:', err)
+                        setShowVideo(true)
+                    })
+                }
             }
+
+            playVideo()
+        } else {
+            // Fallback to original URL if blob not ready
+            setCurrentBlobUrl(videoSrc)
+            setShowVideo(false)
         }
-        
-        playVideo()
     }, [currentVideoIndex])
 
     const handleVideoEnd = () => {
@@ -67,7 +102,7 @@ function VideoBackground({className = ''}) {
                 onError={() => setShowVideo(true)}
                 className={`video-background-video ${showVideo ? 'video-visible' : ''}`}
             >
-                <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
+                <source src={currentBlobUrl || backgroundVideos[currentVideoIndex]} type="video/mp4"/>
             </video>
             <div className="video-background-overlay"/>
         </div>
