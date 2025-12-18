@@ -34,12 +34,7 @@ import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 import ListDetailView from '../views/list/ListDetailView'
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
-import Video1 from '../assets/videos/1.mp4'
-import Video2 from '../assets/videos/2.mp4'
-import Video3 from '../assets/videos/3.mp4'
-import Video4 from '../assets/videos/4.mp4'
-
-const updateVideos = [Video1, Video2, Video3, Video4]
+import VideoBackground from '../components/common/VideoBackground'
 
 function VersionPopup({version}) {
     if (!version) return null
@@ -52,7 +47,6 @@ VersionPopup.propTypes = {version: PropTypes.string}
 
 function UpdateLoadingScreen({version}) {
     const [progress, setProgress] = useState(0)
-    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * updateVideos.length))
     useEffect(() => {
         const start = Date.now()
         const interval = setInterval(() => {
@@ -77,40 +71,10 @@ function UpdateLoadingScreen({version}) {
             width: '100vw',
             height: '100vh',
             overflow: 'hidden',
-            background: '#111827',
+            background: '#000',
             zIndex: 99999
         }}>
-            <video
-                key={currentVideoIndex}
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                onEnded={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % updateVideos.length)}
-                style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    minWidth: '100%',
-                    minHeight: '100%',
-                    width: 'auto',
-                    height: 'auto',
-                    transform: 'translate(-50%, -50%)',
-                    objectFit: 'cover',
-                    pointerEvents: 'none'
-                }}
-            >
-                <source src={updateVideos[currentVideoIndex]} type="video/mp4"/>
-            </video>
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: 'rgba(17, 24, 39, 0.7)',
-                pointerEvents: 'none'
-            }}/>
+            <VideoBackground/>
             <div style={{
                 position: 'absolute',
                 bottom: '60px',
