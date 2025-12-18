@@ -1259,6 +1259,7 @@ export default function DashboardView() {
                     muted
                     loop
                     playsInline
+                    preload="auto"
                     className="dashboard-background-video"
                 >
                     <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>

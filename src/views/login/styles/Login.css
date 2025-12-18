@@ -11,8 +11,22 @@
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
+    background: #000000;
 }
 
+.login-video-background video {
+    opacity: 0;
+    animation: videoFadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes videoFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 .login-video-background > div {
     position: absolute !important;
     top: 50% !important;

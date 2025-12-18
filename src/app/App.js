@@ -85,6 +85,7 @@ function UpdateLoadingScreen({version}) {
                 autoPlay
                 muted
                 playsInline
+                preload="auto"
                 onEnded={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % updateVideos.length)}
                 style={{
                     position: 'absolute',

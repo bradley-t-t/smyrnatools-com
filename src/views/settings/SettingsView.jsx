@@ -75,6 +75,7 @@ function SettingsView() {
                     muted
                     loop
                     playsInline
+                    preload="auto"
                     className="settings-background-video"
                 >
                     <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>

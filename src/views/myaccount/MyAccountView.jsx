@@ -489,6 +489,7 @@ function MyAccountView({userId}) {
                     muted
                     loop
                     playsInline
+                    preload="auto"
                     className="myaccount-background-video"
                 >
                     <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>

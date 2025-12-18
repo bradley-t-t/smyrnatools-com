@@ -231,6 +231,7 @@ function LoginView() {
                     autoPlay
                     muted
                     playsInline
+                    preload="auto"
                     onEnded={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)}
                     style={{
                         position: 'absolute',

@@ -8,6 +8,19 @@
     overflow: hidden;
 }
 
+html.light-mode .dashboard-video-background,
+html.red-light-mode .dashboard-video-background,
+html.blue-light-mode .dashboard-video-background {
+    background: #ffffff !important;
+}
+
+html.dark-mode .dashboard-video-background,
+html.old-dark-mode .dashboard-video-background,
+html.red-dark-mode .dashboard-video-background,
+html.blue-dark-mode .dashboard-video-background {
+    background: #000000 !important;
+}
+
 .dashboard-background-video {
     position: absolute;
     top: 50%;
@@ -18,6 +31,17 @@
     height: auto;
     transform: translate(-50%, -50%);
     object-fit: cover;
+    opacity: 0;
+    animation: dashboardVideoFadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes dashboardVideoFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .dashboard-video-overlay {

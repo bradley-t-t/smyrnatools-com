@@ -17,6 +17,19 @@
     pointer-events: none;
 }
 
+html.light-mode .myaccount-video-background,
+html.red-light-mode .myaccount-video-background,
+html.blue-light-mode .myaccount-video-background {
+    background: #ffffff !important;
+}
+
+html.dark-mode .myaccount-video-background,
+html.old-dark-mode .myaccount-video-background,
+html.red-dark-mode .myaccount-video-background,
+html.blue-dark-mode .myaccount-video-background {
+    background: #000000 !important;
+}
+
 .myaccount-background-video {
     position: absolute;
     top: 50%;
@@ -27,6 +40,17 @@
     height: auto;
     transform: translate(-50%, -50%);
     object-fit: cover;
+    opacity: 0;
+    animation: myaccountVideoFadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes myaccountVideoFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .myaccount-video-overlay {
