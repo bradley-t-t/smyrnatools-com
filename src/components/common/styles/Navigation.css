@@ -480,3 +480,8 @@
         transform: translateY(0);
     }
 }
+
+body:has(.my-account-wrapper) .content-area {
+    background: transparent !important;
+    background-color: transparent !important;
+}

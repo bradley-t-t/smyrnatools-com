@@ -1,3 +1,43 @@
+.my-account-wrapper {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.myaccount-video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.myaccount-background-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+}
+
+.myaccount-video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
 .my-account-container {
     max-width: 1000px;
     margin: 0 auto;
@@ -5,7 +45,7 @@
     color: var(--text-primary);
     text-align: left;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 @keyframes fadeIn {
@@ -168,7 +208,9 @@
 }
 
 .account-card {
-    background-color: var(--bg-primary);
+    background-color: rgba(var(--bg-primary-rgb, 30, 30, 30), 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -176,7 +218,7 @@
 
 .account-card.elevated {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--border-light);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-overlay {
@@ -992,4 +1034,13 @@ button.save-button:disabled {
     line-height: 1;
     color: inherit;
     white-space: nowrap;
+}
+
+.my-account-wrapper ~ .App,
+.my-account-wrapper .App,
+body:has(.my-account-wrapper) .App,
+body:has(.my-account-wrapper) .dashboard-container,
+body:has(.my-account-wrapper) {
+    background: transparent !important;
+    background-color: transparent !important;
 }

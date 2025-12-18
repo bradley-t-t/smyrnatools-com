@@ -1,10 +1,16 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import './styles/Settings.css'
 import VersionPopup from '../../components/common/VersionPopup'
 import {useVersion} from '../../app/hooks/useVersion'
 import {useAuth} from '../../app/context/AuthContext'
 import {UserService} from '../../services/UserService'
+import Video1 from '../../assets/videos/1.mp4'
+import Video2 from '../../assets/videos/2.mp4'
+import Video3 from '../../assets/videos/3.mp4'
+import Video4 from '../../assets/videos/4.mp4'
+
+const backgroundVideos = [Video1, Video2, Video3, Video4]
 
 const ACCENT_OPTIONS = [
     {key: 'red', label: 'Red', className: 'red'},
@@ -24,12 +30,25 @@ function SettingsView() {
     const {user} = useAuth()
     const [showFeedback, setShowFeedback] = useState(false)
     const [hasReviewPermissions, setHasReviewPermissions] = useState(false)
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length))
+    const videoTimerRef = useRef(null)
 
     const save = (fn, ...args) => {
         fn(...args)
         setShowFeedback(true)
         setTimeout(() => setShowFeedback(false), 1200)
     }
+
+    useEffect(() => {
+        videoTimerRef.current = setInterval(() => {
+            setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)
+        }, 180000)
+        return () => {
+            if (videoTimerRef.current) {
+                clearInterval(videoTimerRef.current)
+            }
+        }
+    }, [])
 
     useEffect(() => {
         if (!user?.id) return;
@@ -49,6 +68,19 @@ function SettingsView() {
 
     return (
         <div className="settings-container">
+            <div className="settings-video-background">
+                <video
+                    key={currentVideoIndex}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="settings-background-video"
+                >
+                    <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
+                </video>
+                <div className="settings-video-overlay"></div>
+            </div>
             <VersionPopup version={version}/>
             {showFeedback && (
                 <div className="settings-feedback">

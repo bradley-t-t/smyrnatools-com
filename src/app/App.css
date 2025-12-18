@@ -86,3 +86,12 @@
     background-color: var(--bg-secondary);
 }
 
+body:has(.my-account-wrapper) .App,
+body:has(.my-account-wrapper) .app-container,
+body:has(.my-account-wrapper) .main-content,
+body:has(.my-account-wrapper) .content-area,
+body:has(.my-account-wrapper) .page-content,
+body:has(.my-account-wrapper) .navigation-wrapper {
+    background: transparent !important;
+    background-color: transparent !important;
+}
