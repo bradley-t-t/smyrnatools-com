@@ -10,23 +10,9 @@ class UserServiceImpl {
     }
 
     async getCurrentUser() {
-        let userId = localStorage.getItem('smyrna_session')
-        if (!userId) {
-            userId = sessionStorage.getItem('userId')
-        }
-        if (userId) {
-            const {json} = await APIUtility.post(`${USER_FUNCTION}/current-user`, {userId})
-            if (json && json.id) return {id: userId}
-            localStorage.removeItem('smyrna_session')
-            localStorage.removeItem('smyrna_session_expiry')
-            sessionStorage.removeItem('userId')
-        }
-        const {json} = await APIUtility.post(`${USER_FUNCTION}/current-user`, {})
-        if (!json) return null
-        if (json.id) {
-            sessionStorage.setItem('userId', json.id)
-        }
-        return json
+        const userId = localStorage.getItem('smyrna_session') || sessionStorage.getItem('userId')
+        if (!userId) return null
+        return {id: userId}
     }
 
     async getUserById(userId) {
@@ -56,13 +42,13 @@ class UserServiceImpl {
     async getUserDisplayName(userId) {
         if (!userId) return 'System'
         if (userId === 'anonymous') return 'Anonymous'
-        const {json} = await APIUtility.post(`${USER_FUNCTION}/display-name`, {userId})
+        const {json} = await APIUtility.post(`${USER_FUNCTION}/display-name`, {userId}, {skipAuthCheck: true})
         return json
     }
 
     async getUserWeight(userId) {
         if (!userId) return 0
-        const {json} = await APIUtility.post(`${USER_FUNCTION}/highest-role`, {userId})
+        const {json} = await APIUtility.post(`${USER_FUNCTION}/highest-role`, {userId}, {skipAuthCheck: true})
         if (!json || typeof json.weight !== 'number') return 0
         return json.weight
     }
@@ -99,7 +85,7 @@ UserService.getUserRoles = async function (userId) {
     if (!userId) throw new Error('User ID is required')
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
     if (this.userRolesCache.has(id)) return this.userRolesCache.get(id)
-    const {json} = await APIUtility.post(`${USER_FUNCTION}/user-roles`, {userId: id}, {maxRetries: 3, retryDelay: 2000})
+    const {json} = await APIUtility.post(`${USER_FUNCTION}/user-roles`, {userId: id}, {maxRetries: 3, retryDelay: 2000, skipAuthCheck: true})
     const roles = json ?? []
     this.userRolesCache.set(id, roles)
     return roles
@@ -151,7 +137,7 @@ UserService.getMenuVisibility = async function (userId, requiredPermissions = {}
 UserService.getHighestRole = async function (userId) {
     if (!userId) return null
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    const {json} = await APIUtility.post(`${USER_FUNCTION}/highest-role`, {userId: id})
+    const {json} = await APIUtility.post(`${USER_FUNCTION}/highest-role`, {userId: id}, {skipAuthCheck: true})
     return json
 }
 

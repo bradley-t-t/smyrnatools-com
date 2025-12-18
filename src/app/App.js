@@ -357,13 +357,21 @@ function AppContent() {
     }, [selectedView])
 
     useEffect(() => {
-        const storedUserId = sessionStorage.getItem('userId')
-        if (storedUserId) {
-            setUserId(storedUserId)
+        const initSession = async () => {
+            const {AuthService} = await import('../services/AuthService')
+            
+            if (AuthService.hasStoredSession()) {
+                const restored = await AuthService.restoreSession()
+                if (restored && AuthService.currentUser?.userId) {
+                    setUserId(AuthService.currentUser.userId)
+                }
+            }
         }
+        
+        initSession()
 
         const handleAuthSuccess = (event) => {
-            const userId = event.detail?.userId || sessionStorage.getItem('userId')
+            const userId = event.detail?.userId || localStorage.getItem('smyrna_session') || sessionStorage.getItem('userId')
             if (userId) {
                 setUserId(userId)
             }
