@@ -350,30 +350,6 @@
     padding: 24px;
 }
 
-.rpts-report-form-back {
-    background: var(--card-bg);
-    border: 1.5px solid var(--divider);
-    color: var(--text-secondary);
-    font-size: 18px;
-    cursor: pointer;
-    border-radius: 7px;
-    padding: 7px 18px 7px 12px;
-    transition: background 0.18s, border 0.18s, color 0.18s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-    margin-left: 0;
-    box-shadow: none;
-    font-weight: 600;
-}
-
-.rpts-report-form-back:hover {
-    background: var(--divider);
-    color: var(--text-primary);
-    border-color: var(--accent);
-}
-
 .rpts-reports-review-view {
     width: 100%;
     min-height: 100vh;
@@ -485,26 +461,6 @@
     font-size: 0.7rem;
 }
 
-.rpts-review-top-bar {
-    display: none;
-}
-
-.rpts-top-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-left: auto;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.rpts-status-badges {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
 .rpts-manager-edit-button {
     background: var(--accent);
     color: var(--text-light);
@@ -551,53 +507,6 @@
     background: var(--card-bg);
     border-color: var(--accent);
     color: var(--text-primary);
-}
-
-.rpts-reports-review-status {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 18px;
-    margin-bottom: 12px;
-    padding-top: 0;
-}
-
-.rpts-submitted-at {
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.rpts-form-title {
-    flex: 1;
-    text-align: left;
-    font-size: 1.35em;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: 0.01em;
-}
-
-.rpts-context {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.rpts-context-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: 10px;
-    background: var(--card-bg);
-    border: 1px solid var(--divider);
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.rpts-context-chip i {
-    color: var(--accent);
 }
 
 .rpts-form-body-wide {

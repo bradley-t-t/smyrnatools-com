@@ -62,18 +62,6 @@
     }
 }
 
-.form-row-horizontal {
-    display: flex;
-    gap: 18px;
-    flex-wrap: wrap;
-}
-
-.form-row-horizontal .form-group {
-    flex: 1 1 0;
-    min-width: 180px;
-    margin-bottom: 0;
-}
-
 .ios-button {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
@@ -91,8 +79,4 @@
 }
 
 @media (max-width: 700px) {
-    .form-row-horizontal {
-        flex-direction: column;
-        gap: 0;
-    }
 }

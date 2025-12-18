@@ -521,16 +521,8 @@
     margin-top: 20px;
 }
 
-.rpt-mt-32 {
-    margin-top: 32px;
-}
-
 .rpt-mb-16 {
     margin-bottom: 16px;
-}
-
-.rpt-text-secondary {
-    color: var(--text-secondary);
 }
 
 .rpt-stats {
@@ -673,12 +665,6 @@
     background: var(--accent);
     border-color: var(--accent);
     color: var(--text-light);
-}
-
-.rpt-btn-xs {
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 6px;
 }
 
 .rpt-sticky-header-wrapper {
@@ -1158,15 +1144,6 @@
     color: var(--text-secondary);
     font-style: italic;
     line-height: 1.5;
-}
-
-.rpt-description {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    line-height: 1.6;
-    padding: 12px 0 0 0;
-    white-space: pre-wrap;
-    word-break: break-word;
 }
 
 @media (max-width: 1200px) {

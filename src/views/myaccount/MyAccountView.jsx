@@ -377,7 +377,6 @@ function MyAccountView({userId}) {
     }
 
 
-
     useEffect(() => {
         document.documentElement.style.setProperty('--myaccount-accent', `var(--accent)`)
     }, [preferences.accentColor])
@@ -464,220 +463,232 @@ function MyAccountView({userId}) {
         <div className="my-account-wrapper">
             <VideoBackground/>
             {loading ? renderSkeletonContent() : (
-            <div className="my-account-container account-fade-in">
-                <div className="account-hero account-slide-in">
-                    <div className="account-avatar" style={{borderColor: 'var(--myaccount-accent)'}}>
-                        {firstName && lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() :
-                            <i className="fas fa-user"></i>}
-                    </div>
-                    <div className="account-hero-content">
-                        <h1>{(firstName || lastName) ? `${firstName || ''} ${lastName || ''}`.trim() : 'My Account'}</h1>
-                        <p className="account-subtitle">{email || 'No email available'}</p>
-                        <div className="account-badges-row">
-                            {userRole && <div className="account-badge"
-                                              style={{backgroundColor: 'var(--myaccount-accent)'}}>{userRole}</div>}
-                            {(preferences.selectedRegion?.name || regionName) && <div className="account-badge"
-                                                                                      style={{backgroundColor: 'var(--myaccount-accent)'}}>{preferences.selectedRegion?.name || regionName}</div>}
-                            {plantCode && <div className="account-badge plant-badge">{plantCode}</div>}
+                <div className="my-account-container account-fade-in">
+                    <div className="account-hero account-slide-in">
+                        <div className="account-avatar" style={{borderColor: 'var(--myaccount-accent)'}}>
+                            {firstName && lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() :
+                                <i className="fas fa-user"></i>}
                         </div>
-                    </div>
-                </div>
-                {message && (
-                    <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                        <div className="message-icon">{message.includes('Error') ?
-                            <i className="fas fa-exclamation-circle"></i> : <i className="fas fa-check-circle"></i>}</div>
-                        <p>{message}</p>
-                        <button className="message-close" onClick={() => setMessage('')} aria-label="Dismiss message"><i
-                            className="fas fa-times"></i></button>
-                    </div>
-                )}
-                <div className="account-tabs account-slide-in" style={{animationDelay: '0.1s'}}>
-                    <button className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('profile')}
-                            style={activeTab === 'profile' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}><i
-                        className="fas fa-user"></i> Profile
-                    </button>
-                    <button className={`tab ${activeTab === 'security' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('security')}
-                            style={activeTab === 'security' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}><i
-                        className="fas fa-shield-alt"></i> Security
-                    </button>
-                </div>
-                <div className="account-tab-content account-slide-in"
-                     style={{display: activeTab === 'profile' ? 'block' : 'none', animationDelay: '0.2s'}}>
-                    <div className="account-section">
-                        <div className="section-header">
-                            <h2><i className="fas fa-id-card" style={{color: 'var(--myaccount-accent)'}}></i> Personal
-                                Information</h2>
-                            <p>Update your personal details</p>
-                        </div>
-                        <div className="account-card elevated">
-                            <form onSubmit={updateProfile} className="account-form">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="first_name">First Name</label>
-                                        <div className="input-with-icon">
-                                            <i className="fas fa-user"
-                                               style={{color: 'var(--myaccount-accent)'}}></i>
-                                            <input type="text" id="first_name" value={firstName}
-                                                   onChange={(e) => setFirstName(e.target.value)}
-                                                   placeholder="Enter your first name" required/>
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="last_name">Last Name</label>
-                                        <div className="input-with-icon">
-                                            <i className="fas fa-user"
-                                               style={{color: 'var(--myaccount-accent)'}}></i>
-                                            <input type="text" id="last_name" value={lastName}
-                                                   onChange={(e) => setLastName(e.target.value)}
-                                                   placeholder="Enter your last name" required/>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="form-actions">
-                                    <button type="submit" className="btn primary" disabled={loading}
-                                            style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                        className="fas fa-save"></i> Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div className="account-section">
-                        <div className="section-header">
-                            <h2><i className="fas fa-info-circle" style={{color: 'var(--myaccount-accent)'}}></i> Account
-                                Details</h2>
-                            <p>Your account information</p>
-                        </div>
-                        <div className="account-card elevated">
-                            <div className="info-grid">
-                                <div className="info-item">
-                                    <div className="info-label"><i className="fas fa-envelope"
-                                                                   style={{color: 'var(--myaccount-accent)'}}></i>Email
-                                    </div>
-                                    <div className="info-value">{email || 'Not available'}</div>
-                                </div>
-                                {userRole && <div className="info-item">
-                                    <div className="info-label"><i className="fas fa-user-tag"
-                                                                   style={{color: 'var(--myaccount-accent)'}}></i>Role
-                                    </div>
-                                    <div className="info-value">{userRole}</div>
-                                </div>}
-                                <div className="info-item">
-                                    <div className="info-label"><i className="fas fa-globe"
-                                                                   style={{color: 'var(--myaccount-accent)'}}></i>Region
-                                    </div>
-                                    <div className="info-value" style={{width: '100%'}}>
-                                        <select className="region-select" value={preferences.selectedRegion?.code || ''}
-                                                onChange={handleChangeRegion} disabled={!regionsLoaded} style={{
-                                            width: '100%',
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: '1px solid var(--border-light)',
-                                            background: 'var(--bg-secondary)',
-                                            color: 'var(--text-primary)'
-                                        }}>
-                                            {permittedRegions.map(r => <option key={r.regionCode || r.region_code}
-                                                                               value={r.regionCode || r.region_code}>{r.regionName || r.region_name || ''}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                {plantCode && <div className="info-item">
-                                    <div className="info-label"><i className="fas fa-building"
-                                                                   style={{color: 'var(--myaccount-accent)'}}></i>Plant Code
-                                    </div>
-                                    <div className="info-value">{plantCode}</div>
-                                </div>}
+                        <div className="account-hero-content">
+                            <h1>{(firstName || lastName) ? `${firstName || ''} ${lastName || ''}`.trim() : 'My Account'}</h1>
+                            <p className="account-subtitle">{email || 'No email available'}</p>
+                            <div className="account-badges-row">
+                                {userRole && <div className="account-badge"
+                                                  style={{backgroundColor: 'var(--myaccount-accent)'}}>{userRole}</div>}
+                                {(preferences.selectedRegion?.name || regionName) && <div className="account-badge"
+                                                                                          style={{backgroundColor: 'var(--myaccount-accent)'}}>{preferences.selectedRegion?.name || regionName}</div>}
+                                {plantCode && <div className="account-badge plant-badge">{plantCode}</div>}
                             </div>
                         </div>
                     </div>
-                </div>
-                <div className="account-tab-content account-slide-in"
-                     style={{display: activeTab === 'security' ? 'block' : 'none', animationDelay: '0.2s'}}>
-                    <div className="account-section">
-                        <div className="section-header">
-                            <h2><i className="fas fa-shield-alt" style={{color: 'var(--myaccount-accent)'}}></i> Account
-                                Security</h2>
-                            <p>Manage your password and protect your account</p>
+                    {message && (
+                        <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
+                            <div className="message-icon">{message.includes('Error') ?
+                                <i className="fas fa-exclamation-circle"></i> :
+                                <i className="fas fa-check-circle"></i>}</div>
+                            <p>{message}</p>
+                            <button className="message-close" onClick={() => setMessage('')}
+                                    aria-label="Dismiss message"><i
+                                className="fas fa-times"></i></button>
                         </div>
-                        <div className="security-actions-grid">
-                            <div className="security-action-card">
-                                <div className="action-card-content">
-                                    <div className="action-icon" style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                        className="fas fa-key"></i></div>
-                                    <h3>Password Management</h3>
-                                    <p>Change your password regularly to keep your account secure</p>
-                                    <button className="btn action-btn" onClick={() => setShowPasswordModal(true)}
-                                            style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                        className="fas fa-lock"></i> Change Password
-                                    </button>
+                    )}
+                    <div className="account-tabs account-slide-in" style={{animationDelay: '0.1s'}}>
+                        <button className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('profile')}
+                                style={activeTab === 'profile' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}><i
+                            className="fas fa-user"></i> Profile
+                        </button>
+                        <button className={`tab ${activeTab === 'security' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('security')}
+                                style={activeTab === 'security' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}>
+                            <i
+                                className="fas fa-shield-alt"></i> Security
+                        </button>
+                    </div>
+                    <div className="account-tab-content account-slide-in"
+                         style={{display: activeTab === 'profile' ? 'block' : 'none', animationDelay: '0.2s'}}>
+                        <div className="account-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-id-card"
+                                       style={{color: 'var(--myaccount-accent)'}}></i> Personal
+                                    Information</h2>
+                                <p>Update your personal details</p>
+                            </div>
+                            <div className="account-card elevated">
+                                <form onSubmit={updateProfile} className="account-form">
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="first_name">First Name</label>
+                                            <div className="input-with-icon">
+                                                <i className="fas fa-user"
+                                                   style={{color: 'var(--myaccount-accent)'}}></i>
+                                                <input type="text" id="first_name" value={firstName}
+                                                       onChange={(e) => setFirstName(e.target.value)}
+                                                       placeholder="Enter your first name" required/>
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="last_name">Last Name</label>
+                                            <div className="input-with-icon">
+                                                <i className="fas fa-user"
+                                                   style={{color: 'var(--myaccount-accent)'}}></i>
+                                                <input type="text" id="last_name" value={lastName}
+                                                       onChange={(e) => setLastName(e.target.value)}
+                                                       placeholder="Enter your last name" required/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="form-actions">
+                                        <button type="submit" className="btn primary" disabled={loading}
+                                                style={{backgroundColor: 'var(--myaccount-accent)'}}><i
+                                            className="fas fa-save"></i> Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div className="account-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-info-circle"
+                                       style={{color: 'var(--myaccount-accent)'}}></i> Account
+                                    Details</h2>
+                                <p>Your account information</p>
+                            </div>
+                            <div className="account-card elevated">
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <div className="info-label"><i className="fas fa-envelope"
+                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Email
+                                        </div>
+                                        <div className="info-value">{email || 'Not available'}</div>
+                                    </div>
+                                    {userRole && <div className="info-item">
+                                        <div className="info-label"><i className="fas fa-user-tag"
+                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Role
+                                        </div>
+                                        <div className="info-value">{userRole}</div>
+                                    </div>}
+                                    <div className="info-item">
+                                        <div className="info-label"><i className="fas fa-globe"
+                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Region
+                                        </div>
+                                        <div className="info-value" style={{width: '100%'}}>
+                                            <select className="region-select"
+                                                    value={preferences.selectedRegion?.code || ''}
+                                                    onChange={handleChangeRegion} disabled={!regionsLoaded} style={{
+                                                width: '100%',
+                                                padding: '6px 12px',
+                                                borderRadius: '6px',
+                                                border: '1px solid var(--border-light)',
+                                                background: 'var(--bg-secondary)',
+                                                color: 'var(--text-primary)'
+                                            }}>
+                                                {permittedRegions.map(r => <option key={r.regionCode || r.region_code}
+                                                                                   value={r.regionCode || r.region_code}>{r.regionName || r.region_name || ''}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {plantCode && <div className="info-item">
+                                        <div className="info-label"><i className="fas fa-building"
+                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Plant
+                                            Code
+                                        </div>
+                                        <div className="info-value">{plantCode}</div>
+                                    </div>}
                                 </div>
                             </div>
-                            <div className="security-action-card">
-                                <div className="action-card-content">
-                                    <div className="action-icon" style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                        className="fas fa-laptop"></i></div>
-                                    <h3>Active Sessions</h3>
-                                    <p>Manage your active sessions across devices</p>
-                                    {sessions.length > 0 ? (
-                                        <div className="sessions-list">
-                                            {sessions.map(session => (
-                                                <div key={session.id} className="session-item">
-                                                    <div className="session-main">
-                                                        <div className="session-device-info">
-                                                            <div className="session-browser">{session.browser}</div>
+                        </div>
+                    </div>
+                    <div className="account-tab-content account-slide-in"
+                         style={{display: activeTab === 'security' ? 'block' : 'none', animationDelay: '0.2s'}}>
+                        <div className="account-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-shield-alt"
+                                       style={{color: 'var(--myaccount-accent)'}}></i> Account
+                                    Security</h2>
+                                <p>Manage your password and protect your account</p>
+                            </div>
+                            <div className="security-actions-grid">
+                                <div className="security-action-card">
+                                    <div className="action-card-content">
+                                        <div className="action-icon"
+                                             style={{backgroundColor: 'var(--myaccount-accent)'}}><i
+                                            className="fas fa-key"></i></div>
+                                        <h3>Password Management</h3>
+                                        <p>Change your password regularly to keep your account secure</p>
+                                        <button className="btn action-btn" onClick={() => setShowPasswordModal(true)}
+                                                style={{backgroundColor: 'var(--myaccount-accent)'}}><i
+                                            className="fas fa-lock"></i> Change Password
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="security-action-card">
+                                    <div className="action-card-content">
+                                        <div className="action-icon"
+                                             style={{backgroundColor: 'var(--myaccount-accent)'}}><i
+                                            className="fas fa-laptop"></i></div>
+                                        <h3>Active Sessions</h3>
+                                        <p>Manage your active sessions across devices</p>
+                                        {sessions.length > 0 ? (
+                                            <div className="sessions-list">
+                                                {sessions.map(session => (
+                                                    <div key={session.id} className="session-item">
+                                                        <div className="session-main">
+                                                            <div className="session-device-info">
+                                                                <div className="session-browser">{session.browser}</div>
+                                                                <div
+                                                                    className="session-platform">{session.os} • {session.device}</div>
+                                                            </div>
                                                             <div
-                                                                className="session-platform">{session.os} • {session.device}</div>
+                                                                className="session-time">{formatSessionTime(session.lastActive)}</div>
                                                         </div>
-                                                        <div
-                                                            className="session-time">{formatSessionTime(session.lastActive)}</div>
+                                                        <div className="session-actions">
+                                                            {session.isCurrent ? (
+                                                                <span
+                                                                    className="session-badge current-badge">Current Session</span>
+                                                            ) : (
+                                                                <button
+                                                                    className="session-revoke-btn"
+                                                                    onClick={() => handleRevokeSession(session.id)}
+                                                                    title="Revoke this session"
+                                                                >
+                                                                    Revoke
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div className="session-actions">
-                                                        {session.isCurrent ? (
-                                                            <span
-                                                                className="session-badge current-badge">Current Session</span>
-                                                        ) : (
-                                                            <button
-                                                                className="session-revoke-btn"
-                                                                onClick={() => handleRevokeSession(session.id)}
-                                                                title="Revoke this session"
-                                                            >
-                                                                Revoke
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="sessions-empty">
+                                                <p>No active sessions found</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="account-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-cogs" style={{color: 'var(--myaccount-accent)'}}></i> Account
+                                    Actions
+                                </h2>
+                                <p>Manage your account settings and sessions</p>
+                            </div>
+                            <div className="account-actions">
+                                <div className="myaccount-logout-container">
+                                    <button className="myaccount-logout-button" onClick={handleSignOut}>
+                                        <div className="myaccount-logout-icon"><i className="fas fa-sign-out-alt"></i>
                                         </div>
-                                    ) : (
-                                        <div className="sessions-empty">
-                                            <p>No active sessions found</p>
+                                        <div className="myaccount-logout-content">
+                                            <span className="myaccount-logout-title">Sign Out</span>
                                         </div>
-                                    )}
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="account-section">
-                        <div className="section-header">
-                            <h2><i className="fas fa-cogs" style={{color: 'var(--myaccount-accent)'}}></i> Account Actions
-                            </h2>
-                            <p>Manage your account settings and sessions</p>
-                        </div>
-                        <div className="account-actions">
-                            <div className="myaccount-logout-container">
-                                <button className="myaccount-logout-button" onClick={handleSignOut}>
-                                    <div className="myaccount-logout-icon"><i className="fas fa-sign-out-alt"></i></div>
-                                    <div className="myaccount-logout-content">
-                                        <span className="myaccount-logout-title">Sign Out</span>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-            </div>
             )}
             {!loading && showPasswordModal && (
                 <div className="modal-overlay" onClick={() => !loading && setShowPasswordModal(false)}

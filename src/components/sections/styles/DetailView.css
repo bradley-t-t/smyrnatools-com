@@ -154,6 +154,10 @@
     animation: spin 1s linear infinite;
 }
 
+.dark-mode .detail-view-saving-overlay {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
 .message {
     padding: 12px 24px;
     border-radius: 8px;
@@ -1743,17 +1747,6 @@ select.form-control option {
     line-height: 1.5;
 }
 
-.down-in-yard-badge {
-    background-color: #9333ea;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: help;
-    white-space: nowrap;
-}
-
 .toggle-switch.active {
     background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
     border-color: #7c3aed;
@@ -1769,11 +1762,4 @@ select.form-control option {
 .toggle-switch.disabled {
     cursor: not-allowed;
     opacity: 0.5;
-}
-
-.field-description {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 6px;
-    line-height: 1.4;
 }
