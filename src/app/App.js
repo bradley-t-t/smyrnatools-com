@@ -35,6 +35,7 @@ import {NetworkUtility} from '../utils/NetworkUtility'
 import ListDetailView from '../views/list/ListDetailView'
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
 import VideoBackground from '../components/common/VideoBackground'
+import PodcastPopup from '../components/common/PodcastPopup'
 
 function VersionPopup({version}) {
     if (!version) return null
@@ -657,6 +658,7 @@ function App() {
         <>
             <AppContent/>
             <div style={{position: 'relative', zIndex: 9999}}><OnlineUsersOverlay/><TipBanner/></div>
+            <PodcastPopup/>
         </>
     )
 }
