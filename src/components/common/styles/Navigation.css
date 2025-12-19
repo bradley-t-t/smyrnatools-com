@@ -41,8 +41,8 @@
 }
 
 .navbar-logo {
-    width: 56px;
-    height: 56px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
     object-position: center;
     image-rendering: crisp-edges;

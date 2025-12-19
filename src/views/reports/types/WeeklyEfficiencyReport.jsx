@@ -229,7 +229,7 @@ function DetailTable({rows, operatorOptions, sortKey, sortDir, filterText, expan
                                             <div>
                                                 <div className="rpt-field-label">Total Hours</div>
                                                 <div
-                                                    className={`rpt-field-value emphasis ${(hours !== null && hours > 14) ? 'rpt-error-text' : ''}`}>{hours !== null ? hours.toFixed(2) : '--'}</div>
+                                                    className={`rpt-field-value emphasis ${(hours !== null && hours > 20) ? 'rpt-error-text' : ''}`}>{hours !== null ? hours.toFixed(2) : '--'}</div>
                                             </div>
                                             <div className="rpt-detail-grid-full">
                                                 <div className="rpt-field-label">Comments</div>
