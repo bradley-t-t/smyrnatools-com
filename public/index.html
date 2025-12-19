@@ -27,6 +27,26 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     </noscript>
     <title>Smyrna Tools</title>
+    <script>
+        (function() {
+            try {
+                var cached = localStorage.getItem('smyrna_theme_cache');
+                if (cached) {
+                    var parsed = JSON.parse(cached);
+                    var themeMode = parsed.themeMode || 'old-dark';
+                    var accentColor = parsed.accentColor || 'red';
+                    var themeClass = '';
+                    if (themeMode === 'dark') themeClass = 'dark-mode';
+                    else if (themeMode === 'old-dark') themeClass = 'old-dark-mode';
+                    else if (themeMode === 'red-dark') themeClass = 'red-dark-mode';
+                    else if (themeMode === 'blue-light') themeClass = 'blue-light-mode';
+                    else if (themeMode === 'red-light') themeClass = 'red-light-mode';
+                    if (themeClass) document.documentElement.classList.add(themeClass);
+                    document.documentElement.classList.add('accent-' + accentColor);
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
 <noscript>You need to enable JavaScript to run this app.</noscript>

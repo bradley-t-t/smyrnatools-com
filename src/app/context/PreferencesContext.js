@@ -12,9 +12,31 @@ export function usePreferences() {
     return context
 }
 
+const getCachedTheme = () => {
+    try {
+        const cached = localStorage.getItem('smyrna_theme_cache')
+        if (cached) {
+            const parsed = JSON.parse(cached)
+            return {
+                themeMode: parsed.themeMode || 'old-dark',
+                accentColor: parsed.accentColor || 'red'
+            }
+        }
+    } catch (e) {}
+    return {themeMode: 'old-dark', accentColor: 'red'}
+}
+
+const setCachedTheme = (themeMode, accentColor) => {
+    try {
+        localStorage.setItem('smyrna_theme_cache', JSON.stringify({themeMode, accentColor}))
+    } catch (e) {}
+}
+
+const cachedTheme = getCachedTheme()
+
 const defaultPreferences = {
-    themeMode: 'old-dark',
-    accentColor: 'red',
+    themeMode: cachedTheme.themeMode,
+    accentColor: cachedTheme.accentColor,
     showTips: false,
     showOnlineOverlay: true,
     defaultViewMode: null,
@@ -113,6 +135,7 @@ export const PreferencesProvider = ({children}) => {
                             regionOverlayMinimized: data.region_overlay_minimized === undefined ? defaultPreferences.regionOverlayMinimized : data.region_overlay_minimized,
                             accept_report_submitted_emails: data.accept_report_submitted_emails === undefined ? true : data.accept_report_submitted_emails
                         }
+                        setCachedTheme(prefs.themeMode, prefs.accentColor)
                     }
                 } catch {
                     prefs = defaultPreferences
@@ -177,6 +200,7 @@ export const PreferencesProvider = ({children}) => {
             updatedPreferences = {...preferences, ...keyOrObject}
         }
         setPreferences(updatedPreferences)
+        setCachedTheme(updatedPreferences.themeMode, updatedPreferences.accentColor)
         if (userId) {
             const now = new Date().toISOString()
             const upsertData = {
