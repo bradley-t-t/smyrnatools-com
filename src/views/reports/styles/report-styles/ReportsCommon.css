@@ -767,13 +767,13 @@
     overflow: auto;
     overflow-x: hidden;
     position: relative;
-    background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+    background: transparent;
     border-radius: 0 0 12px 12px;
-    border: 1px solid var(--divider);
+    border: transparent;
     border-top: none;
     box-shadow: var(--shadow-sm);
     margin: 0;
-    max-height: calc(100vh - 320px);
+    max-height: calc(100vh - 340px);
     overscroll-behavior: none;
 }
 
@@ -806,8 +806,12 @@
     background: transparent;
 }
 
+.rpt-table tbody tr:nth-child(odd) {
+    background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+}
+
 .rpt-table tbody tr:nth-child(even) {
-    background: var(--background);
+    background: color-mix(in srgb, var(--card-bg) 70%, transparent);
 }
 
 .rpt-table tbody tr:hover {
@@ -965,7 +969,7 @@
 .rpts-page-controls span {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #ffffff;
     min-width: 100px;
     text-align: center;
 }

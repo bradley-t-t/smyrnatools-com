@@ -116,8 +116,7 @@ const ThemeUtility = {
     },
 
     getOtherAccentColor(currentAccent, mode) {
-        if (currentAccent === 'grey') return 'grey';
-        return currentAccent === 'red' ? 'blue' : 'red';
+        return 'grey';
     },
 
     statusColor(status) {

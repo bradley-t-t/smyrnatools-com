@@ -48,11 +48,11 @@ function ReportsView() {
     const [hasAnyReviewPermissionPrefix, setHasAnyReviewPermissionPrefix] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [myPageSize, setMyPageSize] = useState(10);
+    const [myPageSize, setMyPageSize] = useState(25);
     const [myCurrentPage, setMyCurrentPage] = useState(1);
-    const [reviewPageSize, setReviewPageSize] = useState(10);
+    const [reviewPageSize, setReviewPageSize] = useState(25);
     const [reviewCurrentPage, setReviewCurrentPage] = useState(1);
-    const [overduePageSize, setOverduePageSize] = useState(10);
+    const [overduePageSize, setOverduePageSize] = useState(25);
     const [overdueCurrentPage, setOverdueCurrentPage] = useState(1);
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
     const [reviewedByCurrentUser, setReviewedByCurrentUser] = useState(new Set());
@@ -812,6 +812,7 @@ function ReportsView() {
                                                         <option value={10}>10</option>
                                                         <option value={25}>25</option>
                                                         <option value={50}>50</option>
+                                                        <option value={9999}>All</option>
                                                     </select>
                                                 </div>
                                                 <div className="rpts-page-controls">
@@ -928,6 +929,7 @@ function ReportsView() {
                                                         <option value={10}>10</option>
                                                         <option value={25}>25</option>
                                                         <option value={50}>50</option>
+                                                        <option value={9999}>All</option>
                                                     </select>
                                                 </div>
                                                 <div className="rpts-page-controls">
@@ -1023,6 +1025,7 @@ function ReportsView() {
                                                             <option value={10}>10</option>
                                                             <option value={25}>25</option>
                                                             <option value={50}>50</option>
+                                                            <option value={9999}>All</option>
                                                         </select>
                                                     </div>
                                                     <div className="rpts-page-controls">
