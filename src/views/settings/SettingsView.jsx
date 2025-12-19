@@ -9,7 +9,8 @@ import VideoBackground from '../../components/common/VideoBackground'
 
 const ACCENT_OPTIONS = [
     {key: 'red', label: 'Red', className: 'red'},
-    {key: 'blue', label: 'Blue', className: 'blue'}
+    {key: 'blue', label: 'Blue', className: 'blue'},
+    {key: 'grey', label: 'Grey', className: 'grey'}
 ]
 
 function SettingsView() {

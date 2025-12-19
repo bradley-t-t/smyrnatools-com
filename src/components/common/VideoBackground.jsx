@@ -13,7 +13,7 @@ const backgroundVideos = [
 ]
 
 function VideoBackground({className = ''}) {
-    const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length))
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
     const videoTimerRef = useRef(null)

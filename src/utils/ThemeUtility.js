@@ -69,6 +69,13 @@ const ThemeUtility = {
             hover: '#b91c1c',
             light: '#fee2e2',
             border: '#fca5a5'
+        },
+        grey: {
+            primary: '#4b5563',
+            secondary: '#6b7280',
+            hover: '#374151',
+            light: '#f3f4f6',
+            border: '#9ca3af'
         }
     },
 
@@ -100,6 +107,7 @@ const ThemeUtility = {
         const accentColors = {
             red: isDarkMode ? this.accent.red.secondary : this.accent.red.primary,
             blue: isDarkMode ? this.accent.blue.secondary : this.accent.blue.primary,
+            grey: isDarkMode ? this.accent.grey.secondary : this.accent.grey.primary,
             white: this.colors.white,
             black: this.colors.black,
             gray: this.colors.gray
@@ -108,6 +116,7 @@ const ThemeUtility = {
     },
 
     getOtherAccentColor(currentAccent, mode) {
+        if (currentAccent === 'grey') return 'grey';
         return currentAccent === 'red' ? 'blue' : 'red';
     },
 

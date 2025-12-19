@@ -297,7 +297,7 @@ export const PreferencesProvider = ({children}) => {
     const toggleShowTips = () => updatePreferences('showTips', !preferences.showTips)
     const toggleShowOnlineOverlay = () => updatePreferences('showOnlineOverlay', !preferences.showOnlineOverlay)
     const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) && updatePreferences('themeMode', mode)
-    const setAccentColor = color => (color === 'red' || color === 'blue') && updatePreferences('accentColor', color)
+    const setAccentColor = color => (color === 'red' || color === 'blue' || color === 'grey') && updatePreferences('accentColor', color)
     const saveLastViewedFilters = async filters => {
         try {
             if (!userId) return
