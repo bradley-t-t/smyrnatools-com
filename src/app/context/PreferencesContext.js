@@ -165,7 +165,7 @@ export const PreferencesProvider = ({children}) => {
         } else if (preferences.themeMode === 'red-light') {
             document.documentElement.classList.add('red-light-mode')
         }
-        document.documentElement.classList.remove('accent-blue', 'accent-red', 'accent-orange', 'accent-green', 'accent-darkgrey')
+        document.documentElement.classList.remove('accent-blue', 'accent-red', 'accent-grey')
         document.documentElement.classList.add(`accent-${preferences.accentColor}`)
     }, [preferences])
 
