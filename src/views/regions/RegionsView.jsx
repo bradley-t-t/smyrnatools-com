@@ -148,8 +148,8 @@ function RegionsView({title = 'Regions'}) {
                                         <td style={{width: '25%'}}>{region.type || region.region_type || ''}</td>
                                     </tr>
                                 )}
-                                containerClassName="regions-list-table-container"
-                                tableClassName="regions-list-table"
+                                containerClassName="list-table-container"
+                                tableClassName="list-table"
                             />
                         )}
                     </div>

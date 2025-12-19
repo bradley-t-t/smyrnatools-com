@@ -193,8 +193,8 @@ function PlantsView({title = 'Plants'}) {
                                             </tr>
                                         )
                                     }}
-                                    containerClassName="plants-list-table-container"
-                                    tableClassName="plants-list-table"
+                                containerClassName="list-table-container"
+                                    tableClassName="list-table"
                                 />
                             )}
                         </div>

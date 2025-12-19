@@ -3,11 +3,11 @@
     min-height: 100vh;
     background: transparent;
     color: var(--text-primary);
-    overflow: hidden;
-}
-
-.regions-view .content-container {
-    overflow: hidden;
+    overscroll-behavior-y: none;
+    padding-top: 0;
+    --sticky-cover-height: 14px;
+    position: relative;
+    z-index: 1;
 }
 
 .region-icon {

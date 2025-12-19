@@ -11,6 +11,7 @@ import {RegionService} from '../../services/RegionService';
 import {ReportUtility} from '../../utils/ReportUtility';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import {reportTypeMap, reportTypes} from '../../types/ReportTypes';
+import VideoBackground from '../../components/common/VideoBackground';
 
 const HARDCODED_TODAY = new Date();
 const REPORTS_START_DATE = new Date('2025-07-20');
@@ -639,26 +640,28 @@ function ReportsView() {
     const plantDisplayText = filterPlant ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'All Plants';
 
     return (
-        <div className="rpts-root">
-            {loadError && <div className="rpts-load-error">{loadError}</div>}
-            {!showForm && !showReview && (
-                <div>
-                    <div className="rpts-toolbar rpts-toolbar-sticky">
-                        <div className="rpts-toolbar-left">
-                            <div className="rpts-toolbar-title">
-                                <i className="fas fa-file-alt"></i>
-                                <span>Reports</span>
+        <>
+            <VideoBackground/>
+            <div className="rpts-root">
+                {loadError && <div className="rpts-load-error">{loadError}</div>}
+                {!showForm && !showReview && (
+                    <div>
+                        <div className="rpts-toolbar rpts-toolbar-sticky">
+                            <div className="rpts-toolbar-left">
+                                <div className="rpts-toolbar-title">
+                                    <i className="fas fa-file-alt"></i>
+                                    <span>Reports</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className="rpts-toolbar-right">
-                            <button
-                                className="rpts-refresh-btn"
-                                onClick={() => {
-                                    setIsRefreshing(true);
-                                    setRefreshKey(prev => prev + 1);
-                                    setTimeout(() => setIsRefreshing(false), 1000);
-                                }}
-                                type="button"
+                            <div className="rpts-toolbar-right">
+                                <button
+                                    className="rpts-refresh-btn"
+                                    onClick={() => {
+                                        setIsRefreshing(true);
+                                        setRefreshKey(prev => prev + 1);
+                                        setTimeout(() => setIsRefreshing(false), 1000);
+                                    }}
+                                    type="button"
                             >
                                 <i className={`fas fa-sync ${isRefreshing ? 'spinning' : ''}`}></i> Refresh
                             </button>
@@ -1091,7 +1094,8 @@ function ReportsView() {
                     showAllPlants={true}
                 />
             )}
-        </div>
+            </div>
+        </>
     );
 }
 

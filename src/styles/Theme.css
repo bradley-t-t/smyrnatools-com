@@ -375,7 +375,7 @@
     --other-accent-rgb: 30, 64, 175;
     --gradient-other-accent-soft: linear-gradient(135deg, rgba(30, 64, 175, 0.08) 0%, rgba(30, 64, 175, 0.02) 100%);
     --gradient-surface: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
-    --focus-ring: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.2);
+    --focus-ring: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.25);
     --transition: 0.2s cubic-bezier(.4, 0, .2, 1);
     --elevation-1: var(--shadow-sm);
     --elevation-2: var(--shadow-md);
@@ -446,6 +446,8 @@
     --warning-bg: rgba(245, 158, 11, 0.15);
     --warning-text: #fbbf24;
     --warning-border: rgba(245, 158, 11, 0.3);
+    --info-bg: rgba(56, 189, 248, 0.15);
+    --info-border: rgba(56, 189, 248, 0.3);
     --transition-all: all 0.2s ease;
     --radius-input: 8px;
     --radius-md: 10px;
@@ -551,6 +553,8 @@
     --warning-bg: rgba(245, 158, 11, 0.15);
     --warning-text: #fbbf24;
     --warning-border: rgba(245, 158, 11, 0.3);
+    --info-bg: rgba(56, 189, 248, 0.15);
+    --info-border: rgba(56, 189, 248, 0.3);
     --transition-all: all 0.2s ease;
     --radius-input: 8px;
     --radius-md: 10px;
@@ -563,6 +567,19 @@
     --status-completed-bg: #22c55e;
     --status-overdue-bg: #ef4444;
     --status-pending-bg: #f59e0b;
+    --radius-sm: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-xxl: 24px;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    --border-radius: var(--radius-sm);
+    --border-radius-lg: var(--radius-lg);
+    --border-radius-full: 9999px;
     --gradient-accent: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-light) 100%);
     --gradient-accent-soft: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2) 0%, rgba(var(--accent-primary-rgb), 0.05) 100%);
     --other-accent: #ef4444;
@@ -640,6 +657,8 @@
     --warning-bg: rgba(245, 158, 11, 0.15);
     --warning-text: #fbbf24;
     --warning-border: rgba(245, 158, 11, 0.3);
+    --info-bg: rgba(56, 189, 248, 0.15);
+    --info-border: rgba(56, 189, 248, 0.3);
     --transition-all: all 0.2s ease;
     --radius-input: 8px;
     --radius-md: 10px;

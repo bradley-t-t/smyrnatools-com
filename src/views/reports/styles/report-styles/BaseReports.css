@@ -10,6 +10,7 @@
     border: none;
     position: relative;
     z-index: 1;
+    background: transparent;
 }
 
 .rpts-toolbar {
@@ -18,15 +19,21 @@
     gap: 18px;
     padding: 24px 32px 18px 32px;
     border-bottom: 1px solid var(--divider);
-    background: var(--background);
+    background: color-mix(in srgb, var(--background) 50%, transparent);
 }
 
 .rpts-toolbar-sticky {
-    position: sticky;
-    top: 0;
-    z-index: 400;
-    background: var(--background);
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    z-index: 300;
+    background: color-mix(in srgb, var(--background) 80%, transparent);
     backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-sizing: border-box;
 }
 
 .rpts-toolbar-left {
@@ -105,7 +112,7 @@
 .rpts-content {
     display: flex;
     flex-direction: column;
-    padding: 24px 0 10px 0;
+    padding: 130px 0 10px 0;
     z-index: 1;
 }
 
@@ -353,7 +360,7 @@
 .rpts-reports-review-view {
     width: 100%;
     min-height: 100vh;
-    background: var(--background);
+    background: transparent;
 }
 
 .rpts-reports-review-container {
@@ -568,7 +575,7 @@
     display: flex;
     justify-content: center;
     min-height: 100vh;
-    background: var(--background);
+    background: transparent;
 }
 
 .rpts-sbmt-container {
