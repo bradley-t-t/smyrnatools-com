@@ -238,7 +238,6 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
 
     return (
         <>
-            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top list-view${hasBulkPopup ? ' has-bulk-popup' : ''}`}>
                 <>

@@ -272,7 +272,6 @@ export default function LeaderboardsView() {
 
     return (
         <div className="leaderboards-view">
-            <VideoBackground/>
             <div className="leaderboards-header">
                 <div className="leaderboards-header-inner">
                     <div className="leaderboards-title-row">

@@ -33,6 +33,7 @@
     --bg-secondary: #f9fafb;
     --bg-tertiary: #f3f4f6;
     --bg-navbar: #ffffff;
+    --bg-navbar-rgb: 255, 255, 255;
     --background: #f9fafb;
     --border-light: #e5e7eb;
     --border-medium: #d1d5db;
@@ -167,6 +168,7 @@
     --bg-secondary: #e0efff;
     --bg-tertiary: #cce0ff;
     --bg-navbar: #f0f7ff;
+    --bg-navbar-rgb: 240, 247, 255;
     --background: #e0efff;
     --border-light: #bdd4f0;
     --border-medium: #94b8e0;
@@ -280,6 +282,7 @@
     --bg-secondary: #faf5f5;
     --bg-tertiary: #f5eded;
     --bg-navbar: #fefbfb;
+    --bg-navbar-rgb: 254, 251, 251;
     --background: #faf5f5;
     --border-light: #e8d8da;
     --border-medium: #d4c0c3;
@@ -393,6 +396,7 @@
     --bg-secondary: #1e293b;
     --bg-tertiary: #334155;
     --bg-navbar: #0f172a;
+    --bg-navbar-rgb: 15, 23, 42;
     --background: #0f172a;
     --border-light: #334155;
     --border-medium: #475569;
@@ -498,6 +502,7 @@
     --bg-secondary: #242526;
     --bg-tertiary: #3a3b3c;
     --bg-navbar: #18191a;
+    --bg-navbar-rgb: 24, 25, 26;
     --background: #18191a;
     --bg-primary-rgb: 24, 25, 26;
     --bg-secondary-rgb: 36, 37, 38;
@@ -604,6 +609,7 @@
     --bg-secondary: #251a1c;
     --bg-tertiary: #352426;
     --bg-navbar: #1a1214;
+    --bg-navbar-rgb: 26, 18, 20;
     --background: #1a1214;
     --border-light: #3d2c2e;
     --border-medium: #523d40;

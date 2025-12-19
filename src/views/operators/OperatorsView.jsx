@@ -411,7 +411,6 @@ function OperatorsView({
 
     return (
         <>
-            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top operators-view${showDetailView && selectedOperator ? ' detail-open' : ''}`}>
                 {showDetailView && selectedOperator && (

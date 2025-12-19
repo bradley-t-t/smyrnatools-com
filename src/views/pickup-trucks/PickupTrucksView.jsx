@@ -19,7 +19,6 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
-import VideoBackground from '../../components/common/VideoBackground'
 
 function PickupTrucksView({title = 'Pickup Trucks'}) {
     const {preferences} = usePreferences()
@@ -360,7 +359,6 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
 
     return (
         <>
-            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top pickup-trucks-view${selectedId ? ' detail-open' : ''}`}>
                 {selectedId ? (

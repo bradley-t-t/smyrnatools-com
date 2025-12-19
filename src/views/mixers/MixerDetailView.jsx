@@ -19,7 +19,6 @@ import DetailViewSection from "../../components/sections/DetailViewSection"
 import VerificationCardSection from "../../components/sections/VerificationCardSection"
 import {DateUtility} from "../../utils/DateUtility"
 import {supabase} from '../../services/DatabaseService'
-import VideoBackground from '../../components/common/VideoBackground'
 
 function MixerDetailView({mixerId, onClose}) {
     const {preferences} = usePreferences()
@@ -630,7 +629,6 @@ function MixerDetailView({mixerId, onClose}) {
 
     return (
         <>
-            <VideoBackground/>
             {showHistory && <MixerHistoryView mixer={mixer} onClose={() => setShowHistory(false)}/>}
             {showComments && <MixerCommentModal mixerId={mixerId} mixerNumber={mixer?.truckNumber}
                                                 onClose={() => setShowComments(false)}/>}

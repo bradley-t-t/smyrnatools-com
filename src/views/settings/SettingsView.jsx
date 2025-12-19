@@ -5,7 +5,6 @@ import VersionPopup from '../../components/common/VersionPopup'
 import {useVersion} from '../../app/hooks/useVersion'
 import {useAuth} from '../../app/context/AuthContext'
 import {UserService} from '../../services/UserService'
-import VideoBackground from '../../components/common/VideoBackground'
 
 const ACCENT_OPTIONS = [
     {key: 'red', label: 'Red', className: 'red'},
@@ -51,7 +50,6 @@ function SettingsView() {
 
     return (
         <div className="settings-container">
-            <VideoBackground/>
             <VersionPopup version={version}/>
             {showFeedback && (
                 <div className="settings-feedback">

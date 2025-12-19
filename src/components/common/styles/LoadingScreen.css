@@ -46,7 +46,9 @@
     max-width: 90%;
     width: 320px;
     transform: none;
-    background-color: var(--card-bg);
+    background-color: color-mix(in srgb, var(--card-bg) 70%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-lg);
     color: var(--text-primary);
 }

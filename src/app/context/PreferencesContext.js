@@ -32,7 +32,39 @@ const setCachedTheme = (themeMode, accentColor) => {
     } catch (e) {}
 }
 
+const applyThemeClasses = (themeMode, accentColor) => {
+    const root = document.documentElement
+    const themeClasses = ['dark-mode', 'old-dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode']
+    const accentClasses = ['accent-blue', 'accent-red', 'accent-grey']
+    
+    let targetThemeClass = ''
+    if (themeMode === 'dark') targetThemeClass = 'dark-mode'
+    else if (themeMode === 'old-dark') targetThemeClass = 'old-dark-mode'
+    else if (themeMode === 'red-dark') targetThemeClass = 'red-dark-mode'
+    else if (themeMode === 'blue-light') targetThemeClass = 'blue-light-mode'
+    else if (themeMode === 'red-light') targetThemeClass = 'red-light-mode'
+    
+    const targetAccentClass = `accent-${accentColor}`
+    
+    themeClasses.forEach(cls => {
+        if (cls === targetThemeClass) {
+            if (!root.classList.contains(cls)) root.classList.add(cls)
+        } else {
+            root.classList.remove(cls)
+        }
+    })
+    
+    accentClasses.forEach(cls => {
+        if (cls === targetAccentClass) {
+            if (!root.classList.contains(cls)) root.classList.add(cls)
+        } else {
+            root.classList.remove(cls)
+        }
+    })
+}
+
 const cachedTheme = getCachedTheme()
+applyThemeClasses(cachedTheme.themeMode, cachedTheme.accentColor)
 
 const defaultPreferences = {
     themeMode: cachedTheme.themeMode,
@@ -87,12 +119,25 @@ export const PreferencesProvider = ({children}) => {
     const [preferences, setPreferences] = useState(defaultPreferences)
     const [loading, setLoading] = useState(true)
     const [userId, setUserId] = useState(null)
+    const [authTrigger, setAuthTrigger] = useState(0)
+
+    useEffect(() => {
+        const handleAuthSuccess = () => {
+            setAuthTrigger(prev => prev + 1)
+        }
+        window.addEventListener('authSuccess', handleAuthSuccess)
+        return () => {
+            window.removeEventListener('authSuccess', handleAuthSuccess)
+        }
+    }, [])
 
     useEffect(() => {
         let themeTimeout
+        let cancelled = false
         const initialize = async () => {
             setLoading(true)
             const user = await UserService.getCurrentUser()
+            if (cancelled) return
             if (user && user.id) {
                 setUserId(user.id)
                 let prefs = defaultPreferences
@@ -140,13 +185,16 @@ export const PreferencesProvider = ({children}) => {
                 } catch {
                     prefs = defaultPreferences
                 }
+                if (cancelled) return
                 const originalSelectedRegion = prefs.selectedRegion
                 if (!prefs.selectedRegion.code) {
                     try {
                         const plant = await UserService.getUserPlant(user.id)
+                        if (cancelled) return
                         const plantCode = (typeof plant === 'string' ? plant : (plant?.plant_code || plant?.plantCode || '')).trim()
                         if (plantCode) {
                             const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            if (cancelled) return
                             if (regions && regions.length > 0) {
                                 const region = regions[0]
                                 prefs.selectedRegion = {
@@ -159,7 +207,9 @@ export const PreferencesProvider = ({children}) => {
                     } catch (e) {
                     }
                 }
+                if (cancelled) return
                 setPreferences(prefs)
+                applyThemeClasses(prefs.themeMode, prefs.accentColor)
                 if (!originalSelectedRegion.code && prefs.selectedRegion.code) {
                     updatePreferences('selectedRegion', prefs.selectedRegion)
                 }
@@ -176,21 +226,35 @@ export const PreferencesProvider = ({children}) => {
     }, [userId])
 
     useEffect(() => {
-        document.documentElement.classList.remove('dark-mode', 'old-dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode')
-        if (preferences.themeMode === 'dark') {
-            document.documentElement.classList.add('dark-mode')
-        } else if (preferences.themeMode === 'old-dark') {
-            document.documentElement.classList.add('old-dark-mode')
-        } else if (preferences.themeMode === 'red-dark') {
-            document.documentElement.classList.add('red-dark-mode')
-        } else if (preferences.themeMode === 'blue-light') {
-            document.documentElement.classList.add('blue-light-mode')
-        } else if (preferences.themeMode === 'red-light') {
-            document.documentElement.classList.add('red-light-mode')
-        }
-        document.documentElement.classList.remove('accent-blue', 'accent-red', 'accent-grey')
-        document.documentElement.classList.add(`accent-${preferences.accentColor}`)
-    }, [preferences])
+        const root = document.documentElement
+        const themeClasses = ['dark-mode', 'old-dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode']
+        const accentClasses = ['accent-blue', 'accent-red', 'accent-grey']
+        
+        let targetThemeClass = ''
+        if (preferences.themeMode === 'dark') targetThemeClass = 'dark-mode'
+        else if (preferences.themeMode === 'old-dark') targetThemeClass = 'old-dark-mode'
+        else if (preferences.themeMode === 'red-dark') targetThemeClass = 'red-dark-mode'
+        else if (preferences.themeMode === 'blue-light') targetThemeClass = 'blue-light-mode'
+        else if (preferences.themeMode === 'red-light') targetThemeClass = 'red-light-mode'
+        
+        const targetAccentClass = `accent-${preferences.accentColor}`
+        
+        themeClasses.forEach(cls => {
+            if (cls === targetThemeClass) {
+                if (!root.classList.contains(cls)) root.classList.add(cls)
+            } else {
+                root.classList.remove(cls)
+            }
+        })
+        
+        accentClasses.forEach(cls => {
+            if (cls === targetAccentClass) {
+                if (!root.classList.contains(cls)) root.classList.add(cls)
+            } else {
+                root.classList.remove(cls)
+            }
+        })
+    }, [preferences.themeMode, preferences.accentColor])
 
     const updatePreferences = async (keyOrObject, value) => {
         let updatedPreferences
@@ -201,6 +265,7 @@ export const PreferencesProvider = ({children}) => {
         }
         setPreferences(updatedPreferences)
         setCachedTheme(updatedPreferences.themeMode, updatedPreferences.accentColor)
+        applyThemeClasses(updatedPreferences.themeMode, updatedPreferences.accentColor)
         if (userId) {
             const now = new Date().toISOString()
             const upsertData = {

@@ -31,20 +31,25 @@
         (function() {
             try {
                 var cached = localStorage.getItem('smyrna_theme_cache');
+                var themeMode = 'old-dark';
+                var accentColor = 'red';
                 if (cached) {
                     var parsed = JSON.parse(cached);
-                    var themeMode = parsed.themeMode || 'old-dark';
-                    var accentColor = parsed.accentColor || 'red';
-                    var themeClass = '';
-                    if (themeMode === 'dark') themeClass = 'dark-mode';
-                    else if (themeMode === 'old-dark') themeClass = 'old-dark-mode';
-                    else if (themeMode === 'red-dark') themeClass = 'red-dark-mode';
-                    else if (themeMode === 'blue-light') themeClass = 'blue-light-mode';
-                    else if (themeMode === 'red-light') themeClass = 'red-light-mode';
-                    if (themeClass) document.documentElement.classList.add(themeClass);
-                    document.documentElement.classList.add('accent-' + accentColor);
+                    themeMode = parsed.themeMode || 'old-dark';
+                    accentColor = parsed.accentColor || 'red';
                 }
-            } catch (e) {}
+                var themeClass = '';
+                if (themeMode === 'dark') themeClass = 'dark-mode';
+                else if (themeMode === 'old-dark') themeClass = 'old-dark-mode';
+                else if (themeMode === 'red-dark') themeClass = 'red-dark-mode';
+                else if (themeMode === 'blue-light') themeClass = 'blue-light-mode';
+                else if (themeMode === 'red-light') themeClass = 'red-light-mode';
+                if (themeClass) document.documentElement.classList.add(themeClass);
+                document.documentElement.classList.add('accent-' + accentColor);
+            } catch (e) {
+                document.documentElement.classList.add('old-dark-mode');
+                document.documentElement.classList.add('accent-red');
+            }
         })();
     </script>
 </head>

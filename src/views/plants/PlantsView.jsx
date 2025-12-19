@@ -8,7 +8,6 @@ import PlantsDetailView from './PlantsDetailView'
 import PlantsAddView from './PlantsAddView'
 import TopSection from '../../components/sections/TopSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
-import VideoBackground from '../../components/common/VideoBackground'
 
 function PlantsView({title = 'Plants'}) {
     const [plants, setPlants] = useState([])
@@ -128,7 +127,6 @@ function PlantsView({title = 'Plants'}) {
 
     return (
         <>
-            <VideoBackground/>
             <div className="global-dashboard-container dashboard-container plants-view">
                 {selectedPlant ? (
                     <PlantsDetailView

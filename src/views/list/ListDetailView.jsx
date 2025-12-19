@@ -211,7 +211,6 @@ function ListDetailView({itemId, onClose}) {
     if (loading) {
         return (
             <>
-                <VideoBackground/>
                 <DetailViewSection
                     title="Task Details"
                     onClose={onClose}
@@ -225,7 +224,6 @@ function ListDetailView({itemId, onClose}) {
     if (!item) {
         return (
             <>
-                <VideoBackground/>
                 <DetailViewSection
                     title="Item Not Found"
                     onClose={onClose}
@@ -239,7 +237,6 @@ function ListDetailView({itemId, onClose}) {
 
     return (
         <>
-            <VideoBackground/>
             <DetailViewSection
                 title="Task Details"
                 onClose={onClose}

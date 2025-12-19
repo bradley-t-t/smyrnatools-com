@@ -5,6 +5,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
 import NotificationsModal from './NotificationsModal'
 import NotificationsService from '../../services/NotificationsService'
+import VideoBackground from './VideoBackground'
 
 const ANIMATION_TIMING = {
     ITEM_ENTER_DELAY: 750,
@@ -380,8 +381,10 @@ export default function Navigation({
     }
 
     return (
-        <div className="app-container">
-            <div className="horizontal-navbar">
+        <>
+            <VideoBackground/>
+            <div className="app-container">
+                <div className="horizontal-navbar">
                 <div className="navbar-left">
                     <div className="logo-container">
                         <img
@@ -596,6 +599,7 @@ export default function Navigation({
                     }
                 }} anchorRect={notificationsAnchor}/>
             )}
-        </div>
+            </div>
+        </>
     )
 }

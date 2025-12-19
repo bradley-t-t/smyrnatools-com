@@ -4,7 +4,6 @@ import {AuthService} from '../../services/AuthService';
 import {UserService} from "../../services/UserService";
 import {usePreferences} from '../../app/context/PreferencesContext';
 import './styles/MyAccount.css';
-import VideoBackground from '../../components/common/VideoBackground';
 
 function MyAccountView({userId}) {
     const {preferences, updatePreferences} = usePreferences();
@@ -461,7 +460,6 @@ function MyAccountView({userId}) {
 
     return (
         <div className="my-account-wrapper">
-            <VideoBackground/>
             {loading ? renderSkeletonContent() : (
                 <div className="my-account-container account-fade-in">
                     <div className="account-hero account-slide-in">

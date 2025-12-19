@@ -11,7 +11,6 @@ import {RegionService} from '../../services/RegionService';
 import {ReportUtility} from '../../utils/ReportUtility';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import {reportTypeMap, reportTypes} from '../../types/ReportTypes';
-import VideoBackground from '../../components/common/VideoBackground';
 
 const HARDCODED_TODAY = new Date();
 const REPORTS_START_DATE = new Date('2025-07-20');
@@ -641,7 +640,6 @@ function ReportsView() {
 
     return (
         <>
-            <VideoBackground/>
             <div className="rpts-root">
                 {loadError && <div className="rpts-load-error">{loadError}</div>}
                 {!showForm && !showReview && (

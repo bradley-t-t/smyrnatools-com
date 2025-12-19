@@ -214,7 +214,6 @@ function ManagersView({title = 'Managers', onSelectManager}) {
 
     return (
         <>
-            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top managers-view${showDetailView && selectedManager ? ' detail-open' : ''}`}>
                 {showDetailView && selectedManager ? (

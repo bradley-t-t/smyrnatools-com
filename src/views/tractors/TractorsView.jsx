@@ -616,7 +616,6 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
 
     return (
         <>
-            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top tractors-view${selectedTractor ? ' detail-open' : ''}`}>
                 {selectedTractor ? (

@@ -447,7 +447,6 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
 
     return (
         <>
-            <VideoBackground/>
             <div className="global-dashboard-container dashboard-container global-flush-top flush-top trailers-view">
                 {selectedTrailer ? (
                     <TrailerDetailView trailer={selectedTrailer} onClose={handleBackFromDetail}/>

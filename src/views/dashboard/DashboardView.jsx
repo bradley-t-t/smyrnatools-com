@@ -14,7 +14,6 @@ import {UserService} from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import VideoBackground from '../../components/common/VideoBackground'
 
 export default function DashboardView() {
     const {preferences} = usePreferences()
@@ -1234,7 +1233,6 @@ export default function DashboardView() {
 
     return (
         <div className="global-dashboard-container dashboard-container" data-filtering={isFiltering || undefined}>
-            <VideoBackground/>
             <div className="dashboard-header">
                 <h1>Dashboard</h1>
                 <div className="dashboard-actions">

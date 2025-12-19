@@ -22,7 +22,6 @@ import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
-import VideoBackground from '../../components/common/VideoBackground'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const {preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters} = usePreferences();
@@ -533,7 +532,6 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
 
     return (
         <>
-            <VideoBackground/>
             <div
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top equipments-view${selectedEquipment ? ' detail-open' : ''}`}>
                 {selectedEquipment ? (

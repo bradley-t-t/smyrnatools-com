@@ -4,7 +4,6 @@ import {UserService} from '../../services/UserService';
 import {supabase} from '../../services/DatabaseService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import './styles/Roles.css';
-import VideoBackground from '../../components/common/VideoBackground';
 
 function RolesView() {
     const [roles, setRoles] = useState([]);
@@ -461,7 +460,6 @@ function RolesView() {
 
     return (
         <>
-            <VideoBackground/>
             <div className="roles-view">
                 <div className="roles-header">
                     <div className="roles-header-content">
