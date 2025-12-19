@@ -95,12 +95,22 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         assignedPlantField: 'assignedPlant'
     }), [operators, mixers, selectedPlant, searchText, regionPlantCodes])
 
+    const attachIsVerified = useCallback((obj) => {
+        if (!obj) return obj
+        if (typeof obj.isVerified !== 'function') {
+            obj.isVerified = function(latestHistoryDate) {
+                return MixerUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
+            }
+        }
+        return obj
+    }, [])
+
     const handleRealtimeUpdate = useCallback((eventType, data) => {
         if (eventType === 'UPDATE' && data.new) {
             const updatedData = data.new
             setMixers(prev => prev.map(mixer => {
                 if (mixer.id === updatedData.id) {
-                    return {
+                    const updated = {
                         ...mixer,
                         truckNumber: updatedData.truck_number ?? mixer.truckNumber,
                         assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
@@ -118,12 +128,13 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                         year: updatedData.year ?? mixer.year,
                         downInYard: updatedData.down_in_yard ?? mixer.downInYard
                     }
+                    return attachIsVerified(updated)
                 }
                 return mixer
             }))
             setAllMixers(prev => prev.map(mixer => {
                 if (mixer.id === updatedData.id) {
-                    return {
+                    const updated = {
                         ...mixer,
                         truckNumber: updatedData.truck_number ?? mixer.truckNumber,
                         assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
@@ -141,13 +152,14 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                         year: updatedData.year ?? mixer.year,
                         downInYard: updatedData.down_in_yard ?? mixer.downInYard
                     }
+                    return attachIsVerified(updated)
                 }
                 return mixer
             }))
         } else if (eventType === 'INSERT' && data.new) {
             const newData = data.new
             if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
-            const newMixer = {
+            const newMixer = attachIsVerified({
                 id: newData.id,
                 truckNumber: newData.truck_number ?? '',
                 assignedPlant: newData.assigned_plant ?? '',
@@ -165,7 +177,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 model: newData.model ?? '',
                 year: newData.year ?? '',
                 downInYard: newData.down_in_yard ?? false
-            }
+            })
             setMixers(prev => {
                 if (prev.some(m => m.id === newData.id)) return prev
                 return [...prev, newMixer]
@@ -178,7 +190,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
             setMixers(prev => prev.filter(mixer => mixer.id !== data.old.id))
             setAllMixers(prev => prev.filter(mixer => mixer.id !== data.old.id))
         }
-    }, [regionPlantCodes])
+    }, [regionPlantCodes, attachIsVerified])
 
     useEffect(() => {
         const channel = supabase
