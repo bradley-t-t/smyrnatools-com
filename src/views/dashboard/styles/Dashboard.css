@@ -98,7 +98,7 @@ html.blue-dark-mode .dashboard-video-background {
 }
 
 .kpi-card.prominent .kpi-title {
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 .kpi-card.prominent .kpi-value {
@@ -118,7 +118,7 @@ html.blue-dark-mode .dashboard-video-background {
     font-size: 13px;
     letter-spacing: .02em;
     text-transform: uppercase;
-    color: var(--text-secondary);
+    color: #ffffff;
     font-weight: 700
 }
 
@@ -321,7 +321,7 @@ html.blue-dark-mode .dashboard-video-background {
 .hero-region-name {
     font-size: 20px;
     font-weight: 700;
-    color: var(--accent)
+    color: #ffffff;
 }
 
 .hero-region-name .skeleton-line {
@@ -331,7 +331,7 @@ html.blue-dark-mode .dashboard-video-background {
 .hero-region-sub {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: #ffffff;
     margin-top: 4px
 }
 
@@ -402,7 +402,7 @@ html.blue-dark-mode .dashboard-video-background {
     font-size: 14px;
     font-weight: 700;
     letter-spacing: .05em;
-    color: var(--accent);
+    color: #ffffff;
     padding-left: 4px;
     position: relative
 }
@@ -494,7 +494,7 @@ html.blue-dark-mode .dashboard-video-background {
 .metric-sub {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: #ffffff;
     letter-spacing: .03em
 }
 
@@ -521,7 +521,7 @@ html.blue-dark-mode .dashboard-video-background {
     font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
-    color: var(--text-secondary)
+    color: #ffffff
 }
 
 .training-table-header {
@@ -768,7 +768,7 @@ html.blue-dark-mode .dashboard-video-background {
 }
 
 .overall-metric .metric-card-header {
-    color: var(--accent);
+    color: #ffffff;
     font-weight: 700;
 }
 
@@ -777,7 +777,7 @@ html.blue-dark-mode .dashboard-video-background {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-secondary);
+    color: #ffffff;
     margin-bottom: 0.5rem;
     text-align: center;
 }
@@ -811,27 +811,27 @@ html.blue-dark-mode .dashboard-video-background {
 }
 
 .active-stat .stat-value {
-    color: var(--success);
+    color: #ffffff;
 }
 
 .active-stat .stat-label {
-    color: var(--success);
+    color: #ffffff;
 }
 
 .spare-stat .stat-value {
-    color: #805ad5;
+    color: #ffffff;
 }
 
 .spare-stat .stat-label {
-    color: #805ad5;
+    color: #ffffff;
 }
 
 .inshop-stat .stat-value {
-    color: #3b82f6;
+    color: #ffffff;
 }
 
 .inshop-stat .stat-label {
-    color: #3b82f6;
+    color: #ffffff;
 }
 
 .status-bars-wrapper {
