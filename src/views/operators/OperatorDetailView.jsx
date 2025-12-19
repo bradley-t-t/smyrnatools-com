@@ -224,7 +224,8 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             pending_start_date: pendingForSave,
             rating: typeof rating === 'number' ? rating : Number(rating) || 0,
             phone: phone || null,
-            automatic_restriction: automaticRestriction
+            automatic_restriction: automaticRestriction,
+            updated_at: new Date().toISOString()
         };
         try {
             const shouldUnassignEquipment =
