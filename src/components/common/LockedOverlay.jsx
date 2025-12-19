@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {useAuth} from '../../app/context/AuthContext';
 import './styles/LockedOverlay.css';
+import VideoBackground from './VideoBackground';
 
 function LockedOverlay({reason}) {
     const {signOut} = useAuth();
@@ -45,6 +46,7 @@ function LockedOverlay({reason}) {
 
     return ReactDOM.createPortal(
         <div className="locked-overlay-backdrop">
+            <VideoBackground/>
             <div className="locked-overlay-modal">
                 <div className="locked-overlay-content">
                     <h1>{getTitle()}</h1>

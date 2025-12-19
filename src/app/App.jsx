@@ -17,6 +17,7 @@ import MyAccountPage from './views/account/MyAccountPage';
 import VerifyEmailPage from './views/auth/VerifyEmailPage';
 import {PreferencesProvider} from './context/PreferencesContext';
 import {AccountProvider} from './context/AccountContext';
+import {RealtimeProvider} from './context/RealtimeContext';
 import ListView from '../views/list/ListView';
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView';
 import LockedOverlay from '../components/common/LockedOverlay';
@@ -214,29 +215,31 @@ function App() {
     return (
         <PreferencesProvider>
             <AccountProvider>
-                <Routes>
-                    <Route element={<AuthLayout/>}>
-                        <Route path="/login" element={<LoginPage/>}/>
-                        <Route path="/register" element={<RegistrationPage/>}/>
-                        <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
-                        <Route path="/reset-password" element={<ResetPasswordPage/>}/>
-                        <Route path="/verify-email" element={<VerifyEmailPage/>}/>
-                    </Route>
-                    <Route path="/guest" element={<LockedOverlay/>}/>
-                    <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
-                        <Route path="/" element={<HomePage/>}/>
-                        <Route path="/operators" element={<OperatorsPage/>}/>
-                        <Route path="/operators/training" element={<TrainingHistoryPage/>}/>
-                        <Route path="/tasks" element={<TasksPage/>}/>
-                        <Route path="/settings" element={<SettingsPage/>}/>
-                        <Route path="/account" element={<MyAccountPage/>}/>
-                        <Route path="/list" element={<ListView/>}/>
-                        <Route path="/leaderboards" element={<LeaderboardsView/>}/>
-                    </Route>
-                    <Route path="*" element={<Navigate to="/" replace/>}/>
-                </Routes>
-                {isAuthenticated && !plantLoading && hasPlant === false && location.pathname !== '/guest' &&
-                    <LockedOverlay reason="no-plant"/>}
+                <RealtimeProvider>
+                    <Routes>
+                        <Route element={<AuthLayout/>}>
+                            <Route path="/login" element={<LoginPage/>}/>
+                            <Route path="/register" element={<RegistrationPage/>}/>
+                            <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+                            <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+                            <Route path="/verify-email" element={<VerifyEmailPage/>}/>
+                        </Route>
+                        <Route path="/guest" element={<LockedOverlay/>}/>
+                        <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
+                            <Route path="/" element={<HomePage/>}/>
+                            <Route path="/operators" element={<OperatorsPage/>}/>
+                            <Route path="/operators/training" element={<TrainingHistoryPage/>}/>
+                            <Route path="/tasks" element={<TasksPage/>}/>
+                            <Route path="/settings" element={<SettingsPage/>}/>
+                            <Route path="/account" element={<MyAccountPage/>}/>
+                            <Route path="/list" element={<ListView/>}/>
+                            <Route path="/leaderboards" element={<LeaderboardsView/>}/>
+                        </Route>
+                        <Route path="*" element={<Navigate to="/" replace/>}/>
+                    </Routes>
+                    {isAuthenticated && !plantLoading && hasPlant === false && location.pathname !== '/guest' &&
+                        <LockedOverlay reason="no-plant"/>}
+                </RealtimeProvider>
             </AccountProvider>
         </PreferencesProvider>
     );

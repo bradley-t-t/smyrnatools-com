@@ -26,6 +26,7 @@ import ThemeUtility from '../../utils/ThemeUtility'
 import {ValidationUtility} from '../../utils/ValidationUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
 import RecapModalSection from '../../components/sections/RecapModalSection'
+import {useAssetRealtimeUpdates} from '../../hooks/useAssetRealtimeUpdates'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -93,6 +94,35 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         assignedOperatorField: 'assignedOperator',
         assignedPlantField: 'assignedPlant'
     }), [operators, mixers, selectedPlant, searchText, regionPlantCodes])
+
+    const handleRealtimeUpdate = useCallback((eventType, data) => {
+        if (eventType === 'UPDATE' && data.new) {
+            setMixers(prev => prev.map(mixer => 
+                mixer.id === data.new.id ? {...mixer, ...data.new} : mixer
+            ))
+            setAllMixers(prev => prev.map(mixer => 
+                mixer.id === data.new.id ? {...mixer, ...data.new} : mixer
+            ))
+        } else if (eventType === 'INSERT' && data.new) {
+            if (regionPlantCodes && !regionPlantCodes.has(data.new.assigned_plant)) return
+            setMixers(prev => {
+                if (prev.some(m => m.id === data.new.id)) return prev
+                return [...prev, data.new]
+            })
+            setAllMixers(prev => {
+                if (prev.some(m => m.id === data.new.id)) return prev
+                return [...prev, data.new]
+            })
+        } else if (eventType === 'DELETE' && data.old) {
+            setMixers(prev => prev.filter(mixer => mixer.id !== data.old.id))
+            setAllMixers(prev => prev.filter(mixer => mixer.id !== data.old.id))
+        }
+    }, [regionPlantCodes])
+
+    useAssetRealtimeUpdates('mixers', {
+        onAnyChange: handleRealtimeUpdate,
+        enabled: !isLoading
+    })
 
     useEffect(() => {
         async function fetchAllData() {
