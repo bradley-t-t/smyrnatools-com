@@ -19,6 +19,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
+import {supabase} from '../../services/DatabaseService'
 
 function PickupTrucksView({title = 'Pickup Trucks'}) {
     const {preferences} = usePreferences()
@@ -53,6 +54,80 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
         'Mileage': 'mileage',
         'More': null
     }
+
+    const handleRealtimeUpdate = useCallback((eventType, data) => {
+        if (eventType === 'UPDATE' && data.new) {
+            const updatedData = data.new
+            setPickups(prev => prev.map(pickup => {
+                if (pickup.id === updatedData.id) {
+                    return {
+                        ...pickup,
+                        vin: updatedData.vin ?? pickup.vin,
+                        make: updatedData.make ?? pickup.make,
+                        model: updatedData.model ?? pickup.model,
+                        year: updatedData.year ?? pickup.year,
+                        assigned: updatedData.assigned ?? pickup.assigned,
+                        assignedPlant: updatedData.assigned_plant ?? pickup.assignedPlant,
+                        status: updatedData.status ?? pickup.status,
+                        mileage: updatedData.mileage ?? pickup.mileage,
+                        comments: updatedData.comments ?? pickup.comments,
+                        updatedAt: updatedData.updated_at ?? pickup.updatedAt,
+                        updatedLast: updatedData.updated_last ?? pickup.updatedLast,
+                        updatedBy: updatedData.updated_by ?? pickup.updatedBy
+                    }
+                }
+                return pickup
+            }))
+        } else if (eventType === 'INSERT' && data.new) {
+            const newData = data.new
+            if (regionPlantCodes && regionPlantCodes.size > 0 && !regionPlantCodes.has(newData.assigned_plant)) return
+            const newPickup = {
+                id: newData.id,
+                vin: newData.vin ?? '',
+                make: newData.make ?? '',
+                model: newData.model ?? '',
+                year: newData.year ?? '',
+                assigned: newData.assigned ?? '',
+                assignedPlant: newData.assigned_plant ?? '',
+                status: newData.status ?? 'Active',
+                mileage: newData.mileage ?? 0,
+                comments: newData.comments ?? '',
+                createdAt: newData.created_at ?? new Date().toISOString(),
+                updatedAt: newData.updated_at ?? new Date().toISOString(),
+                updatedLast: newData.updated_last ?? null,
+                updatedBy: newData.updated_by ?? null
+            }
+            setPickups(prev => {
+                if (prev.some(p => p.id === newData.id)) return prev
+                return [...prev, newPickup]
+            })
+        } else if (eventType === 'DELETE' && data.old) {
+            setPickups(prev => prev.filter(pickup => pickup.id !== data.old.id))
+        }
+    }, [regionPlantCodes])
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('pickup-trucks-realtime-changes')
+            .on(
+                'postgres_changes',
+                {event: '*', schema: 'public', table: 'pickup_trucks'},
+                (payload) => {
+                    const eventType = payload.eventType
+                    const data = {new: payload.new, old: payload.old}
+                    handleRealtimeUpdate(eventType, data)
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Pickup trucks realtime subscription error')
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [handleRealtimeUpdate])
 
     const fetchAllPickups = useCallback(async () => {
         setIsLoading(true)
