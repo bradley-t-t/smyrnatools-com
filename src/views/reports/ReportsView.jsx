@@ -721,28 +721,28 @@ function ReportsView() {
                         <div className="rpts-content">
                             {tab === 'all' && (
                                 <div className="rpts-list">
-                                    {(isLoadingUser || isLoadingMy || isLoadingPermissions) && weeksToShow.length === 0 ? (
-                                        <div className="rpts-loading">
-                                            <LoadingScreen message="Loading your reports..." inline/>
+                                    {weeksToShow.length === 0 && !(isLoadingUser || isLoadingMy || isLoadingPermissions) ? (
+                                        <div className="rpts-empty">
+                                            <i className="fas fa-check-circle"></i>
+                                            <div>No reports</div>
                                         </div>
                                     ) : (
-                                        weeksToShow.length === 0 ? (
-                                            <div className="rpts-empty">
-                                                <i className="fas fa-check-circle"></i>
-                                                <div>No reports</div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <div className="rpt-sticky-header-wrapper">
-                                                    <div className="rpt-list-headers header-row">
-                                                        <div className="rpt-header-col-week">Week</div>
-                                                        <div className="rpt-header-col-report-type">Report Type</div>
-                                                        <div className="rpt-header-col-status">Status</div>
-                                                        <div className="rpt-header-col-due-date">Due Date</div>
-                                                        <div className="rpt-header-col-actions">Actions</div>
-                                                    </div>
+                                        <div>
+                                            <div className="rpt-sticky-header-wrapper">
+                                                <div className="rpt-list-headers header-row">
+                                                    <div className="rpt-header-col-week">Week</div>
+                                                    <div className="rpt-header-col-report-type">Report Type</div>
+                                                    <div className="rpt-header-col-status">Status</div>
+                                                    <div className="rpt-header-col-due-date">Due Date</div>
+                                                    <div className="rpt-header-col-actions">Actions</div>
                                                 </div>
-                                                <div className="rpt-table-wrapper">
+                                            </div>
+                                            <div className="rpt-table-wrapper">
+                                                {(isLoadingUser || isLoadingMy || isLoadingPermissions) ? (
+                                                    <div className="rpts-loading">
+                                                        <LoadingScreen message="Loading your reports..." inline/>
+                                                    </div>
+                                                ) : (
                                                     <table className="rpt-table rpt-table-accent rpt-table-my-reports">
                                                         <tbody>
                                                         {myPaginatedItems.map((item, index) => {
@@ -797,70 +797,71 @@ function ReportsView() {
                                                         })}
                                                         </tbody>
                                                     </table>
+                                                )}
+                                            </div>
+                                            <div className="rpts-pagination rpts-pagination-animated">
+                                                <div className="rpts-page-size">
+                                                    <label>Show:</label>
+                                                    <select
+                                                        value={myPageSize}
+                                                        onChange={e => {
+                                                            setMyPageSize(Number(e.target.value));
+                                                            setMyCurrentPage(1);
+                                                        }}
+                                                    >
+                                                        <option value={10}>10</option>
+                                                        <option value={25}>25</option>
+                                                        <option value={50}>50</option>
+                                                    </select>
                                                 </div>
-                                                <div className="rpts-pagination rpts-pagination-animated">
-                                                    <div className="rpts-page-size">
-                                                        <label>Show:</label>
-                                                        <select
-                                                            value={myPageSize}
-                                                            onChange={e => {
-                                                                setMyPageSize(Number(e.target.value));
-                                                                setMyCurrentPage(1);
-                                                            }}
-                                                        >
-                                                            <option value={10}>10</option>
-                                                            <option value={25}>25</option>
-                                                            <option value={50}>50</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="rpts-page-controls">
-                                                        <button
-                                                            onClick={() => setMyCurrentPage(Math.max(1, myCurrentPage - 1))}
-                                                            disabled={myCurrentPage === 1}
-                                                        >
-                                                            Previous
-                                                        </button>
-                                                        <span>Page {myCurrentPage} of {myTotalPages}</span>
-                                                        <button
-                                                            onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))}
-                                                            disabled={myCurrentPage === myTotalPages}
-                                                        >
-                                                            Next
-                                                        </button>
-                                                    </div>
+                                                <div className="rpts-page-controls">
+                                                    <button
+                                                        onClick={() => setMyCurrentPage(Math.max(1, myCurrentPage - 1))}
+                                                        disabled={myCurrentPage === 1}
+                                                    >
+                                                        Previous
+                                                    </button>
+                                                    <span>Page {myCurrentPage} of {myTotalPages}</span>
+                                                    <button
+                                                        onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))}
+                                                        disabled={myCurrentPage === myTotalPages}
+                                                    >
+                                                        Next
+                                                    </button>
                                                 </div>
                                             </div>
-                                        )
+                                        </div>
+
                                     )}
                                 </div>
                             )}
                             {tab === 'review' && (
                                 <div className="rpts-list">
-                                    {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || (isLoadingReview && visibleReviewReports.length === 0)) ? (
-                                        <div className="rpts-loading">
-                                            <LoadingScreen message="Loading reports to review..." inline/>
+                                    {visibleReviewReports.length === 0 && !(isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview) ? (
+                                        <div className="rpts-empty">
+                                            <i className="fas fa-user-check"></i>
+                                            <div>No reports to review</div>
                                         </div>
                                     ) : (
-                                        visibleReviewReports.length === 0 ? (
-                                            <div className="rpts-empty">
-                                                <i className="fas fa-user-check"></i>
-                                                <div>No reports to review</div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <div className="rpt-sticky-header-wrapper">
-                                                    <div className="rpt-list-headers header-row">
-                                                        <div className="rpt-header-col-week-review">Week</div>
-                                                        <div className="rpt-header-col-report-type-review">Report Type
-                                                        </div>
-                                                        <div className="rpt-header-col-submitted-by">Submitted By</div>
-                                                        <div className="rpt-header-col-submitted-date">Submitted Date
-                                                        </div>
-                                                        <div className="rpt-header-col-reviewed">Reviewed</div>
-                                                        <div className="rpt-header-col-actions-review">Actions</div>
+                                        <div>
+                                            <div className="rpt-sticky-header-wrapper">
+                                                <div className="rpt-list-headers header-row">
+                                                    <div className="rpt-header-col-week-review">Week</div>
+                                                    <div className="rpt-header-col-report-type-review">Report Type
                                                     </div>
+                                                    <div className="rpt-header-col-submitted-by">Submitted By</div>
+                                                    <div className="rpt-header-col-submitted-date">Submitted Date
+                                                    </div>
+                                                    <div className="rpt-header-col-reviewed">Reviewed</div>
+                                                    <div className="rpt-header-col-actions-review">Actions</div>
                                                 </div>
-                                                <div className="rpt-table-wrapper">
+                                            </div>
+                                            <div className="rpt-table-wrapper">
+                                                {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview) ? (
+                                                    <div className="rpts-loading">
+                                                        <LoadingScreen message="Loading reports to review..." inline/>
+                                                    </div>
+                                                ) : (
                                                     <table className="rpt-table rpt-table-accent rpt-table-review">
                                                         <tbody>
                                                         {reviewPaginatedItems.map((report, index) => {
@@ -912,40 +913,41 @@ function ReportsView() {
                                                         })}
                                                         </tbody>
                                                     </table>
+                                                )}
+                                            </div>
+                                            <div className="rpts-pagination rpts-pagination-animated">
+                                                <div className="rpts-page-size">
+                                                    <label>Show:</label>
+                                                    <select
+                                                        value={reviewPageSize}
+                                                        onChange={e => {
+                                                            setReviewPageSize(Number(e.target.value));
+                                                            setReviewCurrentPage(1);
+                                                        }}
+                                                    >
+                                                        <option value={10}>10</option>
+                                                        <option value={25}>25</option>
+                                                        <option value={50}>50</option>
+                                                    </select>
                                                 </div>
-                                                <div className="rpts-pagination rpts-pagination-animated">
-                                                    <div className="rpts-page-size">
-                                                        <label>Show:</label>
-                                                        <select
-                                                            value={reviewPageSize}
-                                                            onChange={e => {
-                                                                setReviewPageSize(Number(e.target.value));
-                                                                setReviewCurrentPage(1);
-                                                            }}
-                                                        >
-                                                            <option value={10}>10</option>
-                                                            <option value={25}>25</option>
-                                                            <option value={50}>50</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="rpts-page-controls">
-                                                        <button
-                                                            onClick={() => setReviewCurrentPage(Math.max(1, reviewCurrentPage - 1))}
-                                                            disabled={reviewCurrentPage === 1}
-                                                        >
-                                                            Previous
-                                                        </button>
-                                                        <span>Page {reviewCurrentPage} of {reviewTotalPages}</span>
-                                                        <button
-                                                            onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))}
-                                                            disabled={reviewCurrentPage === reviewTotalPages}
-                                                        >
-                                                            Next
-                                                        </button>
-                                                    </div>
+                                                <div className="rpts-page-controls">
+                                                    <button
+                                                        onClick={() => setReviewCurrentPage(Math.max(1, reviewCurrentPage - 1))}
+                                                        disabled={reviewCurrentPage === 1}
+                                                    >
+                                                        Previous
+                                                    </button>
+                                                    <span>Page {reviewCurrentPage} of {reviewTotalPages}</span>
+                                                    <button
+                                                        onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))}
+                                                        disabled={reviewCurrentPage === reviewTotalPages}
+                                                    >
+                                                        Next
+                                                    </button>
                                                 </div>
                                             </div>
-                                        )
+                                        </div>
+
                                     )}
                                 </div>
                             )}

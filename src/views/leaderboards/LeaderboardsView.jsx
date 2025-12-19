@@ -319,8 +319,12 @@ export default function LeaderboardsView() {
             <div className="leaderboards-content">
                 <div className="leaderboard-main">
                     <div className="leaderboard-header">
-                        <h2>{loading ? <div className="skeleton-line w40" style={{height: '24px'}}/> : LeaderboardsUtility.getCategoryTitle(selectedCategory)}</h2>
-                        <span className="results-count">{loading ? <div className="skeleton-line" style={{width: '60px', height: '14px'}}/> : `${categoryData.length} plants`}</span>
+                        <h2>{loading ? <div className="skeleton-line w40"
+                                            style={{height: '24px'}}/> : LeaderboardsUtility.getCategoryTitle(selectedCategory)}</h2>
+                        <span className="results-count">{loading ? <div className="skeleton-line" style={{
+                            width: '60px',
+                            height: '14px'
+                        }}/> : `${categoryData.length} plants`}</span>
                     </div>
 
                     {selectedCategory === 'efficiency' && !loading && (
