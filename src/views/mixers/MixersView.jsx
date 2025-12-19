@@ -192,7 +192,11 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     handleRealtimeUpdate(eventType, data)
                 }
             )
-            .subscribe()
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Realtime subscription error')
+                }
+            })
 
         return () => {
             supabase.removeChannel(channel)

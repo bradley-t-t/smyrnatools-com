@@ -17,20 +17,24 @@ function PodcastPopup() {
     const fetchLatestEpisode = async () => {
         try {
             const proxyUrls = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
-                `https://corsproxy.io/?${encodeURIComponent(RSS_URL)}`
+                `https://corsproxy.io/?${encodeURIComponent(RSS_URL)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(RSS_URL)}`,
+                `https://cors-anywhere.herokuapp.com/${RSS_URL}`
             ]
 
             let text = null
             for (const url of proxyUrls) {
                 try {
-                    const response = await fetch(url)
+                    const response = await fetch(url, {
+                        headers: {
+                            'Accept': 'application/rss+xml, application/xml, text/xml'
+                        }
+                    })
                     if (response.ok) {
                         text = await response.text()
                         if (text && text.includes('<item>')) break
                     }
-                } catch (e) {
-                    // try next proxy
+                } catch {
                 }
             }
 

@@ -3,7 +3,13 @@ import APIUtility from '../utils/APIUtility'
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    realtime: {
+        params: {
+            eventsPerSecond: 10
+        }
+    }
+})
 
 export default supabase
 export {supabase}

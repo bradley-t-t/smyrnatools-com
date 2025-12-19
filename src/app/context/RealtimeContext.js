@@ -3,7 +3,7 @@ import {supabase} from '../../services/DatabaseService'
 
 const RealtimeContext = createContext(null)
 
-const ASSET_TABLES = ['mixers', 'tractors', 'trailers', 'equipment', 'pickup_trucks', 'operators']
+const ASSET_TABLES = ['mixers', 'tractors', 'trailers', 'heavy_equipment', 'pickup_trucks', 'operators']
 
 export function RealtimeProvider({children}) {
     const listenersRef = useRef(new Map())
