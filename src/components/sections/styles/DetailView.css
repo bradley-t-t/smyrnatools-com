@@ -333,6 +333,8 @@
     justify-content: flex-end;
     align-items: center;
     margin-top: 24px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
     gap: 12px;
 }
 
