@@ -19,7 +19,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
-import VideoBackground from '../../components/common/VideoBackground'
+import {supabase} from '../../services/DatabaseService'
 
 function OperatorsView({
                            title = 'Operator Roster',
