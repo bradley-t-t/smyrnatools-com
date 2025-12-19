@@ -17,7 +17,6 @@ import MyAccountPage from './views/account/MyAccountPage';
 import VerifyEmailPage from './views/auth/VerifyEmailPage';
 import {PreferencesProvider} from './context/PreferencesContext';
 import {AccountProvider} from './context/AccountContext';
-import {RealtimeProvider} from './context/RealtimeContext';
 import ListView from '../views/list/ListView';
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView';
 import LockedOverlay from '../components/common/LockedOverlay';

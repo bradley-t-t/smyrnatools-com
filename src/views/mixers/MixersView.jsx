@@ -26,7 +26,7 @@ import ThemeUtility from '../../utils/ThemeUtility'
 import {ValidationUtility} from '../../utils/ValidationUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
 import RecapModalSection from '../../components/sections/RecapModalSection'
-import {useAssetRealtimeUpdates} from '../../hooks/useAssetRealtimeUpdates'
+import {supabase} from '../../services/DatabaseService'
 
 function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
     const {
@@ -180,10 +180,24 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
         }
     }, [regionPlantCodes])
 
-    useAssetRealtimeUpdates('mixers', {
-        onAnyChange: handleRealtimeUpdate,
-        enabled: true
-    })
+    useEffect(() => {
+        const channel = supabase
+            .channel('mixers-realtime-changes')
+            .on(
+                'postgres_changes',
+                {event: '*', schema: 'public', table: 'mixers'},
+                (payload) => {
+                    const eventType = payload.eventType
+                    const data = {new: payload.new, old: payload.old}
+                    handleRealtimeUpdate(eventType, data)
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [handleRealtimeUpdate])
 
     useEffect(() => {
         async function fetchAllData() {
