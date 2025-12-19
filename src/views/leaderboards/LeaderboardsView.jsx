@@ -8,7 +8,6 @@ import {EquipmentService} from '../../services/EquipmentService'
 import {OperatorService} from '../../services/OperatorService'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
-import LoadingScreen from '../../components/common/LoadingScreen'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import VideoBackground from '../../components/common/VideoBackground'
 
@@ -250,8 +249,25 @@ export default function LeaderboardsView() {
         }
     }
 
-    if (loading) {
-        return <LoadingScreen message="Loading leaderboard data..." fullPage={true}/>
+    const renderSkeletonItems = () => {
+        return Array.from({length: 8}).map((_, index) => (
+            <div key={`skeleton-${index}`} className="leaderboard-item skeleton-card">
+                <div className="rank-badge">
+                    <div className="skeleton-line" style={{width: '24px', height: '24px', borderRadius: '50%'}}/>
+                </div>
+                <div className="plant-info">
+                    <div className="skeleton-line w40" style={{marginBottom: '6px'}}/>
+                    <div className="skeleton-line w60"/>
+                </div>
+                <div className="metric-value">
+                    <div className="skeleton-line" style={{width: '80px', height: '28px'}}/>
+                </div>
+                <div className="plant-stats">
+                    <div className="skeleton-line w60" style={{marginBottom: '4px'}}/>
+                    <div className="skeleton-line w40"/>
+                </div>
+            </div>
+        ))
     }
 
     return (
@@ -303,11 +319,11 @@ export default function LeaderboardsView() {
             <div className="leaderboards-content">
                 <div className="leaderboard-main">
                     <div className="leaderboard-header">
-                        <h2>{LeaderboardsUtility.getCategoryTitle(selectedCategory)}</h2>
-                        <span className="results-count">{categoryData.length} plants</span>
+                        <h2>{loading ? <div className="skeleton-line w40" style={{height: '24px'}}/> : LeaderboardsUtility.getCategoryTitle(selectedCategory)}</h2>
+                        <span className="results-count">{loading ? <div className="skeleton-line" style={{width: '60px', height: '14px'}}/> : `${categoryData.length} plants`}</span>
                     </div>
 
-                    {selectedCategory === 'efficiency' && (
+                    {selectedCategory === 'efficiency' && !loading && (
                         <div className="efficiency-calculation-info">
                             <div className="info-header">
                                 <i className="fas fa-calculator"></i>
@@ -395,7 +411,11 @@ export default function LeaderboardsView() {
                         </div>
                     )}
 
-                    {categoryData.length === 0 ? (
+                    {loading ? (
+                        <div className="leaderboard-list">
+                            {renderSkeletonItems()}
+                        </div>
+                    ) : categoryData.length === 0 ? (
                         <div className="leaderboard-empty">
                             <i className="fas fa-inbox"></i>
                             <p>No data available</p>

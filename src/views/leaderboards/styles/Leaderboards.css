@@ -7,6 +7,50 @@
     max-width: 100vw;
 }
 
+.skeleton-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-card:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, .04) 40%, rgba(255, 255, 255, .08) 60%, transparent 100%);
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.skeleton-line {
+    height: 14px;
+    background: var(--badge-bg);
+    border-radius: 6px;
+}
+
+.skeleton-line.tall {
+    height: 28px;
+}
+
+.w30 {
+    width: 30%;
+}
+
+.w40 {
+    width: 40%;
+}
+
+.w60 {
+    width: 60%;
+}
+
 .leaderboards-header {
     position: fixed;
     top: 30px;
