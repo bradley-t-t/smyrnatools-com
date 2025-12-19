@@ -95,6 +95,8 @@ function OperatorsView({
                             position: newData.position ?? null,
                             phone: newData.phone ?? null,
                             pendingStartDate: newData.pending_start_date ?? null,
+                            rating: newData.rating ?? 0,
+                            automaticRestriction: newData.automatic_restriction ?? false,
                             createdAt: newData.created_at ?? new Date().toISOString(),
                             updatedAt: newData.updated_at ?? new Date().toISOString()
                         }]
@@ -120,6 +122,8 @@ function OperatorsView({
                                 position: updatedData.position ?? operator.position,
                                 phone: updatedData.phone ?? operator.phone,
                                 pendingStartDate: updatedData.pending_start_date ?? operator.pendingStartDate,
+                                rating: updatedData.rating ?? operator.rating,
+                                automaticRestriction: updatedData.automatic_restriction ?? operator.automaticRestriction,
                                 updatedAt: updatedData.updated_at ?? operator.updatedAt
                             }
                         }
