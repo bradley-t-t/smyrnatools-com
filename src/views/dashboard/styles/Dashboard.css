@@ -402,7 +402,7 @@ html.blue-dark-mode .dashboard-video-background {
     font-size: 14px;
     font-weight: 700;
     letter-spacing: .05em;
-    color: #ffffff;
+    color: var(--text-primary);
     padding-left: 4px;
     position: relative
 }

@@ -141,7 +141,7 @@
     gap: 0.625rem;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--accent);
     flex: 1
 }
 
