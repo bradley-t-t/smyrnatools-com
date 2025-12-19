@@ -24,7 +24,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
-import VideoBackground from '../../components/common/VideoBackground'
+import {supabase} from '../../services/DatabaseService'
 
 function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView}) {
     const {
@@ -92,6 +92,124 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
         assignedOperatorField: 'assignedOperator',
         assignedPlantField: 'assignedPlant'
     }), [operators, tractors, selectedPlant, searchText, regionPlantCodes])
+
+    const attachIsVerified = useCallback((obj) => {
+        if (!obj) return obj
+        obj.isVerified = function(latestHistoryDate) {
+            return TractorUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
+        }
+        return obj
+    }, [])
+
+    const handleRealtimeUpdate = useCallback((eventType, data) => {
+        if (eventType === 'UPDATE' && data.new) {
+            const updatedData = data.new
+            setTractors(prev => prev.map(tractor => {
+                if (tractor.id === updatedData.id) {
+                    const updated = {
+                        ...tractor,
+                        truckNumber: updatedData.truck_number ?? tractor.truckNumber,
+                        assignedPlant: updatedData.assigned_plant ?? tractor.assignedPlant,
+                        assignedOperator: updatedData.assigned_operator ?? tractor.assignedOperator,
+                        lastServiceDate: updatedData.last_service_date ?? tractor.lastServiceDate,
+                        cleanlinessRating: updatedData.cleanliness_rating ?? tractor.cleanlinessRating,
+                        status: updatedData.status ?? tractor.status,
+                        hasBlower: updatedData.has_blower ?? tractor.hasBlower,
+                        updatedAt: updatedData.updated_at ?? tractor.updatedAt,
+                        updatedLast: updatedData.updated_last ?? tractor.updatedLast,
+                        updatedBy: updatedData.updated_by ?? tractor.updatedBy,
+                        vin: updatedData.vin ?? tractor.vin,
+                        make: updatedData.make ?? tractor.make,
+                        model: updatedData.model ?? tractor.model,
+                        year: updatedData.year ?? tractor.year,
+                        freight: updatedData.freight ?? tractor.freight
+                    }
+                    return attachIsVerified(updated)
+                }
+                return tractor
+            }))
+            setAllTractors(prev => prev.map(tractor => {
+                if (tractor.id === updatedData.id) {
+                    const updated = {
+                        ...tractor,
+                        truckNumber: updatedData.truck_number ?? tractor.truckNumber,
+                        assignedPlant: updatedData.assigned_plant ?? tractor.assignedPlant,
+                        assignedOperator: updatedData.assigned_operator ?? tractor.assignedOperator,
+                        lastServiceDate: updatedData.last_service_date ?? tractor.lastServiceDate,
+                        cleanlinessRating: updatedData.cleanliness_rating ?? tractor.cleanlinessRating,
+                        status: updatedData.status ?? tractor.status,
+                        hasBlower: updatedData.has_blower ?? tractor.hasBlower,
+                        updatedAt: updatedData.updated_at ?? tractor.updatedAt,
+                        updatedLast: updatedData.updated_last ?? tractor.updatedLast,
+                        updatedBy: updatedData.updated_by ?? tractor.updatedBy,
+                        vin: updatedData.vin ?? tractor.vin,
+                        make: updatedData.make ?? tractor.make,
+                        model: updatedData.model ?? tractor.model,
+                        year: updatedData.year ?? tractor.year,
+                        freight: updatedData.freight ?? tractor.freight
+                    }
+                    return attachIsVerified(updated)
+                }
+                return tractor
+            }))
+        } else if (eventType === 'INSERT' && data.new) {
+            const newData = data.new
+            if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
+            const newTractor = attachIsVerified({
+                id: newData.id,
+                truckNumber: newData.truck_number ?? '',
+                assignedPlant: newData.assigned_plant ?? '',
+                assignedOperator: newData.assigned_operator ?? '',
+                lastServiceDate: newData.last_service_date ?? null,
+                cleanlinessRating: newData.cleanliness_rating ?? 0,
+                status: newData.status ?? 'Active',
+                hasBlower: newData.has_blower ?? false,
+                createdAt: newData.created_at ?? new Date().toISOString(),
+                updatedAt: newData.updated_at ?? new Date().toISOString(),
+                updatedLast: newData.updated_last ?? new Date().toISOString(),
+                updatedBy: newData.updated_by ?? null,
+                vin: newData.vin ?? '',
+                make: newData.make ?? '',
+                model: newData.model ?? '',
+                year: newData.year ?? '',
+                freight: newData.freight ?? ''
+            })
+            setTractors(prev => {
+                if (prev.some(t => t.id === newData.id)) return prev
+                return [...prev, newTractor]
+            })
+            setAllTractors(prev => {
+                if (prev.some(t => t.id === newData.id)) return prev
+                return [...prev, newTractor]
+            })
+        } else if (eventType === 'DELETE' && data.old) {
+            setTractors(prev => prev.filter(tractor => tractor.id !== data.old.id))
+            setAllTractors(prev => prev.filter(tractor => tractor.id !== data.old.id))
+        }
+    }, [regionPlantCodes, attachIsVerified])
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('tractors-realtime-changes')
+            .on(
+                'postgres_changes',
+                {event: '*', schema: 'public', table: 'tractors'},
+                (payload) => {
+                    const eventType = payload.eventType
+                    const data = {new: payload.new, old: payload.old}
+                    handleRealtimeUpdate(eventType, data)
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Tractors realtime subscription error')
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [handleRealtimeUpdate])
 
     useEffect(() => {
         async function fetchAllData() {
