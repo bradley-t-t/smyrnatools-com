@@ -22,7 +22,7 @@ import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from "../../utils/ThemeUtility";
-import VideoBackground from '../../components/common/VideoBackground'
+import {supabase} from '../../services/DatabaseService'
 
 function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
     const {preferences, saveLastViewedFilters, updateTrailerFilter, updatePreferences} = usePreferences()
@@ -64,6 +64,92 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
         'More': null
     }
     const headerRef = useRef(null)
+
+    const attachIsVerified = useCallback((obj) => {
+        if (!obj) return obj
+        obj.isVerified = function(latestHistoryDate = null) {
+            if (!this.updatedLast || !this.updatedBy) return false
+            const lastVerification = new Date(this.updatedLast)
+            const lastUpdate = new Date(this.updatedAt)
+            const lastHistory = latestHistoryDate ? new Date(latestHistoryDate) : null
+            const now = new Date()
+            const lastSunday = new Date(now)
+            lastSunday.setDate(now.getDate() - now.getDay())
+            lastSunday.setHours(0, 0, 0, 0)
+            if (lastHistory && lastHistory > lastVerification) return false
+            return lastUpdate <= lastVerification && lastVerification >= lastSunday
+        }
+        return obj
+    }, [])
+
+    const handleRealtimeUpdate = useCallback((eventType, data) => {
+        if (eventType === 'UPDATE' && data.new) {
+            const updatedData = data.new
+            setTrailers(prev => prev.map(trailer => {
+                if (trailer.id === updatedData.id) {
+                    const updated = {
+                        ...trailer,
+                        trailerNumber: updatedData.trailer_number ?? trailer.trailerNumber,
+                        assignedPlant: updatedData.assigned_plant ?? trailer.assignedPlant,
+                        trailerType: updatedData.trailer_type ?? trailer.trailerType,
+                        assignedTractor: updatedData.assigned_tractor ?? trailer.assignedTractor,
+                        cleanlinessRating: updatedData.cleanliness_rating ?? trailer.cleanlinessRating,
+                        status: updatedData.status ?? trailer.status,
+                        updatedAt: updatedData.updated_at ?? trailer.updatedAt,
+                        updatedLast: updatedData.updated_last ?? trailer.updatedLast,
+                        updatedBy: updatedData.updated_by ?? trailer.updatedBy
+                    }
+                    return attachIsVerified(updated)
+                }
+                return trailer
+            }))
+        } else if (eventType === 'INSERT' && data.new) {
+            const newData = data.new
+            if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
+            const newTrailer = attachIsVerified({
+                id: newData.id,
+                trailerNumber: newData.trailer_number ?? '',
+                assignedPlant: newData.assigned_plant ?? '',
+                trailerType: newData.trailer_type ?? 'Cement',
+                assignedTractor: newData.assigned_tractor ?? null,
+                cleanlinessRating: newData.cleanliness_rating ?? 1,
+                status: newData.status ?? 'Active',
+                createdAt: newData.created_at ?? new Date().toISOString(),
+                updatedAt: newData.updated_at ?? new Date().toISOString(),
+                updatedLast: newData.updated_last ?? null,
+                updatedBy: newData.updated_by ?? null
+            })
+            setTrailers(prev => {
+                if (prev.some(t => t.id === newData.id)) return prev
+                return [...prev, newTrailer]
+            })
+        } else if (eventType === 'DELETE' && data.old) {
+            setTrailers(prev => prev.filter(trailer => trailer.id !== data.old.id))
+        }
+    }, [regionPlantCodes, attachIsVerified])
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('trailers-realtime-changes')
+            .on(
+                'postgres_changes',
+                {event: '*', schema: 'public', table: 'trailers'},
+                (payload) => {
+                    const eventType = payload.eventType
+                    const data = {new: payload.new, old: payload.old}
+                    handleRealtimeUpdate(eventType, data)
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Trailers realtime subscription error')
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [handleRealtimeUpdate])
 
     useEffect(() => {
         async function fetchAllData() {
