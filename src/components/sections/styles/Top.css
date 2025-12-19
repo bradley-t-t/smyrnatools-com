@@ -55,7 +55,7 @@
     font-size: 28px;
     font-weight: 700;
     line-height: 1.15;
-    color: var(--text-primary)
+    color: var(--text-light)
 }
 
 @keyframes subtle-bob {
@@ -360,8 +360,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    border: 1px solid var(--divider);
-    border-bottom: none;
+    border: none;
     border-top-left-radius: 14px;
     border-top-right-radius: 14px;
     padding: 0;
