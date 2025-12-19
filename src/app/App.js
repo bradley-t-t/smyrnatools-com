@@ -360,7 +360,7 @@ function AppContent() {
     useEffect(() => {
         const initSession = async () => {
             const {AuthService} = await import('../services/AuthService')
-            
+
             if (AuthService.hasStoredSession()) {
                 const restored = await AuthService.restoreSession()
                 if (restored && AuthService.currentUser?.userId) {
@@ -368,7 +368,7 @@ function AppContent() {
                 }
             }
         }
-        
+
         initSession()
 
         const handleAuthSuccess = (event) => {

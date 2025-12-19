@@ -14,65 +14,6 @@
     font-size: 16px;
 }
 
-.regions-list-table-container {
-    width: 100%;
-    margin: 0 auto;
-    padding: 0;
-}
-
-.regions-list-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    font-size: 15px;
-    table-layout: fixed;
-}
-
-.regions-list-table th,
-.regions-list-table td {
-    padding: 13px 18px;
-    text-align: left;
-    border-bottom: 1px solid var(--divider);
-}
-
-.regions-list-table th {
-    background: var(--background);
-    color: var(--primary);
-    font-weight: 700;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    letter-spacing: 0.01em;
-    font-size: 1rem;
-}
-
-.regions-list-table tr:last-child td {
-    border-bottom: none;
-}
-
-.regions-list-table tbody tr {
-    transition: background 0.15s;
-    background: transparent;
-}
-
-.regions-list-table tbody tr:nth-child(even) {
-    background: var(--background);
-}
-
-.regions-list-table tbody tr:hover {
-    background: var(--divider);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.regions-list-table td {
-    color: var(--text-primary);
-    font-size: 0.98rem;
-    vertical-align: middle;
-}
-
 .add-region-modal-backdrop {
     position: fixed;
     top: 0;

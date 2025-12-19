@@ -421,186 +421,186 @@ function OperatorsView({
                             setShowDetailView(false);
                             fetchOperators()
                         }}
-                    onScheduledOffSaved={reloadAll}
-                    allowedPlantCodes={regionPlantCodes}
-                />
-            )}
-            {!showDetailView && (
-                <>
-                    <TopSection
-                        title={title}
-                        flushTop={true}
-                        showCoverOverlay={true}
-                        forwardedRef={headerRef}
-                        addButtonLabel="Add Operator"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchText}
-                        onSearchInputChange={value => {
-                            setSearchText(value);
-                            updateOperatorFilter('searchText', value)
-                        }}
-                        onClearSearch={() => {
-                            setSearchText('');
-                            updateOperatorFilter('searchText', '')
-                        }}
-                        searchPlaceholder="Search by name or ID..."
-                        viewMode={viewMode}
-                        onViewModeChange={handleViewModeChange}
-                        plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
-                        regionPlantCodes={regionPlantCodes}
-                        selectedPlant={selectedPlant}
-                        onSelectedPlantChange={value => {
-                            setSelectedPlant(value);
-                            updateOperatorFilter('selectedPlant', value)
-                        }}
-                        statusFilter={statusFilter}
-                        statusOptions={filterOptions}
-                        onStatusFilterChange={value => {
-                            setStatusFilter(value);
-                            updateOperatorFilter('statusFilter', value)
-                        }}
-                        positionFilter={positionFilter}
-                        positionOptions={positionOptions}
-                        onPositionFilterChange={value => {
-                            setPositionFilter(value);
-                            updateOperatorFilter('positionFilter', value)
-                        }}
-                        showReset={showReset}
-                        onReset={handleResetFilters}
-                        listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
-                        colWidths={['10%', '24%', '14%', '14%', '12%', '14%', '12%']}
-                        sticky={true}
-                        hidePlantFilter={plants.length === 0}
-                        onHeaderClick={handleHeaderClick}
-                        sortKey={sortKey}
-                        sortDirection={sortDirection}
+                        onScheduledOffSaved={reloadAll}
+                        allowedPlantCodes={regionPlantCodes}
                     />
-                    <div className="global-content-container content-container">
-                        {isLoading ? (
-                            <div className="global-loading-container loading-container"><LoadingScreen
-                                message="Loading operators..." inline={true}/></div>
-                        ) : filteredOperators.length === 0 ? (
-                            <div className="global-no-results-container no-results-container">
-                                <div className="no-results-icon"><i className="fas fa-user-hard-hat"></i></div>
-                                <h3>No Operators Found</h3>
-                                <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || positionFilter ? 'No operators match your search criteria.' : 'There are no operators in the system yet.'}</p>
-                                <button className="global-primary-button primary-button"
-                                        onClick={() => setShowAddSheet(true)}>Add Operator
-                                </button>
-                            </div>
-                        ) : viewMode === 'grid' ? (
-                            <GridViewModeSection
-                                filteredItems={filteredOperators}
-                                handleSelectItem={handleSelectOperator}
-                                cardComponent={OperatorCard}
-                                itemPropName="operator"
-                                gridClassName="grid"
-                                getCardProps={(operator) => {
-                                    const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
-                                    const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
-                                    return {
-                                        trainerName: trainerObj ? trainerObj.name : '',
-                                        isDuplicateName: duplicate
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <ListViewModeSection
-                                filteredItems={filteredOperators}
-                                handleSelectItem={handleSelectOperator}
-                                headerLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
-                                colWidths={['10%', '24%', '14%', '14%', '12%', '14%', '12%']}
-                                renderRow={(operator, handleSelect) => {
-                                    const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
-                                    const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
-                                    return (
-                                        <tr key={operator.employeeId} onClick={() => handleSelect(operator)}
-                                            style={{cursor: 'pointer'}}>
-                                            <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
-                                            <td style={{width: '24%'}}><span
-                                                className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
-                                            </td>
-                                            <td style={{width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
-                                            <td style={{width: '14%'}}>{operator.status || '\u2014'}</td>
-                                            <td style={{width: '12%'}}>{renderStarsOrNA(operator)}</td>
-                                            <td style={{width: '14%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
-                                            <td style={{width: '12%'}}>
-                                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                                                    <button onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setModalOperatorId(operator.employeeId);
-                                                        setModalOperatorName(operator.name);
-                                                        setShowCommentModal(true);
-                                                    }} title="View comments" style={{
-                                                        background: 'transparent',
-                                                        border: 'none',
-                                                        padding: 0,
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        cursor: 'pointer'
-                                                    }}>
-                                                        <i className="fas fa-comments" style={{
-                                                            color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                                            marginRight: 4
-                                                        }}></i>
-                                                        <span>{operator.commentsCount || 0}</span>
-                                                    </button>
-                                                    <button onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedOperatorForHistory(operator);
-                                                        setShowHistoryModal(true);
-                                                    }} title="View history" style={{
-                                                        background: 'transparent',
-                                                        border: 'none',
-                                                        padding: 0,
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        cursor: 'pointer'
-                                                    }}>
-                                                        <i className="fas fa-history" style={{
-                                                            color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                                            marginRight: 4
-                                                        }}></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )
-                                }}
-                                containerClassName="list-table-container"
-                                tableClassName="list-table"
+                )}
+                {!showDetailView && (
+                    <>
+                        <TopSection
+                            title={title}
+                            flushTop={true}
+                            showCoverOverlay={true}
+                            forwardedRef={headerRef}
+                            addButtonLabel="Add Operator"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchText}
+                            onSearchInputChange={value => {
+                                setSearchText(value);
+                                updateOperatorFilter('searchText', value)
+                            }}
+                            onClearSearch={() => {
+                                setSearchText('');
+                                updateOperatorFilter('searchText', '')
+                            }}
+                            searchPlaceholder="Search by name or ID..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants.map(p => ({plantCode: p.plantCode, plantName: p.plantName}))}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={value => {
+                                setSelectedPlant(value);
+                                updateOperatorFilter('selectedPlant', value)
+                            }}
+                            statusFilter={statusFilter}
+                            statusOptions={filterOptions}
+                            onStatusFilterChange={value => {
+                                setStatusFilter(value);
+                                updateOperatorFilter('statusFilter', value)
+                            }}
+                            positionFilter={positionFilter}
+                            positionOptions={positionOptions}
+                            onPositionFilterChange={value => {
+                                setPositionFilter(value);
+                                updateOperatorFilter('positionFilter', value)
+                            }}
+                            showReset={showReset}
+                            onReset={handleResetFilters}
+                            listLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
+                            colWidths={['10%', '24%', '14%', '14%', '12%', '14%', '12%']}
+                            sticky={true}
+                            hidePlantFilter={plants.length === 0}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
+                        />
+                        <div className="global-content-container content-container">
+                            {isLoading ? (
+                                <div className="global-loading-container loading-container"><LoadingScreen
+                                    message="Loading operators..." inline={true}/></div>
+                            ) : filteredOperators.length === 0 ? (
+                                <div className="global-no-results-container no-results-container">
+                                    <div className="no-results-icon"><i className="fas fa-user-hard-hat"></i></div>
+                                    <h3>No Operators Found</h3>
+                                    <p>{searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || positionFilter ? 'No operators match your search criteria.' : 'There are no operators in the system yet.'}</p>
+                                    <button className="global-primary-button primary-button"
+                                            onClick={() => setShowAddSheet(true)}>Add Operator
+                                    </button>
+                                </div>
+                            ) : viewMode === 'grid' ? (
+                                <GridViewModeSection
+                                    filteredItems={filteredOperators}
+                                    handleSelectItem={handleSelectOperator}
+                                    cardComponent={OperatorCard}
+                                    itemPropName="operator"
+                                    gridClassName="grid"
+                                    getCardProps={(operator) => {
+                                        const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
+                                        const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
+                                        return {
+                                            trainerName: trainerObj ? trainerObj.name : '',
+                                            isDuplicateName: duplicate
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <ListViewModeSection
+                                    filteredItems={filteredOperators}
+                                    handleSelectItem={handleSelectOperator}
+                                    headerLabels={['Plant', 'Name', 'Phone', 'Status', 'Rating', 'Trainer', 'More']}
+                                    colWidths={['10%', '24%', '14%', '14%', '12%', '14%', '12%']}
+                                    renderRow={(operator, handleSelect) => {
+                                        const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
+                                        const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
+                                        return (
+                                            <tr key={operator.employeeId} onClick={() => handleSelect(operator)}
+                                                style={{cursor: 'pointer'}}>
+                                                <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
+                                                <td style={{width: '24%'}}><span
+                                                    className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
+                                                </td>
+                                                <td style={{width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
+                                                <td style={{width: '14%'}}>{operator.status || '\u2014'}</td>
+                                                <td style={{width: '12%'}}>{renderStarsOrNA(operator)}</td>
+                                                <td style={{width: '14%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                                <td style={{width: '12%'}}>
+                                                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                                                        <button onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setModalOperatorId(operator.employeeId);
+                                                            setModalOperatorName(operator.name);
+                                                            setShowCommentModal(true);
+                                                        }} title="View comments" style={{
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            padding: 0,
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            cursor: 'pointer'
+                                                        }}>
+                                                            <i className="fas fa-comments" style={{
+                                                                color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                                                marginRight: 4
+                                                            }}></i>
+                                                            <span>{operator.commentsCount || 0}</span>
+                                                        </button>
+                                                        <button onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedOperatorForHistory(operator);
+                                                            setShowHistoryModal(true);
+                                                        }} title="View history" style={{
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            padding: 0,
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            cursor: 'pointer'
+                                                        }}>
+                                                            <i className="fas fa-history" style={{
+                                                                color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
+                                                                marginRight: 4
+                                                            }}></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    }}
+                                    containerClassName="list-table-container"
+                                    tableClassName="list-table"
+                                />
+                            )}
+                        </div>
+                        {showAddSheet && (
+                            <OperatorAddView
+                                onClose={() => setShowAddSheet(false)}
+                                onOperatorAdded={() => fetchOperators()}
+                                trainers={trainers}
+                                plants={plants}
+                                operators={operators}
+                                allowedPlantCodes={regionPlantCodes}
                             />
                         )}
-                    </div>
-                    {showAddSheet && (
-                        <OperatorAddView
-                            onClose={() => setShowAddSheet(false)}
-                            onOperatorAdded={() => fetchOperators()}
-                            trainers={trainers}
-                            plants={plants}
-                            operators={operators}
-                            allowedPlantCodes={regionPlantCodes}
-                        />
-                    )}
-                    {showHistoryModal && selectedOperatorForHistory && (
-                        <HistoryViewSection
-                            item={selectedOperatorForHistory}
-                            type="operator"
-                            onClose={() => setShowHistoryModal(false)}
-                        />
-                    )}
-                    {showCommentModal && modalOperatorId && (
-                        <OperatorCommentModal
-                            operatorId={modalOperatorId}
-                            operatorName={modalOperatorName}
-                            onClose={() => {
-                                setShowCommentModal(false);
-                                fetchOperators(regionPlantCodes);
-                            }}
-                        />
-                    )}
-                </>
-            )}
+                        {showHistoryModal && selectedOperatorForHistory && (
+                            <HistoryViewSection
+                                item={selectedOperatorForHistory}
+                                type="operator"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                        {showCommentModal && modalOperatorId && (
+                            <OperatorCommentModal
+                                operatorId={modalOperatorId}
+                                operatorName={modalOperatorName}
+                                onClose={() => {
+                                    setShowCommentModal(false);
+                                    fetchOperators(regionPlantCodes);
+                                }}
+                            />
+                        )}
+                    </>
+                )}
             </div>
         </>
     )

@@ -193,7 +193,7 @@ function PlantsView({title = 'Plants'}) {
                                             </tr>
                                         )
                                     }}
-                                containerClassName="list-table-container"
+                                    containerClassName="list-table-container"
                                     tableClassName="list-table"
                                 />
                             )}
@@ -206,8 +206,8 @@ function PlantsView({title = 'Plants'}) {
                         )}
                     </>
                 )}
-                </div>
-            </>
+            </div>
+        </>
     )
 }
 

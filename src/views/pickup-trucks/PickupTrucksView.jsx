@@ -412,8 +412,9 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                             <PickupTruckCommentModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
                                                      onClose={() => setShowCommentModal(false)}
                                                      onSaved={handleCommentSaved}/>}
-                        {showIssueModal && <PickupTruckIssueModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
-                                                                  onClose={() => setShowIssueModal(false)}/>}
+                        {showIssueModal &&
+                            <PickupTruckIssueModal pickupId={modalPickupId} pickupNumber={modalPickupNumber}
+                                                   onClose={() => setShowIssueModal(false)}/>}
                         {showHistoryModal && selectedPickupForHistory && (
                             <HistoryViewSection
                                 item={selectedPickupForHistory}

@@ -618,7 +618,8 @@ function RecapModalSection({
                                                 <i className={`${assetIcon} recap-asset-type-icon`}></i>
                                                 {isTerminated ? (
                                                     <span className="recap-asset-title operator-terminated">
-                                                        <span className="operator-name-strikethrough">{group.name}</span>
+                                                        <span
+                                                            className="operator-name-strikethrough">{group.name}</span>
                                                         <span className="terminated-badge">Terminated</span>
                                                     </span>
                                                 ) : (

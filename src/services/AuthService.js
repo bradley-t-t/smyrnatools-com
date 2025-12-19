@@ -43,7 +43,7 @@ class AuthServiceImpl {
     async _createDbSession(userId) {
         const sessionId = this._generateSessionId()
         const {browser, os, device, userAgent} = this._getBrowserInfo()
-        
+
         try {
             const {error} = await supabase.from('users_sessions').upsert({
                 id: sessionId,
@@ -55,13 +55,13 @@ class AuthServiceImpl {
                 last_active: new Date().toISOString(),
                 created_at: new Date().toISOString()
             }, {onConflict: 'id'})
-            
+
             if (error) {
                 localStorage.setItem(SESSION_KEY, userId)
                 sessionStorage.setItem('userId', userId)
                 return
             }
-            
+
             localStorage.setItem(SESSION_KEY, userId)
             localStorage.setItem(SESSION_ID_KEY, sessionId)
             sessionStorage.setItem('userId', userId)
@@ -74,7 +74,7 @@ class AuthServiceImpl {
     async _validateDbSession() {
         const userId = localStorage.getItem(SESSION_KEY)
         const sessionId = localStorage.getItem(SESSION_ID_KEY)
-        
+
         if (!userId) {
             const sessionUserId = sessionStorage.getItem('userId')
             if (sessionUserId) {
@@ -82,11 +82,11 @@ class AuthServiceImpl {
             }
             return {valid: false, userId: null}
         }
-        
+
         if (!sessionId) {
             return {valid: true, userId}
         }
-        
+
         try {
             const {data, error} = await supabase
                 .from('users_sessions')
@@ -94,26 +94,28 @@ class AuthServiceImpl {
                 .eq('id', sessionId)
                 .eq('user_id', userId)
                 .maybeSingle()
-            
+
             if (error || !data) {
                 return {valid: true, userId}
             }
-            
+
             const lastActive = new Date(data.last_active)
             const thirtyDaysAgo = new Date()
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-            
+
             if (lastActive < thirtyDaysAgo) {
                 this._clearSession()
                 return {valid: false, userId: null}
             }
-            
+
             supabase.from('users_sessions')
                 .update({last_active: new Date().toISOString()})
                 .eq('id', sessionId)
-                .then(() => {})
-                .catch(() => {})
-            
+                .then(() => {
+                })
+                .catch(() => {
+                })
+
             return {valid: true, userId}
         } catch {
             return {valid: true, userId}
@@ -132,7 +134,10 @@ class AuthServiceImpl {
     }
 
     async signIn(email, password) {
-        const {res, json} = await APIUtility.post(`${AUTH_SERVICE_FUNCTION}/sign-in`, {email, password}, {skipAuthCheck: true})
+        const {res, json} = await APIUtility.post(`${AUTH_SERVICE_FUNCTION}/sign-in`, {
+            email,
+            password
+        }, {skipAuthCheck: true})
         if (!res.ok) throw new Error(json.error || 'Sign in failed')
         this.currentUser = {userId: json.userId, email: json.email}
         this.isAuthenticated = true
@@ -232,9 +237,9 @@ class AuthServiceImpl {
         if (this.sessionValidated && this.isAuthenticated) {
             return true
         }
-        
+
         const {valid, userId} = await this._validateDbSession()
-        
+
         if (!valid || !userId) {
             this._clearSession()
             this.isAuthenticated = false
@@ -242,7 +247,7 @@ class AuthServiceImpl {
             this.sessionValidated = true
             return false
         }
-        
+
         this.currentUser = {userId}
         this.isAuthenticated = true
         this.sessionValidated = true

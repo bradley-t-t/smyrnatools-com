@@ -243,133 +243,133 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top list-view${hasBulkPopup ? ' has-bulk-popup' : ''}`}>
                 <>
                     <TopSection
-                    title={title}
-                    addButtonLabel="Add Item"
-                    onAddClick={() => setShowAddSheet(true)}
-                    searchInput={searchInput}
-                    onSearchInputChange={v => {
-                        setSearchInput(v);
-                        setSearchText(v);
-                    }}
-                    onClearSearch={() => {
-                        setSearchInput('');
-                        setSearchText('');
-                    }}
-                    searchPlaceholder="Search by description or comments..."
-                    plants={derivedVisiblePlants.map(p => ({plantCode: p.plant_code, plantName: p.plant_name}))}
-                    regionPlantCodes={regionPlantCodes}
-                    selectedPlant={selectedPlant}
-                    onSelectedPlantChange={v => {
-                        setSelectedPlant(v);
-                    }}
-                    statusFilter={derivedStatusValueForTop}
-                    statusOptions={derivedStatusOptions}
-                    onStatusFilterChange={v => {
-                        const mapped = v === 'All Status' ? '' : v.toLowerCase();
-                        setStatusFilter(mapped);
-                        if (onStatusFilterChange) onStatusFilterChange(mapped)
-                    }}
-                    showReset={derivedShowReset}
-                    onReset={() => {
-                        setSearchText('');
-                        setSearchInput('');
-                        setSelectedPlant('');
-                        setStatusFilter('');
-                    }}
-                    forwardedRef={headerRef}
-                    sticky={true}
-                    viewMode="list"
-                    hideViewModeToggle={true}
-                    listLabels={derivedListHeaderLabels}
-                    colWidths={derivedColWidths}
-                    onHeaderClick={handleHeaderClick}
-                    sortKey={sortKey}
-                    sortDirection={sortDirection}
-                />
-                <div className="global-content-container content-container">
-                    {isLoading ? (
-                        <div className="global-loading-container loading-container"><LoadingScreen
-                            message="Loading list items..." inline={true}/></div>
-                    ) : sortedItems.length === 0 ? (
-                        <div className="global-no-results-container no-results-container">
-                            <div className="no-results-icon"><i className="fas fa-clipboard-list"></i></div>
-                            <h3>{statusFilter === 'completed' ? 'No Completed Items Found' : 'No List Items Found'}</h3>
-                            <p>{searchText || selectedPlant ? 'No items match your search criteria.' : statusFilter === 'completed' ? 'There are no completed items to show.' : 'There are no items in the list yet.'}</p>
-                            <button className="global-primary-button primary-button"
-                                    onClick={() => setShowAddSheet(true)}>Add Item
-                            </button>
+                        title={title}
+                        addButtonLabel="Add Item"
+                        onAddClick={() => setShowAddSheet(true)}
+                        searchInput={searchInput}
+                        onSearchInputChange={v => {
+                            setSearchInput(v);
+                            setSearchText(v);
+                        }}
+                        onClearSearch={() => {
+                            setSearchInput('');
+                            setSearchText('');
+                        }}
+                        searchPlaceholder="Search by description or comments..."
+                        plants={derivedVisiblePlants.map(p => ({plantCode: p.plant_code, plantName: p.plant_name}))}
+                        regionPlantCodes={regionPlantCodes}
+                        selectedPlant={selectedPlant}
+                        onSelectedPlantChange={v => {
+                            setSelectedPlant(v);
+                        }}
+                        statusFilter={derivedStatusValueForTop}
+                        statusOptions={derivedStatusOptions}
+                        onStatusFilterChange={v => {
+                            const mapped = v === 'All Status' ? '' : v.toLowerCase();
+                            setStatusFilter(mapped);
+                            if (onStatusFilterChange) onStatusFilterChange(mapped)
+                        }}
+                        showReset={derivedShowReset}
+                        onReset={() => {
+                            setSearchText('');
+                            setSearchInput('');
+                            setSelectedPlant('');
+                            setStatusFilter('');
+                        }}
+                        forwardedRef={headerRef}
+                        sticky={true}
+                        viewMode="list"
+                        hideViewModeToggle={true}
+                        listLabels={derivedListHeaderLabels}
+                        colWidths={derivedColWidths}
+                        onHeaderClick={handleHeaderClick}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
+                    />
+                    <div className="global-content-container content-container">
+                        {isLoading ? (
+                            <div className="global-loading-container loading-container"><LoadingScreen
+                                message="Loading list items..." inline={true}/></div>
+                        ) : sortedItems.length === 0 ? (
+                            <div className="global-no-results-container no-results-container">
+                                <div className="no-results-icon"><i className="fas fa-clipboard-list"></i></div>
+                                <h3>{statusFilter === 'completed' ? 'No Completed Items Found' : 'No List Items Found'}</h3>
+                                <p>{searchText || selectedPlant ? 'No items match your search criteria.' : statusFilter === 'completed' ? 'There are no completed items to show.' : 'There are no items in the list yet.'}</p>
+                                <button className="global-primary-button primary-button"
+                                        onClick={() => setShowAddSheet(true)}>Add Item
+                                </button>
+                            </div>
+                        ) : (
+                            <ListViewModeSection
+                                filteredItems={sortedItems}
+                                handleSelectItem={handleSelectItem}
+                                headerLabels={derivedListHeaderLabels}
+                                colWidths={derivedColWidths}
+                                renderRow={(item, handleSelect) => (
+                                    <tr key={item.id}
+                                        className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`}
+                                        onClick={() => handleSelect(item)} style={{cursor: 'pointer'}}>
+                                        <td style={{width: derivedColWidths[0]}} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={selectedIds.has(item.id)}
+                                                   onChange={() => toggleSelect(item.id)} aria-label="Select row"/></td>
+                                        <td style={{width: derivedColWidths[1], textAlign: 'left'}}
+                                            title={item.description}>{truncateText(item.description, 60)}</td>
+                                        <td style={{width: derivedColWidths[2]}}
+                                            title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
+                                        <td style={{width: derivedColWidths[3]}}><span
+                                            className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span>
+                                        </td>
+                                        {statusFilter === 'completed' &&
+                                            <td style={{width: derivedColWidths[4]}}>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
+                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 5 : 4]}}
+                                            title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
+                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 6 : 5]}}>{item.completed ?
+                                            <span
+                                                className="list-status-badge completed">COMPLETED</span> : ListService.isOverdue(item) ?
+                                                <span className="list-status-badge overdue">OVERDUE</span> :
+                                                <span className="list-status-badge pending">PENDING</span>}</td>
+                                    </tr>
+                                )}
+                                containerClassName="list-table-container"
+                                tableClassName="list-table"
+                            />
+                        )}
+                    </div>
+                    {hasBulkPopup && (
+                        <div className="bulk-actions-popup">
+                            <div className="bulk-count">{selectedIds.size} selected</div>
+                            <div className="bulk-actions-content">
+                                <button
+                                    className="bulk-action-button complete"
+                                    onClick={() => bulkToggleCompletion(true)}
+                                >
+                                    <i className="fas fa-check"></i>
+                                    Mark as Completed
+                                </button>
+                                <button
+                                    className="bulk-action-button delete"
+                                    onClick={bulkDelete}
+                                >
+                                    <i className="fas fa-trash"></i>
+                                    Delete
+                                </button>
+                                <button
+                                    className="bulk-action-button cancel"
+                                    onClick={() => setSelectedIds(new Set())}
+                                >
+                                    <i className="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
-                    ) : (
-                        <ListViewModeSection
-                            filteredItems={sortedItems}
-                            handleSelectItem={handleSelectItem}
-                            headerLabels={derivedListHeaderLabels}
-                            colWidths={derivedColWidths}
-                            renderRow={(item, handleSelect) => (
-                                <tr key={item.id}
-                                    className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`}
-                                    onClick={() => handleSelect(item)} style={{cursor: 'pointer'}}>
-                                    <td style={{width: derivedColWidths[0]}} onClick={e => e.stopPropagation()}>
-                                        <input type="checkbox" checked={selectedIds.has(item.id)}
-                                               onChange={() => toggleSelect(item.id)} aria-label="Select row"/></td>
-                                    <td style={{width: derivedColWidths[1], textAlign: 'left'}}
-                                        title={item.description}>{truncateText(item.description, 60)}</td>
-                                    <td style={{width: derivedColWidths[2]}}
-                                        title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
-                                    <td style={{width: derivedColWidths[3]}}><span
-                                        className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span>
-                                    </td>
-                                    {statusFilter === 'completed' &&
-                                        <td style={{width: derivedColWidths[4]}}>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
-                                    <td style={{width: derivedColWidths[statusFilter === 'completed' ? 5 : 4]}}
-                                        title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
-                                    <td style={{width: derivedColWidths[statusFilter === 'completed' ? 6 : 5]}}>{item.completed ?
-                                        <span
-                                            className="list-status-badge completed">COMPLETED</span> : ListService.isOverdue(item) ?
-                                            <span className="list-status-badge overdue">OVERDUE</span> :
-                                            <span className="list-status-badge pending">PENDING</span>}</td>
-                                </tr>
-                            )}
-                            containerClassName="list-table-container"
-                            tableClassName="list-table"
+                    )}
+                    {showAddSheet && (
+                        <ListAddView
+                            onClose={() => setShowAddSheet(false)}
+                            onItemAdded={fetchAllData}
                         />
                     )}
-                </div>
-                {hasBulkPopup && (
-                    <div className="bulk-actions-popup">
-                        <div className="bulk-count">{selectedIds.size} selected</div>
-                        <div className="bulk-actions-content">
-                            <button
-                                className="bulk-action-button complete"
-                                onClick={() => bulkToggleCompletion(true)}
-                            >
-                                <i className="fas fa-check"></i>
-                                Mark as Completed
-                            </button>
-                            <button
-                                className="bulk-action-button delete"
-                                onClick={bulkDelete}
-                            >
-                                <i className="fas fa-trash"></i>
-                                Delete
-                            </button>
-                            <button
-                                className="bulk-action-button cancel"
-                                onClick={() => setSelectedIds(new Set())}
-                            >
-                                <i className="fas fa-times"></i>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
-                {showAddSheet && (
-                    <ListAddView
-                        onClose={() => setShowAddSheet(false)}
-                        onItemAdded={fetchAllData}
-                    />
-                )}
-            </>
+                </>
             </div>
         </>
     )

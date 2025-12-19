@@ -85,7 +85,11 @@ UserService.getUserRoles = async function (userId) {
     if (!userId) throw new Error('User ID is required')
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
     if (this.userRolesCache.has(id)) return this.userRolesCache.get(id)
-    const {json} = await APIUtility.post(`${USER_FUNCTION}/user-roles`, {userId: id}, {maxRetries: 3, retryDelay: 2000, skipAuthCheck: true})
+    const {json} = await APIUtility.post(`${USER_FUNCTION}/user-roles`, {userId: id}, {
+        maxRetries: 3,
+        retryDelay: 2000,
+        skipAuthCheck: true
+    })
     const roles = json ?? []
     this.userRolesCache.set(id, roles)
     return roles

@@ -431,7 +431,8 @@ export default function LeaderboardsView() {
                                                 <>
                                                     <div className="stat-item">
                                                         <span className="stat-label">Avg. YPH</span>
-                                                        <span className="stat-value yph-dual-value" title="Left: YPH before help adjustment / Right: YPH after help adjustment">
+                                                        <span className="stat-value yph-dual-value"
+                                                              title="Left: YPH before help adjustment / Right: YPH after help adjustment">
                                                             <em>{(plant.rawYPH ?? plant.avgYPH).toFixed(2)}</em>
                                                             <span>/</span>
                                                             <strong>{plant.avgYPH.toFixed(2)}</strong>

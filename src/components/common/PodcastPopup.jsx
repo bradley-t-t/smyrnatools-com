@@ -20,7 +20,7 @@ function PodcastPopup() {
                 `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
                 `https://corsproxy.io/?${encodeURIComponent(RSS_URL)}`
             ]
-            
+
             let text = null
             for (const url of proxyUrls) {
                 try {
@@ -33,12 +33,12 @@ function PodcastPopup() {
                     // try next proxy
                 }
             }
-            
+
             if (!text) return
 
             const parser = new DOMParser()
             const xml = parser.parseFromString(text, 'text/xml')
-            
+
             const item = xml.querySelector('item')
             if (!item) return
 
@@ -55,7 +55,11 @@ function PodcastPopup() {
             const episodeData = {
                 title,
                 description: stripHtml(description).substring(0, 200) + '...',
-                pubDate: new Date(pubDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}),
+                pubDate: new Date(pubDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                }),
                 audioUrl,
                 duration: formatDuration(duration),
                 image
@@ -104,8 +108,8 @@ function PodcastPopup() {
     return (
         <div className={`podcast-popup ${isMinimized ? 'minimized' : ''}`}>
             {episode.audioUrl && (
-                <audio 
-                    ref={audioRef} 
+                <audio
+                    ref={audioRef}
                     src={episode.audioUrl}
                     onEnded={() => setIsPlaying(false)}
                 />

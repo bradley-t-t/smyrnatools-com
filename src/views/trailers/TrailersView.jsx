@@ -508,8 +508,9 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                         {showCommentModal &&
                             <TrailerCommentModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
                                                  onClose={() => setShowCommentModal(false)}/>}
-                        {showIssueModal && <TrailerIssueModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
-                                                              onClose={() => setShowIssueModal(false)}/>}
+                        {showIssueModal &&
+                            <TrailerIssueModal trailerId={modalTrailerId} trailerNumber={modalTrailerNumber}
+                                               onClose={() => setShowIssueModal(false)}/>}
                         {showHistoryModal && selectedTrailerForHistory && (
                             <HistoryViewSection
                                 item={selectedTrailerForHistory}

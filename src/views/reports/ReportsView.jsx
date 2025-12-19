@@ -662,438 +662,440 @@ function ReportsView() {
                                         setTimeout(() => setIsRefreshing(false), 1000);
                                     }}
                                     type="button"
-                            >
-                                <i className={`fas fa-sync ${isRefreshing ? 'spinning' : ''}`}></i> Refresh
-                            </button>
-                            <div className="rpts-filters">
-                                <select
-                                    value={filterReportType}
-                                    onChange={e => setFilterReportType(e.target.value)}
-                                    className="rpts-select-control"
                                 >
-                                    <option value="">All Report Types</option>
-                                    {reportTypes
-                                        .filter(rt =>
-                                            (tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]) &&
-                                            (regionType !== 'office' || rt.name === 'general_manager')
-                                        )
-                                        .map(rt => (
-                                            <option key={rt.name} value={rt.name}>{rt.title}</option>
-                                        ))}
-                                </select>
-                                <button
-                                    className="rpts-select-control"
-                                    onClick={() => setIsPlantModalOpen(true)}
-                                    type="button"
-                                >
-                                    {plantDisplayText}
+                                    <i className={`fas fa-sync ${isRefreshing ? 'spinning' : ''}`}></i> Refresh
                                 </button>
-                            </div>
-                            <div className="rpts-tabs">
-                                <button
-                                    className={tab === 'all' ? 'active' : ''}
-                                    onClick={() => setTab('all')}
-                                    type="button"
-                                >
-                                    My Reports
-                                </button>
-                                {hasAnyReviewPermissionPrefix && (
+                                <div className="rpts-filters">
+                                    <select
+                                        value={filterReportType}
+                                        onChange={e => setFilterReportType(e.target.value)}
+                                        className="rpts-select-control"
+                                    >
+                                        <option value="">All Report Types</option>
+                                        {reportTypes
+                                            .filter(rt =>
+                                                (tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]) &&
+                                                (regionType !== 'office' || rt.name === 'general_manager')
+                                            )
+                                            .map(rt => (
+                                                <option key={rt.name} value={rt.name}>{rt.title}</option>
+                                            ))}
+                                    </select>
                                     <button
-                                        className={tab === 'review' ? 'active' : ''}
-                                        onClick={() => setTab('review')}
+                                        className="rpts-select-control"
+                                        onClick={() => setIsPlantModalOpen(true)}
                                         type="button"
                                     >
-                                        Review
+                                        {plantDisplayText}
                                     </button>
-                                )}
-                                {hasAnyReviewPermissionPrefix && (
+                                </div>
+                                <div className="rpts-tabs">
                                     <button
-                                        className={tab === 'overdue' ? 'active' : ''}
-                                        onClick={() => setTab('overdue')}
+                                        className={tab === 'all' ? 'active' : ''}
+                                        onClick={() => setTab('all')}
                                         type="button"
                                     >
-                                        Overdue
+                                        My Reports
                                     </button>
-                                )}
+                                    {hasAnyReviewPermissionPrefix && (
+                                        <button
+                                            className={tab === 'review' ? 'active' : ''}
+                                            onClick={() => setTab('review')}
+                                            type="button"
+                                        >
+                                            Review
+                                        </button>
+                                    )}
+                                    {hasAnyReviewPermissionPrefix && (
+                                        <button
+                                            className={tab === 'overdue' ? 'active' : ''}
+                                            onClick={() => setTab('overdue')}
+                                            type="button"
+                                        >
+                                            Overdue
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="rpts-content">
-                        {tab === 'all' && (
-                            <div className="rpts-list">
-                                {(isLoadingUser || isLoadingMy || isLoadingPermissions) && weeksToShow.length === 0 ? (
-                                    <div className="rpts-loading">
-                                        <LoadingScreen message="Loading your reports..." inline/>
-                                    </div>
-                                ) : (
-                                    weeksToShow.length === 0 ? (
-                                        <div className="rpts-empty">
-                                            <i className="fas fa-check-circle"></i>
-                                            <div>No reports</div>
+                        <div className="rpts-content">
+                            {tab === 'all' && (
+                                <div className="rpts-list">
+                                    {(isLoadingUser || isLoadingMy || isLoadingPermissions) && weeksToShow.length === 0 ? (
+                                        <div className="rpts-loading">
+                                            <LoadingScreen message="Loading your reports..." inline/>
                                         </div>
                                     ) : (
-                                        <div>
-                                            <div className="rpt-sticky-header-wrapper">
-                                                <div className="rpt-list-headers header-row">
-                                                    <div className="rpt-header-col-week">Week</div>
-                                                    <div className="rpt-header-col-report-type">Report Type</div>
-                                                    <div className="rpt-header-col-status">Status</div>
-                                                    <div className="rpt-header-col-due-date">Due Date</div>
-                                                    <div className="rpt-header-col-actions">Actions</div>
-                                                </div>
+                                        weeksToShow.length === 0 ? (
+                                            <div className="rpts-empty">
+                                                <i className="fas fa-check-circle"></i>
+                                                <div>No reports</div>
                                             </div>
-                                            <div className="rpt-table-wrapper">
-                                                <table className="rpt-table rpt-table-accent rpt-table-my-reports">
-                                                    <tbody>
-                                                    {myPaginatedItems.map((item, index) => {
-                                                        const {weekIso} = item;
-                                                        const {
-                                                            monday,
-                                                            saturday
-                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
-                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                        const today = new Date();
-                                                        const hasSavedData = !!(item.report && item.report.data);
-                                                        const {
-                                                            statusText,
-                                                            statusClass,
-                                                            buttonLabel
-                                                        } = ReportUtility.computeMyReportStatus({
-                                                            completed: item.completed,
-                                                            hasSavedData,
-                                                            weekIso,
-                                                            today
-                                                        });
-                                                        const badge = ReportUtility.getWeekBadge(weekIso);
-                                                        const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : '';
-                                                        const baseDelay = 80;
-                                                        const minDelay = baseDelay / 2;
-                                                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / myPaginatedItems.length);
-                                                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                                                        return (
-                                                            <tr
-                                                                key={item.name + item.weekIso}
-                                                                className='rpt-row rpt-row-animated'
-                                                                style={{animationDelay: `${index * delay}ms`}}
-                                                            >
-                                                                <td className="rpt-td rpt-week-td">
+                                        ) : (
+                                            <div>
+                                                <div className="rpt-sticky-header-wrapper">
+                                                    <div className="rpt-list-headers header-row">
+                                                        <div className="rpt-header-col-week">Week</div>
+                                                        <div className="rpt-header-col-report-type">Report Type</div>
+                                                        <div className="rpt-header-col-status">Status</div>
+                                                        <div className="rpt-header-col-due-date">Due Date</div>
+                                                        <div className="rpt-header-col-actions">Actions</div>
+                                                    </div>
+                                                </div>
+                                                <div className="rpt-table-wrapper">
+                                                    <table className="rpt-table rpt-table-accent rpt-table-my-reports">
+                                                        <tbody>
+                                                        {myPaginatedItems.map((item, index) => {
+                                                            const {weekIso} = item;
+                                                            const {
+                                                                monday,
+                                                                saturday
+                                                            } = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                            const weekRange = ReportService.getWeekRangeString(monday, saturday);
+                                                            const today = new Date();
+                                                            const hasSavedData = !!(item.report && item.report.data);
+                                                            const {
+                                                                statusText,
+                                                                statusClass,
+                                                                buttonLabel
+                                                            } = ReportUtility.computeMyReportStatus({
+                                                                completed: item.completed,
+                                                                hasSavedData,
+                                                                weekIso,
+                                                                today
+                                                            });
+                                                            const badge = ReportUtility.getWeekBadge(weekIso);
+                                                            const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : '';
+                                                            const baseDelay = 80;
+                                                            const minDelay = baseDelay / 2;
+                                                            const delayDecrement = Math.max(0, (baseDelay - minDelay) / myPaginatedItems.length);
+                                                            const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
+                                                            return (
+                                                                <tr
+                                                                    key={item.name + item.weekIso}
+                                                                    className='rpt-row rpt-row-animated'
+                                                                    style={{animationDelay: `${index * delay}ms`}}
+                                                                >
+                                                                    <td className="rpt-td rpt-week-td">
                                                                     <span
                                                                         className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}
-                                                                </td>
-                                                                <td className="rpt-td">{item.title}</td>
-                                                                <td className="rpt-td">
+                                                                    </td>
+                                                                    <td className="rpt-td">{item.title}</td>
+                                                                    <td className="rpt-td">
                                                                     <span
                                                                         className={`rpts-status ${statusClass}`}>{statusText}</span>
-                                                                </td>
-                                                                <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                                <td className="rpt-td right">
-                                                                    <button className="rpts-list-action"
-                                                                            onClick={() => handleShowForm(item)}>
-                                                                        {buttonLabel}
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div className="rpts-pagination rpts-pagination-animated">
-                                                <div className="rpts-page-size">
-                                                    <label>Show:</label>
-                                                    <select
-                                                        value={myPageSize}
-                                                        onChange={e => {
-                                                            setMyPageSize(Number(e.target.value));
-                                                            setMyCurrentPage(1);
-                                                        }}
-                                                    >
-                                                        <option value={10}>10</option>
-                                                        <option value={25}>25</option>
-                                                        <option value={50}>50</option>
-                                                    </select>
+                                                                    </td>
+                                                                    <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                    <td className="rpt-td right">
+                                                                        <button className="rpts-list-action"
+                                                                                onClick={() => handleShowForm(item)}>
+                                                                            {buttonLabel}
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
-                                                <div className="rpts-page-controls">
-                                                    <button
-                                                        onClick={() => setMyCurrentPage(Math.max(1, myCurrentPage - 1))}
-                                                        disabled={myCurrentPage === 1}
-                                                    >
-                                                        Previous
-                                                    </button>
-                                                    <span>Page {myCurrentPage} of {myTotalPages}</span>
-                                                    <button
-                                                        onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))}
-                                                        disabled={myCurrentPage === myTotalPages}
-                                                    >
-                                                        Next
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                )}
-                            </div>
-                        )}
-                        {tab === 'review' && (
-                            <div className="rpts-list">
-                                {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || (isLoadingReview && visibleReviewReports.length === 0)) ? (
-                                    <div className="rpts-loading">
-                                        <LoadingScreen message="Loading reports to review..." inline/>
-                                    </div>
-                                ) : (
-                                    visibleReviewReports.length === 0 ? (
-                                        <div className="rpts-empty">
-                                            <i className="fas fa-user-check"></i>
-                                            <div>No reports to review</div>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <div className="rpt-sticky-header-wrapper">
-                                                <div className="rpt-list-headers header-row">
-                                                    <div className="rpt-header-col-week-review">Week</div>
-                                                    <div className="rpt-header-col-report-type-review">Report Type</div>
-                                                    <div className="rpt-header-col-submitted-by">Submitted By</div>
-                                                    <div className="rpt-header-col-submitted-date">Submitted Date</div>
-                                                    <div className="rpt-header-col-reviewed">Reviewed</div>
-                                                    <div className="rpt-header-col-actions-review">Actions</div>
-                                                </div>
-                                            </div>
-                                            <div className="rpt-table-wrapper">
-                                                <table className="rpt-table rpt-table-accent rpt-table-review">
-                                                    <tbody>
-                                                    {reviewPaginatedItems.map((report, index) => {
-                                                        const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
-                                                        const {
-                                                            monday,
-                                                            saturday
-                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
-                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                        const baseDelay = 80;
-                                                        const minDelay = baseDelay / 2;
-                                                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / reviewPaginatedItems.length);
-                                                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                                                        return (
-                                                            <tr
-                                                                key={report.id}
-                                                                className='rpt-row rpt-row-animated'
-                                                                style={{animationDelay: `${index * delay}ms`}}
-                                                            >
-                                                                <td className="rpt-td rpt-week-td">
-                                                                        <span
-                                                                            className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
-                                                                            {ReportUtility.getWeekBadge(weekIso)}
-                                                                        </span> {weekRange}
-                                                                </td>
-                                                                <td className="rpt-td">{report.title}</td>
-                                                                <td className="rpt-td">{getUserName(report.userId)}</td>
-                                                                <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
-                                                                <td className="rpt-td">
-                                                                    {reviewedByCurrentUser.has(report.id) ? (
-                                                                        <>
-                                                                            <i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <i className="fas fa-flag rpts-reviewed-flag"></i> Not
-                                                                            Reviewed
-                                                                        </>
-                                                                    )}
-                                                                </td>
-                                                                <td className="rpt-td right">
-                                                                    <button className="rpts-list-action"
-                                                                            onClick={() => handleReview(report)}>
-                                                                        Review
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div className="rpts-pagination rpts-pagination-animated">
-                                                <div className="rpts-page-size">
-                                                    <label>Show:</label>
-                                                    <select
-                                                        value={reviewPageSize}
-                                                        onChange={e => {
-                                                            setReviewPageSize(Number(e.target.value));
-                                                            setReviewCurrentPage(1);
-                                                        }}
-                                                    >
-                                                        <option value={10}>10</option>
-                                                        <option value={25}>25</option>
-                                                        <option value={50}>50</option>
-                                                    </select>
-                                                </div>
-                                                <div className="rpts-page-controls">
-                                                    <button
-                                                        onClick={() => setReviewCurrentPage(Math.max(1, reviewCurrentPage - 1))}
-                                                        disabled={reviewCurrentPage === 1}
-                                                    >
-                                                        Previous
-                                                    </button>
-                                                    <span>Page {reviewCurrentPage} of {reviewTotalPages}</span>
-                                                    <button
-                                                        onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))}
-                                                        disabled={reviewCurrentPage === reviewTotalPages}
-                                                    >
-                                                        Next
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                )}
-                            </div>
-                        )}
-                        {tab === 'overdue' && (
-                            <div className="rpts-list">
-                                {(isLoadingUser || isLoadingPermissions || isLoadingOverdue || loadingReporterPlants) ? (
-                                    <div className="rpts-loading">
-                                        <LoadingScreen message="Loading overdue reports..." inline/>
-                                    </div>
-                                ) : (
-                                    filteredOverdueItems.length === 0 ? (
-                                        <div className="rpts-empty">
-                                            <i className="fas fa-exclamation-circle"></i>
-                                            <div>No overdue reports</div>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <div className="rpt-sticky-header-wrapper">
-                                                <div className="rpt-list-headers header-row">
-                                                    <div className="rpt-header-col-week-overdue">Week</div>
-                                                    <div className="rpt-header-col-report-type-overdue">Report Type
+                                                <div className="rpts-pagination rpts-pagination-animated">
+                                                    <div className="rpts-page-size">
+                                                        <label>Show:</label>
+                                                        <select
+                                                            value={myPageSize}
+                                                            onChange={e => {
+                                                                setMyPageSize(Number(e.target.value));
+                                                                setMyCurrentPage(1);
+                                                            }}
+                                                        >
+                                                            <option value={10}>10</option>
+                                                            <option value={25}>25</option>
+                                                            <option value={50}>50</option>
+                                                        </select>
                                                     </div>
-                                                    <div className="rpt-header-col-owed-by">Owed By</div>
-                                                    <div className="rpt-header-col-due-date-overdue">Due Date</div>
+                                                    <div className="rpts-page-controls">
+                                                        <button
+                                                            onClick={() => setMyCurrentPage(Math.max(1, myCurrentPage - 1))}
+                                                            disabled={myCurrentPage === 1}
+                                                        >
+                                                            Previous
+                                                        </button>
+                                                        <span>Page {myCurrentPage} of {myTotalPages}</span>
+                                                        <button
+                                                            onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))}
+                                                            disabled={myCurrentPage === myTotalPages}
+                                                        >
+                                                            Next
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="rpt-table-wrapper">
-                                                <table className="rpt-table rpt-table-accent rpt-table-overdue">
-                                                    <tbody>
-                                                    {overduePaginatedItems.map((item, index) => {
-                                                        const {week: weekIso} = item;
-                                                        const {
-                                                            monday,
-                                                            saturday
-                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
-                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                        const title = (reportTypeMap[item.report_name] || {}).title || item.report_name;
-                                                        const baseDelay = 80;
-                                                        const minDelay = baseDelay / 2;
-                                                        const delayDecrement = Math.max(0, (baseDelay - minDelay) / overduePaginatedItems.length);
-                                                        const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                                                        return (
-                                                            <tr
-                                                                key={`${item.userId}-${item.report_name}-${item.week}`}
-                                                                className='rpt-row rpt-row-animated'
-                                                                style={{animationDelay: `${index * delay}ms`}}
-                                                            >
-                                                                <td className="rpt-td rpt-week-td">
+                                        )
+                                    )}
+                                </div>
+                            )}
+                            {tab === 'review' && (
+                                <div className="rpts-list">
+                                    {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || (isLoadingReview && visibleReviewReports.length === 0)) ? (
+                                        <div className="rpts-loading">
+                                            <LoadingScreen message="Loading reports to review..." inline/>
+                                        </div>
+                                    ) : (
+                                        visibleReviewReports.length === 0 ? (
+                                            <div className="rpts-empty">
+                                                <i className="fas fa-user-check"></i>
+                                                <div>No reports to review</div>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <div className="rpt-sticky-header-wrapper">
+                                                    <div className="rpt-list-headers header-row">
+                                                        <div className="rpt-header-col-week-review">Week</div>
+                                                        <div className="rpt-header-col-report-type-review">Report Type
+                                                        </div>
+                                                        <div className="rpt-header-col-submitted-by">Submitted By</div>
+                                                        <div className="rpt-header-col-submitted-date">Submitted Date
+                                                        </div>
+                                                        <div className="rpt-header-col-reviewed">Reviewed</div>
+                                                        <div className="rpt-header-col-actions-review">Actions</div>
+                                                    </div>
+                                                </div>
+                                                <div className="rpt-table-wrapper">
+                                                    <table className="rpt-table rpt-table-accent rpt-table-review">
+                                                        <tbody>
+                                                        {reviewPaginatedItems.map((report, index) => {
+                                                            const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
+                                                            const {
+                                                                monday,
+                                                                saturday
+                                                            } = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                            const weekRange = ReportService.getWeekRangeString(monday, saturday);
+                                                            const baseDelay = 80;
+                                                            const minDelay = baseDelay / 2;
+                                                            const delayDecrement = Math.max(0, (baseDelay - minDelay) / reviewPaginatedItems.length);
+                                                            const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
+                                                            return (
+                                                                <tr
+                                                                    key={report.id}
+                                                                    className='rpt-row rpt-row-animated'
+                                                                    style={{animationDelay: `${index * delay}ms`}}
+                                                                >
+                                                                    <td className="rpt-td rpt-week-td">
                                                                         <span
                                                                             className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
                                                                             {ReportUtility.getWeekBadge(weekIso)}
                                                                         </span> {weekRange}
-                                                                </td>
-                                                                <td className="rpt-td">{title}</td>
-                                                                <td className="rpt-td">{getUserName(item.userId)}</td>
-                                                                <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div className="rpts-pagination rpts-pagination-animated">
-                                                <div className="rpts-page-size">
-                                                    <label>Show:</label>
-                                                    <select
-                                                        value={overduePageSize}
-                                                        onChange={e => {
-                                                            setOverduePageSize(Number(e.target.value));
-                                                            setOverdueCurrentPage(1);
-                                                        }}
-                                                    >
-                                                        <option value={10}>10</option>
-                                                        <option value={25}>25</option>
-                                                        <option value={50}>50</option>
-                                                    </select>
+                                                                    </td>
+                                                                    <td className="rpt-td">{report.title}</td>
+                                                                    <td className="rpt-td">{getUserName(report.userId)}</td>
+                                                                    <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
+                                                                    <td className="rpt-td">
+                                                                        {reviewedByCurrentUser.has(report.id) ? (
+                                                                            <>
+                                                                                <i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <i className="fas fa-flag rpts-reviewed-flag"></i> Not
+                                                                                Reviewed
+                                                                            </>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="rpt-td right">
+                                                                        <button className="rpts-list-action"
+                                                                                onClick={() => handleReview(report)}>
+                                                                            Review
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
-                                                <div className="rpts-page-controls">
-                                                    <button
-                                                        onClick={() => setOverdueCurrentPage(Math.max(1, overdueCurrentPage - 1))}
-                                                        disabled={overdueCurrentPage === 1}
-                                                    >
-                                                        Previous
-                                                    </button>
-                                                    <span>Page {overdueCurrentPage} of {overdueTotalPages}</span>
-                                                    <button
-                                                        onClick={() => setOverdueCurrentPage(Math.min(overdueTotalPages, overdueCurrentPage + 1))}
-                                                        disabled={overdueCurrentPage === overdueTotalPages}
-                                                    >
-                                                        Next
-                                                    </button>
+                                                <div className="rpts-pagination rpts-pagination-animated">
+                                                    <div className="rpts-page-size">
+                                                        <label>Show:</label>
+                                                        <select
+                                                            value={reviewPageSize}
+                                                            onChange={e => {
+                                                                setReviewPageSize(Number(e.target.value));
+                                                                setReviewCurrentPage(1);
+                                                            }}
+                                                        >
+                                                            <option value={10}>10</option>
+                                                            <option value={25}>25</option>
+                                                            <option value={50}>50</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="rpts-page-controls">
+                                                        <button
+                                                            onClick={() => setReviewCurrentPage(Math.max(1, reviewCurrentPage - 1))}
+                                                            disabled={reviewCurrentPage === 1}
+                                                        >
+                                                            Previous
+                                                        </button>
+                                                        <span>Page {reviewCurrentPage} of {reviewTotalPages}</span>
+                                                        <button
+                                                            onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))}
+                                                            disabled={reviewCurrentPage === reviewTotalPages}
+                                                        >
+                                                            Next
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+                            {tab === 'overdue' && (
+                                <div className="rpts-list">
+                                    {(isLoadingUser || isLoadingPermissions || isLoadingOverdue || loadingReporterPlants) ? (
+                                        <div className="rpts-loading">
+                                            <LoadingScreen message="Loading overdue reports..." inline/>
                                         </div>
-                                    )
-                                )}
-                            </div>
-                        )}
+                                    ) : (
+                                        filteredOverdueItems.length === 0 ? (
+                                            <div className="rpts-empty">
+                                                <i className="fas fa-exclamation-circle"></i>
+                                                <div>No overdue reports</div>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <div className="rpt-sticky-header-wrapper">
+                                                    <div className="rpt-list-headers header-row">
+                                                        <div className="rpt-header-col-week-overdue">Week</div>
+                                                        <div className="rpt-header-col-report-type-overdue">Report Type
+                                                        </div>
+                                                        <div className="rpt-header-col-owed-by">Owed By</div>
+                                                        <div className="rpt-header-col-due-date-overdue">Due Date</div>
+                                                    </div>
+                                                </div>
+                                                <div className="rpt-table-wrapper">
+                                                    <table className="rpt-table rpt-table-accent rpt-table-overdue">
+                                                        <tbody>
+                                                        {overduePaginatedItems.map((item, index) => {
+                                                            const {week: weekIso} = item;
+                                                            const {
+                                                                monday,
+                                                                saturday
+                                                            } = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                            const weekRange = ReportService.getWeekRangeString(monday, saturday);
+                                                            const title = (reportTypeMap[item.report_name] || {}).title || item.report_name;
+                                                            const baseDelay = 80;
+                                                            const minDelay = baseDelay / 2;
+                                                            const delayDecrement = Math.max(0, (baseDelay - minDelay) / overduePaginatedItems.length);
+                                                            const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
+                                                            return (
+                                                                <tr
+                                                                    key={`${item.userId}-${item.report_name}-${item.week}`}
+                                                                    className='rpt-row rpt-row-animated'
+                                                                    style={{animationDelay: `${index * delay}ms`}}
+                                                                >
+                                                                    <td className="rpt-td rpt-week-td">
+                                                                        <span
+                                                                            className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
+                                                                            {ReportUtility.getWeekBadge(weekIso)}
+                                                                        </span> {weekRange}
+                                                                    </td>
+                                                                    <td className="rpt-td">{title}</td>
+                                                                    <td className="rpt-td">{getUserName(item.userId)}</td>
+                                                                    <td className="rpt-td">{saturday.toLocaleDateString()}</td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div className="rpts-pagination rpts-pagination-animated">
+                                                    <div className="rpts-page-size">
+                                                        <label>Show:</label>
+                                                        <select
+                                                            value={overduePageSize}
+                                                            onChange={e => {
+                                                                setOverduePageSize(Number(e.target.value));
+                                                                setOverdueCurrentPage(1);
+                                                            }}
+                                                        >
+                                                            <option value={10}>10</option>
+                                                            <option value={25}>25</option>
+                                                            <option value={50}>50</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="rpts-page-controls">
+                                                        <button
+                                                            onClick={() => setOverdueCurrentPage(Math.max(1, overdueCurrentPage - 1))}
+                                                            disabled={overdueCurrentPage === 1}
+                                                        >
+                                                            Previous
+                                                        </button>
+                                                        <span>Page {overdueCurrentPage} of {overdueTotalPages}</span>
+                                                        <button
+                                                            onClick={() => setOverdueCurrentPage(Math.min(overdueTotalPages, overdueCurrentPage + 1))}
+                                                            disabled={overdueCurrentPage === overdueTotalPages}
+                                                        >
+                                                            Next
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
-            {showForm && (
-                <ReportsSubmitView
-                    report={reportTypeMap[showForm.name] ? {
-                        ...reportTypeMap[showForm.name],
-                        weekIso: showForm.weekIso
-                    } : showForm}
-                    initialData={submitInitialData}
-                    onBack={() => {
-                        setShowForm(null);
-                        setManagerEditUser(null);
-                    }}
-                    onSubmit={(form, submitType) => {
-                        if (managerEditUser) {
-                            handleManagerEditSubmit(form);
-                        } else {
-                            handleSubmitReport(form, submitType === 'submit');
-                        }
-                    }}
-                    user={user}
-                    readOnly={showReview === null && reviewData !== null}
-                    managerEditUser={managerEditUser}
-                    userProfiles={userProfiles}
-                />
-            )}
-            {showReview && (
-                <ReportsReviewView
-                    report={reportTypeMap[showReview.name] || showReview}
-                    initialData={reviewData}
-                    onBack={() => {
-                        setShowReview(null);
-                        setReviewData(null);
-                    }}
-                    user={user}
-                    completedByUser={reviewData?.userId ? userProfiles[reviewData.userId] : undefined}
-                    onManagerEdit={handleManagerEdit}
-                />
-            )}
-            {isPlantModalOpen && (
-                <PlantDropdownModal
-                    isOpen={isPlantModalOpen}
-                    onClose={() => setIsPlantModalOpen(false)}
-                    plants={regionalPlants}
-                    onSelect={(plantCode) => {
-                        setFilterPlant(plantCode);
-                        setIsPlantModalOpen(false);
-                    }}
-                    showAllPlants={true}
-                />
-            )}
+                )}
+                {showForm && (
+                    <ReportsSubmitView
+                        report={reportTypeMap[showForm.name] ? {
+                            ...reportTypeMap[showForm.name],
+                            weekIso: showForm.weekIso
+                        } : showForm}
+                        initialData={submitInitialData}
+                        onBack={() => {
+                            setShowForm(null);
+                            setManagerEditUser(null);
+                        }}
+                        onSubmit={(form, submitType) => {
+                            if (managerEditUser) {
+                                handleManagerEditSubmit(form);
+                            } else {
+                                handleSubmitReport(form, submitType === 'submit');
+                            }
+                        }}
+                        user={user}
+                        readOnly={showReview === null && reviewData !== null}
+                        managerEditUser={managerEditUser}
+                        userProfiles={userProfiles}
+                    />
+                )}
+                {showReview && (
+                    <ReportsReviewView
+                        report={reportTypeMap[showReview.name] || showReview}
+                        initialData={reviewData}
+                        onBack={() => {
+                            setShowReview(null);
+                            setReviewData(null);
+                        }}
+                        user={user}
+                        completedByUser={reviewData?.userId ? userProfiles[reviewData.userId] : undefined}
+                        onManagerEdit={handleManagerEdit}
+                    />
+                )}
+                {isPlantModalOpen && (
+                    <PlantDropdownModal
+                        isOpen={isPlantModalOpen}
+                        onClose={() => setIsPlantModalOpen(false)}
+                        plants={regionalPlants}
+                        onSelect={(plantCode) => {
+                            setFilterPlant(plantCode);
+                            setIsPlantModalOpen(false);
+                        }}
+                        showAllPlants={true}
+                    />
+                )}
             </div>
         </>
     );

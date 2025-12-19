@@ -92,75 +92,75 @@ function RegionsView({title = 'Regions'}) {
             <VideoBackground/>
             <div className="global-dashboard-container dashboard-container regions-view">
                 {selectedRegion ? (
-                <RegionsDetailView
-                    region={selectedRegion}
-                    onClose={() => setSelectedRegion(null)}
-                    onDelete={handleRegionDeleted}
-                    onUpdate={handleRegionUpdated}
-                />
-            ) : (
-                <>
-                    <TopSection
-                        title={title}
-                        addButtonLabel="Add Region"
-                        onAddClick={() => setShowAddSheet(true)}
-                        searchInput={searchText}
-                        onSearchInputChange={setSearchText}
-                        onClearSearch={() => setSearchText('')}
-                        searchPlaceholder="Search by region name, code, or type..."
-                        forwardedRef={headerRef}
-                        hideViewModeToggle={true}
-                        viewMode="list"
-                        listLabels={headerLabels}
-                        colWidths={colWidths}
-                        customFilters={customFilters}
-                        showReset={showReset}
-                        onReset={onReset}
-                        hidePlantFilter={true}
+                    <RegionsDetailView
+                        region={selectedRegion}
+                        onClose={() => setSelectedRegion(null)}
+                        onDelete={handleRegionDeleted}
+                        onUpdate={handleRegionUpdated}
                     />
-                    <div className="global-content-container content-container">
-                        {isLoading ? (
-                            <div className="global-loading-container loading-container">
-                                <LoadingScreen message="Loading regions..." inline={true}/>
-                            </div>
-                        ) : filteredRegions.length === 0 ? (
-                            <div className="global-no-results-container no-results-container">
-                                <div className="no-results-icon">
-                                    <i className="fas fa-globe"></i>
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            addButtonLabel="Add Region"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchText}
+                            onSearchInputChange={setSearchText}
+                            onClearSearch={() => setSearchText('')}
+                            searchPlaceholder="Search by region name, code, or type..."
+                            forwardedRef={headerRef}
+                            hideViewModeToggle={true}
+                            viewMode="list"
+                            listLabels={headerLabels}
+                            colWidths={colWidths}
+                            customFilters={customFilters}
+                            showReset={showReset}
+                            onReset={onReset}
+                            hidePlantFilter={true}
+                        />
+                        <div className="global-content-container content-container">
+                            {isLoading ? (
+                                <div className="global-loading-container loading-container">
+                                    <LoadingScreen message="Loading regions..." inline={true}/>
                                 </div>
-                                <h3>No Regions Found</h3>
-                                <p>{searchText ? "No regions match your search criteria." : "There are no regions in the system yet."}</p>
-                                <button className="global-primary-button primary-button"
-                                        onClick={() => setShowAddSheet(true)}>Add Region
-                                </button>
-                            </div>
-                        ) : (
-                            <ListViewModeSection
-                                filteredItems={filteredRegions}
-                                handleSelectItem={handleSelectRegion}
-                                headerLabels={headerLabels}
-                                colWidths={colWidths}
-                                renderRow={(region) => (
-                                    <tr key={region.region_code || region.regionCode} style={{cursor: 'pointer'}}
-                                        onClick={() => handleSelectRegion(region.region_code || region.regionCode)}>
-                                        <td style={{width: '25%'}}>{region.region_code || region.regionCode}</td>
-                                        <td style={{width: '50%'}}>{region.region_name || region.regionName}</td>
-                                        <td style={{width: '25%'}}>{region.type || region.region_type || ''}</td>
-                                    </tr>
-                                )}
-                                containerClassName="list-table-container"
-                                tableClassName="list-table"
+                            ) : filteredRegions.length === 0 ? (
+                                <div className="global-no-results-container no-results-container">
+                                    <div className="no-results-icon">
+                                        <i className="fas fa-globe"></i>
+                                    </div>
+                                    <h3>No Regions Found</h3>
+                                    <p>{searchText ? "No regions match your search criteria." : "There are no regions in the system yet."}</p>
+                                    <button className="global-primary-button primary-button"
+                                            onClick={() => setShowAddSheet(true)}>Add Region
+                                    </button>
+                                </div>
+                            ) : (
+                                <ListViewModeSection
+                                    filteredItems={filteredRegions}
+                                    handleSelectItem={handleSelectRegion}
+                                    headerLabels={headerLabels}
+                                    colWidths={colWidths}
+                                    renderRow={(region) => (
+                                        <tr key={region.region_code || region.regionCode} style={{cursor: 'pointer'}}
+                                            onClick={() => handleSelectRegion(region.region_code || region.regionCode)}>
+                                            <td style={{width: '25%'}}>{region.region_code || region.regionCode}</td>
+                                            <td style={{width: '50%'}}>{region.region_name || region.regionName}</td>
+                                            <td style={{width: '25%'}}>{region.type || region.region_type || ''}</td>
+                                        </tr>
+                                    )}
+                                    containerClassName="list-table-container"
+                                    tableClassName="list-table"
+                                />
+                            )}
+                        </div>
+                        {showAddSheet && (
+                            <RegionsAddView
+                                onClose={() => setShowAddSheet(false)}
+                                onRegionAdded={handleRegionAdded}
                             />
                         )}
-                    </div>
-                    {showAddSheet && (
-                        <RegionsAddView
-                            onClose={() => setShowAddSheet(false)}
-                            onRegionAdded={handleRegionAdded}
-                        />
-                    )}
-                </>
-            )}
+                    </>
+                )}
             </div>
         </>
     )

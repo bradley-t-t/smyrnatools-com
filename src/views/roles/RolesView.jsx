@@ -464,186 +464,187 @@ function RolesView() {
             <VideoBackground/>
             <div className="roles-view">
                 <div className="roles-header">
-                <div className="roles-header-content">
-                    <h1>Roles & Permissions</h1>
-                    <p className="roles-subtitle">
-                        {hasITAccess
-                            ? 'View and manage all roles and their permission nodes'
-                            : 'View all roles and their permission nodes'}
-                    </p>
-                </div>
-                <div className="roles-header-actions">
-                    {hasITAccess && (
-                        <button
-                            className="bulk-add-button"
-                            onClick={openBulkAddModal}
-                        >
-                            <i className="fas fa-layer-group"></i>
-                            Bulk Add Permissions
-                        </button>
-                    )}
-                    {hasITAccess && (
-                        <button
-                            className="create-role-button"
-                            onClick={() => setShowCreateModal(true)}
-                        >
-                            <i className="fas fa-plus"></i>
-                            Create Role
-                        </button>
-                    )}
-                    {hasITAccess && (
-                        <div className="roles-badge">
-                            <i className="fas fa-shield-alt"></i>
-                            IT Access
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className="roles-search-trigger">
-                <button
-                    className="search-trigger-button"
-                    onClick={openSearch}
-                >
-                    <i className="fas fa-search"></i>
-                    Search permission nodes
-                </button>
-            </div>
-
-            {showSearchModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
-                <div className="search-modal-backdrop" onClick={closeSearch}>
-                    <div className="search-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="search-modal-header">
-                            <div className="roles-search-bar-modal">
-                                <i className="fas fa-search"></i>
-                                <input
-                                    type="text"
-                                    placeholder="Search for permission nodes across all roles..."
-                                    value={searchQuery}
-                                    onChange={(e) => searchPermissions(e.target.value)}
-                                    className="search-input"
-                                    autoFocus
-                                />
-                            </div>
+                    <div className="roles-header-content">
+                        <h1>Roles & Permissions</h1>
+                        <p className="roles-subtitle">
+                            {hasITAccess
+                                ? 'View and manage all roles and their permission nodes'
+                                : 'View all roles and their permission nodes'}
+                        </p>
+                    </div>
+                    <div className="roles-header-actions">
+                        {hasITAccess && (
                             <button
-                                className="close-search-button"
-                                onClick={closeSearch}
-                                title="Close search"
+                                className="bulk-add-button"
+                                onClick={openBulkAddModal}
                             >
-                                <i className="fas fa-times"></i>
+                                <i className="fas fa-layer-group"></i>
+                                Bulk Add Permissions
                             </button>
-                        </div>
-                        {searchResults.length > 0 ? (
-                            <>
-                                <div className="search-results-header-info">
-                                    <div className="search-results-info">
-                                        <span
-                                            className="search-results-count">{searchResults.length} {searchResults.length === 1 ? 'role' : 'roles'} found</span>
-                                        <span
-                                            className="search-results-query">matching &ldquo;{searchQuery.trim()}&rdquo;</span>
-                                    </div>
-                                    {hasITAccess && searchQuery.trim() && (
-                                        <button
-                                            className="bulk-remove-button"
-                                            onClick={() => removePermissionFromAll(searchQuery.trim())}
-                                            title={`Remove exact matches of "${searchQuery.trim()}" from all roles`}
-                                        >
-                                            <i className="fas fa-trash-alt"></i>
-                                            Remove from All
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="search-modal-body">
-                                    <div className="search-results-list">
-                                        {searchResults.map((result, index) => {
-                                            const hasExactMatch = result.role.permissions.includes(searchQuery.trim());
-                                            return (
-                                                <div key={index} className="search-result-item">
-                                                    <div className="search-result-item-header">
-                                                        <div className="search-result-role-info">
-                                                            <span
-                                                                className="search-result-role-name">{result.role.name}</span>
-                                                            <span className="search-result-match-count">
-                                                                {result.matchingPermissions.length} {result.matchingPermissions.length === 1 ? 'match' : 'matches'}
-                                                            </span>
-                                                        </div>
-                                                        {hasITAccess && hasExactMatch && (
-                                                            <button
-                                                                className="single-remove-button"
-                                                                onClick={() => removePermissionFromRole(searchQuery.trim(), result.role.id, result.role.name)}
-                                                                title={`Remove exact match from this role`}
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <div className="search-result-permissions-list">
-                                                        {result.matchingPermissions.map((perm, pIndex) => {
-                                                            const isExact = perm === searchQuery.trim();
-                                                            return (
-                                                                <div key={pIndex}
-                                                                     className={`permission-item ${isExact ? 'exact-match' : 'partial-match'}`}>
-                                                                    <span className="permission-text">{perm}</span>
-                                                                    {isExact &&
-                                                                        <span className="exact-badge">exact</span>}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="search-modal-body">
-                                <div className="no-search-results">
-                                    <i className="fas fa-search"></i>
-                                    <p>Search by permission nodes.</p>
-                                </div>
+                        )}
+                        {hasITAccess && (
+                            <button
+                                className="create-role-button"
+                                onClick={() => setShowCreateModal(true)}
+                            >
+                                <i className="fas fa-plus"></i>
+                                Create Role
+                            </button>
+                        )}
+                        {hasITAccess && (
+                            <div className="roles-badge">
+                                <i className="fas fa-shield-alt"></i>
+                                IT Access
                             </div>
                         )}
                     </div>
-                </div>,
-                document.body
-            )}
-
-            {message && (
-                <div className="roles-message success">
-                    <i className="fas fa-check-circle"></i>
-                    {message}
                 </div>
-            )}
 
-            {error && (
-                <div className="roles-message error">
-                    <i className="fas fa-exclamation-circle"></i>
-                    {error}
+                <div className="roles-search-trigger">
+                    <button
+                        className="search-trigger-button"
+                        onClick={openSearch}
+                    >
+                        <i className="fas fa-search"></i>
+                        Search permission nodes
+                    </button>
                 </div>
-            )}
 
-            {!searchQuery && (
-                <>
-                    <div className="roles-list">
-                        {roles.map((role) => {
-                            const isExpanded = expandedRoles.has(role.id);
-                            const isEditing = editingRole === role.id;
-                            const permissionCount = getPermissionCount(role);
-                            const permissions = formatPermissions(role.permissions);
+                {showSearchModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+                    <div className="search-modal-backdrop" onClick={closeSearch}>
+                        <div className="search-modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="search-modal-header">
+                                <div className="roles-search-bar-modal">
+                                    <i className="fas fa-search"></i>
+                                    <input
+                                        type="text"
+                                        placeholder="Search for permission nodes across all roles..."
+                                        value={searchQuery}
+                                        onChange={(e) => searchPermissions(e.target.value)}
+                                        className="search-input"
+                                        autoFocus
+                                    />
+                                </div>
+                                <button
+                                    className="close-search-button"
+                                    onClick={closeSearch}
+                                    title="Close search"
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            </div>
+                            {searchResults.length > 0 ? (
+                                <>
+                                    <div className="search-results-header-info">
+                                        <div className="search-results-info">
+                                        <span
+                                            className="search-results-count">{searchResults.length} {searchResults.length === 1 ? 'role' : 'roles'} found</span>
+                                            <span
+                                                className="search-results-query">matching &ldquo;{searchQuery.trim()}&rdquo;</span>
+                                        </div>
+                                        {hasITAccess && searchQuery.trim() && (
+                                            <button
+                                                className="bulk-remove-button"
+                                                onClick={() => removePermissionFromAll(searchQuery.trim())}
+                                                title={`Remove exact matches of "${searchQuery.trim()}" from all roles`}
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                                Remove from All
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="search-modal-body">
+                                        <div className="search-results-list">
+                                            {searchResults.map((result, index) => {
+                                                const hasExactMatch = result.role.permissions.includes(searchQuery.trim());
+                                                return (
+                                                    <div key={index} className="search-result-item">
+                                                        <div className="search-result-item-header">
+                                                            <div className="search-result-role-info">
+                                                            <span
+                                                                className="search-result-role-name">{result.role.name}</span>
+                                                                <span className="search-result-match-count">
+                                                                {result.matchingPermissions.length} {result.matchingPermissions.length === 1 ? 'match' : 'matches'}
+                                                            </span>
+                                                            </div>
+                                                            {hasITAccess && hasExactMatch && (
+                                                                <button
+                                                                    className="single-remove-button"
+                                                                    onClick={() => removePermissionFromRole(searchQuery.trim(), result.role.id, result.role.name)}
+                                                                    title={`Remove exact match from this role`}
+                                                                >
+                                                                    <i className="fas fa-times"></i>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <div className="search-result-permissions-list">
+                                                            {result.matchingPermissions.map((perm, pIndex) => {
+                                                                const isExact = perm === searchQuery.trim();
+                                                                return (
+                                                                    <div key={pIndex}
+                                                                         className={`permission-item ${isExact ? 'exact-match' : 'partial-match'}`}>
+                                                                        <span className="permission-text">{perm}</span>
+                                                                        {isExact &&
+                                                                            <span className="exact-badge">exact</span>}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="search-modal-body">
+                                    <div className="no-search-results">
+                                        <i className="fas fa-search"></i>
+                                        <p>Search by permission nodes.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>,
+                    document.body
+                )}
 
-                            return (
-                                <div key={role.id} className={`role-card ${isExpanded ? 'expanded' : ''}`}>
-                                    <div className="role-card-header" onClick={() => !isEditing && toggleRole(role.id)}>
-                                        <div className="role-card-title">
-                                            <div className="role-icon">
-                                                <i className="fas fa-user-shield"></i>
-                                            </div>
-                                            <div className="role-info">
-                                                <h3>{role.name}</h3>
-                                                <div className="role-meta">
-                                                    {editingWeight === role.id && hasITAccess ? (
-                                                        <span className="role-weight editing">
+                {message && (
+                    <div className="roles-message success">
+                        <i className="fas fa-check-circle"></i>
+                        {message}
+                    </div>
+                )}
+
+                {error && (
+                    <div className="roles-message error">
+                        <i className="fas fa-exclamation-circle"></i>
+                        {error}
+                    </div>
+                )}
+
+                {!searchQuery && (
+                    <>
+                        <div className="roles-list">
+                            {roles.map((role) => {
+                                const isExpanded = expandedRoles.has(role.id);
+                                const isEditing = editingRole === role.id;
+                                const permissionCount = getPermissionCount(role);
+                                const permissions = formatPermissions(role.permissions);
+
+                                return (
+                                    <div key={role.id} className={`role-card ${isExpanded ? 'expanded' : ''}`}>
+                                        <div className="role-card-header"
+                                             onClick={() => !isEditing && toggleRole(role.id)}>
+                                            <div className="role-card-title">
+                                                <div className="role-icon">
+                                                    <i className="fas fa-user-shield"></i>
+                                                </div>
+                                                <div className="role-info">
+                                                    <h3>{role.name}</h3>
+                                                    <div className="role-meta">
+                                                        {editingWeight === role.id && hasITAccess ? (
+                                                            <span className="role-weight editing">
                                                     <i className="fas fa-weight-hanging"></i>
                                                     Weight:
                                                     <input
@@ -672,300 +673,301 @@ function RolesView() {
                                                         <i className="fas fa-times"></i>
                                                     </button>
                                                 </span>
-                                                    ) : (
-                                                        <span
-                                                            className="role-weight"
-                                                            onClick={(e) => {
-                                                                if (hasITAccess) {
-                                                                    e.stopPropagation();
-                                                                    startEditingWeight(role);
-                                                                }
-                                                            }}
-                                                            style={hasITAccess ? {cursor: 'pointer'} : {}}
-                                                            title={hasITAccess ? 'Click to edit weight' : ''}
-                                                        >
+                                                        ) : (
+                                                            <span
+                                                                className="role-weight"
+                                                                onClick={(e) => {
+                                                                    if (hasITAccess) {
+                                                                        e.stopPropagation();
+                                                                        startEditingWeight(role);
+                                                                    }
+                                                                }}
+                                                                style={hasITAccess ? {cursor: 'pointer'} : {}}
+                                                                title={hasITAccess ? 'Click to edit weight' : ''}
+                                                            >
                                                     <i className="fas fa-weight-hanging"></i>
                                                     Weight: {role.weight || 0}
-                                                            {hasITAccess && <i className="fas fa-pencil-alt" style={{
-                                                                marginLeft: '0.375rem',
-                                                                fontSize: '0.625rem'
-                                                            }}></i>}
+                                                                {hasITAccess &&
+                                                                    <i className="fas fa-pencil-alt" style={{
+                                                                        marginLeft: '0.375rem',
+                                                                        fontSize: '0.625rem'
+                                                                    }}></i>}
                                                 </span>
-                                                    )}
-                                                    <span className="role-permissions-count">
+                                                        )}
+                                                        <span className="role-permissions-count">
                                                 <i className="fas fa-key"></i>
-                                                        {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
+                                                            {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
                                             </span>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <div className="role-card-actions">
+                                                {hasITAccess && !isEditing && (
+                                                    <button
+                                                        className="role-edit-button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.preventDefault();
+                                                            startEditing(role);
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-edit"></i>
+                                                        Edit
+                                                    </button>
+                                                )}
+                                                {!isEditing && (
+                                                    <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} expand-icon`}></i>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="role-card-actions">
-                                            {hasITAccess && !isEditing && (
-                                                <button
-                                                    className="role-edit-button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        e.preventDefault();
-                                                        startEditing(role);
-                                                    }}
-                                                >
-                                                    <i className="fas fa-edit"></i>
-                                                    Edit
-                                                </button>
-                                            )}
-                                            {!isEditing && (
-                                                <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} expand-icon`}></i>
-                                            )}
+
+                                        {isExpanded && (
+                                            <div className="role-card-content">
+                                                {isEditing ? (
+                                                    <div className="role-edit-section">
+                                                        <div className="edit-header">
+                                                            <h4>Edit Permissions for {role.name}</h4>
+                                                            <p>Enter one permission node per line</p>
+                                                        </div>
+                                                        <textarea
+                                                            className="permissions-editor"
+                                                            value={editedPermissions}
+                                                            onChange={(e) => setEditedPermissions(e.target.value)}
+                                                            placeholder="Enter permissions (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;mixers.edit"
+                                                            rows={12}
+                                                        />
+                                                        <div className="edit-actions">
+                                                            <button
+                                                                className="save-button"
+                                                                onClick={savePermissions}
+                                                                disabled={isSaving}
+                                                            >
+                                                                {isSaving ? (
+                                                                    <>
+                                                                        <i className="fas fa-spinner fa-spin"></i>
+                                                                        Saving...
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <i className="fas fa-save"></i>
+                                                                        Save Changes
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                className="cancel-button"
+                                                                onClick={cancelEditing}
+                                                                disabled={isSaving}
+                                                            >
+                                                                <i className="fas fa-times"></i>
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="permissions-list">
+                                                        {permissionCount === 0 ? (
+                                                            <div className="no-permissions">
+                                                                <i className="fas fa-info-circle"></i>
+                                                                No permissions assigned to this role
+                                                            </div>
+                                                        ) : (
+                                                            <div className="permissions-grid">
+                                                                {permissions.map((permission, index) => (
+                                                                    <div key={index} className="permission-node">
+                                                                        <i className="fas fa-check-circle"></i>
+                                                                        <span>{permission}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {roles.length === 0 && !isLoading && (
+                            <div className="no-roles">
+                                <i className="fas fa-users-slash"></i>
+                                <h3>No Roles Found</h3>
+                                <p>There are no roles configured in the system.</p>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {showCreateModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+                    <div className="modal-backdrop" onClick={() => setShowCreateModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <div className="modal-header-content">
+                                    <i className="fas fa-plus-circle"></i>
+                                    <div>
+                                        <h2>Create New Role</h2>
+                                        <span className="modal-subtitle">Add Role</span>
+                                    </div>
+                                </div>
+                                <button className="modal-close" onClick={() => setShowCreateModal(false)}>
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div className="modal-content-scrollable">
+                                <div className="modal-body-content">
+                                    <div className="form-group">
+                                        <label>Role Name</label>
+                                        <input
+                                            type="text"
+                                            value={newRoleName}
+                                            onChange={(e) => setNewRoleName(e.target.value)}
+                                            placeholder="Enter role name"
+                                            className="form-input"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Weight</label>
+                                        <input
+                                            type="number"
+                                            value={newRoleWeight}
+                                            onChange={(e) => setNewRoleWeight(parseInt(e.target.value) || 0)}
+                                            placeholder="Enter weight (0-100)"
+                                            className="form-input"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    className="save-button"
+                                    onClick={createRole}
+                                    disabled={!newRoleName.trim() || isCreating}
+                                >
+                                    {isCreating ? (
+                                        <>
+                                            <i className="fas fa-spinner fa-spin"></i>
+                                            Creating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-plus"></i>
+                                            Create Role
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    className="cancel-button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    disabled={isCreating}
+                                >
+                                    <i className="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>,
+                    document.body
+                )}
+
+                {showBulkAddModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+                    <div className="modal-backdrop" onClick={() => !isBulkAdding && closeBulkAddModal()}>
+                        <div className="modal-content bulk-add-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <div className="modal-header-content">
+                                    <i className="fas fa-layer-group"></i>
+                                    <div>
+                                        <h2>Bulk Add Permissions</h2>
+                                        <span className="modal-subtitle">Add permission nodes to multiple roles</span>
+                                    </div>
+                                </div>
+                                {!isBulkAdding && (
+                                    <button className="modal-close" onClick={closeBulkAddModal}>
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                )}
+                            </div>
+                            <div className="modal-content-scrollable">
+                                <div className="modal-body-content">
+                                    <div className="form-group">
+                                        <label>Select Roles</label>
+                                        <div className="roles-selection-list">
+                                            {roles.map(role => (
+                                                <div key={role.id} className="role-selection-item">
+                                                    <label className="role-checkbox-label">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedRoles.has(role.id)}
+                                                            onChange={() => toggleRoleSelection(role.id)}
+                                                            disabled={isBulkAdding}
+                                                        />
+                                                        <span className="role-checkbox-name">{role.name}</span>
+                                                        <span className="role-checkbox-count">
+                                                        {getPermissionCount(role)} permissions
+                                                    </span>
+                                                    </label>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-
-                                    {isExpanded && (
-                                        <div className="role-card-content">
-                                            {isEditing ? (
-                                                <div className="role-edit-section">
-                                                    <div className="edit-header">
-                                                        <h4>Edit Permissions for {role.name}</h4>
-                                                        <p>Enter one permission node per line</p>
-                                                    </div>
-                                                    <textarea
-                                                        className="permissions-editor"
-                                                        value={editedPermissions}
-                                                        onChange={(e) => setEditedPermissions(e.target.value)}
-                                                        placeholder="Enter permissions (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;mixers.edit"
-                                                        rows={12}
-                                                    />
-                                                    <div className="edit-actions">
-                                                        <button
-                                                            className="save-button"
-                                                            onClick={savePermissions}
-                                                            disabled={isSaving}
-                                                        >
-                                                            {isSaving ? (
-                                                                <>
-                                                                    <i className="fas fa-spinner fa-spin"></i>
-                                                                    Saving...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <i className="fas fa-save"></i>
-                                                                    Save Changes
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                        <button
-                                                            className="cancel-button"
-                                                            onClick={cancelEditing}
-                                                            disabled={isSaving}
-                                                        >
-                                                            <i className="fas fa-times"></i>
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="permissions-list">
-                                                    {permissionCount === 0 ? (
-                                                        <div className="no-permissions">
-                                                            <i className="fas fa-info-circle"></i>
-                                                            No permissions assigned to this role
-                                                        </div>
-                                                    ) : (
-                                                        <div className="permissions-grid">
-                                                            {permissions.map((permission, index) => (
-                                                                <div key={index} className="permission-node">
-                                                                    <i className="fas fa-check-circle"></i>
-                                                                    <span>{permission}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
+                                    <div className="form-group">
+                                        <label>
+                                            Permission Nodes to Add
+                                            <span className="label-hint">(one per line)</span>
+                                        </label>
+                                        <textarea
+                                            className="permissions-editor"
+                                            value={bulkPermissionText}
+                                            onChange={(e) => setBulkPermissionText(e.target.value)}
+                                            placeholder="Enter permission nodes (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;reports.view"
+                                            rows={8}
+                                            disabled={isBulkAdding}
+                                        />
+                                    </div>
+                                    {selectedRoles.size > 0 && bulkPermissionText.trim() && (
+                                        <div className="bulk-add-summary">
+                                            <i className="fas fa-info-circle"></i>
+                                            <span>
+                                            Will add <strong>{bulkPermissionText.split('\n').filter(p => p.trim()).length}</strong> permission
+                                                {bulkPermissionText.split('\n').filter(p => p.trim()).length === 1 ? '' : 's'} to{' '}
+                                                <strong>{selectedRoles.size}</strong> role{selectedRoles.size === 1 ? '' : 's'}
+                                        </span>
                                         </div>
                                     )}
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    {roles.length === 0 && !isLoading && (
-                        <div className="no-roles">
-                            <i className="fas fa-users-slash"></i>
-                            <h3>No Roles Found</h3>
-                            <p>There are no roles configured in the system.</p>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {showCreateModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
-                <div className="modal-backdrop" onClick={() => setShowCreateModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <div className="modal-header-content">
-                                <i className="fas fa-plus-circle"></i>
-                                <div>
-                                    <h2>Create New Role</h2>
-                                    <span className="modal-subtitle">Add Role</span>
-                                </div>
                             </div>
-                            <button className="modal-close" onClick={() => setShowCreateModal(false)}>
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div className="modal-content-scrollable">
-                            <div className="modal-body-content">
-                                <div className="form-group">
-                                    <label>Role Name</label>
-                                    <input
-                                        type="text"
-                                        value={newRoleName}
-                                        onChange={(e) => setNewRoleName(e.target.value)}
-                                        placeholder="Enter role name"
-                                        className="form-input"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Weight</label>
-                                    <input
-                                        type="number"
-                                        value={newRoleWeight}
-                                        onChange={(e) => setNewRoleWeight(parseInt(e.target.value) || 0)}
-                                        placeholder="Enter weight (0-100)"
-                                        className="form-input"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button
-                                className="save-button"
-                                onClick={createRole}
-                                disabled={!newRoleName.trim() || isCreating}
-                            >
-                                {isCreating ? (
-                                    <>
-                                        <i className="fas fa-spinner fa-spin"></i>
-                                        Creating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className="fas fa-plus"></i>
-                                        Create Role
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                className="cancel-button"
-                                onClick={() => setShowCreateModal(false)}
-                                disabled={isCreating}
-                            >
-                                <i className="fas fa-times"></i>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-
-            {showBulkAddModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
-                <div className="modal-backdrop" onClick={() => !isBulkAdding && closeBulkAddModal()}>
-                    <div className="modal-content bulk-add-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <div className="modal-header-content">
-                                <i className="fas fa-layer-group"></i>
-                                <div>
-                                    <h2>Bulk Add Permissions</h2>
-                                    <span className="modal-subtitle">Add permission nodes to multiple roles</span>
-                                </div>
-                            </div>
-                            {!isBulkAdding && (
-                                <button className="modal-close" onClick={closeBulkAddModal}>
-                                    <i className="fas fa-times"></i>
+                            <div className="modal-footer">
+                                <button
+                                    className="save-button"
+                                    onClick={bulkAddPermission}
+                                    disabled={selectedRoles.size === 0 || !bulkPermissionText.trim() || isBulkAdding}
+                                >
+                                    {isBulkAdding ? (
+                                        <>
+                                            <i className="fas fa-spinner fa-spin"></i>
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-plus"></i>
+                                            Add to Selected Roles
+                                        </>
+                                    )}
                                 </button>
-                            )}
-                        </div>
-                        <div className="modal-content-scrollable">
-                            <div className="modal-body-content">
-                                <div className="form-group">
-                                    <label>Select Roles</label>
-                                    <div className="roles-selection-list">
-                                        {roles.map(role => (
-                                            <div key={role.id} className="role-selection-item">
-                                                <label className="role-checkbox-label">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedRoles.has(role.id)}
-                                                        onChange={() => toggleRoleSelection(role.id)}
-                                                        disabled={isBulkAdding}
-                                                    />
-                                                    <span className="role-checkbox-name">{role.name}</span>
-                                                    <span className="role-checkbox-count">
-                                                        {getPermissionCount(role)} permissions
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label>
-                                        Permission Nodes to Add
-                                        <span className="label-hint">(one per line)</span>
-                                    </label>
-                                    <textarea
-                                        className="permissions-editor"
-                                        value={bulkPermissionText}
-                                        onChange={(e) => setBulkPermissionText(e.target.value)}
-                                        placeholder="Enter permission nodes (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;reports.view"
-                                        rows={8}
-                                        disabled={isBulkAdding}
-                                    />
-                                </div>
-                                {selectedRoles.size > 0 && bulkPermissionText.trim() && (
-                                    <div className="bulk-add-summary">
-                                        <i className="fas fa-info-circle"></i>
-                                        <span>
-                                            Will add <strong>{bulkPermissionText.split('\n').filter(p => p.trim()).length}</strong> permission
-                                            {bulkPermissionText.split('\n').filter(p => p.trim()).length === 1 ? '' : 's'} to{' '}
-                                            <strong>{selectedRoles.size}</strong> role{selectedRoles.size === 1 ? '' : 's'}
-                                        </span>
-                                    </div>
-                                )}
+                                <button
+                                    className="cancel-button"
+                                    onClick={closeBulkAddModal}
+                                    disabled={isBulkAdding}
+                                >
+                                    <i className="fas fa-times"></i>
+                                    Cancel
+                                </button>
                             </div>
                         </div>
-                        <div className="modal-footer">
-                            <button
-                                className="save-button"
-                                onClick={bulkAddPermission}
-                                disabled={selectedRoles.size === 0 || !bulkPermissionText.trim() || isBulkAdding}
-                            >
-                                {isBulkAdding ? (
-                                    <>
-                                        <i className="fas fa-spinner fa-spin"></i>
-                                        Adding...
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className="fas fa-plus"></i>
-                                        Add to Selected Roles
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                className="cancel-button"
-                                onClick={closeBulkAddModal}
-                                disabled={isBulkAdding}
-                            >
-                                <i className="fas fa-times"></i>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+                    </div>,
+                    document.body
+                )}
             </div>
         </>
     );

@@ -192,21 +192,3 @@
     font-size: 12px;
 }
 
-.podcast-later-btn {
-    padding: 10px 14px;
-    background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--divider);
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.podcast-later-btn:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
-}
