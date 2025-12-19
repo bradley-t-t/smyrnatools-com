@@ -22,6 +22,7 @@ import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ThemeUtility from '../../utils/ThemeUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
+import {supabase} from '../../services/DatabaseService'
 
 function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
     const {preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters} = usePreferences();
@@ -74,6 +75,93 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
         'Verified': 'verified',
         'More': null
     }
+
+    const attachIsVerified = useCallback((obj) => {
+        if (!obj) return obj
+        obj.isVerified = function(latestHistoryDate) {
+            return EquipmentUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
+        }
+        return obj
+    }, [])
+
+    const handleRealtimeUpdate = useCallback((eventType, data) => {
+        if (eventType === 'UPDATE' && data.new) {
+            const updatedData = data.new
+            setEquipments(prev => prev.map(equipment => {
+                if (equipment.id === updatedData.id) {
+                    const updated = {
+                        ...equipment,
+                        identifyingNumber: updatedData.identifying_number ?? equipment.identifyingNumber,
+                        assignedPlant: updatedData.assigned_plant ?? equipment.assignedPlant,
+                        equipmentType: updatedData.equipment_type ?? equipment.equipmentType,
+                        status: updatedData.status ?? equipment.status,
+                        lastServiceDate: updatedData.last_service_date ?? equipment.lastServiceDate,
+                        hoursMileage: updatedData.hours_mileage ?? equipment.hoursMileage,
+                        cleanlinessRating: updatedData.cleanliness_rating ?? equipment.cleanlinessRating,
+                        conditionRating: updatedData.condition_rating ?? equipment.conditionRating,
+                        equipmentMake: updatedData.equipment_make ?? equipment.equipmentMake,
+                        equipmentModel: updatedData.equipment_model ?? equipment.equipmentModel,
+                        yearMade: updatedData.year_made ?? equipment.yearMade,
+                        updatedAt: updatedData.updated_at ?? equipment.updatedAt,
+                        updatedLast: updatedData.updated_last ?? equipment.updatedLast,
+                        updatedBy: updatedData.updated_by ?? equipment.updatedBy
+                    }
+                    return attachIsVerified(updated)
+                }
+                return equipment
+            }))
+        } else if (eventType === 'INSERT' && data.new) {
+            const newData = data.new
+            if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
+            const newEquipment = attachIsVerified({
+                id: newData.id,
+                identifyingNumber: newData.identifying_number ?? '',
+                assignedPlant: newData.assigned_plant ?? '',
+                equipmentType: newData.equipment_type ?? '',
+                status: newData.status ?? 'Active',
+                lastServiceDate: newData.last_service_date ?? null,
+                hoursMileage: newData.hours_mileage ?? null,
+                cleanlinessRating: newData.cleanliness_rating ?? null,
+                conditionRating: newData.condition_rating ?? null,
+                equipmentMake: newData.equipment_make ?? '',
+                equipmentModel: newData.equipment_model ?? '',
+                yearMade: newData.year_made ?? '',
+                createdAt: newData.created_at ?? new Date().toISOString(),
+                updatedAt: newData.updated_at ?? new Date().toISOString(),
+                updatedLast: newData.updated_last ?? new Date().toISOString(),
+                updatedBy: newData.updated_by ?? null
+            })
+            setEquipments(prev => {
+                if (prev.some(e => e.id === newData.id)) return prev
+                return [...prev, newEquipment]
+            })
+        } else if (eventType === 'DELETE' && data.old) {
+            setEquipments(prev => prev.filter(equipment => equipment.id !== data.old.id))
+        }
+    }, [regionPlantCodes, attachIsVerified])
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('equipment-realtime-changes')
+            .on(
+                'postgres_changes',
+                {event: '*', schema: 'public', table: 'heavy_equipment'},
+                (payload) => {
+                    const eventType = payload.eventType
+                    const data = {new: payload.new, old: payload.old}
+                    handleRealtimeUpdate(eventType, data)
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Equipment realtime subscription error')
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [handleRealtimeUpdate])
 
     useEffect(() => {
         async function fetchAllData() {
