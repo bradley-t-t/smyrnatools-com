@@ -30,7 +30,7 @@
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     z-index: 300;
-    background: color-mix(in srgb, var(--background) 80%, transparent);
+    background: color-mix(in srgb, var(--background) 30%, transparent);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     box-sizing: border-box;
