@@ -97,21 +97,82 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
 
     const handleRealtimeUpdate = useCallback((eventType, data) => {
         if (eventType === 'UPDATE' && data.new) {
-            setMixers(prev => prev.map(mixer => 
-                mixer.id === data.new.id ? {...mixer, ...data.new} : mixer
-            ))
-            setAllMixers(prev => prev.map(mixer => 
-                mixer.id === data.new.id ? {...mixer, ...data.new} : mixer
-            ))
+            const updatedData = data.new
+            setMixers(prev => prev.map(mixer => {
+                if (mixer.id === updatedData.id) {
+                    return {
+                        ...mixer,
+                        truckNumber: updatedData.truck_number ?? mixer.truckNumber,
+                        assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
+                        assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
+                        lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
+                        lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                        cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
+                        status: updatedData.status ?? mixer.status,
+                        updatedAt: updatedData.updated_at ?? mixer.updatedAt,
+                        updatedLast: updatedData.updated_last ?? mixer.updatedLast,
+                        updatedBy: updatedData.updated_by ?? mixer.updatedBy,
+                        vin: updatedData.vin ?? mixer.vin,
+                        make: updatedData.make ?? mixer.make,
+                        model: updatedData.model ?? mixer.model,
+                        year: updatedData.year ?? mixer.year,
+                        downInYard: updatedData.down_in_yard ?? mixer.downInYard
+                    }
+                }
+                return mixer
+            }))
+            setAllMixers(prev => prev.map(mixer => {
+                if (mixer.id === updatedData.id) {
+                    return {
+                        ...mixer,
+                        truckNumber: updatedData.truck_number ?? mixer.truckNumber,
+                        assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
+                        assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
+                        lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
+                        lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                        cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
+                        status: updatedData.status ?? mixer.status,
+                        updatedAt: updatedData.updated_at ?? mixer.updatedAt,
+                        updatedLast: updatedData.updated_last ?? mixer.updatedLast,
+                        updatedBy: updatedData.updated_by ?? mixer.updatedBy,
+                        vin: updatedData.vin ?? mixer.vin,
+                        make: updatedData.make ?? mixer.make,
+                        model: updatedData.model ?? mixer.model,
+                        year: updatedData.year ?? mixer.year,
+                        downInYard: updatedData.down_in_yard ?? mixer.downInYard
+                    }
+                }
+                return mixer
+            }))
         } else if (eventType === 'INSERT' && data.new) {
-            if (regionPlantCodes && !regionPlantCodes.has(data.new.assigned_plant)) return
+            const newData = data.new
+            if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
+            const newMixer = {
+                id: newData.id,
+                truckNumber: newData.truck_number ?? '',
+                assignedPlant: newData.assigned_plant ?? '',
+                assignedOperator: newData.assigned_operator ?? '',
+                lastServiceDate: newData.last_service_date ?? null,
+                lastChipDate: newData.last_chip_date ?? null,
+                cleanlinessRating: newData.cleanliness_rating ?? 0,
+                status: newData.status ?? 'Active',
+                createdAt: newData.created_at ?? new Date().toISOString(),
+                updatedAt: newData.updated_at ?? new Date().toISOString(),
+                updatedLast: newData.updated_last ?? new Date().toISOString(),
+                updatedBy: newData.updated_by ?? null,
+                vin: newData.vin ?? '',
+                make: newData.make ?? '',
+                model: newData.model ?? '',
+                year: newData.year ?? '',
+                downInYard: newData.down_in_yard ?? false
+            }
             setMixers(prev => {
-                if (prev.some(m => m.id === data.new.id)) return prev
-                return [...prev, data.new]
+                if (prev.some(m => m.id === newData.id)) return prev
+                return [...prev, newMixer]
             })
             setAllMixers(prev => {
-                if (prev.some(m => m.id === data.new.id)) return prev
-                return [...prev, data.new]
+                if (prev.some(m => m.id === newData.id)) return prev
+                return [...prev, newMixer]
             })
         } else if (eventType === 'DELETE' && data.old) {
             setMixers(prev => prev.filter(mixer => mixer.id !== data.old.id))
@@ -121,7 +182,7 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
 
     useAssetRealtimeUpdates('mixers', {
         onAnyChange: handleRealtimeUpdate,
-        enabled: !isLoading
+        enabled: true
     })
 
     useEffect(() => {
