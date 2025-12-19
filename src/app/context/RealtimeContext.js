@@ -96,10 +96,16 @@ export function RealtimeProvider({children}) {
     )
 }
 
+const noopContext = {
+    subscribe: () => () => {},
+    subscribeToAll: () => () => {},
+    isConnected: false
+}
+
 export function useRealtime() {
     const context = useContext(RealtimeContext)
     if (!context) {
-        throw new Error('useRealtime must be used within a RealtimeProvider')
+        return noopContext
     }
     return context
 }
