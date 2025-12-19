@@ -97,10 +97,8 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
 
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
-        if (typeof obj.isVerified !== 'function') {
-            obj.isVerified = function(latestHistoryDate) {
-                return MixerUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
-            }
+        obj.isVerified = function(latestHistoryDate) {
+            return MixerUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
         }
         return obj
     }, [])
