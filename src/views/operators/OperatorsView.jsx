@@ -75,6 +75,65 @@ function OperatorsView({
     const [modalOperatorName, setModalOperatorName] = useState('')
 
     useEffect(() => {
+        const channel = supabase
+            .channel('operators-realtime-changes')
+            .on(
+                'postgres_changes',
+                {event: '*', schema: 'public', table: 'operators'},
+                (payload) => {
+                    if (payload.eventType === 'UPDATE' && payload.new) {
+                        const updatedData = payload.new
+                        setOperators(prev => prev.map(operator => {
+                            if (operator.employeeId === updatedData.employee_id) {
+                                return {
+                                    ...operator,
+                                    employeeId: updatedData.employee_id ?? operator.employeeId,
+                                    smyrnaId: updatedData.smyrna_id ?? operator.smyrnaId,
+                                    name: updatedData.name ?? operator.name,
+                                    plantCode: updatedData.plant_code ?? operator.plantCode,
+                                    status: updatedData.status ?? operator.status,
+                                    isTrainer: updatedData.is_trainer ?? operator.isTrainer,
+                                    assignedTrainer: updatedData.assigned_trainer ?? operator.assignedTrainer,
+                                    position: updatedData.position ?? operator.position,
+                                    phone: updatedData.phone ?? operator.phone,
+                                    pendingStartDate: updatedData.pending_start_date ?? operator.pendingStartDate,
+                                    updatedAt: updatedData.updated_at ?? operator.updatedAt
+                                }
+                            }
+                            return operator
+                        }))
+                    } else if (payload.eventType === 'INSERT' && payload.new) {
+                        const newData = payload.new
+                        setOperators(prev => {
+                            if (prev.some(o => o.employeeId === newData.employee_id)) return prev
+                            return [...prev, {
+                                employeeId: newData.employee_id,
+                                smyrnaId: newData.smyrna_id ?? null,
+                                name: newData.name ?? '',
+                                plantCode: newData.plant_code ?? null,
+                                status: newData.status ?? 'Active',
+                                isTrainer: newData.is_trainer ?? false,
+                                assignedTrainer: newData.assigned_trainer ?? null,
+                                position: newData.position ?? null,
+                                phone: newData.phone ?? null,
+                                pendingStartDate: newData.pending_start_date ?? null,
+                                createdAt: newData.created_at ?? new Date().toISOString(),
+                                updatedAt: newData.updated_at ?? new Date().toISOString()
+                            }]
+                        })
+                    } else if (payload.eventType === 'DELETE' && payload.old) {
+                        setOperators(prev => prev.filter(operator => operator.employeeId !== payload.old.employee_id))
+                    }
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [])
+
+    useEffect(() => {
         const fetchCurrentUser = async () => {
             const user = await UserService.getCurrentUser()
             if (user) setCurrentUserId(user.id)
