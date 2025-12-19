@@ -2,8 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {useAuth} from '../../app/context/AuthContext';
 import {AuthUtility} from '../../utils/AuthUtility';
 import {supabase} from '../../services/DatabaseService';
-import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
-import BG from '../../assets/images/BG.png';
+import SrmLogo from '../../assets/images/srm-logo.svg';
 import './styles/Login.css';
 import VersionPopup from '../../components/common/VersionPopup';
 import {useVersion} from '../../app/hooks/useVersion';
@@ -27,6 +26,7 @@ function LoginView() {
         window.location.href = window.location.pathname
     };
     const [showRecovery, setShowRecovery] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         document.documentElement.classList.remove('dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode')
@@ -52,9 +52,9 @@ function LoginView() {
             if (password && isSignUp) {
                 const strengthValue = await AuthUtility.passwordStrength(password);
                 let color = '';
-                if (strengthValue === 'weak') color = 'red';
-                else if (strengthValue === 'medium') color = 'orange';
-                else if (strengthValue === 'strong') color = 'green';
+                if (strengthValue === 'weak') color = '#ef4444';
+                else if (strengthValue === 'medium') color = '#f59e0b';
+                else if (strengthValue === 'strong') color = '#22c55e';
                 const capitalizedValue = strengthValue.charAt(0).toUpperCase() + strengthValue.slice(1);
                 setPasswordStrength({value: capitalizedValue, color});
             } else {
@@ -206,161 +206,175 @@ function LoginView() {
     }
 
     return (
-        <div className="login-container">
+        <div className="auth-page">
             <VideoBackground/>
             <VersionPopup version={version}/>
-            <div className={"login-wrapper" + (isSignUp ? " sign-up-mode" : "")}>
-                <div className="login-info">
-                    <div className="login-info-media">
-                        <img src={BG} alt="" aria-hidden="true" fetchPriority="high" loading="eager" decoding="async"/>
-                    </div>
-                    <div className="login-info-overlay">
-                        <img src={SmyrnaLogo} alt="SRM Logo" className="login-info-logo"/>
-                        <h2>Smyrna Tools - Built for SRM Concrete</h2>
-                        <p>
-                            Since 1999, SRM has been the leading ready-mix concrete supplier in the U.S., with 8,500
-                            team members across 23 states. Join us to experience industry-leading quality and service.
-                        </p>
-                    </div>
-                </div>
-                <div className="login-card login-slide-in-right">
-                    <div className="login-card-header">
-                        <img src={SmyrnaLogo} alt="SRM Logo" className="login-card-logo"/>
-                        <h1>{isSignUp ? 'Create Account' : 'Sign In'}</h1>
-                        <div className="login-tabs">
-                            <button
-                                className={`login-tab ${!isSignUp ? 'active' : ''}`}
-                                onClick={() => setIsSignUp(false)}
-                                type="button"
-                                aria-pressed={!isSignUp}
-                            >
-                                Sign In
-                            </button>
-                            <button
-                                className={`login-tab ${isSignUp ? 'active' : ''}`}
-                                onClick={() => setIsSignUp(true)}
-                                type="button"
-                                aria-pressed={isSignUp}
-                            >
-                                Sign Up
-                            </button>
+            
+            <div className="auth-container">
+                <div className="auth-card">
+                    <div className="auth-logo-section">
+                        <img src={SrmLogo} alt="SRM" className="auth-logo"/>
+                        <div className="auth-brand">
+                            <span className="auth-brand-name">Smyrna Tools</span>
+                            <span className="auth-brand-tagline">Fleet Management System</span>
                         </div>
                     </div>
-                    <form onSubmit={handleSubmit} className="login-form" noValidate>
-                        <div className="form-group">
-                            <label htmlFor="email" className={email ? 'floating-label active' : 'floating-label'}>
-                                Email
-                            </label>
+
+                    <div className="auth-mode-toggle">
+                        <button 
+                            className={`auth-mode-btn ${!isSignUp ? 'active' : ''}`}
+                            onClick={() => setIsSignUp(false)}
+                            type="button"
+                        >
+                            Sign In
+                        </button>
+                        <button 
+                            className={`auth-mode-btn ${isSignUp ? 'active' : ''}`}
+                            onClick={() => setIsSignUp(true)}
+                            type="button"
+                        >
+                            Sign Up
+                        </button>
+                        <div className={`auth-mode-slider ${isSignUp ? 'right' : 'left'}`}/>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="auth-form" noValidate>
+                        {isSignUp && (
+                            <div className="auth-name-row">
+                                <div className="auth-field">
+                                    <i className="fas fa-user auth-field-icon"/>
+                                    <input
+                                        type="text"
+                                        placeholder="First Name"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="auth-field">
+                                    <i className="fas fa-user auth-field-icon"/>
+                                    <input
+                                        type="text"
+                                        placeholder="Last Name"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="auth-field">
+                            <i className="fas fa-envelope auth-field-icon"/>
                             <input
                                 type="email"
-                                id="email"
+                                placeholder="Email Address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="username"
-                                aria-label="Email address"
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="password" className={password ? 'floating-label active' : 'floating-label'}>
-                                Password
-                            </label>
+
+                        <div className="auth-field">
+                            <i className="fas fa-lock auth-field-icon"/>
                             <input
-                                type="password"
-                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                autoComplete="current-password"
-                                aria-label="Password"
+                                autoComplete={isSignUp ? 'new-password' : 'current-password'}
                                 required
                             />
-                            {!isSignUp && (
-                                <div className="forgot-password">
-                                    <button type="button" className="text-button" onClick={() => setShowRecovery(true)}>
-                                        Forgot Password?
-                                    </button>
-                                </div>
-                            )}
-                            {isSignUp && password && (
-                                <div className="password-strength" style={{color: passwordStrength.color}}>
-                                    Password Strength: {passwordStrength.value}
-                                </div>
-                            )}
+                            <button 
+                                type="button" 
+                                className="auth-password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}/>
+                            </button>
                         </div>
-                        {isSignUp && (
-                            <>
-                                <div className="form-group">
-                                    <label htmlFor="confirmPassword"
-                                           className={confirmPassword ? 'floating-label active' : 'floating-label'}>
-                                        Confirm Password
-                                    </label>
-                                    <input
-                                        type="password"
-                                        id="confirmPassword"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        aria-label="Confirm password"
-                                        required
+
+                        {isSignUp && password && (
+                            <div className="auth-password-strength">
+                                <div className="strength-bar">
+                                    <div 
+                                        className={`strength-fill ${passwordStrength.value.toLowerCase()}`}
+                                        style={{
+                                            width: passwordStrength.value === 'Weak' ? '33%' : 
+                                                   passwordStrength.value === 'Medium' ? '66%' : 
+                                                   passwordStrength.value === 'Strong' ? '100%' : '0%'
+                                        }}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="firstName"
-                                           className={firstName ? 'floating-label active' : 'floating-label'}>
-                                        First Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        value={firstName}
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                        aria-label="First name"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="lastName"
-                                           className={lastName ? 'floating-label active' : 'floating-label'}>
-                                        Last Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        aria-label="Last name"
-                                        required
-                                    />
-                                </div>
-                            </>
+                                <span className="strength-text" style={{color: passwordStrength.color}}>
+                                    {passwordStrength.value}
+                                </span>
+                            </div>
                         )}
+
+                        {isSignUp && (
+                            <div className="auth-field">
+                                <i className="fas fa-lock auth-field-icon"/>
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Confirm Password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    autoComplete="new-password"
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        {!isSignUp && (
+                            <div className="auth-options">
+                                <button 
+                                    type="button" 
+                                    className="auth-forgot-btn"
+                                    onClick={() => setShowRecovery(true)}
+                                >
+                                    Forgot Password?
+                                </button>
+                            </div>
+                        )}
+
+                        {errorMessage && (
+                            <div className="auth-message auth-error">
+                                <i className="fas fa-exclamation-circle"/>
+                                <span>{errorMessage}</span>
+                            </div>
+                        )}
+
+                        {successMessage && (
+                            <div className="auth-message auth-success">
+                                <i className="fas fa-check-circle"/>
+                                <span>{successMessage}</span>
+                            </div>
+                        )}
+
                         <button
                             type="submit"
-                            className="login-btn"
+                            className="auth-submit-btn"
                             disabled={isSubmitting || loading}
-                            aria-label={isSignUp ? 'Create account' : 'Sign in'}
                         >
                             {isSubmitting || loading ? (
-                                <span className="login-loading">
-                  <span className="loading-dot"></span>
-                  <span className="loading-dot"></span>
-                  <span className="loading-dot"></span>
-                                    {isSignUp ? 'Creating Account...' : 'Signing In...'}
-                </span>
-                            ) : isSignUp ? (
-                                'Create Account'
+                                <div className="auth-spinner"/>
                             ) : (
-                                'Sign In'
+                                <>
+                                    <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                                    <i className="fas fa-arrow-right"/>
+                                </>
                             )}
                         </button>
-                        {errorMessage && <div className="error-message">{errorMessage}</div>}
-                        {successMessage && <div className="success-message">{successMessage}</div>}
                     </form>
-                    <div className="login-footer">
-                        {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-                        <button
-                            className="text-button"
+
+                    <div className="auth-footer">
+                        <span>{isSignUp ? 'Already have an account?' : "Don't have an account?"}</span>
+                        <button 
+                            type="button"
+                            className="auth-switch-btn"
                             onClick={() => setIsSignUp(!isSignUp)}
-                            aria-label={isSignUp ? 'Switch to sign in' : 'Switch to sign up'}
                         >
                             {isSignUp ? 'Sign In' : 'Sign Up'}
                         </button>

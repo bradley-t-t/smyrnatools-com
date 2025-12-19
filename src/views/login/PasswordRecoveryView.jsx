@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
-import BG from '../../assets/images/BG.png';
+import SrmLogo from '../../assets/images/srm-logo.svg';
 import './styles/PasswordRecoveryView.css';
 import APIUtility from '../../utils/APIUtility';
+import VideoBackground from '../../components/common/VideoBackground';
 
 function PasswordRecoveryView({onBackToLogin}) {
     const [email, setEmail] = useState('');
@@ -21,13 +21,7 @@ function PasswordRecoveryView({onBackToLogin}) {
         }
         setSubmitting(true);
         try {
-            const envInfo = {
-                edgeUrl: process.env.REACT_APP_EDGE_FUNCTIONS_URL || null,
-                hasAnonKey: !!process.env.REACT_APP_SUPABASE_ANON_KEY,
-                origin: window.location.origin,
-                href: window.location.href
-            };
-            const {res, json} = await APIUtility.post('/auth-context/reset-password', {email});
+            const {res} = await APIUtility.post('/auth-context/reset-password', {email});
             if (res.ok) {
                 setMessage('If an account exists for this email, a new password has been sent.');
             } else {
@@ -41,51 +35,70 @@ function PasswordRecoveryView({onBackToLogin}) {
     }
 
     return (
-        <div className="login-container">
-            <div className="login-wrapper">
-                <div className="login-info">
-                    <div className="login-info-media">
-                        <img src={BG} alt="" aria-hidden="true" fetchPriority="high" loading="eager" decoding="async"/>
+        <div className="auth-page">
+            <VideoBackground/>
+            
+            <div className="auth-container">
+                <div className="auth-card">
+                    <div className="auth-logo-section">
+                        <img src={SrmLogo} alt="SRM" className="auth-logo"/>
+                        <div className="auth-brand">
+                            <span className="auth-brand-name">Password Recovery</span>
+                            <span className="auth-brand-tagline">Enter your email to receive a new password</span>
+                        </div>
                     </div>
-                    <div className="login-info-overlay">
-                        <img src={SmyrnaLogo} alt="SRM Logo" className="login-info-logo"/>
-                        <h2>Smyrna Tools - Password Recovery</h2>
-                        <p>Enter the email associated with your account. If it exists, we will send a new password to
-                            your email.</p>
-                    </div>
-                </div>
-                <div className="login-card login-slide-in-right">
-                    <div className="login-card-header">
-                        <img src={SmyrnaLogo} alt="SRM Logo" className="login-card-logo"/>
-                        <h1>Recover Password</h1>
-                    </div>
-                    {message && <div className="success-message" role="status" aria-live="polite"
-                                     style={{marginBottom: '15px', textAlign: 'center'}}>{message}</div>}
-                    {error && <div className="error-message" role="alert" aria-live="assertive">{error}</div>}
-                    <form className="login-form" onSubmit={handleSubmit} noValidate>
-                        <div className="form-group">
-                            <label htmlFor="recoveryEmail"
-                                   className={email ? 'floating-label active' : 'floating-label'}>
-                                Email
-                            </label>
+
+                    <form onSubmit={handleSubmit} className="auth-form" noValidate>
+                        <div className="auth-field">
+                            <i className="fas fa-envelope auth-field-icon"/>
                             <input
                                 type="email"
-                                id="recoveryEmail"
+                                placeholder="Email Address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email"
-                                aria-label="Email address"
                                 autoFocus
                                 required
                             />
                         </div>
-                        <button type="submit" className="login-btn" disabled={submitting}
-                                aria-label="Send new password">
-                            {submitting ? 'Sending...' : 'Send New Password'}
+
+                        {error && (
+                            <div className="auth-message auth-error">
+                                <i className="fas fa-exclamation-circle"/>
+                                <span>{error}</span>
+                            </div>
+                        )}
+
+                        {message && (
+                            <div className="auth-message auth-success">
+                                <i className="fas fa-check-circle"/>
+                                <span>{message}</span>
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="auth-submit-btn"
+                            disabled={submitting}
+                        >
+                            {submitting ? (
+                                <div className="auth-spinner"/>
+                            ) : (
+                                <>
+                                    <span>Send New Password</span>
+                                    <i className="fas fa-paper-plane"/>
+                                </>
+                            )}
                         </button>
                     </form>
-                    <div className="login-footer">
-                        <button className="text-button" onClick={onBackToLogin} aria-label="Back to Login">
+
+                    <div className="auth-footer">
+                        <button 
+                            type="button"
+                            className="auth-switch-btn"
+                            onClick={onBackToLogin}
+                        >
+                            <i className="fas fa-arrow-left" style={{marginRight: '8px'}}/>
                             Back to Login
                         </button>
                     </div>

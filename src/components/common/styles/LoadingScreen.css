@@ -62,8 +62,8 @@
 }
 
 .bouncing-logo {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     animation: bounce 0.8s ease-in-out infinite alternate;
     will-change: transform;
 }

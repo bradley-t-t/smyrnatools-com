@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react'
 import './styles/Navigation.css'
-import FlagSmyrnaLogo from '../../assets/images/FlagSmyrnaLogo.png'
+import SrmLogo from '../../assets/images/srm-logo.svg'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
 import NotificationsModal from './NotificationsModal'
@@ -385,7 +385,7 @@ export default function Navigation({
                 <div className="navbar-left">
                     <div className="logo-container">
                         <img
-                            src={FlagSmyrnaLogo}
+                            src={SrmLogo}
                             alt="Smyrna Logo"
                             className="navbar-logo"
                             title="Smyrna Ready Mix"

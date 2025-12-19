@@ -1,6 +1,6 @@
 import React from 'react';
 import './styles/LoadingScreen.css';
-import SmyrnaLogo from '../../assets/images/SmyrnaLogo.png';
+import SrmLogo from '../../assets/images/srm-logo.svg';
 import {usePreferences} from '../../app/context/PreferencesContext';
 
 function LoadingScreen({message = 'Loading...', fullPage = false, inline = false}) {
@@ -12,7 +12,7 @@ function LoadingScreen({message = 'Loading...', fullPage = false, inline = false
         <div className={`loading-screen ${themeClass} ${fullPage ? 'full-page' : inline ? 'inline' : 'popup'}`}>
             <div className="loading-content">
                 <div className="loading-animation">
-                    <img src={SmyrnaLogo} alt="Loading" className="bouncing-logo"/>
+                    <img src={SrmLogo} alt="Loading" className="bouncing-logo"/>
                 </div>
                 <p className="loading-message">{message}</p>
             </div>
