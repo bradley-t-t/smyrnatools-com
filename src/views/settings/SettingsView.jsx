@@ -18,6 +18,7 @@ function SettingsView() {
         preferences,
         toggleShowTips,
         toggleShowOnlineOverlay,
+        toggleBlurBg,
         setThemeMode,
         setAccentColor,
         toggleAcceptReportSubmittedEmails
@@ -179,6 +180,15 @@ function SettingsView() {
                                 <span className="slider round"></span>
                             </label>
                             <span className="toggle-state">{preferences.showOnlineOverlay ? 'Visible' : 'Hidden'}</span>
+                        </div>
+                        <div className="toggle-setting">
+                            <span className="toggle-label">Blur Video Background</span>
+                            <label className="switch">
+                                <input type="checkbox" checked={preferences.blurBg}
+                                       onChange={() => save(toggleBlurBg)}/>
+                                <span className="slider round"></span>
+                            </label>
+                            <span className="toggle-state">{preferences.blurBg ? 'Enabled' : 'Disabled'}</span>
                         </div>
                     </div>
                 </div>

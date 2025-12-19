@@ -54,6 +54,11 @@ html.old-dark-mode .video-background-fallback {
     opacity: 1;
 }
 
+.video-background-video.video-blurred {
+    filter: blur(12px);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
 .video-background-overlay {
     position: absolute;
     top: 0;

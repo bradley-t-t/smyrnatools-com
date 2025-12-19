@@ -9,7 +9,6 @@ import ListAddView from './ListAddView'
 import {RegionService} from '../../services/RegionService'
 import TopSection from '../../components/sections/TopSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
-import VideoBackground from '../../components/common/VideoBackground'
 
 function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const {preferences} = usePreferences()

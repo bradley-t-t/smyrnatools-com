@@ -4,6 +4,7 @@ import vid1 from '../../assets/videos/1.mp4'
 import vid2 from '../../assets/videos/2.mp4'
 import vid3 from '../../assets/videos/3.mp4'
 import vid4 from '../../assets/videos/4.mp4'
+import {usePreferences} from '../../app/context/PreferencesContext'
 
 const backgroundVideos = [
     vid1,
@@ -13,6 +14,7 @@ const backgroundVideos = [
 ]
 
 function VideoBackground({className = ''}) {
+    const {preferences} = usePreferences()
     const [currentVideoIndex, setCurrentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length))
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
@@ -98,7 +100,7 @@ function VideoBackground({className = ''}) {
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleVideoEnd}
                 onError={() => setShowVideo(true)}
-                className={`video-background-video ${showVideo ? 'video-visible' : ''}`}
+                className={`video-background-video ${showVideo ? 'video-visible' : ''} ${preferences.blurBg ? 'video-blurred' : ''}`}
             >
                 <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
             </video>

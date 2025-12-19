@@ -9,7 +9,6 @@ import {OperatorService} from '../../services/OperatorService'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
-import VideoBackground from '../../components/common/VideoBackground'
 
 export default function LeaderboardsView() {
     const {preferences} = usePreferences()

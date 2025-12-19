@@ -7,7 +7,6 @@ import '../../components/sections/styles/DetailView.css';
 import {RegionService} from '../../services/RegionService';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import DetailViewSection from '../../components/sections/DetailViewSection';
-import VideoBackground from '../../components/common/VideoBackground';
 
 function ListDetailView({itemId, onClose}) {
     const {preferences} = usePreferences();

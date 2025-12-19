@@ -274,6 +274,7 @@ export const PreferencesProvider = ({children}) => {
                 accent_color: updatedPreferences.accentColor,
                 show_tips: updatedPreferences.showTips,
                 show_online_overlay: updatedPreferences.showOnlineOverlay,
+                blur_bg: updatedPreferences.blurBg,
                 default_view_mode: updatedPreferences.defaultViewMode,
                 mixer_filters: updatedPreferences.mixerFilters,
                 operator_filters: updatedPreferences.operatorFilters,
@@ -385,6 +386,7 @@ export const PreferencesProvider = ({children}) => {
 
     const toggleShowTips = () => updatePreferences('showTips', !preferences.showTips)
     const toggleShowOnlineOverlay = () => updatePreferences('showOnlineOverlay', !preferences.showOnlineOverlay)
+    const toggleBlurBg = () => updatePreferences('blurBg', !preferences.blurBg)
     const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) && updatePreferences('themeMode', mode)
     const setAccentColor = color => (color === 'red' || color === 'blue' || color === 'grey') && updatePreferences('accentColor', color)
     const saveLastViewedFilters = async filters => {
@@ -415,6 +417,7 @@ export const PreferencesProvider = ({children}) => {
                 loading,
                 toggleShowTips,
                 toggleShowOnlineOverlay,
+                toggleBlurBg,
                 setThemeMode,
                 setAccentColor,
                 updatePreferences,

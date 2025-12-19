@@ -10,7 +10,6 @@ import TopSection from '../../components/sections/TopSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import {PlantService} from '../../services/PlantService'
-import VideoBackground from '../../components/common/VideoBackground'
 
 function ManagersView({title = 'Managers', onSelectManager}) {
     const {preferences, updateManagerFilter, resetManagerFilters} = usePreferences()
