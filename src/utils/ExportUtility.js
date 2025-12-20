@@ -263,28 +263,36 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     }
 
     function calcChange(current, previous) {
-        if (previous === 0 || previous === null || previous === undefined) {
-            if (current === 0) return {pct: 0, direction: 'neutral'}
-            return {pct: null, direction: 'new'}
+        if (previous === null || previous === undefined) {
+            return {diff: 0, pct: 0, direction: 'neutral'}
         }
-        const pct = Math.round(((current - previous) / previous) * 100)
-        if (pct > 0) return {pct, direction: 'up'}
-        if (pct < 0) return {pct: Math.abs(pct), direction: 'down'}
-        return {pct: 0, direction: 'neutral'}
+        const diff = current - previous
+        const pct = previous === 0 ? (current === 0 ? 0 : 100) : Math.round(((current - previous) / previous) * 100)
+        if (diff > 0) return {diff, pct, direction: 'up'}
+        if (diff < 0) return {diff: Math.abs(diff), pct: Math.abs(pct), direction: 'down'}
+        return {diff: 0, pct: 0, direction: 'neutral'}
     }
 
     function getChangeText(current, previous, invertColors = false) {
         const change = calcChange(current, previous)
         if (change.direction === 'neutral' || change.pct === 0) {
-            return {text: '', color: null}
-        }
-        if (change.direction === 'new') {
-            return {text: ' (+100%)', color: invertColors ? COLORS.danger : COLORS.success}
+            return {text: '0%', color: COLORS.slate500}
         }
         if (change.direction === 'up') {
-            return {text: ` (+${change.pct}%)`, color: invertColors ? COLORS.danger : COLORS.success}
+            return {text: `+${change.pct}%`, color: invertColors ? COLORS.danger : COLORS.success}
         }
-        return {text: ` (-${change.pct}%)`, color: invertColors ? COLORS.success : COLORS.danger}
+        return {text: `-${change.pct}%`, color: invertColors ? COLORS.success : COLORS.danger}
+    }
+
+    function getChangeValue(current, previous, invertColors = false) {
+        const change = calcChange(current, previous)
+        if (change.direction === 'neutral' || change.diff === 0) {
+            return {text: '0', color: COLORS.slate500}
+        }
+        if (change.direction === 'up') {
+            return {text: `+${change.diff}`, color: invertColors ? COLORS.danger : COLORS.success}
+        }
+        return {text: `-${change.diff}`, color: invertColors ? COLORS.success : COLORS.danger}
     }
 
     function addSectionTitle(ws, row, col, text) {
@@ -349,14 +357,21 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     function addChangePct(cell, changeInfo, isAlt = false) {
         if (!changeInfo || !changeInfo.text) {
             cell.value = ''
+            if (isAlt) {
+                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+            }
         } else {
             cell.value = changeInfo.text.trim()
-            cell.font = {name: 'Calibri', size: 9, bold: true, color: {argb: changeInfo.color}}
+            cell.font = {name: 'Calibri', size: 8, bold: true, color: {argb: changeInfo.color}}
+            const bgColor = changeInfo.color === COLORS.success ? COLORS.successLight : 
+                           changeInfo.color === COLORS.danger ? COLORS.dangerLight : 
+                           changeInfo.color === COLORS.slate500 ? COLORS.slate100 :
+                           (isAlt ? COLORS.snow : null)
+            if (bgColor) {
+                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            }
         }
         cell.alignment = {vertical: 'middle', horizontal: 'right'}
-        if (isAlt) {
-            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
-        }
     }
 
     function addDataRow(ws, row, values, startCol = 2, isAlt = false) {
@@ -564,10 +579,9 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             labelCell.font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate500}}
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
 
-            const changeInfo = metric.prev !== undefined ? getChangeText(metric.value, metric.prev, metric.invertChange || false) : {
-                text: '',
-                color: null
-            }
+            const changeInfo = metric.prev !== undefined ? 
+                (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
+                {text: '', color: null}
             addChangePct(ws.getCell(ovRow, overviewCol + 1), changeInfo, false)
 
             const valueCell = ws.getCell(ovRow, overviewCol + 2)
@@ -588,13 +602,14 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     addOverviewGroup('Fleet', [
         {label: 'Plants', value: sortedPlants.length},
-        {label: 'Runnable', value: totalRunnable, prev: prevTotalRunnableOv},
+        {label: 'Runnable', value: totalRunnable, prev: prevTotalRunnableOv, useValue: true},
         {
             label: 'Down',
             value: totalDown,
             prev: prevTotalDownOv,
             color: totalDown > 0 ? COLORS.danger : COLORS.brand,
-            invertChange: true
+            invertChange: true,
+            useValue: true
         },
         {
             label: 'Utilization',
@@ -606,7 +621,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     ])
 
     addOverviewGroup('Operators', [
-        {label: 'Total', value: totalOps, prev: prevTotalOpsOv},
+        {label: 'Total', value: totalOps, prev: prevTotalOpsOv, useValue: true},
         {
             label: 'Allocation',
             value: allocationPct,
@@ -673,9 +688,9 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         const prevYardage = prevGMData ? ensure(prevGMData[`total_yardage_${p.plant_code}`], true) : null
         const prevHours = prevGMData ? ensure(prevGMData[`total_hours_${p.plant_code}`], true) : null
 
-        const opsChange = prevGMData ? getChangeText(ops, prevOps, false) : {text: '', color: null}
-        const runnableChange = prevGMData ? getChangeText(runnable, prevRunnable, false) : {text: '', color: null}
-        const downChange = prevGMData ? getChangeText(down, prevDown, true) : {text: '', color: null}
+        const opsChange = prevGMData ? getChangeValue(ops, prevOps, false) : {text: '', color: null}
+        const runnableChange = prevGMData ? getChangeValue(runnable, prevRunnable, false) : {text: '', color: null}
+        const downChange = prevGMData ? getChangeValue(down, prevDown, true) : {text: '', color: null}
         const yardageChange = prevGMData ? getChangeText(yardage, prevYardage, false) : {text: '', color: null}
         const hoursChange = prevGMData ? getChangeText(hours, prevHours, false) : {text: '', color: null}
 
@@ -755,12 +770,12 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         })
     }
 
-    const totalOpsChange = prevGMData ? getChangeText(totalOps, prevTotalOps, false) : {text: '', color: null}
-    const totalRunnableChange = prevGMData ? getChangeText(totalRunnable, prevTotalRunnable, false) : {
+    const totalOpsChange = prevGMData ? getChangeValue(totalOps, prevTotalOps, false) : {text: '', color: null}
+    const totalRunnableChange = prevGMData ? getChangeValue(totalRunnable, prevTotalRunnable, false) : {
         text: '',
         color: null
     }
-    const totalDownChange = prevGMData ? getChangeText(totalDown, prevTotalDown, true) : {text: '', color: null}
+    const totalDownChange = prevGMData ? getChangeValue(totalDown, prevTotalDown, true) : {text: '', color: null}
     const totalYardageChange = prevGMData ? getChangeText(totalYardage, prevTotalYardage, false) : {
         text: '',
         color: null
@@ -900,11 +915,12 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
             const filterNew = (c) => c.text && c.text.includes('new') ? {text: '', color: null} : c
 
-            const loadsChange = prevEr ? filterNew(getChangeText(loads, prevLoads, false)) : {text: '', color: null}
-            const hoursChange = prevEr ? filterNew(getChangeText(hours, prevHours, false)) : {text: '', color: null}
-            const lphChange = prevEr ? filterNew(getChangeText(lph, prevLph, false)) : {text: '', color: null}
-            const startChange = prevEr ? filterNew(getChangeText(startMin, prevStart, true)) : {text: '', color: null}
-            const endChange = prevEr ? filterNew(getChangeText(endMin, prevEnd, true)) : {text: '', color: null}
+            const noChangeResult = {text: '0%', color: COLORS.slate500}
+            const loadsChange = prevEr ? filterNew(getChangeText(loads, prevLoads, false)) : noChangeResult
+            const hoursChange = prevEr ? filterNew(getChangeText(hours, prevHours, false)) : noChangeResult
+            const lphChange = prevEr ? filterNew(getChangeText(lph, prevLph, false)) : noChangeResult
+            const startChange = prevEr ? filterNew(getChangeText(startMin, prevStart, true)) : noChangeResult
+            const endChange = prevEr ? filterNew(getChangeText(endMin, prevEnd, true)) : noChangeResult
 
             addChangePct(ws.getCell(r, 5), loadsChange, isAlt)
             const loadsCell = ws.getCell(r, 6)
