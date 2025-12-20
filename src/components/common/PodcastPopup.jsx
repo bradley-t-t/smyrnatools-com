@@ -1,18 +1,34 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useRef} from 'react'
 import './styles/PodcastPopup.css'
+import {usePreferences} from '../../app/context/PreferencesContext'
+import {useAuth} from '../../app/context/AuthContext'
 
 const RSS_URL = 'https://rss.buzzsprout.com/705426.rss'
 
 function PodcastPopup() {
+    const {preferences} = usePreferences()
+    const {user, loading} = useAuth()
     const [episode, setEpisode] = useState(null)
     const [isVisible, setIsVisible] = useState(false)
     const [isMinimized, setIsMinimized] = useState(false)
     const [isPlaying, setIsPlaying] = useState(false)
-    const audioRef = React.useRef(null)
+    const audioRef = useRef(null)
 
     useEffect(() => {
-        fetchLatestEpisode()
-    }, [])
+        if (user?.id && !loading) {
+            fetchLatestEpisode()
+        }
+    }, [user, loading])
+
+    useEffect(() => {
+        if (!preferences.showPodcastOverlay) {
+            if (audioRef.current && isPlaying) {
+                audioRef.current.pause()
+                setIsPlaying(false)
+            }
+            setIsVisible(false)
+        }
+    }, [preferences.showPodcastOverlay, isPlaying])
 
     const fetchLatestEpisode = async () => {
         try {
@@ -107,7 +123,7 @@ function PodcastPopup() {
         setIsMinimized(!isMinimized)
     }
 
-    if (!isVisible || !episode) return null
+    if (loading || !user?.id || !preferences.showPodcastOverlay || !isVisible || !episode) return null
 
     return (
         <div className={`podcast-popup ${isMinimized ? 'minimized' : ''}`}>

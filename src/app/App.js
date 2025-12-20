@@ -15,7 +15,6 @@ import ListView from '../views/list/ListView'
 import WebOverlay from "../components/common/WebOverlay"
 import {UserService} from "../services/UserService"
 import OnlineUsersOverlay from '../components/common/OnlineUsersOverlay'
-import TipBanner from '../components/common/TipBanner'
 import ReportsView from '../views/reports/ReportsView'
 import TractorsView from '../views/tractors/TractorsView'
 import TrailersView from '../views/trailers/TrailersView'
@@ -657,7 +656,7 @@ function App() {
     return (
         <>
             <AppContent/>
-            <div style={{position: 'relative', zIndex: 9999}}><OnlineUsersOverlay/><TipBanner/></div>
+            <div style={{position: 'relative', zIndex: 9999}}><OnlineUsersOverlay/></div>
             <PodcastPopup/>
         </>
     )

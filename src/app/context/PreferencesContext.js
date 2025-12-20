@@ -69,8 +69,8 @@ applyThemeClasses(cachedTheme.themeMode, cachedTheme.accentColor)
 const defaultPreferences = {
     themeMode: cachedTheme.themeMode,
     accentColor: cachedTheme.accentColor,
-    showTips: false,
     showOnlineOverlay: true,
+    showPodcastOverlay: true,
     defaultViewMode: null,
     mixerFilters: {
         searchText: '',
@@ -147,8 +147,8 @@ export const PreferencesProvider = ({children}) => {
                         prefs = {
                             themeMode: data.theme_mode || 'old-dark',
                             accentColor: data.accent_color || 'red',
-                            showTips: data.show_tips === undefined ? false : data.show_tips,
                             showOnlineOverlay: data.show_online_overlay === undefined ? true : data.show_online_overlay,
+                            showPodcastOverlay: data.show_podcast_overlay === undefined ? true : data.show_podcast_overlay,
                             defaultViewMode: data.default_view_mode === undefined ? null : data.default_view_mode,
                             mixerFilters: data.mixer_filters ? {
                                 ...data.mixer_filters,
@@ -272,8 +272,8 @@ export const PreferencesProvider = ({children}) => {
                 user_id: userId,
                 theme_mode: updatedPreferences.themeMode,
                 accent_color: updatedPreferences.accentColor,
-                show_tips: updatedPreferences.showTips,
                 show_online_overlay: updatedPreferences.showOnlineOverlay,
+                show_podcast_overlay: updatedPreferences.showPodcastOverlay,
                 blur_bg: updatedPreferences.blurBg,
                 default_view_mode: updatedPreferences.defaultViewMode,
                 mixer_filters: updatedPreferences.mixerFilters,
@@ -384,8 +384,8 @@ export const PreferencesProvider = ({children}) => {
         updatePreferences('regionOverlayMinimized', !!minimized)
     }
 
-    const toggleShowTips = () => updatePreferences('showTips', !preferences.showTips)
     const toggleShowOnlineOverlay = () => updatePreferences('showOnlineOverlay', !preferences.showOnlineOverlay)
+    const toggleShowPodcastOverlay = () => updatePreferences('showPodcastOverlay', !preferences.showPodcastOverlay)
     const toggleBlurBg = () => updatePreferences('blurBg', !preferences.blurBg)
     const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) && updatePreferences('themeMode', mode)
     const setAccentColor = color => (color === 'red' || color === 'blue' || color === 'grey') && updatePreferences('accentColor', color)
@@ -415,8 +415,8 @@ export const PreferencesProvider = ({children}) => {
             value={{
                 preferences,
                 loading,
-                toggleShowTips,
                 toggleShowOnlineOverlay,
+                toggleShowPodcastOverlay,
                 toggleBlurBg,
                 setThemeMode,
                 setAccentColor,

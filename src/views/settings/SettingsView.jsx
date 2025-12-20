@@ -16,8 +16,8 @@ function SettingsView() {
     const version = useVersion()
     const {
         preferences,
-        toggleShowTips,
         toggleShowOnlineOverlay,
+        toggleShowPodcastOverlay,
         toggleBlurBg,
         setThemeMode,
         setAccentColor,
@@ -164,15 +164,6 @@ function SettingsView() {
                     <div className="settings-section">
                         <h3>Display Options</h3>
                         <div className="toggle-setting">
-                            <span className="toggle-label">Tips</span>
-                            <label className="switch">
-                                <input type="checkbox" checked={preferences.showTips}
-                                       onChange={() => save(toggleShowTips)}/>
-                                <span className="slider round"></span>
-                            </label>
-                            <span className="toggle-state">{preferences.showTips ? 'Visible' : 'Hidden'}</span>
-                        </div>
-                        <div className="toggle-setting">
                             <span className="toggle-label">Online Users List</span>
                             <label className="switch">
                                 <input type="checkbox" checked={preferences.showOnlineOverlay}
@@ -180,6 +171,15 @@ function SettingsView() {
                                 <span className="slider round"></span>
                             </label>
                             <span className="toggle-state">{preferences.showOnlineOverlay ? 'Visible' : 'Hidden'}</span>
+                        </div>
+                        <div className="toggle-setting">
+                            <span className="toggle-label">Podcast Overlay</span>
+                            <label className="switch">
+                                <input type="checkbox" checked={preferences.showPodcastOverlay}
+                                       onChange={() => save(toggleShowPodcastOverlay)}/>
+                                <span className="slider round"></span>
+                            </label>
+                            <span className="toggle-state">{preferences.showPodcastOverlay ? 'Visible' : 'Hidden'}</span>
                         </div>
                         <div className="toggle-setting">
                             <span className="toggle-label">Blur Video Background</span>
