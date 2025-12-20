@@ -220,11 +220,11 @@ async function fetchPreviousGMReport(weekIso) {
 export async function exportGeneralManagerReport({form, plants, weekIso, filename}) {
     if (typeof window === 'undefined') return
     
-    const today = new Date()
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dd = String(today.getDate()).padStart(2, '0')
-    const yyyy = today.getFullYear()
-    const defaultFilename = `General Manager Report ${mm}-${dd}-${yyyy}.xlsx`
+    let defaultFilename = 'General Manager Report.xlsx'
+    if (weekIso) {
+        const [year, month, day] = weekIso.split('-')
+        defaultFilename = `General Manager Report ${month}-${day}-${year}.xlsx`
+    }
     const finalFilename = filename || defaultFilename
 
     const excelModule = await import('exceljs')
