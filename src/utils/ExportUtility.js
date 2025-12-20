@@ -217,8 +217,15 @@ async function fetchPreviousGMReport(weekIso) {
     return sorted[0]?.data || null
 }
 
-export async function exportGeneralManagerReport({form, plants, weekIso, filename = 'general_manager_report.xlsx'}) {
+export async function exportGeneralManagerReport({form, plants, weekIso, filename}) {
     if (typeof window === 'undefined') return
+    
+    const today = new Date()
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const dd = String(today.getDate()).padStart(2, '0')
+    const yyyy = today.getFullYear()
+    const defaultFilename = `General Manager Report ${mm}-${dd}-${yyyy}.xlsx`
+    const finalFilename = filename || defaultFilename
 
     const excelModule = await import('exceljs')
     const ExcelLib = excelModule.default || excelModule
@@ -466,6 +473,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     subtitleCell.alignment = {vertical: 'middle', horizontal: 'left'}
     r++
 
+    ws.mergeCells(r, 3, r, 10)
     const dateCell = ws.getCell(r, 3)
     dateCell.value = {
         text: 'Generated on ' + new Date().toLocaleDateString('en-US', {
@@ -475,7 +483,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         }) + ' on smyrnatools.com',
         hyperlink: 'https://smyrnatools.com'
     }
-    dateCell.font = {name: 'Calibri', size: 10, italic: true, color: {argb: COLORS.slate500}}
+    dateCell.font = {name: 'Calibri', size: 10, italic: true, color: {argb: COLORS.slate500}, underline: true}
     r += 2
 
     let totalOps = 0, totalRunnable = 0, totalDown = 0, totalYardage = 0, totalHours = 0
@@ -1287,7 +1295,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = filename
+    a.download = finalFilename
     document.body.appendChild(a)
     a.click()
     setTimeout(() => {

@@ -283,8 +283,7 @@ function ReportsSubmitView({
             await exportGeneralManagerReport({
                 form,
                 plants,
-                weekIso: report.weekIso,
-                filename: `general_manager_report_${report.weekIso || ''}.xlsx`
+                weekIso: report.weekIso
             })
         } catch (e) {
             setExportError(e?.message || 'Export failed')

@@ -187,8 +187,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
             await exportGeneralManagerReport({
                 form,
                 plants,
-                weekIso: report.weekIso || initialData?.week,
-                filename: `general_manager_report_${report.weekIso || initialData?.week || ''}.xlsx`
+                weekIso: report.weekIso || initialData?.week
             })
         } catch (e) {
             setExportError(e?.message || 'Export failed')
