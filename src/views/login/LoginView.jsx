@@ -208,7 +208,7 @@ function LoginView() {
                         <img src={SrmLogo} alt="SRM" className="auth-logo"/>
                         <div className="auth-brand">
                             <span className="auth-brand-name">Smyrna Tools</span>
-                            <span className="auth-brand-tagline">Fleet Management System</span>
+                            <span className="auth-brand-tagline">Concrete Region Management System</span>
                         </div>
                     </div>
 

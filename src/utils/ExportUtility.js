@@ -225,6 +225,87 @@ function getPreviousWeekIso(weekIso) {
     return `${y}-${m}-${d}`
 }
 
+async function fetchAllMonthlyGMReports() {
+    let {data: reports} = await supabase
+        .from('reports')
+        .select('id,data,week,submitted_at,completed')
+        .eq('report_name', 'general_manager')
+        .order('week', { ascending: false })
+    
+    if (!Array.isArray(reports)) reports = []
+    
+    const getMondayIsoUTC = (dateInput) => {
+        if (!dateInput) return null
+        let isoStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString()
+        const datePart = isoStr.slice(0, 10)
+        const d = new Date(datePart + 'T00:00:00Z')
+        if (isNaN(d.getTime())) return null
+        const day = d.getUTCDay()
+        d.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
+        return d.toISOString().slice(0, 10)
+    }
+    
+    const byWeek = new Map()
+    reports.forEach(r => {
+        const mondayIso = r.week ? getMondayIsoUTC(r.week) : null
+        if (!mondayIso) return
+        const existing = byWeek.get(mondayIso)
+        if (!existing) {
+            byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
+        } else {
+            if (r.completed && !existing.completed) byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
+            else if (r.completed === existing.completed && (r.submitted_at || '') > (existing.submitted_at || '')) byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
+        }
+    })
+    
+    const getWeeksInMonth = (year, month) => {
+        const firstDay = new Date(Date.UTC(year, month - 1, 1))
+        const lastDay = new Date(Date.UTC(year, month, 0))
+        let weeks = 0
+        const d = new Date(firstDay)
+        while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() + 1)
+        while (d <= lastDay) {
+            weeks++
+            d.setUTCDate(d.getUTCDate() + 7)
+        }
+        return weeks || 4
+    }
+    
+    const byMonth = new Map()
+    
+    let minDate = null, maxDate = null
+    byWeek.forEach((r, mondayIso) => {
+        const weekDate = new Date(mondayIso + 'T00:00:00Z')
+        if (!minDate || weekDate < minDate) minDate = weekDate
+        if (!maxDate || weekDate > maxDate) maxDate = weekDate
+    })
+    
+    if (minDate && maxDate) {
+        const current = new Date(Date.UTC(maxDate.getUTCFullYear(), maxDate.getUTCMonth(), 1))
+        const end = new Date(Date.UTC(minDate.getUTCFullYear(), minDate.getUTCMonth(), 1))
+        while (current >= end) {
+            const year = current.getUTCFullYear()
+            const month = current.getUTCMonth() + 1
+            const monthKey = `${year}-${String(month).padStart(2, '0')}`
+            const monthName = current.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+            const totalWeeks = getWeeksInMonth(year, month)
+            byMonth.set(monthKey, { monthKey, monthName, reports: [], weekIsos: new Set(), totalWeeks })
+            current.setUTCMonth(current.getUTCMonth() - 1)
+        }
+    }
+    
+    byWeek.forEach((r, mondayIso) => {
+        const weekDate = new Date(mondayIso + 'T00:00:00Z')
+        const monthKey = `${weekDate.getUTCFullYear()}-${String(weekDate.getUTCMonth() + 1).padStart(2, '0')}`
+        if (byMonth.has(monthKey)) {
+            byMonth.get(monthKey).reports.push(r.data)
+            byMonth.get(monthKey).weekIsos.add(mondayIso)
+        }
+    })
+    
+    return [...byMonth.values()].sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+}
+
 export async function exportGeneralManagerReport({form, plants, weekIso, filename}) {
     if (typeof window === 'undefined') return
     
@@ -256,10 +337,55 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         }
     }
 
+    const allMonthlyData = await fetchAllMonthlyGMReports()
+    
+    const getMondayIsoUTC = (dateInput) => {
+        if (!dateInput) return null
+        let isoStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString()
+        const datePart = isoStr.slice(0, 10)
+        const d = new Date(datePart + 'T00:00:00Z')
+        if (isNaN(d.getTime())) return null
+        const day = d.getUTCDay()
+        d.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
+        return d.toISOString().slice(0, 10)
+    }
+    
+    const currentMondayIso = getMondayIsoUTC(weekIso)
+    const currentWeekDate = new Date(currentMondayIso + 'T00:00:00Z')
+    const currentMonthKey = `${currentWeekDate.getUTCFullYear()}-${String(currentWeekDate.getUTCMonth() + 1).padStart(2, '0')}`
+    const currentMonthIdx = allMonthlyData.findIndex(m => m.monthKey === currentMonthKey)
+    
+    const getWeeksInMonth = (year, month) => {
+        const firstDay = new Date(Date.UTC(year, month - 1, 1))
+        const lastDay = new Date(Date.UTC(year, month, 0))
+        let weeks = 0
+        const d = new Date(firstDay)
+        while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() + 1)
+        while (d <= lastDay) {
+            weeks++
+            d.setUTCDate(d.getUTCDate() + 7)
+        }
+        return weeks || 4
+    }
+    
+    if (currentMonthIdx >= 0) {
+        if (!allMonthlyData[currentMonthIdx].weekIsos.has(currentMondayIso)) {
+            allMonthlyData[currentMonthIdx].reports.unshift(form)
+            allMonthlyData[currentMonthIdx].weekIsos.add(currentMondayIso)
+        }
+    } else {
+        const monthName = new Date(Date.UTC(currentWeekDate.getUTCFullYear(), currentWeekDate.getUTCMonth(), 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+        const year = currentWeekDate.getUTCFullYear()
+        const month = currentWeekDate.getUTCMonth() + 1
+        const totalWeeks = getWeeksInMonth(year, month)
+        const weekIsos = new Set([currentMondayIso])
+        allMonthlyData.unshift({ monthKey: currentMonthKey, monthName, reports: [form], totalWeeks, weekIsos })
+    }
+
     for (let i = 0; i < weeksToExport.length; i++) {
         const weekData = weeksToExport[i]
         const prevWeekData = weeksToExport[i + 1] || null
-        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso)
+        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData)
     }
 
     const buf = await wb.xlsx.writeBuffer()
@@ -276,7 +402,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     }, 0)
 }
 
-async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso) {
+async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso, allMonthlyData) {
 
     const COLORS = {
         brand: 'FF1E3A5F',
@@ -691,6 +817,103 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         {label: 'Loads', value: loadsPerOpPerDay, prev: parseFloat(prevLoadsPerOpPerDay)},
         {label: 'Hours', value: hoursPerOpPerDay, prev: parseFloat(prevHoursPerOpPerDay)}
     ])
+
+    const monthlyCol = overviewCol + 4
+    ws.getColumn(monthlyCol).width = 14
+    ws.getColumn(monthlyCol + 1).width = 8
+    ws.getColumn(monthlyCol + 2).width = 10
+
+    const calcMonthlyTotals = (reports) => {
+        let ops = 0, runnable = 0, down = 0, yardage = 0, hours = 0
+        const weekCount = reports.length
+        reports.forEach(rpt => {
+            if (!rpt) return
+            sortedPlants.forEach(p => {
+                ops += ensure(rpt[`active_operators_${p.plant_code}`], true)
+                runnable += ensure(rpt[`runnable_trucks_${p.plant_code}`], true)
+                down += ensure(rpt[`down_trucks_${p.plant_code}`], true)
+                yardage += ensure(rpt[`total_yardage_${p.plant_code}`], true)
+                hours += ensure(rpt[`total_hours_${p.plant_code}`], true)
+            })
+        })
+        const avgOps = weekCount > 0 ? Math.round(ops / weekCount) : 0
+        const avgRunnable = weekCount > 0 ? Math.round(runnable / weekCount) : 0
+        const avgDown = weekCount > 0 ? Math.round(down / weekCount) : 0
+        return { yardage, hours, loads: Math.round(yardage / 10), avgOps, avgRunnable, avgDown, weekCount }
+    }
+
+    const monthlyTotals = allMonthlyData.map(m => ({
+        ...m,
+        totals: calcMonthlyTotals(m.reports)
+    }))
+
+    let moRow = overviewStartRow
+
+    ws.mergeCells(moRow, monthlyCol, moRow, monthlyCol + 2)
+    const monthlyTitleCell = ws.getCell(moRow, monthlyCol)
+    monthlyTitleCell.value = 'Monthly Overview'
+    monthlyTitleCell.font = {name: 'Calibri', size: 16, bold: true, color: {argb: COLORS.white}}
+    monthlyTitleCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brandLight}}
+    monthlyTitleCell.alignment = {vertical: 'middle', horizontal: 'center'}
+    ws.getCell(moRow, monthlyCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brandLight}}
+    ws.getCell(moRow, monthlyCol + 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brandLight}}
+    moRow += 2
+
+    const addMonthlyGroup = (title, metrics) => {
+        ws.mergeCells(moRow, monthlyCol, moRow, monthlyCol + 2)
+        const groupCell = ws.getCell(moRow, monthlyCol)
+        groupCell.value = title
+        groupCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+        groupCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        groupCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.getCell(moRow, monthlyCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getCell(moRow, monthlyCol + 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getRow(moRow).height = 20
+        moRow++
+
+        metrics.forEach((metric) => {
+            const labelCell = ws.getCell(moRow, monthlyCol)
+            labelCell.value = metric.label
+            labelCell.font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate500}}
+            labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
+            const changeInfo = metric.prev !== undefined ? 
+                (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
+                {text: '', color: null}
+            addChangePct(ws.getCell(moRow, monthlyCol + 1), changeInfo, false)
+
+            const valueCell = ws.getCell(moRow, monthlyCol + 2)
+            if (metric.suffix) {
+                valueCell.value = metric.value + metric.suffix
+            } else {
+                valueCell.value = metric.value
+                if (metric.format) valueCell.numFmt = metric.format
+            }
+            valueCell.font = {name: 'Calibri', size: 12, bold: true, color: {argb: metric.color || COLORS.brand}}
+            valueCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
+            ws.getRow(moRow).height = 20
+            moRow++
+        })
+        moRow++
+    }
+
+    monthlyTotals.forEach((monthData, idx) => {
+        const prevMonthData = monthlyTotals[idx + 1]
+        const prevTotals = prevMonthData ? prevMonthData.totals : null
+        const weeksReported = monthData.weekIsos ? monthData.weekIsos.size : monthData.totals.weekCount
+        const totalWeeks = monthData.totalWeeks || 4
+        const weeksLabel = weeksReported === 0 
+            ? `0 of ${totalWeeks} weeks` 
+            : `${weeksReported}/${totalWeeks} weeks`
+        
+        addMonthlyGroup(monthData.monthName, [
+            {label: 'Weeks', value: weeksLabel},
+            {label: 'Yardage', value: monthData.totals.yardage, prev: prevTotals?.yardage, format: '#,##0'},
+            {label: 'Loads', value: monthData.totals.loads, prev: prevTotals?.loads, format: '#,##0'},
+            {label: 'Hours', value: monthData.totals.hours, prev: prevTotals?.hours, format: '#,##0.0'}
+        ])
+    })
 
     addSectionTitle(ws, r, 1, 'Plant Summary')
     r += 2
