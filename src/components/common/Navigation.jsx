@@ -36,6 +36,8 @@ const getIconForMenuItem = (id) => {
             return <i className="fas fa-users"></i>
         case 'Managers':
             return <i className="fas fa-user-tie"></i>
+        case 'People':
+            return <i className="fas fa-users"></i>
         case 'Plants':
             return <i className="fas fa-industry"></i>
         case 'Regions':
@@ -92,6 +94,8 @@ export default function Navigation({
     const [enteringItemIds, setEnteringItemIds] = useState(new Set())
     const [isMenuReady, setIsMenuReady] = useState(false)
     const [showAssetsDropdown, setShowAssetsDropdown] = useState(false)
+    const [showPeopleDropdown, setShowPeopleDropdown] = useState(false)
+    const [showProductivityDropdown, setShowProductivityDropdown] = useState(false)
     const [permittedRegions, setPermittedRegions] = useState([])
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
@@ -101,6 +105,8 @@ export default function Navigation({
     const enterTimeoutsRef = useRef([])
     const exitTimeoutsRef = useRef([])
     const assetsDropdownRef = useRef(null)
+    const peopleDropdownRef = useRef(null)
+    const productivityDropdownRef = useRef(null)
     const [showNotifications, setShowNotifications] = useState(false)
     const [notificationsAnchor, setNotificationsAnchor] = useState(null)
 
@@ -124,8 +130,14 @@ export default function Navigation({
             if (assetsDropdownRef.current && !assetsDropdownRef.current.contains(event.target)) {
                 setShowAssetsDropdown(false)
             }
+            if (peopleDropdownRef.current && !peopleDropdownRef.current.contains(event.target)) {
+                setShowPeopleDropdown(false)
+            }
+            if (productivityDropdownRef.current && !productivityDropdownRef.current.contains(event.target)) {
+                setShowProductivityDropdown(false)
+            }
         }
-        if (showAssetsDropdown) {
+        if (showAssetsDropdown || showPeopleDropdown || showProductivityDropdown) {
             setTimeout(() => {
                 document.addEventListener('mousedown', handleClickOutside)
             }, 0)
@@ -133,7 +145,7 @@ export default function Navigation({
         return () => {
             document.removeEventListener('mousedown', handleClickOutside)
         }
-    }, [showAssetsDropdown])
+    }, [showAssetsDropdown, showPeopleDropdown, showProductivityDropdown])
 
     useEffect(() => {
         async function fetchPermittedRegions() {
@@ -182,17 +194,118 @@ export default function Navigation({
                     filtered = filtered.filter(item => !DEFAULT_HIDDEN_ITEMS.includes(item.id) && !OFFICE_ONLY_ITEMS.includes(item.id))
                 }
 
+                const hasOperators = filtered.some(item => item.id === 'Operators')
+                const hasManagers = filtered.some(item => item.id === 'Managers')
+                const shouldCombinePeople = hasOperators && hasManagers
+
                 const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-                const itemsForAnimation = filtered.filter(item => !assetItems.includes(item.id))
+                const peopleItems = ['Operators', 'Managers']
+                const productivityItems = ['List', 'Reports', 'Leaderboards']
+
+                const shouldCombineProductivity = filtered.filter(item => productivityItems.includes(item.id)).length > 1
+
                 const assetItemsToAdd = filtered.filter(item => assetItems.includes(item.id))
+                const peopleItemsToAdd = shouldCombinePeople ? filtered.filter(item => peopleItems.includes(item.id)) : []
+                const productivityItemsToAdd = shouldCombineProductivity ? filtered.filter(item => productivityItems.includes(item.id)) : []
+                const dashboardItem = filtered.find(item => item.id === 'Dashboard')
+                const standaloneOperatorsItem = !shouldCombinePeople && hasOperators ? filtered.find(item => item.id === 'Operators') : null
+                const otherItemsForAnimation = filtered.filter(item =>
+                    item.id !== 'Dashboard' &&
+                    !assetItems.includes(item.id) &&
+                    !(shouldCombinePeople && peopleItems.includes(item.id)) &&
+                    !(shouldCombineProductivity && productivityItems.includes(item.id)) &&
+                    !(item.id === 'Operators' && !shouldCombinePeople)
+                )
 
                 const isInitialLoad = lastMenuItemsRef.current.length === 0 && filtered.length > 0
 
                 if (isInitialLoad) {
-                    setVisibleMenuItems(assetItemsToAdd)
+                    setVisibleMenuItems([])
                     setIsMenuReady(true)
 
-                    itemsForAnimation.forEach((item, index) => {
+                    let animationIndex = 0
+
+                    if (dashboardItem) {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, dashboardItem])
+                            setEnteringItemIds(prev => new Set([...prev, dashboardItem.id]))
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete(dashboardItem.id)
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                        animationIndex++
+                    }
+
+                    if (assetItemsToAdd.length > 0) {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, ...assetItemsToAdd])
+                            setEnteringItemIds(prev => new Set([...prev, 'assets-dropdown']))
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete('assets-dropdown')
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                        animationIndex++
+                    }
+
+                    if (peopleItemsToAdd.length > 0) {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, ...peopleItemsToAdd])
+                            setEnteringItemIds(prev => new Set([...prev, 'people-dropdown']))
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete('people-dropdown')
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                        animationIndex++
+                    }
+
+                    if (standaloneOperatorsItem) {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, standaloneOperatorsItem])
+                            setEnteringItemIds(prev => new Set([...prev, 'Operators']))
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete('Operators')
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                        animationIndex++
+                    }
+
+                    if (productivityItemsToAdd.length > 0) {
+                        const timeout = setTimeout(() => {
+                            setVisibleMenuItems(prev => [...prev, ...productivityItemsToAdd])
+                            setEnteringItemIds(prev => new Set([...prev, 'productivity-dropdown']))
+                            setTimeout(() => {
+                                setEnteringItemIds(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete('productivity-dropdown')
+                                    return newSet
+                                })
+                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
+                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        enterTimeoutsRef.current.push(timeout)
+                        animationIndex++
+                    }
+
+                    otherItemsForAnimation.forEach((item, index) => {
                         const timeout = setTimeout(() => {
                             setVisibleMenuItems(prev => [...prev, item])
                             setEnteringItemIds(prev => new Set([...prev, item.id]))
@@ -204,7 +317,7 @@ export default function Navigation({
                                     return newSet
                                 })
                             }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
+                        }, (animationIndex + index) * ANIMATION_TIMING.ITEM_ENTER_DELAY)
                         enterTimeoutsRef.current.push(timeout)
                     })
 
@@ -367,13 +480,31 @@ export default function Navigation({
                                 const hasAssets = visibleMenuItems.some(item => assetItems.includes(item.id))
                                 const isAssetsActive = assetItems.includes(selectedView)
 
+                                const peopleItems = ['Operators', 'Managers']
+                                const hasOperators = visibleIds.has('Operators') || exitingIds.has('Operators')
+                                const hasManagers = visibleIds.has('Managers') || exitingIds.has('Managers')
+                                const shouldShowPeople = hasOperators && hasManagers
+                                const isPeopleActive = peopleItems.includes(selectedView)
+
+                                const productivityItems = ['List', 'Reports', 'Leaderboards']
+                                const productivityCount = productivityItems.filter(id => visibleIds.has(id) || exitingIds.has(id)).length
+                                const shouldShowProductivity = productivityCount > 1
+                                const isProductivityActive = productivityItems.includes(selectedView)
+
                                 const dashboardItem = menuItems.find(item => item.id === 'Dashboard' && (visibleIds.has(item.id) || exitingIds.has(item.id)))
                                 const dashboardData = dashboardItem && exitingIds.has(dashboardItem.id) ? exitingMap.get(dashboardItem.id) : dashboardItem
+
+                                const standaloneOperators = !shouldShowPeople && (visibleIds.has('Operators') || exitingIds.has('Operators'))
+                                    ? menuItems.find(item => item.id === 'Operators')
+                                    : null
 
                                 const otherItems = menuItems.filter(item =>
                                     (visibleIds.has(item.id) || exitingIds.has(item.id)) &&
                                     item.id !== 'Dashboard' &&
-                                    !assetItems.includes(item.id)
+                                    !assetItems.includes(item.id) &&
+                                    !(shouldShowPeople && peopleItems.includes(item.id)) &&
+                                    !(shouldShowProductivity && productivityItems.includes(item.id)) &&
+                                    !(item.id === 'Operators' && !shouldShowPeople)
                                 ).map(item =>
                                     exitingIds.has(item.id) ? exitingMap.get(item.id) : item
                                 )
@@ -406,12 +537,13 @@ export default function Navigation({
                                 }
 
                                 if (hasAssets) {
+                                    const isAssetsEntering = enteringItemIds.has('assets-dropdown')
                                     result.push(
                                         <li
                                             key="assets-dropdown"
-                                            className={`menu-item assets-dropdown-toggle ${isAssetsActive ? 'active' : ''}`}
+                                            className={`menu-item assets-dropdown-toggle ${isAssetsActive ? 'active' : ''} ${isAssetsEntering ? 'animating-in' : ''}`}
                                             ref={assetsDropdownRef}
-                                            onClick={(e) => {
+                                            onClick={() => {
                                                 setShowAssetsDropdown(prev => !prev)
                                             }}
                                             title="Assets"
@@ -439,6 +571,135 @@ export default function Navigation({
                                                                     e.stopPropagation()
                                                                     handleMenuItemClick(item.id)
                                                                     setShowAssetsDropdown(false)
+                                                                }}
+                                                            >
+                                                            <span className="menu-icon">
+                                                                {getIconForMenuItem(item.id)}
+                                                            </span>
+                                                                <span className="menu-text">
+                                                                {item.text}
+                                                            </span>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </li>
+                                    )
+                                }
+
+                                if (shouldShowPeople) {
+                                    result.push(
+                                        <li
+                                            key="people-dropdown"
+                                            className={`menu-item people-dropdown-toggle ${isPeopleActive ? 'active' : ''}`}
+                                            ref={peopleDropdownRef}
+                                            onClick={() => {
+                                                setShowPeopleDropdown(prev => !prev)
+                                            }}
+                                            title="People"
+                                            style={{position: 'relative', overflow: 'visible'}}
+                                        >
+                                        <span className="menu-icon">
+                                            <i className="fas fa-users"></i>
+                                        </span>
+                                            <span className="menu-text">
+                                            People
+                                        </span>
+                                            <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
+                                            <i className={`fas fa-chevron-${showPeopleDropdown ? 'up' : 'down'}`}></i>
+                                        </span>
+                                            {showPeopleDropdown && (
+                                                <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
+                                                    {peopleItems.map(personId => {
+                                                        const item = menuItems.find(i => i.id === personId)
+                                                        if (!item) return null
+                                                        return (
+                                                            <div
+                                                                key={item.id}
+                                                                className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleMenuItemClick(item.id)
+                                                                    setShowPeopleDropdown(false)
+                                                                }}
+                                                            >
+                                                            <span className="menu-icon">
+                                                                {getIconForMenuItem(item.id)}
+                                                            </span>
+                                                                <span className="menu-text">
+                                                                {item.text}
+                                                            </span>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </li>
+                                    )
+                                }
+
+                                if (standaloneOperators) {
+                                    const isExiting = exitingIds.has('Operators')
+                                    const isEntering = enteringItemIds.has('Operators')
+                                    const isActive = selectedView === 'Operators'
+
+                                    result.push(
+                                        <li
+                                            key="Operators"
+                                            className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
+                                            onClick={() => {
+                                                if (isExiting) return
+                                                handleMenuItemClick('Operators')
+                                            }}
+                                            title="Operators"
+                                        >
+                                        <span className="menu-icon">
+                                            {getIconForMenuItem('Operators')}
+                                        </span>
+                                            <span className="menu-text">
+                                            Operators
+                                        </span>
+                                        </li>
+                                    )
+                                }
+
+                                if (shouldShowProductivity) {
+                                    const isProductivityEntering = enteringItemIds.has('productivity-dropdown')
+                                    result.push(
+                                        <li
+                                            key="productivity-dropdown"
+                                            className={`menu-item productivity-dropdown-toggle ${isProductivityActive ? 'active' : ''} ${isProductivityEntering ? 'animating-in' : ''}`}
+                                            ref={productivityDropdownRef}
+                                            onClick={() => {
+                                                setShowProductivityDropdown(prev => !prev)
+                                            }}
+                                            title="Productivity"
+                                            style={{position: 'relative', overflow: 'visible'}}
+                                        >
+                                        <span className="menu-icon">
+                                            <i className="fas fa-chart-line"></i>
+                                        </span>
+                                            <span className="menu-text">
+                                            Productivity
+                                        </span>
+                                            <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
+                                            <i className={`fas fa-chevron-${showProductivityDropdown ? 'up' : 'down'}`}></i>
+                                        </span>
+                                            {showProductivityDropdown && (
+                                                <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
+                                                    {productivityItems.map(prodId => {
+                                                        const item = menuItems.find(i => i.id === prodId)
+                                                        if (!item) return null
+                                                        if (!visibleIds.has(item.id) && !exitingIds.has(item.id)) return null
+                                                        return (
+                                                            <div
+                                                                key={item.id}
+                                                                className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleMenuItemClick(item.id)
+                                                                    setShowProductivityDropdown(false)
                                                                 }}
                                                             >
                                                             <span className="menu-icon">

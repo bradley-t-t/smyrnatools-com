@@ -1,7 +1,6 @@
 import {supabase} from '../services/DatabaseService'
 import {ReportService} from '../services/ReportService'
 import {ReportUtility} from './ReportUtility'
-import SmyrnaLogo from '../assets/images/SmyrnaLogo.png'
 
 function normUpper(code) {
     return String(code || '').trim().toUpperCase()
@@ -95,39 +94,6 @@ async function fetchEfficiencyReports(plants, weekIso) {
     }))
 }
 
-function getCssVarHex(name, fallback) {
-    try {
-        if (typeof window === 'undefined') return fallback;
-        const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        if (!v) return fallback;
-        let hex = v;
-        if (/^rgb/i.test(v)) {
-            const nums = v.replace(/rgba?\(/, '').replace(/\)/, '').split(',').map(x => parseInt(x.trim()));
-            hex = '#' + nums.slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('')
-        }
-        return /^#([0-9a-f]{6})$/i.test(hex) ? hex : fallback
-    } catch (e) {
-        return fallback
-    }
-}
-
-function hexToARGB(hex) {
-    const h = hex.replace('#', '');
-    return 'FF' + h.toUpperCase()
-}
-
-function halfStep(n) {
-    if (typeof n !== 'number' || !isFinite(n)) return n;
-    return Math.round(n * 2) / 2
-}
-
-function formatNumericCell(cell) {
-    if (typeof cell.value === 'number') {
-        cell.value = halfStep(cell.value);
-        if (Math.abs(cell.value - Math.round(cell.value)) < 1e-9) cell.numFmt = '#,##0'; else cell.numFmt = '#,##0.0'
-    }
-}
-
 async function fetchAggregateProductionReport(weekIso) {
     if (!weekIso) return null
     const targetMondayIso = ReportUtility.getMondayISO(weekIso)
@@ -160,13 +126,6 @@ async function fetchAggregateProductionReport(weekIso) {
         return (b.submitted_at || '').localeCompare(a.submitted_at || '')
     })
     return filtered.find(r => r.completed) || filtered[0] || null
-}
-
-function truncateToTenth(n) {
-    if (typeof n !== 'number' || !isFinite(n)) return n;
-    const sign = n < 0 ? -1 : 1;
-    const abs = Math.abs(n);
-    return sign * Math.floor(abs * 10) / 10
 }
 
 function sortPlants(plants) {
@@ -219,356 +178,1116 @@ async function fetchRMIReport(weekIso) {
     return sorted[0].data
 }
 
+async function fetchPreviousGMReport(weekIso) {
+    if (!weekIso) return null
+    const currentMonday = ReportUtility.getMondayISO(weekIso)
+    if (!currentMonday) return null
+    const currentMondayDate = new Date(currentMonday + 'T00:00:00Z')
+    const prevMondayDate = new Date(currentMondayDate)
+    prevMondayDate.setUTCDate(prevMondayDate.getUTCDate() - 7)
+    const prevMondayIso = prevMondayDate.toISOString().slice(0, 10)
+
+    const windowStart = new Date(prevMondayDate)
+    windowStart.setUTCDate(windowStart.getUTCDate() - 1)
+    const windowEnd = new Date(prevMondayDate)
+    windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
+
+    let {data: reports} = await supabase
+        .from('reports')
+        .select('id,data,week,submitted_at,completed')
+        .eq('report_name', 'general_manager')
+        .gte('week', windowStart.toISOString())
+        .lt('week', windowEnd.toISOString())
+
+    if (!Array.isArray(reports) || reports.length === 0) return null
+
+    const filtered = reports.filter(r => {
+        const weekField = r.week
+        const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
+        return mondayIso === prevMondayIso
+    })
+
+    if (filtered.length === 0) return null
+
+    const sorted = filtered.sort((a, b) => {
+        if (a.completed !== b.completed) return b.completed ? 1 : -1
+        return (b.submitted_at || '') > (a.submitted_at || '') ? 1 : -1
+    })
+
+    return sorted[0]?.data || null
+}
+
 export async function exportGeneralManagerReport({form, plants, weekIso, filename = 'general_manager_report.xlsx'}) {
     if (typeof window === 'undefined') return
-    const accentHex = getCssVarHex('--accent', '#003896')
-    const dataBgHex = getCssVarHex('--bg-secondary', '#f4f6f4')
-    const accentARGB = hexToARGB(accentHex)
-    const dataARGB = hexToARGB(dataBgHex)
+
     const excelModule = await import('exceljs')
     const ExcelLib = excelModule.default || excelModule
-    const effReports = await fetchEfficiencyReports(plants, weekIso)
-    const wb = new ExcelLib.Workbook()
-    wb.created = new Date()
-    wb.properties.subject = 'Weekly General Manager Report'
-    const ws = wb.addWorksheet('GM Summary')
-    ws.views = [{state: 'normal', showGridLines: false}]
-    ws.mergeCells('A1:B1');
-    ws.mergeCells('D1:E5')
-    try {
-        const logoResp = await fetch(SmyrnaLogo);
-        const logoBlob = await logoResp.blob();
-        const base64 = await new Promise((res, rej) => {
-            const reader = new FileReader();
-            reader.onloadend = () => res(String(reader.result).split(',')[1]);
-            reader.onerror = rej;
-            reader.readAsDataURL(logoBlob)
-        });
-        const imageId = wb.addImage({base64, extension: 'png'});
-        ws.addImage(imageId, 'D1:E5')
-    } catch (e) {
-    }
-    for (let i = 1; i <= 5; i++) ws.getRow(i).height = 22
-    ws.getColumn(4).width = 18;
-    ws.getColumn(5).width = 18
-    const weekRange = weekIso ? ReportService.getWeekRangeFromIso(ReportUtility.getMondayISO(weekIso)) : ''
 
-    function header(cell, value) {
-        cell.value = value;
-        cell.font = {bold: true, color: {argb: 'FFFFFFFF'}};
-        cell.alignment = {vertical: 'middle', horizontal: 'left'};
-        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: accentARGB}}
-    }
-
-    function right(cell) {
-        cell.alignment = {horizontal: 'right', vertical: 'middle'}
-    }
-
-    function fillDataCell(cell) {
-        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: dataARGB}}
+    const COLORS = {
+        brand: 'FF1E3A5F',
+        brandLight: 'FF2D5A8A',
+        accent: 'FF3B82F6',
+        success: 'FF10B981',
+        successLight: 'FFD1FAE5',
+        warning: 'FFF59E0B',
+        danger: 'FFEF4444',
+        dangerLight: 'FFFEE2E2',
+        white: 'FFFFFFFF',
+        cream: 'FFFAFAFA',
+        snow: 'FFF8FAFC',
+        slate100: 'FFF1F5F9',
+        slate200: 'FFE2E8F0',
+        slate300: 'FFCBD5E1',
+        slate500: 'FF64748B',
+        slate700: 'FF334155',
+        slate900: 'FF0F172A'
     }
 
     function ensure(value, isNumeric) {
         if (isNumeric) {
-            return (value === null || value === undefined || value === '') ? 0 : value
+            return (value === null || value === undefined || value === '') ? 0 : Number(value)
         }
-        return (value === null || value === undefined || value === '') ? 'Unknown' : value
+        return (value === null || value === undefined || value === '') ? '' : value
     }
 
-    const sortedPlants = sortPlants(plants)
-    let r = 1
-    header(ws.getCell(r, 1), 'General Manager Weekly Report');
-    ws.getCell(r, 1).font = {bold: true, size: 16, color: {argb: 'FFFFFFFF'}};
-    r++
-    if (weekRange) {
-        header(ws.getCell(r, 1), weekRange);
-        ws.getCell(r, 1).font = {italic: true, bold: true, color: {argb: 'FFFFFFFF'}};
-        r++
+    function truncateToTenth(n) {
+        if (typeof n !== 'number' || !isFinite(n)) return n
+        return Math.floor(n * 10) / 10
     }
-    ws.getCell(r, 1).value = `Generated ${new Date().toLocaleString()}`;
-    ws.getCell(r, 1).font = {size: 10, color: {argb: accentARGB}};
-    r += 2
-    header(ws.getCell(r, 1), 'Per-Plant Summary');
-    r += 2
-    const plantHeader = ['Plant Code', 'Plant Name', '# Operators', 'Runnable', 'Down', 'Starting', 'Leaving', 'Training', 'Total Yardage', 'Total Hours', 'Notes']
-    plantHeader.forEach((h, idx) => header(ws.getCell(r, idx + 1), h));
-    r++
-    sortedPlants.forEach(p => {
-        const rowVals = [ensure(p.plant_code, false), ensure(p.plant_name, false), ensure(form[`active_operators_${p.plant_code}`], true), ensure(form[`runnable_trucks_${p.plant_code}`], true), ensure(form[`down_trucks_${p.plant_code}`], true), ensure(form[`operators_starting_${p.plant_code}`], true), ensure(form[`operators_leaving_${p.plant_code}`], true), ensure(form[`new_operators_training_${p.plant_code}`], true), ensure(form[`total_yardage_${p.plant_code}`], true), ensure(form[`total_hours_${p.plant_code}`], true), ensure(form[`notes_${p.plant_code}`], false)];
-        rowVals.forEach((v, i) => {
-            const c = ws.getCell(r, i + 1);
-            c.value = v;
-            if (i >= 2 && i <= 9 && typeof v === 'number') right(c);
-            fillDataCell(c)
-        });
-        r++
-    })
-    for (let rowIdx = 1; rowIdx < r; rowIdx++) {
-        const row = ws.getRow(rowIdx);
-        [9, 10].forEach(ci => {
-            const cell = row.getCell(ci);
-            if (typeof cell.value === 'number') {
-                if (ci === 9) cell.numFmt = '#,##0';
-                if (ci === 10) cell.numFmt = '#,##0.00'
+
+    function calcChange(current, previous) {
+        if (previous === 0 || previous === null || previous === undefined) {
+            if (current === 0) return {pct: 0, direction: 'neutral'}
+            return {pct: null, direction: 'new'}
+        }
+        const pct = Math.round(((current - previous) / previous) * 100)
+        if (pct > 0) return {pct, direction: 'up'}
+        if (pct < 0) return {pct: Math.abs(pct), direction: 'down'}
+        return {pct: 0, direction: 'neutral'}
+    }
+
+    function getChangeText(current, previous, invertColors = false) {
+        const change = calcChange(current, previous)
+        if (change.direction === 'neutral' || change.pct === 0) {
+            return {text: '', color: null}
+        }
+        if (change.direction === 'new') {
+            return {text: ' (+100%)', color: invertColors ? COLORS.danger : COLORS.success}
+        }
+        if (change.direction === 'up') {
+            return {text: ` (+${change.pct}%)`, color: invertColors ? COLORS.danger : COLORS.success}
+        }
+        return {text: ` (-${change.pct}%)`, color: invertColors ? COLORS.success : COLORS.danger}
+    }
+
+    function addSectionTitle(ws, row, col, text) {
+        ws.mergeCells(row, 1, row, 11)
+        const cell = ws.getCell(row, 1)
+        cell.value = text
+        cell.font = {name: 'Calibri', size: 14, bold: true, color: {argb: COLORS.brand}}
+        cell.alignment = {vertical: 'middle', horizontal: 'left'}
+        for (let c = 1; c <= 15; c++) {
+            ws.getCell(row, c).border = {bottom: {style: 'medium', color: {argb: COLORS.brand}}}
+        }
+        ws.getRow(row).height = 28
+    }
+
+    function addTableHeaders(ws, row, headers, startCol = 1) {
+        headers.forEach((h, idx) => {
+            const cell = ws.getCell(row, startCol + idx)
+            cell.value = h
+            cell.font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            cell.alignment = {vertical: 'middle', horizontal: 'center'}
+            cell.border = {bottom: {style: 'thin', color: {argb: COLORS.slate300}}}
+        })
+        ws.getRow(row).height = 22
+    }
+
+    function addMergedTableHeaders(ws, row, headers, startCol = 1) {
+        let col = startCol
+        headers.forEach((h) => {
+            const mergeCount = h.mergeCount || (h.merge ? 2 : 1)
+            const align = h.align || 'center'
+            if (mergeCount > 1) {
+                ws.mergeCells(row, col, row, col + mergeCount - 1)
+                const cell = ws.getCell(row, col)
+                cell.value = h.label
+                cell.font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
+                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+                cell.alignment = {vertical: 'middle', horizontal: align}
+                cell.border = {bottom: {style: 'thin', color: {argb: COLORS.slate300}}}
+                for (let i = 1; i < mergeCount; i++) {
+                    ws.getCell(row, col + i).fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: {argb: COLORS.slate100}
+                    }
+                    ws.getCell(row, col + i).border = {bottom: {style: 'thin', color: {argb: COLORS.slate300}}}
+                }
+                col += mergeCount
+            } else {
+                const cell = ws.getCell(row, col)
+                cell.value = h.label
+                cell.font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
+                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+                cell.alignment = {vertical: 'middle', horizontal: align}
+                cell.border = {bottom: {style: 'thin', color: {argb: COLORS.slate300}}}
+                col += 1
             }
         })
+        ws.getRow(row).height = 22
     }
-    r += 1;
-    header(ws.getCell(r, 1), 'Plant Efficiency Overview');
-    r += 2
-    const effHeader = ['Plant Code', 'Plant Name', 'Report Date', 'Total Loads', 'Total Hours', 'Avg Loads', 'Avg Hours', 'Avg L/H', 'Punch In → 1st (min)', 'Washout → Punch (min)'];
-    effHeader.forEach((h, idx) => header(ws.getCell(r, idx + 1), h));
-    r++
-    const sortedEffReports = sortPlants(effReports)
-    sortedEffReports.forEach(er => {
-        const insights = ReportService.getPlantProductionInsights(er.rows || []);
-        const vals = [ensure(er.plant_code, false), ensure(er.plant_name, false), ensure(er.report_date, false), ensure(insights.totalLoads, true), ensure(insights.totalHours, true), ensure(insights.avgLoads, true), ensure(insights.avgHours, true), ensure(insights.avgLoadsPerHour, true), ensure(insights.avgElapsedStart, true), ensure(insights.avgElapsedEnd, true)];
-        vals.forEach((v, i) => {
-            const c = ws.getCell(r, i + 1);
-            if (typeof v === 'number') {
-                if (i === 3) {
-                    c.value = v;
-                    c.numFmt = '#,##0'
-                } else if (i >= 4 && i <= 9) {
-                    c.value = truncateToTenth(v);
-                    c.numFmt = '#,##0.0'
+
+    function addChangePct(cell, changeInfo, isAlt = false) {
+        if (!changeInfo || !changeInfo.text) {
+            cell.value = ''
+        } else {
+            cell.value = changeInfo.text.trim()
+            cell.font = {name: 'Calibri', size: 9, bold: true, color: {argb: changeInfo.color}}
+        }
+        cell.alignment = {vertical: 'middle', horizontal: 'right'}
+        if (isAlt) {
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+        }
+    }
+
+    function addDataRow(ws, row, values, startCol = 1, isAlt = false) {
+        values.forEach((v, idx) => {
+            const cell = ws.getCell(row, startCol + idx)
+            if (typeof v === 'object' && v !== null) {
+                if (v.richText) {
+                    cell.value = {richText: v.richText}
                 } else {
-                    c.value = v
+                    cell.value = v.value
                 }
+                if (v.format) cell.numFmt = v.format
+                cell.alignment = {vertical: 'middle', horizontal: v.align || 'left'}
+                if (v.color) cell.font = {name: 'Calibri', size: 11, color: {argb: v.color}, bold: v.bold}
+                else if (!v.richText) cell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             } else {
-                c.value = v
+                cell.value = v
+                cell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+                cell.alignment = {vertical: 'middle', horizontal: typeof v === 'number' ? 'right' : 'left'}
             }
-            fillDataCell(c)
-        });
+            if (isAlt) {
+                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+            }
+        })
+        ws.getRow(row).height = 20
+    }
+
+    const effReports = await fetchEfficiencyReports(plants, weekIso)
+    const sortedPlants = sortPlants(plants)
+    const sortedEffReports = sortPlants(effReports)
+
+    const prevWeekIso = (() => {
+        if (!weekIso) return null
+        const currentMonday = ReportUtility.getMondayISO(weekIso)
+        if (!currentMonday) return null
+        const d = new Date(currentMonday + 'T00:00:00Z')
+        d.setUTCDate(d.getUTCDate() - 7)
+        return d.toISOString().slice(0, 10)
+    })()
+
+    const prevGMData = await fetchPreviousGMReport(weekIso)
+    const prevEffReports = prevWeekIso ? await fetchEfficiencyReports(plants, prevWeekIso) : []
+    const sortedPrevEffReports = sortPlants(prevEffReports)
+
+    const rmiData = await fetchRMIReport(weekIso)
+    const rmiSnapshot = rmiData?.snapshot_data || {}
+    const mixerTrainers = rmiSnapshot.mixer_trainers || []
+    const tractorTrainers = rmiSnapshot.tractor_trainers || []
+    const mixerPending = rmiSnapshot.mixer_pending || []
+    const tractorPending = rmiSnapshot.tractor_pending || []
+    const mixerTraining = rmiSnapshot.mixer_training || []
+    const tractorTraining = rmiSnapshot.tractor_training || []
+    const hiringGoals = rmiData?.hiring_goals || {}
+
+    const allTrainers = [...mixerTrainers.map(t => ({...t, type: 'Mixer'})), ...tractorTrainers.map(t => ({
+        ...t,
+        type: 'Tractor'
+    }))]
+    const allPending = [...mixerPending.map(p => ({...p, type: 'Mixer'})), ...tractorPending.map(p => ({
+        ...p,
+        type: 'Tractor'
+    }))]
+    const allTraining = [...mixerTraining.map(t => ({...t, type: 'Mixer'})), ...tractorTraining.map(t => ({
+        ...t,
+        type: 'Tractor'
+    }))]
+
+    let totalHiringNeeded = 0
+    sortedPlants.forEach(p => {
+        const goal = Number(hiringGoals[p.plant_code]) || 0
+        const currentOps = ensure(form[`active_operators_${p.plant_code}`], true)
+        const needed = goal - currentOps
+        if (needed > 0) totalHiringNeeded += needed
+    })
+
+    const wb = new ExcelLib.Workbook()
+    wb.creator = 'Smyrna Ready Mix'
+    wb.created = new Date()
+    wb.modified = new Date()
+    wb.properties.subject = 'Weekly General Manager Report'
+
+    const ws = wb.addWorksheet('Weekly Report', {
+        views: [{showGridLines: false}],
+        properties: {defaultRowHeight: 18}
+    })
+
+    ws.columns = [
+        {width: 10}, {width: 20},
+        {width: 7}, {width: 8},
+        {width: 7}, {width: 8},
+        {width: 7}, {width: 8},
+        {width: 7}, {width: 10},
+        {width: 7}, {width: 10},
+        {width: 15}, {width: 15}, {width: 15}
+    ]
+
+    const weekRange = weekIso ? ReportService.getWeekRangeFromIso(weekIso) : ''
+
+    let r = 2
+
+    ws.mergeCells(r, 2, r, 6)
+    const titleCell = ws.getCell(r, 2)
+    titleCell.value = 'General Manager Report'
+    titleCell.font = {name: 'Calibri', size: 26, bold: true, color: {argb: COLORS.brand}}
+    titleCell.alignment = {vertical: 'middle', horizontal: 'left'}
+    ws.getRow(r).height = 36
+    r++
+
+    ws.mergeCells(r, 2, r, 6)
+    const subtitleCell = ws.getCell(r, 2)
+    subtitleCell.value = weekRange || 'Weekly Summary'
+    subtitleCell.font = {name: 'Calibri', size: 13, color: {argb: COLORS.slate500}}
+    subtitleCell.alignment = {vertical: 'middle', horizontal: 'left'}
+    r++
+
+    const dateCell = ws.getCell(r, 2)
+    dateCell.value = 'Generated on ' + new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    }) + ' on smyrnatools.com'
+    dateCell.font = {name: 'Calibri', size: 10, italic: true, color: {argb: COLORS.slate500}}
+    r += 2
+
+    let totalOps = 0, totalRunnable = 0, totalDown = 0, totalYardage = 0, totalHours = 0
+    sortedPlants.forEach(p => {
+        totalOps += ensure(form[`active_operators_${p.plant_code}`], true)
+        totalRunnable += ensure(form[`runnable_trucks_${p.plant_code}`], true)
+        totalDown += ensure(form[`down_trucks_${p.plant_code}`], true)
+        totalYardage += ensure(form[`total_yardage_${p.plant_code}`], true)
+        totalHours += ensure(form[`total_hours_${p.plant_code}`], true)
+    })
+
+    const overviewStartRow = r
+    const overviewCol = 17
+
+    ws.getColumn(overviewCol).width = 14
+    ws.getColumn(overviewCol + 1).width = 8
+    ws.getColumn(overviewCol + 2).width = 10
+
+    const totalLoads = Math.round(totalYardage / 10)
+    const allocationPct = totalRunnable > 0 ? Math.round((totalOps / totalRunnable) * 100) : 0
+    const fleetUtilization = (totalRunnable + totalDown) > 0 ? Math.round((totalRunnable / (totalRunnable + totalDown)) * 100) : 0
+
+    const workDays = 6
+    const dailyYardage = Math.round(totalYardage / workDays)
+    const dailyLoads = Math.round(totalLoads / workDays)
+    const dailyHours = (totalHours / workDays).toFixed(1)
+
+    const loadsPerOpPerDay = totalOps > 0 ? (totalLoads / totalOps / workDays).toFixed(1) : '0.0'
+    const hoursPerOpPerDay = totalOps > 0 ? (totalHours / totalOps / workDays).toFixed(1) : '0.0'
+
+    let prevTotalOpsOv = 0, prevTotalRunnableOv = 0, prevTotalDownOv = 0, prevTotalYardageOv = 0, prevTotalHoursOv = 0
+    if (prevGMData) {
+        sortedPlants.forEach(p => {
+            prevTotalOpsOv += ensure(prevGMData[`active_operators_${p.plant_code}`], true)
+            prevTotalRunnableOv += ensure(prevGMData[`runnable_trucks_${p.plant_code}`], true)
+            prevTotalDownOv += ensure(prevGMData[`down_trucks_${p.plant_code}`], true)
+            prevTotalYardageOv += ensure(prevGMData[`total_yardage_${p.plant_code}`], true)
+            prevTotalHoursOv += ensure(prevGMData[`total_hours_${p.plant_code}`], true)
+        })
+    }
+    const prevTotalLoads = Math.round(prevTotalYardageOv / 10)
+    const prevAllocationPct = prevTotalRunnableOv > 0 ? Math.round((prevTotalOpsOv / prevTotalRunnableOv) * 100) : 0
+    const prevFleetUtil = (prevTotalRunnableOv + prevTotalDownOv) > 0 ? Math.round((prevTotalRunnableOv / (prevTotalRunnableOv + prevTotalDownOv)) * 100) : 0
+    const prevDailyYardage = Math.round(prevTotalYardageOv / workDays)
+    const prevDailyLoads = Math.round(prevTotalLoads / workDays)
+    const prevDailyHours = (prevTotalHoursOv / workDays).toFixed(1)
+    const prevLoadsPerOpPerDay = prevTotalOpsOv > 0 ? (prevTotalLoads / prevTotalOpsOv / workDays).toFixed(1) : '0.0'
+    const prevHoursPerOpPerDay = prevTotalOpsOv > 0 ? (prevTotalHoursOv / prevTotalOpsOv / workDays).toFixed(1) : '0.0'
+
+    let ovRow = overviewStartRow
+
+    ws.mergeCells(ovRow, overviewCol, ovRow, overviewCol + 2)
+    const overviewTitleCell = ws.getCell(ovRow, overviewCol)
+    overviewTitleCell.value = 'Weekly Overview'
+    overviewTitleCell.font = {name: 'Calibri', size: 16, bold: true, color: {argb: COLORS.white}}
+    overviewTitleCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
+    overviewTitleCell.alignment = {vertical: 'middle', horizontal: 'center'}
+    ws.getCell(ovRow, overviewCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
+    ws.getCell(ovRow, overviewCol + 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
+    ws.getRow(ovRow).height = 28
+    ovRow += 2
+
+    const addOverviewGroup = (title, metrics) => {
+        ws.mergeCells(ovRow, overviewCol, ovRow, overviewCol + 2)
+        const groupCell = ws.getCell(ovRow, overviewCol)
+        groupCell.value = title
+        groupCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+        groupCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        groupCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.getCell(ovRow, overviewCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getCell(ovRow, overviewCol + 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getRow(ovRow).height = 20
+        ovRow++
+
+        metrics.forEach((metric) => {
+            const labelCell = ws.getCell(ovRow, overviewCol)
+            labelCell.value = metric.label
+            labelCell.font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate500}}
+            labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
+            const changeInfo = metric.prev !== undefined ? getChangeText(metric.value, metric.prev, metric.invertChange || false) : {
+                text: '',
+                color: null
+            }
+            addChangePct(ws.getCell(ovRow, overviewCol + 1), changeInfo, false)
+
+            const valueCell = ws.getCell(ovRow, overviewCol + 2)
+            if (metric.suffix) {
+                valueCell.value = metric.value + metric.suffix
+            } else {
+                valueCell.value = metric.value
+                if (metric.format) valueCell.numFmt = metric.format
+            }
+            valueCell.font = {name: 'Calibri', size: 12, bold: true, color: {argb: metric.color || COLORS.brand}}
+            valueCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
+            ws.getRow(ovRow).height = 20
+            ovRow++
+        })
+        ovRow++
+    }
+
+    addOverviewGroup('Fleet', [
+        {label: 'Plants', value: sortedPlants.length},
+        {label: 'Runnable', value: totalRunnable, prev: prevTotalRunnableOv},
+        {
+            label: 'Down',
+            value: totalDown,
+            prev: prevTotalDownOv,
+            color: totalDown > 0 ? COLORS.danger : COLORS.brand,
+            invertChange: true
+        },
+        {
+            label: 'Utilization',
+            value: fleetUtilization,
+            prev: prevFleetUtil,
+            suffix: '%',
+            color: fleetUtilization >= 90 ? COLORS.success : fleetUtilization < 80 ? COLORS.danger : COLORS.brand
+        }
+    ])
+
+    addOverviewGroup('Operators', [
+        {label: 'Total', value: totalOps, prev: prevTotalOpsOv},
+        {
+            label: 'Allocation',
+            value: allocationPct,
+            prev: prevAllocationPct,
+            suffix: '%',
+            color: allocationPct >= 100 ? COLORS.success : allocationPct < 80 ? COLORS.danger : COLORS.brand
+        }
+    ])
+
+    addOverviewGroup('Training', [
+        {label: 'Trainers', value: allTrainers.length},
+        {
+            label: 'In Training',
+            value: allTraining.length,
+            color: allTraining.length > 0 ? COLORS.success : COLORS.brand
+        },
+        {label: 'Pending Start', value: allPending.length},
+        {label: 'Need to Hire', value: totalHiringNeeded, color: totalHiringNeeded > 0 ? COLORS.danger : COLORS.success}
+    ])
+
+    addOverviewGroup('Weekly Production', [
+        {label: 'Yardage', value: totalYardage, prev: prevTotalYardageOv, format: '#,##0'},
+        {label: 'Loads', value: totalLoads, prev: prevTotalLoads, format: '#,##0'},
+        {label: 'Hours', value: totalHours, prev: prevTotalHoursOv, format: '#,##0.0'}
+    ])
+
+    addOverviewGroup('Daily Averages', [
+        {label: 'Yardage', value: dailyYardage, prev: prevDailyYardage, format: '#,##0'},
+        {label: 'Loads', value: dailyLoads, prev: prevDailyLoads, format: '#,##0'},
+        {label: 'Hours', value: dailyHours, prev: parseFloat(prevDailyHours)}
+    ])
+
+    addOverviewGroup('Per Operator/Day', [
+        {label: 'Loads', value: loadsPerOpPerDay, prev: parseFloat(prevLoadsPerOpPerDay)},
+        {label: 'Hours', value: hoursPerOpPerDay, prev: parseFloat(prevHoursPerOpPerDay)}
+    ])
+
+    addSectionTitle(ws, r, 1, 'Plant Summary')
+    r += 2
+
+    const plantHeaders = [
+        {label: 'Plant', merge: false},
+        {label: 'Name', merge: false, align: 'left'},
+        {label: 'Operators', merge: true},
+        {label: 'Runnable', merge: true},
+        {label: 'Down', merge: true},
+        {label: 'Yardage', merge: true},
+        {label: 'Hours', merge: true},
+        {label: 'Notes', mergeCount: 3, align: 'left'}
+    ]
+    addMergedTableHeaders(ws, r, plantHeaders)
+    r++
+
+    sortedPlants.forEach((p, idx) => {
+        const ops = ensure(form[`active_operators_${p.plant_code}`], true)
+        const runnable = ensure(form[`runnable_trucks_${p.plant_code}`], true)
+        const down = ensure(form[`down_trucks_${p.plant_code}`], true)
+        const yardage = ensure(form[`total_yardage_${p.plant_code}`], true)
+        const hours = ensure(form[`total_hours_${p.plant_code}`], true)
+
+        const prevOps = prevGMData ? ensure(prevGMData[`active_operators_${p.plant_code}`], true) : null
+        const prevRunnable = prevGMData ? ensure(prevGMData[`runnable_trucks_${p.plant_code}`], true) : null
+        const prevDown = prevGMData ? ensure(prevGMData[`down_trucks_${p.plant_code}`], true) : null
+        const prevYardage = prevGMData ? ensure(prevGMData[`total_yardage_${p.plant_code}`], true) : null
+        const prevHours = prevGMData ? ensure(prevGMData[`total_hours_${p.plant_code}`], true) : null
+
+        const opsChange = prevGMData ? getChangeText(ops, prevOps, false) : {text: '', color: null}
+        const runnableChange = prevGMData ? getChangeText(runnable, prevRunnable, false) : {text: '', color: null}
+        const downChange = prevGMData ? getChangeText(down, prevDown, true) : {text: '', color: null}
+        const yardageChange = prevGMData ? getChangeText(yardage, prevYardage, false) : {text: '', color: null}
+        const hoursChange = prevGMData ? getChangeText(hours, prevHours, false) : {text: '', color: null}
+
+        const isAlt = idx % 2 === 1
+
+        const rowData = [
+            {value: ensure(p.plant_code, false), align: 'center'},
+            ensure(p.plant_name, false)
+        ]
+        addDataRow(ws, r, rowData, 1, isAlt)
+
+        addChangePct(ws.getCell(r, 3), opsChange, isAlt)
+        const opsCell = ws.getCell(r, 4)
+        opsCell.value = ops
+        opsCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+        opsCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        if (isAlt) opsCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+        addChangePct(ws.getCell(r, 5), runnableChange, isAlt)
+        const runnableCell = ws.getCell(r, 6)
+        runnableCell.value = runnable
+        runnableCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+        runnableCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        if (isAlt) runnableCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+        addChangePct(ws.getCell(r, 7), downChange, isAlt)
+        const downCell = ws.getCell(r, 8)
+        downCell.value = down
+        downCell.font = {
+            name: 'Calibri',
+            size: 11,
+            color: {argb: down > 0 ? COLORS.danger : COLORS.slate700},
+            bold: down > 0
+        }
+        downCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        if (isAlt) downCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+        addChangePct(ws.getCell(r, 9), yardageChange, isAlt)
+        const yardageCell = ws.getCell(r, 10)
+        yardageCell.value = yardage
+        yardageCell.numFmt = '#,##0'
+        yardageCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+        yardageCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        if (isAlt) yardageCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+        addChangePct(ws.getCell(r, 11), hoursChange, isAlt)
+        const hoursCell = ws.getCell(r, 12)
+        hoursCell.value = hours
+        hoursCell.numFmt = '#,##0.0'
+        hoursCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+        hoursCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        if (isAlt) hoursCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+        ws.mergeCells(r, 13, r, 15)
+        const notesCell = ws.getCell(r, 13)
+        notesCell.value = ensure(form[`notes_${p.plant_code}`], false)
+        notesCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+        notesCell.alignment = {vertical: 'middle', horizontal: 'left'}
+        if (isAlt) {
+            notesCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+            ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+            ws.getCell(r, 15).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+        }
+
+        ws.getRow(r).height = 20
         r++
     })
-    if (effReports.length) {
-        r += 1;
-        header(ws.getCell(r, 1), 'Aggregate Production');
-        r += 2;
-        const aggregateReport = await fetchAggregateProductionReport(weekIso);
-        const aggFields = [['sand', 'Sand'], ['fill_dirt', 'Fill Dirt'], ['black_dirt', 'Black Dirt'], ['select_fill', 'Select Fill'], ['crushed_concrete', 'Freeport Crushed Concrete'], ['houston_crushed_concrete', 'Houston Crushed Concrete'], ['three_by_five_crushed', '3 x 5 Crushed'], ['stabilized_sand', 'Stabilized Sand'], ['stabilized_crushed_concrete', 'Stabilized Crushed Concrete'], ['beach_quality_sand', 'Beach Quality Sand'], ['limestone_one_inch', 'Limestone - 1"'], ['white_screened_sand', 'White Screened Sand'], ['pea_gravel_three_eighths', '3/8" Pea Gravel'], ['crushed_asphalt', 'Crushed Asphalt'], ['screened_sand', 'Screened Sand'], ['washout', 'Washout'], ['rip_rap', 'Rip Rap']];
-        header(ws.getCell(r, 1), 'Material');
-        header(ws.getCell(r, 2), 'Value');
-        r++;
-        const dataSource = aggregateReport?.data || {};
-        aggFields.forEach(([key, label]) => {
-            const cellLabel = ws.getCell(r, 1);
-            const cellVal = ws.getCell(r, 2);
-            cellLabel.value = label;
-            let raw = dataSource[key];
-            raw = raw === undefined || raw === null || raw === '' ? 0 : raw;
-            cellVal.value = ensure(Number(raw), true);
-            fillDataCell(cellLabel);
-            fillDataCell(cellVal);
-            right(cellVal);
-            formatNumericCell(cellVal);
-            r++
-        });
-        const materialTotals = {};
-        effReports.forEach(er => {
-            const d = er.data || {};
-            const mats = d.materials || d.material_breakdown;
-            if (mats && typeof mats === 'object') {
-                Object.entries(mats).forEach(([k, val]) => {
-                    const num = Number(val);
-                    if (!isNaN(num)) materialTotals[k] = (materialTotals[k] || 0) + num
-                })
-            }
-            (er.rows || []).forEach(row => {
-                const m = row.material || row.mix;
-                if (m) {
-                    const loads = Number(row.loads) || 0;
-                    materialTotals[m] = (materialTotals[m] || 0) + loads
-                }
-            })
-        });
-        const materialKeys = Object.keys(materialTotals).filter(k => materialTotals[k] !== 0);
-        if (materialKeys.length) {
-            r += 1;
-            header(ws.getCell(r, 1), 'Efficiency Material Breakdown');
-            r += 1;
-            header(ws.getCell(r, 1), 'Material');
-            header(ws.getCell(r, 2), 'Value');
-            r++;
-            materialKeys.sort().forEach(k => {
-                const nameCell = ws.getCell(r, 1);
-                const valCell = ws.getCell(r, 2);
-                nameCell.value = k;
-                valCell.value = halfStep(materialTotals[k]);
-                right(valCell);
-                fillDataCell(nameCell);
-                fillDataCell(valCell);
-                formatNumericCell(valCell);
-                r++
-            })
-        }
+
+    let prevTotalOps = 0, prevTotalRunnable = 0, prevTotalDown = 0, prevTotalYardage = 0, prevTotalHours = 0
+    if (prevGMData) {
+        sortedPlants.forEach(p => {
+            prevTotalOps += ensure(prevGMData[`active_operators_${p.plant_code}`], true)
+            prevTotalRunnable += ensure(prevGMData[`runnable_trucks_${p.plant_code}`], true)
+            prevTotalDown += ensure(prevGMData[`down_trucks_${p.plant_code}`], true)
+            prevTotalYardage += ensure(prevGMData[`total_yardage_${p.plant_code}`], true)
+            prevTotalHours += ensure(prevGMData[`total_hours_${p.plant_code}`], true)
+        })
     }
 
-    const rmiReportData = await fetchRMIReport(weekIso)
-    if (rmiReportData) {
+    const totalOpsChange = prevGMData ? getChangeText(totalOps, prevTotalOps, false) : {text: '', color: null}
+    const totalRunnableChange = prevGMData ? getChangeText(totalRunnable, prevTotalRunnable, false) : {
+        text: '',
+        color: null
+    }
+    const totalDownChange = prevGMData ? getChangeText(totalDown, prevTotalDown, true) : {text: '', color: null}
+    const totalYardageChange = prevGMData ? getChangeText(totalYardage, prevTotalYardage, false) : {
+        text: '',
+        color: null
+    }
+    const totalHoursChange = prevGMData ? getChangeText(totalHours, prevTotalHours, false) : {text: '', color: null}
+
+    const applyTotalCell = (cell, value, format) => {
+        cell.value = value
+        if (format) cell.numFmt = format
+        cell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        cell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+        cell.alignment = {vertical: 'middle', horizontal: 'left'}
+    }
+
+    const applyTotalChangeCell = (cell, changeInfo) => {
+        if (changeInfo && changeInfo.text) {
+            cell.value = changeInfo.text.trim()
+            cell.font = {name: 'Calibri', size: 9, bold: true, color: {argb: changeInfo.color}}
+        } else {
+            cell.value = ''
+        }
+        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        cell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+        cell.alignment = {vertical: 'middle', horizontal: 'right'}
+    }
+
+    ws.getCell(r, 1).value = ''
+    ws.getCell(r, 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 1).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+
+    ws.getCell(r, 2).value = 'TOTAL'
+    ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+    ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 2).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+    ws.getCell(r, 2).alignment = {vertical: 'middle', horizontal: 'right'}
+
+    applyTotalChangeCell(ws.getCell(r, 3), totalOpsChange)
+    applyTotalCell(ws.getCell(r, 4), totalOps)
+
+    applyTotalChangeCell(ws.getCell(r, 5), totalRunnableChange)
+    applyTotalCell(ws.getCell(r, 6), totalRunnable)
+
+    applyTotalChangeCell(ws.getCell(r, 7), totalDownChange)
+    applyTotalCell(ws.getCell(r, 8), totalDown)
+
+    applyTotalChangeCell(ws.getCell(r, 9), totalYardageChange)
+    applyTotalCell(ws.getCell(r, 10), totalYardage, '#,##0')
+
+    applyTotalChangeCell(ws.getCell(r, 11), totalHoursChange)
+    applyTotalCell(ws.getCell(r, 12), totalHours, '#,##0.0')
+
+    ws.mergeCells(r, 13, r, 15)
+    ws.getCell(r, 13).value = ''
+    ws.getCell(r, 13).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 13).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+    ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 14).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+    ws.getCell(r, 15).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 15).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+
+    ws.getRow(r).height = 24
+    r += 3
+
+    if (sortedEffReports.length > 0) {
+        addSectionTitle(ws, r, 1, 'Efficiency Overview')
         r += 2
-        header(ws.getCell(r, 1), 'Ready Mix Instructor Report')
+
+        const effHeaders = [
+            {label: 'Plant', merge: false},
+            {label: 'Name', merge: false, align: 'left'},
+            {label: 'Date', merge: false},
+            {label: 'Loads', merge: true},
+            {label: 'Hours', merge: true},
+            {label: 'L/H/O', merge: true},
+            {label: 'Start', merge: true},
+            {label: 'End', merge: true}
+        ]
+        addMergedTableHeaders(ws, r, effHeaders)
+        r++
+
+        sortedEffReports.forEach((er, idx) => {
+            const insights = ReportService.getPlantProductionInsights(er.rows || [])
+            const lphBase = truncateToTenth(insights.avgLoadsPerHour)
+            const loads = insights.totalLoads || 0
+            const hours = truncateToTenth(insights.totalHours)
+            const startMin = truncateToTenth(insights.avgElapsedStart)
+            const endMin = truncateToTenth(insights.avgElapsedEnd)
+            const plantInfo = sortedPlants.find(p => String(p.plant_code) === String(er.plant_code))
+            const plantName = plantInfo?.plant_name || plantInfo?.name || er.plant_code
+            
+            const reportDate = er.report_date || ''
+            const formattedDate = reportDate ? new Date(reportDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
+            
+            const plantOps = ensure(form[`active_operators_${er.plant_code}`], true)
+            const lph = truncateToTenth(lphBase * plantOps)
+
+            const isAlt = idx % 2 === 1
+            const isShutDown = loads === 0 && (hours === null || hours === 0 || isNaN(hours)) && (startMin === null || isNaN(startMin)) && (endMin === null || isNaN(endMin))
+
+            const rowData = [
+                {value: ensure(er.plant_code, false), align: 'center'},
+                plantName,
+                {value: formattedDate, align: 'center'}
+            ]
+            addDataRow(ws, r, rowData, 1, isAlt)
+
+            if (isShutDown) {
+                ws.mergeCells(r, 4, r, 13)
+                const shutDownCell = ws.getCell(r, 4)
+                shutDownCell.value = 'Plant Shut Down'
+                shutDownCell.font = {name: 'Calibri', size: 11, italic: true, color: {argb: COLORS.slate500}}
+                shutDownCell.alignment = {vertical: 'middle', horizontal: 'center'}
+                if (isAlt) {
+                    shutDownCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                    for (let c = 5; c <= 13; c++) {
+                        ws.getCell(r, c).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                    }
+                }
+                ws.getRow(r).height = 20
+                r++
+                return
+            }
+
+            const prevEr = sortedPrevEffReports.find(p => String(p.plant_code) === String(er.plant_code))
+            let prevLoads = null, prevHours = null, prevLph = null, prevStart = null, prevEnd = null
+            if (prevEr) {
+                const prevInsights = ReportService.getPlantProductionInsights(prevEr.rows || [])
+                prevLoads = prevInsights.totalLoads || 0
+                prevHours = truncateToTenth(prevInsights.totalHours)
+                const prevLphBase = truncateToTenth(prevInsights.avgLoadsPerHour)
+                const prevPlantOps = prevGMData ? ensure(prevGMData[`active_operators_${er.plant_code}`], true) : plantOps
+                prevLph = truncateToTenth(prevLphBase * prevPlantOps)
+                prevStart = truncateToTenth(prevInsights.avgElapsedStart)
+                prevEnd = truncateToTenth(prevInsights.avgElapsedEnd)
+            }
+
+            const filterNew = (c) => c.text && c.text.includes('new') ? {text: '', color: null} : c
+
+            const loadsChange = prevEr ? filterNew(getChangeText(loads, prevLoads, false)) : {text: '', color: null}
+            const hoursChange = prevEr ? filterNew(getChangeText(hours, prevHours, false)) : {text: '', color: null}
+            const lphChange = prevEr ? filterNew(getChangeText(lph, prevLph, false)) : {text: '', color: null}
+            const startChange = prevEr ? filterNew(getChangeText(startMin, prevStart, true)) : {text: '', color: null}
+            const endChange = prevEr ? filterNew(getChangeText(endMin, prevEnd, true)) : {text: '', color: null}
+
+            addChangePct(ws.getCell(r, 4), loadsChange, isAlt)
+            const loadsCell = ws.getCell(r, 5)
+            loadsCell.value = loads
+            loadsCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            loadsCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) loadsCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            addChangePct(ws.getCell(r, 6), hoursChange, isAlt)
+            const hoursCell = ws.getCell(r, 7)
+            hoursCell.value = hours
+            hoursCell.numFmt = '#,##0.0'
+            hoursCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            hoursCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) hoursCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            addChangePct(ws.getCell(r, 8), lphChange, isAlt)
+            const lphCell = ws.getCell(r, 9)
+            lphCell.value = lph
+            lphCell.numFmt = '#,##0.0'
+            lphCell.font = {
+                name: 'Calibri',
+                size: 11,
+                color: {argb: lph >= 2 ? COLORS.success : lph < 1.5 ? COLORS.danger : COLORS.slate700},
+                bold: lph >= 2 || lph < 1.5
+            }
+            lphCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) lphCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            addChangePct(ws.getCell(r, 10), startChange, isAlt)
+            const startCell = ws.getCell(r, 11)
+            startCell.value = startMin + ' mins'
+            startCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            startCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) startCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            addChangePct(ws.getCell(r, 12), endChange, isAlt)
+            const endCell = ws.getCell(r, 13)
+            endCell.value = endMin + ' mins'
+            endCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            endCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) endCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            ws.getRow(r).height = 20
+            r++
+        })
+
+        let totalLoads = 0, totalHours = 0, totalLph = 0, totalStart = 0, totalEnd = 0
+        let prevTotalLoads = 0, prevTotalHours = 0, prevTotalLph = 0, prevTotalStart = 0, prevTotalEnd = 0
+        let effCount = 0, prevEffCount = 0
+
+        sortedEffReports.forEach(er => {
+            const insights = ReportService.getPlantProductionInsights(er.rows || [])
+            const plantOpsEff = ensure(form[`active_operators_${er.plant_code}`], true)
+            totalLoads += insights.totalLoads || 0
+            totalHours += truncateToTenth(insights.totalHours) || 0
+            totalLph += truncateToTenth(insights.avgLoadsPerHour) * plantOpsEff || 0
+            totalStart += truncateToTenth(insights.avgElapsedStart) || 0
+            totalEnd += truncateToTenth(insights.avgElapsedEnd) || 0
+            effCount++
+        })
+
+        sortedPrevEffReports.forEach(er => {
+            const insights = ReportService.getPlantProductionInsights(er.rows || [])
+            const prevPlantOpsEff = prevGMData ? ensure(prevGMData[`active_operators_${er.plant_code}`], true) : ensure(form[`active_operators_${er.plant_code}`], true)
+            prevTotalLoads += insights.totalLoads || 0
+            prevTotalHours += truncateToTenth(insights.totalHours) || 0
+            prevTotalLph += truncateToTenth(insights.avgLoadsPerHour) * prevPlantOpsEff || 0
+            prevTotalStart += truncateToTenth(insights.avgElapsedStart) || 0
+            prevTotalEnd += truncateToTenth(insights.avgElapsedEnd) || 0
+            prevEffCount++
+        })
+
+        const avgLph = effCount > 0 ? truncateToTenth(totalLph / effCount) : 0
+        const avgStart = effCount > 0 ? truncateToTenth(totalStart / effCount) : 0
+        const avgEnd = effCount > 0 ? truncateToTenth(totalEnd / effCount) : 0
+        const prevAvgLph = prevEffCount > 0 ? truncateToTenth(prevTotalLph / prevEffCount) : 0
+        const prevAvgStart = prevEffCount > 0 ? truncateToTenth(prevTotalStart / prevEffCount) : 0
+        const prevAvgEnd = prevEffCount > 0 ? truncateToTenth(prevTotalEnd / prevEffCount) : 0
+
+        const effLoadsChange = prevEffCount > 0 ? getChangeText(totalLoads, prevTotalLoads, false) : {
+            text: '',
+            color: null
+        }
+        const effHoursChange = prevEffCount > 0 ? getChangeText(totalHours, prevTotalHours, false) : {
+            text: '',
+            color: null
+        }
+        const effLphChange = prevEffCount > 0 ? getChangeText(avgLph, prevAvgLph, false) : {text: '', color: null}
+        const effStartChange = prevEffCount > 0 ? getChangeText(avgStart, prevAvgStart, true) : {text: '', color: null}
+        const effEndChange = prevEffCount > 0 ? getChangeText(avgEnd, prevAvgEnd, true) : {text: '', color: null}
+
+        const applyEffTotalCell = (cell, value, format) => {
+            cell.value = value
+            if (format) cell.numFmt = format
+            cell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            cell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            cell.alignment = {vertical: 'middle', horizontal: 'left'}
+        }
+
+        const applyEffTotalChangeCell = (cell, changeInfo) => {
+            if (changeInfo && changeInfo.text) {
+                cell.value = changeInfo.text.trim()
+                cell.font = {name: 'Calibri', size: 9, bold: true, color: {argb: changeInfo.color}}
+            } else {
+                cell.value = ''
+            }
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            cell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            cell.alignment = {vertical: 'middle', horizontal: 'right'}
+        }
+
+        ws.getCell(r, 1).value = ''
+        ws.getCell(r, 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getCell(r, 1).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+
+        ws.mergeCells(r, 2, r, 3)
+        ws.getCell(r, 2).value = 'AVERAGES'
+        ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+        ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getCell(r, 2).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+        ws.getCell(r, 2).alignment = {vertical: 'middle', horizontal: 'right'}
+        ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getCell(r, 3).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+
+        applyEffTotalChangeCell(ws.getCell(r, 4), effLoadsChange)
+        applyEffTotalCell(ws.getCell(r, 5), totalLoads)
+
+        applyEffTotalChangeCell(ws.getCell(r, 6), effHoursChange)
+        applyEffTotalCell(ws.getCell(r, 7), totalHours, '#,##0.0')
+
+        applyEffTotalChangeCell(ws.getCell(r, 8), effLphChange)
+        applyEffTotalCell(ws.getCell(r, 9), avgLph, '#,##0.0')
+
+        applyEffTotalChangeCell(ws.getCell(r, 10), effStartChange)
+        applyEffTotalCell(ws.getCell(r, 11), avgStart + ' mins')
+
+        applyEffTotalChangeCell(ws.getCell(r, 12), effEndChange)
+        applyEffTotalCell(ws.getCell(r, 13), avgEnd + ' mins')
+
+        ws.getRow(r).height = 24
+        r += 3
+    }
+
+    const aggregateReport = await fetchAggregateProductionReport(weekIso)
+    const prevAggregateReport = prevWeekIso ? await fetchAggregateProductionReport(prevWeekIso) : null
+
+    if (aggregateReport) {
+        addSectionTitle(ws, r, 1, 'Aggregate Production')
         r += 2
 
-        const snapshotData = rmiReportData.snapshot_data || {}
-        const mixerTrainers = snapshotData.mixer_trainers || []
-        const tractorTrainers = snapshotData.tractor_trainers || []
-        const mixerPending = snapshotData.mixer_pending || []
-        const tractorPending = snapshotData.tractor_pending || []
-        const mixerTraining = snapshotData.mixer_training || []
-        const tractorTraining = snapshotData.tractor_training || []
-        const hiringGoals = rmiReportData.hiring_goals || {}
+        const aggHeaders = [
+            {label: 'Material', mergeCount: 2, align: 'left'},
+            {label: 'Quantity', merge: true}
+        ]
+        addMergedTableHeaders(ws, r, aggHeaders)
+        r++
 
-        const getPlantName = (plantCode) => {
-            const plant = plants?.find(p => (p.plant_code || p.code) === plantCode)
-            return plant?.name || plantCode || '—'
+        const aggFields = [
+            ['sand', 'Sand'],
+            ['fill_dirt', 'Fill Dirt'],
+            ['black_dirt', 'Black Dirt'],
+            ['select_fill', 'Select Fill'],
+            ['crushed_concrete', 'Freeport Crushed Concrete'],
+            ['houston_crushed_concrete', 'Houston Crushed Concrete'],
+            ['three_by_five_crushed', '3 x 5 Crushed'],
+            ['stabilized_sand', 'Stabilized Sand'],
+            ['stabilized_crushed_concrete', 'Stabilized Crushed Concrete'],
+            ['beach_quality_sand', 'Beach Quality Sand'],
+            ['limestone_one_inch', 'Limestone - 1"'],
+            ['white_screened_sand', 'White Screened Sand'],
+            ['pea_gravel_three_eighths', '3/8" Pea Gravel'],
+            ['crushed_asphalt', 'Crushed Asphalt'],
+            ['screened_sand', 'Screened Sand'],
+            ['washout', 'Washout'],
+            ['rip_rap', 'Rip Rap']
+        ]
+
+        const dataSource = aggregateReport?.data || {}
+        const prevDataSource = prevAggregateReport?.data || {}
+        let aggTotal = 0
+        let prevAggTotal = 0
+        let rowIdx = 0
+
+        aggFields.forEach(([key, label]) => {
+            let raw = dataSource[key]
+            raw = raw === undefined || raw === null || raw === '' ? 0 : Number(raw)
+            let prevRaw = prevDataSource[key]
+            prevRaw = prevRaw === undefined || prevRaw === null || prevRaw === '' ? 0 : Number(prevRaw)
+
+            if (raw === 0 && prevRaw === 0) return
+            aggTotal += raw
+            prevAggTotal += prevRaw
+
+            const changeInfo = prevAggregateReport ? getChangeText(raw, prevRaw, false) : {text: '', color: null}
+            const isAlt = rowIdx % 2 === 1
+
+            ws.mergeCells(r, 1, r, 2)
+            const labelCell = ws.getCell(r, 1)
+            labelCell.value = label
+            labelCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) {
+                labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+            }
+
+            addChangePct(ws.getCell(r, 3), changeInfo, isAlt)
+
+            const valCell = ws.getCell(r, 4)
+            valCell.value = raw
+            valCell.numFmt = '#,##0.0'
+            valCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            valCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) valCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            ws.getRow(r).height = 20
+            r++
+            rowIdx++
+        })
+
+        if (aggTotal > 0) {
+            const totalChangeInfo = prevAggregateReport ? getChangeText(aggTotal, prevAggTotal, false) : {
+                text: '',
+                color: null
+            }
+
+            ws.mergeCells(r, 1, r, 2)
+            const totalLabelCell = ws.getCell(r, 1)
+            totalLabelCell.value = 'TOTAL'
+            totalLabelCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+            totalLabelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            totalLabelCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            totalLabelCell.alignment = {vertical: 'middle', horizontal: 'right'}
+            ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            ws.getCell(r, 2).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+
+            const totalChangeCell = ws.getCell(r, 3)
+            if (totalChangeInfo && totalChangeInfo.text) {
+                totalChangeCell.value = totalChangeInfo.text.trim()
+                totalChangeCell.font = {name: 'Calibri', size: 9, bold: true, color: {argb: totalChangeInfo.color}}
+            } else {
+                totalChangeCell.value = ''
+            }
+            totalChangeCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            totalChangeCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            totalChangeCell.alignment = {vertical: 'middle', horizontal: 'right'}
+
+            const totalValCell = ws.getCell(r, 4)
+            totalValCell.value = aggTotal
+            totalValCell.numFmt = '#,##0.0'
+            totalValCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+            totalValCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            totalValCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            totalValCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
+            ws.getRow(r).height = 24
+        }
+        r += 3
+    }
+
+    if (rmiData) {
+        const getPlantName = (code) => {
+            const p = plants?.find(x => (x.plant_code || x.code) === code)
+            return p?.name || code || ''
         }
 
-        if (mixerTrainers.length > 0 || tractorTrainers.length > 0) {
-            header(ws.getCell(r, 1), 'Active Trainers')
-            r++
-            header(ws.getCell(r, 1), 'Type')
-            header(ws.getCell(r, 2), 'Name')
-            header(ws.getCell(r, 3), 'Plant')
-            header(ws.getCell(r, 4), 'Status')
-            r++
-
-            mixerTrainers.forEach(trainer => {
-                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
-                cells[0].value = 'Mixer'
-                cells[1].value = trainer.name || '—'
-                cells[2].value = getPlantName(trainer.plant)
-                cells[3].value = trainer.status || '—'
-                cells.forEach(fillDataCell)
-                r++
-            })
-
-            tractorTrainers.forEach(trainer => {
-                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
-                cells[0].value = 'Tractor'
-                cells[1].value = trainer.name || '—'
-                cells[2].value = getPlantName(trainer.plant)
-                cells[3].value = trainer.status || '—'
-                cells.forEach(fillDataCell)
-                r++
-            })
+        if (allTrainers.length > 0 || allPending.length > 0 || allTraining.length > 0) {
+            addSectionTitle(ws, r, 1, 'Training & Hiring')
+            r += 2
         }
 
-        if (mixerPending.length > 0 || tractorPending.length > 0) {
+        if (allTrainers.length > 0) {
+            ws.getCell(r, 1).value = 'Active Trainers'
+            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
-            header(ws.getCell(r, 1), 'Pending Start Operators')
+            const trainerHeaders = [
+                {label: 'Plant', merge: false},
+                {label: 'Name', merge: false, align: 'left'},
+                {label: 'Type', merge: false},
+                {label: 'Status', merge: false}
+            ]
+            addMergedTableHeaders(ws, r, trainerHeaders)
             r++
-            header(ws.getCell(r, 1), 'Type')
-            header(ws.getCell(r, 2), 'Name')
-            header(ws.getCell(r, 3), 'Plant')
-            header(ws.getCell(r, 4), 'Start Date')
-            r++
-
-            mixerPending.forEach(op => {
-                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
-                cells[0].value = 'Mixer'
-                cells[1].value = op.name || '—'
-                cells[2].value = getPlantName(op.plant)
-                cells[3].value = op.startDate || '—'
-                cells.forEach(fillDataCell)
+            allTrainers.forEach((t, idx) => {
+                addDataRow(ws, r, [
+                    {value: getPlantName(t.plant), align: 'center'},
+                    t.name || '',
+                    {value: t.type, align: 'center'},
+                    {value: t.status || '', align: 'center'}
+                ], 1, idx % 2 === 1)
                 r++
             })
-
-            tractorPending.forEach(op => {
-                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
-                cells[0].value = 'Tractor'
-                cells[1].value = op.name || '—'
-                cells[2].value = getPlantName(op.plant)
-                cells[3].value = op.startDate || '—'
-                cells.forEach(fillDataCell)
-                r++
-            })
+            r++
         }
 
-        if (mixerTraining.length > 0 || tractorTraining.length > 0) {
+        if (allPending.length > 0) {
+            ws.getCell(r, 1).value = 'Pending Start'
+            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
-            header(ws.getCell(r, 1), 'Training Operators')
+            const pendingHeaders = [
+                {label: 'Plant', merge: false},
+                {label: 'Name', merge: false, align: 'left'},
+                {label: 'Type', merge: false},
+                {label: 'Start Date', merge: true}
+            ]
+            addMergedTableHeaders(ws, r, pendingHeaders)
             r++
-            header(ws.getCell(r, 1), 'Type')
-            header(ws.getCell(r, 2), 'Name')
-            header(ws.getCell(r, 3), 'Plant')
-            header(ws.getCell(r, 4), 'Trainer')
-            r++
-
-            mixerTraining.forEach(op => {
-                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
-                cells[0].value = 'Mixer'
-                cells[1].value = op.name || '—'
-                cells[2].value = getPlantName(op.plant)
-                cells[3].value = op.trainer || '—'
-                cells.forEach(fillDataCell)
+            allPending.forEach((p, idx) => {
+                const isAlt = idx % 2 === 1
+                addDataRow(ws, r, [
+                    {value: getPlantName(p.plant), align: 'center'},
+                    p.name || '',
+                    {value: p.type, align: 'center'}
+                ], 1, isAlt)
+                ws.mergeCells(r, 4, r, 5)
+                const startDateCell = ws.getCell(r, 4)
+                startDateCell.value = p.startDate || ''
+                startDateCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+                startDateCell.alignment = {vertical: 'middle', horizontal: 'center'}
+                if (isAlt) {
+                    startDateCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                    ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                }
                 r++
             })
-
-            tractorTraining.forEach(op => {
-                const cells = [ws.getCell(r, 1), ws.getCell(r, 2), ws.getCell(r, 3), ws.getCell(r, 4)]
-                cells[0].value = 'Tractor'
-                cells[1].value = op.name || '—'
-                cells[2].value = getPlantName(op.plant)
-                cells[3].value = op.trainer || '—'
-                cells.forEach(fillDataCell)
-                r++
-            })
+            r++
         }
 
-        if (Object.keys(hiringGoals).length > 0) {
+        if (allTraining.length > 0) {
+            ws.getCell(r, 1).value = 'In Training'
+            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
-            header(ws.getCell(r, 1), 'Weekly Hiring Goals')
+            const trainingHeaders = [
+                {label: 'Plant', merge: false},
+                {label: 'Name', merge: false, align: 'left'},
+                {label: 'Type', merge: false},
+                {label: 'Trainer', merge: false, align: 'left'}
+            ]
+            addMergedTableHeaders(ws, r, trainingHeaders)
             r++
-            header(ws.getCell(r, 1), 'Plant')
-            header(ws.getCell(r, 2), 'Goal')
+            allTraining.forEach((t, idx) => {
+                addDataRow(ws, r, [
+                    {value: getPlantName(t.plant), align: 'center'},
+                    t.name || '',
+                    {value: t.type, align: 'center'},
+                    t.trainer || ''
+                ], 1, idx % 2 === 1)
+                r++
+            })
             r++
+        }
 
-            sortedPlants.forEach(plant => {
-                const plantCode = plant.plant_code || plant.code
-                const goal = hiringGoals[plantCode]
+        const goalsArr = Object.entries(hiringGoals).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+        if (goalsArr.length > 0) {
+            r++
+            ws.getCell(r, 1).value = 'Hiring Goals'
+            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+            r++
+            addTableHeaders(ws, r, ['Plant', 'Goal'], 1)
+            r++
+            sortedPlants.forEach((plant, idx) => {
+                const code = plant.plant_code || plant.code
+                const goal = hiringGoals[code]
                 if (goal !== undefined && goal !== null && goal !== '') {
-                    const cells = [ws.getCell(r, 1), ws.getCell(r, 2)]
-                    cells[0].value = getPlantName(plantCode)
-                    cells[1].value = ensure(Number(goal), true)
-                    cells.forEach(fillDataCell)
-                    right(cells[1])
+                    addDataRow(ws, r, [{value: getPlantName(code), align: 'center'}, {
+                        value: Number(goal),
+                        align: 'center'
+                    }], 1, idx % 2 === 1)
                     r++
                 }
             })
         }
     }
 
-    ws.columns.forEach((col, idx) => {
-        let max = 0;
-        col.eachCell({includeEmpty: false}, c => {
-            const len = String(c.value || '').length;
-            if (len > max) max = len
-        });
-        col.width = Math.min(Math.max(max + 2, 10), idx === 10 || idx === 11 ? 50 : 28)
-    })
-    ws.getColumn(4).width = 18;
-    ws.getColumn(5).width = 18
-    const notesIdx = plantHeader.indexOf('Notes') + 1;
-    if (notesIdx > 0) ws.getColumn(notesIdx).alignment = {vertical: 'top', wrapText: true}
-    ws.eachRow(row => row.eachCell(cell => {
-        cell.border = undefined
-    }))
-    ws.eachRow(row => row.eachCell(cell => {
-        const a = cell.alignment || {};
-        cell.alignment = {...a, horizontal: 'left'}
-    }))
-    const buf = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
+    ws.pageSetup = {
+        paperSize: 9,
+        orientation: 'landscape',
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
+        margins: {left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3}
+    }
+
+    const buf = await wb.xlsx.writeBuffer()
+    const blob = new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
     setTimeout(() => {
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(url)
         a.remove()
     }, 0)
 }
