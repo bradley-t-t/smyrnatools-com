@@ -90,6 +90,7 @@ function ReportsSubmitView({
     const [confirmationChecks, setConfirmationChecks] = useState([false, false])
     const [exporting, setExporting] = useState(false)
     const [exportError, setExportError] = useState('')
+    const [loadingPlants, setLoadingPlants] = useState(true)
 
     const PluginComponent = plugins[report.name]
     const targetUserId = managerEditUser || user?.id
@@ -276,7 +277,7 @@ function ReportsSubmitView({
     }
 
     async function handleExport() {
-        if (exporting) return
+        if (exporting || loadingPlants || plants.length === 0) return
         setExportError('')
         setExporting(true)
         try {
@@ -293,6 +294,7 @@ function ReportsSubmitView({
 
     useEffect(() => {
         async function fetchPlants() {
+            setLoadingPlants(true)
             const targetUserId = managerEditUser || user?.id
             if (targetUserId) {
                 const list = await ReportService.fetchPlantsForUser(targetUserId)
@@ -301,6 +303,7 @@ function ReportsSubmitView({
                 const list = await ReportService.fetchPlantsSorted()
                 setPlants(list)
             }
+            setLoadingPlants(false)
         }
 
         fetchPlants()
@@ -469,9 +472,9 @@ function ReportsSubmitView({
                             </div>
                             {isGM && (
                                 <button type="button" className="rpts-manager-edit-button" onClick={handleExport}
-                                        disabled={exporting}>
+                                        disabled={exporting || loadingPlants}>
                                     <i className="fas fa-file-export"></i>
-                                    {exporting ? 'Exporting...' : 'Export'}
+                                    {loadingPlants ? 'Loading...' : (exporting ? 'Exporting...' : 'Export')}
                                 </button>
                             )}
                         </div>

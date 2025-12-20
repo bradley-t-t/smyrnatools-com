@@ -339,53 +339,25 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     const allMonthlyData = await fetchAllMonthlyGMReports()
     
-    const getMondayIsoUTC = (dateInput) => {
-        if (!dateInput) return null
-        let isoStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString()
-        const datePart = isoStr.slice(0, 10)
-        const d = new Date(datePart + 'T00:00:00Z')
-        if (isNaN(d.getTime())) return null
-        const day = d.getUTCDay()
-        d.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
-        return d.toISOString().slice(0, 10)
-    }
-    
-    const currentMondayIso = getMondayIsoUTC(weekIso)
-    const currentWeekDate = new Date(currentMondayIso + 'T00:00:00Z')
-    const currentMonthKey = `${currentWeekDate.getUTCFullYear()}-${String(currentWeekDate.getUTCMonth() + 1).padStart(2, '0')}`
-    const currentMonthIdx = allMonthlyData.findIndex(m => m.monthKey === currentMonthKey)
-    
-    const getWeeksInMonth = (year, month) => {
-        const firstDay = new Date(Date.UTC(year, month - 1, 1))
-        const lastDay = new Date(Date.UTC(year, month, 0))
-        let weeks = 0
-        const d = new Date(firstDay)
-        while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() + 1)
-        while (d <= lastDay) {
-            weeks++
-            d.setUTCDate(d.getUTCDate() + 7)
+    let logoBase64 = null
+    try {
+        const logoResponse = await fetch('/srm-logo.png')
+        if (logoResponse.ok) {
+            const blob = await logoResponse.blob()
+            logoBase64 = await new Promise((resolve) => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result.split(',')[1])
+                reader.readAsDataURL(blob)
+            })
         }
-        return weeks || 4
-    }
-    
-    if (currentMonthIdx >= 0) {
-        if (!allMonthlyData[currentMonthIdx].weekIsos.has(currentMondayIso)) {
-            allMonthlyData[currentMonthIdx].reports.unshift(form)
-            allMonthlyData[currentMonthIdx].weekIsos.add(currentMondayIso)
-        }
-    } else {
-        const monthName = new Date(Date.UTC(currentWeekDate.getUTCFullYear(), currentWeekDate.getUTCMonth(), 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
-        const year = currentWeekDate.getUTCFullYear()
-        const month = currentWeekDate.getUTCMonth() + 1
-        const totalWeeks = getWeeksInMonth(year, month)
-        const weekIsos = new Set([currentMondayIso])
-        allMonthlyData.unshift({ monthKey: currentMonthKey, monthName, reports: [form], totalWeeks, weekIsos })
+    } catch (e) {
+        console.warn('Could not load logo', e)
     }
 
     for (let i = 0; i < weeksToExport.length; i++) {
         const weekData = weeksToExport[i]
         const prevWeekData = weeksToExport[i + 1] || null
-        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData)
+        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData, logoBase64)
     }
 
     const buf = await wb.xlsx.writeBuffer()
@@ -402,26 +374,27 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     }, 0)
 }
 
-async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso, allMonthlyData) {
+async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso, allMonthlyData, logoBase64) {
 
     const COLORS = {
-        brand: 'FF1E3A5F',
-        brandLight: 'FF2D5A8A',
-        accent: 'FF3B82F6',
-        success: 'FF10B981',
-        successLight: 'FFD1FAE5',
-        warning: 'FFF59E0B',
-        danger: 'FFEF4444',
-        dangerLight: 'FFFEE2E2',
+        brand: 'FF2C4A6B',
+        brandLight: 'FF3B5F8A',
+        accent: 'FF4B7BA8',
+        success: 'FF2D7A5F',
+        successLight: 'FFD4E8E0',
+        warning: 'FFCA8A2B',
+        danger: 'FFB93A3A',
+        dangerLight: 'FFF5D9D9',
         white: 'FFFFFFFF',
-        cream: 'FFFAFAFA',
-        snow: 'FFF8FAFC',
-        slate100: 'FFF1F5F9',
-        slate200: 'FFE2E8F0',
-        slate300: 'FFCBD5E1',
-        slate500: 'FF64748B',
-        slate700: 'FF334155',
-        slate900: 'FF0F172A'
+        cream: 'FFF8F9FA',
+        snow: 'FFE0E3E6',
+        slate100: 'FFD0D4D8',
+        slate200: 'FFC8CDD2',
+        slate300: 'FFB5BBC2',
+        slate500: 'FF8B949E',
+        slate700: 'FF5A6672',
+        slate900: 'FF2D3748',
+        subtleGray: 'FFE8EAED'
     }
 
     function ensure(value, isNumeric) {
@@ -632,23 +605,36 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
 
     let r = 2
 
-    ws.mergeCells(r, 3, r, 10)
-    const titleCell = ws.getCell(r, 3)
+    if (logoBase64) {
+        ws.mergeCells(2, 2, 4, 3)
+        const imageId = wb.addImage({
+            base64: logoBase64,
+            extension: 'png'
+        })
+        ws.addImage(imageId, {
+            tl: { col: 1, row: 1 },
+            br: { col: 3, row: 4 },
+            editAs: 'oneCell'
+        })
+    }
+
+    ws.mergeCells(r, 5, r, 12)
+    const titleCell = ws.getCell(r, 5)
     titleCell.value = 'General Manager Report'
     titleCell.font = {name: 'Calibri', size: 26, bold: true, color: {argb: COLORS.brand}}
     titleCell.alignment = {vertical: 'middle', horizontal: 'left'}
     ws.getRow(r).height = 36
     r++
 
-    ws.mergeCells(r, 3, r, 7)
-    const subtitleCell = ws.getCell(r, 3)
+    ws.mergeCells(r, 5, r, 9)
+    const subtitleCell = ws.getCell(r, 5)
     subtitleCell.value = weekRange || 'Weekly Summary'
-    subtitleCell.font = {name: 'Calibri', size: 13, color: {argb: COLORS.slate500}}
+    subtitleCell.font = {name: 'Calibri', size: 13, color: {argb: COLORS.slate700}}
     subtitleCell.alignment = {vertical: 'middle', horizontal: 'left'}
     r++
 
-    ws.mergeCells(r, 3, r, 10)
-    const dateCell = ws.getCell(r, 3)
+    ws.mergeCells(r, 5, r, 12)
+    const dateCell = ws.getCell(r, 5)
     dateCell.value = {
         text: 'Generated on ' + new Date().toLocaleDateString('en-US', {
             month: 'short',
@@ -732,16 +718,24 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         ws.getRow(ovRow).height = 20
         ovRow++
 
-        metrics.forEach((metric) => {
+        metrics.forEach((metric, idx) => {
+            const isAlt = idx % 2 === 1
+            const bgColor = isAlt ? COLORS.snow : null
+
             const labelCell = ws.getCell(ovRow, overviewCol)
             labelCell.value = metric.label
             labelCell.font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate500}}
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
             const changeInfo = metric.prev !== undefined ? 
                 (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
                 {text: '', color: null}
-            addChangePct(ws.getCell(ovRow, overviewCol + 1), changeInfo, false)
+            const changeCell = ws.getCell(ovRow, overviewCol + 1)
+            addChangePct(changeCell, changeInfo, false)
+            if (bgColor && (!changeInfo || !changeInfo.text)) {
+                changeCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            }
 
             const valueCell = ws.getCell(ovRow, overviewCol + 2)
             if (metric.suffix) {
@@ -752,6 +746,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             }
             valueCell.font = {name: 'Calibri', size: 12, bold: true, color: {argb: metric.color || COLORS.brand}}
             valueCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (bgColor) valueCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
             ws.getRow(ovRow).height = 20
             ovRow++
@@ -871,16 +866,24 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         ws.getRow(moRow).height = 20
         moRow++
 
-        metrics.forEach((metric) => {
+        metrics.forEach((metric, idx) => {
+            const isAlt = idx % 2 === 1
+            const bgColor = isAlt ? COLORS.snow : null
+
             const labelCell = ws.getCell(moRow, monthlyCol)
             labelCell.value = metric.label
             labelCell.font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate500}}
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
             const changeInfo = metric.prev !== undefined ? 
                 (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
                 {text: '', color: null}
-            addChangePct(ws.getCell(moRow, monthlyCol + 1), changeInfo, false)
+            const changeCell = ws.getCell(moRow, monthlyCol + 1)
+            addChangePct(changeCell, changeInfo, false)
+            if (bgColor && (!changeInfo || !changeInfo.text)) {
+                changeCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            }
 
             const valueCell = ws.getCell(moRow, monthlyCol + 2)
             if (metric.suffix) {
@@ -891,6 +894,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             }
             valueCell.font = {name: 'Calibri', size: 12, bold: true, color: {argb: metric.color || COLORS.brand}}
             valueCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (bgColor) valueCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
             ws.getRow(moRow).height = 20
             moRow++
@@ -1557,5 +1561,19 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         fitToWidth: 1,
         fitToHeight: 0,
         margins: {left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3}
+    }
+
+    for (let rowNum = 1; rowNum <= 200; rowNum++) {
+        const row = ws.getRow(rowNum)
+        for (let colNum = 1; colNum <= 30; colNum++) {
+            const cell = row.getCell(colNum)
+            if (!cell.fill || !cell.fill.fgColor || cell.fill.fgColor.argb === 'FFFFFFFF') {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: {argb: COLORS.subtleGray}
+                }
+            }
+        }
     }
 }

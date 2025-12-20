@@ -34,6 +34,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     const [exporting, setExporting] = useState(false)
     const [exportError, setExportError] = useState('')
     const [isPlantShutdown, setIsPlantShutdown] = useState(false)
+    const [loadingPlants, setLoadingPlants] = useState(true)
 
     useEffect(() => {
         if (report.name === 'plant_production' && operatorOptions.length > 0) {
@@ -149,8 +150,10 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
 
     useEffect(() => {
         async function fetchPlants() {
+            setLoadingPlants(true)
             const list = await ReportService.fetchPlantsSorted()
             setPlants(list)
+            setLoadingPlants(false)
         }
 
         fetchPlants()
@@ -180,7 +183,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     const reportDateVerbose = form.report_date ? ReportUtility.formatVerboseDate(form.report_date) : ''
 
     async function handleExport() {
-        if (exporting) return
+        if (exporting || loadingPlants || plants.length === 0) return
         setExportError('')
         setExporting(true)
         try {
