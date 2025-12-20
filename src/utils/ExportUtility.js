@@ -178,18 +178,15 @@ async function fetchRMIReport(weekIso) {
     return sorted[0].data
 }
 
-async function fetchPreviousGMReport(weekIso) {
+async function fetchGMReportForWeek(weekIso) {
     if (!weekIso) return null
-    const currentMonday = ReportUtility.getMondayISO(weekIso)
-    if (!currentMonday) return null
-    const currentMondayDate = new Date(currentMonday + 'T00:00:00Z')
-    const prevMondayDate = new Date(currentMondayDate)
-    prevMondayDate.setUTCDate(prevMondayDate.getUTCDate() - 7)
-    const prevMondayIso = prevMondayDate.toISOString().slice(0, 10)
+    const targetMondayIso = ReportUtility.getMondayISO(weekIso)
+    if (!targetMondayIso) return null
+    const targetMondayDate = new Date(targetMondayIso + 'T00:00:00Z')
 
-    const windowStart = new Date(prevMondayDate)
+    const windowStart = new Date(targetMondayDate)
     windowStart.setUTCDate(windowStart.getUTCDate() - 1)
-    const windowEnd = new Date(prevMondayDate)
+    const windowEnd = new Date(targetMondayDate)
     windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
 
     let {data: reports} = await supabase
@@ -204,7 +201,7 @@ async function fetchPreviousGMReport(weekIso) {
     const filtered = reports.filter(r => {
         const weekField = r.week
         const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
-        return mondayIso === prevMondayIso
+        return mondayIso === targetMondayIso
     })
 
     if (filtered.length === 0) return null
@@ -215,6 +212,17 @@ async function fetchPreviousGMReport(weekIso) {
     })
 
     return sorted[0]?.data || null
+}
+
+function getPreviousWeekIso(weekIso) {
+    if (!weekIso) return null
+    const [year, month, day] = weekIso.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
+    date.setDate(date.getDate() - 7)
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
 }
 
 export async function exportGeneralManagerReport({form, plants, weekIso, filename}) {
@@ -229,6 +237,46 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     const excelModule = await import('exceljs')
     const ExcelLib = excelModule.default || excelModule
+
+    const wb = new ExcelLib.Workbook()
+    wb.creator = 'Smyrna Ready Mix'
+    wb.created = new Date()
+    wb.modified = new Date()
+    wb.properties.subject = 'Weekly General Manager Report'
+
+    const weeksToExport = [{weekIso, form}]
+    let checkWeek = getPreviousWeekIso(weekIso)
+    while (checkWeek) {
+        const prevForm = await fetchGMReportForWeek(checkWeek)
+        if (prevForm) {
+            weeksToExport.push({weekIso: checkWeek, form: prevForm})
+            checkWeek = getPreviousWeekIso(checkWeek)
+        } else {
+            break
+        }
+    }
+
+    for (let i = 0; i < weeksToExport.length; i++) {
+        const weekData = weeksToExport[i]
+        const prevWeekData = weeksToExport[i + 1] || null
+        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso)
+    }
+
+    const buf = await wb.xlsx.writeBuffer()
+    const blob = new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = finalFilename
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(() => {
+        URL.revokeObjectURL(url)
+        a.remove()
+    }, 0)
+}
+
+async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso) {
 
     const COLORS = {
         brand: 'FF1E3A5F',
@@ -403,16 +451,6 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     const sortedPlants = sortPlants(plants)
     const sortedEffReports = sortPlants(effReports)
 
-    const prevWeekIso = (() => {
-        if (!weekIso) return null
-        const currentMonday = ReportUtility.getMondayISO(weekIso)
-        if (!currentMonday) return null
-        const d = new Date(currentMonday + 'T00:00:00Z')
-        d.setUTCDate(d.getUTCDate() - 7)
-        return d.toISOString().slice(0, 10)
-    })()
-
-    const prevGMData = await fetchPreviousGMReport(weekIso)
     const prevEffReports = prevWeekIso ? await fetchEfficiencyReports(plants, prevWeekIso) : []
     const sortedPrevEffReports = sortPlants(prevEffReports)
 
@@ -447,13 +485,8 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         if (needed > 0) totalHiringNeeded += needed
     })
 
-    const wb = new ExcelLib.Workbook()
-    wb.creator = 'Smyrna Ready Mix'
-    wb.created = new Date()
-    wb.modified = new Date()
-    wb.properties.subject = 'Weekly General Manager Report'
-
-    const ws = wb.addWorksheet('Weekly Report', {
+    const sheetName = weekIso ? ReportService.getWeekRangeFromIso(weekIso).replace(' through ', ' - ') : 'Weekly Report'
+    const ws = wb.addWorksheet(sheetName, {
         views: [{showGridLines: false}],
         properties: {defaultRowHeight: 18}
     })
@@ -719,12 +752,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         addChangePct(ws.getCell(r, 8), downChange, isAlt)
         const downCell = ws.getCell(r, 9)
         downCell.value = down
-        downCell.font = {
-            name: 'Calibri',
-            size: 11,
-            color: {argb: down > 0 ? COLORS.danger : COLORS.slate700},
-            bold: down > 0
-        }
+        downCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
         downCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) downCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
@@ -952,14 +980,16 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
             addChangePct(ws.getCell(r, 11), startChange, isAlt)
             const startCell = ws.getCell(r, 12)
-            startCell.value = startMin + ' mins'
+            startCell.value = startMin
+            startCell.numFmt = '#,##0.0'
             startCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             startCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) startCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
             addChangePct(ws.getCell(r, 13), endChange, isAlt)
             const endCell = ws.getCell(r, 14)
-            endCell.value = endMin + ' mins'
+            endCell.value = endMin
+            endCell.numFmt = '#,##0.0'
             endCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             endCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) endCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
@@ -1305,17 +1335,4 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         fitToHeight: 0,
         margins: {left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3}
     }
-
-    const buf = await wb.xlsx.writeBuffer()
-    const blob = new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = finalFilename
-    document.body.appendChild(a)
-    a.click()
-    setTimeout(() => {
-        URL.revokeObjectURL(url)
-        a.remove()
-    }, 0)
 }
