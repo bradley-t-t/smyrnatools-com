@@ -1,4 +1,4 @@
-import {useEffect, useRef, useCallback} from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 import {supabase} from '../services/DatabaseService'
 
 const activeChannels = new Map()
@@ -21,7 +21,7 @@ export function useRealtimeSubscription(config) {
 
     const processChanges = useCallback(() => {
         if (pendingChangesRef.current.length === 0) return
-        
+
         const changes = [...pendingChangesRef.current]
         pendingChangesRef.current = []
 
@@ -64,7 +64,7 @@ export function useRealtimeSubscription(config) {
         if (!enabled || !table) return
 
         const channelName = `realtime-${table}-${filter || 'all'}-${Date.now()}`
-        
+
         const subscriptionConfig = {
             event,
             schema: 'public',
@@ -104,7 +104,7 @@ export function useMultiTableSubscription(tables, handlers) {
         if (!enabled || !tables || tables.length === 0) return
 
         const channelName = `realtime-multi-${tables.join('-')}-${Date.now()}`
-        
+
         let channel = supabase.channel(channelName)
 
         tables.forEach(table => {

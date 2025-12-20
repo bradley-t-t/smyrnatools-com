@@ -95,7 +95,7 @@ function TractorsView({title = 'Tractor Fleet', onSelectTractor, setSelectedView
 
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
-        obj.isVerified = function(latestHistoryDate) {
+        obj.isVerified = function (latestHistoryDate) {
             return TractorUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
         }
         return obj

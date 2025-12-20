@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useCallback, useRef, useEffect, useState} from 'react'
+import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react'
 import {supabase} from '../../services/DatabaseService'
 
 const RealtimeContext = createContext(null)
@@ -50,7 +50,7 @@ export function RealtimeProvider({children}) {
     useEffect(() => {
         ASSET_TABLES.forEach(table => {
             const channelName = `global-${table}-realtime`
-            
+
             const channel = supabase
                 .channel(channelName)
                 .on(
@@ -97,8 +97,10 @@ export function RealtimeProvider({children}) {
 }
 
 const noopContext = {
-    subscribe: () => () => {},
-    subscribeToAll: () => () => {},
+    subscribe: () => () => {
+    },
+    subscribeToAll: () => () => {
+    },
     isConnected: false
 }
 

@@ -14,7 +14,6 @@ module.exports = function override(config, env) {
         querystring: false
     }
 
-    // Configure video files to not have content hashes for better caching
     config.module.rules.forEach(rule => {
         if (rule.oneOf) {
             rule.oneOf.forEach(oneOfRule => {

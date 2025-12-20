@@ -67,7 +67,7 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
 
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
-        obj.isVerified = function(latestHistoryDate = null) {
+        obj.isVerified = function (latestHistoryDate = null) {
             if (!this.updatedLast || !this.updatedBy) return false
             const lastVerification = new Date(this.updatedLast)
             const lastUpdate = new Date(this.updatedAt)

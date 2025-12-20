@@ -4,7 +4,7 @@ import SrmLogo from '../../assets/images/srm-logo.svg'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
 import NotificationsModal from './NotificationsModal'
-import NotificationsService from '../../services/NotificationsService'
+import {useNotifications} from '../../hooks/useNotifications'
 import VideoBackground from './VideoBackground'
 
 const ANIMATION_TIMING = {
@@ -102,51 +102,9 @@ export default function Navigation({
     const exitTimeoutsRef = useRef([])
     const assetsDropdownRef = useRef(null)
     const [showNotifications, setShowNotifications] = useState(false)
-    const [notificationsCount, setNotificationsCount] = useState(0)
     const [notificationsAnchor, setNotificationsAnchor] = useState(null)
-    const notifRetryTimeoutsRef = useRef([])
-    const notifSeqRef = useRef(0)
 
-    useEffect(() => {
-        let intervalId = null
-        const clearRetryTimers = () => {
-            notifRetryTimeoutsRef.current.forEach(t => clearTimeout(t))
-            notifRetryTimeoutsRef.current = []
-        }
-        const refresh = async () => {
-            const seq = ++notifSeqRef.current
-            try {
-                if (!userId) {
-                    if (notifSeqRef.current === seq) setNotificationsCount(0)
-                    return
-                }
-                const list = await NotificationsService.getNotifications(userId, preferences?.selectedRegion)
-                if (notifSeqRef.current === seq) setNotificationsCount(Array.isArray(list) ? list.length : 0)
-            } catch {
-                if (notifSeqRef.current === seq) setNotificationsCount(0)
-            }
-        }
-        refresh()
-        intervalId = window.setInterval(refresh, 60000)
-        const handler = () => {
-            clearRetryTimers()
-            refresh()
-            ;[250, 1000, 2000].forEach(delay => {
-                const t = setTimeout(() => {
-                    refresh()
-                }, delay)
-                notifRetryTimeoutsRef.current.push(t)
-            })
-        }
-        window.addEventListener('notifications-refresh', handler)
-        window.addEventListener('region-changed', handler)
-        return () => {
-            if (intervalId) window.clearInterval(intervalId)
-            window.removeEventListener('notifications-refresh', handler)
-            window.removeEventListener('region-changed', handler)
-            clearRetryTimers()
-        }
-    }, [userId, preferences?.selectedRegion?.code])
+    const {count: notificationsCount} = useNotifications(userId, preferences?.selectedRegion)
 
     useEffect(() => {
         const handleStatusFilterChange = (event) => {
@@ -385,220 +343,220 @@ export default function Navigation({
             <VideoBackground/>
             <div className="app-container">
                 <div className="horizontal-navbar">
-                <div className="navbar-left">
-                    <div className="logo-container">
-                        <img
-                            src={SrmLogo}
-                            alt="Smyrna Logo"
-                            className="navbar-logo"
-                            title="Smyrna Ready Mix"
-                            draggable={false}
-                            decoding="async"
-                            loading="eager"
-                        />
+                    <div className="navbar-left">
+                        <div className="logo-container">
+                            <img
+                                src={SrmLogo}
+                                alt="Smyrna Logo"
+                                className="navbar-logo"
+                                title="Smyrna Ready Mix"
+                                draggable={false}
+                                decoding="async"
+                                loading="eager"
+                            />
+                        </div>
                     </div>
-                </div>
-                <nav className="navbar-menu">
-                    <ul>
-                        {isMenuReady && (() => {
-                            const exitingIds = new Set(exitingItems.map(item => item.id))
-                            const visibleIds = new Set(visibleMenuItems.map(item => item.id))
-                            const exitingMap = new Map(exitingItems.map(item => [item.id, item]))
+                    <nav className="navbar-menu">
+                        <ul>
+                            {isMenuReady && (() => {
+                                const exitingIds = new Set(exitingItems.map(item => item.id))
+                                const visibleIds = new Set(visibleMenuItems.map(item => item.id))
+                                const exitingMap = new Map(exitingItems.map(item => [item.id, item]))
 
-                            const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-                            const hasAssets = visibleMenuItems.some(item => assetItems.includes(item.id))
-                            const isAssetsActive = assetItems.includes(selectedView)
+                                const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
+                                const hasAssets = visibleMenuItems.some(item => assetItems.includes(item.id))
+                                const isAssetsActive = assetItems.includes(selectedView)
 
-                            const dashboardItem = menuItems.find(item => item.id === 'Dashboard' && (visibleIds.has(item.id) || exitingIds.has(item.id)))
-                            const dashboardData = dashboardItem && exitingIds.has(dashboardItem.id) ? exitingMap.get(dashboardItem.id) : dashboardItem
+                                const dashboardItem = menuItems.find(item => item.id === 'Dashboard' && (visibleIds.has(item.id) || exitingIds.has(item.id)))
+                                const dashboardData = dashboardItem && exitingIds.has(dashboardItem.id) ? exitingMap.get(dashboardItem.id) : dashboardItem
 
-                            const otherItems = menuItems.filter(item =>
-                                (visibleIds.has(item.id) || exitingIds.has(item.id)) &&
-                                item.id !== 'Dashboard' &&
-                                !assetItems.includes(item.id)
-                            ).map(item =>
-                                exitingIds.has(item.id) ? exitingMap.get(item.id) : item
-                            )
+                                const otherItems = menuItems.filter(item =>
+                                    (visibleIds.has(item.id) || exitingIds.has(item.id)) &&
+                                    item.id !== 'Dashboard' &&
+                                    !assetItems.includes(item.id)
+                                ).map(item =>
+                                    exitingIds.has(item.id) ? exitingMap.get(item.id) : item
+                                )
 
-                            const result = []
+                                const result = []
 
-                            if (dashboardData) {
-                                const isExiting = exitingIds.has(dashboardData.id)
-                                const isEntering = enteringItemIds.has(dashboardData.id)
-                                const isActive = selectedView === dashboardData.id
+                                if (dashboardData) {
+                                    const isExiting = exitingIds.has(dashboardData.id)
+                                    const isEntering = enteringItemIds.has(dashboardData.id)
+                                    const isActive = selectedView === dashboardData.id
 
-                                result.push(
-                                    <li
-                                        key={dashboardData.id}
-                                        className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
-                                        onClick={() => {
-                                            if (isExiting) return
-                                            handleMenuItemClick(dashboardData.id)
-                                        }}
-                                        title={dashboardData.text}
-                                    >
+                                    result.push(
+                                        <li
+                                            key={dashboardData.id}
+                                            className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
+                                            onClick={() => {
+                                                if (isExiting) return
+                                                handleMenuItemClick(dashboardData.id)
+                                            }}
+                                            title={dashboardData.text}
+                                        >
                                         <span className="menu-icon">
                                             {getIconForMenuItem(dashboardData.id)}
                                         </span>
-                                        <span className="menu-text">
+                                            <span className="menu-text">
                                             {dashboardData.text}
                                         </span>
-                                    </li>
-                                )
-                            }
+                                        </li>
+                                    )
+                                }
 
-                            if (hasAssets) {
-                                result.push(
-                                    <li
-                                        key="assets-dropdown"
-                                        className={`menu-item assets-dropdown-toggle ${isAssetsActive ? 'active' : ''}`}
-                                        ref={assetsDropdownRef}
-                                        onClick={(e) => {
-                                            setShowAssetsDropdown(prev => !prev)
-                                        }}
-                                        title="Assets"
-                                        style={{position: 'relative', overflow: 'visible'}}
-                                    >
+                                if (hasAssets) {
+                                    result.push(
+                                        <li
+                                            key="assets-dropdown"
+                                            className={`menu-item assets-dropdown-toggle ${isAssetsActive ? 'active' : ''}`}
+                                            ref={assetsDropdownRef}
+                                            onClick={(e) => {
+                                                setShowAssetsDropdown(prev => !prev)
+                                            }}
+                                            title="Assets"
+                                            style={{position: 'relative', overflow: 'visible'}}
+                                        >
                                         <span className="menu-icon">
                                             <i className="fas fa-truck"></i>
                                         </span>
-                                        <span className="menu-text">
+                                            <span className="menu-text">
                                             Assets
                                         </span>
-                                        <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
+                                            <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
                                             <i className={`fas fa-chevron-${showAssetsDropdown ? 'up' : 'down'}`}></i>
                                         </span>
-                                        {showAssetsDropdown && (
-                                            <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
-                                                {assetItems.map(assetId => {
-                                                    const item = visibleMenuItems.find(i => i.id === assetId)
-                                                    if (!item) return null
-                                                    return (
-                                                        <div
-                                                            key={item.id}
-                                                            className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleMenuItemClick(item.id)
-                                                                setShowAssetsDropdown(false)
-                                                            }}
-                                                        >
+                                            {showAssetsDropdown && (
+                                                <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
+                                                    {assetItems.map(assetId => {
+                                                        const item = visibleMenuItems.find(i => i.id === assetId)
+                                                        if (!item) return null
+                                                        return (
+                                                            <div
+                                                                key={item.id}
+                                                                className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleMenuItemClick(item.id)
+                                                                    setShowAssetsDropdown(false)
+                                                                }}
+                                                            >
                                                             <span className="menu-icon">
                                                                 {getIconForMenuItem(item.id)}
                                                             </span>
-                                                            <span className="menu-text">
+                                                                <span className="menu-text">
                                                                 {item.text}
                                                             </span>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
-                                    </li>
-                                )
-                            }
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </li>
+                                    )
+                                }
 
-                            result.push(...otherItems.map((item) => {
-                                const isExiting = exitingIds.has(item.id)
-                                const isEntering = enteringItemIds.has(item.id)
-                                const isActive = selectedView === item.id
+                                result.push(...otherItems.map((item) => {
+                                    const isExiting = exitingIds.has(item.id)
+                                    const isEntering = enteringItemIds.has(item.id)
+                                    const isActive = selectedView === item.id
 
-                                return (
-                                    <li
-                                        key={item.id}
-                                        className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
-                                        onClick={() => {
-                                            if (isExiting) return
-                                            handleMenuItemClick(item.id)
-                                        }}
-                                        title={item.text}
-                                    >
+                                    return (
+                                        <li
+                                            key={item.id}
+                                            className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
+                                            onClick={() => {
+                                                if (isExiting) return
+                                                handleMenuItemClick(item.id)
+                                            }}
+                                            title={item.text}
+                                        >
                                         <span className="menu-icon">
                                             {getIconForMenuItem(item.id)}
                                         </span>
-                                        <span className="menu-text">
+                                            <span className="menu-text">
                                             {item.text}
                                         </span>
-                                    </li>
-                                )
-                            }))
+                                        </li>
+                                    )
+                                }))
 
-                            return result
-                        })()}
-                    </ul>
-                </nav>
-                <div className="navbar-right">
-                    <select
-                        className="region-selector"
-                        value={regionCode || ''}
-                        onChange={handleRegionChange}
-                        aria-label="Region"
-                    >
-                        {permittedRegions.length === 0 ? (
-                            <option value="">Loading regions...</option>
-                        ) : (
-                            permittedRegions.map(r => (
-                                <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
-                                    {r.regionName || r.region_name}
-                                </option>
-                            ))
-                        )}
-                    </select>
-                    <div
-                        className={`menu-item settings-item ${selectedView === 'Settings' ? 'active' : ''}`}
-                        onClick={() => handleMenuItemClick('Settings')}
-                        title="Settings"
-                    >
+                                return result
+                            })()}
+                        </ul>
+                    </nav>
+                    <div className="navbar-right">
+                        <select
+                            className="region-selector"
+                            value={regionCode || ''}
+                            onChange={handleRegionChange}
+                            aria-label="Region"
+                        >
+                            {permittedRegions.length === 0 ? (
+                                <option value="">Loading regions...</option>
+                            ) : (
+                                permittedRegions.map(r => (
+                                    <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                        {r.regionName || r.region_name}
+                                    </option>
+                                ))
+                            )}
+                        </select>
+                        <div
+                            className={`menu-item settings-item ${selectedView === 'Settings' ? 'active' : ''}`}
+                            onClick={() => handleMenuItemClick('Settings')}
+                            title="Settings"
+                        >
                         <span className="menu-icon">
                             {getIconForMenuItem('Settings')}
                         </span>
-                    </div>
-                    <div
-                        className={`menu-item account-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
-                        onClick={() => handleMenuItemClick('MyAccount')}
-                        title={userName ? `My Account - ${userName}` : 'My Account'}
-                    >
+                        </div>
+                        <div
+                            className={`menu-item account-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
+                            onClick={() => handleMenuItemClick('MyAccount')}
+                            title={userName ? `My Account - ${userName}` : 'My Account'}
+                        >
                         <span className="menu-icon">
                             {getIconForMenuItem('MyAccount')}
                         </span>
-                    </div>
-                    <div
-                        className={`menu-item notifications-item ${notificationsCount > 0 ? 'has-notifications' : ''}`}
-                        title="Notifications"
-                        aria-label="Notifications"
-                        onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect()
-                            setNotificationsAnchor(rect)
-                            if (typeof window !== 'undefined') {
-                                try {
-                                    window.dispatchEvent(new CustomEvent('notifications-refresh'))
-                                } catch {
+                        </div>
+                        <div
+                            className={`menu-item notifications-item ${notificationsCount > 0 ? 'has-notifications' : ''}`}
+                            title="Notifications"
+                            aria-label="Notifications"
+                            onClick={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect()
+                                setNotificationsAnchor(rect)
+                                if (typeof window !== 'undefined') {
+                                    try {
+                                        window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                                    } catch {
+                                    }
                                 }
-                            }
-                            setShowNotifications(true)
-                        }}
-                    >
+                                setShowNotifications(true)
+                            }}
+                        >
                         <span className="menu-icon">
                             <i className="fas fa-bell"></i>
                         </span>
-                        {notificationsCount > 0 && (
-                            <span className="notification-badge">{notificationsCount}</span>
-                        )}
+                            {notificationsCount > 0 && (
+                                <span className="notification-badge">{notificationsCount}</span>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className="content-area">{children}</div>
-            {showNotifications && (
-                <NotificationsModal isOpen={showNotifications} onClose={() => {
-                    setShowNotifications(false)
-                    if (typeof window !== 'undefined') {
-                        try {
-                            window.dispatchEvent(new CustomEvent('notifications-refresh'))
-                        } catch {
+                <div className="content-area">{children}</div>
+                {showNotifications && (
+                    <NotificationsModal isOpen={showNotifications} onClose={() => {
+                        setShowNotifications(false)
+                        if (typeof window !== 'undefined') {
+                            try {
+                                window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                            } catch {
+                            }
                         }
-                    }
-                }} anchorRect={notificationsAnchor}/>
-            )}
+                    }} anchorRect={notificationsAnchor}/>
+                )}
             </div>
         </>
     )

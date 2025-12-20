@@ -368,35 +368,35 @@
     .auth-container {
         padding: 16px;
     }
-    
+
     .auth-card {
         padding: 28px 24px;
         border-radius: 20px;
     }
-    
+
     .auth-logo {
         width: 80px;
         height: 80px;
     }
-    
+
     .auth-brand-name {
         font-size: 24px;
     }
-    
+
     .auth-name-row {
         grid-template-columns: 1fr;
     }
-    
+
     .auth-mode-btn {
         padding: 10px 16px;
         font-size: 14px;
     }
-    
+
     .auth-field input {
         padding: 14px 14px 14px 44px;
         font-size: 14px;
     }
-    
+
     .auth-submit-btn {
         padding: 14px 20px;
         font-size: 15px;

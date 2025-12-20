@@ -37,7 +37,7 @@ function PasswordRecoveryView({onBackToLogin}) {
     return (
         <div className="auth-page">
             <VideoBackground/>
-            
+
             <div className="auth-container">
                 <div className="auth-card">
                     <div className="auth-logo-section">
@@ -93,7 +93,7 @@ function PasswordRecoveryView({onBackToLogin}) {
                     </form>
 
                     <div className="auth-footer">
-                        <button 
+                        <button
                             type="button"
                             className="auth-switch-btn"
                             onClick={onBackToLogin}

@@ -179,7 +179,8 @@ function SettingsView() {
                                        onChange={() => save(toggleShowPodcastOverlay)}/>
                                 <span className="slider round"></span>
                             </label>
-                            <span className="toggle-state">{preferences.showPodcastOverlay ? 'Visible' : 'Hidden'}</span>
+                            <span
+                                className="toggle-state">{preferences.showPodcastOverlay ? 'Visible' : 'Hidden'}</span>
                         </div>
                         <div className="toggle-setting">
                             <span className="toggle-label">Blur Video Background</span>

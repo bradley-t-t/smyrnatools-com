@@ -22,30 +22,32 @@ const getCachedTheme = () => {
                 accentColor: parsed.accentColor || 'red'
             }
         }
-    } catch (e) {}
+    } catch (e) {
+    }
     return {themeMode: 'old-dark', accentColor: 'red'}
 }
 
 const setCachedTheme = (themeMode, accentColor) => {
     try {
         localStorage.setItem('smyrna_theme_cache', JSON.stringify({themeMode, accentColor}))
-    } catch (e) {}
+    } catch (e) {
+    }
 }
 
 const applyThemeClasses = (themeMode, accentColor) => {
     const root = document.documentElement
     const themeClasses = ['dark-mode', 'old-dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode']
     const accentClasses = ['accent-blue', 'accent-red', 'accent-grey']
-    
+
     let targetThemeClass = ''
     if (themeMode === 'dark') targetThemeClass = 'dark-mode'
     else if (themeMode === 'old-dark') targetThemeClass = 'old-dark-mode'
     else if (themeMode === 'red-dark') targetThemeClass = 'red-dark-mode'
     else if (themeMode === 'blue-light') targetThemeClass = 'blue-light-mode'
     else if (themeMode === 'red-light') targetThemeClass = 'red-light-mode'
-    
+
     const targetAccentClass = `accent-${accentColor}`
-    
+
     themeClasses.forEach(cls => {
         if (cls === targetThemeClass) {
             if (!root.classList.contains(cls)) root.classList.add(cls)
@@ -53,7 +55,7 @@ const applyThemeClasses = (themeMode, accentColor) => {
             root.classList.remove(cls)
         }
     })
-    
+
     accentClasses.forEach(cls => {
         if (cls === targetAccentClass) {
             if (!root.classList.contains(cls)) root.classList.add(cls)
@@ -229,16 +231,16 @@ export const PreferencesProvider = ({children}) => {
         const root = document.documentElement
         const themeClasses = ['dark-mode', 'old-dark-mode', 'red-dark-mode', 'blue-light-mode', 'red-light-mode']
         const accentClasses = ['accent-blue', 'accent-red', 'accent-grey']
-        
+
         let targetThemeClass = ''
         if (preferences.themeMode === 'dark') targetThemeClass = 'dark-mode'
         else if (preferences.themeMode === 'old-dark') targetThemeClass = 'old-dark-mode'
         else if (preferences.themeMode === 'red-dark') targetThemeClass = 'red-dark-mode'
         else if (preferences.themeMode === 'blue-light') targetThemeClass = 'blue-light-mode'
         else if (preferences.themeMode === 'red-light') targetThemeClass = 'red-light-mode'
-        
+
         const targetAccentClass = `accent-${preferences.accentColor}`
-        
+
         themeClasses.forEach(cls => {
             if (cls === targetThemeClass) {
                 if (!root.classList.contains(cls)) root.classList.add(cls)
@@ -246,7 +248,7 @@ export const PreferencesProvider = ({children}) => {
                 root.classList.remove(cls)
             }
         })
-        
+
         accentClasses.forEach(cls => {
             if (cls === targetAccentClass) {
                 if (!root.classList.contains(cls)) root.classList.add(cls)

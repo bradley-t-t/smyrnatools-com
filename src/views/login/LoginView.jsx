@@ -201,7 +201,7 @@ function LoginView() {
         <div className="auth-page">
             <VideoBackground/>
             <VersionPopup version={version}/>
-            
+
             <div className="auth-container">
                 <div className="auth-card">
                     <div className="auth-logo-section">
@@ -213,14 +213,14 @@ function LoginView() {
                     </div>
 
                     <div className="auth-mode-toggle">
-                        <button 
+                        <button
                             className={`auth-mode-btn ${!isSignUp ? 'active' : ''}`}
                             onClick={() => setIsSignUp(false)}
                             type="button"
                         >
                             Sign In
                         </button>
-                        <button 
+                        <button
                             className={`auth-mode-btn ${isSignUp ? 'active' : ''}`}
                             onClick={() => setIsSignUp(true)}
                             type="button"
@@ -278,8 +278,8 @@ function LoginView() {
                                 autoComplete={isSignUp ? 'new-password' : 'current-password'}
                                 required
                             />
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className="auth-password-toggle"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
@@ -290,12 +290,12 @@ function LoginView() {
                         {isSignUp && password && (
                             <div className="auth-password-strength">
                                 <div className="strength-bar">
-                                    <div 
+                                    <div
                                         className={`strength-fill ${passwordStrength.value.toLowerCase()}`}
                                         style={{
-                                            width: passwordStrength.value === 'Weak' ? '33%' : 
-                                                   passwordStrength.value === 'Medium' ? '66%' : 
-                                                   passwordStrength.value === 'Strong' ? '100%' : '0%'
+                                            width: passwordStrength.value === 'Weak' ? '33%' :
+                                                passwordStrength.value === 'Medium' ? '66%' :
+                                                    passwordStrength.value === 'Strong' ? '100%' : '0%'
                                         }}
                                     />
                                 </div>
@@ -321,8 +321,8 @@ function LoginView() {
 
                         {!isSignUp && (
                             <div className="auth-options">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     className="auth-forgot-btn"
                                     onClick={() => setShowRecovery(true)}
                                 >
@@ -363,7 +363,7 @@ function LoginView() {
 
                     <div className="auth-footer">
                         <span>{isSignUp ? 'Already have an account?' : "Don't have an account?"}</span>
-                        <button 
+                        <button
                             type="button"
                             className="auth-switch-btn"
                             onClick={() => setIsSignUp(!isSignUp)}

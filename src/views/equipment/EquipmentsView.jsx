@@ -78,7 +78,7 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
 
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
-        obj.isVerified = function(latestHistoryDate) {
+        obj.isVerified = function (latestHistoryDate) {
             return EquipmentUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate ?? this.latestHistoryDate)
         }
         return obj

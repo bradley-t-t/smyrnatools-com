@@ -3,14 +3,33 @@ import ReactDOM from 'react-dom'
 import './styles/NotificationsModal.css'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from '../../services/UserService'
-import NotificationsService from '../../services/NotificationsService'
+import {useNotifications} from '../../hooks/useNotifications'
 
 function NotificationsModal({isOpen, onClose, anchorRect}) {
     const {preferences} = usePreferences()
-    const [loading, setLoading] = useState(false)
-    const [items, setItems] = useState([])
+    const [userId, setUserId] = useState(null)
     const [collapsedCategories, setCollapsedCategories] = useState(new Set())
     const panelRef = useRef(null)
+
+    const {notifications: items = [], loading} = useNotifications(userId, preferences?.selectedRegion)
+
+    useEffect(() => {
+        if (!isOpen) return
+        let mounted = true
+        const load = async () => {
+            try {
+                const user = await UserService.getCurrentUser()
+                const uid = user?.id || null
+                if (mounted) setUserId(uid)
+            } catch {
+                if (mounted) setUserId(null)
+            }
+        }
+        load()
+        return () => {
+            mounted = false
+        }
+    }, [isOpen])
 
     const title = useMemo(() => 'Notifications', [])
 
@@ -99,45 +118,19 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
 
     useEffect(() => {
         if (!isOpen) return
-        let mounted = true
-        const load = async () => {
-            setLoading(true)
-            try {
-                const user = await UserService.getCurrentUser()
-                const uid = user?.id || null
-                const list = await NotificationsService.getNotifications(uid, preferences?.selectedRegion)
-                if (mounted) setItems(list)
-            } catch {
-                if (mounted) setItems([])
-            } finally {
-                if (mounted) setLoading(false)
-            }
-        }
-        load()
-        const handler = async () => {
-            try {
-                const user = await UserService.getCurrentUser()
-                const uid = user?.id || null
-                const list = await NotificationsService.getNotifications(uid, preferences?.selectedRegion)
-                if (mounted) setItems(list)
-            } catch {
-            }
-        }
-        window.addEventListener('notifications-refresh', handler)
-        window.addEventListener('region-changed', handler)
+
         const handleClickOutside = (e) => {
             if (!panelRef.current) return
             if (panelRef.current.contains(e.target)) return
             onClose()
         }
+
         document.addEventListener('mousedown', handleClickOutside)
+
         return () => {
-            mounted = false
-            window.removeEventListener('notifications-refresh', handler)
-            window.removeEventListener('region-changed', handler)
             document.removeEventListener('mousedown', handleClickOutside)
         }
-    }, [isOpen, preferences?.selectedRegion?.code, onClose])
+    }, [isOpen, onClose])
 
     if (!isOpen || typeof document === 'undefined' || !document.body) return null
 

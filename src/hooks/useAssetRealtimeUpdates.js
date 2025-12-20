@@ -45,8 +45,8 @@ export function useAssetRealtimeUpdates(assetType, options = {}) {
                 case 'INSERT':
                     handlers.updateLocalState(prev => {
                         if (!Array.isArray(prev)) return prev
-                        const exists = prev.some(item => 
-                            item.id === data.new?.id || 
+                        const exists = prev.some(item =>
+                            item.id === data.new?.id ||
                             item.truckNumber === data.new?.truck_number
                         )
                         if (exists) return prev
@@ -69,8 +69,8 @@ export function useAssetRealtimeUpdates(assetType, options = {}) {
                 case 'DELETE':
                     handlers.updateLocalState(prev => {
                         if (!Array.isArray(prev)) return prev
-                        return prev.filter(item => 
-                            item.id !== data.old?.id && 
+                        return prev.filter(item =>
+                            item.id !== data.old?.id &&
                             item.truckNumber !== data.old?.truck_number
                         )
                     })
@@ -99,7 +99,7 @@ export function useAssetRealtimeUpdates(assetType, options = {}) {
         if (!enabled || !assetType) return
 
         const tableName = TABLE_MAP[assetType.toLowerCase()] || assetType.toLowerCase()
-        
+
         const unsubscribe = subscribe(tableName, handleRealtimeEvent)
 
         return unsubscribe
