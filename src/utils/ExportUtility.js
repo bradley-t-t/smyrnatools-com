@@ -423,7 +423,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     function getChangeText(current, previous, invertColors = false) {
         const change = calcChange(current, previous)
         if (change.direction === 'neutral' || change.pct === 0) {
-            return {text: '0%', color: COLORS.slate500}
+            return {text: '0%', color: COLORS.slate300}
         }
         if (change.direction === 'up') {
             return {text: `+${change.pct}%`, color: invertColors ? COLORS.danger : COLORS.success}
@@ -434,7 +434,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     function getChangeValue(current, previous, invertColors = false) {
         const change = calcChange(current, previous)
         if (change.direction === 'neutral' || change.diff === 0) {
-            return {text: '0', color: COLORS.slate500}
+            return {text: '0', color: COLORS.slate300}
         }
         if (change.direction === 'up') {
             return {text: `+${change.diff}`, color: invertColors ? COLORS.danger : COLORS.success}
@@ -512,7 +512,6 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             cell.font = {name: 'Calibri', size: 8, bold: true, color: {argb: changeInfo.color}}
             const bgColor = changeInfo.color === COLORS.success ? COLORS.successLight : 
                            changeInfo.color === COLORS.danger ? COLORS.dangerLight : 
-                           changeInfo.color === COLORS.slate500 ? COLORS.slate100 :
                            (isAlt ? COLORS.snow : null)
             if (bgColor) {
                 cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
@@ -848,10 +847,10 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     const monthlyTitleCell = ws.getCell(moRow, monthlyCol)
     monthlyTitleCell.value = 'Monthly Overview'
     monthlyTitleCell.font = {name: 'Calibri', size: 16, bold: true, color: {argb: COLORS.white}}
-    monthlyTitleCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brandLight}}
+    monthlyTitleCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
     monthlyTitleCell.alignment = {vertical: 'middle', horizontal: 'center'}
-    ws.getCell(moRow, monthlyCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brandLight}}
-    ws.getCell(moRow, monthlyCol + 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brandLight}}
+    ws.getCell(moRow, monthlyCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
+    ws.getCell(moRow, monthlyCol + 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
     moRow += 2
 
     const addMonthlyGroup = (title, metrics) => {
