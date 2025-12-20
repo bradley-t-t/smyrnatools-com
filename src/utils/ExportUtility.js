@@ -281,18 +281,18 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     }
 
     function addSectionTitle(ws, row, col, text) {
-        ws.mergeCells(row, 1, row, 11)
-        const cell = ws.getCell(row, 1)
+        ws.mergeCells(row, 2, row, 12)
+        const cell = ws.getCell(row, 2)
         cell.value = text
         cell.font = {name: 'Calibri', size: 14, bold: true, color: {argb: COLORS.brand}}
         cell.alignment = {vertical: 'middle', horizontal: 'left'}
-        for (let c = 1; c <= 15; c++) {
+        for (let c = 2; c <= 16; c++) {
             ws.getCell(row, c).border = {bottom: {style: 'medium', color: {argb: COLORS.brand}}}
         }
         ws.getRow(row).height = 28
     }
 
-    function addTableHeaders(ws, row, headers, startCol = 1) {
+    function addTableHeaders(ws, row, headers, startCol = 2) {
         headers.forEach((h, idx) => {
             const cell = ws.getCell(row, startCol + idx)
             cell.value = h
@@ -304,7 +304,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         ws.getRow(row).height = 22
     }
 
-    function addMergedTableHeaders(ws, row, headers, startCol = 1) {
+    function addMergedTableHeaders(ws, row, headers, startCol = 2) {
         let col = startCol
         headers.forEach((h) => {
             const mergeCount = h.mergeCount || (h.merge ? 2 : 1)
@@ -352,7 +352,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         }
     }
 
-    function addDataRow(ws, row, values, startCol = 1, isAlt = false) {
+    function addDataRow(ws, row, values, startCol = 2, isAlt = false) {
         values.forEach((v, idx) => {
             const cell = ws.getCell(row, startCol + idx)
             if (typeof v === 'object' && v !== null) {
@@ -437,6 +437,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     })
 
     ws.columns = [
+        {width: 3},
         {width: 10}, {width: 20},
         {width: 7}, {width: 8},
         {width: 7}, {width: 8},
@@ -450,27 +451,30 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     let r = 2
 
-    ws.mergeCells(r, 2, r, 6)
-    const titleCell = ws.getCell(r, 2)
+    ws.mergeCells(r, 3, r, 10)
+    const titleCell = ws.getCell(r, 3)
     titleCell.value = 'General Manager Report'
     titleCell.font = {name: 'Calibri', size: 26, bold: true, color: {argb: COLORS.brand}}
     titleCell.alignment = {vertical: 'middle', horizontal: 'left'}
     ws.getRow(r).height = 36
     r++
 
-    ws.mergeCells(r, 2, r, 6)
-    const subtitleCell = ws.getCell(r, 2)
+    ws.mergeCells(r, 3, r, 7)
+    const subtitleCell = ws.getCell(r, 3)
     subtitleCell.value = weekRange || 'Weekly Summary'
     subtitleCell.font = {name: 'Calibri', size: 13, color: {argb: COLORS.slate500}}
     subtitleCell.alignment = {vertical: 'middle', horizontal: 'left'}
     r++
 
-    const dateCell = ws.getCell(r, 2)
-    dateCell.value = 'Generated on ' + new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    }) + ' on smyrnatools.com'
+    const dateCell = ws.getCell(r, 3)
+    dateCell.value = {
+        text: 'Generated on ' + new Date().toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        }) + ' on smyrnatools.com',
+        hyperlink: 'https://smyrnatools.com'
+    }
     dateCell.font = {name: 'Calibri', size: 10, italic: true, color: {argb: COLORS.slate500}}
     r += 2
 
@@ -484,7 +488,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     })
 
     const overviewStartRow = r
-    const overviewCol = 17
+    const overviewCol = 18
 
     ws.getColumn(overviewCol).width = 14
     ws.getColumn(overviewCol + 1).width = 8
@@ -673,24 +677,24 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             {value: ensure(p.plant_code, false), align: 'center'},
             ensure(p.plant_name, false)
         ]
-        addDataRow(ws, r, rowData, 1, isAlt)
+        addDataRow(ws, r, rowData, 2, isAlt)
 
-        addChangePct(ws.getCell(r, 3), opsChange, isAlt)
-        const opsCell = ws.getCell(r, 4)
+        addChangePct(ws.getCell(r, 4), opsChange, isAlt)
+        const opsCell = ws.getCell(r, 5)
         opsCell.value = ops
         opsCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
         opsCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) opsCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-        addChangePct(ws.getCell(r, 5), runnableChange, isAlt)
-        const runnableCell = ws.getCell(r, 6)
+        addChangePct(ws.getCell(r, 6), runnableChange, isAlt)
+        const runnableCell = ws.getCell(r, 7)
         runnableCell.value = runnable
         runnableCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
         runnableCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) runnableCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-        addChangePct(ws.getCell(r, 7), downChange, isAlt)
-        const downCell = ws.getCell(r, 8)
+        addChangePct(ws.getCell(r, 8), downChange, isAlt)
+        const downCell = ws.getCell(r, 9)
         downCell.value = down
         downCell.font = {
             name: 'Calibri',
@@ -701,31 +705,31 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         downCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) downCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-        addChangePct(ws.getCell(r, 9), yardageChange, isAlt)
-        const yardageCell = ws.getCell(r, 10)
+        addChangePct(ws.getCell(r, 10), yardageChange, isAlt)
+        const yardageCell = ws.getCell(r, 11)
         yardageCell.value = yardage
         yardageCell.numFmt = '#,##0'
         yardageCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
         yardageCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) yardageCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-        addChangePct(ws.getCell(r, 11), hoursChange, isAlt)
-        const hoursCell = ws.getCell(r, 12)
+        addChangePct(ws.getCell(r, 12), hoursChange, isAlt)
+        const hoursCell = ws.getCell(r, 13)
         hoursCell.value = hours
         hoursCell.numFmt = '#,##0.0'
         hoursCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
         hoursCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) hoursCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-        ws.mergeCells(r, 13, r, 15)
-        const notesCell = ws.getCell(r, 13)
+        ws.mergeCells(r, 14, r, 16)
+        const notesCell = ws.getCell(r, 14)
         notesCell.value = ensure(form[`notes_${p.plant_code}`], false)
         notesCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
         notesCell.alignment = {vertical: 'middle', horizontal: 'left'}
         if (isAlt) {
             notesCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
-            ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
             ws.getCell(r, 15).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+            ws.getCell(r, 16).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
         }
 
         ws.getRow(r).height = 20
@@ -776,39 +780,39 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         cell.alignment = {vertical: 'middle', horizontal: 'right'}
     }
 
-    ws.getCell(r, 1).value = ''
-    ws.getCell(r, 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
-    ws.getCell(r, 1).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
-
-    ws.getCell(r, 2).value = 'TOTAL'
-    ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+    ws.getCell(r, 2).value = ''
     ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
     ws.getCell(r, 2).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
-    ws.getCell(r, 2).alignment = {vertical: 'middle', horizontal: 'right'}
 
-    applyTotalChangeCell(ws.getCell(r, 3), totalOpsChange)
-    applyTotalCell(ws.getCell(r, 4), totalOps)
+    ws.getCell(r, 3).value = 'TOTAL'
+    ws.getCell(r, 3).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+    ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 3).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+    ws.getCell(r, 3).alignment = {vertical: 'middle', horizontal: 'right'}
 
-    applyTotalChangeCell(ws.getCell(r, 5), totalRunnableChange)
-    applyTotalCell(ws.getCell(r, 6), totalRunnable)
+    applyTotalChangeCell(ws.getCell(r, 4), totalOpsChange)
+    applyTotalCell(ws.getCell(r, 5), totalOps)
 
-    applyTotalChangeCell(ws.getCell(r, 7), totalDownChange)
-    applyTotalCell(ws.getCell(r, 8), totalDown)
+    applyTotalChangeCell(ws.getCell(r, 6), totalRunnableChange)
+    applyTotalCell(ws.getCell(r, 7), totalRunnable)
 
-    applyTotalChangeCell(ws.getCell(r, 9), totalYardageChange)
-    applyTotalCell(ws.getCell(r, 10), totalYardage, '#,##0')
+    applyTotalChangeCell(ws.getCell(r, 8), totalDownChange)
+    applyTotalCell(ws.getCell(r, 9), totalDown)
 
-    applyTotalChangeCell(ws.getCell(r, 11), totalHoursChange)
-    applyTotalCell(ws.getCell(r, 12), totalHours, '#,##0.0')
+    applyTotalChangeCell(ws.getCell(r, 10), totalYardageChange)
+    applyTotalCell(ws.getCell(r, 11), totalYardage, '#,##0')
 
-    ws.mergeCells(r, 13, r, 15)
-    ws.getCell(r, 13).value = ''
-    ws.getCell(r, 13).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
-    ws.getCell(r, 13).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+    applyTotalChangeCell(ws.getCell(r, 12), totalHoursChange)
+    applyTotalCell(ws.getCell(r, 13), totalHours, '#,##0.0')
+
+    ws.mergeCells(r, 14, r, 16)
+    ws.getCell(r, 14).value = ''
     ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
     ws.getCell(r, 14).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
     ws.getCell(r, 15).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
     ws.getCell(r, 15).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+    ws.getCell(r, 16).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+    ws.getCell(r, 16).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
 
     ws.getRow(r).height = 24
     r += 3
@@ -854,17 +858,17 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
                 plantName,
                 {value: formattedDate, align: 'center'}
             ]
-            addDataRow(ws, r, rowData, 1, isAlt)
+            addDataRow(ws, r, rowData, 2, isAlt)
 
             if (isShutDown) {
-                ws.mergeCells(r, 4, r, 13)
-                const shutDownCell = ws.getCell(r, 4)
+                ws.mergeCells(r, 5, r, 14)
+                const shutDownCell = ws.getCell(r, 5)
                 shutDownCell.value = 'Plant Shut Down'
                 shutDownCell.font = {name: 'Calibri', size: 11, italic: true, color: {argb: COLORS.slate500}}
                 shutDownCell.alignment = {vertical: 'middle', horizontal: 'center'}
                 if (isAlt) {
                     shutDownCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
-                    for (let c = 5; c <= 13; c++) {
+                    for (let c = 6; c <= 14; c++) {
                         ws.getCell(r, c).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
                     }
                 }
@@ -894,23 +898,23 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             const startChange = prevEr ? filterNew(getChangeText(startMin, prevStart, true)) : {text: '', color: null}
             const endChange = prevEr ? filterNew(getChangeText(endMin, prevEnd, true)) : {text: '', color: null}
 
-            addChangePct(ws.getCell(r, 4), loadsChange, isAlt)
-            const loadsCell = ws.getCell(r, 5)
+            addChangePct(ws.getCell(r, 5), loadsChange, isAlt)
+            const loadsCell = ws.getCell(r, 6)
             loadsCell.value = loads
             loadsCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             loadsCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) loadsCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-            addChangePct(ws.getCell(r, 6), hoursChange, isAlt)
-            const hoursCell = ws.getCell(r, 7)
+            addChangePct(ws.getCell(r, 7), hoursChange, isAlt)
+            const hoursCell = ws.getCell(r, 8)
             hoursCell.value = hours
             hoursCell.numFmt = '#,##0.0'
             hoursCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             hoursCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) hoursCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-            addChangePct(ws.getCell(r, 8), lphChange, isAlt)
-            const lphCell = ws.getCell(r, 9)
+            addChangePct(ws.getCell(r, 9), lphChange, isAlt)
+            const lphCell = ws.getCell(r, 10)
             lphCell.value = lph
             lphCell.numFmt = '#,##0.0'
             lphCell.font = {
@@ -922,15 +926,15 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             lphCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) lphCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-            addChangePct(ws.getCell(r, 10), startChange, isAlt)
-            const startCell = ws.getCell(r, 11)
+            addChangePct(ws.getCell(r, 11), startChange, isAlt)
+            const startCell = ws.getCell(r, 12)
             startCell.value = startMin + ' mins'
             startCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             startCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) startCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
-            addChangePct(ws.getCell(r, 12), endChange, isAlt)
-            const endCell = ws.getCell(r, 13)
+            addChangePct(ws.getCell(r, 13), endChange, isAlt)
+            const endCell = ws.getCell(r, 14)
             endCell.value = endMin + ' mins'
             endCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             endCell.alignment = {vertical: 'middle', horizontal: 'left'}
@@ -1006,33 +1010,33 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             cell.alignment = {vertical: 'middle', horizontal: 'right'}
         }
 
-        ws.getCell(r, 1).value = ''
-        ws.getCell(r, 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
-        ws.getCell(r, 1).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
-
-        ws.mergeCells(r, 2, r, 3)
-        ws.getCell(r, 2).value = 'AVERAGES'
-        ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+        ws.getCell(r, 2).value = ''
         ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
         ws.getCell(r, 2).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
-        ws.getCell(r, 2).alignment = {vertical: 'middle', horizontal: 'right'}
+
+        ws.mergeCells(r, 3, r, 4)
+        ws.getCell(r, 3).value = 'AVERAGES'
+        ws.getCell(r, 3).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
         ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
         ws.getCell(r, 3).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+        ws.getCell(r, 3).alignment = {vertical: 'middle', horizontal: 'right'}
+        ws.getCell(r, 4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+        ws.getCell(r, 4).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
 
-        applyEffTotalChangeCell(ws.getCell(r, 4), effLoadsChange)
-        applyEffTotalCell(ws.getCell(r, 5), totalLoads)
+        applyEffTotalChangeCell(ws.getCell(r, 5), effLoadsChange)
+        applyEffTotalCell(ws.getCell(r, 6), totalLoads)
 
-        applyEffTotalChangeCell(ws.getCell(r, 6), effHoursChange)
-        applyEffTotalCell(ws.getCell(r, 7), totalHours, '#,##0.0')
+        applyEffTotalChangeCell(ws.getCell(r, 7), effHoursChange)
+        applyEffTotalCell(ws.getCell(r, 8), totalHours, '#,##0.0')
 
-        applyEffTotalChangeCell(ws.getCell(r, 8), effLphChange)
-        applyEffTotalCell(ws.getCell(r, 9), avgLph, '#,##0.0')
+        applyEffTotalChangeCell(ws.getCell(r, 9), effLphChange)
+        applyEffTotalCell(ws.getCell(r, 10), avgLph, '#,##0.0')
 
-        applyEffTotalChangeCell(ws.getCell(r, 10), effStartChange)
-        applyEffTotalCell(ws.getCell(r, 11), avgStart + ' mins')
+        applyEffTotalChangeCell(ws.getCell(r, 11), effStartChange)
+        applyEffTotalCell(ws.getCell(r, 12), avgStart + ' mins')
 
-        applyEffTotalChangeCell(ws.getCell(r, 12), effEndChange)
-        applyEffTotalCell(ws.getCell(r, 13), avgEnd + ' mins')
+        applyEffTotalChangeCell(ws.getCell(r, 13), effEndChange)
+        applyEffTotalCell(ws.getCell(r, 14), avgEnd + ' mins')
 
         ws.getRow(r).height = 24
         r += 3
@@ -1091,19 +1095,19 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             const changeInfo = prevAggregateReport ? getChangeText(raw, prevRaw, false) : {text: '', color: null}
             const isAlt = rowIdx % 2 === 1
 
-            ws.mergeCells(r, 1, r, 2)
-            const labelCell = ws.getCell(r, 1)
+            ws.mergeCells(r, 2, r, 3)
+            const labelCell = ws.getCell(r, 2)
             labelCell.value = label
             labelCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) {
                 labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
-                ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
             }
 
-            addChangePct(ws.getCell(r, 3), changeInfo, isAlt)
+            addChangePct(ws.getCell(r, 4), changeInfo, isAlt)
 
-            const valCell = ws.getCell(r, 4)
+            const valCell = ws.getCell(r, 5)
             valCell.value = raw
             valCell.numFmt = '#,##0.0'
             valCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
@@ -1121,17 +1125,17 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
                 color: null
             }
 
-            ws.mergeCells(r, 1, r, 2)
-            const totalLabelCell = ws.getCell(r, 1)
+            ws.mergeCells(r, 2, r, 3)
+            const totalLabelCell = ws.getCell(r, 2)
             totalLabelCell.value = 'TOTAL'
             totalLabelCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
             totalLabelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
             totalLabelCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
             totalLabelCell.alignment = {vertical: 'middle', horizontal: 'right'}
-            ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
-            ws.getCell(r, 2).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            ws.getCell(r, 3).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
 
-            const totalChangeCell = ws.getCell(r, 3)
+            const totalChangeCell = ws.getCell(r, 4)
             if (totalChangeInfo && totalChangeInfo.text) {
                 totalChangeCell.value = totalChangeInfo.text.trim()
                 totalChangeCell.font = {name: 'Calibri', size: 9, bold: true, color: {argb: totalChangeInfo.color}}
@@ -1142,7 +1146,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             totalChangeCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
             totalChangeCell.alignment = {vertical: 'middle', horizontal: 'right'}
 
-            const totalValCell = ws.getCell(r, 4)
+            const totalValCell = ws.getCell(r, 5)
             totalValCell.value = aggTotal
             totalValCell.numFmt = '#,##0.0'
             totalValCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
@@ -1167,8 +1171,8 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         }
 
         if (allTrainers.length > 0) {
-            ws.getCell(r, 1).value = 'Active Trainers'
-            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 2).value = 'Active Trainers'
+            ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
             const trainerHeaders = [
                 {label: 'Plant', merge: false},
@@ -1184,15 +1188,15 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
                     t.name || '',
                     {value: t.type, align: 'center'},
                     {value: t.status || '', align: 'center'}
-                ], 1, idx % 2 === 1)
+                ], 2, idx % 2 === 1)
                 r++
             })
             r++
         }
 
         if (allPending.length > 0) {
-            ws.getCell(r, 1).value = 'Pending Start'
-            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 2).value = 'Pending Start'
+            ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
             const pendingHeaders = [
                 {label: 'Plant', merge: false},
@@ -1208,15 +1212,15 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
                     {value: getPlantName(p.plant), align: 'center'},
                     p.name || '',
                     {value: p.type, align: 'center'}
-                ], 1, isAlt)
-                ws.mergeCells(r, 4, r, 5)
-                const startDateCell = ws.getCell(r, 4)
+                ], 2, isAlt)
+                ws.mergeCells(r, 5, r, 6)
+                const startDateCell = ws.getCell(r, 5)
                 startDateCell.value = p.startDate || ''
                 startDateCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
                 startDateCell.alignment = {vertical: 'middle', horizontal: 'center'}
                 if (isAlt) {
                     startDateCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
-                    ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+                    ws.getCell(r, 6).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
                 }
                 r++
             })
@@ -1224,8 +1228,8 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         }
 
         if (allTraining.length > 0) {
-            ws.getCell(r, 1).value = 'In Training'
-            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 2).value = 'In Training'
+            ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
             const trainingHeaders = [
                 {label: 'Plant', merge: false},
@@ -1241,7 +1245,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
                     t.name || '',
                     {value: t.type, align: 'center'},
                     t.trainer || ''
-                ], 1, idx % 2 === 1)
+                ], 2, idx % 2 === 1)
                 r++
             })
             r++
@@ -1250,10 +1254,10 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
         const goalsArr = Object.entries(hiringGoals).filter(([_, v]) => v !== undefined && v !== null && v !== '')
         if (goalsArr.length > 0) {
             r++
-            ws.getCell(r, 1).value = 'Hiring Goals'
-            ws.getCell(r, 1).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 2).value = 'Hiring Goals'
+            ws.getCell(r, 2).font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
             r++
-            addTableHeaders(ws, r, ['Plant', 'Goal'], 1)
+            addTableHeaders(ws, r, ['Plant', 'Goal'], 2)
             r++
             sortedPlants.forEach((plant, idx) => {
                 const code = plant.plant_code || plant.code
@@ -1262,7 +1266,7 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
                     addDataRow(ws, r, [{value: getPlantName(code), align: 'center'}, {
                         value: Number(goal),
                         align: 'center'
-                    }], 1, idx % 2 === 1)
+                    }], 2, idx % 2 === 1)
                     r++
                 }
             })
