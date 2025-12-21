@@ -5,7 +5,7 @@ import {
     setDefaultPageSetup,
     applySubtleBackground,
     getDefaultColumnWidths
-} from '../../utils/ExportUtility'
+} from '../../../utils/ExportUtility'
 
 export { exportGeneralManagerReport } from './reports/GeneralManagerExport'
 

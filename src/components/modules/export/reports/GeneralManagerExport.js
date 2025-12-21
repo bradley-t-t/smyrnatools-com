@@ -1,4 +1,4 @@
-import {ReportService} from '../../../services/ReportService'
+import {ReportService} from '../../../../services/ReportService'
 import {
     initExport,
     createSheet,
@@ -27,7 +27,7 @@ import {
     applyTotalCell,
     applyTotalChangeCell,
     addReportHeader
-} from '../../../utils/ExportUtility'
+} from '../../../../utils/ExportUtility'
 
 export async function exportGeneralManagerReport({form, plants, weekIso, filename}) {
     if (typeof window === 'undefined') return
