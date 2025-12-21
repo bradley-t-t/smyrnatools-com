@@ -1,26 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-const MATERIALS = [
-    { key: 'limestone', label: 'Coarse Aggregate', icon: 'fa-mountain' },
-    { key: 'sand', label: 'Fine Aggregate', icon: 'fa-water' },
-    { key: 'cement', label: 'Primary Powder', icon: 'fa-box' },
-    { key: 'additive', label: 'Supplemental Powder', icon: 'fa-flask' }
-]
-
 const ProportionsCalculator = () => {
     const [target, setTarget] = useState({
-        limestone: '',
+        coarse: '',
+        fine: '',
         cement: '',
-        sand: '',
-        additive: '',
-        additiveType: 'flyash'
+        supplemental: ''
     })
 
     const [actual, setActual] = useState({
-        limestone: '',
+        coarse: '',
+        fine: '',
         cement: '',
-        sand: '',
-        additive: ''
+        supplemental: ''
     })
 
     const [adjustments, setAdjustments] = useState(null)
@@ -35,37 +27,37 @@ const ProportionsCalculator = () => {
 
     const calculateAdjustments = useCallback(() => {
         const t = {
-            limestone: parseFloat(target.limestone) || 0,
+            coarse: parseFloat(target.coarse) || 0,
+            fine: parseFloat(target.fine) || 0,
             cement: parseFloat(target.cement) || 0,
-            sand: parseFloat(target.sand) || 0,
-            additive: parseFloat(target.additive) || 0
+            supplemental: parseFloat(target.supplemental) || 0
         }
 
         const a = {
-            limestone: parseFloat(actual.limestone) || 0,
+            coarse: parseFloat(actual.coarse) || 0,
+            fine: parseFloat(actual.fine) || 0,
             cement: parseFloat(actual.cement) || 0,
-            sand: parseFloat(actual.sand) || 0,
-            additive: parseFloat(actual.additive) || 0
+            supplemental: parseFloat(actual.supplemental) || 0
         }
 
-        const hasTargetData = t.limestone > 0 && t.sand > 0 && (t.cement > 0 || t.additive > 0)
-        const hasActualData = a.limestone > 0 || a.sand > 0 || a.cement > 0 || a.additive > 0
+        const hasTargetData = t.coarse > 0 && t.fine > 0 && (t.cement > 0 || t.supplemental > 0)
+        const hasActualData = a.coarse > 0 || a.fine > 0 || a.cement > 0 || a.supplemental > 0
 
         if (!hasTargetData || !hasActualData) {
             setAdjustments(null)
             return
         }
 
-        let workingLimestone = Math.max(a.limestone, t.limestone)
-        let workingSand = Math.max(a.sand, t.sand)
-        let workingCement = Math.max(a.cement, t.cement)
-        let workingAdditive = Math.max(a.additive, t.additive)
+        let workingCoarse = Math.max(a.coarse, t.coarse)
+        let workingFine = Math.max(a.fine, t.fine)
+        let workingCite = Math.max(a.cement, t.cement)
+        let workingSupp = Math.max(a.supplemental, t.supplemental)
 
-        const targetAggRatio = t.limestone / t.sand
-        const targetTotalAgg = t.limestone + t.sand
-        const targetTotalCite = t.cement + t.additive
+        const targetAggRatio = t.coarse / t.fine
+        const targetTotalAgg = t.coarse + t.fine
+        const targetTotalCite = t.cement + t.supplemental
         const targetAggToCiteRatio = targetTotalCite > 0 ? targetTotalAgg / targetTotalCite : 0
-        const targetCementToAdditiveRatio = t.additive > 0 ? t.cement / t.additive : 0
+        const targetCiteToSuppRatio = t.supplemental > 0 ? t.cement / t.supplemental : 0
 
         let iterations = 0
         const maxIterations = 10
@@ -74,68 +66,68 @@ const ProportionsCalculator = () => {
             iterations++
             let changed = false
 
-            const currentAggRatio = workingSand > 0 ? workingLimestone / workingSand : 0
+            const currentAggRatio = workingFine > 0 ? workingCoarse / workingFine : 0
             
             if (Math.abs(currentAggRatio - targetAggRatio) > 0.001) {
                 if (currentAggRatio > targetAggRatio) {
-                    const neededSand = workingLimestone / targetAggRatio
-                    if (neededSand > workingSand) {
-                        workingSand = neededSand
+                    const neededFine = workingCoarse / targetAggRatio
+                    if (neededFine > workingFine) {
+                        workingFine = neededFine
                         changed = true
                     }
                 } else {
-                    const neededLimestone = workingSand * targetAggRatio
-                    if (neededLimestone > workingLimestone) {
-                        workingLimestone = neededLimestone
+                    const neededCoarse = workingFine * targetAggRatio
+                    if (neededCoarse > workingCoarse) {
+                        workingCoarse = neededCoarse
                         changed = true
                     }
                 }
             }
 
-            const currentTotalAgg = workingLimestone + workingSand
-            const currentTotalCite = workingCement + workingAdditive
+            const currentTotalAgg = workingCoarse + workingFine
+            const currentTotalCite = workingCite + workingSupp
             const currentAggToCiteRatio = currentTotalCite > 0 ? currentTotalAgg / currentTotalCite : 0
 
             if (targetAggToCiteRatio > 0 && Math.abs(currentAggToCiteRatio - targetAggToCiteRatio) > 0.001) {
                 const neededTotalCite = currentTotalAgg / targetAggToCiteRatio
 
                 if (neededTotalCite > currentTotalCite) {
-                    if (targetCementToAdditiveRatio > 0) {
-                        const citeRatioSum = targetCementToAdditiveRatio + 1
-                        const neededAdditive = neededTotalCite / citeRatioSum
-                        const neededCement = neededAdditive * targetCementToAdditiveRatio
+                    if (targetCiteToSuppRatio > 0) {
+                        const citeRatioSum = targetCiteToSuppRatio + 1
+                        const neededSupp = neededTotalCite / citeRatioSum
+                        const neededCite = neededSupp * targetCiteToSuppRatio
 
-                        if (neededCement > workingCement) {
-                            workingCement = neededCement
+                        if (neededCite > workingCite) {
+                            workingCite = neededCite
                             changed = true
                         }
-                        if (neededAdditive > workingAdditive) {
-                            workingAdditive = neededAdditive
+                        if (neededSupp > workingSupp) {
+                            workingSupp = neededSupp
                             changed = true
                         }
                     } else {
-                        if (neededTotalCite > workingCement) {
-                            workingCement = neededTotalCite
+                        if (neededTotalCite > workingCite) {
+                            workingCite = neededTotalCite
                             changed = true
                         }
                     }
                 }
             }
 
-            if (targetCementToAdditiveRatio > 0) {
-                const currentCementToAdditiveRatio = workingAdditive > 0 ? workingCement / workingAdditive : 0
+            if (targetCiteToSuppRatio > 0) {
+                const currentCiteToSuppRatio = workingSupp > 0 ? workingCite / workingSupp : 0
                 
-                if (Math.abs(currentCementToAdditiveRatio - targetCementToAdditiveRatio) > 0.001) {
-                    if (currentCementToAdditiveRatio > targetCementToAdditiveRatio) {
-                        const neededAdditive = workingCement / targetCementToAdditiveRatio
-                        if (neededAdditive > workingAdditive) {
-                            workingAdditive = neededAdditive
+                if (Math.abs(currentCiteToSuppRatio - targetCiteToSuppRatio) > 0.001) {
+                    if (currentCiteToSuppRatio > targetCiteToSuppRatio) {
+                        const neededSupp = workingCite / targetCiteToSuppRatio
+                        if (neededSupp > workingSupp) {
+                            workingSupp = neededSupp
                             changed = true
                         }
                     } else {
-                        const neededCement = workingAdditive * targetCementToAdditiveRatio
-                        if (neededCement > workingCement) {
-                            workingCement = neededCement
+                        const neededCite = workingSupp * targetCiteToSuppRatio
+                        if (neededCite > workingCite) {
+                            workingCite = neededCite
                             changed = true
                         }
                     }
@@ -145,24 +137,28 @@ const ProportionsCalculator = () => {
             if (!changed) break
         }
 
-        const adjustLimestone = workingLimestone - a.limestone
-        const adjustSand = workingSand - a.sand
-        const adjustCement = workingCement - a.cement
-        const adjustAdditive = workingAdditive - a.additive
+        const adjustCoarse = workingCoarse - a.coarse
+        const adjustFine = workingFine - a.fine
+        const adjustCite = workingCite - a.cement
+        const adjustSupp = workingSupp - a.supplemental
 
-        const totalTargetWeight = t.limestone + t.cement + t.sand + t.additive
-        const totalAdjustedWeight = workingLimestone + workingSand + workingCement + workingAdditive
+        const totalTargetWeight = t.coarse + t.cement + t.fine + t.supplemental
+        const totalAdjustedWeight = workingCoarse + workingFine + workingCite + workingSupp
 
         const targetYards = totalTargetWeight > 0 ? totalTargetWeight / 3800 : 0
         const adjustedYards = totalAdjustedWeight > 0 ? totalAdjustedWeight / 3800 : 0
 
         setAdjustments({
-            limestone: adjustLimestone,
-            cement: adjustCement,
-            sand: adjustSand,
-            additive: adjustAdditive,
+            coarse: adjustCoarse,
+            fine: adjustFine,
+            cement: adjustCite,
+            supplemental: adjustSupp,
             targetYards,
-            adjustedYards
+            adjustedYards,
+            ratios: {
+                targetAggRatio: targetAggRatio.toFixed(2),
+                targetAggToCite: targetAggToCiteRatio.toFixed(2)
+            }
         })
     }, [target, actual])
 
@@ -171,99 +167,209 @@ const ProportionsCalculator = () => {
     }, [calculateAdjustments])
 
     const clearForm = () => {
-        setTarget({ limestone: '', cement: '', sand: '', additive: '', additiveType: 'flyash' })
-        setActual({ limestone: '', cement: '', sand: '', additive: '' })
+        setTarget({ coarse: '', fine: '', cement: '', supplemental: '' })
+        setActual({ coarse: '', fine: '', cement: '', supplemental: '' })
         setAdjustments(null)
     }
 
-    const getAdjustmentDisplay = (key) => {
+    const getAddition = (key) => {
         if (!adjustments) return null
         const value = adjustments[key]
-        if (value < 0.5) {
-            return (
-                <div className="adjust-result ok">
-                    <i className="fas fa-check-circle"></i>
-                    <span>No change</span>
-                </div>
-            )
-        }
-        return (
-            <div className="adjust-result add">
-                <i className="fas fa-plus-circle"></i>
-                <span>+{value.toFixed(0)} lbs</span>
-            </div>
-        )
+        if (value < 0.5) return 0
+        return Math.round(value)
     }
 
     return (
-        <div className="mix-fixer">
-            <div className="mix-fixer-grid">
-                {MATERIALS.map((mat) => (
-                    <div key={mat.key} className="material-card">
-                        <div className="material-header">
-                            <i className={`fas ${mat.icon}`}></i>
-                            <span className="material-name">{mat.label}</span>
-                        </div>
-                        <div className="material-inputs">
-                            <div className="input-group">
-                                <label>Target</label>
-                                <div className="input-wrap">
-                                    <input
-                                        type="number"
-                                        value={target[mat.key]}
-                                        onChange={(e) => handleTargetChange(mat.key, e.target.value)}
-                                        placeholder="0"
-                                    />
-                                    <span className="input-unit">lbs</span>
+        <div className="proportion-calc">
+            <div className="calc-section">
+                <div className="calc-section-header">
+                    <i className="fas fa-bullseye"></i>
+                    <span>Target Mix Design</span>
+                </div>
+                <div className="proportion-formula">
+                    <div className="formula-row">
+                        <div className="formula-fraction">
+                            <div className="fraction-top">
+                                <div className="formula-input">
+                                    <label>Coarse Agg</label>
+                                    <div className="input-wrap">
+                                        <input
+                                            type="number"
+                                            value={target.coarse}
+                                            onChange={(e) => handleTargetChange('coarse', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <span className="input-unit">lbs</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="input-group">
-                                <label>Actual</label>
-                                <div className="input-wrap">
-                                    <input
-                                        type="number"
-                                        value={actual[mat.key]}
-                                        onChange={(e) => handleActualChange(mat.key, e.target.value)}
-                                        placeholder="0"
-                                    />
-                                    <span className="input-unit">lbs</span>
+                            <div className="fraction-bar"></div>
+                            <div className="fraction-bottom">
+                                <div className="formula-input">
+                                    <label>Fine Agg</label>
+                                    <div className="input-wrap">
+                                        <input
+                                            type="number"
+                                            value={target.fine}
+                                            onChange={(e) => handleTargetChange('fine', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <span className="input-unit">lbs</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="material-result">
-                            {getAdjustmentDisplay(mat.key)}
-                        </div>
+                        <div className="formula-label">Agg Ratio</div>
                     </div>
-                ))}
+                    <div className="formula-divider">
+                        <span>:</span>
+                    </div>
+                    <div className="formula-row">
+                        <div className="formula-fraction">
+                            <div className="fraction-top">
+                                <div className="formula-input">
+                                    <label>Primary Powder</label>
+                                    <div className="input-wrap">
+                                        <input
+                                            type="number"
+                                            value={target.cement}
+                                            onChange={(e) => handleTargetChange('cement', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <span className="input-unit">lbs</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="fraction-bar"></div>
+                            <div className="fraction-bottom">
+                                <div className="formula-input">
+                                    <label>Supplemental</label>
+                                    <div className="input-wrap">
+                                        <input
+                                            type="number"
+                                            value={target.supplemental}
+                                            onChange={(e) => handleTargetChange('supplemental', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <span className="input-unit">lbs</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="formula-label">Cite Ratio</div>
+                    </div>
+                </div>
             </div>
 
-            <div className="mix-summary">
-                <div className="summary-left">
-                    <button onClick={clearForm} className="btn-reset">
-                        <i className="fas fa-redo"></i>
-                        <span>Reset All</span>
-                    </button>
+            <div className="calc-section">
+                <div className="calc-section-header">
+                    <i className="fas fa-weight-hanging"></i>
+                    <span>Actual Weights</span>
                 </div>
-                <div className="summary-right">
-                    {adjustments ? (
-                        <div className="yardage-summary">
-                            <div className="yardage-item">
-                                <span className="yardage-label">Target Batch</span>
-                                <span className="yardage-value">{adjustments.targetYards.toFixed(2)} yd</span>
-                            </div>
-                            <i className="fas fa-arrow-right yardage-arrow"></i>
-                            <div className="yardage-item highlight">
-                                <span className="yardage-label">Adjusted Batch</span>
-                                <span className="yardage-value">{adjustments.adjustedYards.toFixed(2)} yd</span>
-                            </div>
+                <div className="actual-inputs-grid">
+                    <div className="actual-input-item">
+                        <label>Coarse Agg</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={actual.coarse}
+                                onChange={(e) => handleActualChange('coarse', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">lbs</span>
                         </div>
-                    ) : (
-                        <div className="yardage-empty">
-                            <i className="fas fa-info-circle"></i>
-                            <span>Enter target and actual values to see adjustments</span>
+                    </div>
+                    <div className="actual-input-item">
+                        <label>Fine Agg</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={actual.fine}
+                                onChange={(e) => handleActualChange('fine', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">lbs</span>
                         </div>
-                    )}
+                    </div>
+                    <div className="actual-input-item">
+                        <label>Primary Powder</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={actual.cement}
+                                onChange={(e) => handleActualChange('cement', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">lbs</span>
+                        </div>
+                    </div>
+                    <div className="actual-input-item">
+                        <label>Supplemental</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={actual.supplemental}
+                                onChange={(e) => handleActualChange('supplemental', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">lbs</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            {adjustments ? (
+                <div className="calc-result">
+                    <div className="result-header">
+                        <i className="fas fa-plus-circle"></i>
+                        <span>Add to Fix Proportions</span>
+                    </div>
+                    <div className="additions-grid">
+                        <div className={`addition-item ${getAddition('coarse') > 0 ? 'has-add' : ''}`}>
+                            <span className="add-label">Coarse Agg</span>
+                            <span className="add-value">
+                                {getAddition('coarse') > 0 ? `+${getAddition('coarse')} lbs` : 'None'}
+                            </span>
+                        </div>
+                        <div className={`addition-item ${getAddition('fine') > 0 ? 'has-add' : ''}`}>
+                            <span className="add-label">Fine Agg</span>
+                            <span className="add-value">
+                                {getAddition('fine') > 0 ? `+${getAddition('fine')} lbs` : 'None'}
+                            </span>
+                        </div>
+                        <div className={`addition-item ${getAddition('cement') > 0 ? 'has-add' : ''}`}>
+                            <span className="add-label">Primary Powder</span>
+                            <span className="add-value">
+                                {getAddition('cement') > 0 ? `+${getAddition('cement')} lbs` : 'None'}
+                            </span>
+                        </div>
+                        <div className={`addition-item ${getAddition('supplemental') > 0 ? 'has-add' : ''}`}>
+                            <span className="add-label">Supplemental</span>
+                            <span className="add-value">
+                                {getAddition('supplemental') > 0 ? `+${getAddition('supplemental')} lbs` : 'None'}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="batch-estimate">
+                        <span className="batch-label">Estimated Batch:</span>
+                        <span className="batch-value">{adjustments.adjustedYards.toFixed(1)} yd</span>
+                        <span className="batch-change">
+                            (+{(adjustments.adjustedYards - adjustments.targetYards).toFixed(1)} yd from target)
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div className="calc-empty-state">
+                    <i className="fas fa-balance-scale"></i>
+                    <span>Enter target mix design and actual weights to calculate adjustments</span>
+                </div>
+            )}
+
+            <div className="calc-footer">
+                <button onClick={clearForm} className="btn-reset">
+                    <i className="fas fa-redo"></i>
+                    <span>Reset</span>
+                </button>
             </div>
         </div>
     )
