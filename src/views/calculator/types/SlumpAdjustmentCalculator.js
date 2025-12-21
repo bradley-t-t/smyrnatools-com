@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 
 const SlumpAdjustmentCalculator = () => {
     const [values, setValues] = useState({
@@ -11,7 +11,7 @@ const SlumpAdjustmentCalculator = () => {
     const [result, setResult] = useState(null)
 
     const handleChange = (field, value) => {
-        setValues(prev => ({ ...prev, [field]: value }))
+        setValues(prev => ({...prev, [field]: value}))
     }
 
     const calculate = useCallback(() => {
@@ -30,7 +30,7 @@ const SlumpAdjustmentCalculator = () => {
         const waterAdjustment = slumpDiff * waterPerInch * batch
         const newWater = water + waterAdjustment
 
-        const strengthImpact = waterAdjustment > 0 
+        const strengthImpact = waterAdjustment > 0
             ? Math.round((waterAdjustment / (water || 1)) * 100 * 0.5)
             : 0
 
@@ -48,7 +48,7 @@ const SlumpAdjustmentCalculator = () => {
     }, [calculate])
 
     const clearForm = () => {
-        setValues({ currentSlump: '', targetSlump: '', batchSize: '', currentWater: '' })
+        setValues({currentSlump: '', targetSlump: '', batchSize: '', currentWater: ''})
         setResult(null)
     }
 
@@ -97,16 +97,16 @@ const SlumpAdjustmentCalculator = () => {
                             <div className="equation-bracket">)</div>
                             <span className="eq-unit">in</span>
                         </div>
-                        
+
                         <span className="eq-op main">×</span>
-                        
+
                         <div className="equation-constant">
                             <span className="const-num">3</span>
                             <span className="const-unit">gal/yd/in</span>
                         </div>
-                        
+
                         <span className="eq-op main">×</span>
-                        
+
                         <div className="equation-part">
                             <div className="eq-input">
                                 <label>Batch</label>
@@ -121,13 +121,15 @@ const SlumpAdjustmentCalculator = () => {
                             </div>
                             <span className="eq-unit">yd</span>
                         </div>
-                        
+
                         <span className="eq-op main">=</span>
-                        
-                        <div className={`equation-result ${hasResult ? (slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none') : ''}`}>
+
+                        <div
+                            className={`equation-result ${hasResult ? (slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none') : ''}`}>
                             {hasResult ? (
                                 <>
-                                    <span className="res-action">{slumpDiff > 0 ? 'Add' : slumpDiff < 0 ? 'Remove' : ''}</span>
+                                    <span
+                                        className="res-action">{slumpDiff > 0 ? 'Add' : slumpDiff < 0 ? 'Remove' : ''}</span>
                                     <span className="res-value">{Math.abs(slumpDiff * 3 * batchSize).toFixed(1)}</span>
                                     <span className="res-unit">gal</span>
                                 </>

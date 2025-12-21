@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 
 const SetTimeCalculator = () => {
     const [weather, setWeather] = useState(null)
@@ -70,7 +70,7 @@ const SetTimeCalculator = () => {
     }, [useManual, getLocation])
 
     const handleManualWeatherChange = (field, value) => {
-        setManualWeather(prev => ({ ...prev, [field]: value }))
+        setManualWeather(prev => ({...prev, [field]: value}))
     }
 
     const WATER_LBS_PER_GALLON = 8.34
@@ -82,7 +82,7 @@ const SetTimeCalculator = () => {
         const cement = parseFloat(mixData.cement)
         const designWaterGalPerYd = parseFloat(mixData.water)
         const addedWaterGal = parseFloat(mixData.addedWater) || 0
-        
+
         if (!temp || isNaN(batchSize) || batchSize <= 0 || isNaN(slump) || isNaN(cement) || cement <= 0 || isNaN(designWaterGalPerYd) || designWaterGalPerYd <= 0) {
             setResult(null)
             return
@@ -90,14 +90,14 @@ const SetTimeCalculator = () => {
 
         const supplemental = parseFloat(mixData.supplemental) || 0
         const totalCementPerYd = cement + supplemental
-        
+
         const designWaterLbsPerYd = designWaterGalPerYd * WATER_LBS_PER_GALLON
         const addedWaterLbs = addedWaterGal * WATER_LBS_PER_GALLON
         const addedWaterLbsPerYd = addedWaterLbs / batchSize
         const totalWaterLbsPerYd = designWaterLbsPerYd + addedWaterLbsPerYd
-        
+
         const wc = totalCementPerYd > 0 ? totalWaterLbsPerYd / totalCementPerYd : 0
-        
+
         const cloudCover = useManual ? (parseFloat(manualWeather.cloudCover) || 50) : (weather?.cloudCover || 50)
         const humidity = useManual ? (parseFloat(manualWeather.humidity) || 50) : (weather?.humidity || 50)
         const windSpeed = weather?.windSpeed || 5
@@ -214,8 +214,8 @@ const SetTimeCalculator = () => {
         else if (isEvening) timeOfDay = 'evening'
 
         setResult({
-            initialSet: { hours: initialSetHours, mins: initialSetMins, total: baseInitialSet },
-            finalSet: { hours: finalSetHours, mins: finalSetMins, total: baseFinalSet },
+            initialSet: {hours: initialSetHours, mins: initialSetMins, total: baseInitialSet},
+            finalSet: {hours: finalSetHours, mins: finalSetMins, total: baseFinalSet},
             riskLevel,
             riskMessage,
             timeOfDay,
@@ -241,7 +241,7 @@ const SetTimeCalculator = () => {
     }, [calculateSetTime])
 
     const handleMixChange = (field, value) => {
-        setMixData(prev => ({ ...prev, [field]: value }))
+        setMixData(prev => ({...prev, [field]: value}))
     }
 
     const clearForm = () => {
@@ -255,17 +255,22 @@ const SetTimeCalculator = () => {
             coarseAgg: '',
             fineAgg: ''
         })
-        setManualWeather({ temperature: '', cloudCover: '', humidity: '' })
+        setManualWeather({temperature: '', cloudCover: '', humidity: ''})
         setResult(null)
     }
 
     const getRiskColor = (level) => {
         switch (level) {
-            case 'cold': return 'info'
-            case 'cool': return 'info'
-            case 'warm': return 'warning'
-            case 'hot': return 'error'
-            default: return 'success'
+            case 'cold':
+                return 'info'
+            case 'cool':
+                return 'info'
+            case 'warm':
+                return 'warning'
+            case 'hot':
+                return 'error'
+            default:
+                return 'success'
         }
     }
 
@@ -275,7 +280,7 @@ const SetTimeCalculator = () => {
                 <div className="calc-section-header">
                     <i className="fas fa-cloud-sun"></i>
                     <span>Weather Conditions</span>
-                    <button 
+                    <button
                         className={`toggle-btn ${useManual ? 'active' : ''}`}
                         onClick={() => setUseManual(!useManual)}
                     >
@@ -497,7 +502,7 @@ const SetTimeCalculator = () => {
                     const cement = parseFloat(mixData.cement) || 0
                     const supplemental = parseFloat(mixData.supplemental) || 0
                     const totalCite = cement + supplemental
-                    
+
                     if (designWaterGal > 0 && totalCite > 0 && batchSize > 0) {
                         const designWaterLbsPerYd = designWaterGal * 8.34
                         const addedLbsPerYd = (addedGal * 8.34) / batchSize
@@ -507,7 +512,8 @@ const SetTimeCalculator = () => {
                             <div className="settime-wc-display">
                                 <span className="wc-label">W/C Ratio:</span>
                                 <span className="wc-value">{wc.toFixed(2)}</span>
-                                <span className="wc-breakdown">({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
+                                <span
+                                    className="wc-breakdown">({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
                             </div>
                         )
                     }
@@ -522,25 +528,30 @@ const SetTimeCalculator = () => {
                         <span>Estimated Set Time</span>
                     </div>
                     <div className="settime-factors">
-                        <div className={`factor-badge ${result.conditions.temp > 80 ? 'hot' : result.conditions.temp < 50 ? 'cold' : ''}`}>
+                        <div
+                            className={`factor-badge ${result.conditions.temp > 80 ? 'hot' : result.conditions.temp < 50 ? 'cold' : ''}`}>
                             <i className="fas fa-thermometer-half"></i>
                             <span>{Math.round(result.conditions.temp)}°F</span>
                         </div>
-                        <div className={`factor-badge ${result.conditions.cloudCover < 30 ? 'sunny' : result.conditions.cloudCover > 70 ? 'cloudy' : ''}`}>
+                        <div
+                            className={`factor-badge ${result.conditions.cloudCover < 30 ? 'sunny' : result.conditions.cloudCover > 70 ? 'cloudy' : ''}`}>
                             <i className={`fas ${result.conditions.cloudCover < 30 ? 'fa-sun' : result.conditions.cloudCover > 70 ? 'fa-cloud' : 'fa-cloud-sun'}`}></i>
                             <span>{result.conditions.cloudCover}% clouds</span>
                         </div>
-                        <div className={`factor-badge ${result.timeOfDay === 'peak-sun' ? 'peak' : result.timeOfDay === 'night' ? 'night' : ''}`}>
+                        <div
+                            className={`factor-badge ${result.timeOfDay === 'peak-sun' ? 'peak' : result.timeOfDay === 'night' ? 'night' : ''}`}>
                             <i className={`fas ${result.timeOfDay === 'peak-sun' ? 'fa-sun' : result.timeOfDay === 'night' ? 'fa-moon' : 'fa-cloud-sun'}`}></i>
                             <span>{result.timeOfDay === 'peak-sun' ? 'Peak Sun' : result.timeOfDay === 'morning' ? 'Morning' : result.timeOfDay === 'evening' ? 'Evening' : 'Night'}</span>
                         </div>
                         {result.mix && (
                             <>
-                                <div className={`factor-badge ${result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : ''}`}>
+                                <div
+                                    className={`factor-badge ${result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : ''}`}>
                                     <i className="fas fa-box"></i>
                                     <span>{result.mix.cementPerYd} lbs/yd</span>
                                 </div>
-                                <div className={`factor-badge ${result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : ''}`}>
+                                <div
+                                    className={`factor-badge ${result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : ''}`}>
                                     <i className="fas fa-tint"></i>
                                     <span>W/C {result.mix.wc}</span>
                                 </div>

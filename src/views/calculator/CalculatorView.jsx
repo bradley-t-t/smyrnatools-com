@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, {useState} from 'react'
 import './styles/CalculatorView.css'
 import ProportionsCalculator from './types/ProportionsCalculator'
 import SlumpAdjustmentCalculator from './types/SlumpAdjustmentCalculator'
@@ -6,10 +6,10 @@ import WaterCementCalculator from './types/WaterCementCalculator'
 import SetTimeCalculator from './types/SetTimeCalculator'
 
 const CALCULATOR_TYPES = [
-    { id: 'proportions', name: 'Overweight Fix', icon: 'fa-balance-scale' },
-    { id: 'slump', name: 'Slump Adjust', icon: 'fa-tachometer-alt' },
-    { id: 'water-cement', name: 'W/C Ratio', icon: 'fa-tint' },
-    { id: 'set-time', name: 'Set Time', icon: 'fa-clock' }
+    {id: 'proportions', name: 'Overweight Fix', icon: 'fa-balance-scale'},
+    {id: 'slump', name: 'Slump Adjust', icon: 'fa-tachometer-alt'},
+    {id: 'water-cement', name: 'W/C Ratio', icon: 'fa-tint'},
+    {id: 'set-time', name: 'Set Time', icon: 'fa-clock'}
 ]
 
 const CalculatorView = () => {
@@ -18,13 +18,13 @@ const CalculatorView = () => {
     const renderCalculator = () => {
         switch (selectedCalculator) {
             case 'proportions':
-                return <ProportionsCalculator />
+                return <ProportionsCalculator/>
             case 'slump':
-                return <SlumpAdjustmentCalculator />
+                return <SlumpAdjustmentCalculator/>
             case 'water-cement':
-                return <WaterCementCalculator />
+                return <WaterCementCalculator/>
             case 'set-time':
-                return <SetTimeCalculator />
+                return <SetTimeCalculator/>
             default:
                 return (
                     <div className="coming-soon-panel">

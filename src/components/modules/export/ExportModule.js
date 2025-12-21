@@ -1,24 +1,24 @@
 import {
+    applySubtleBackground,
     createWorkbook,
     downloadWorkbook,
+    getDefaultColumnWidths,
     loadLogo,
-    setDefaultPageSetup,
-    applySubtleBackground,
-    getDefaultColumnWidths
+    setDefaultPageSetup
 } from '../../../utils/ExportUtility'
 
-export { exportGeneralManagerReport } from './reports/GeneralManagerExport'
+export {exportGeneralManagerReport} from './reports/GeneralManagerExport'
 
 export async function initExport(options = {}) {
-    const { wb, ExcelLib } = await createWorkbook()
-    
+    const {wb, ExcelLib} = await createWorkbook()
+
     if (options.subject) {
         wb.properties.subject = options.subject
     }
-    
+
     const logoBase64 = options.skipLogo ? null : await loadLogo(options.logoPath)
-    
-    return { wb, ExcelLib, logoBase64 }
+
+    return {wb, ExcelLib, logoBase64}
 }
 
 export function createSheet(wb, sheetName, options = {}) {
@@ -26,9 +26,9 @@ export function createSheet(wb, sheetName, options = {}) {
         views: [{showGridLines: false}],
         properties: {defaultRowHeight: options.defaultRowHeight || 18}
     })
-    
+
     ws.columns = options.columns || getDefaultColumnWidths()
-    
+
     return ws
 }
 

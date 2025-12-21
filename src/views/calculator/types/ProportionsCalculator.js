@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 
 const ProportionsCalculator = () => {
     const [target, setTarget] = useState({
@@ -18,11 +18,11 @@ const ProportionsCalculator = () => {
     const [adjustments, setAdjustments] = useState(null)
 
     const handleTargetChange = (field, value) => {
-        setTarget(prev => ({ ...prev, [field]: value }))
+        setTarget(prev => ({...prev, [field]: value}))
     }
 
     const handleActualChange = (field, value) => {
-        setActual(prev => ({ ...prev, [field]: value }))
+        setActual(prev => ({...prev, [field]: value}))
     }
 
     const calculateAdjustments = useCallback(() => {
@@ -67,7 +67,7 @@ const ProportionsCalculator = () => {
             let changed = false
 
             const currentAggRatio = workingFine > 0 ? workingCoarse / workingFine : 0
-            
+
             if (Math.abs(currentAggRatio - targetAggRatio) > 0.001) {
                 if (currentAggRatio > targetAggRatio) {
                     const neededFine = workingCoarse / targetAggRatio
@@ -116,7 +116,7 @@ const ProportionsCalculator = () => {
 
             if (targetCiteToSuppRatio > 0) {
                 const currentCiteToSuppRatio = workingSupp > 0 ? workingCite / workingSupp : 0
-                
+
                 if (Math.abs(currentCiteToSuppRatio - targetCiteToSuppRatio) > 0.001) {
                     if (currentCiteToSuppRatio > targetCiteToSuppRatio) {
                         const neededSupp = workingCite / targetCiteToSuppRatio
@@ -167,8 +167,8 @@ const ProportionsCalculator = () => {
     }, [calculateAdjustments])
 
     const clearForm = () => {
-        setTarget({ coarse: '', fine: '', cement: '', supplemental: '' })
-        setActual({ coarse: '', fine: '', cement: '', supplemental: '' })
+        setTarget({coarse: '', fine: '', cement: '', supplemental: ''})
+        setActual({coarse: '', fine: '', cement: '', supplemental: ''})
         setAdjustments(null)
     }
 

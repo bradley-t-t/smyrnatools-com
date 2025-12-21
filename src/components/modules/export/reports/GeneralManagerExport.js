@@ -1,40 +1,34 @@
 import {ReportService} from '../../../../services/ReportService'
+import {createSheet, exportWorkbook, finalizeSheet, generateFilename, initExport} from '../ExportModule'
 import {
-    initExport,
-    createSheet,
-    finalizeSheet,
-    exportWorkbook,
-    generateFilename
-} from '../ExportModule'
-import {
-    sortPlants,
-    getPreviousWeekIso,
-    fetchEfficiencyReports,
-    fetchAggregateProductionReport,
-    fetchRMIReport,
-    fetchGMReportForWeek,
-    fetchAllMonthlyGMReports,
-    ensure,
-    truncateToTenth,
-    COLORS,
-    getChangeText,
-    getChangeValue,
-    addSectionTitle,
-    addTableHeaders,
-    addMergedTableHeaders,
     addChangePct,
     addDataRow,
+    addMergedTableHeaders,
+    addReportHeader,
+    addSectionTitle,
+    addTableHeaders,
     applyTotalCell,
     applyTotalChangeCell,
-    addReportHeader
+    COLORS,
+    ensure,
+    fetchAggregateProductionReport,
+    fetchAllMonthlyGMReports,
+    fetchEfficiencyReports,
+    fetchGMReportForWeek,
+    fetchRMIReport,
+    getChangeText,
+    getChangeValue,
+    getPreviousWeekIso,
+    sortPlants,
+    truncateToTenth
 } from '../../../../utils/ExportUtility'
 
 export async function exportGeneralManagerReport({form, plants, weekIso, filename}) {
     if (typeof window === 'undefined') return
-    
+
     const finalFilename = filename || generateFilename('General Manager Report', weekIso)
 
-    const { wb, ExcelLib, logoBase64 } = await initExport({
+    const {wb, ExcelLib, logoBase64} = await initExport({
         subject: 'Weekly General Manager Report'
     })
 
@@ -194,8 +188,8 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
-            const changeInfo = metric.prev !== undefined ? 
-                (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
+            const changeInfo = metric.prev !== undefined ?
+                (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) :
                 {text: '', color: null}
             const changeCell = ws.getCell(ovRow, overviewCol + 1)
             addChangePct(changeCell, changeInfo, isAlt)
@@ -300,7 +294,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         const avgOps = weekCount > 0 ? Math.round(ops / weekCount) : 0
         const avgRunnable = weekCount > 0 ? Math.round(runnable / weekCount) : 0
         const avgDown = weekCount > 0 ? Math.round(down / weekCount) : 0
-        return { yardage, hours, loads: Math.round(yardage / 10), avgOps, avgRunnable, avgDown, weekCount }
+        return {yardage, hours, loads: Math.round(yardage / 10), avgOps, avgRunnable, avgDown, weekCount}
     }
 
     const monthlyTotals = allMonthlyData.map(m => ({
@@ -342,8 +336,8 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
-            const changeInfo = metric.prev !== undefined ? 
-                (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
+            const changeInfo = metric.prev !== undefined ?
+                (metric.useValue ? getChangeValue(metric.value, metric.prev, metric.invertChange || false) : getChangeText(metric.value, metric.prev, metric.invertChange || false)) :
                 {text: '', color: null}
             const changeCell = ws.getCell(moRow, monthlyCol + 1)
             addChangePct(changeCell, changeInfo, isAlt)
@@ -373,10 +367,10 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         const prevTotals = prevMonthData ? prevMonthData.totals : null
         const weeksReported = monthData.weekIsos ? monthData.weekIsos.size : monthData.totals.weekCount
         const totalWeeks = monthData.totalWeeks || 4
-        const weeksLabel = weeksReported === 0 
-            ? `0 of ${totalWeeks} weeks` 
+        const weeksLabel = weeksReported === 0
+            ? `0 of ${totalWeeks} weeks`
             : `${weeksReported}/${totalWeeks} weeks`
-        
+
         addMonthlyGroup(monthData.monthName, [
             {label: 'Weeks', value: weeksLabel},
             {label: 'Yardage', value: monthData.totals.yardage, prev: prevTotals?.yardage, format: '#,##0'},
@@ -566,10 +560,13 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             const endMin = truncateToTenth(insights.avgElapsedEnd)
             const plantInfo = sortedPlants.find(p => String(p.plant_code) === String(er.plant_code))
             const plantName = plantInfo?.plant_name || plantInfo?.name || er.plant_code
-            
+
             const reportDate = er.report_date || ''
-            const formattedDate = reportDate ? new Date(reportDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
-            
+            const formattedDate = reportDate ? new Date(reportDate + 'T00:00:00').toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            }) : ''
+
             const plantOps = ensure(form[`active_operators_${er.plant_code}`], true)
             const lph = truncateToTenth(lphBase * plantOps)
 
@@ -671,7 +668,8 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         })
 
         let totalLoadsEff = 0, totalHoursEff = 0, totalLphEff = 0, totalStartEff = 0, totalEndEff = 0
-        let prevTotalLoadsEff = 0, prevTotalHoursEff = 0, prevTotalLphEff = 0, prevTotalStartEff = 0, prevTotalEndEff = 0
+        let prevTotalLoadsEff = 0, prevTotalHoursEff = 0, prevTotalLphEff = 0, prevTotalStartEff = 0,
+            prevTotalEndEff = 0
         let effCount = 0, prevEffCount = 0
 
         sortedEffReports.forEach(er => {

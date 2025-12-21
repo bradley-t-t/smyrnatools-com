@@ -229,10 +229,10 @@ export async function fetchAllMonthlyGMReports() {
         .from('reports')
         .select('id,data,week,submitted_at,completed')
         .eq('report_name', 'general_manager')
-        .order('week', { ascending: false })
-    
+        .order('week', {ascending: false})
+
     if (!Array.isArray(reports)) reports = []
-    
+
     const getMondayIsoUTC = (dateInput) => {
         if (!dateInput) return null
         let isoStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString()
@@ -243,20 +243,30 @@ export async function fetchAllMonthlyGMReports() {
         d.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
         return d.toISOString().slice(0, 10)
     }
-    
+
     const byWeek = new Map()
     reports.forEach(r => {
         const mondayIso = r.week ? getMondayIsoUTC(r.week) : null
         if (!mondayIso) return
         const existing = byWeek.get(mondayIso)
         if (!existing) {
-            byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
+            byWeek.set(mondayIso, {mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at})
         } else {
-            if (r.completed && !existing.completed) byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
-            else if (r.completed === existing.completed && (r.submitted_at || '') > (existing.submitted_at || '')) byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
+            if (r.completed && !existing.completed) byWeek.set(mondayIso, {
+                mondayIso,
+                data: r.data,
+                completed: r.completed,
+                submitted_at: r.submitted_at
+            })
+            else if (r.completed === existing.completed && (r.submitted_at || '') > (existing.submitted_at || '')) byWeek.set(mondayIso, {
+                mondayIso,
+                data: r.data,
+                completed: r.completed,
+                submitted_at: r.submitted_at
+            })
         }
     })
-    
+
     const getWeeksInMonth = (year, month) => {
         const firstDay = new Date(Date.UTC(year, month - 1, 1))
         const lastDay = new Date(Date.UTC(year, month, 0))
@@ -269,16 +279,16 @@ export async function fetchAllMonthlyGMReports() {
         }
         return weeks || 4
     }
-    
+
     const byMonth = new Map()
-    
+
     let minDate = null, maxDate = null
     byWeek.forEach((r, mondayIso) => {
         const weekDate = new Date(mondayIso + 'T00:00:00Z')
         if (!minDate || weekDate < minDate) minDate = weekDate
         if (!maxDate || weekDate > maxDate) maxDate = weekDate
     })
-    
+
     if (minDate && maxDate) {
         const current = new Date(Date.UTC(maxDate.getUTCFullYear(), maxDate.getUTCMonth(), 1))
         const end = new Date(Date.UTC(minDate.getUTCFullYear(), minDate.getUTCMonth(), 1))
@@ -286,13 +296,13 @@ export async function fetchAllMonthlyGMReports() {
             const year = current.getUTCFullYear()
             const month = current.getUTCMonth() + 1
             const monthKey = `${year}-${String(month).padStart(2, '0')}`
-            const monthName = current.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+            const monthName = current.toLocaleDateString('en-US', {month: 'long', year: 'numeric', timeZone: 'UTC'})
             const totalWeeks = getWeeksInMonth(year, month)
-            byMonth.set(monthKey, { monthKey, monthName, reports: [], weekIsos: new Set(), totalWeeks })
+            byMonth.set(monthKey, {monthKey, monthName, reports: [], weekIsos: new Set(), totalWeeks})
             current.setUTCMonth(current.getUTCMonth() - 1)
         }
     }
-    
+
     byWeek.forEach((r, mondayIso) => {
         const weekDate = new Date(mondayIso + 'T00:00:00Z')
         const monthKey = `${weekDate.getUTCFullYear()}-${String(weekDate.getUTCMonth() + 1).padStart(2, '0')}`
@@ -301,7 +311,7 @@ export async function fetchAllMonthlyGMReports() {
             byMonth.get(monthKey).weekIsos.add(mondayIso)
         }
     })
-    
+
     return [...byMonth.values()].sort((a, b) => b.monthKey.localeCompare(a.monthKey))
 }
 
@@ -329,7 +339,7 @@ export async function createWorkbook() {
     wb.creator = 'Smyrna Ready Mix'
     wb.created = new Date()
     wb.modified = new Date()
-    return { wb, ExcelLib }
+    return {wb, ExcelLib}
 }
 
 export function downloadWorkbook(wb, filename) {
@@ -478,9 +488,9 @@ export function addChangePct(cell, changeInfo, isAlt = false) {
     } else {
         cell.value = changeInfo.text.trim()
         cell.font = {name: 'Calibri', size: 8, bold: true, color: {argb: changeInfo.color}}
-        const bgColor = changeInfo.color === COLORS.success ? COLORS.successLight : 
-                       changeInfo.color === COLORS.danger ? COLORS.dangerLight : 
-                       (isAlt ? COLORS.snow : null)
+        const bgColor = changeInfo.color === COLORS.success ? COLORS.successLight :
+            changeInfo.color === COLORS.danger ? COLORS.dangerLight :
+                (isAlt ? COLORS.snow : null)
         if (bgColor) {
             cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
         }
@@ -548,7 +558,7 @@ export function applyTotalChangeCell(cell, changeInfo) {
 
 export function addReportHeader(ws, wb, {logoBase64, title, subtitle, row = 2}) {
     let r = row
-    
+
     if (logoBase64) {
         ws.mergeCells(r, 2, r + 2, 3)
         const imageId = wb.addImage({
@@ -556,8 +566,8 @@ export function addReportHeader(ws, wb, {logoBase64, title, subtitle, row = 2}) 
             extension: 'png'
         })
         ws.addImage(imageId, {
-            tl: { col: 1, row: r - 1 },
-            br: { col: 3, row: r + 2 },
+            tl: {col: 1, row: r - 1},
+            br: {col: 3, row: r + 2},
             editAs: 'oneCell'
         })
     }
@@ -595,7 +605,15 @@ export function addReportHeader(ws, wb, {logoBase64, title, subtitle, row = 2}) 
     return r
 }
 
-export function addOverviewSection(ws, {startRow, startCol, title, groups, getChangeText: getChangeTextFn, getChangeValue: getChangeValueFn, addChangePct: addChangePctFn}) {
+export function addOverviewSection(ws, {
+    startRow,
+    startCol,
+    title,
+    groups,
+    getChangeText: getChangeTextFn,
+    getChangeValue: getChangeValueFn,
+    addChangePct: addChangePctFn
+}) {
     const col = startCol
     let row = startRow
 
@@ -640,8 +658,8 @@ export function addOverviewSection(ws, {startRow, startCol, title, groups, getCh
             labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
 
-            const changeInfo = metric.prev !== undefined ? 
-                (metric.useValue ? _getChangeValue(metric.value, metric.prev, metric.invertChange || false) : _getChangeText(metric.value, metric.prev, metric.invertChange || false)) : 
+            const changeInfo = metric.prev !== undefined ?
+                (metric.useValue ? _getChangeValue(metric.value, metric.prev, metric.invertChange || false) : _getChangeText(metric.value, metric.prev, metric.invertChange || false)) :
                 {text: '', color: null}
             const changeCell = ws.getCell(row, col + 1)
             _addChangePct(changeCell, changeInfo, isAlt)

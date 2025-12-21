@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, {useEffect, useState} from 'react'
 
 const WaterCementCalculator = () => {
     const [values, setValues] = useState({
@@ -13,11 +13,11 @@ const WaterCementCalculator = () => {
     const WATER_LBS_PER_GALLON = 8.34
 
     const handleChange = (field, value) => {
-        setValues(prev => ({ ...prev, [field]: value }))
+        setValues(prev => ({...prev, [field]: value}))
     }
 
     const clearForm = () => {
-        setValues({ batchSize: '', waterGallons: '', cementLbs: '', supplementalLbs: '' })
+        setValues({batchSize: '', waterGallons: '', cementLbs: '', supplementalLbs: ''})
         setResult(null)
     }
 
@@ -31,10 +31,10 @@ const WaterCementCalculator = () => {
         if (waterGal > 0 && totalCite > 0) {
             const waterLbs = waterGal * WATER_LBS_PER_GALLON
             const ratio = waterLbs / totalCite
-            
+
             const waterPerYd = batchSize > 0 ? Math.round(waterLbs / batchSize) : null
             const citePerYd = batchSize > 0 ? Math.round(totalCite / batchSize) : null
-            
+
             setResult({
                 ratio: ratio.toFixed(2),
                 waterLbs: Math.round(waterLbs),
@@ -51,14 +51,14 @@ const WaterCementCalculator = () => {
     const getRatioStatus = () => {
         if (!result) return null
         const r = parseFloat(result.ratio)
-        if (r < 0.35) return { label: 'Low', color: 'warning' }
-        if (r <= 0.45) return { label: 'Optimal', color: 'success' }
-        if (r <= 0.55) return { label: 'Standard', color: 'info' }
-        return { label: 'High', color: 'error' }
+        if (r < 0.35) return {label: 'Low', color: 'warning'}
+        if (r <= 0.45) return {label: 'Optimal', color: 'success'}
+        if (r <= 0.55) return {label: 'Standard', color: 'info'}
+        return {label: 'High', color: 'error'}
     }
 
     const status = getRatioStatus()
-    
+
     const waterGal = parseFloat(values.waterGallons) || 0
     const waterLbs = waterGal * WATER_LBS_PER_GALLON
     const totalCite = (parseFloat(values.cementLbs) || 0) + (parseFloat(values.supplementalLbs) || 0)
@@ -124,7 +124,8 @@ const WaterCementCalculator = () => {
                         <span className="formula-op">=</span>
                         <div className={`formula-result-block large ${hasData ? (status?.color || '') : ''}`}>
                             <span className="result-num">{hasData ? result?.ratio : '—'}</span>
-                            {hasData && status && <span className={`result-badge ${status.color}`}>{status.label}</span>}
+                            {hasData && status &&
+                                <span className={`result-badge ${status.color}`}>{status.label}</span>}
                         </div>
                     </div>
                     {hasData && (

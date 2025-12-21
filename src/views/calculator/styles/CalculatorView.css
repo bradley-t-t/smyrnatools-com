@@ -795,21 +795,21 @@
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .equation-part {
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .eq-op.main {
         display: none;
     }
-    
+
     .equation-result {
         width: 100%;
         margin-top: 8px;
     }
-    
+
     .total-equation {
         flex-direction: column;
         gap: 8px;
@@ -1000,10 +1000,21 @@
     margin-top: 4px;
 }
 
-.result-badge.success { background: var(--success); }
-.result-badge.warning { background: var(--warning); }
-.result-badge.info { background: var(--info); }
-.result-badge.error { background: var(--error); }
+.result-badge.success {
+    background: var(--success);
+}
+
+.result-badge.warning {
+    background: var(--warning);
+}
+
+.result-badge.info {
+    background: var(--info);
+}
+
+.result-badge.error {
+    background: var(--error);
+}
 
 .wc-fraction {
     display: flex;
@@ -1142,33 +1153,33 @@
         flex-direction: column;
         gap: 16px;
     }
-    
+
     .formula-divider {
         transform: rotate(90deg);
     }
-    
+
     .actual-inputs-grid,
     .additions-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .slump-formula-row,
     .water-formula-row,
     .wc-formula-row {
         flex-direction: column;
         gap: 8px;
     }
-    
+
     .wc-fraction-bar {
         min-width: 200px;
     }
-    
+
     .wc-fraction-top,
     .wc-fraction-bottom {
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .per-yard-display {
         flex-direction: column;
         gap: 12px;
@@ -1286,10 +1297,21 @@
     color: var(--text-primary);
 }
 
-.calc-result.success .wc-ratio-value { color: var(--success); }
-.calc-result.warning .wc-ratio-value { color: var(--warning); }
-.calc-result.info .wc-ratio-value { color: var(--info); }
-.calc-result.error .wc-ratio-value { color: var(--error); }
+.calc-result.success .wc-ratio-value {
+    color: var(--success);
+}
+
+.calc-result.warning .wc-ratio-value {
+    color: var(--warning);
+}
+
+.calc-result.info .wc-ratio-value {
+    color: var(--info);
+}
+
+.calc-result.error .wc-ratio-value {
+    color: var(--error);
+}
 
 .wc-status-badge {
     padding: 6px 12px;
@@ -1300,10 +1322,21 @@
     color: white;
 }
 
-.wc-status-badge.success { background: var(--success); }
-.wc-status-badge.warning { background: var(--warning); }
-.wc-status-badge.info { background: var(--info); }
-.wc-status-badge.error { background: var(--error); }
+.wc-status-badge.success {
+    background: var(--success);
+}
+
+.wc-status-badge.warning {
+    background: var(--warning);
+}
+
+.wc-status-badge.info {
+    background: var(--info);
+}
+
+.wc-status-badge.error {
+    background: var(--error);
+}
 
 .wc-calculation {
     text-align: center;
@@ -1440,10 +1473,21 @@
     color: var(--text-primary);
 }
 
-.wc-output.success .wc-value { color: var(--success); }
-.wc-output.warning .wc-value { color: var(--warning); }
-.wc-output.info .wc-value { color: var(--info); }
-.wc-output.error .wc-value { color: var(--error); }
+.wc-output.success .wc-value {
+    color: var(--success);
+}
+
+.wc-output.warning .wc-value {
+    color: var(--warning);
+}
+
+.wc-output.info .wc-value {
+    color: var(--info);
+}
+
+.wc-output.error .wc-value {
+    color: var(--error);
+}
 
 .wc-badge {
     padding: 4px 10px;
@@ -1509,20 +1553,20 @@
         grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
-    
+
     .wc-grid .wc-field:first-child {
         grid-column: span 2;
     }
-    
+
     .wc-output-main {
         flex-direction: column;
         gap: 6px;
     }
-    
+
     .wc-value {
         font-size: 32px;
     }
-    
+
     .wc-input input {
         padding: 10px 6px;
         font-size: 14px;
@@ -1648,10 +1692,21 @@
     font-weight: 600;
 }
 
-.wc-status-text.success { color: var(--success); }
-.wc-status-text.warning { color: var(--warning); }
-.wc-status-text.info { color: var(--info); }
-.wc-status-text.error { color: var(--error); }
+.wc-status-text.success {
+    color: var(--success);
+}
+
+.wc-status-text.warning {
+    color: var(--warning);
+}
+
+.wc-status-text.info {
+    color: var(--info);
+}
+
+.wc-status-text.error {
+    color: var(--error);
+}
 
 .wc-footer-row {
     display: flex;
@@ -1664,16 +1719,16 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .wc-input-box {
         width: 100%;
     }
-    
+
     .wc-op {
         text-align: center;
         padding: 8px 0;
     }
-    
+
     .wc-result-box {
         width: 100%;
     }
@@ -1807,10 +1862,21 @@
     color: var(--text-primary);
 }
 
-.wc-result-simple.success .ratio-value { color: var(--success); }
-.wc-result-simple.warning .ratio-value { color: var(--warning); }
-.wc-result-simple.info .ratio-value { color: var(--info); }
-.wc-result-simple.error .ratio-value { color: var(--error); }
+.wc-result-simple.success .ratio-value {
+    color: var(--success);
+}
+
+.wc-result-simple.warning .ratio-value {
+    color: var(--warning);
+}
+
+.wc-result-simple.info .ratio-value {
+    color: var(--info);
+}
+
+.wc-result-simple.error .ratio-value {
+    color: var(--error);
+}
 
 .result-ratio .ratio-label {
     font-size: 12px;
@@ -2068,10 +2134,21 @@
     font-weight: 700;
 }
 
-.ratio-status.success .status-label { color: var(--success); }
-.ratio-status.warning .status-label { color: var(--warning); }
-.ratio-status.info .status-label { color: var(--info); }
-.ratio-status.error .status-label { color: var(--error); }
+.ratio-status.success .status-label {
+    color: var(--success);
+}
+
+.ratio-status.warning .status-label {
+    color: var(--warning);
+}
+
+.ratio-status.info .status-label {
+    color: var(--info);
+}
+
+.ratio-status.error .status-label {
+    color: var(--error);
+}
 
 .ratio-status .status-desc {
     font-size: 11px;
@@ -2140,10 +2217,21 @@
     font-weight: 700;
 }
 
-.wc-status.success .status-label { color: var(--success); }
-.wc-status.warning .status-label { color: var(--warning); }
-.wc-status.info .status-label { color: var(--info); }
-.wc-status.error .status-label { color: var(--error); }
+.wc-status.success .status-label {
+    color: var(--success);
+}
+
+.wc-status.warning .status-label {
+    color: var(--warning);
+}
+
+.wc-status.info .status-label {
+    color: var(--info);
+}
+
+.wc-status.error .status-label {
+    color: var(--error);
+}
 
 .status-desc {
     font-size: 12px;
@@ -2205,18 +2293,34 @@
     font-weight: 700;
 }
 
-.yield-percent.success .percent-value { color: var(--success); }
-.yield-percent.warning .percent-value { color: var(--warning); }
-.yield-percent.error .percent-value { color: var(--error); }
+.yield-percent.success .percent-value {
+    color: var(--success);
+}
+
+.yield-percent.warning .percent-value {
+    color: var(--warning);
+}
+
+.yield-percent.error .percent-value {
+    color: var(--error);
+}
 
 .percent-label {
     font-size: 13px;
     font-weight: 600;
 }
 
-.yield-percent.success .percent-label { color: var(--success); }
-.yield-percent.warning .percent-label { color: var(--warning); }
-.yield-percent.error .percent-label { color: var(--error); }
+.yield-percent.success .percent-label {
+    color: var(--success);
+}
+
+.yield-percent.warning .percent-label {
+    color: var(--warning);
+}
+
+.yield-percent.error .percent-label {
+    color: var(--error);
+}
 
 .yield-desc {
     font-size: 12px;
@@ -2627,15 +2731,15 @@
     .calc-inputs-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .calc-inputs-row {
         flex-direction: column;
     }
-    
+
     .result-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .result-item.primary {
         grid-column: span 1;
     }
@@ -2937,11 +3041,11 @@
     .result-grid-3 {
         grid-template-columns: 1fr;
     }
-    
+
     .drum-buttons {
         flex-wrap: wrap;
     }
-    
+
     .drum-btn {
         flex: 1;
         min-width: 60px;
@@ -3535,48 +3639,48 @@
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .settime-divider {
         transform: rotate(90deg);
     }
-    
+
     .weather-stats {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .manual-weather-row {
         flex-direction: column;
         align-items: stretch;
         gap: 4px;
     }
-    
+
     .settime-factors {
         gap: 8px;
     }
-    
+
     .equation-container {
         flex-direction: column;
         gap: 16px;
     }
-    
+
     .fraction-group {
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .fraction-input .input-wrap {
         width: 90px;
     }
-    
+
     .fraction-line {
         min-width: 180px;
     }
-    
+
     .equation-equals {
         transform: rotate(90deg);
     }
-    
+
     .mix-extra-row {
         flex-direction: column;
     }
