@@ -33,6 +33,7 @@ import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 import ListDetailView from '../views/list/ListDetailView'
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
+import CalculatorView from '../views/calculator/CalculatorView'
 import VideoBackground from '../components/common/VideoBackground'
 import PodcastPopup from '../components/common/PodcastPopup'
 
@@ -558,6 +559,8 @@ function AppContent() {
                 return <RolesView/>
             case 'Leaderboards':
                 return <LeaderboardsView/>
+            case 'Calculators':
+                return <CalculatorView/>
             default:
                 return <div className="coming-soon"><h2>{selectedView.view} view is coming soon!</h2><p>This feature is
                     under

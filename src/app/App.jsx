@@ -19,6 +19,7 @@ import {PreferencesProvider} from './context/PreferencesContext';
 import {AccountProvider} from './context/AccountContext';
 import ListView from '../views/list/ListView';
 import LeaderboardsView from '../views/leaderboards/LeaderboardsView';
+import CalculatorView from '../views/CalculatorView';
 import LockedOverlay from '../components/common/LockedOverlay';
 import TerminatedOverlay from '../components/common/TerminatedOverlay';
 import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
@@ -233,6 +234,7 @@ function App() {
                             <Route path="/account" element={<MyAccountPage/>}/>
                             <Route path="/list" element={<ListView/>}/>
                             <Route path="/leaderboards" element={<LeaderboardsView/>}/>
+                            <Route path="/calculators" element={<CalculatorView/>}/>
                         </Route>
                         <Route path="*" element={<Navigate to="/" replace/>}/>
                     </Routes>

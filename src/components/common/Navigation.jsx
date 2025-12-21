@@ -58,6 +58,8 @@ const getIconForMenuItem = (id) => {
             return <i className="fas fa-file-alt"></i>
         case 'Roles':
             return <i className="fas fa-lock"></i>
+        case 'Calculators':
+            return <i className="fas fa-calculator"></i>
         default:
             return <i className="fas fa-clipboard-list"></i>
     }
@@ -77,7 +79,8 @@ const menuItems = [
     {text: 'Reports', id: 'Reports', permission: 'reports.view', alwaysVisible: false},
     {text: 'Plants', id: 'Plants', permission: 'plants.view', alwaysVisible: false},
     {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false},
-    {text: 'Roles', id: 'Roles', permission: 'roles.view', alwaysVisible: false}
+    {text: 'Roles', id: 'Roles', permission: 'roles.view', alwaysVisible: false},
+    {text: 'Calculators', id: 'Calculators', permission: 'calculator.view', alwaysVisible: false}
 ]
 
 export default function Navigation({
