@@ -12,10 +12,12 @@ const SetTimeCalculator = () => {
     })
 
     const [mixData, setMixData] = useState({
-        wcRatio: '',
+        batchSize: '',
         slump: '',
         cement: '',
         supplemental: '',
+        water: '',
+        addedWater: '',
         coarseAgg: '',
         fineAgg: ''
     })
@@ -71,17 +73,31 @@ const SetTimeCalculator = () => {
         setManualWeather(prev => ({ ...prev, [field]: value }))
     }
 
+    const WATER_LBS_PER_GALLON = 8.34
+
     const calculateSetTime = useCallback(() => {
         const temp = useManual ? parseFloat(manualWeather.temperature) : weather?.temperature
-        if (!temp) {
+        const batchSize = parseFloat(mixData.batchSize)
+        const slump = parseFloat(mixData.slump)
+        const cement = parseFloat(mixData.cement)
+        const designWaterGalPerYd = parseFloat(mixData.water)
+        const addedWaterGal = parseFloat(mixData.addedWater) || 0
+        
+        if (!temp || isNaN(batchSize) || batchSize <= 0 || isNaN(slump) || isNaN(cement) || cement <= 0 || isNaN(designWaterGalPerYd) || designWaterGalPerYd <= 0) {
             setResult(null)
             return
         }
 
-        const wc = parseFloat(mixData.wcRatio) || 0.45
-        const slump = parseFloat(mixData.slump) || 4
-        const cement = parseFloat(mixData.cement) || 0
         const supplemental = parseFloat(mixData.supplemental) || 0
+        const totalCementPerYd = cement + supplemental
+        
+        const designWaterLbsPerYd = designWaterGalPerYd * WATER_LBS_PER_GALLON
+        const addedWaterLbs = addedWaterGal * WATER_LBS_PER_GALLON
+        const addedWaterLbsPerYd = addedWaterLbs / batchSize
+        const totalWaterLbsPerYd = designWaterLbsPerYd + addedWaterLbsPerYd
+        
+        const wc = totalCementPerYd > 0 ? totalWaterLbsPerYd / totalCementPerYd : 0
+        
         const cloudCover = useManual ? (parseFloat(manualWeather.cloudCover) || 50) : (weather?.cloudCover || 50)
         const humidity = useManual ? (parseFloat(manualWeather.humidity) || 50) : (weather?.humidity || 50)
         const windSpeed = weather?.windSpeed || 5
@@ -109,13 +125,28 @@ const SetTimeCalculator = () => {
             baseFinalSet *= wcFactor
         }
 
-        if (slump > 5) {
-            baseInitialSet *= 1 + ((slump - 5) * 0.03)
-            baseFinalSet *= 1 + ((slump - 5) * 0.03)
+        if (slump > 6) {
+            const slumpFactor = 1 + ((slump - 6) * 0.04)
+            baseInitialSet *= slumpFactor
+            baseFinalSet *= slumpFactor
+        } else if (slump < 3) {
+            const slumpFactor = 1 - ((3 - slump) * 0.03)
+            baseInitialSet *= Math.max(slumpFactor, 0.85)
+            baseFinalSet *= Math.max(slumpFactor, 0.9)
+        }
+
+        if (totalCementPerYd > 600) {
+            const cementFactor = 1 - ((totalCementPerYd - 600) * 0.0003)
+            baseInitialSet *= Math.max(cementFactor, 0.7)
+            baseFinalSet *= Math.max(cementFactor, 0.75)
+        } else if (totalCementPerYd < 400 && totalCementPerYd > 0) {
+            const cementFactor = 1 + ((400 - totalCementPerYd) * 0.0005)
+            baseInitialSet *= Math.min(cementFactor, 1.3)
+            baseFinalSet *= Math.min(cementFactor, 1.25)
         }
 
         if (cement > 0 && supplemental > 0) {
-            const supplementalRatio = supplemental / (cement + supplemental)
+            const supplementalRatio = supplemental / totalCementPerYd
             if (supplementalRatio > 0.2) {
                 baseInitialSet *= 1 + (supplementalRatio * 0.3)
                 baseFinalSet *= 1 + (supplementalRatio * 0.2)
@@ -193,6 +224,14 @@ const SetTimeCalculator = () => {
                 humidity,
                 cloudCover,
                 windSpeed
+            },
+            mix: {
+                wc: Math.round(wc * 100) / 100,
+                slump,
+                cementPerYd: Math.round(totalCementPerYd),
+                waterLbsPerYd: Math.round(totalWaterLbsPerYd),
+                addedWaterGal,
+                batchSize
             }
         })
     }, [weather, mixData, manualWeather, useManual])
@@ -207,10 +246,12 @@ const SetTimeCalculator = () => {
 
     const clearForm = () => {
         setMixData({
-            wcRatio: '',
+            batchSize: '',
             slump: '',
             cement: '',
             supplemental: '',
+            water: '',
+            addedWater: '',
             coarseAgg: '',
             fineAgg: ''
         })
@@ -362,19 +403,43 @@ const SetTimeCalculator = () => {
             <div className="calc-section">
                 <div className="calc-section-header">
                     <i className="fas fa-flask"></i>
-                    <span>Mix Properties</span>
+                    <span>Mix Design (per yard)</span>
                 </div>
                 <div className="calc-inputs-grid">
                     <div className="calc-input-row">
-                        <label>W/C Ratio</label>
+                        <label>Primary Powder</label>
                         <div className="input-wrap">
                             <input
                                 type="number"
-                                value={mixData.wcRatio}
-                                onChange={(e) => handleMixChange('wcRatio', e.target.value)}
-                                placeholder="0.45"
-                                step="0.01"
+                                value={mixData.cement}
+                                onChange={(e) => handleMixChange('cement', e.target.value)}
+                                placeholder="0"
                             />
+                            <span className="input-unit">lbs/yd</span>
+                        </div>
+                    </div>
+                    <div className="calc-input-row">
+                        <label>Supplemental</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={mixData.supplemental}
+                                onChange={(e) => handleMixChange('supplemental', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">lbs/yd</span>
+                        </div>
+                    </div>
+                    <div className="calc-input-row">
+                        <label>Design Water</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={mixData.water}
+                                onChange={(e) => handleMixChange('water', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">gal/yd</span>
                         </div>
                     </div>
                     <div className="calc-input-row">
@@ -390,58 +455,67 @@ const SetTimeCalculator = () => {
                             <span className="input-unit">in</span>
                         </div>
                     </div>
-                    <div className="calc-input-row">
-                        <label>Primary Powder</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.cement}
-                                onChange={(e) => handleMixChange('cement', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">lbs</span>
-                        </div>
-                    </div>
-                    <div className="calc-input-row">
-                        <label>Supplemental</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.supplemental}
-                                onChange={(e) => handleMixChange('supplemental', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">lbs</span>
-                        </div>
-                    </div>
-                    <div className="calc-input-row">
-                        <label>Coarse Agg</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.coarseAgg}
-                                onChange={(e) => handleMixChange('coarseAgg', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">lbs</span>
-                        </div>
-                    </div>
-                    <div className="calc-input-row">
-                        <label>Fine Agg</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.fineAgg}
-                                onChange={(e) => handleMixChange('fineAgg', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">lbs/yd</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            {result && (
+            <div className="calc-section">
+                <div className="calc-section-header">
+                    <i className="fas fa-truck"></i>
+                    <span>Batch Info</span>
+                </div>
+                <div className="calc-inputs-grid">
+                    <div className="calc-input-row">
+                        <label>Batch Size</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={mixData.batchSize}
+                                onChange={(e) => handleMixChange('batchSize', e.target.value)}
+                                placeholder="10"
+                                step="0.5"
+                            />
+                            <span className="input-unit">yd</span>
+                        </div>
+                    </div>
+                    <div className="calc-input-row">
+                        <label>Added Water</label>
+                        <div className="input-wrap">
+                            <input
+                                type="number"
+                                value={mixData.addedWater}
+                                onChange={(e) => handleMixChange('addedWater', e.target.value)}
+                                placeholder="0"
+                            />
+                            <span className="input-unit">gal</span>
+                        </div>
+                    </div>
+                </div>
+                {(() => {
+                    const designWaterGal = parseFloat(mixData.water) || 0
+                    const addedGal = parseFloat(mixData.addedWater) || 0
+                    const batchSize = parseFloat(mixData.batchSize) || 0
+                    const cement = parseFloat(mixData.cement) || 0
+                    const supplemental = parseFloat(mixData.supplemental) || 0
+                    const totalCite = cement + supplemental
+                    
+                    if (designWaterGal > 0 && totalCite > 0 && batchSize > 0) {
+                        const designWaterLbsPerYd = designWaterGal * 8.34
+                        const addedLbsPerYd = (addedGal * 8.34) / batchSize
+                        const totalWaterLbsPerYd = designWaterLbsPerYd + addedLbsPerYd
+                        const wc = totalWaterLbsPerYd / totalCite
+                        return (
+                            <div className="settime-wc-display">
+                                <span className="wc-label">W/C Ratio:</span>
+                                <span className="wc-value">{wc.toFixed(2)}</span>
+                                <span className="wc-breakdown">({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
+                            </div>
+                        )
+                    }
+                    return null
+                })()}
+            </div>
+
+            {result ? (
                 <div className={`calc-result ${getRiskColor(result.riskLevel)}`}>
                     <div className="result-header">
                         <i className="fas fa-clock"></i>
@@ -460,6 +534,18 @@ const SetTimeCalculator = () => {
                             <i className={`fas ${result.timeOfDay === 'peak-sun' ? 'fa-sun' : result.timeOfDay === 'night' ? 'fa-moon' : 'fa-cloud-sun'}`}></i>
                             <span>{result.timeOfDay === 'peak-sun' ? 'Peak Sun' : result.timeOfDay === 'morning' ? 'Morning' : result.timeOfDay === 'evening' ? 'Evening' : 'Night'}</span>
                         </div>
+                        {result.mix && (
+                            <>
+                                <div className={`factor-badge ${result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : ''}`}>
+                                    <i className="fas fa-box"></i>
+                                    <span>{result.mix.cementPerYd} lbs/yd</span>
+                                </div>
+                                <div className={`factor-badge ${result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : ''}`}>
+                                    <i className="fas fa-tint"></i>
+                                    <span>W/C {result.mix.wc}</span>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className="settime-results">
                         <div className="settime-box">
@@ -487,6 +573,15 @@ const SetTimeCalculator = () => {
                             <span>{result.riskMessage}</span>
                         </div>
                     )}
+                </div>
+            ) : (
+                <div className="calc-empty-state">
+                    <i className="fas fa-clock"></i>
+                    <span>Enter weather and mix design to calculate set time</span>
+                    <div className="required-fields">
+                        <span className="required-label">Required:</span>
+                        <span>Temperature, Batch Size, Primary Powder, Design Water, Slump</span>
+                    </div>
                 </div>
             )}
 
