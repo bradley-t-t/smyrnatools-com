@@ -74,7 +74,8 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    opacity: 0.6;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -88,12 +89,13 @@
 }
 
 .calc-tab:hover:not(.disabled) {
-    color: var(--text-primary);
+    opacity: 1;
     background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
 }
 
 .calc-tab.active {
     color: var(--accent);
+    opacity: 1;
     border-bottom-color: var(--accent);
 }
 

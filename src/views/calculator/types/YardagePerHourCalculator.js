@@ -147,7 +147,7 @@ const YardagePerHourCalculator = () => {
                             <div className="yph-denominator">
                                 <div className="yph-time-inputs">
                                     <div className="yph-input-group time">
-                                        <label>Start</label>
+                                        <label>First Load</label>
                                         <div className="input-wrap">
                                             <input
                                                 type="time"
@@ -158,7 +158,7 @@ const YardagePerHourCalculator = () => {
                                     </div>
                                     <span className="yph-time-to">to</span>
                                     <div className={`yph-input-group time ${isOngoing ? 'live' : ''}`}>
-                                        <label>{isOngoing ? 'Now' : 'End'}</label>
+                                        <label>{isOngoing ? 'Now' : 'Last Poured'}</label>
                                         {isOngoing ? (
                                             <div className="yph-live-time">
                                                 <i className="fas fa-circle"></i>
