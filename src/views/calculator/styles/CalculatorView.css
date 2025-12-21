@@ -3026,7 +3026,6 @@
     gap: 10px;
     padding: 12px 16px;
     margin: 0 16px 16px;
-    background: color-mix(in srgb, var(--warning) 12%, transparent);
     border-radius: 8px;
     font-size: 13px;
     color: var(--warning);
@@ -3634,54 +3633,315 @@
     min-width: 120px;
 }
 
+.yph-calculator {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.yph-mode-toggle {
+    margin-left: auto;
+    display: flex;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.yph-mode-toggle .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.yph-mode-toggle .mode-btn:hover {
+    color: var(--text-primary);
+}
+
+.yph-mode-toggle .mode-btn.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.yph-mode-toggle .mode-btn.active.live {
+    background: var(--success);
+    color: white;
+}
+
+.yph-mode-toggle .mode-btn i {
+    font-size: 6px;
+}
+
+.yph-mode-toggle .mode-btn.active.live i {
+    animation: pulse 1.5s infinite;
+}
+
+.yph-main-layout {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.yph-equation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.yph-fraction {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.yph-numerator,
+.yph-denominator {
+    padding: 12px 0;
+}
+
+.yph-fraction-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--text-primary);
+    min-width: 280px;
+    border-radius: 2px;
+}
+
+.yph-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.yph-input-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.yph-input-group .input-wrap {
+    width: 140px;
+}
+
+.yph-input-group .input-wrap input {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    padding: 12px 8px;
+}
+
+.yph-input-group.time .input-wrap {
+    width: 120px;
+}
+
+.yph-input-group.time .input-wrap input {
+    font-size: 16px;
+    padding: 10px 8px;
+}
+
+.yph-input-group.live label {
+    color: var(--success);
+}
+
+.yph-time-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.yph-time-to {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-placeholder);
+    padding-bottom: 14px;
+}
+
+.yph-live-time {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: color-mix(in srgb, var(--success) 12%, transparent);
+    border: 1px solid var(--success);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.yph-live-time i {
+    font-size: 8px;
+    animation: pulse 1.5s infinite;
+}
+
+.yph-equals {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.yph-result-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    min-height: 100px;
+    padding: 16px 24px;
+    background: var(--bg-tertiary);
+    border-radius: 16px;
+    border: 2px solid transparent;
+}
+
+.yph-result-box.empty {
+    border-color: var(--border-medium);
+}
+
+.yph-result-box.success {
+    background: color-mix(in srgb, var(--success) 12%, transparent);
+    border-color: var(--success);
+}
+
+.yph-result-box.info {
+    background: color-mix(in srgb, var(--info) 12%, transparent);
+    border-color: var(--info);
+}
+
+.yph-result-box.warning {
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+    border-color: var(--warning);
+}
+
+.yph-result-box.error {
+    background: color-mix(in srgb, var(--error) 12%, transparent);
+    border-color: var(--error);
+}
+
+.yph-result-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.yph-result-box.success .yph-result-value { color: var(--success); }
+.yph-result-box.info .yph-result-value { color: var(--info); }
+.yph-result-box.warning .yph-result-value { color: var(--warning); }
+.yph-result-box.error .yph-result-value { color: var(--error); }
+
+.yph-result-unit {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.yph-result-empty {
+    font-size: 32px;
+    color: var(--text-placeholder);
+}
+
+.yph-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    flex-wrap: wrap;
+}
+
+.yph-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0 12px;
+}
+
+.yph-stat-item .stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.yph-stat-item .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.yph-stat-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border-medium);
+}
+
+.yph-status-badge {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white;
+}
+
+.yph-status-badge.success { background: var(--success); }
+.yph-status-badge.info { background: var(--info); }
+.yph-status-badge.warning { background: var(--warning); }
+.yph-status-badge.error { background: var(--error); }
+
 @media (max-width: 600px) {
-    .settime-results {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .settime-divider {
-        transform: rotate(90deg);
-    }
-
-    .weather-stats {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .manual-weather-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 4px;
-    }
-
-    .settime-factors {
-        gap: 8px;
-    }
-
-    .equation-container {
+    .yph-equation {
         flex-direction: column;
         gap: 16px;
     }
-
-    .fraction-group {
-        flex-wrap: wrap;
-        justify-content: center;
+    
+    .yph-fraction-bar {
+        min-width: 240px;
     }
-
-    .fraction-input .input-wrap {
-        width: 90px;
+    
+    .yph-time-inputs {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
     }
-
-    .fraction-line {
-        min-width: 180px;
+    
+    .yph-time-to {
+        padding: 0;
     }
-
-    .equation-equals {
+    
+    .yph-equals {
         transform: rotate(90deg);
     }
-
-    .mix-extra-row {
-        flex-direction: column;
+    
+    .yph-result-box {
+        width: 100%;
+    }
+    
+    .yph-stats-row {
+        gap: 12px;
+    }
+    
+    .yph-stat-divider {
+        display: none;
     }
 }

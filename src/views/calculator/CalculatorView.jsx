@@ -1,22 +1,26 @@
 import React, {useState} from 'react'
 import './styles/CalculatorView.css'
+import YardagePerHourCalculator from './types/YardagePerHourCalculator'
 import ProportionsCalculator from './types/ProportionsCalculator'
 import SlumpAdjustmentCalculator from './types/SlumpAdjustmentCalculator'
 import WaterCementCalculator from './types/WaterCementCalculator'
 import SetTimeCalculator from './types/SetTimeCalculator'
 
 const CALCULATOR_TYPES = [
+    {id: 'yardage-hour', name: 'Yd/Hr', icon: 'fa-tachometer-alt'},
     {id: 'proportions', name: 'Overweight Fix', icon: 'fa-balance-scale'},
-    {id: 'slump', name: 'Slump Adjust', icon: 'fa-tachometer-alt'},
+    {id: 'slump', name: 'Slump Adjust', icon: 'fa-arrows-alt-v'},
     {id: 'water-cement', name: 'W/C Ratio', icon: 'fa-tint'},
     {id: 'set-time', name: 'Set Time', icon: 'fa-clock'}
 ]
 
 const CalculatorView = () => {
-    const [selectedCalculator, setSelectedCalculator] = useState('proportions')
+    const [selectedCalculator, setSelectedCalculator] = useState('yardage-hour')
 
     const renderCalculator = () => {
         switch (selectedCalculator) {
+            case 'yardage-hour':
+                return <YardagePerHourCalculator/>
             case 'proportions':
                 return <ProportionsCalculator/>
             case 'slump':
