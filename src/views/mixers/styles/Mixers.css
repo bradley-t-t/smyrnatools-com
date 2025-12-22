@@ -19,3 +19,395 @@
     cursor: help;
     white-space: nowrap;
 }
+
+.operator-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.operator-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.operator-modal-container {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+.operator-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+}
+
+.operator-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.operator-modal-header .close-button {
+    background: transparent;
+    border: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.operator-modal-header .close-button:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.operator-modal-search {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-primary);
+}
+
+.operator-modal-search .search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.operator-modal-search .search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.operator-modal-search .search-input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.operator-modal-search .search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.operator-modal-search .search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.operator-modal-search .clear-search {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+
+.operator-modal-search .clear-search:hover {
+    color: var(--text-primary);
+}
+
+.operator-modal-search .filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.operator-modal-search .filter-button {
+    padding: 8px 14px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.operator-modal-search .filter-button:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg-secondary));
+}
+
+.operator-modal-search .filter-button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.operator-modal-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+    background: var(--bg-primary);
+}
+
+.operator-modal-content .filter-status {
+    display: none;
+}
+
+.operator-modal-content .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.operator-modal-content .loading-spinner .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border-light);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.operator-modal-content .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.operator-modal-content .no-results-icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+    color: var(--text-secondary);
+}
+
+.operator-modal-content .no-results p {
+    margin: 0 0 8px;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.operator-modal-content .no-results-hint {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.operator-modal-content .no-results-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.operator-modal-content .show-all-button,
+.operator-modal-content .add-operator-button,
+.operator-modal-content .cancel-button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.operator-modal-content .show-all-button {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+}
+
+.operator-modal-content .show-all-button:hover {
+    border-color: var(--accent);
+}
+
+.operator-modal-content .add-operator-button {
+    background: var(--accent);
+    border: none;
+    color: white;
+}
+
+.operator-modal-content .add-operator-button:hover {
+    filter: brightness(1.1);
+}
+
+.operator-modal-content .cancel-button {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+}
+
+.operator-modal-content .cancel-button:hover {
+    background: var(--bg-secondary);
+}
+
+.operator-modal-content .operator-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.operator-modal-content .operator-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+}
+
+.operator-modal-content .operator-item:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-secondary));
+}
+
+.operator-modal-content .operator-item.selected {
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg-secondary));
+    border-color: var(--accent);
+}
+
+.operator-modal-content .operator-item.unavailable {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.operator-modal-content .operator-item.unavailable:hover {
+    border-color: var(--border-light);
+    background: var(--bg-secondary);
+}
+
+.operator-modal-content .operator-main-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.operator-modal-content .operator-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.operator-modal-content .operator-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.operator-modal-content .operator-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.operator-modal-content .operator-position,
+.operator-modal-content .operator-plant,
+.operator-modal-content .operator-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.operator-modal-content .operator-position i,
+.operator-modal-content .operator-plant i,
+.operator-modal-content .operator-status i {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.operator-modal-content .operator-status {
+    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning);
+}
+
+.operator-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.operator-modal-footer .cancel-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.operator-modal-footer .cancel-button:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
