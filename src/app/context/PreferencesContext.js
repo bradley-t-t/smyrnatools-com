@@ -430,8 +430,6 @@ export const PreferencesProvider = ({children}) => {
         }
     }
 
-    const toggleAcceptReportSubmittedEmails = () => updatePreferences('acceptReportSubmittedEmails', !preferences.acceptReportSubmittedEmails)
-
     return (
         <PreferencesContext.Provider
             value={{
@@ -459,8 +457,7 @@ export const PreferencesProvider = ({children}) => {
                 resetOperatorFilters,
                 saveLastViewedFilters,
                 setSelectedRegion,
-                setRegionOverlayMinimized,
-                toggleAcceptReportSubmittedEmails
+                setRegionOverlayMinimized
             }}
         >
             {!loading && children}

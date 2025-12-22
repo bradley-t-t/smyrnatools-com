@@ -342,19 +342,28 @@ function ManagerDetailView({managerId, onClose}) {
             notFound={!manager && !isLoading}
             notFoundMessage="Manager Not Found"
             notFoundDescription="Could not find the requested manager. They may have been deleted."
-            footerActions={!isReadOnly && canEditManager ? (
+            footerActions={
                 <>
-                    <button className="primary-button save-button" onClick={handleSave} disabled={isSaving}>
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    {canDeleteManager && (
-                        <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
-                                disabled={isSaving}>
-                            Delete Manager
-                        </button>
+                    {!isReadOnly && canEditManager ? (
+                        <>
+                            <button className="primary-button save-button" onClick={handleSave} disabled={isSaving}>
+                                {isSaving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                            {canDeleteManager && (
+                                <button className="danger-button" onClick={() => setShowDeleteConfirmation(true)}
+                                        disabled={isSaving}>
+                                    Delete Manager
+                                </button>
+                            )}
+                        </>
+                    ) : (
+                        <div className="sidebar-readonly-notice">
+                            <i className="fas fa-lock"></i>
+                            <span>View-Only Mode</span>
+                        </div>
                     )}
                 </>
-            ) : null}
+            }
             showDeleteConfirmation={showDeleteConfirmation}
             onDeleteConfirm={handleDelete}
             onDeleteCancel={() => setShowDeleteConfirmation(false)}
@@ -373,17 +382,10 @@ function ManagerDetailView({managerId, onClose}) {
                 />
             )}
         >
-            {isReadOnly && (
-                <div className="message warning">
-                    <i className="fas fa-lock"></i>
-                    View-Only Mode | You can&apos;t edit this manager.
-                </div>
-            )}
             <div className="detail-card">
                 <div className="card-header">
                     <h2>Edit Information</h2>
                 </div>
-                <p className="edit-instructions">{canEditManager ? 'Make changes below and click Save when finished.' : 'You are in read-only mode and cannot make changes to this manager.'}</p>
                 <div className="form-sections">
                     <div className="form-section basic-info">
                         <h3>Basic Information</h3>

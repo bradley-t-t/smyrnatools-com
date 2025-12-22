@@ -224,7 +224,6 @@ function ReportsSubmitView({
             setSaveMessage('Changes saved.')
             setInitialFormSnapshot(JSON.stringify(form))
             setHasUnsavedChanges(false)
-            if (managerEditUser) await EmailUtility.sendReportSubmittedEmail({report, weekVerbose})
         } catch (err) {
             setError(err?.message || 'Error saving draft')
         }

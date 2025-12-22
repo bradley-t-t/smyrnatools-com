@@ -175,6 +175,9 @@
     min-width: 0;
     padding: 24px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .detail-view-message {
@@ -355,6 +358,27 @@
 .verify-now-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.sidebar-readonly-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    border: 1px solid var(--warning);
+    border-radius: 8px;
+    color: var(--text-primary);
+}
+
+.sidebar-readonly-notice i {
+    font-size: 16px;
+    color: var(--warning);
+}
+
+.sidebar-readonly-notice span {
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .verification-notice {

@@ -330,26 +330,33 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
             notFoundMessage="Operator Not Found"
             notFoundDescription="Could not find the requested operator."
             footerActions={
-                canEditOperator && (
-                    <>
-                        <button
-                            className="primary-button save-button"
-                            onClick={handleSave}
-                            disabled={isSaving || !canEditOperator}
-                        >
-                            {isSaving ? 'Saving...' : 'Save Changes'}
-                        </button>
-                        {canDeleteOperator && (
+                <>
+                    {canEditOperator ? (
+                        <>
                             <button
-                                className="danger-button"
-                                onClick={() => setShowDeleteConfirmation(true)}
+                                className="primary-button save-button"
+                                onClick={handleSave}
                                 disabled={isSaving || !canEditOperator}
                             >
-                                Delete Operator
+                                {isSaving ? 'Saving...' : 'Save Changes'}
                             </button>
-                        )}
-                    </>
-                )
+                            {canDeleteOperator && (
+                                <button
+                                    className="danger-button"
+                                    onClick={() => setShowDeleteConfirmation(true)}
+                                    disabled={isSaving || !canEditOperator}
+                                >
+                                    Delete Operator
+                                </button>
+                            )}
+                        </>
+                    ) : (
+                        <div className="sidebar-readonly-notice">
+                            <i className="fas fa-lock"></i>
+                            <span>View-Only Mode</span>
+                        </div>
+                    )}
+                </>
             }
             showDeleteConfirmation={_showDeleteConfirmation}
             onDeleteConfirm={handleDelete}
@@ -382,7 +389,6 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                 <div className="card-header">
                     <h2>Edit Information</h2>
                 </div>
-                <p className="edit-instructions">{canEditOperator ? 'Make changes below and click Save when finished.' : 'You are in read-only mode and cannot make changes to this operator.'}</p>
                 <div className="form-sections">
                     <div className="form-section basic-info">
                         <h3>Basic Information</h3>
@@ -528,14 +534,7 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                             </select>
                         </div>
                     </div>
-                </div>
-            </div>
-            {hasTrainingPermission && (
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Training Information</h2>
-                    </div>
-                    <div className="form-sections">
+                    {hasTrainingPermission && (
                         <div className="form-section training-info">
                             <h3>Training Details</h3>
                             <div className="form-group">
@@ -576,9 +575,9 @@ function OperatorDetailView({operatorId, onClose, allowedPlantCodes}) {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    )}
                 </div>
-            )}
+            </div>
         </DetailViewSection>
     );
 }
