@@ -437,7 +437,15 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     assetTitleCell.alignment = {vertical: 'middle', horizontal: 'center'}
     ws.getCell(asRow, assetCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
     ws.getRow(asRow).height = 28
-    asRow += 2
+    asRow++
+
+    ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
+    const assetNoteCell = ws.getCell(asRow, assetCol)
+    assetNoteCell.value = 'As of report generation'
+    assetNoteCell.font = {name: 'Calibri', size: 9, italic: true, color: {argb: COLORS.slate500}}
+    assetNoteCell.alignment = {vertical: 'middle', horizontal: 'center'}
+    ws.getRow(asRow).height = 16
+    asRow++
 
     const addAssetGroup = (title, counts) => {
         ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
@@ -899,7 +907,6 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             let prevRaw = prevDataSource[key]
             prevRaw = prevRaw === undefined || prevRaw === null || prevRaw === '' ? 0 : Number(prevRaw)
 
-            if (raw === 0 && prevRaw === 0) return
             aggTotal += raw
             prevAggTotal += prevRaw
 
