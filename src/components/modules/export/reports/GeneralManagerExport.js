@@ -63,7 +63,8 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
     for (let i = 0; i < weeksToExport.length; i++) {
         const weekData = weeksToExport[i]
         const prevWeekData = weeksToExport[i + 1] || null
-        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData, logoBase64, assetData)
+        const isCurrentWeek = i === 0
+        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData, logoBase64, isCurrentWeek ? assetData : null)
     }
 
     await exportWorkbook(wb, finalFilename)
@@ -648,7 +649,89 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     ws.getCell(r, 16).border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
 
     ws.getRow(r).height = 24
-    r += 3
+    r++
+
+    const currentWeekDate = weekIso ? new Date(weekIso + 'T00:00:00Z') : new Date()
+    const currentMonthKey = `${currentWeekDate.getUTCFullYear()}-${String(currentWeekDate.getUTCMonth() + 1).padStart(2, '0')}`
+    const currentYear = currentWeekDate.getUTCFullYear()
+
+    const currentMonthData = allMonthlyData.find(m => m.monthKey === currentMonthKey)
+    const currentYearData = allMonthlyData.filter(m => m.monthKey.startsWith(String(currentYear)))
+
+    const calcPlantSummaryTotals = (reports) => {
+        let ops = 0, runnable = 0, down = 0, yardage = 0, hours = 0
+        reports.forEach(data => {
+            sortedPlants.forEach(p => {
+                ops += ensure(data[`active_operators_${p.plant_code}`], true)
+                runnable += ensure(data[`runnable_trucks_${p.plant_code}`], true)
+                down += ensure(data[`down_trucks_${p.plant_code}`], true)
+                yardage += ensure(data[`total_yardage_${p.plant_code}`], true)
+                hours += ensure(data[`total_hours_${p.plant_code}`], true)
+            })
+        })
+        return {ops, runnable, down, yardage, hours}
+    }
+
+    const addSummaryTotalRow = (label, totals, bgColor) => {
+        ws.getCell(r, 2).value = ''
+        ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 3).value = label
+        ws.getCell(r, 3).font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
+        ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 3).alignment = {vertical: 'middle', horizontal: 'right'}
+        ws.getCell(r, 4).value = ''
+        ws.getCell(r, 4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 5).value = totals.ops
+        ws.getCell(r, 5).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+        ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 5).alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.getCell(r, 6).value = ''
+        ws.getCell(r, 6).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 7).value = totals.runnable
+        ws.getCell(r, 7).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+        ws.getCell(r, 7).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 7).alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.getCell(r, 8).value = ''
+        ws.getCell(r, 8).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 9).value = totals.down
+        ws.getCell(r, 9).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+        ws.getCell(r, 9).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 9).alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.getCell(r, 10).value = ''
+        ws.getCell(r, 10).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 11).value = totals.yardage
+        ws.getCell(r, 11).numFmt = '#,##0'
+        ws.getCell(r, 11).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+        ws.getCell(r, 11).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 11).alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.getCell(r, 12).value = ''
+        ws.getCell(r, 12).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 13).value = totals.hours
+        ws.getCell(r, 13).numFmt = '#,##0.0'
+        ws.getCell(r, 13).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+        ws.getCell(r, 13).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 13).alignment = {vertical: 'middle', horizontal: 'left'}
+        ws.mergeCells(r, 14, r, 16)
+        ws.getCell(r, 14).value = ''
+        ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 15).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getCell(r, 16).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+        ws.getRow(r).height = 20
+        r++
+    }
+
+    if (currentMonthData && currentMonthData.reports.length > 0) {
+        const monthTotals = calcPlantSummaryTotals(currentMonthData.reports)
+        addSummaryTotalRow(`MTD (${currentMonthData.monthName})`, monthTotals, COLORS.snow)
+    }
+
+    if (currentYearData.length > 0) {
+        const allYearReports = currentYearData.flatMap(m => m.reports)
+        const yearTotals = calcPlantSummaryTotals(allYearReports)
+        addSummaryTotalRow(`YTD (${currentYear})`, yearTotals, COLORS.snow)
+    }
+
+    r += 2
 
     if (sortedEffReports.length > 0) {
         addSectionTitle(ws, r, 'Efficiency Overview')
@@ -858,7 +941,75 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         applyTotalCell(ws.getCell(r, 14), avgEnd + ' mins')
 
         ws.getRow(r).height = 24
-        r += 3
+        r++
+
+        const addEfficiencyAvgRow = (label, loads, hours, lph, start, end, bgColor) => {
+            ws.getCell(r, 2).value = ''
+            ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.mergeCells(r, 3, r, 4)
+            ws.getCell(r, 3).value = label
+            ws.getCell(r, 3).font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 3).alignment = {vertical: 'middle', horizontal: 'right'}
+            ws.getCell(r, 4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 5).value = ''
+            ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 6).value = loads
+            ws.getCell(r, 6).numFmt = '#,##0'
+            ws.getCell(r, 6).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 6).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 6).alignment = {vertical: 'middle', horizontal: 'left'}
+            ws.getCell(r, 7).value = ''
+            ws.getCell(r, 7).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 8).value = hours
+            ws.getCell(r, 8).numFmt = '#,##0.0'
+            ws.getCell(r, 8).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 8).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 8).alignment = {vertical: 'middle', horizontal: 'left'}
+            ws.getCell(r, 9).value = ''
+            ws.getCell(r, 9).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 10).value = lph
+            ws.getCell(r, 10).numFmt = '#,##0.0'
+            ws.getCell(r, 10).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 10).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 10).alignment = {vertical: 'middle', horizontal: 'left'}
+            ws.getCell(r, 11).value = ''
+            ws.getCell(r, 11).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 12).value = start + ' mins'
+            ws.getCell(r, 12).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 12).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 12).alignment = {vertical: 'middle', horizontal: 'left'}
+            ws.getCell(r, 13).value = ''
+            ws.getCell(r, 13).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 14).value = end + ' mins'
+            ws.getCell(r, 14).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+            ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+            ws.getCell(r, 14).alignment = {vertical: 'middle', horizontal: 'left'}
+            ws.getRow(r).height = 20
+            r++
+        }
+
+        if (currentMonthData && currentMonthData.reports.length > 0) {
+            const monthReportCount = currentMonthData.reports.length
+            const mtdLoads = totalLoadsEff * monthReportCount
+            const mtdHours = totalHoursEff * monthReportCount
+            const mtdLph = avgLph
+            const mtdStart = avgStart
+            const mtdEnd = avgEnd
+            addEfficiencyAvgRow(`MTD (${currentMonthData.monthName})`, mtdLoads, truncateToTenth(mtdHours), truncateToTenth(mtdLph), truncateToTenth(mtdStart), truncateToTenth(mtdEnd), COLORS.snow)
+        }
+
+        if (currentYearData.length > 0) {
+            const totalYearReports = currentYearData.reduce((sum, m) => sum + m.reports.length, 0)
+            const ytdLoads = totalLoadsEff * totalYearReports
+            const ytdHours = totalHoursEff * totalYearReports
+            const ytdLph = avgLph
+            const ytdStart = avgStart
+            const ytdEnd = avgEnd
+            addEfficiencyAvgRow(`YTD (${currentYear})`, ytdLoads, truncateToTenth(ytdHours), truncateToTenth(ytdLph), truncateToTenth(ytdStart), truncateToTenth(ytdEnd), COLORS.snow)
+        }
+
+        r += 2
     }
 
     const aggregateReport = await fetchAggregateProductionReport(weekIso)
@@ -973,8 +1124,36 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             totalValCell.alignment = {vertical: 'middle', horizontal: 'left'}
 
             ws.getRow(r).height = 24
+            r++
+
+            const addAggTotalRow = (label, value, bgColor) => {
+                ws.mergeCells(r, 2, r, 3)
+                ws.getCell(r, 2).value = label
+                ws.getCell(r, 2).font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
+                ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+                ws.getCell(r, 2).alignment = {vertical: 'middle', horizontal: 'right'}
+                ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+                ws.getCell(r, 4).value = ''
+                ws.getCell(r, 4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+                ws.getCell(r, 5).value = value
+                ws.getCell(r, 5).numFmt = '#,##0.0'
+                ws.getCell(r, 5).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
+                ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+                ws.getCell(r, 5).alignment = {vertical: 'middle', horizontal: 'left'}
+                ws.getRow(r).height = 20
+                r++
+            }
+
+            if (currentMonthData && currentMonthData.reports.length > 0) {
+                addAggTotalRow(`MTD (${currentMonthData.monthName})`, aggTotal * currentMonthData.reports.length, COLORS.snow)
+            }
+
+            if (currentYearData.length > 0) {
+                const totalYearReports = currentYearData.reduce((sum, m) => sum + m.reports.length, 0)
+                addAggTotalRow(`YTD (${currentYear})`, aggTotal * totalYearReports, COLORS.snow)
+            }
         }
-        r += 3
+        r += 2
     }
 
     if (rmiData) {
