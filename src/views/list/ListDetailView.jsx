@@ -269,7 +269,7 @@ function ListDetailView({itemId, onClose}) {
                     <div className="card-header">
                         <h2>Task Information</h2>
                     </div>
-                    <p className="edit-instructions">{canEditList ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this item.'}</p>
+
                     <div className="form-sections">
                         <div className="form-section">
                             <h3>Basic Information</h3>
@@ -380,19 +380,19 @@ function ListDetailView({itemId, onClose}) {
                         </div>
                     </div>
                 </div>
-                {showPlantModal && (
-                    <PlantDropdownModal
-                        isOpen={showPlantModal}
-                        onClose={() => setShowPlantModal(false)}
-                        plants={filteredPlants}
-                        onSelect={code => {
-                            setFormData(prev => ({...prev, plantCode: code}));
-                            setShowPlantModal(false);
-                        }}
-                        searchPlaceholder="Search plants..."
-                    />
-                )}
             </DetailViewSection>
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={code => {
+                        setFormData(prev => ({...prev, plantCode: code}));
+                        setShowPlantModal(false);
+                    }}
+                    searchPlaceholder="Search plants..."
+                />
+            )}
         </>
     );
 }

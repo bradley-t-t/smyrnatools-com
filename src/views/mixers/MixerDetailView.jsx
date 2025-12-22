@@ -587,13 +587,8 @@ function MixerDetailView({mixerId, onClose}) {
 
     const verificationItems = [
         {
-            icon: 'fas fa-calendar-plus',
-            label: 'Created',
-            value: mixer.createdAt ? new Date(mixer.createdAt).toLocaleString() : 'Not Assigned'
-        },
-        {
             icon: 'fas fa-calendar-check',
-            label: 'Last Verified',
+            label: 'Verified',
             value: mixer.updatedLast
                 ? `${new Date(mixer.updatedLast).toLocaleString()}${!Mixer.ensureInstance(mixer).isVerified() ? (new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
                 : 'Never verified',
@@ -770,7 +765,7 @@ function MixerDetailView({mixerId, onClose}) {
                     <div className="card-header">
                         <h2>Mixer Information</h2>
                     </div>
-                    <p className="edit-instructions">{canEditMixer ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this mixer.'}</p>
+
                     <div className="form-sections">
                         <div className="form-section basic-info">
                             <h3>Basic Information</h3>

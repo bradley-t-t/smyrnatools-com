@@ -249,10 +249,9 @@ function DetailViewSection({
                             aria-label="Back"
                         >
                             <i className="fas fa-arrow-left"></i>
-                            <span>Back</span>
                         </button>
+                        <h1>{title}</h1>
                     </div>
-                    <h1>{title}</h1>
                     <div className="detail-view-header-actions">
                         {headerActions}
                     </div>
@@ -261,38 +260,43 @@ function DetailViewSection({
                     {isLoading ? (
                         <LoadingScreen inline message={loadingMessage}/>
                     ) : (
-                        <>
-                            {verificationCard && (
-                                <div className="detail-card slide-in-item" style={{'--item-index': 0}}>
+                        <div className="detail-view-layout">
+                            {(verificationCard || footerActions) && (
+                                <div className="detail-view-sidebar">
                                     {verificationCard}
-                                </div>
-                            )}
-                            {React.Children.map(children, (child, index) => {
-                                if (React.isValidElement(child) && child.props.className?.includes('detail-card')) {
-                                    return React.cloneElement(child, {
-                                        className: `${child.props.className || 'detail-card'} slide-in-item`,
-                                        style: {'--item-index': verificationCard ? index + 1 : index, ...child.props.style}
-                                    })
-                                }
-                                return child
-                            })}
-                            {footerActions && (
-                                <div className="form-actions">
-                                    {hasRegionTransferPermission && onRegionTransfer && currentRegion && (
-                                        <button
-                                            type="button"
-                                            className="global-button-secondary transfer-region-button"
-                                            onClick={handleOpenRegionTransfer}
-                                            disabled={isSaving}
-                                        >
-                                            <i className="fas fa-exchange-alt"></i>
-                                            <span>Transfer Region</span>
-                                        </button>
+                                    {footerActions && (
+                                        <div className="form-actions">
+                                            <div className="form-actions-right">
+                                                {footerActions}
+                                            </div>
+                                            {hasRegionTransferPermission && onRegionTransfer && currentRegion && (
+                                                <div className="form-actions-left">
+                                                    <button
+                                                        type="button"
+                                                        className="transfer-region-button"
+                                                        onClick={handleOpenRegionTransfer}
+                                                        disabled={isSaving}
+                                                    >
+                                                        <i className="fas fa-exchange-alt"></i>
+                                                        <span>Transfer</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
-                                    {footerActions}
                                 </div>
                             )}
-                        </>
+                            <div className="detail-view-main">
+                                {React.Children.map(children, (child) => {
+                                    if (React.isValidElement(child) && child.props.className?.includes('detail-card')) {
+                                        return React.cloneElement(child, {
+                                            className: `${child.props.className || 'detail-card'}`
+                                        })
+                                    }
+                                    return child
+                                })}
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>

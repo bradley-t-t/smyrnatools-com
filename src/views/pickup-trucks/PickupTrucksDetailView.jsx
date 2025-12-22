@@ -292,48 +292,67 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
     }, []);
 
     return (
-        <DetailViewSection
-            title={`Pickup ${assigned ? `- ${assigned}` : ''}`}
-            onClose={onClose}
-            onBack={handleBackClick}
-            isSaving={isSaving}
-            message={message}
-            itemAssignedPlant={pickup?.assignedPlant}
-            onCanEditChange={setCanEditPickup}
-            isLoading={isLoading}
-            loadingMessage="Loading pickup details..."
-            notFound={!pickup && !isLoading}
-            notFoundMessage="Pickup Not Found"
-            notFoundDescription="Could not find the requested pickup."
-            currentRegion={currentRegion}
-            assetType="pickup_truck"
-            onRegionTransfer={handleRegionTransfer}
-            headerActions={
-                pickup && (
-                    <>
-                        <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
-                            <i className="fas fa-tools"></i> Issues
-                        </button>
-                        <button className="global-button-secondary" onClick={() => setShowComments(true)}>
-                            <i className="fas fa-comments"></i> Comments
-                        </button>
-                        <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
-                            <i className="fas fa-history"></i>
-                            <span>History</span>
-                        </button>
-                    </>
-                )
-            }
-            footerActions={
-                canEditPickup && (
-                    <>
-                        <button className="primary-button save-button" onClick={handleSave}
-                                disabled={isSaving || !canEditPickup}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                        {canDeletePickup && (
-                            <button className="danger-button" onClick={handleDelete}
-                                    disabled={isSaving || !canEditPickup}>Delete Pickup
+        <>
+            {showHistory &&
+                <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
+            {showComments &&
+                <PickupTruckCommentModal pickupId={pickup?.id}
+                                         pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                         onClose={() => setShowComments(false)}/>}
+            {showIssues && <PickupTruckIssueModal pickupId={pickup?.id}
+                                                  pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                                  onClose={() => setShowIssues(false)}/>}
+            {showPlantModal && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => setShowPlantModal(false)}
+                    plants={filteredPlants}
+                    onSelect={setAssignedPlant}
+                    searchPlaceholder="Search plants..."
+                />
+            )}
+            <DetailViewSection
+                title={`Pickup ${assigned ? `- ${assigned}` : ''}`}
+                onClose={onClose}
+                onBack={handleBackClick}
+                isSaving={isSaving}
+                message={message}
+                itemAssignedPlant={pickup?.assignedPlant}
+                onCanEditChange={setCanEditPickup}
+                isLoading={isLoading}
+                loadingMessage="Loading pickup details..."
+                notFound={!pickup && !isLoading}
+                notFoundMessage="Pickup Not Found"
+                notFoundDescription="Could not find the requested pickup."
+                currentRegion={currentRegion}
+                assetType="pickup_truck"
+                onRegionTransfer={handleRegionTransfer}
+                headerActions={
+                    pickup && (
+                        <>
+                            <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                                <i className="fas fa-tools"></i> Issues
                             </button>
-                        )}
+                            <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                                <i className="fas fa-comments"></i> Comments
+                            </button>
+                            <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                                <i className="fas fa-history"></i>
+                                <span>History</span>
+                            </button>
+                        </>
+                    )
+                }
+                footerActions={
+                    canEditPickup && (
+                        <>
+                            <button className="primary-button save-button" onClick={handleSave}
+                                    disabled={isSaving || !canEditPickup}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
+                            {canDeletePickup && (
+                                <button className="danger-button" onClick={handleDelete}
+                                        disabled={isSaving || !canEditPickup}>Delete Pickup
+                                </button>
+                            )}
                     </>
                 )
             }
@@ -362,7 +381,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
         >
             <div className="detail-card">
                 <div className="card-header"><h2>Pickup Information</h2></div>
-                <p className="edit-instructions">{canEditPickup ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this pickup.'}</p>
+
                 <div className="form-sections pickup-form-sections">
                     <div className="form-section basic-info">
                         <h3>Basic Information</h3>
@@ -424,6 +443,7 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                 </div>
             </div>
         </DetailViewSection>
+        </>
     )
 }
 

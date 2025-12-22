@@ -12,6 +12,10 @@
     animation: slideInUp 0.4s ease;
 }
 
+body:has(.detail-view) .podcast-popup {
+    display: none;
+}
+
 @keyframes slideInUp {
     from {
         opacity: 0;

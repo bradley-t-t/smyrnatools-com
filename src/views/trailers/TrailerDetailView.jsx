@@ -43,7 +43,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
     const [comments, setComments] = useState([]);
     const [issues, setIssues] = useState([]);
     const [status, setStatus] = useState(trailer?.status || '');
-    const trailerCardRef = useRef(null);
+    const _trailerCardRef = useRef(null);
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [canDeleteTrailer, setCanDeleteTrailer] = useState(false);
@@ -424,7 +424,7 @@ function TrailerDetailView({trailer: initialTrailer, trailerId, onClose}) {
         fetchCommentsAndIssues();
     }, [trailer, trailerId]);
 
-    function handleExportEmail() {
+    function _handleExportEmail() {
         if (!trailer) return;
         const hasComments = comments && comments.length > 0;
         const openIssues = (issues || []).filter(issue => !issue.time_completed);
@@ -603,7 +603,7 @@ ${openIssues.length > 0
                     <div className="card-header">
                         <h2>Trailer Information</h2>
                     </div>
-                    <p className="edit-instructions">{canEditTrailer ? "You can make changes below. Remember to save your changes." : "You are in read-only mode and cannot make changes to this trailer."}</p>
+
                     <div className="form-sections">
                         <div className="form-section basic-info">
                             <h3>Basic Information</h3>

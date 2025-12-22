@@ -616,13 +616,8 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                         verificationLabel={!equipment.updatedLast || !equipment.updatedBy ? 'Needs Verification' : 'Verification Outdated'}
                         verificationItems={[
                             {
-                                icon: 'fas fa-calendar-plus',
-                                label: 'Created',
-                                value: equipment.createdAt ? new Date(equipment.createdAt).toLocaleString() : 'Not Assigned'
-                            },
-                            {
                                 icon: 'fas fa-calendar-check',
-                                label: 'Last Verified',
+                                label: 'Verified',
                                 value: equipment.updatedLast
                                     ? `${new Date(equipment.updatedLast).toLocaleString()}${!Equipment.ensureInstance(equipment).isVerified() ? (new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
                                     : 'Never verified',
@@ -678,7 +673,7 @@ function EquipmentDetailView({equipmentId, onClose, onSaved}) {
                     <div className="card-header">
                         <h2>Equipment Information</h2>
                     </div>
-                    <p className="edit-instructions">{canEditEquipment ? "You can make changes below. Remember to save your changes." : "You are in read-only mode and cannot make changes to this equipment."}</p>
+
                     <div className="form-sections">
                         <div className="form-section basic-info">
                             <h3>Basic Information</h3>

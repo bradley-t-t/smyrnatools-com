@@ -551,13 +551,8 @@ function TractorDetailView({tractorId, onClose}) {
 
     const verificationItems = [
         {
-            icon: 'fas fa-calendar-plus',
-            label: 'Created',
-            value: tractor.createdAt ? new Date(tractor.createdAt).toLocaleString() : 'Not Assigned'
-        },
-        {
             icon: 'fas fa-calendar-check',
-            label: 'Last Verified',
+            label: 'Verified',
             value: tractor.updatedLast
                 ? `${new Date(tractor.updatedLast).toLocaleString()}${!Tractor.ensureInstance(tractor).isVerified() ? (new Date(tractor.updatedAt) > new Date(tractor.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
                 : 'Never verified',
@@ -727,7 +722,7 @@ function TractorDetailView({tractorId, onClose}) {
                     <div className="card-header">
                         <h2>Tractor Information</h2>
                     </div>
-                    <p className="edit-instructions">{canEditTractor ? 'You can make changes below. Remember to save your changes.' : 'You are in read-only mode and cannot make changes to this tractor.'}</p>
+
                     <div className="form-sections">
                         <div className="form-section basic-info">
                             <h3>Basic Information</h3>
