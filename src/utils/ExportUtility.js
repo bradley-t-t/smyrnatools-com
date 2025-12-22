@@ -307,7 +307,7 @@ export async function fetchAllMonthlyGMReports() {
         const weekDate = new Date(mondayIso + 'T00:00:00Z')
         const monthKey = `${weekDate.getUTCFullYear()}-${String(weekDate.getUTCMonth() + 1).padStart(2, '0')}`
         if (byMonth.has(monthKey)) {
-            byMonth.get(monthKey).reports.push(r.data)
+            byMonth.get(monthKey).reports.push({data: r.data, weekIso: mondayIso})
             byMonth.get(monthKey).weekIsos.add(mondayIso)
         }
     })

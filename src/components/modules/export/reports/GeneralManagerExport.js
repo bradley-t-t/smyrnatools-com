@@ -298,12 +298,13 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         const weekCount = reports.length
         reports.forEach(rpt => {
             if (!rpt) return
+            const data = rpt.data || rpt
             sortedPlants.forEach(p => {
-                ops += ensure(rpt[`active_operators_${p.plant_code}`], true)
-                runnable += ensure(rpt[`runnable_trucks_${p.plant_code}`], true)
-                down += ensure(rpt[`down_trucks_${p.plant_code}`], true)
-                yardage += ensure(rpt[`total_yardage_${p.plant_code}`], true)
-                hours += ensure(rpt[`total_hours_${p.plant_code}`], true)
+                ops += ensure(data[`active_operators_${p.plant_code}`], true)
+                runnable += ensure(data[`runnable_trucks_${p.plant_code}`], true)
+                down += ensure(data[`down_trucks_${p.plant_code}`], true)
+                yardage += ensure(data[`total_yardage_${p.plant_code}`], true)
+                hours += ensure(data[`total_hours_${p.plant_code}`], true)
             })
         })
         const avgOps = weekCount > 0 ? Math.round(ops / weekCount) : 0
@@ -312,7 +313,12 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         return {yardage, hours, loads: Math.round(yardage / 10), avgOps, avgRunnable, avgDown, weekCount}
     }
 
-    const monthlyTotals = allMonthlyData.map(m => ({
+    const filteredMonthlyForSidebar = allMonthlyData.map(m => {
+        const filtered = m.reports.filter(r => r.weekIso <= weekIso)
+        return {...m, reports: filtered, weekIsos: new Set(filtered.map(r => r.weekIso))}
+    }).filter(m => m.reports.length > 0)
+
+    const monthlyTotals = filteredMonthlyForSidebar.map(m => ({
         ...m,
         totals: calcMonthlyTotals(m.reports)
     }))
@@ -655,8 +661,17 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     const currentMonthKey = `${currentWeekDate.getUTCFullYear()}-${String(currentWeekDate.getUTCMonth() + 1).padStart(2, '0')}`
     const currentYear = currentWeekDate.getUTCFullYear()
 
-    const currentMonthData = allMonthlyData.find(m => m.monthKey === currentMonthKey)
-    const currentYearData = allMonthlyData.filter(m => m.monthKey.startsWith(String(currentYear)))
+    const filterReportsUpToWeek = (monthlyDataArray) => {
+        return monthlyDataArray.map(m => {
+            const filteredReports = m.reports.filter(r => r.weekIso <= weekIso).map(r => r.data)
+            const filteredWeekIsos = new Set(m.reports.filter(r => r.weekIso <= weekIso).map(r => r.weekIso))
+            return {...m, reports: filteredReports, weekIsos: filteredWeekIsos}
+        }).filter(m => m.reports.length > 0)
+    }
+
+    const filteredMonthlyData = filterReportsUpToWeek(allMonthlyData)
+    const currentMonthData = filteredMonthlyData.find(m => m.monthKey === currentMonthKey)
+    const currentYearData = filteredMonthlyData.filter(m => m.monthKey.startsWith(String(currentYear)))
 
     const calcPlantSummaryTotals = (reports) => {
         let ops = 0, runnable = 0, down = 0, yardage = 0, hours = 0
