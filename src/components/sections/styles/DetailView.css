@@ -116,8 +116,7 @@
 
 .detail-view-content {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 .detail-view-content::-webkit-scrollbar {
@@ -165,7 +164,7 @@
         position: sticky;
         top: 0;
         height: 100vh;
-        overflow-y: auto;
+        overflow: hidden;
         padding: 20px;
     }
 }
@@ -425,6 +424,10 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+.detail-card > .form-sections:last-child {
+    padding-bottom: 80px;
 }
 
 .detail-view .form-section,
