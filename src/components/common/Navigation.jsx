@@ -75,12 +75,12 @@ const menuItems = [
     {text: 'Operators', id: 'Operators', permission: 'operators.view', alwaysVisible: false},
     {text: 'Managers', id: 'Managers', permission: 'managers.view', alwaysVisible: false},
     {text: 'List', id: 'List', permission: 'list.view', alwaysVisible: false},
-    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view', alwaysVisible: false},
     {text: 'Reports', id: 'Reports', permission: 'reports.view', alwaysVisible: false},
     {text: 'Plants', id: 'Plants', permission: 'plants.view', alwaysVisible: false},
     {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false},
     {text: 'Roles', id: 'Roles', permission: 'roles.view', alwaysVisible: false},
-    {text: 'Calculators', id: 'Calculators', permission: 'calculator.view', alwaysVisible: false}
+    {text: 'Calculators', id: 'Calculators', permission: 'calculator.view', alwaysVisible: false},
+    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view', alwaysVisible: false}
 ]
 
 export default function Navigation({
@@ -203,7 +203,7 @@ export default function Navigation({
 
                 const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
                 const peopleItems = ['Operators', 'Managers']
-                const productivityItems = ['List', 'Reports', 'Leaderboards']
+                const productivityItems = ['List', 'Reports']
 
                 const shouldCombineProductivity = filtered.filter(item => productivityItems.includes(item.id)).length > 1
 
@@ -489,7 +489,7 @@ export default function Navigation({
                                 const shouldShowPeople = hasOperators && hasManagers
                                 const isPeopleActive = peopleItems.includes(selectedView)
 
-                                const productivityItems = ['List', 'Reports', 'Leaderboards']
+                                const productivityItems = ['List', 'Reports']
                                 const productivityCount = productivityItems.filter(id => visibleIds.has(id) || exitingIds.has(id)).length
                                 const shouldShowProductivity = productivityCount > 1
                                 const isProductivityActive = productivityItems.includes(selectedView)
@@ -592,10 +592,11 @@ export default function Navigation({
                                 }
 
                                 if (shouldShowPeople) {
+                                    const isPeopleEntering = enteringItemIds.has('people-dropdown')
                                     result.push(
                                         <li
                                             key="people-dropdown"
-                                            className={`menu-item people-dropdown-toggle ${isPeopleActive ? 'active' : ''}`}
+                                            className={`menu-item people-dropdown-toggle ${isPeopleActive ? 'active' : ''} ${isPeopleEntering ? 'animating-in' : ''}`}
                                             ref={peopleDropdownRef}
                                             onClick={() => {
                                                 setShowPeopleDropdown(prev => !prev)

@@ -73,6 +73,8 @@ const defaultPreferences = {
     accentColor: cachedTheme.accentColor,
     showOnlineOverlay: true,
     showPodcastOverlay: true,
+    blurBg: false,
+    solidBg: false,
     defaultViewMode: null,
     mixerFilters: {
         searchText: '',
@@ -151,6 +153,9 @@ export const PreferencesProvider = ({children}) => {
                             accentColor: data.accent_color || 'red',
                             showOnlineOverlay: data.show_online_overlay === undefined ? true : data.show_online_overlay,
                             showPodcastOverlay: data.show_podcast_overlay === undefined ? true : data.show_podcast_overlay,
+                            blurBg: data.blur_bg === undefined ? false : data.blur_bg,
+                            solidBg: data.solid_bg === undefined ? false : data.solid_bg,
+                            blurBgIntensity: data.blur_bg_intensity === undefined ? 12 : data.blur_bg_intensity,
                             defaultViewMode: data.default_view_mode === undefined ? null : data.default_view_mode,
                             mixerFilters: data.mixer_filters ? {
                                 ...data.mixer_filters,
@@ -277,6 +282,8 @@ export const PreferencesProvider = ({children}) => {
                 show_online_overlay: updatedPreferences.showOnlineOverlay,
                 show_podcast_overlay: updatedPreferences.showPodcastOverlay,
                 blur_bg: updatedPreferences.blurBg,
+                solid_bg: updatedPreferences.solidBg,
+                blur_bg_intensity: updatedPreferences.blurBgIntensity,
                 default_view_mode: updatedPreferences.defaultViewMode,
                 mixer_filters: updatedPreferences.mixerFilters,
                 operator_filters: updatedPreferences.operatorFilters,
@@ -389,6 +396,19 @@ export const PreferencesProvider = ({children}) => {
     const toggleShowOnlineOverlay = () => updatePreferences('showOnlineOverlay', !preferences.showOnlineOverlay)
     const toggleShowPodcastOverlay = () => updatePreferences('showPodcastOverlay', !preferences.showPodcastOverlay)
     const toggleBlurBg = () => updatePreferences('blurBg', !preferences.blurBg)
+    const setBackgroundMode = (mode) => {
+        if (mode === 'video') {
+            updatePreferences({blurBg: false, solidBg: false})
+        } else if (mode === 'blurred') {
+            updatePreferences({blurBg: true, solidBg: false})
+        } else if (mode === 'solid') {
+            updatePreferences({blurBg: false, solidBg: true})
+        }
+    }
+    const setBlurBgIntensity = (intensity) => {
+        const value = Math.min(50, Math.max(1, parseInt(intensity) || 12))
+        updatePreferences('blurBgIntensity', value)
+    }
     const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) && updatePreferences('themeMode', mode)
     const setAccentColor = color => (color === 'red' || color === 'blue' || color === 'grey') && updatePreferences('accentColor', color)
     const saveLastViewedFilters = async filters => {
@@ -420,6 +440,8 @@ export const PreferencesProvider = ({children}) => {
                 toggleShowOnlineOverlay,
                 toggleShowPodcastOverlay,
                 toggleBlurBg,
+                setBackgroundMode,
+                setBlurBgIntensity,
                 setThemeMode,
                 setAccentColor,
                 updatePreferences,

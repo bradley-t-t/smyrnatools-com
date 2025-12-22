@@ -108,6 +108,8 @@ const ThemeUtility = {
             red: isDarkMode ? this.accent.red.secondary : this.accent.red.primary,
             blue: isDarkMode ? this.accent.blue.secondary : this.accent.blue.primary,
             grey: isDarkMode ? this.accent.grey.secondary : this.accent.grey.primary,
+            darkgrey: '#333333',
+            lightgrey: '#f5f5f5',
             white: this.colors.white,
             black: this.colors.black,
             gray: this.colors.gray
@@ -116,7 +118,8 @@ const ThemeUtility = {
     },
 
     getOtherAccentColor(currentAccent, mode) {
-        return 'grey';
+        const isDarkMode = mode === 'dark' || (mode === undefined && (document.documentElement.classList.contains('dark-mode') || document.documentElement.classList.contains('old-dark-mode')));
+        return isDarkMode ? 'lightgrey' : 'darkgrey';
     },
 
     statusColor(status) {

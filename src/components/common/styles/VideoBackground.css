@@ -55,7 +55,6 @@ html.old-dark-mode .video-background-fallback {
 }
 
 .video-background-video.video-blurred {
-    filter: blur(12px);
     transform: translate(-50%, -50%) scale(1.1);
 }
 
@@ -68,4 +67,12 @@ html.old-dark-mode .video-background-fallback {
     background: rgba(0, 0, 0, 0.4);
     z-index: 3;
     pointer-events: none;
+}
+
+.video-background-container.solid-background .video-background-overlay {
+    display: none;
+}
+
+.video-background-container.solid-background .video-background-fallback {
+    background: var(--bg-primary);
 }

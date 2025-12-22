@@ -87,23 +87,26 @@ function VideoBackground({className = ''}) {
     }
 
     return (
-        <div className={`video-background-container ${className}`}>
+        <div className={`video-background-container ${className} ${preferences.solidBg ? 'solid-background' : ''}`}>
             <div className="video-background-fallback"/>
-            <video
-                ref={videoRef}
-                key={currentVideoIndex}
-                muted
-                loop={false}
-                playsInline
-                preload="auto"
-                onLoadedMetadata={handleLoadedMetadata}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleVideoEnd}
-                onError={() => setShowVideo(true)}
-                className={`video-background-video ${showVideo ? 'video-visible' : ''} ${preferences.blurBg ? 'video-blurred' : ''}`}
-            >
-                <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
-            </video>
+            {!preferences.solidBg && (
+                <video
+                    ref={videoRef}
+                    key={currentVideoIndex}
+                    muted
+                    loop={false}
+                    playsInline
+                    preload="auto"
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onTimeUpdate={handleTimeUpdate}
+                    onEnded={handleVideoEnd}
+                    onError={() => setShowVideo(true)}
+                    className={`video-background-video ${showVideo ? 'video-visible' : ''} ${preferences.blurBg ? 'video-blurred' : ''}`}
+                    style={preferences.blurBg ? {filter: `blur(${preferences.blurBgIntensity || 12}px)`} : {}}
+                >
+                    <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
+                </video>
+            )}
             <div className="video-background-overlay"/>
         </div>
     )

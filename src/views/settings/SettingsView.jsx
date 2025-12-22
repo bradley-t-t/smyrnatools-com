@@ -18,7 +18,8 @@ function SettingsView() {
         preferences,
         toggleShowOnlineOverlay,
         toggleShowPodcastOverlay,
-        toggleBlurBg,
+        setBackgroundMode,
+        setBlurBgIntensity,
         setThemeMode,
         setAccentColor,
         toggleAcceptReportSubmittedEmails
@@ -182,15 +183,48 @@ function SettingsView() {
                             <span
                                 className="toggle-state">{preferences.showPodcastOverlay ? 'Visible' : 'Hidden'}</span>
                         </div>
-                        <div className="toggle-setting">
-                            <span className="toggle-label">Blur Video Background</span>
-                            <label className="switch">
-                                <input type="checkbox" checked={preferences.blurBg}
-                                       onChange={() => save(toggleBlurBg)}/>
-                                <span className="slider round"></span>
-                            </label>
-                            <span className="toggle-state">{preferences.blurBg ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                    <div className="settings-section">
+                        <h3>Background</h3>
+                        <div className="background-selector">
+                            <div 
+                                className={`background-option ${!preferences.blurBg && !preferences.solidBg ? 'active' : ''}`}
+                                onClick={() => save(setBackgroundMode, 'video')}
+                            >
+                                <i className="fas fa-video"></i>
+                                <span>Video</span>
+                            </div>
+                            <div 
+                                className={`background-option ${preferences.blurBg && !preferences.solidBg ? 'active' : ''}`}
+                                onClick={() => save(setBackgroundMode, 'blurred')}
+                            >
+                                <i className="fas fa-eye-slash"></i>
+                                <span>Blurred</span>
+                            </div>
+                            <div 
+                                className={`background-option ${preferences.solidBg ? 'active' : ''}`}
+                                onClick={() => save(setBackgroundMode, 'solid')}
+                            >
+                                <i className="fas fa-square"></i>
+                                <span>Solid</span>
+                            </div>
                         </div>
+                        {preferences.blurBg && !preferences.solidBg && (
+                            <div className="blur-intensity-slider">
+                                <label>Blur Intensity</label>
+                                <div className="slider-container">
+                                    <span className="slider-label">Low</span>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="10"
+                                        value={Math.round(preferences.blurBgIntensity / 5)}
+                                        onChange={(e) => save(setBlurBgIntensity, e.target.value * 5)}
+                                    />
+                                    <span className="slider-label">High</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="settings-card settings-slide-in" style={{animationDelay: '0.3s'}}>
