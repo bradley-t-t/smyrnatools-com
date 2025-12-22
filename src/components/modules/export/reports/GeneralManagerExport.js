@@ -136,6 +136,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     ws.getColumn(overviewCol).width = 14
     ws.getColumn(overviewCol + 1).width = 8
     ws.getColumn(overviewCol + 2).width = 10
+    ws.getColumn(overviewCol + 3).width = 1
 
     const totalLoads = Math.round(totalYardage / 10)
     const allocationPct = totalRunnable > 0 ? Math.round((totalOps / totalRunnable) * 100) : 0
@@ -292,6 +293,7 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
     ws.getColumn(monthlyCol).width = 14
     ws.getColumn(monthlyCol + 1).width = 8
     ws.getColumn(monthlyCol + 2).width = 10
+    ws.getColumn(monthlyCol + 3).width = 1
 
     const calcMonthlyTotals = (reports) => {
         let ops = 0, runnable = 0, down = 0, yardage = 0, hours = 0
