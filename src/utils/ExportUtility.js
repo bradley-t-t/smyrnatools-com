@@ -157,6 +157,52 @@ export async function fetchAggregateProductionReport(weekIso) {
     return filtered.find(r => r.completed) || filtered[0] || null
 }
 
+export async function fetchAllAggregateReports(upToWeekIso) {
+    let {data: reports} = await supabase
+        .from('reports')
+        .select('id,data,week,report_date_range_start,completed,submitted_at')
+        .eq('report_name', 'aggregate_production')
+        .order('week', {ascending: false})
+
+    if (!Array.isArray(reports)) return {monthly: [], yearly: []}
+
+    const byWeek = new Map()
+    reports.forEach(r => {
+        const weekField = r.week || r.report_date_range_start
+        const mondayIso = toMondayIso(weekField)
+        if (!mondayIso || mondayIso > upToWeekIso) return
+        const existing = byWeek.get(mondayIso)
+        if (!existing) {
+            byWeek.set(mondayIso, r)
+        } else {
+            if (r.completed && !existing.completed) byWeek.set(mondayIso, r)
+            else if (r.completed === existing.completed && (r.submitted_at || '') > (existing.submitted_at || '')) byWeek.set(mondayIso, r)
+        }
+    })
+
+    const currentDate = new Date(upToWeekIso + 'T00:00:00Z')
+    const currentMonthKey = `${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(2, '0')}`
+    const currentYear = currentDate.getUTCFullYear()
+
+    const monthly = []
+    const yearly = []
+
+    byWeek.forEach((r, mondayIso) => {
+        const weekDate = new Date(mondayIso + 'T00:00:00Z')
+        const monthKey = `${weekDate.getUTCFullYear()}-${String(weekDate.getUTCMonth() + 1).padStart(2, '0')}`
+        const year = weekDate.getUTCFullYear()
+
+        if (monthKey === currentMonthKey) {
+            monthly.push(r.data)
+        }
+        if (year === currentYear) {
+            yearly.push(r.data)
+        }
+    })
+
+    return {monthly, yearly}
+}
+
 export async function fetchRMIReport(weekIso) {
     if (!weekIso) return null
     const window = getWeekWindow(weekIso)

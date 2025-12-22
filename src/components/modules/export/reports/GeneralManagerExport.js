@@ -17,9 +17,9 @@ import {
     COLORS,
     ensure,
     fetchAggregateProductionReport,
+    fetchAllAggregateReports,
     fetchAllMonthlyGMReports,
     fetchEfficiencyReports,
-    fetchGMReportForWeek,
     fetchRMIReport,
     getChangeText,
     getChangeValue,
@@ -33,53 +33,113 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     const finalFilename = filename || generateFilename('General Manager Report', weekIso)
 
-    const {wb, ExcelLib, logoBase64} = await initExport({
-        subject: 'Weekly General Manager Report'
-    })
+    const [initData, allMonthlyData, assetResults] = await Promise.all([
+        initExport({subject: 'Weekly General Manager Report'}),
+        fetchAllMonthlyGMReports(),
+        Promise.all([
+            MixerService.getAllMixers().catch(() => []),
+            TractorService.getAllTractors().catch(() => []),
+            TrailerService.fetchTrailers().catch(() => []),
+            EquipmentService.getAllEquipments().catch(() => []),
+            PickupTruckService.getAll().catch(() => [])
+        ])
+    ])
+
+    const {wb, ExcelLib, logoBase64} = initData
+    const [mixers, tractors, trailers, equipment, pickups] = assetResults
+    const assetData = {mixers, tractors, trailers, equipment, pickups}
 
     const weeksToExport = [{weekIso, form}]
     let checkWeek = getPreviousWeekIso(weekIso)
+    const weekIsos = [weekIso]
     while (checkWeek) {
-        const prevForm = await fetchGMReportForWeek(checkWeek)
-        if (prevForm) {
-            weeksToExport.push({weekIso: checkWeek, form: prevForm})
+        const monthData = allMonthlyData.find(m => {
+            return m.reports.some(r => r.weekIso === checkWeek)
+        })
+        const reportEntry = monthData?.reports.find(r => r.weekIso === checkWeek)
+        if (reportEntry?.data) {
+            weeksToExport.push({weekIso: checkWeek, form: reportEntry.data})
+            weekIsos.push(checkWeek)
             checkWeek = getPreviousWeekIso(checkWeek)
         } else {
             break
         }
     }
 
-    const allMonthlyData = await fetchAllMonthlyGMReports()
-
-    const [mixers, tractors, trailers, equipment, pickups] = await Promise.all([
-        MixerService.getAllMixers().catch(() => []),
-        TractorService.getAllTractors().catch(() => []),
-        TrailerService.fetchTrailers().catch(() => []),
-        EquipmentService.getAllEquipments().catch(() => []),
-        PickupTruckService.getAll().catch(() => [])
+    const [effReportsMap, rmiDataMap, aggReportsMap, allAggReportsMap] = await Promise.all([
+        Promise.all(weekIsos.map(async w => {
+            const reports = await fetchEfficiencyReports(plants, w)
+            return {weekIso: w, reports}
+        })).then(results => {
+            const map = {}
+            results.forEach(r => { map[r.weekIso] = r.reports })
+            return map
+        }),
+        Promise.all(weekIsos.map(async w => {
+            const data = await fetchRMIReport(w)
+            return {weekIso: w, data}
+        })).then(results => {
+            const map = {}
+            results.forEach(r => { map[r.weekIso] = r.data })
+            return map
+        }),
+        Promise.all(weekIsos.map(async w => {
+            const report = await fetchAggregateProductionReport(w)
+            return {weekIso: w, report}
+        })).then(results => {
+            const map = {}
+            results.forEach(r => { map[r.weekIso] = r.report })
+            return map
+        }),
+        Promise.all(weekIsos.map(async w => {
+            const aggData = await fetchAllAggregateReports(w)
+            return {weekIso: w, aggData}
+        })).then(results => {
+            const map = {}
+            results.forEach(r => { map[r.weekIso] = r.aggData })
+            return map
+        })
     ])
-    const assetData = {mixers, tractors, trailers, equipment, pickups}
 
     for (let i = 0; i < weeksToExport.length; i++) {
         const weekData = weeksToExport[i]
         const prevWeekData = weeksToExport[i + 1] || null
         const isCurrentWeek = i === 0
-        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData, logoBase64, isCurrentWeek ? assetData : null)
+        const effReports = effReportsMap[weekData.weekIso] || []
+        const prevEffReports = prevWeekData ? (effReportsMap[prevWeekData.weekIso] || []) : []
+        const rmiData = rmiDataMap[weekData.weekIso] || null
+        const aggregateReport = aggReportsMap[weekData.weekIso] || null
+        const prevAggregateReport = prevWeekData ? (aggReportsMap[prevWeekData.weekIso] || null) : null
+        const allAggReports = allAggReportsMap[weekData.weekIso] || {monthly: [], yearly: []}
+
+        await createWeekSheet(wb, ExcelLib, weekData.form, plants, weekData.weekIso, prevWeekData?.form, prevWeekData?.weekIso, allMonthlyData, logoBase64, isCurrentWeek ? assetData : null, {
+            effReports,
+            prevEffReports,
+            rmiData,
+            aggregateReport,
+            prevAggregateReport,
+            allAggReports
+        })
     }
 
     await exportWorkbook(wb, finalFilename)
 }
 
-async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso, allMonthlyData, logoBase64, assetData) {
+async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, prevWeekIso, allMonthlyData, logoBase64, assetData, prefetchedData = {}) {
 
-    const effReports = await fetchEfficiencyReports(plants, weekIso)
+    const {
+        effReports = [],
+        prevEffReports = [],
+        rmiData = null,
+        aggregateReport = null,
+        prevAggregateReport = null,
+        allAggReports = {monthly: [], yearly: []}
+    } = prefetchedData
+
     const sortedPlants = sortPlants(plants)
     const sortedEffReports = sortPlants(effReports)
-
-    const prevEffReports = prevWeekIso ? await fetchEfficiencyReports(plants, prevWeekIso) : []
     const sortedPrevEffReports = sortPlants(prevEffReports)
 
-    const rmiData = await fetchRMIReport(weekIso)
     const rmiSnapshot = rmiData?.snapshot_data || {}
     const mixerTrainers = rmiSnapshot.mixer_trainers || []
     const tractorTrainers = rmiSnapshot.tractor_trainers || []
@@ -958,79 +1018,22 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         applyTotalCell(ws.getCell(r, 14), avgEnd + ' mins')
 
         ws.getRow(r).height = 24
-        r++
-
-        const addEfficiencyAvgRow = (label, loads, hours, lph, start, end, bgColor) => {
-            ws.getCell(r, 2).value = ''
-            ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.mergeCells(r, 3, r, 4)
-            ws.getCell(r, 3).value = label
-            ws.getCell(r, 3).font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
-            ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 3).alignment = {vertical: 'middle', horizontal: 'right'}
-            ws.getCell(r, 4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 5).value = ''
-            ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 6).value = loads
-            ws.getCell(r, 6).numFmt = '#,##0'
-            ws.getCell(r, 6).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
-            ws.getCell(r, 6).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 6).alignment = {vertical: 'middle', horizontal: 'left'}
-            ws.getCell(r, 7).value = ''
-            ws.getCell(r, 7).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 8).value = hours
-            ws.getCell(r, 8).numFmt = '#,##0.0'
-            ws.getCell(r, 8).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
-            ws.getCell(r, 8).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 8).alignment = {vertical: 'middle', horizontal: 'left'}
-            ws.getCell(r, 9).value = ''
-            ws.getCell(r, 9).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 10).value = lph
-            ws.getCell(r, 10).numFmt = '#,##0.0'
-            ws.getCell(r, 10).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
-            ws.getCell(r, 10).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 10).alignment = {vertical: 'middle', horizontal: 'left'}
-            ws.getCell(r, 11).value = ''
-            ws.getCell(r, 11).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 12).value = start + ' mins'
-            ws.getCell(r, 12).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
-            ws.getCell(r, 12).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 12).alignment = {vertical: 'middle', horizontal: 'left'}
-            ws.getCell(r, 13).value = ''
-            ws.getCell(r, 13).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 14).value = end + ' mins'
-            ws.getCell(r, 14).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
-            ws.getCell(r, 14).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-            ws.getCell(r, 14).alignment = {vertical: 'middle', horizontal: 'left'}
-            ws.getRow(r).height = 20
-            r++
-        }
-
-        if (currentMonthData && currentMonthData.reports.length > 0) {
-            const monthReportCount = currentMonthData.reports.length
-            const mtdLoads = totalLoadsEff * monthReportCount
-            const mtdHours = totalHoursEff * monthReportCount
-            const mtdLph = avgLph
-            const mtdStart = avgStart
-            const mtdEnd = avgEnd
-            addEfficiencyAvgRow(`MTD (${currentMonthData.monthName})`, mtdLoads, truncateToTenth(mtdHours), truncateToTenth(mtdLph), truncateToTenth(mtdStart), truncateToTenth(mtdEnd), COLORS.snow)
-        }
-
-        if (currentYearData.length > 0) {
-            const totalYearReports = currentYearData.reduce((sum, m) => sum + m.reports.length, 0)
-            const ytdLoads = totalLoadsEff * totalYearReports
-            const ytdHours = totalHoursEff * totalYearReports
-            const ytdLph = avgLph
-            const ytdStart = avgStart
-            const ytdEnd = avgEnd
-            addEfficiencyAvgRow(`YTD (${currentYear})`, ytdLoads, truncateToTenth(ytdHours), truncateToTenth(ytdLph), truncateToTenth(ytdStart), truncateToTenth(ytdEnd), COLORS.snow)
-        }
-
-        r += 2
+        r += 3
     }
 
-    const aggregateReport = await fetchAggregateProductionReport(weekIso)
-    const prevAggregateReport = prevWeekIso ? await fetchAggregateProductionReport(prevWeekIso) : null
+    const calcAggregateFromReports = (reports, fields) => {
+        const totals = {}
+        fields.forEach(([key]) => { totals[key] = 0 })
+        reports.forEach(data => {
+            if (!data) return
+            fields.forEach(([key]) => {
+                let val = data[key]
+                val = val === undefined || val === null || val === '' ? 0 : Number(val)
+                totals[key] += val
+            })
+        })
+        return totals
+    }
 
     if (aggregateReport) {
         addSectionTitle(ws, r, 'Aggregate Production')
@@ -1038,7 +1041,9 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
 
         const aggHeaders = [
             {label: 'Material', mergeCount: 2, align: 'left'},
-            {label: 'Quantity', merge: true}
+            {label: 'This Week', merge: true},
+            {label: 'MTD', merge: false},
+            {label: 'YTD', merge: false}
         ]
         addMergedTableHeaders(ws, r, aggHeaders)
         r++
@@ -1063,10 +1068,15 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             ['rip_rap', 'Rip Rap']
         ]
 
+        const mtdTotals = calcAggregateFromReports(allAggReports.monthly, aggFields)
+        const ytdTotals = calcAggregateFromReports(allAggReports.yearly, aggFields)
+
         const dataSource = aggregateReport?.data || {}
         const prevDataSource = prevAggregateReport?.data || {}
         let aggTotal = 0
         let prevAggTotal = 0
+        let mtdTotal = 0
+        let ytdTotal = 0
         let rowIdx = 0
 
         aggFields.forEach(([key, label]) => {
@@ -1075,8 +1085,13 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             let prevRaw = prevDataSource[key]
             prevRaw = prevRaw === undefined || prevRaw === null || prevRaw === '' ? 0 : Number(prevRaw)
 
+            const mtdVal = mtdTotals[key] || 0
+            const ytdVal = ytdTotals[key] || 0
+
             aggTotal += raw
             prevAggTotal += prevRaw
+            mtdTotal += mtdVal
+            ytdTotal += ytdVal
 
             const changeInfo = prevAggregateReport ? getChangeText(raw, prevRaw, false) : {text: '', color: null}
             const isAlt = rowIdx % 2 === 1
@@ -1099,6 +1114,20 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             valCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
             valCell.alignment = {vertical: 'middle', horizontal: 'left'}
             if (isAlt) valCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            const mtdCell = ws.getCell(r, 6)
+            mtdCell.value = mtdVal
+            mtdCell.numFmt = '#,##0.0'
+            mtdCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            mtdCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) mtdCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
+
+            const ytdCell = ws.getCell(r, 7)
+            ytdCell.value = ytdVal
+            ytdCell.numFmt = '#,##0.0'
+            ytdCell.font = {name: 'Calibri', size: 11, color: {argb: COLORS.slate700}}
+            ytdCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            if (isAlt) ytdCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.snow}}
 
             ws.getRow(r).height = 20
             r++
@@ -1140,35 +1169,23 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
             totalValCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
             totalValCell.alignment = {vertical: 'middle', horizontal: 'left'}
 
+            const mtdTotalCell = ws.getCell(r, 6)
+            mtdTotalCell.value = mtdTotal
+            mtdTotalCell.numFmt = '#,##0.0'
+            mtdTotalCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+            mtdTotalCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            mtdTotalCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            mtdTotalCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
+            const ytdTotalCell = ws.getCell(r, 7)
+            ytdTotalCell.value = ytdTotal
+            ytdTotalCell.numFmt = '#,##0.0'
+            ytdTotalCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.brand}}
+            ytdTotalCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            ytdTotalCell.border = {top: {style: 'medium', color: {argb: COLORS.brand}}}
+            ytdTotalCell.alignment = {vertical: 'middle', horizontal: 'left'}
+
             ws.getRow(r).height = 24
-            r++
-
-            const addAggTotalRow = (label, value, bgColor) => {
-                ws.mergeCells(r, 2, r, 3)
-                ws.getCell(r, 2).value = label
-                ws.getCell(r, 2).font = {name: 'Calibri', size: 10, bold: true, color: {argb: COLORS.slate700}}
-                ws.getCell(r, 2).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-                ws.getCell(r, 2).alignment = {vertical: 'middle', horizontal: 'right'}
-                ws.getCell(r, 3).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-                ws.getCell(r, 4).value = ''
-                ws.getCell(r, 4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-                ws.getCell(r, 5).value = value
-                ws.getCell(r, 5).numFmt = '#,##0.0'
-                ws.getCell(r, 5).font = {name: 'Calibri', size: 10, color: {argb: COLORS.slate700}}
-                ws.getCell(r, 5).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-                ws.getCell(r, 5).alignment = {vertical: 'middle', horizontal: 'left'}
-                ws.getRow(r).height = 20
-                r++
-            }
-
-            if (currentMonthData && currentMonthData.reports.length > 0) {
-                addAggTotalRow(`MTD (${currentMonthData.monthName})`, aggTotal * currentMonthData.reports.length, COLORS.snow)
-            }
-
-            if (currentYearData.length > 0) {
-                const totalYearReports = currentYearData.reduce((sum, m) => sum + m.reports.length, 0)
-                addAggTotalRow(`YTD (${currentYear})`, aggTotal * totalYearReports, COLORS.snow)
-            }
         }
         r += 2
     }
