@@ -13,10 +13,10 @@ export function useNotifications(userId, selectedRegion) {
         if (!userId) {
             setNotifications([])
             setCount(0)
-            setLoading(false)
             return
         }
 
+        setLoading(true)
         const seq = ++refreshSeqRef.current
 
         try {
