@@ -266,21 +266,17 @@ function DetailViewSection({
                                     {verificationCard}
                                     {footerActions && (
                                         <div className="form-actions">
-                                            <div className="form-actions-right">
-                                                {footerActions}
-                                            </div>
+                                            {footerActions}
                                             {hasRegionTransferPermission && onRegionTransfer && currentRegion && (
-                                                <div className="form-actions-left">
-                                                    <button
-                                                        type="button"
-                                                        className="transfer-region-button"
-                                                        onClick={handleOpenRegionTransfer}
-                                                        disabled={isSaving}
-                                                    >
-                                                        <i className="fas fa-exchange-alt"></i>
-                                                        <span>Transfer</span>
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="transfer-region-button"
+                                                    onClick={handleOpenRegionTransfer}
+                                                    disabled={isSaving}
+                                                >
+                                                    <i className="fas fa-exchange-alt"></i>
+                                                    <span>Transfer</span>
+                                                </button>
                                             )}
                                         </div>
                                     )}

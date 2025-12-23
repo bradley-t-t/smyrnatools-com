@@ -10,11 +10,7 @@ function VerificationCardSection({
                                      noticeText = null
                                  }) {
     return (
-        <>
-            <div className="card-header">
-                <h2>Verification Status</h2>
-            </div>
-            <div className="verification-card">
+        <div className="verification-card">
                 <div className="verification-card-header">
                     <i className="fas fa-clipboard-check" style={{color: 'var(--accent)'}}></i>
                     {isVerified ? (
@@ -68,7 +64,6 @@ function VerificationCardSection({
                     </div>
                 )}
             </div>
-        </>
     )
 }
 
