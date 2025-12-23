@@ -180,13 +180,15 @@ function SettingsView() {
                                 <i className="fas fa-eye-slash"></i>
                                 <span>Blurred</span>
                             </div>
-                            <div 
-                                className={`background-option ${preferences.solidBg ? 'active' : ''}`}
-                                onClick={() => save(setBackgroundMode, 'solid')}
-                            >
-                                <i className="fas fa-square"></i>
-                                <span>Solid</span>
-                            </div>
+                            {!['light', 'blue-light', 'red-light'].includes(preferences.themeMode) && (
+                                <div 
+                                    className={`background-option ${preferences.solidBg ? 'active' : ''}`}
+                                    onClick={() => save(setBackgroundMode, 'solid')}
+                                >
+                                    <i className="fas fa-square"></i>
+                                    <span>Solid</span>
+                                </div>
+                            )}
                         </div>
                         {preferences.blurBg && !preferences.solidBg && (
                             <div className="blur-intensity-slider">

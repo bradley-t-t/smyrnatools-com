@@ -409,7 +409,15 @@ export const PreferencesProvider = ({children}) => {
         const value = Math.min(50, Math.max(1, parseInt(intensity) || 12))
         updatePreferences('blurBgIntensity', value)
     }
-    const setThemeMode = mode => (['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) && updatePreferences('themeMode', mode)
+    const setThemeMode = mode => {
+        if (!['light', 'dark', 'old-dark', 'red-dark', 'blue-light', 'red-light'].includes(mode)) return
+        const isLightMode = ['light', 'blue-light', 'red-light'].includes(mode)
+        if (isLightMode && preferences.solidBg) {
+            updatePreferences({themeMode: mode, solidBg: false})
+        } else {
+            updatePreferences('themeMode', mode)
+        }
+    }
     const setAccentColor = color => (color === 'red' || color === 'blue' || color === 'grey') && updatePreferences('accentColor', color)
     const saveLastViewedFilters = async filters => {
         try {
