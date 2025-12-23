@@ -22,19 +22,11 @@ function LoginView() {
     const [passwordStrength, setPasswordStrength] = useState({value: '', color: ''});
     const {signIn, signUp, loading, error} = useAuth();
     const timeoutRef = useRef(null);
-    const forceReload = () => {
-        window.location.href = window.location.pathname
-    };
     const [showRecovery, setShowRecovery] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
-        const handleAuthSuccess = () => {
-            setTimeout(forceReload, 500);
-        };
-        window.addEventListener('authSuccess', handleAuthSuccess);
         return () => {
-            window.removeEventListener('authSuccess', handleAuthSuccess);
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
     }, []);
@@ -151,7 +143,7 @@ function LoginView() {
                 if (timeoutRef.current) clearTimeout(timeoutRef.current);
                 setErrorMessage('');
                 setSuccessMessage('Account created successfully. Redirecting...');
-                setTimeout(() => forceReload(), 1000);
+                setTimeout(() => window.location.href = '/', 1000);
             } else {
                 if (!email || !password) {
                     setErrorMessage('Please enter your email and password.');
@@ -179,7 +171,7 @@ function LoginView() {
                 if (timeoutRef.current) clearTimeout(timeoutRef.current);
                 setErrorMessage('');
                 setSuccessMessage('Signed in successfully. Redirecting...');
-                setTimeout(() => forceReload(), 3500);
+                setTimeout(() => window.location.href = '/', 1000);
             }
         } catch (err) {
             if (timeoutRef.current) {

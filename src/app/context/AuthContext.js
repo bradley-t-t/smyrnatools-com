@@ -79,12 +79,8 @@ export function AuthProvider({children}) {
             sessionStorage.setItem('userId', json.id)
             setLoading(false)
 
-            setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('authSuccess', {detail: {userId: json.id}}))
-            }, 3000)
-
             setTimeout(() => loadUserProfile(json.id).catch(() => {
-            }), 4000)
+            }), 2000)
             return json
         } catch (e) {
             const errorMsg = e.message || 'An unknown error occurred during sign in'
