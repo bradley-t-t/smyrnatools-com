@@ -293,7 +293,6 @@ export const PreferencesProvider = ({children}) => {
                 equipment_filters: updatedPreferences.equipmentFilters,
                 last_viewed_filters: updatedPreferences.lastViewedFilters,
                 selected_region: updatedPreferences.selectedRegion,
-                accept_report_submitted_emails: updatedPreferences.acceptReportSubmittedEmails,
                 updated_at: now,
                 created_at: now
             }

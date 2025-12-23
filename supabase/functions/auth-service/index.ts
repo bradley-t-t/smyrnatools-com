@@ -209,7 +209,6 @@ Deno.serve(async (req) => {
                     last_viewed_filters: null,
                     selected_region: null,
                     region_overlay_minimized: true,
-                    accept_report_submitted_emails: true,
                     created_at: now,
                     updated_at: now
                 };
