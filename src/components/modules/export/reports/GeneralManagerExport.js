@@ -47,7 +47,20 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     const {wb, ExcelLib, logoBase64} = initData
     const [mixers, tractors, trailers, equipment, pickups] = assetResults
-    const assetData = {mixers, tractors, trailers, equipment, pickups}
+    
+    const plantCodes = new Set(plants.map(p => String(p.plant_code || '').trim().toUpperCase()))
+    const filterByPlant = (items) => items.filter(item => {
+        const plantCode = String(item.assignedPlant || item.assigned_plant || '').trim().toUpperCase()
+        return plantCodes.has(plantCode)
+    })
+    
+    const assetData = {
+        mixers: filterByPlant(mixers),
+        tractors: filterByPlant(tractors),
+        trailers: filterByPlant(trailers),
+        equipment: filterByPlant(equipment),
+        pickups: filterByPlant(pickups)
+    }
 
     const weeksToExport = [{weekIso, form}]
     let checkWeek = getPreviousWeekIso(weekIso)
@@ -462,107 +475,108 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
         ])
     })
 
-    const assetCol = monthlyCol + 4
-    ws.getColumn(assetCol).width = 14
-    ws.getColumn(assetCol + 1).width = 10
+    if (assetData) {
+        const assetCol = monthlyCol + 4
+        ws.getColumn(assetCol).width = 14
+        ws.getColumn(assetCol + 1).width = 10
 
-    const countByStatus = (items) => {
-        const counts = {active: 0, spare: 0, shop: 0, retired: 0, total: 0}
-        items.forEach(item => {
-            if (item.status === 'Active') counts.active++
-            else if (item.status === 'Spare') counts.spare++
-            else if (item.status === 'In Shop') counts.shop++
-            else if (item.status === 'Retired') counts.retired++
-            if (item.status !== 'Retired') counts.total++
-        })
-        return counts
-    }
-
-    const countTractorsByType = (tractors) => {
-        const cement = tractors.filter(t => t.freight === 'Cement' || !t.freight)
-        const endDump = tractors.filter(t => t.freight === 'Aggregate')
-        const dumpTruck = tractors.filter(t => t.freight === 'Dump Truck')
-        return {
-            cement: countByStatus(cement),
-            endDump: countByStatus(endDump),
-            dumpTruck: countByStatus(dumpTruck)
+        const countByStatus = (items) => {
+            const counts = {active: 0, spare: 0, shop: 0, retired: 0, total: 0}
+            items.forEach(item => {
+                if (item.status === 'Active') counts.active++
+                else if (item.status === 'Spare') counts.spare++
+                else if (item.status === 'In Shop') counts.shop++
+                else if (item.status === 'Retired') counts.retired++
+                if (item.status !== 'Retired') counts.total++
+            })
+            return counts
         }
-    }
 
-    const emptyCount = {active: 0, spare: 0, shop: 0, retired: 0, total: 0}
-    const mixerCounts = assetData ? countByStatus(assetData.mixers || []) : emptyCount
-    const tractorBreakdown = assetData ? countTractorsByType(assetData.tractors || []) : {cement: emptyCount, endDump: emptyCount, dumpTruck: emptyCount}
-    const trailerCounts = assetData ? countByStatus(assetData.trailers || []) : emptyCount
-    const equipmentCounts = assetData ? countByStatus(assetData.equipment || []) : emptyCount
-    const pickupCounts = assetData ? countByStatus(assetData.pickups || []) : emptyCount
+        const countTractorsByType = (tractors) => {
+            const cement = tractors.filter(t => t.freight === 'Cement' || !t.freight)
+            const endDump = tractors.filter(t => t.freight === 'Aggregate')
+            const dumpTruck = tractors.filter(t => t.freight === 'Dump Truck')
+            return {
+                cement: countByStatus(cement),
+                endDump: countByStatus(endDump),
+                dumpTruck: countByStatus(dumpTruck)
+            }
+        }
 
-    let asRow = overviewStartRow
+        const mixerCounts = countByStatus(assetData.mixers || [])
+        const tractorBreakdown = countTractorsByType(assetData.tractors || [])
+        const trailerCounts = countByStatus(assetData.trailers || [])
+        const equipmentCounts = countByStatus(assetData.equipment || [])
+        const pickupCounts = countByStatus(assetData.pickups || [])
 
-    ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
-    const assetTitleCell = ws.getCell(asRow, assetCol)
-    assetTitleCell.value = 'Asset Overview'
-    assetTitleCell.font = {name: 'Calibri', size: 16, bold: true, color: {argb: COLORS.white}}
-    assetTitleCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
-    assetTitleCell.alignment = {vertical: 'middle', horizontal: 'center'}
-    ws.getCell(asRow, assetCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
-    ws.getRow(asRow).height = 28
-    asRow++
+        let asRow = overviewStartRow
 
-    ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
-    const assetNoteCell = ws.getCell(asRow, assetCol)
-    assetNoteCell.value = 'As of report generation'
-    assetNoteCell.font = {name: 'Calibri', size: 9, italic: true, color: {argb: COLORS.slate500}}
-    assetNoteCell.alignment = {vertical: 'middle', horizontal: 'center'}
-    ws.getRow(asRow).height = 16
-    asRow++
-
-    const addAssetGroup = (title, counts) => {
         ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
-        const groupCell = ws.getCell(asRow, assetCol)
-        groupCell.value = title
-        groupCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
-        groupCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
-        groupCell.alignment = {vertical: 'middle', horizontal: 'left'}
-        ws.getCell(asRow, assetCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
-        ws.getRow(asRow).height = 20
+        const assetTitleCell = ws.getCell(asRow, assetCol)
+        assetTitleCell.value = 'Asset Overview'
+        assetTitleCell.font = {name: 'Calibri', size: 16, bold: true, color: {argb: COLORS.white}}
+        assetTitleCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
+        assetTitleCell.alignment = {vertical: 'middle', horizontal: 'center'}
+        ws.getCell(asRow, assetCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.brand}}
+        ws.getRow(asRow).height = 28
         asRow++
 
-        const statusRows = [
-            {label: 'Active', value: counts.active, color: COLORS.success},
-            {label: 'Spare', value: counts.spare, color: COLORS.brand},
-            {label: 'In Shop', value: counts.shop, color: counts.shop > 0 ? COLORS.warning : COLORS.brand},
-            {label: 'Total', value: counts.total, color: COLORS.slate700, bold: true}
-        ]
+        ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
+        const assetNoteCell = ws.getCell(asRow, assetCol)
+        assetNoteCell.value = 'As of report generation'
+        assetNoteCell.font = {name: 'Calibri', size: 9, italic: true, color: {argb: COLORS.slate500}}
+        assetNoteCell.alignment = {vertical: 'middle', horizontal: 'center'}
+        ws.getRow(asRow).height = 16
+        asRow++
 
-        statusRows.forEach((row, idx) => {
-            const isAlt = idx % 2 === 1
-            const bgColor = isAlt ? COLORS.snow : null
-
-            const labelCell = ws.getCell(asRow, assetCol)
-            labelCell.value = row.label
-            labelCell.font = {name: 'Calibri', size: 10, bold: row.bold || false, color: {argb: COLORS.slate500}}
-            labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
-            if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-
-            const valueCell = ws.getCell(asRow, assetCol + 1)
-            valueCell.value = row.value
-            valueCell.font = {name: 'Calibri', size: 12, bold: row.bold || false, color: {argb: row.color}}
-            valueCell.alignment = {vertical: 'middle', horizontal: 'left'}
-            if (bgColor) valueCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
-
+        const addAssetGroup = (title, counts) => {
+            ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
+            const groupCell = ws.getCell(asRow, assetCol)
+            groupCell.value = title
+            groupCell.font = {name: 'Calibri', size: 11, bold: true, color: {argb: COLORS.slate700}}
+            groupCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
+            groupCell.alignment = {vertical: 'middle', horizontal: 'left'}
+            ws.getCell(asRow, assetCol + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: COLORS.slate100}}
             ws.getRow(asRow).height = 20
             asRow++
-        })
-        asRow++
-    }
 
-    addAssetGroup('Mixers', mixerCounts)
-    addAssetGroup('Cement Haulers', tractorBreakdown.cement)
-    addAssetGroup('End Dump', tractorBreakdown.endDump)
-    addAssetGroup('Dump Trucks', tractorBreakdown.dumpTruck)
-    addAssetGroup('Trailers', trailerCounts)
-    addAssetGroup('Equipment', equipmentCounts)
-    addAssetGroup('Pickup Trucks', pickupCounts)
+            const statusRows = [
+                {label: 'Active', value: counts.active, color: COLORS.success},
+                {label: 'Spare', value: counts.spare, color: COLORS.brand},
+                {label: 'In Shop', value: counts.shop, color: counts.shop > 0 ? COLORS.warning : COLORS.brand},
+                {label: 'Total', value: counts.total, color: COLORS.slate700, bold: true}
+            ]
+
+            statusRows.forEach((row, idx) => {
+                const isAlt = idx % 2 === 1
+                const bgColor = isAlt ? COLORS.snow : null
+
+                const labelCell = ws.getCell(asRow, assetCol)
+                labelCell.value = row.label
+                labelCell.font = {name: 'Calibri', size: 10, bold: row.bold || false, color: {argb: COLORS.slate500}}
+                labelCell.alignment = {vertical: 'middle', horizontal: 'left'}
+                if (bgColor) labelCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+
+                const valueCell = ws.getCell(asRow, assetCol + 1)
+                valueCell.value = row.value
+                valueCell.font = {name: 'Calibri', size: 12, bold: row.bold || false, color: {argb: row.color}}
+                valueCell.alignment = {vertical: 'middle', horizontal: 'left'}
+                if (bgColor) valueCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bgColor}}
+
+                ws.getRow(asRow).height = 20
+                asRow++
+            })
+            asRow++
+        }
+
+        addAssetGroup('Mixers', mixerCounts)
+        addAssetGroup('Cement Haulers', tractorBreakdown.cement)
+        addAssetGroup('End Dump', tractorBreakdown.endDump)
+        addAssetGroup('Dump Trucks', tractorBreakdown.dumpTruck)
+        addAssetGroup('Trailers', trailerCounts)
+        addAssetGroup('Equipment', equipmentCounts)
+        addAssetGroup('Pickup Trucks', pickupCounts)
+    }
 
     addSectionTitle(ws, r, 'Plant Summary')
     r += 2

@@ -151,13 +151,23 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     useEffect(() => {
         async function fetchPlants() {
             setLoadingPlants(true)
-            const list = await ReportService.fetchPlantsSorted()
-            setPlants(list)
+            if (report.name === 'general_manager' && user?.id) {
+                const list = await ReportService.fetchPlantsForUser(user.id)
+                if (list && list.length > 0) {
+                    setPlants(list)
+                } else {
+                    const allPlants = await ReportService.fetchPlantsSorted()
+                    setPlants(allPlants)
+                }
+            } else {
+                const list = await ReportService.fetchPlantsSorted()
+                setPlants(list)
+            }
             setLoadingPlants(false)
         }
 
         fetchPlants()
-    }, [])
+    }, [report.name, user?.id])
 
     let reportTitle = report.title || 'Report Review'
 
