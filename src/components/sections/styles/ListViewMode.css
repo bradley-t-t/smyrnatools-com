@@ -309,12 +309,12 @@
     .list-table td:nth-child(5),
     .list-table td:nth-child(6),
     .list-table td:nth-child(7) {
-        display: none;
+        display: none !important;
     }
 
     .list-table th:last-child,
     .list-table td:last-child {
-        display: none;
+        display: none !important;
     }
 
     .list-table th {
@@ -381,12 +381,12 @@
     .list-table td:nth-child(5),
     .list-table td:nth-child(6),
     .list-table td:nth-child(7) {
-        display: none;
+        display: none !important;
     }
 
     .list-table th:last-child,
     .list-table td:last-child {
-        display: none;
+        display: none !important;
     }
 
     .list-table th {
@@ -460,12 +460,12 @@
     .list-table td:nth-child(5),
     .list-table td:nth-child(6),
     .list-table td:nth-child(7) {
-        display: none;
+        display: none !important;
     }
 
     .list-table th:last-child,
     .list-table td:last-child {
-        display: none;
+        display: none !important;
     }
 
     .list-table th {
