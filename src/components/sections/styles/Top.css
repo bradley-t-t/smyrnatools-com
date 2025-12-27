@@ -528,10 +528,25 @@
     }
 
     .search-bar {
+        position: relative;
         width: 100%;
         max-width: none;
-        order: -1;
-        position: relative;
+    }
+
+    .ios-search-input {
+        padding: 10px 38px 10px 38px;
+        font-size: 13px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .search-bar::before {
+        font-size: 13px;
+        left: 14px;
+    }
+
+    .search-bar button.clear {
+        right: 10px;
     }
 
     .ios-search-input {
@@ -618,7 +633,8 @@
 
     .search-bar {
         position: relative;
-        display: block;
+        width: 100%;
+        max-width: none;
     }
 
     .ios-search-input {
@@ -626,7 +642,6 @@
         font-size: 13px;
         border-radius: 12px;
         width: 100%;
-        display: block;
         box-sizing: border-box;
     }
 
