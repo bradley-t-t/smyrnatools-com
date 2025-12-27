@@ -600,10 +600,10 @@ export default function Navigation({
                                             </>
                                         )}
 
-                                        {visibleMenuItems.some(item => ['List', 'Reports'].includes(item.id)) && (
+                                        {visibleMenuItems.some(item => ['List'].includes(item.id)) && (
                                             <>
                                                 <div className="mobile-menu-divider">Productivity</div>
-                                                {['List', 'Reports'].map(prodId => {
+                                                {['List'].map(prodId => {
                                                     const item = visibleMenuItems.find(i => i.id === prodId)
                                                     if (!item) return null
                                                     return (
