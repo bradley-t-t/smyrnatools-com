@@ -600,14 +600,6 @@
 }
 
 @media (max-width: 480px) {
-    .top-section {
-        background: var(--background);
-    }
-
-    .top-section-sticky-header {
-        background: var(--background);
-    }
-
     .top-section-inner {
         padding: 8px 10px 8px 10px;
     }
@@ -647,6 +639,7 @@
         border-radius: 12px;
         width: 100%;
         display: block;
+        box-sizing: border-box;
     }
 
     .search-bar::before {
