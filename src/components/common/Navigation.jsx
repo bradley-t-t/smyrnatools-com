@@ -3,8 +3,6 @@ import './styles/Navigation.css'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
-import NotificationsModal from './NotificationsModal'
-import {useNotifications} from '../../hooks/useNotifications'
 import VideoBackground from './VideoBackground'
 
 const ANIMATION_TIMING = {
@@ -1035,17 +1033,6 @@ export default function Navigation({
                     </div>
                 )}
                 <div className="content-area">{children}</div>
-                {showNotifications && (
-                    <NotificationsModal isOpen={showNotifications} onClose={() => {
-                        setShowNotifications(false)
-                        if (typeof window !== 'undefined') {
-                            try {
-                                window.dispatchEvent(new CustomEvent('notifications-refresh'))
-                            } catch {
-                            }
-                        }
-                    }} anchorRect={notificationsAnchor}/>
-                )}
             </div>
         </>
     )
