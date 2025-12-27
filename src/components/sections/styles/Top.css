@@ -389,73 +389,283 @@
 
 @media (max-width: 900px) {
     .top-title {
-        font-size: 24px
+        font-size: 24px;
     }
 
     .action-button {
         padding: 8px 14px;
-        font-size: 13px
+        font-size: 13px;
     }
 
     .controls-row {
-        gap: 14px
+        gap: 14px;
+    }
+
+    .ios-search-input {
+        font-size: 14px;
+        padding: 11px 40px 11px 40px;
+    }
+
+    .ios-select {
+        font-size: 13px;
+        padding: 10px 12px;
+        min-width: 120px;
     }
 }
 
 @media (max-width: 768px) {
     .top-section {
         margin-left: 0;
-        margin-right: 0
+        margin-right: 0;
     }
 
     .top-section-inner {
-        padding: 12px 0 10px
+        padding: 10px 0 8px;
+        gap: 10px;
+    }
+
+    .top-title {
+        font-size: 22px;
+    }
+
+    .top-badge {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .action-button {
+        padding: 8px 12px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .ios-search-input {
+        padding: 10px 38px 10px 38px;
+        font-size: 13px;
+    }
+
+    .search-bar::before {
+        font-size: 13px;
+        left: 14px;
+    }
+
+    .search-bar button.clear {
+        right: 10px;
+    }
+
+    .ios-select {
+        padding: 10px 12px;
+        font-size: 12px;
+        min-width: 110px;
+    }
+
+    .view-toggle-btn {
+        font-size: 16px;
+        padding: 7px 9px;
+    }
+
+    .filter-reset-button {
+        padding: 10px 12px;
+        font-size: 13px;
     }
 
     .list-headers {
-        padding: 4px 0 0
+        padding: 4px 0 0;
+        font-size: 10px;
+    }
+
+    .list-headers.header-row {
+        font-size: 13px;
+    }
+
+    .list-headers.header-row > div {
+        padding: 12px 6px;
     }
 }
 
 @media (max-width: 680px) {
     .top-section-inner {
-        padding: 12px 0 8px
+        padding: 10px 0 6px;
+        gap: 8px;
     }
 
     .primary-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px
+        gap: 8px;
+    }
+
+    .top-title {
+        font-size: 20px;
+    }
+
+    .badge-container {
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .top-badge {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 14px;
     }
 
     .action-cluster {
-        align-self: flex-end
+        align-self: flex-end;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .action-button {
+        flex: 1;
+        justify-content: center;
     }
 
     .controls-row {
         flex-direction: column;
-        align-items: stretch
+        align-items: stretch;
+        gap: 8px;
     }
 
     .filters {
         justify-content: space-between;
-        width: 100%
+        width: 100%;
+        margin-left: 0;
+        gap: 8px;
     }
 
     .search-bar {
         width: 100%;
-        max-width: none
+        max-width: none;
+        order: -1;
+    }
+
+    .ios-search-input {
+        padding: 11px 38px 11px 38px;
     }
 
     .ios-select,
     .filter-wrapper {
         width: 100%;
-        max-width: none
+        max-width: none;
+        flex: 1;
+    }
+
+    .ios-select {
+        min-width: 0;
     }
 
     .view-toggle-icons {
         order: 5;
         width: 100%;
-        justify-content: flex-start
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .view-toggle-btn {
+        flex: 1;
+    }
+
+    .filter-reset-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .list-headers {
+        font-size: 10px;
+        gap: 6px;
+    }
+
+    .list-headers.header-row {
+        font-size: 12px;
+    }
+
+    .list-headers.header-row > div {
+        padding: 10px 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-section-inner {
+        padding: 8px 0 6px;
+    }
+
+    .top-title {
+        font-size: 18px;
+    }
+
+    .top-badge {
+        padding: 8px 12px;
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    .top-badge i {
+        font-size: 12px;
+    }
+
+    .action-button {
+        padding: 7px 10px;
+        font-size: 11px;
+        gap: 5px;
+    }
+
+    .action-cluster {
+        gap: 6px;
+    }
+
+    .ios-search-input {
+        padding: 9px 36px 9px 36px;
+        font-size: 13px;
+        border-radius: 12px;
+    }
+
+    .search-bar::before {
+        font-size: 12px;
+        left: 12px;
+    }
+
+    .search-bar button.clear {
+        right: 8px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .ios-select {
+        padding: 9px 10px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+
+    .view-toggle-icons {
+        gap: 6px;
+    }
+
+    .view-toggle-btn {
+        font-size: 15px;
+        padding: 7px 8px;
+        border-radius: 8px;
+    }
+
+    .filter-reset-button {
+        padding: 9px 10px;
+        font-size: 12px;
+        gap: 5px;
+        border-radius: 10px;
+    }
+
+    .list-headers {
+        font-size: 9px;
+        gap: 5px;
+    }
+
+    .list-headers.header-row {
+        font-size: 11px;
+    }
+
+    .list-headers.header-row > div {
+        padding: 8px 3px;
     }
 }
