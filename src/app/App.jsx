@@ -29,8 +29,6 @@ import {useAuth} from './context/AuthContext';
 import {UserService} from '../services/UserService'
 
 function App() {
-    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isBot = /bot|crawl|spider|googlebot|bingbot|yandexbot/i.test(navigator.userAgent);
     const [offlineMode, setOfflineMode] = useState(false)
     const {user, isAuthenticated} = useAuth()
     const [hasPlant, setHasPlant] = useState(null)
@@ -181,14 +179,6 @@ function App() {
         document.body.style.overflow = showOverlay ? 'hidden' : 'auto'
         document.body.style.pointerEvents = showOverlay ? 'none' : 'auto'
     }, [isAuthenticated, hasPlant, plantLoading, location.pathname, isTerminated])
-
-    if (isMobile && !isBot) return (
-        <PreferencesProvider>
-            <AccountProvider>
-                <DesktopOnlyOverlay/>
-            </AccountProvider>
-        </PreferencesProvider>
-    );
 
     if (offlineMode) return (
         <PreferencesProvider>

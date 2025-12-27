@@ -26,7 +26,6 @@ import RegionsView from '../views/regions/RegionsView'
 import RolesView from '../views/roles/RolesView'
 import LockedOverlay from '../components/common/LockedOverlay'
 import TerminatedOverlay from '../components/common/TerminatedOverlay'
-import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay'
 import PickupTrucksView from '../views/pickup-trucks/PickupTrucksView'
 import DashboardView from '../views/dashboard/DashboardView'
 import OfflineOverlay from '../components/common/OfflineOverlay'
@@ -198,7 +197,6 @@ ScheduledUpdateBanner.propTypes = {
 function AppContent() {
     const [userId, setUserId] = useState(null)
     const [selectedView, setSelectedView] = useState({view: 'Dashboard', initialStatusFilter: null})
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [title, setTitle] = useState('Dashboard')
     const [selectedMixer, setSelectedMixer] = useState(null)
     const [selectedTractor, setSelectedTractor] = useState(null)
@@ -262,12 +260,6 @@ function AppContent() {
         UserService.getCurrentUser().catch(() => {
         })
     }, [userId])
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768)
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
 
     useEffect(() => {
         const OFFLINE_THRESHOLD = 2
@@ -617,7 +609,6 @@ function AppContent() {
     }
 
     if (terminatedMode) return <><TerminatedOverlay/></>
-    if (isMobile) return <><DesktopOnlyOverlay/></>
     if (updateMode) return <><UpdateLoadingScreen version={latestVersion || currentVersion}/></>
     if (!userId) return (<div className="App">{renderCurrentView()}</div>)
     if (!rolesLoaded) return null
