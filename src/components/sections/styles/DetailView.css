@@ -926,3 +926,247 @@ select.form-control:disabled {
     color: var(--text-secondary);
     margin-bottom: 12px;
 }
+
+@media (max-width: 768px) {
+    .detail-view {
+        height: 100vh;
+        max-height: 100vh;
+    }
+
+    .detail-view-header {
+        padding: 10px 16px;
+        min-height: 52px;
+        gap: 10px;
+    }
+
+    .detail-view-header h1 {
+        font-size: 16px;
+    }
+
+    .detail-view-back-button {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .detail-view-header-actions button {
+        padding: 6px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    .detail-view-header-actions button span {
+        display: none;
+    }
+
+    .detail-view-main {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .detail-view-sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        padding: 16px;
+        order: 2;
+    }
+
+    .detail-view-content {
+        width: 100%;
+        padding: 16px;
+        order: 1;
+    }
+
+    .detail-card {
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .detail-card-header {
+        padding: 12px 16px;
+    }
+
+    .detail-card-body {
+        padding: 16px;
+    }
+
+    .form-section {
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .form-group label {
+        font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    .save-button {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .sidebar-section {
+        padding: 12px 0;
+    }
+
+    .sidebar-section-title {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .verification-card {
+        padding: 12px;
+    }
+
+    .verification-status {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .verification-details {
+        padding: 12px;
+    }
+
+    .sidebar-buttons {
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .sidebar-button {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px;
+    }
+
+    .action-buttons button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .detail-view-header {
+        padding: 8px 12px;
+        min-height: 48px;
+        gap: 8px;
+    }
+
+    .detail-view-header h1 {
+        font-size: 14px;
+    }
+
+    .detail-view-back-button {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .detail-view-header-actions button {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .detail-view-sidebar {
+        padding: 12px;
+    }
+
+    .detail-view-content {
+        padding: 12px;
+    }
+
+    .detail-card {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .detail-card-header {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .detail-card-body {
+        padding: 12px;
+    }
+
+    .form-section {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .section-title {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .save-button {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .verification-card {
+        padding: 10px;
+    }
+
+    .verification-status {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .verification-details {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .sidebar-button {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .action-buttons {
+        padding: 12px;
+        gap: 6px;
+    }
+}

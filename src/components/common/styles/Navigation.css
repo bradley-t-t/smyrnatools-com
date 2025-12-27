@@ -534,7 +534,7 @@ body:has(.my-account-wrapper) .content-area {
 }
 
 .mobile-menu-toggle:hover {
-    color: var(--accent-color);
+    color: var(--accent);
 }
 
 .mobile-menu-overlay {
@@ -642,8 +642,8 @@ body:has(.my-account-wrapper) .content-area {
 }
 
 .mobile-notification-badge {
-    background: var(--accent-color);
-    color: white;
+    background: var(--accent);
+    color: var(--text-light);
     border-radius: 12px;
     padding: 2px 8px;
     font-size: 12px;
