@@ -1009,24 +1009,27 @@ select.form-control:disabled {
         border-right: none !important;
         border-bottom: 1px solid var(--border-light);
         padding: 12px;
-        padding-bottom: 20px;
+        padding-bottom: 100px;
         overflow-y: visible !important;
         overflow-x: hidden !important;
         order: 2;
         flex-shrink: 0;
         position: relative !important;
-        margin-bottom: 80px;
+        z-index: 1;
     }
 
     .detail-view-main {
         width: 100% !important;
         padding: 12px;
+        padding-bottom: 100px !important;
         order: 1;
         overflow-y: visible !important;
         overflow-x: hidden !important;
         flex: 0 0 auto !important;
         min-height: auto !important;
         height: auto !important;
+        position: relative;
+        z-index: 1;
     }
 
     .detail-card {
@@ -1036,11 +1039,7 @@ select.form-control:disabled {
     }
 
     .detail-card .form-sections:last-child {
-        padding-bottom: 80px;
-    }
-
-    .detail-view-main {
-        padding-bottom: 80px !important;
+        padding-bottom: 20px;
     }
 
     .form-section,
@@ -1050,6 +1049,8 @@ select.form-control:disabled {
         padding: 14px !important;
         margin-bottom: 12px !important;
         border-radius: 10px;
+        position: relative;
+        z-index: 1;
     }
 
     .form-section:last-child,
@@ -1091,11 +1092,15 @@ select.form-control:disabled {
         font-size: 14px !important;
         padding: 10px 12px !important;
         border-radius: 8px;
+        position: relative;
+        z-index: 1;
     }
 
     select.form-control {
         padding-right: 32px !important;
         background-position: right 10px center;
+        position: relative;
+        z-index: 1;
     }
 
     .operator-select-button {
@@ -1116,11 +1121,11 @@ select.form-control:disabled {
     }
 
     .form-actions {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 200;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 999 !important;
         display: flex;
         flex-direction: column;
         gap: 8px !important;
@@ -1128,10 +1133,10 @@ select.form-control:disabled {
         padding-bottom: calc(12px + env(safe-area-inset-bottom));
         margin: 0;
         border-top: 1px solid var(--border-light);
-        background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
+        background: var(--bg-secondary);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
     }
 
     .form-actions-left,
@@ -1198,10 +1203,15 @@ select.form-control:disabled {
         margin: 0;
         padding: 0;
         border-radius: 12px;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 20px;
     }
 
     .verification-card-header {
         padding: 12px;
+        position: relative;
+        z-index: 1;
     }
 
     .verification-card-header i {
@@ -1380,13 +1390,14 @@ select.form-control:disabled {
 
     .detail-view-sidebar {
         padding: 10px;
-        padding-bottom: 18px;
-        margin-bottom: 80px;
+        padding-bottom: 100px;
+        z-index: 1;
     }
 
     .detail-view-main {
         padding: 10px;
-        padding-bottom: 80px !important;
+        padding-bottom: 100px !important;
+        z-index: 1;
     }
 
     .form-section,
@@ -1395,6 +1406,7 @@ select.form-control:disabled {
     .form-sections > .form-section {
         padding: 12px !important;
         margin-bottom: 10px !important;
+        z-index: 1;
     }
 
     .form-section h3,
@@ -1424,15 +1436,20 @@ select.form-control:disabled {
     .form-group textarea {
         font-size: 13px !important;
         padding: 9px 10px !important;
+        position: relative;
+        z-index: 1;
     }
 
     select.form-control {
         padding-right: 30px !important;
+        position: relative;
+        z-index: 1;
     }
 
     .operator-select-button {
         font-size: 13px;
         padding: 9px 10px;
+        z-index: 1;
     }
 
     .unassign-operator-button,
@@ -1441,10 +1458,9 @@ select.form-control:disabled {
         font-size: 12px;
     }
 
-    .form-actions {
-        padding: 10px 0;
-        margin-top: 10px;
-        gap: 6px !important;
+    .verification-card {
+        z-index: 1;
+        margin-bottom: 20px;
     }
 
     .form-actions-left,
@@ -1462,6 +1478,10 @@ select.form-control:disabled {
         padding: 10px 12px;
         padding-bottom: calc(10px + env(safe-area-inset-bottom));
         gap: 6px !important;
+        z-index: 999 !important;
+        position: fixed !important;
+        background: var(--bg-secondary);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
     }
 
     .form-actions-left,
