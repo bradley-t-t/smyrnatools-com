@@ -929,21 +929,22 @@ select.form-control:disabled {
 
 @media (max-width: 768px) {
     .content-area:has(.detail-view) {
-        padding: 0;
-        overflow: hidden;
+        padding: 0 !important;
+        overflow: hidden !important;
     }
 
     .dashboard-container:has(.detail-view) {
-        padding: 0;
-        gap: 0;
-        overflow: hidden;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: hidden !important;
     }
 
     .detail-view {
-        height: 100vh;
-        max-height: 100vh;
-        display: flex;
-        flex-direction: column;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
     }
 
     .detail-view-header {
@@ -984,38 +985,46 @@ select.form-control:disabled {
     }
 
     .detail-view-content {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        height: calc(100vh - 50px);
-        -webkit-overflow-scrolling: touch;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: calc(100vh - 50px) !important;
+        max-height: calc(100vh - 50px) !important;
+        -webkit-overflow-scrolling: touch !important;
+        position: relative !important;
     }
 
     .detail-view-layout {
-        display: flex;
-        flex-direction: column;
-        min-height: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     .detail-view-sidebar {
-        width: 100%;
-        max-height: none;
-        height: auto;
-        border-right: none;
+        width: 100% !important;
+        max-height: none !important;
+        height: auto !important;
+        border-right: none !important;
         border-bottom: 1px solid var(--border-light);
         padding: 12px;
-        overflow-y: visible;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
         order: 2;
         flex-shrink: 0;
+        position: relative !important;
     }
 
     .detail-view-main {
-        width: 100%;
+        width: 100% !important;
         padding: 12px;
         order: 1;
-        overflow-y: visible;
-        flex: 1;
-        min-height: auto;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        flex: 0 0 auto !important;
+        min-height: auto !important;
+        height: auto !important;
     }
 
     .detail-card {
