@@ -298,8 +298,23 @@
     }
 
     .list-table {
-        min-width: 700px;
+        min-width: auto;
         font-size: 0.8125rem;
+        table-layout: auto;
+    }
+
+    .list-table th:nth-child(5),
+    .list-table th:nth-child(6),
+    .list-table th:nth-child(7),
+    .list-table td:nth-child(5),
+    .list-table td:nth-child(6),
+    .list-table td:nth-child(7) {
+        display: none;
+    }
+
+    .list-table th:last-child,
+    .list-table td:last-child {
+        display: none;
     }
 
     .list-table th {
@@ -316,11 +331,6 @@
 
     .list-table td:first-child {
         min-width: 70px;
-    }
-
-    .list-table td:last-child {
-        min-width: 120px;
-        padding-right: 0.75rem;
     }
 
     .list-actions-cell {
@@ -360,8 +370,23 @@
     }
 
     .list-table {
-        min-width: 800px;
+        min-width: auto;
         font-size: 0.75rem;
+        table-layout: auto;
+    }
+
+    .list-table th:nth-child(5),
+    .list-table th:nth-child(6),
+    .list-table th:nth-child(7),
+    .list-table td:nth-child(5),
+    .list-table td:nth-child(6),
+    .list-table td:nth-child(7) {
+        display: none;
+    }
+
+    .list-table th:last-child,
+    .list-table td:last-child {
+        display: none;
     }
 
     .list-table th {
@@ -376,36 +401,7 @@
     }
 
     .list-table td:first-child {
-        position: sticky;
-        left: 0;
-        background: var(--background);
-        z-index: 5;
-        min-width: 80px;
-        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .list-table tbody tr:nth-child(even) td:first-child {
-        background: var(--background);
-    }
-
-    .list-table tbody tr:hover td:first-child {
-        background: var(--divider);
-    }
-
-    .list-table td:last-child {
-        min-width: 100px;
-        position: sticky;
-        right: 0;
-        background: var(--background);
-        box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .list-table tbody tr:nth-child(even) td:last-child {
-        background: var(--background);
-    }
-
-    .list-table tbody tr:hover td:last-child {
-        background: var(--divider);
+        min-width: 70px;
     }
 
     .list-actions-cell {
@@ -453,8 +449,23 @@
     }
 
     .list-table {
-        min-width: 900px;
+        min-width: auto;
         font-size: 0.6875rem;
+        table-layout: auto;
+    }
+
+    .list-table th:nth-child(5),
+    .list-table th:nth-child(6),
+    .list-table th:nth-child(7),
+    .list-table td:nth-child(5),
+    .list-table td:nth-child(6),
+    .list-table td:nth-child(7) {
+        display: none;
+    }
+
+    .list-table th:last-child,
+    .list-table td:last-child {
+        display: none;
     }
 
     .list-table th {
@@ -471,10 +482,6 @@
 
     .list-table td:first-child {
         min-width: 70px;
-    }
-
-    .list-table td:last-child {
-        min-width: 90px;
     }
 
     .list-action-btn {
