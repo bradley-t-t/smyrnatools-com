@@ -3947,3 +3947,454 @@
         display: none;
     }
 }
+
+@media (max-width: 768px) {
+    .calculators-header {
+        top: 50px;
+    }
+
+    .calculators-header-inner {
+        padding: 10px 12px 8px 12px;
+        gap: 10px;
+    }
+
+    .calculators-title {
+        font-size: 22px;
+    }
+
+    .calc-tab {
+        padding: 10px 14px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .calc-tab i {
+        font-size: 13px;
+    }
+
+    .calculators-content {
+        padding: 120px 12px 20px 12px;
+    }
+
+    .mix-fixer {
+        gap: 14px;
+    }
+
+    .mix-fixer-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .material-card {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .material-header i {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .material-name {
+        font-size: 16px;
+    }
+
+    .material-select {
+        font-size: 16px;
+        padding: 5px 26px 5px 9px;
+    }
+
+    .input-group label {
+        font-size: 12px;
+    }
+
+    .input-group input {
+        font-size: 15px;
+        padding: 10px 12px;
+    }
+
+    .adjustments-section {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .adjustments-title {
+        font-size: 15px;
+    }
+
+    .adjustment-row {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .adjustment-label {
+        font-size: 13px;
+        min-width: 100px;
+    }
+
+    .adjustment-value {
+        font-size: 15px;
+    }
+
+    .badge {
+        font-size: 11px;
+        padding: 3px 7px;
+    }
+
+    .wcr-container,
+    .settime-container,
+    .yph-container {
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .wcr-title,
+    .settime-title,
+    .yph-title {
+        font-size: 18px;
+    }
+
+    .wcr-fields,
+    .settime-fields,
+    .yph-fields {
+        gap: 10px;
+    }
+
+    .field-group label {
+        font-size: 12px;
+    }
+
+    .field-group input,
+    .field-group select {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    .toggle-container {
+        gap: 8px;
+    }
+
+    .toggle-label {
+        font-size: 13px;
+    }
+
+    .toggle-switch {
+        width: 44px;
+        height: 24px;
+    }
+
+    .toggle-slider:before {
+        width: 18px;
+        height: 18px;
+    }
+
+    .wcr-result,
+    .settime-result,
+    .yph-result {
+        padding: 14px;
+        gap: 8px;
+    }
+
+    .result-label {
+        font-size: 13px;
+    }
+
+    .result-value {
+        font-size: 26px;
+    }
+
+    .result-unit {
+        font-size: 14px;
+    }
+
+    .location-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .location-toggle-btn {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .location-input {
+        width: 100%;
+    }
+
+    .weather-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .weather-card {
+        padding: 10px;
+    }
+
+    .weather-label {
+        font-size: 11px;
+    }
+
+    .weather-value {
+        font-size: 15px;
+    }
+
+    .mix-info-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .settime-factors {
+        gap: 8px;
+    }
+
+    .factor-item {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .factor-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
+
+    .factor-info h4 {
+        font-size: 12px;
+    }
+
+    .factor-info p {
+        font-size: 11px;
+    }
+
+    .yph-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .yph-stat-card {
+        padding: 12px;
+    }
+
+    .yph-stat-label {
+        font-size: 11px;
+    }
+
+    .yph-stat-value {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calculators-header {
+        top: 45px;
+    }
+
+    .calculators-header-inner {
+        padding: 8px 10px 6px 10px;
+        gap: 8px;
+    }
+
+    .calculators-title {
+        font-size: 20px;
+    }
+
+    .calc-tab {
+        padding: 8px 12px;
+        font-size: 11px;
+        gap: 5px;
+    }
+
+    .calc-tab i {
+        font-size: 12px;
+    }
+
+    .soon-badge {
+        font-size: 8px;
+        padding: 2px 4px;
+    }
+
+    .calculators-content {
+        padding: 105px 10px 16px 10px;
+    }
+
+    .mix-fixer {
+        gap: 12px;
+    }
+
+    .material-card {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .material-header i {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
+
+    .material-name {
+        font-size: 15px;
+    }
+
+    .material-select {
+        font-size: 15px;
+        padding: 4px 24px 4px 8px;
+    }
+
+    .input-group label {
+        font-size: 11px;
+    }
+
+    .input-group input {
+        font-size: 14px;
+        padding: 9px 10px;
+    }
+
+    .adjustments-section {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .adjustments-title {
+        font-size: 14px;
+    }
+
+    .adjustment-row {
+        padding: 8px;
+        gap: 6px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .adjustment-label {
+        font-size: 12px;
+        min-width: auto;
+    }
+
+    .adjustment-value {
+        font-size: 14px;
+    }
+
+    .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .wcr-container,
+    .settime-container,
+    .yph-container {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .wcr-title,
+    .settime-title,
+    .yph-title {
+        font-size: 16px;
+    }
+
+    .field-group label {
+        font-size: 11px;
+    }
+
+    .field-group input,
+    .field-group select {
+        font-size: 13px;
+        padding: 9px 10px;
+    }
+
+    .toggle-label {
+        font-size: 12px;
+    }
+
+    .toggle-switch {
+        width: 40px;
+        height: 22px;
+    }
+
+    .toggle-slider:before {
+        width: 16px;
+        height: 16px;
+    }
+
+    .wcr-result,
+    .settime-result,
+    .yph-result {
+        padding: 12px;
+    }
+
+    .result-label {
+        font-size: 12px;
+    }
+
+    .result-value {
+        font-size: 22px;
+    }
+
+    .result-unit {
+        font-size: 13px;
+    }
+
+    .location-toggle-btn {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    .weather-card {
+        padding: 8px;
+    }
+
+    .weather-label {
+        font-size: 10px;
+    }
+
+    .weather-value {
+        font-size: 14px;
+    }
+
+    .factor-item {
+        padding: 6px 8px;
+    }
+
+    .factor-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .factor-info h4 {
+        font-size: 11px;
+    }
+
+    .factor-info p {
+        font-size: 10px;
+    }
+
+    .yph-stat-card {
+        padding: 10px;
+    }
+
+    .yph-stat-label {
+        font-size: 10px;
+    }
+
+    .yph-stat-value {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .calculators-header {
+        top: 55px;
+    }
+
+    .calculators-content {
+        padding: 130px 14px 22px 14px;
+    }
+
+    .mix-fixer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
