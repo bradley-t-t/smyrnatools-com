@@ -528,10 +528,12 @@ export default function Navigation({
                                             const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
                                             const peopleItems = ['Operators', 'Managers']
                                             const productivityItems = ['List', 'Reports']
+                                            const mobileHiddenItems = ['Calculators', 'Leaderboards', 'Reports']
 
                                             if (assetItems.includes(item.id)) return null
                                             if (peopleItems.includes(item.id)) return null
                                             if (productivityItems.includes(item.id)) return null
+                                            if (mobileHiddenItems.includes(item.id)) return null
 
                                             return (
                                                 <div
