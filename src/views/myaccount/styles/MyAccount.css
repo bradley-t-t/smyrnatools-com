@@ -1516,6 +1516,18 @@ body:has(.my-account-wrapper) {
         font-size: 0.9rem;
         padding: 0.6rem;
     }
+
+    .input-with-icon input {
+        padding-left: 42px !important;
+        padding-right: 0.6rem !important;
+        padding-top: 0.6rem !important;
+        padding-bottom: 0.6rem !important;
+    }
+
+    .input-with-icon i {
+        left: 13px;
+        font-size: 0.85rem;
+    }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {

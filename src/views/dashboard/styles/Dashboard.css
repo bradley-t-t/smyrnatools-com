@@ -975,3 +975,407 @@ html.blue-dark-mode .dashboard-video-background {
     color: #ffffff;
 }
 
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 12px 8px;
+        gap: 12px;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 20px;
+    }
+
+    .dashboard-actions {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .toolbar-group {
+        flex-wrap: wrap;
+    }
+
+    .filtering-indicator {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+
+    .dashboard-hero {
+        gap: 12px;
+        padding: 4px;
+    }
+
+    .dashboard-hero .hero-left {
+        flex: 1 1 100%;
+        gap: 12px;
+    }
+
+    .hero-region {
+        min-width: 100%;
+        padding: 12px;
+    }
+
+    .hero-region-name {
+        font-size: 18px;
+    }
+
+    .hero-region-sub {
+        font-size: 11px;
+    }
+
+    .hero-metrics {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .hero-metric {
+        padding: 10px 12px;
+    }
+
+    .metric-label {
+        font-size: 10px;
+    }
+
+    .metric-value {
+        font-size: 20px;
+    }
+
+    .metric-sub {
+        font-size: 10px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .kpi-card {
+        padding: 12px;
+    }
+
+    .kpi-card:hover {
+        transform: none;
+    }
+
+    .kpi-title {
+        font-size: 12px;
+    }
+
+    .kpi-value {
+        font-size: 28px;
+    }
+
+    .kpi-pill {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+
+    .group-grid {
+        gap: 24px;
+        margin-top: 8px;
+    }
+
+    .group-section {
+        gap: 12px;
+    }
+
+    .section-title {
+        font-size: 13px;
+        padding-left: 2px;
+    }
+
+    .section-title:after {
+        width: 36px;
+        height: 2px;
+    }
+
+    .training-table-wrapper {
+        padding: 12px;
+    }
+
+    .training-table-title {
+        font-size: 11px;
+    }
+
+    .training-table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .training-table-scroll {
+        max-height: 200px;
+    }
+
+    .training-table {
+        font-size: 12px;
+    }
+
+    .training-table thead th {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .training-table tbody td {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .training-toggle {
+        padding: 5px 10px;
+        font-size: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .bar-row {
+        grid-template-columns: 80px 1fr 36px;
+        gap: 8px;
+        font-size: 11px;
+    }
+
+    .delta-indicator {
+        font-size: 10px;
+        padding: 2px 5px;
+        margin-left: 4px;
+    }
+
+    .dashboard-refresh-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        gap: 4px;
+    }
+
+    .status-bars-wrapper {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .error-banner {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .loader {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 8px 6px;
+        gap: 10px;
+    }
+
+    .dashboard-header {
+        padding: 6px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 18px;
+    }
+
+    .dashboard-actions {
+        gap: 6px;
+    }
+
+    .filtering-indicator {
+        font-size: 10px;
+        padding: 4px 7px;
+    }
+
+    .dashboard-hero {
+        gap: 10px;
+        padding: 2px;
+    }
+
+    .hero-region {
+        padding: 10px;
+    }
+
+    .hero-region-name {
+        font-size: 16px;
+    }
+
+    .hero-region-sub {
+        font-size: 10px;
+    }
+
+    .hero-metrics {
+        gap: 6px;
+    }
+
+    .hero-metric {
+        padding: 8px 10px;
+    }
+
+    .metric-label {
+        font-size: 9px;
+    }
+
+    .metric-value {
+        font-size: 18px;
+    }
+
+    .metric-sub {
+        font-size: 9px;
+    }
+
+    .dashboard-grid {
+        gap: 10px;
+    }
+
+    .kpi-card {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .kpi-title {
+        font-size: 11px;
+    }
+
+    .kpi-value {
+        font-size: 24px;
+    }
+
+    .kpi-pill {
+        font-size: 11px;
+        padding: 4px 7px;
+    }
+
+    .group-grid {
+        gap: 20px;
+        margin-top: 6px;
+    }
+
+    .group-section {
+        gap: 10px;
+    }
+
+    .section-title {
+        font-size: 12px;
+    }
+
+    .training-table-wrapper {
+        padding: 10px;
+    }
+
+    .training-table-title {
+        font-size: 10px;
+    }
+
+    .training-table-scroll {
+        max-height: 180px;
+    }
+
+    .training-table {
+        font-size: 11px;
+    }
+
+    .training-table thead th {
+        padding: 5px 6px;
+        font-size: 9px;
+    }
+
+    .training-table tbody td {
+        padding: 5px 6px;
+        font-size: 11px;
+    }
+
+    .training-toggle {
+        padding: 4px 8px;
+        font-size: 9px;
+    }
+
+    .training-empty {
+        font-size: 12px;
+    }
+
+    .bar-row {
+        grid-template-columns: 70px 1fr 32px;
+        gap: 6px;
+        font-size: 10px;
+    }
+
+    .delta-indicator {
+        font-size: 9px;
+        padding: 1px 4px;
+        margin-left: 3px;
+    }
+
+    .dashboard-refresh-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .status-bars-wrapper {
+        padding: 0.75rem;
+        gap: 0.625rem;
+    }
+
+    .compact-metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .compact-metric-card {
+        padding: 0.5rem;
+    }
+
+    .metric-card-header {
+        font-size: 0.625rem;
+    }
+
+    .stat-value {
+        font-size: 0.875rem;
+    }
+
+    .stat-label {
+        font-size: 0.5rem;
+    }
+
+    .asset-status-bar {
+        height: 32px;
+    }
+
+    .status-segment {
+        font-size: 0.75rem;
+    }
+
+    .asset-status-label {
+        font-size: 0.8125rem;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .hero-metrics {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-container {
+        padding: 12px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero-metrics {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
