@@ -449,6 +449,7 @@
         font-size: 13px;
         width: 100%;
         display: block;
+        box-sizing: border-box;
     }
 
     .search-bar::before {
