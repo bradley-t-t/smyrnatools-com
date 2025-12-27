@@ -424,6 +424,26 @@
         gap: 10px;
     }
 
+    .list-headers.header-row {
+        display: flex !important;
+        width: 100% !important;
+    }
+
+    .list-headers.header-row > div {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        text-align: center !important;
+    }
+
+    .list-headers.header-row > div:first-child {
+        text-align: left !important;
+    }
+
+    .list-headers.header-row > div:last-child {
+        text-align: right !important;
+    }
+
     .top-title {
         font-size: 22px;
     }
