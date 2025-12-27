@@ -63,7 +63,7 @@ html, #root {
 .global-content-container {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow: hidden;
     flex: 1;
     overscroll-behavior: contain;
 }
