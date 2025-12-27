@@ -4,6 +4,8 @@ import SrmLogo from '../../assets/images/srm-logo.svg'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
 import VideoBackground from './VideoBackground'
+import NotificationsModal from './NotificationsModal'
+import {useNotifications} from '../../hooks/useNotifications'
 
 const ANIMATION_TIMING = {
     ITEM_ENTER_DELAY: 750,
@@ -648,31 +650,6 @@ export default function Navigation({
                                             </span>
                                             <span className="mobile-menu-text">My Account</span>
                                         </div>
-                                        <div
-                                            className={`mobile-menu-item ${notificationsCount > 0 ? 'has-badge' : ''}`}
-                                            onClick={(e) => {
-                                                const rect = e.currentTarget.getBoundingClientRect()
-                                                setNotificationsAnchor(rect)
-                                                if (typeof window !== 'undefined') {
-                                                    try {
-                                                        window.dispatchEvent(new CustomEvent('notifications-refresh'))
-                                                    } catch {
-                                                    }
-                                                }
-                                                setShowNotifications(true)
-                                                setIsMobileMenuOpen(false)
-                                            }}
-                                        >
-                                            <span className="mobile-menu-icon">
-                                                <i className="fas fa-bell"></i>
-                                            </span>
-                                            <span className="mobile-menu-text">
-                                                Notifications
-                                                {notificationsCount > 0 && (
-                                                    <span className="mobile-notification-badge">{notificationsCount}</span>
-                                                )}
-                                            </span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1033,6 +1010,17 @@ export default function Navigation({
                     </div>
                 )}
                 <div className="content-area">{children}</div>
+                {showNotifications && (
+                    <NotificationsModal isOpen={showNotifications} onClose={() => {
+                        setShowNotifications(false)
+                        if (typeof window !== 'undefined') {
+                            try {
+                                window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                            } catch {
+                            }
+                        }
+                    }} anchorRect={notificationsAnchor}/>
+                )}
             </div>
         </>
     )
