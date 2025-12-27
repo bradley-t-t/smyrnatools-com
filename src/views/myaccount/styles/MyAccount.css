@@ -1208,3 +1208,326 @@ body:has(.my-account-wrapper) {
 .account-tabs {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+@media (max-width: 768px) {
+    .my-account-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+
+    .account-hero {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .account-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 1.8rem;
+        border-width: 3px;
+    }
+
+    .account-hero-content h1 {
+        font-size: 1.75rem;
+    }
+
+    .account-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .account-badges-row {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .account-badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.7rem;
+    }
+
+    .account-tabs {
+        gap: 0.5rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .account-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .tab i {
+        font-size: 0.9rem;
+    }
+
+    .account-section {
+        padding: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+        padding: 0.75rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.25rem;
+        gap: 0.5rem;
+    }
+
+    .section-header p {
+        font-size: 0.85rem;
+    }
+
+    .account-card {
+        padding: 1rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-group {
+        min-width: 100%;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .security-actions-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .security-action-card {
+        padding: 1rem;
+    }
+
+    .action-card-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .action-card-content p {
+        font-size: 0.85rem;
+    }
+
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+
+    .sessions-list {
+        gap: 10px;
+    }
+
+    .session-item {
+        padding: 12px;
+    }
+
+    .session-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .session-time {
+        margin-left: 0;
+    }
+
+    .session-browser {
+        font-size: 14px;
+    }
+
+    .session-platform {
+        font-size: 12px;
+    }
+
+    .session-actions {
+        margin-top: 8px;
+        justify-content: flex-start;
+    }
+
+    .modal-container {
+        width: 95%;
+        max-width: 95%;
+        margin: 1rem;
+    }
+
+    .modal-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .password-form {
+        padding: 1rem;
+    }
+
+    .form-group input {
+        padding: 0.65rem;
+    }
+
+    .input-with-icon input {
+        padding-left: 40px;
+    }
+
+    .input-with-icon i {
+        left: 12px;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .myaccount-logout-button {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+    }
+
+    .account-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .message {
+        padding: 0.875rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .message-icon {
+        font-size: 1.1rem;
+        margin-right: 0.75rem;
+    }
+
+    .message p {
+        font-size: 0.875rem;
+    }
+
+    .skeleton-avatar {
+        width: 80px;
+        height: 80px;
+        border-width: 3px;
+    }
+
+    .skeleton-form-row {
+        flex-direction: column;
+    }
+
+    .skeleton-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .my-account-container {
+        padding: 0.75rem;
+    }
+
+    .account-hero {
+        gap: 0.75rem;
+    }
+
+    .account-avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 1.5rem;
+    }
+
+    .account-hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .account-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .account-badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .tab {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.85rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .section-header p {
+        font-size: 0.8rem;
+    }
+
+    .account-card {
+        padding: 0.875rem;
+    }
+
+    .action-card-content h3 {
+        font-size: 1rem;
+    }
+
+    .action-card-content p {
+        font-size: 0.8rem;
+    }
+
+    .session-browser {
+        font-size: 13px;
+    }
+
+    .session-platform,
+    .session-time {
+        font-size: 11px;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.55rem 1rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .form-group input {
+        font-size: 0.9rem;
+        padding: 0.6rem;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .my-account-container {
+        padding: 1.5rem;
+    }
+
+    .info-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .security-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
