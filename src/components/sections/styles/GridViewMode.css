@@ -260,6 +260,10 @@
 @media (max-width: 480px) {
     .grid-container {
         max-height: calc(100vh - 220px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
     }
 
     .grid {
