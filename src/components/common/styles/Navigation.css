@@ -620,9 +620,9 @@ body:has(.my-account-wrapper) .content-area {
 }
 
 .mobile-menu-item.active {
-    background: rgba(var(--accent-rgb, 59, 130, 246), 0.15);
-    color: var(--accent-color);
-    border-left: 3px solid var(--accent-color);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+    border-left: 3px solid var(--accent);
     padding-left: 17px;
 }
 
