@@ -263,10 +263,11 @@ function AppContent() {
     }, [userId])
 
     useEffect(() => {
-        const OFFLINE_THRESHOLD = 2
-        const ONLINE_THRESHOLD = 3
-        const MIN_OFFLINE_MS = 10000
-        const POLL_MS = 4000
+        const isMobile = NetworkUtility.isMobileDevice ? NetworkUtility.isMobileDevice() : false
+        const OFFLINE_THRESHOLD = isMobile ? 4 : 2
+        const ONLINE_THRESHOLD = isMobile ? 2 : 3
+        const MIN_OFFLINE_MS = isMobile ? 20000 : 10000
+        const POLL_MS = isMobile ? 8000 : 4000
         let cancelled = false
         const evalStatus = (ok) => {
             const browserOnline = navigator.onLine
@@ -292,13 +293,18 @@ function AppContent() {
             if (!cancelled) evalStatus(ok)
         }
         const handleOnline = () => {
-            check()
+            offlineStreakRef.current = 0
+            onlineStreakRef.current = ONLINE_THRESHOLD
+            offlineSinceRef.current = null
+            setOfflineMode(false)
         }
         const handleOffline = () => {
-            onlineStreakRef.current = 0
-            offlineStreakRef.current = OFFLINE_THRESHOLD
-            if (!offlineSinceRef.current) offlineSinceRef.current = Date.now()
-            setOfflineMode(true)
+            if (!isMobile) {
+                onlineStreakRef.current = 0
+                offlineStreakRef.current = OFFLINE_THRESHOLD
+                if (!offlineSinceRef.current) offlineSinceRef.current = Date.now()
+                setOfflineMode(true)
+            }
         }
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
