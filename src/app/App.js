@@ -35,6 +35,7 @@ import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
 import CalculatorView from '../views/calculator/CalculatorView'
 import VideoBackground from '../components/common/VideoBackground'
 import PodcastPopup from '../components/common/PodcastPopup'
+import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
 
 function VersionPopup({version}) {
     if (!version) return null
@@ -652,6 +653,7 @@ function App() {
             <AppContent/>
             <div style={{position: 'relative', zIndex: 9999}}><OnlineUsersOverlay/></div>
             <PodcastPopup/>
+            <AppInstallPromptModal/>
         </>
     )
 }
