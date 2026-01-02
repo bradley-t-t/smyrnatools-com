@@ -270,8 +270,8 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-row">
+                    <div className="add-form-section">
+                        <div className="add-form-row">
                             <div className="form-group wide">
                                 <label htmlFor="comments">Comments</label>
                                 <textarea
