@@ -266,24 +266,36 @@ label {
     .ios-select {
         font-size: 16px;
         padding: 0.75rem 1rem;
-        min-height: 44px;
+        min-height: 48px;
+        border-radius: 10px;
     }
 
     .ios-select {
-        padding-right: 2.5rem;
+        padding-right: 2.75rem;
+        background-position: right 1rem center;
     }
 
     .ios-button-primary {
-        width: 100%;
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
         min-height: 48px;
+        border-radius: 10px;
     }
 
     .operator-select-button {
         min-height: 48px;
         font-size: 16px;
         padding: 0.75rem 1rem;
+        border-radius: 10px;
+    }
+
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="time"] {
+        font-size: 16px;
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
     }
 }
 
@@ -311,12 +323,13 @@ label {
     .ios-select {
         font-size: 16px;
         padding: 0.75rem 0.875rem;
-        min-height: 44px;
+        min-height: 48px;
+        border-radius: 10px;
     }
 
     .ios-select {
-        padding-right: 2.25rem;
-        background-position: right 0.75rem center;
+        padding-right: 2.5rem;
+        background-position: right 0.875rem center;
     }
 
     .ios-button-primary {
@@ -325,12 +338,14 @@ label {
         font-size: 0.9375rem;
         min-height: 48px;
         min-width: auto;
+        border-radius: 10px;
     }
 
     .operator-select-button {
         min-height: 48px;
         font-size: 16px;
         padding: 0.75rem 0.875rem;
+        border-radius: 10px;
     }
 
     .form-actions {
@@ -340,11 +355,22 @@ label {
     .warning-message {
         font-size: 0.8125rem;
         padding: 0.5rem 0.75rem;
+        border-radius: 8px;
     }
 
     .error-message {
         font-size: 0.8125rem;
         padding: 0.625rem 0.875rem;
+        border-radius: 8px;
+    }
+
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="time"] {
+        font-size: 16px;
+        min-height: 48px;
+        padding: 0.75rem 0.875rem;
+        border-radius: 10px;
     }
 }
 
