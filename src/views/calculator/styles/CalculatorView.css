@@ -19,7 +19,7 @@
 
 .calculators-header {
     position: fixed;
-    top: 30px;
+    top: 70px;
     left: 0;
     right: 0;
     width: 100vw;
@@ -115,7 +115,7 @@
 }
 
 .calculators-content {
-    padding: 110px 16px 24px 16px;
+    padding: 160px 16px 24px 16px;
 }
 
 .mix-fixer {

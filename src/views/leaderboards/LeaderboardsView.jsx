@@ -211,7 +211,7 @@ export default function LeaderboardsView() {
         return () => {
             mounted = false
         }
-    }, [selectedRegionCode])
+    }, [selectedRegionCode, selectedYear])
 
     const categoryData = LeaderboardsUtility.getCategoryData(plantMetrics, selectedCategory)
 

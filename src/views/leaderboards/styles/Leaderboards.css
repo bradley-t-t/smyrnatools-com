@@ -53,7 +53,7 @@
 
 .leaderboards-header {
     position: fixed;
-    top: 30px;
+    top: 70px;
     left: 0;
     right: 0;
     width: 100vw;
@@ -159,7 +159,7 @@
 }
 
 .leaderboards-content {
-    padding: 120px 12px 16px 12px;
+    padding: 160px 12px 16px 12px;
 }
 
 .leaderboard-main {
