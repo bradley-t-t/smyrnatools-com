@@ -285,7 +285,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="add-form-actions">
                         <button type="submit" className="ios-button-primary" disabled={isSaving}>
                             {isSaving ? 'Saving...' : item ? 'Update Item' : selectedPlantCodes.length > 0 ? `Add to ${selectedPlantCodes.length} Plant${selectedPlantCodes.length !== 1 ? 's' : ''}` : 'Add Item'}
                         </button>
