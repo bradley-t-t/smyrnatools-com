@@ -60,9 +60,8 @@ export default function LeaderboardsView() {
                     plantNames[p.plantCode] = p.plantName
                 })
 
-                const currentYear = new Date().getFullYear()
-                const startOfYear = new Date(currentYear, 0, 1)
-                const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
+                const startOfYear = new Date(selectedYear, 0, 1)
+                const endOfYear = new Date(selectedYear, 11, 31, 23, 59, 59)
 
                 const {data: profilesData, error: profilesError} = await supabase
                     .from('users_profiles')
@@ -658,7 +657,7 @@ export default function LeaderboardsView() {
                         <div className="help-details-modal-content">
                             {helpDetailsModal.details.details && helpDetailsModal.details.details.filter(e => e.hours > 0 && e.operatorCount > 0).length > 0 ? (
                                 <div className="help-entries-list">
-                                    {helpDetailsModal.details.details
+                                    {helpDetailsModal.details
                                         .filter(entry => entry.hours > 0 && entry.operatorCount > 0)
                                         .sort((a, b) => new Date(b.week) - new Date(a.week))
                                         .map((entry, idx) => {
