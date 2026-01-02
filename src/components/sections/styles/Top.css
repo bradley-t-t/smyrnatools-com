@@ -460,7 +460,10 @@
     }
 
     .search-bar {
-        display: none;
+        flex: 1 1 100%;
+        max-width: 100%;
+        min-width: 0;
+        order: 1;
     }
 
     .ios-select {
@@ -538,7 +541,15 @@
         gap: 10px;
     }
 
+    .search-bar {
+        order: 1;
+        width: 100%;
+        max-width: none;
+        flex: 1 1 100%;
+    }
+
     .filters {
+        order: 2;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
@@ -547,38 +558,22 @@
         gap: 10px;
     }
 
-    .search-bar {
-        position: relative;
-        width: 100%;
-        max-width: none;
-    }
-
-    .ios-search-input {
-        padding: 10px 38px 10px 38px;
-        font-size: 13px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .search-bar::before {
-        font-size: 13px;
-        left: 14px;
-    }
-
-    .search-bar button.clear {
-        right: 10px;
-    }
-
     .ios-search-input {
         padding: 11px 38px 11px 38px;
         box-sizing: border-box;
         width: 100%;
+        font-size: 13px;
     }
 
     .search-bar::before {
+        font-size: 13px;
         left: 14px;
         top: 50%;
         transform: translateY(-50%);
+    }
+
+    .search-bar button.clear {
+        right: 10px;
     }
 
     .ios-select,
@@ -649,12 +644,6 @@
 
     .action-cluster {
         gap: 6px;
-    }
-
-    .search-bar {
-        position: relative;
-        width: 100%;
-        max-width: none;
     }
 
     .ios-search-input {
