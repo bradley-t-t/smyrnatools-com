@@ -162,6 +162,7 @@
     gap: 16px;
     overflow-y: auto;
     max-height: 40vh;
+    order: -1;
 }
 
 .detail-view-sidebar::-webkit-scrollbar {
@@ -193,6 +194,7 @@
         padding: 20px 20px 30px 20px;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
+        order: 0;
     }
 }
 
@@ -927,7 +929,15 @@ select.form-control:disabled {
     margin-bottom: 12px;
 }
 
+.detail-view-mobile-footer {
+    display: none;
+}
+
 @media (max-width: 768px) {
+    .detail-view-mobile-footer {
+        display: block !important;
+    }
+
     .content-area:has(.detail-view) {
         padding: 0 !important;
         overflow: hidden !important;
@@ -1009,13 +1019,17 @@ select.form-control:disabled {
         border-right: none !important;
         border-bottom: 1px solid var(--border-light);
         padding: 12px;
-        padding-bottom: 120px !important;
+        padding-bottom: 16px !important;
         overflow-y: visible !important;
         overflow-x: hidden !important;
-        order: 2;
+        order: -1 !important;
         flex-shrink: 0;
         position: relative !important;
         z-index: 1 !important;
+    }
+
+    .detail-view-sidebar .form-actions {
+        display: none !important;
     }
 
     .detail-view-main {
@@ -1126,7 +1140,8 @@ select.form-control:disabled {
         font-size: 13px;
     }
 
-    .form-actions {
+    .form-actions,
+    .detail-view-mobile-footer .form-actions {
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
@@ -1139,10 +1154,8 @@ select.form-control:disabled {
         padding-bottom: calc(12px + env(safe-area-inset-bottom));
         margin: 0;
         border-top: 2px solid var(--border-light);
-        background: var(--bg-secondary) !important;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+        background: var(--bg-primary) !important;
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
     }
 
     .form-actions-left,
@@ -1172,37 +1185,37 @@ select.form-control:disabled {
     .primary-button.save-button {
         order: -1;
         background: var(--success) !important;
-        color: white;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3) !important;
     }
 
     .save-button:active,
     .primary-button.save-button:active {
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 4px rgba(5, 150, 105, 0.2) !important;
     }
 
     .danger-button {
-        background: transparent;
-        color: var(--danger);
-        border: 1px solid var(--danger);
+        background: var(--bg-primary) !important;
+        color: var(--danger) !important;
+        border: 2px solid var(--danger) !important;
     }
 
     .danger-button:active {
-        background: var(--danger);
-        color: white;
+        background: var(--danger) !important;
+        color: white !important;
     }
 
     .transfer-region-button,
     .cancel-button {
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
-        border: 1px solid var(--border-light);
+        background: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border: 2px solid var(--border-medium) !important;
     }
 
     .transfer-region-button:active,
     .cancel-button:active {
-        background: var(--bg-secondary);
+        background: var(--bg-tertiary) !important;
     }
 
     .verification-card {

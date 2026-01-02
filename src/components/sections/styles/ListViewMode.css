@@ -7,6 +7,8 @@
     overflow: auto;
     overflow-x: hidden;
     background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border-radius: 0 0 12px 12px;
     border: 1px solid var(--divider);
@@ -80,7 +82,9 @@
 }
 
 .list-table tbody tr:hover {
-    background: var(--divider);
+    background: color-mix(in srgb, var(--divider) 70%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 

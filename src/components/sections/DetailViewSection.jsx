@@ -294,6 +294,24 @@ function DetailViewSection({
                             </div>
                         </div>
                     )}
+                    {footerActions && (
+                        <div className="detail-view-mobile-footer">
+                            <div className="form-actions">
+                                {footerActions}
+                                {hasRegionTransferPermission && onRegionTransfer && currentRegion && (
+                                    <button
+                                        type="button"
+                                        className="transfer-region-button"
+                                        onClick={handleOpenRegionTransfer}
+                                        disabled={isSaving}
+                                    >
+                                        <i className="fas fa-exchange-alt"></i>
+                                        <span>Transfer</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             {(message || internalRestrictionWarning) && ReactDOM.createPortal(
