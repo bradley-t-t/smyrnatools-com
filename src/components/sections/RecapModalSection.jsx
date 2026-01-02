@@ -23,6 +23,7 @@ function RecapModalSection({
     const [dateFilter, setDateFilter] = useState('week')
     const [expandedAssets, setExpandedAssets] = useState({})
     const [isTabVisible, setIsTabVisible] = useState(false)
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
     const mixerIds = useMemo(() => {
         if (!mixers || !Array.isArray(mixers)) return []
@@ -333,6 +334,14 @@ function RecapModalSection({
         }, 2000)
         return () => clearTimeout(timer)
     }, [mixersLoaded, externalLoading])
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768)
+        }
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     const formatFieldName = (fieldName) => {
         if (!fieldName) return 'Unknown Field'
@@ -675,7 +684,7 @@ function RecapModalSection({
 
     return (
         <>
-            {tab}
+            {!isMobile && tab}
             {modal && ReactDOM.createPortal(modal, document.body)}
         </>
     )
