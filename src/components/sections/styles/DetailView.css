@@ -1018,8 +1018,7 @@ select.form-control:disabled {
         height: auto !important;
         border-right: none !important;
         border-bottom: 1px solid var(--border-light);
-        padding: 12px;
-        padding-bottom: 16px !important;
+        padding: 12px 12px 12px 12px !important;
         overflow-y: visible !important;
         overflow-x: hidden !important;
         order: -1 !important;
@@ -1035,7 +1034,7 @@ select.form-control:disabled {
     .detail-view-main {
         width: 100% !important;
         padding: 12px;
-        padding-bottom: 120px !important;
+        padding-bottom: 180px !important;
         order: 1;
         overflow-y: visible !important;
         overflow-x: hidden !important;
@@ -1219,7 +1218,7 @@ select.form-control:disabled {
     }
 
     .verification-card {
-        margin: 0;
+        margin: 0 0 12px 0;
         padding: 0;
         border-radius: 12px;
         position: relative;
@@ -1227,48 +1226,48 @@ select.form-control:disabled {
     }
 
     .verification-card-header {
-        padding: 12px;
+        padding: 10px 12px;
         position: relative;
         z-index: 1;
     }
 
     .verification-card-header i {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .verification-badge {
-        padding: 5px 10px;
-        font-size: 10px;
-    }
-
-    .verification-details {
-        padding: 10px;
-        gap: 6px;
-    }
-
-    .verification-item {
-        padding: 8px 10px;
-        gap: 10px;
-    }
-
-    .verification-icon {
-        width: 28px;
-        height: 28px;
-        font-size: 11px;
-    }
-
-    .verification-label {
+        padding: 4px 8px;
         font-size: 9px;
     }
 
+    .verification-details {
+        padding: 8px;
+        gap: 4px;
+    }
+
+    .verification-item {
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    .verification-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 10px;
+    }
+
+    .verification-label {
+        font-size: 8px;
+    }
+
     .verification-value {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .verify-now-button {
-        margin: 10px;
-        padding: 11px 14px;
-        font-size: 13px;
+        margin: 8px;
+        padding: 10px 12px;
+        font-size: 12px;
         gap: 6px;
     }
 

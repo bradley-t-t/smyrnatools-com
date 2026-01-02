@@ -137,7 +137,12 @@ function PodcastPopup() {
                 <audio
                     ref={audioRef}
                     src={episode.audioUrl}
+                    preload="none"
+                    crossOrigin="anonymous"
                     onEnded={() => setIsPlaying(false)}
+                    onPause={() => setIsPlaying(false)}
+                    onPlay={() => setIsPlaying(true)}
+                    onError={() => setIsPlaying(false)}
                 />
             )}
             {isMinimized ? (
