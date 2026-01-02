@@ -261,6 +261,30 @@ label {
         flex-direction: column;
         gap: 0;
     }
+
+    .ios-input,
+    .ios-select {
+        font-size: 16px;
+        padding: 0.75rem 1rem;
+        min-height: 44px;
+    }
+
+    .ios-select {
+        padding-right: 2.5rem;
+    }
+
+    .ios-button-primary {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+
+    .operator-select-button {
+        min-height: 48px;
+        font-size: 16px;
+        padding: 0.75rem 1rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -281,6 +305,46 @@ label {
 
     .form-section {
         padding: var(--spacing-sm) var(--spacing-xs);
+    }
+
+    .ios-input,
+    .ios-select {
+        font-size: 16px;
+        padding: 0.75rem 0.875rem;
+        min-height: 44px;
+    }
+
+    .ios-select {
+        padding-right: 2.25rem;
+        background-position: right 0.75rem center;
+    }
+
+    .ios-button-primary {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9375rem;
+        min-height: 48px;
+        min-width: auto;
+    }
+
+    .operator-select-button {
+        min-height: 48px;
+        font-size: 16px;
+        padding: 0.75rem 0.875rem;
+    }
+
+    .form-actions {
+        justify-content: stretch;
+    }
+
+    .warning-message {
+        font-size: 0.8125rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .error-message {
+        font-size: 0.8125rem;
+        padding: 0.625rem 0.875rem;
     }
 }
 

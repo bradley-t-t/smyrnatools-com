@@ -343,21 +343,3 @@
 .add-form-actions .ios-button-primary {
     min-width: 140px;
 }
-
-@media (max-width: 480px) {
-    .add-form-section {
-        padding: 0.875rem 1rem;
-    }
-
-    .add-form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .add-form-actions {
-        justify-content: stretch;
-    }
-
-    .add-form-actions .ios-button-primary {
-        width: 100%;
-    }
-}
