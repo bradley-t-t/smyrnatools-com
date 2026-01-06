@@ -3,6 +3,7 @@ import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
+import {formatMaintenanceDateShort, getFieldTypeIcon} from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     const [submitting, setSubmitting] = useState(false)
@@ -273,15 +274,6 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         }
     }
 
-    const formatDate = (dateStr) => {
-        const date = new Date(dateStr)
-        return date.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        })
-    }
-
     const renderField = (field) => {
         const isDisabled = isReview || (isViewOnly && !isEditing)
 
@@ -380,16 +372,6 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         }
     }
 
-    const getFieldIcon = (type) => {
-        switch (type) {
-            case 'short_answer': return 'fa-font'
-            case 'long_answer': return 'fa-align-left'
-            case 'checklist': return 'fa-check-square'
-            case 'notes': return 'fa-sticky-note'
-            default: return 'fa-question'
-        }
-    }
-
     if (isReview) {
         if (loading) {
             return (
@@ -418,7 +400,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                     <div className="header-content">
                         <h1>{form?.title}</h1>
                         <p className="header-subtitle">
-                            Submitted by {submitterName || 'Unknown'} on {formatDate(item?.submitted_at)}
+                            Submitted by {submitterName || 'Unknown'} on {formatMaintenanceDateShort(item?.submitted_at)}
                         </p>
                     </div>
                 </div>
@@ -500,7 +482,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                     </button>
                     <div className="header-content">
                         <h1>{form?.title}</h1>
-                        <p className="header-subtitle">Due: {formatDate(item?.due_date)}</p>
+                        <p className="header-subtitle">Due: {formatMaintenanceDateShort(item?.due_date)}</p>
                     </div>
                 </div>
 
@@ -550,7 +532,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 </button>
                 <div className="step-info">
                     <span className="step-title">{form?.title}</span>
-                    <span className="step-due">Due {formatDate(item?.due_date)}</span>
+                    <span className="step-due">Due {formatMaintenanceDateShort(item?.due_date)}</span>
                 </div>
                 <div className="step-progress">
                     <div className="step-progress-bar">
@@ -601,7 +583,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                     <div className="step-field-container">
                         <div className="step-question">
                             <div className="step-question-icon">
-                                <i className={`fas ${getFieldIcon(currentField.field_type)}`}></i>
+                                <i className={`fas ${getFieldTypeIcon(currentField.field_type)}`}></i>
                             </div>
                             <h2 className="step-question-text">
                                 {currentField.label}

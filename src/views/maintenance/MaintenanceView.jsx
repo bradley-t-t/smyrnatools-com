@@ -5,6 +5,7 @@ import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import MaintenanceFormView from './MaintenanceFormView'
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
+import {getStatusBadgeClass, formatMaintenanceDate, formatFrequency} from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceView() {
     const [loading, setLoading] = useState(true)
@@ -95,46 +96,6 @@ export default function MaintenanceView() {
     const handleEditForm = (form) => {
         setEditingForm(form)
         setShowCreateForm(true)
-    }
-
-    const getStatusBadgeClass = (status) => {
-        switch (status) {
-            case 'overdue':
-                return 'status-badge-danger'
-            case 'pending':
-                return 'status-badge-warning'
-            case 'completed':
-                return 'status-badge-success'
-            case 'submitted':
-                return 'status-badge-info'
-            case 'approved':
-                return 'status-badge-success'
-            case 'rejected':
-                return 'status-badge-danger'
-            default:
-                return 'status-badge-neutral'
-        }
-    }
-
-    const formatDate = (dateStr) => {
-        const date = new Date(dateStr)
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        })
-    }
-
-    const formatFrequency = (frequency, value = 1) => {
-        const labels = {
-            daily: value === 1 ? 'Daily' : `Every ${value} days`,
-            weekly: value === 1 ? 'Weekly' : `Every ${value} weeks`,
-            biweekly: 'Bi-weekly',
-            monthly: value === 1 ? 'Monthly' : `Every ${value} months`,
-            quarterly: 'Quarterly',
-            yearly: value === 1 ? 'Yearly' : `Every ${value} years`
-        }
-        return labels[frequency] || frequency
     }
 
     if (selectedItem) {
@@ -248,7 +209,7 @@ export default function MaintenanceView() {
                                                     <div className="maintenance-item-meta">
                                                         <span className="meta-item">
                                                             <i className="fas fa-calendar"></i>
-                                                            Due: {formatDate(item.due_date)}
+                                                            Due: {formatMaintenanceDate(item.due_date)}
                                                         </span>
                                                         <span className="meta-item">
                                                             <i className="fas fa-sync-alt"></i>
@@ -323,7 +284,7 @@ export default function MaintenanceView() {
                                                             <div className="maintenance-item-meta">
                                                                 <span className="meta-item">
                                                                     <i className="fas fa-clock"></i>
-                                                                    Submitted: {formatDate(submission.submitted_at)}
+                                                                    Submitted: {formatMaintenanceDate(submission.submitted_at)}
                                                                 </span>
                                                                 <span className="meta-item">
                                                                     <i className="fas fa-building"></i>
@@ -372,7 +333,7 @@ export default function MaintenanceView() {
                                                             <div className="maintenance-item-meta">
                                                                 <span className="meta-item">
                                                                     <i className="fas fa-calendar-check"></i>
-                                                                    Reviewed: {formatDate(submission.reviewed_at)}
+                                                                    Reviewed: {formatMaintenanceDate(submission.reviewed_at)}
                                                                 </span>
                                                                 <span className="meta-item">
                                                                     <i className="fas fa-building"></i>
@@ -430,12 +391,12 @@ export default function MaintenanceView() {
                                                     <div className="maintenance-item-meta">
                                                         <span className="meta-item">
                                                             <i className="fas fa-calendar"></i>
-                                                            Submitted: {formatDate(submission.submitted_at)}
+                                                            Submitted: {formatMaintenanceDate(submission.submitted_at)}
                                                         </span>
                                                         {submission.reviewed_at && (
                                                             <span className="meta-item">
                                                                 <i className="fas fa-clipboard-check"></i>
-                                                                Reviewed: {formatDate(submission.reviewed_at)}
+                                                                Reviewed: {formatMaintenanceDate(submission.reviewed_at)}
                                                             </span>
                                                         )}
                                                     </div>
@@ -492,7 +453,7 @@ export default function MaintenanceView() {
                                                         </span>
                                                         <span className="meta-item">
                                                             <i className="fas fa-calendar-plus"></i>
-                                                            Created: {formatDate(form.created_at)}
+                                                            Created: {formatMaintenanceDate(form.created_at)}
                                                         </span>
                                                     </div>
                                                 </div>

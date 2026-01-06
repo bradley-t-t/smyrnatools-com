@@ -5,6 +5,7 @@ import {UserService} from '../../services/UserService'
 import {RegionService} from '../../services/RegionService'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import {getFieldTypeIcon, getFieldTypeName} from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}) {
     const {preferences} = usePreferences()
@@ -229,26 +230,6 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
         } finally {
             setSaving(false)
             setShowDeleteConfirm(false)
-        }
-    }
-
-    const getFieldTypeIcon = (type) => {
-        switch (type) {
-            case 'short_answer': return 'fa-font'
-            case 'long_answer': return 'fa-align-left'
-            case 'checklist': return 'fa-check-square'
-            case 'notes': return 'fa-sticky-note'
-            default: return 'fa-question'
-        }
-    }
-
-    const getFieldTypeName = (type) => {
-        switch (type) {
-            case 'short_answer': return 'Short Answer'
-            case 'long_answer': return 'Long Answer'
-            case 'checklist': return 'Checklist'
-            case 'notes': return 'Notes'
-            default: return type
         }
     }
 
