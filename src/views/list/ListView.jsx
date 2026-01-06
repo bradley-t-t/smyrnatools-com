@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useRef, useState, useMemo} from 'react'
 import './styles/List.css'
 import '../../styles/FilterStyles.css'
 import {ListService} from '../../services/ListService'
@@ -8,7 +8,6 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import ListAddView from './ListAddView'
 import {RegionService} from '../../services/RegionService'
 import TopSection from '../../components/sections/TopSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
 
 function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const {preferences} = usePreferences()
@@ -25,26 +24,66 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const [selectedIds, setSelectedIds] = useState(new Set())
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
-    const sortMappings = {
-        'Plant': 'plant_code',
-        'Truck #': 'truck_number',
-        'Status': 'status',
-        'Operator': 'operator_name',
-        'Cleanliness': 'cleanliness_rating',
-        'VIN': 'vin',
-        'Verified': 'verified',
-        'More': null
-    }
 
-    const labelToSortKey = {
-        'Description': 'description',
-        'Plant': 'plant',
-        'Deadline': 'deadline',
-        'Completed': 'completed_at',
-        'Creator': 'creator',
-        'Status': 'status'
-    }
+    const baseFilteredItems = ListService.getFilteredItems({
+        filterType: '',
+        plantCode: selectedPlant,
+        searchTerm: searchText,
+        showCompleted: statusFilter === 'completed',
+        statusFilter
+    })
 
+    const filteredItems = regionPlantCodes && regionPlantCodes.size > 0
+        ? baseFilteredItems.filter(item => regionPlantCodes.has(String(item.plant_code || '').trim().toUpperCase()))
+        : baseFilteredItems
+
+    const groupedItems = useMemo(() => {
+        const groups = {
+            today: { label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning' },
+            overdue: { label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger' },
+            tomorrow: { label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info' },
+            thisWeek: { label: 'This Week', icon: 'fa-calendar-week', items: [], color: 'accent' },
+            later: { label: 'Later', icon: 'fa-calendar-alt', items: [], color: 'secondary' },
+            completed: { label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success' }
+        }
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        
+        const endOfWeek = new Date(today)
+        endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
+
+        filteredItems.forEach(item => {
+            if (item.completed) {
+                groups.completed.items.push(item)
+                return
+            }
+
+            const deadline = new Date(item.deadline)
+            deadline.setHours(0, 0, 0, 0)
+
+            if (deadline < today) {
+                groups.overdue.items.push(item)
+            } else if (deadline.getTime() === today.getTime()) {
+                groups.today.items.push(item)
+            } else if (deadline.getTime() === tomorrow.getTime()) {
+                groups.tomorrow.items.push(item)
+            } else if (deadline <= endOfWeek) {
+                groups.thisWeek.items.push(item)
+            } else {
+                groups.later.items.push(item)
+            }
+        })
+
+        Object.values(groups).forEach(group => {
+            group.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+        })
+
+        return groups
+    }, [filteredItems])
 
     useEffect(() => {
         fetchAllData()
@@ -94,32 +133,6 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
             setIsLoading(false)
         }
     }
-
-    const baseFilteredItems = ListService.getFilteredItems({
-        filterType: '',
-        plantCode: selectedPlant,
-        searchTerm: searchText,
-        showCompleted: statusFilter === 'completed',
-        statusFilter
-    })
-
-    const filteredItems = regionPlantCodes && regionPlantCodes.size > 0
-        ? baseFilteredItems.filter(item => regionPlantCodes.has(String(item.plant_code || '').trim().toUpperCase()))
-        : baseFilteredItems
-
-    const sortedItems = (() => {
-        if (!sortKey) return filteredItems
-        const items = [...filteredItems]
-        const dir = sortDirection === 'desc' ? -1 : 1
-        const key = labelToSortKey[sortKey]
-        if (key === 'description') items.sort((a, b) => ((a.description || '').localeCompare(b.description || '')) * dir)
-        else if (key === 'plant') items.sort((a, b) => ((String(a.plant_code || '')).localeCompare(String(b.plant_code || ''))) * dir)
-        else if (key === 'deadline') items.sort((a, b) => ((new Date(a.deadline).getTime() || 0) - (new Date(b.deadline).getTime() || 0)) * dir)
-        else if (key === 'completed_at') items.sort((a, b) => ((new Date(a.completed_at).getTime() || 0) - (new Date(b.completed_at).getTime() || 0)) * dir)
-        else if (key === 'creator') items.sort((a, b) => (ListService.getCreatorName(a.user_id).localeCompare(ListService.getCreatorName(b.user_id))) * dir)
-        else if (key === 'status') items.sort((a, b) => ((a.completed === b.completed) ? 0 : a.completed ? 1 : -1) * dir)
-        return items
-    })()
 
     const getPlantName = plantCode => ListService.getPlantName(plantCode)
     const truncateText = (text, maxLength, byWords = false) => ListService.truncateText(text, maxLength, byWords)
@@ -288,7 +301,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                         {isLoading ? (
                             <div className="global-loading-container loading-container"><LoadingScreen
                                 message="Loading list items..." inline={true}/></div>
-                        ) : sortedItems.length === 0 ? (
+                        ) : filteredItems.length === 0 ? (
                             <div className="global-no-results-container no-results-container">
                                 <div className="no-results-icon"><i className="fas fa-clipboard-list"></i></div>
                                 <h3>{statusFilter === 'completed' ? 'No Completed Items Found' : 'No List Items Found'}</h3>
@@ -298,39 +311,70 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 </button>
                             </div>
                         ) : (
-                            <ListViewModeSection
-                                filteredItems={sortedItems}
-                                handleSelectItem={handleSelectItem}
-                                headerLabels={derivedListHeaderLabels}
-                                colWidths={derivedColWidths}
-                                renderRow={(item, handleSelect) => (
-                                    <tr key={item.id}
-                                        className={`${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'is-selected' : ''}`}
-                                        onClick={() => handleSelect(item)} style={{cursor: 'pointer'}}>
-                                        <td style={{width: derivedColWidths[0]}} onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" checked={selectedIds.has(item.id)}
-                                                   onChange={() => toggleSelect(item.id)} aria-label="Select row"/></td>
-                                        <td style={{width: derivedColWidths[1], textAlign: 'left'}}
-                                            title={item.description}>{truncateText(item.description, 60)}</td>
-                                        <td style={{width: derivedColWidths[2]}}
-                                            title={getPlantName(item.plant_code)}>{truncateText(getPlantName(item.plant_code), 20)}</td>
-                                        <td style={{width: derivedColWidths[3]}}><span
-                                            className={ListService.isOverdue(item) && !item.completed ? 'deadline-overdue' : ''}>{new Date(item.deadline).toLocaleDateString()}</span>
-                                        </td>
-                                        {statusFilter === 'completed' &&
-                                            <td style={{width: derivedColWidths[4]}}>{item.completed_at ? new Date(item.completed_at).toLocaleDateString() : 'N/A'}</td>}
-                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 5 : 4]}}
-                                            title={ListService.getCreatorName(item.user_id)}>{truncateText(ListService.getCreatorName(item.user_id), 20)}</td>
-                                        <td style={{width: derivedColWidths[statusFilter === 'completed' ? 6 : 5]}}>{item.completed ?
-                                            <span
-                                                className="list-status-badge completed">COMPLETED</span> : ListService.isOverdue(item) ?
-                                                <span className="list-status-badge overdue">OVERDUE</span> :
-                                                <span className="list-status-badge pending">PENDING</span>}</td>
-                                    </tr>
-                                )}
-                                containerClassName="list-table-container"
-                                tableClassName="list-table"
-                            />
+                            <div className="list-planner-view">
+                                <div className="planner-groups">
+                                    {Object.entries(groupedItems).map(([key, group]) => {
+                                        if (group.items.length === 0) return null
+                                        if (statusFilter === 'completed' && key !== 'completed') return null
+                                        if (statusFilter === 'pending' && key === 'completed') return null
+                                        if (statusFilter === 'overdue' && key !== 'overdue') return null
+                                        
+                                        return (
+                                            <div key={key} className={`planner-group ${key}`}>
+                                                <div className="planner-group-header">
+                                                    <div className="group-title">
+                                                        <i className={`fas ${group.icon}`}></i>
+                                                        <span>{group.label}</span>
+                                                        <span className="group-count">{group.items.length}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="planner-group-items">
+                                                    {group.items.map(item => (
+                                                        <div
+                                                            key={item.id}
+                                                            className={`planner-item ${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'selected' : ''}`}
+                                                            onClick={() => handleSelectItem(item)}
+                                                        >
+                                                            <div className="item-checkbox" onClick={e => { e.stopPropagation(); toggleSelect(item.id); }}>
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    checked={selectedIds.has(item.id)}
+                                                                    onChange={() => {}}
+                                                                />
+                                                            </div>
+                                                            <div className="item-content">
+                                                                <div className="item-header">
+                                                                    <h4 className="item-title">{truncateText(item.description, 80)}</h4>
+                                                                    <span className={`item-status ${item.completed ? 'completed' : ListService.isOverdue(item) ? 'overdue' : 'pending'}`}>
+                                                                        {item.completed ? 'Completed' : ListService.isOverdue(item) ? 'Overdue' : 'Pending'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="item-meta">
+                                                                    <span className="meta-tag plant">
+                                                                        <i className="fas fa-building"></i>
+                                                                        {getPlantName(item.plant_code)}
+                                                                    </span>
+                                                                    <span className={`meta-tag deadline ${ListService.isOverdue(item) && !item.completed ? 'overdue' : ''}`}>
+                                                                        <i className="fas fa-calendar"></i>
+                                                                        {new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                    </span>
+                                                                    <span className="meta-tag creator">
+                                                                        <i className="fas fa-user"></i>
+                                                                        {truncateText(ListService.getCreatorName(item.user_id), 15)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="item-action">
+                                                                <i className="fas fa-chevron-right"></i>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                     {hasBulkPopup && (
