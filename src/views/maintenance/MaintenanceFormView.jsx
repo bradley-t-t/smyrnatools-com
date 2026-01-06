@@ -251,7 +251,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             if (isEditing && submissionId) {
                 await MaintenanceService.updateSubmission(submissionId, responseData)
             } else {
-                await MaintenanceService.submitForm(form.id, item.due_date, responseData)
+                await MaintenanceService.submitForm(form.id, item.due_date, responseData, item.plant_code)
             }
             onSubmitted()
         } catch (error) {

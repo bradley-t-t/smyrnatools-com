@@ -576,6 +576,54 @@
     border-color: var(--accent);
 }
 
+.plant-multi-select {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selected-plants-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.selected-plant-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.selected-plant-chip button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.15s;
+}
+
+.selected-plant-chip button:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.selected-plant-chip button i {
+    font-size: 10px;
+}
+
 .plant-selector-btn {
     display: flex;
     align-items: center;

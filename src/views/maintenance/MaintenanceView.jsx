@@ -254,6 +254,12 @@ export default function MaintenanceView() {
                                                             <i className="fas fa-sync-alt"></i>
                                                             {formatFrequency(item.form?.frequency, item.form?.frequency_value)}
                                                         </span>
+                                                        {item.plant_code && (
+                                                            <span className="meta-item plant-tag">
+                                                                <i className="fas fa-building"></i>
+                                                                {item.plant_code}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="maintenance-item-status">

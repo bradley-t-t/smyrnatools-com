@@ -19,7 +19,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
     const [availableRoles, setAvailableRoles] = useState([])
     const [showRoleSelector, setShowRoleSelector] = useState(true)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-    const [selectedPlant, setSelectedPlant] = useState('')
+    const [selectedPlants, setSelectedPlants] = useState([])
     const [availablePlants, setAvailablePlants] = useState([])
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
@@ -69,7 +69,8 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
         setFrequency(form.frequency || 'daily')
         setFrequencyValue(form.frequency_value || 1)
         setAssignedRoles(form.assigned_roles || [])
-        setSelectedPlant(form.plant_code || '')
+        const plants = form.plant_codes || (form.plant_code ? [form.plant_code] : [])
+        setSelectedPlants(plants)
         setStartDate(form.start_date || new Date().toISOString().split('T')[0])
         
         const existingFields = (form.maintenance_form_fields || [])
@@ -150,6 +151,10 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
             newErrors.title = 'Title is required'
         }
 
+        if (selectedPlants.length === 0) {
+            newErrors.plants = 'At least one plant must be selected'
+        }
+
         if (assignedRoles.length === 0) {
             newErrors.assignment = 'At least one role must be assigned'
         }
@@ -185,7 +190,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                 frequency,
                 frequency_value: frequencyValue,
                 assigned_roles: assignedRoles,
-                plant_code: selectedPlant,
+                plant_codes: selectedPlants,
                 start_date: startDate,
                 region_code: preferences.selectedRegion?.code || null,
                 fields: fields.map((field, index) => ({
@@ -283,25 +288,44 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                     </div>
 
                     <div className="form-group">
-                        <label>Plant <span className="required">*</span></label>
-                        <button
-                            type="button"
-                            className={`maintenance-select plant-selector-btn ${errors.plant ? 'error' : ''}`}
-                            onClick={() => setShowPlantModal(true)}
-                        >
-                            {selectedPlant ? (
-                                availablePlants.find(p => (p.plantCode || p.plant_code) === selectedPlant)?.plantName ||
-                                availablePlants.find(p => (p.plantCode || p.plant_code) === selectedPlant)?.plant_name ||
-                                selectedPlant
-                            ) : 'Select a plant'}
-                            <i className="fas fa-chevron-down"></i>
-                        </button>
-                        {errors.plant && <span className="field-error">{errors.plant}</span>}
+                        <label>Plants <span className="required">*</span></label>
+                        <div className="plant-multi-select">
+                            {selectedPlants.length > 0 && (
+                                <div className="selected-plants-list">
+                                    {selectedPlants.map(code => {
+                                        const plant = availablePlants.find(p => (p.plantCode || p.plant_code) === code)
+                                        const name = plant?.plantName || plant?.plant_name || code
+                                        return (
+                                            <span key={code} className="selected-plant-chip">
+                                                {name}
+                                                <button type="button" onClick={() => setSelectedPlants(selectedPlants.filter(c => c !== code))}>
+                                                    <i className="fas fa-times"></i>
+                                                </button>
+                                            </span>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                className={`maintenance-select plant-selector-btn ${errors.plants ? 'error' : ''}`}
+                                onClick={() => setShowPlantModal(true)}
+                            >
+                                {selectedPlants.length === 0 ? 'Select plants' : 'Add more plants'}
+                                <i className="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        {errors.plants && <span className="field-error">{errors.plants}</span>}
                         <PlantDropdownModal
                             isOpen={showPlantModal}
                             onClose={() => setShowPlantModal(false)}
-                            plants={availablePlants}
-                            onSelect={(code) => setSelectedPlant(code)}
+                            plants={availablePlants.filter(p => !selectedPlants.includes(p.plantCode || p.plant_code))}
+                            onSelect={(code) => {
+                                if (!selectedPlants.includes(code)) {
+                                    setSelectedPlants([...selectedPlants, code])
+                                }
+                                setShowPlantModal(false)
+                            }}
                         />
                     </div>
 

@@ -60,12 +60,13 @@ export class MaintenanceService {
         const user = await UserService.getCurrentUser()
         if (!user?.id) throw new Error('User not authenticated')
 
-        const {fields, ...formInfo} = formData
+        const {fields, plant_codes, ...formInfo} = formData
         
         const {data: form, error: formError} = await supabase
             .from('maintenance_forms')
             .insert({
                 ...formInfo,
+                plant_codes: plant_codes || [],
                 created_by: user.id,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
@@ -105,12 +106,13 @@ export class MaintenanceService {
         const hasPermission = await UserService.hasPermission(user.id, 'maintenance.create')
         if (!hasPermission) throw new Error('Permission denied')
 
-        const {fields, ...formInfo} = formData
+        const {fields, plant_codes, ...formInfo} = formData
 
         const {error: formError} = await supabase
             .from('maintenance_forms')
             .update({
                 ...formInfo,
+                plant_codes: plant_codes || [],
                 updated_at: new Date().toISOString()
             })
             .eq('id', formId)
@@ -224,66 +226,90 @@ export class MaintenanceService {
             const userPlantCode = profile?.plant_code
 
             let regionalPlantCodes = new Set()
-            if (hasBypassPlantRestriction && userPlantCode) {
-                const {RegionService} = await import('./RegionService')
-                const regions = await RegionService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
-                for (const region of regions) {
-                    const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
-                    plants.forEach(p => regionalPlantCodes.add(p.plantCode))
+            if (hasBypassPlantRestriction) {
+                try {
+                    const {RegionService} = await import('./RegionService')
+                    if (userPlantCode) {
+                        const regions = await RegionService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
+                        for (const region of regions) {
+                            const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
+                            plants.forEach(p => {
+                                const code = p.plantCode || p.plant_code
+                                if (code) regionalPlantCodes.add(code)
+                            })
+                        }
+                    }
+                } catch (e) {
                 }
             }
 
-            const relevantForms = allForms.filter(form => {
-                const assignedRoles = (form.assigned_roles || []).map(r => String(r))
-                
-                if (assignedRoles.length === 0) return false
-                
-                const hasRole = userRoleIds.length > 0 && assignedRoles.some(roleId => userRoleIds.includes(roleId))
-                if (!hasRole) return false
-                
-                if (!form.plant_code) return true
-                if (!userPlantCode) return true
-                
-                if (hasBypassPlantRestriction && regionalPlantCodes.size > 0) {
-                    return regionalPlantCodes.has(form.plant_code)
-                }
-                
-                return form.plant_code === userPlantCode
-            })
-
-            if (relevantForms.length === 0) return []
-
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
             const dueItems = []
 
-            for (const form of relevantForms) {
-                const dueDates = this.calculateDueDates(form, today)
+            for (const form of allForms) {
+                const assignedRoles = (form.assigned_roles || []).map(r => String(r))
+                if (assignedRoles.length === 0) continue
                 
-                for (const dueDate of dueDates) {
-                    const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`
-                    
-                    const {data: existingSubmission} = await supabase
-                        .from('maintenance_submissions')
-                        .select('id')
-                        .eq('form_id', form.id)
-                        .eq('submitted_by', user.id)
-                        .eq('due_date', dueDateStr)
-                        .maybeSingle()
+                const hasRole = userRoleIds.length > 0 && assignedRoles.some(roleId => userRoleIds.includes(roleId))
+                if (!hasRole) continue
 
-                    const isCompleted = !!existingSubmission
-                    const isOverdue = dueDateStr <= todayStr && !isCompleted
+                const formPlantCodes = form.plant_codes || (form.plant_code ? [form.plant_code] : [])
+                
+                let plantsToCheck = []
+                if (formPlantCodes.length === 0) {
+                    plantsToCheck = [null]
+                } else if (hasBypassPlantRestriction) {
+                    if (regionalPlantCodes.size > 0) {
+                        plantsToCheck = formPlantCodes.filter(pc => regionalPlantCodes.has(pc))
+                    } else {
+                        plantsToCheck = formPlantCodes
+                    }
+                } else if (userPlantCode) {
+                    plantsToCheck = formPlantCodes.filter(pc => pc === userPlantCode)
+                } else {
+                    plantsToCheck = formPlantCodes
+                }
 
-                    dueItems.push({
-                        id: `${form.id}-${dueDateStr}`,
-                        form_id: form.id,
-                        form: form,
-                        due_date: dueDateStr,
-                        status: isCompleted ? 'completed' : isOverdue ? 'overdue' : 'pending',
-                        submission_id: existingSubmission?.id || null
-                    })
+                if (plantsToCheck.length === 0) continue
+
+                const dueDates = this.calculateDueDates(form, today)
+
+                for (const plantCode of plantsToCheck) {
+                    for (const dueDate of dueDates) {
+                        const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`
+                        
+                        let submissionQuery = supabase
+                            .from('maintenance_submissions')
+                            .select('id, submitted_by')
+                            .eq('form_id', form.id)
+                            .eq('due_date', dueDateStr)
+                        
+                        if (plantCode) {
+                            submissionQuery = submissionQuery.eq('plant_code', plantCode)
+                        }
+                        
+                        const {data: existingSubmissions} = await submissionQuery
+
+                        const mySubmission = existingSubmissions?.find(s => s.submitted_by === user.id)
+                        const anySubmission = existingSubmissions && existingSubmissions.length > 0
+
+                        if (anySubmission && !mySubmission) continue
+
+                        const isCompleted = !!mySubmission
+                        const isOverdue = dueDate <= today && !isCompleted
+
+                        dueItems.push({
+                            id: `${form.id}-${dueDateStr}-${plantCode || 'all'}`,
+                            form_id: form.id,
+                            form: form,
+                            plant_code: plantCode,
+                            due_date: dueDateStr,
+                            status: isCompleted ? 'completed' : isOverdue ? 'overdue' : 'pending',
+                            submission_id: mySubmission?.id || null
+                        })
+                    }
                 }
             }
 
@@ -354,7 +380,7 @@ export class MaintenanceService {
         return results
     }
 
-    static async submitForm(formId, dueDate, responses) {
+    static async submitForm(formId, dueDate, responses, plantCode = null) {
         const user = await UserService.getCurrentUser()
         if (!user?.id) throw new Error('User not authenticated')
 
@@ -364,6 +390,7 @@ export class MaintenanceService {
                 form_id: formId,
                 submitted_by: user.id,
                 due_date: dueDate,
+                plant_code: plantCode,
                 status: 'submitted',
                 submitted_at: new Date().toISOString(),
                 created_at: new Date().toISOString(),
@@ -380,6 +407,7 @@ export class MaintenanceService {
                 field_id: response.field_id,
                 response_value: response.response_value || null,
                 checklist_values: response.checklist_values || null,
+                checklist_comments: response.checklist_comments || null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }))
@@ -419,6 +447,7 @@ export class MaintenanceService {
                 field_id: response.field_id,
                 response_value: response.response_value || null,
                 checklist_values: response.checklist_values || null,
+                checklist_comments: response.checklist_comments || null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }))
