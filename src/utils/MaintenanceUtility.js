@@ -51,21 +51,31 @@ export function formatFrequency(frequency, value = 1) {
 
 export function getFieldTypeIcon(type) {
     switch (type) {
-        case 'short_answer': return 'fa-font'
-        case 'long_answer': return 'fa-align-left'
-        case 'checklist': return 'fa-check-square'
-        case 'notes': return 'fa-sticky-note'
-        default: return 'fa-question'
+        case 'short_answer':
+            return 'fa-font'
+        case 'long_answer':
+            return 'fa-align-left'
+        case 'checklist':
+            return 'fa-check-square'
+        case 'notes':
+            return 'fa-sticky-note'
+        default:
+            return 'fa-question'
     }
 }
 
 export function getFieldTypeName(type) {
     switch (type) {
-        case 'short_answer': return 'Short Answer'
-        case 'long_answer': return 'Long Answer'
-        case 'checklist': return 'Checklist'
-        case 'notes': return 'Notes'
-        default: return type
+        case 'short_answer':
+            return 'Short Answer'
+        case 'long_answer':
+            return 'Long Answer'
+        case 'checklist':
+            return 'Checklist'
+        case 'notes':
+            return 'Notes'
+        default:
+            return type
     }
 }
 
@@ -84,7 +94,7 @@ export function initializeFormResponses(fields) {
         }
     })
 
-    return { responses: initialResponses, checklists: initialChecklists }
+    return {responses: initialResponses, checklists: initialChecklists}
 }
 
 export function parseSubmissionResponses(submissionResponses) {
@@ -93,7 +103,7 @@ export function parseSubmissionResponses(submissionResponses) {
     const comments = {}
 
     if (!submissionResponses || submissionResponses.length === 0) {
-        return { responses, checklists, comments }
+        return {responses, checklists, comments}
     }
 
     submissionResponses.forEach(resp => {
@@ -107,12 +117,12 @@ export function parseSubmissionResponses(submissionResponses) {
         }
     })
 
-    return { responses, checklists, comments }
+    return {responses, checklists, comments}
 }
 
 export function validateChecklistField(field, checkState, comments) {
     if (!field.is_required) return true
-    
+
     const checkItems = field.options?.items || []
     return checkItems.every(item => {
         const isChecked = checkState?.[item] === true

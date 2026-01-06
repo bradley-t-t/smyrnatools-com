@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
@@ -24,7 +24,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     const isEditing = item?.isEditing
     const existingResponses = item?.maintenance_submission_responses || []
     const submissionId = item?.submission_id || item?.id
-    
+
     const totalSteps = fields.length
     const currentField = fields[currentStep]
     const isLastStep = currentStep === totalSteps - 1
@@ -47,18 +47,18 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 setLoading(false)
                 return
             }
-            
+
             const data = await MaintenanceService.fetchSubmissionById(submissionId)
-            
+
             if (data?.maintenance_forms) {
                 setFormData(data.maintenance_forms)
             }
-            
+
             if (data?.submitted_by) {
                 const name = await UserService.getUserDisplayName(data.submitted_by)
                 setSubmitterName(name)
             }
-            
+
             if (data?.maintenance_submission_responses && data.maintenance_submission_responses.length > 0) {
                 const respMap = {}
                 const checkMap = {}
@@ -79,7 +79,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             } else {
                 initializeResponses()
             }
-            
+
             if (data?.review_notes) {
                 setReviewNotes(data.review_notes)
             }
@@ -154,7 +154,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
 
     const validateCurrentField = () => {
         if (!currentField) return true
-        
+
         if (currentField.is_required) {
             if (currentField.field_type === 'checklist') {
                 const checkState = checklistStates[currentField.id] || {}
@@ -183,7 +183,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
 
     const validateAllFields = () => {
         const newErrors = {}
-        
+
         fields.forEach(field => {
             if (field.is_required) {
                 if (field.field_type === 'checklist') {
@@ -314,7 +314,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                             const hasComment = comments[checkItem] && comments[checkItem].trim() !== ''
                             return (
                                 <div key={idx} className="step-check-wrapper">
-                                    <label className={`step-check-item ${isChecked ? 'checked' : ''} ${hasComment && !isChecked ? 'has-comment' : ''}`}>
+                                    <label
+                                        className={`step-check-item ${isChecked ? 'checked' : ''} ${hasComment && !isChecked ? 'has-comment' : ''}`}>
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
@@ -385,12 +386,12 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                         </div>
                     </div>
                     <div className="review-content">
-                        <LoadingScreen inline message="Loading submission details..." />
+                        <LoadingScreen inline message="Loading submission details..."/>
                     </div>
                 </div>
             )
         }
-        
+
         return (
             <div className="maintenance-form-view review-mode">
                 <div className="maintenance-form-header">
@@ -400,7 +401,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                     <div className="header-content">
                         <h1>{form?.title}</h1>
                         <p className="header-subtitle">
-                            Submitted by {submitterName || 'Unknown'} on {formatMaintenanceDateShort(item?.submitted_at)}
+                            Submitted
+                            by {submitterName || 'Unknown'} on {formatMaintenanceDateShort(item?.submitted_at)}
                         </p>
                     </div>
                 </div>
@@ -421,7 +423,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                                                 const comment = checklistComments[field.id]?.[checkItem]
                                                 return (
                                                     <div key={cidx} className="review-check-row">
-                                                        <span className={`review-check-item ${isChecked ? 'checked' : ''} ${comment && !isChecked ? 'has-comment' : ''}`}>
+                                                        <span
+                                                            className={`review-check-item ${isChecked ? 'checked' : ''} ${comment && !isChecked ? 'has-comment' : ''}`}>
                                                             <i className={`fas ${isChecked ? 'fa-check-square' : 'fa-square'}`}></i>
                                                             {checkItem}
                                                         </span>
@@ -433,7 +436,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                                             })}
                                         </div>
                                     ) : (
-                                        <p className="review-response-text">{responses[field.id] || <span className="empty">No response</span>}</p>
+                                        <p className="review-response-text">{responses[field.id] ||
+                                            <span className="empty">No response</span>}</p>
                                     )}
                                 </div>
                             </div>
@@ -507,7 +511,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                                 {field.field_type === 'checklist' ? (
                                     <div className="view-checklist">
                                         {(field.options?.items || []).map((checkItem, cidx) => (
-                                            <span key={cidx} className={checklistStates[field.id]?.[checkItem] ? 'checked' : ''}>
+                                            <span key={cidx}
+                                                  className={checklistStates[field.id]?.[checkItem] ? 'checked' : ''}>
                                                 <i className={`fas ${checklistStates[field.id]?.[checkItem] ? 'fa-check' : 'fa-times'}`}></i>
                                                 {checkItem}
                                             </span>
@@ -536,7 +541,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 </div>
                 <div className="step-progress">
                     <div className="step-progress-bar">
-                        <div className="step-progress-fill" style={{width: `${((currentStep + 1) / totalSteps) * 100}%`}}></div>
+                        <div className="step-progress-fill"
+                             style={{width: `${((currentStep + 1) / totalSteps) * 100}%`}}></div>
                     </div>
                     <span className="step-count">{currentStep + 1} of {totalSteps}</span>
                 </div>

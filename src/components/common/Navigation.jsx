@@ -761,11 +761,13 @@ export default function Navigation({
                                                 <span className="menu-text">
                                                 Assets
                                             </span>
-                                                <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
+                                                <span className="menu-icon"
+                                                      style={{fontSize: '12px', marginLeft: '4px'}}>
                                                 <i className={`fas fa-chevron-${showAssetsDropdown ? 'up' : 'down'}`}></i>
                                             </span>
                                                 {showAssetsDropdown && (
-                                                    <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="assets-dropdown"
+                                                         onClick={(e) => e.stopPropagation()}>
                                                         {assetItems.map(assetId => {
                                                             const item = visibleMenuItems.find(i => i.id === assetId)
                                                             if (!item) return null
@@ -813,11 +815,13 @@ export default function Navigation({
                                                 <span className="menu-text">
                                                 People
                                             </span>
-                                                <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
+                                                <span className="menu-icon"
+                                                      style={{fontSize: '12px', marginLeft: '4px'}}>
                                                 <i className={`fas fa-chevron-${showPeopleDropdown ? 'up' : 'down'}`}></i>
                                             </span>
                                                 {showPeopleDropdown && (
-                                                    <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="assets-dropdown"
+                                                         onClick={(e) => e.stopPropagation()}>
                                                         {peopleItems.map(personId => {
                                                             const item = menuItems.find(i => i.id === personId)
                                                             if (!item) return null
@@ -890,11 +894,13 @@ export default function Navigation({
                                                 <span className="menu-text">
                                                 Productivity
                                             </span>
-                                                <span className="menu-icon" style={{fontSize: '12px', marginLeft: '4px'}}>
+                                                <span className="menu-icon"
+                                                      style={{fontSize: '12px', marginLeft: '4px'}}>
                                                 <i className={`fas fa-chevron-${showProductivityDropdown ? 'up' : 'down'}`}></i>
                                             </span>
                                                 {showProductivityDropdown && (
-                                                    <div className="assets-dropdown" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="assets-dropdown"
+                                                         onClick={(e) => e.stopPropagation()}>
                                                         {productivityItems.map(prodId => {
                                                             const item = menuItems.find(i => i.id === prodId)
                                                             if (!item) return null
@@ -964,7 +970,8 @@ export default function Navigation({
                                     <option value="">Loading regions...</option>
                                 ) : (
                                     permittedRegions.map(r => (
-                                        <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                        <option key={r.regionCode || r.region_code}
+                                                value={r.regionCode || r.region_code}>
                                             {r.regionName || r.region_name}
                                         </option>
                                     ))

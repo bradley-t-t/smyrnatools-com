@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 
 const YardagePerHourCalculator = () => {
     const [values, setValues] = useState({
@@ -17,22 +17,22 @@ const YardagePerHourCalculator = () => {
 
     useEffect(() => {
         if (!values.completionTime) {
-            setValues(prev => ({ ...prev, completionTime: getCurrentTimeString() }))
+            setValues(prev => ({...prev, completionTime: getCurrentTimeString()}))
         }
     }, [])
 
     useEffect(() => {
         if (isOngoing) {
-            setValues(prev => ({ ...prev, completionTime: getCurrentTimeString() }))
+            setValues(prev => ({...prev, completionTime: getCurrentTimeString()}))
             const interval = setInterval(() => {
-                setValues(prev => ({ ...prev, completionTime: getCurrentTimeString() }))
+                setValues(prev => ({...prev, completionTime: getCurrentTimeString()}))
             }, 60000)
             return () => clearInterval(interval)
         }
     }, [isOngoing])
 
     const handleChange = (field, value) => {
-        setValues(prev => ({ ...prev, [field]: value }))
+        setValues(prev => ({...prev, [field]: value}))
     }
 
     const parseTimeToMinutes = (timeStr) => {
@@ -94,11 +94,11 @@ const YardagePerHourCalculator = () => {
     const getPerformanceStatus = () => {
         if (!result) return null
         const yph = parseFloat(result.yardsPerHour)
-        if (yph >= 40) return { label: 'Excellent', color: 'success' }
-        if (yph >= 30) return { label: 'Good', color: 'success' }
-        if (yph >= 20) return { label: 'Average', color: 'info' }
-        if (yph >= 10) return { label: 'Below Avg', color: 'warning' }
-        return { label: 'Slow', color: 'error' }
+        if (yph >= 40) return {label: 'Excellent', color: 'success'}
+        if (yph >= 30) return {label: 'Good', color: 'success'}
+        if (yph >= 20) return {label: 'Average', color: 'info'}
+        if (yph >= 10) return {label: 'Below Avg', color: 'warning'}
+        return {label: 'Slow', color: 'error'}
     }
 
     const status = getPerformanceStatus()
@@ -110,13 +110,13 @@ const YardagePerHourCalculator = () => {
                     <i className="fas fa-tachometer-alt"></i>
                     <span>Yardage Per Hour</span>
                     <div className="yph-mode-toggle">
-                        <button 
+                        <button
                             className={`mode-btn ${!isOngoing ? 'active' : ''}`}
                             onClick={() => setIsOngoing(false)}
                         >
                             Completed
                         </button>
-                        <button 
+                        <button
                             className={`mode-btn ${isOngoing ? 'active live' : ''}`}
                             onClick={() => setIsOngoing(true)}
                         >

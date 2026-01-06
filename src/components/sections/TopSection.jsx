@@ -88,7 +88,7 @@ function TopSection({
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-    
+
     if (isMobile) {
         return (
             <>
@@ -115,12 +115,14 @@ function TopSection({
                             </div>
                             <div className="mobile-action-buttons">
                                 {onAddClick && (
-                                    <button className="mobile-add-btn" onClick={onAddClick} type="button" aria-label={addButtonLabel}>
+                                    <button className="mobile-add-btn" onClick={onAddClick} type="button"
+                                            aria-label={addButtonLabel}>
                                         <i className="fas fa-plus" aria-hidden="true"></i>
                                     </button>
                                 )}
                                 {onToggleSidebar && (
-                                    <button className="mobile-menu-btn" onClick={onToggleSidebar} type="button" aria-label="Toggle menu">
+                                    <button className="mobile-menu-btn" onClick={onToggleSidebar} type="button"
+                                            aria-label="Toggle menu">
                                         <i className="fas fa-bars" aria-hidden="true"></i>
                                     </button>
                                 )}
@@ -139,12 +141,13 @@ function TopSection({
                                     aria-label="Search"
                                 />
                                 {searchInput && onClearSearch && (
-                                    <button className="mobile-search-clear" onClick={onClearSearch} type="button" aria-label="Clear search">
+                                    <button className="mobile-search-clear" onClick={onClearSearch} type="button"
+                                            aria-label="Clear search">
                                         <i className="fas fa-times" aria-hidden="true"></i>
                                     </button>
                                 )}
                             </div>
-                            <button 
+                            <button
                                 className={`mobile-filter-toggle ${showMobileFilters ? 'active' : ''}`}
                                 onClick={() => setShowMobileFilters(!showMobileFilters)}
                                 type="button"
@@ -183,7 +186,7 @@ function TopSection({
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {!hidePlantFilter && (
                                         <div className="mobile-filter-item">
                                             <label className="mobile-filter-label">Plant</label>
@@ -197,7 +200,7 @@ function TopSection({
                                             </button>
                                         </div>
                                     )}
-                                    
+
                                     {safeStatusOptions.length > 0 && (
                                         <div className="mobile-filter-item">
                                             <label className="mobile-filter-label">Status</label>
@@ -213,7 +216,7 @@ function TopSection({
                                             </select>
                                         </div>
                                     )}
-                                    
+
                                     {safePositionOptions.length > 0 && (
                                         <div className="mobile-filter-item">
                                             <label className="mobile-filter-label">Position</label>
@@ -224,12 +227,13 @@ function TopSection({
                                                 aria-label="Position filter"
                                             >
                                                 {safePositionOptions.map(opt => (
-                                                    <option key={opt} value={opt === 'All Positions' ? '' : opt}>{opt}</option>
+                                                    <option key={opt}
+                                                            value={opt === 'All Positions' ? '' : opt}>{opt}</option>
                                                 ))}
                                             </select>
                                         </div>
                                     )}
-                                    
+
                                     {Array.isArray(freightOptions) && freightOptions.length > 0 && (
                                         <div className="mobile-filter-item">
                                             <label className="mobile-filter-label">Freight</label>
@@ -240,14 +244,15 @@ function TopSection({
                                                 aria-label="Freight filter"
                                             >
                                                 {freightOptions.map(opt => (
-                                                    <option key={opt} value={opt === 'All Freight' ? '' : opt}>{opt}</option>
+                                                    <option key={opt}
+                                                            value={opt === 'All Freight' ? '' : opt}>{opt}</option>
                                                 ))}
                                             </select>
                                         </div>
                                     )}
-                                    
+
                                     {customFilters}
-                                    
+
                                     {showReset && onReset && (
                                         <div className="mobile-filter-item full-width">
                                             <button className="mobile-reset-btn" onClick={onReset} type="button">
@@ -266,7 +271,7 @@ function TopSection({
                                     width: safeColWidths[i] || 'auto',
                                     cursor: l && l !== 'More' && l !== 'VIN' ? 'pointer' : 'default'
                                 }} role="columnheader"
-                                    onClick={() => l && l !== 'More' && l !== 'VIN' && onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
+                                                                   onClick={() => l && l !== 'More' && l !== 'VIN' && onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
                             </div>
                         )}
                     </div>
@@ -283,7 +288,7 @@ function TopSection({
             </>
         );
     }
-    
+
     return (
         <>
             <div className={className} ref={forwardedRef} data-section="top" aria-label="Page controls">

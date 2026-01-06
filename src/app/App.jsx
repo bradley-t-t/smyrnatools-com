@@ -22,7 +22,6 @@ import LeaderboardsView from '../views/leaderboards/LeaderboardsView';
 import CalculatorView from '../views/CalculatorView';
 import LockedOverlay from '../components/common/LockedOverlay';
 import TerminatedOverlay from '../components/common/TerminatedOverlay';
-import DesktopOnlyOverlay from '../components/common/DesktopOnlyOverlay';
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import {NetworkUtility} from '../utils/NetworkUtility'
 import {useAuth} from './context/AuthContext';

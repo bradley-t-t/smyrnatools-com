@@ -4,16 +4,16 @@ import {UserService} from './UserService'
 export class MaintenanceService {
     static async checkPlantAccess(userId, plantCode) {
         if (!userId || !plantCode) return false
-        
+
         const hasBypass = await UserService.hasPermission(userId, 'maintenance.bypass.plantrestriction').catch(() => false)
         if (hasBypass) return true
-        
+
         const {data: profile} = await supabase
             .from('users_profiles')
             .select('plant_code')
             .eq('id', userId)
             .maybeSingle()
-        
+
         return profile?.plant_code === plantCode
     }
 
@@ -61,7 +61,7 @@ export class MaintenanceService {
         if (!user?.id) throw new Error('User not authenticated')
 
         const {fields, plant_codes, ...formInfo} = formData
-        
+
         const {data: form, error: formError} = await supabase
             .from('maintenance_forms')
             .insert({
@@ -251,12 +251,12 @@ export class MaintenanceService {
             for (const form of allForms) {
                 const assignedRoles = (form.assigned_roles || []).map(r => String(r))
                 if (assignedRoles.length === 0) continue
-                
+
                 const hasRole = userRoleIds.length > 0 && assignedRoles.some(roleId => userRoleIds.includes(roleId))
                 if (!hasRole) continue
 
                 const formPlantCodes = form.plant_codes || (form.plant_code ? [form.plant_code] : [])
-                
+
                 let plantsToCheck = []
                 if (formPlantCodes.length === 0) {
                     plantsToCheck = [null]
@@ -279,17 +279,17 @@ export class MaintenanceService {
                 for (const plantCode of plantsToCheck) {
                     for (const dueDate of dueDates) {
                         const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`
-                        
+
                         let submissionQuery = supabase
                             .from('maintenance_submissions')
                             .select('id, submitted_by')
                             .eq('form_id', form.id)
                             .eq('due_date', dueDateStr)
-                        
+
                         if (plantCode) {
                             submissionQuery = submissionQuery.eq('plant_code', plantCode)
                         }
-                        
+
                         const {data: existingSubmissions} = await submissionQuery
 
                         const mySubmission = existingSubmissions?.find(s => s.submitted_by === user.id)
@@ -326,7 +326,7 @@ export class MaintenanceService {
     static calculateDueDates(form, referenceDate) {
         const frequency = form.frequency
         const frequencyValue = form.frequency_value || 1
-        
+
         let formStartDate
         if (form.start_date) {
             formStartDate = new Date(form.start_date + 'T00:00:00')
@@ -336,43 +336,50 @@ export class MaintenanceService {
             formStartDate = new Date()
         }
         formStartDate.setHours(0, 0, 0, 0)
-        
+
         const today = new Date(referenceDate)
         today.setHours(0, 0, 0, 0)
 
         const getPeriodDays = () => {
             switch (frequency) {
-                case 'daily': return 1 * frequencyValue
-                case 'weekly': return 7 * frequencyValue
-                case 'biweekly': return 14
-                case 'monthly': return 31 * frequencyValue
-                case 'quarterly': return 92
-                case 'yearly': return 365 * frequencyValue
-                default: return 7
+                case 'daily':
+                    return 1 * frequencyValue
+                case 'weekly':
+                    return 7 * frequencyValue
+                case 'biweekly':
+                    return 14
+                case 'monthly':
+                    return 31 * frequencyValue
+                case 'quarterly':
+                    return 92
+                case 'yearly':
+                    return 365 * frequencyValue
+                default:
+                    return 7
             }
         }
 
         const periodDays = getPeriodDays()
-        
+
         if (formStartDate > today) {
             return [new Date(formStartDate)]
         }
 
         const daysSinceStart = Math.floor((today - formStartDate) / (1000 * 60 * 60 * 24))
         const currentPeriodIndex = Math.floor(daysSinceStart / periodDays)
-        
+
         const results = []
-        
+
         if (currentPeriodIndex > 0) {
             const prevPeriodStart = new Date(formStartDate)
             prevPeriodStart.setDate(prevPeriodStart.getDate() + ((currentPeriodIndex - 1) * periodDays))
             results.push(new Date(prevPeriodStart))
         }
-        
+
         const currentPeriodStart = new Date(formStartDate)
         currentPeriodStart.setDate(currentPeriodStart.getDate() + (currentPeriodIndex * periodDays))
         results.push(new Date(currentPeriodStart))
-        
+
         const nextPeriodStart = new Date(formStartDate)
         nextPeriodStart.setDate(nextPeriodStart.getDate() + ((currentPeriodIndex + 1) * periodDays))
         results.push(new Date(nextPeriodStart))
@@ -587,9 +594,9 @@ export class MaintenanceService {
             const filteredData = []
             for (const submission of data) {
                 if (submission.submitted_by === user.id) continue
-                
+
                 const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
-                
+
                 if (submitterWeight > currentUserWeight) continue
 
                 const {data: submitterProfile} = await supabase
@@ -685,9 +692,9 @@ export class MaintenanceService {
             const filteredData = []
             for (const submission of data) {
                 if (submission.submitted_by === user.id) continue
-                
+
                 const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
-                
+
                 if (submitterWeight > currentUserWeight) continue
 
                 const {data: submitterProfile} = await supabase

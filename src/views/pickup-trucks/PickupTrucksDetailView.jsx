@@ -353,96 +353,97 @@ function PickupTrucksDetailView({pickupId, onClose, onSaved}) {
                                         disabled={isSaving || !canEditPickup}>Delete Pickup
                                 </button>
                             )}
+                        </>
+                    )
+                }
+                modals={
+                    <>
+                        {showPlantModal && (
+                            <PlantDropdownModal
+                                isOpen={showPlantModal}
+                                onClose={() => setShowPlantModal(false)}
+                                plants={filteredPlants}
+                                onSelect={setAssignedPlant}
+                                searchPlaceholder="Search plants..."
+                            />
+                        )}
+                        {showHistory &&
+                            <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
+                        {showComments &&
+                            <PickupTruckCommentModal pickupId={pickup?.id}
+                                                     pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                                     onClose={() => setShowComments(false)}/>}
+                        {showIssues && <PickupTruckIssueModal pickupId={pickup?.id}
+                                                              pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                                              onClose={() => setShowIssues(false)}/>}
                     </>
-                )
-            }
-            modals={
-                <>
-                    {showPlantModal && (
-                        <PlantDropdownModal
-                            isOpen={showPlantModal}
-                            onClose={() => setShowPlantModal(false)}
-                            plants={filteredPlants}
-                            onSelect={setAssignedPlant}
-                            searchPlaceholder="Search plants..."
-                        />
-                    )}
-                    {showHistory &&
-                        <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)}/>}
-                    {showComments &&
-                        <PickupTruckCommentModal pickupId={pickup?.id}
-                                                 pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
-                                                 onClose={() => setShowComments(false)}/>}
-                    {showIssues && <PickupTruckIssueModal pickupId={pickup?.id}
-                                                          pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
-                                                          onClose={() => setShowIssues(false)}/>}
-                </>
-            }
-        >
-            <div className="detail-card">
-                <div className="card-header"><h2>Pickup Information</h2></div>
+                }
+            >
+                <div className="detail-card">
+                    <div className="card-header"><h2>Pickup Information</h2></div>
 
-                <div className="form-sections pickup-form-sections">
-                    <div className="form-section basic-info">
-                        <h3>Basic Information</h3>
-                        <div className="form-group"><label>Assigned Plant</label>
-                            <button className="operator-select-button form-control"
-                                    onClick={() => setShowPlantModal(true)} type="button"
-                                    disabled={!canEditPickup}><span style={{
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>{plantDisplayText}</span></button>
+                    <div className="form-sections pickup-form-sections">
+                        <div className="form-section basic-info">
+                            <h3>Basic Information</h3>
+                            <div className="form-group"><label>Assigned Plant</label>
+                                <button className="operator-select-button form-control"
+                                        onClick={() => setShowPlantModal(true)} type="button"
+                                        disabled={!canEditPickup}><span style={{
+                                    display: 'block',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}>{plantDisplayText}</span></button>
+                            </div>
+                            <div className="form-group"><label>Status</label><select value={status}
+                                                                                     onChange={e => setStatus(e.target.value)}
+                                                                                     className="form-control"
+                                                                                     disabled={!canEditPickup}>
+                                <option value="">Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Stationary">Stationary</option>
+                                <option value="Spare">Spare</option>
+                                <option value="In Shop">In Shop</option>
+                                <option value="Retired">Retired</option>
+                                <option value="Sold">Sold</option>
+                            </select></div>
+                            <div className="form-group"><label>Assigned</label><input type="text" value={assigned}
+                                                                                      onChange={e => setAssigned(e.target.value)}
+                                                                                      className="form-control"
+                                                                                      disabled={!canEditPickup}/></div>
+                            <div className="form-group"><label>Mileage</label><input type="number" value={mileage}
+                                                                                     onChange={e => setMileage(e.target.value)}
+                                                                                     className="form-control"
+                                                                                     disabled={!canEditPickup}/></div>
                         </div>
-                        <div className="form-group"><label>Status</label><select value={status}
-                                                                                 onChange={e => setStatus(e.target.value)}
-                                                                                 className="form-control"
-                                                                                 disabled={!canEditPickup}>
-                            <option value="">Select Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Stationary">Stationary</option>
-                            <option value="Spare">Spare</option>
-                            <option value="In Shop">In Shop</option>
-                            <option value="Retired">Retired</option>
-                            <option value="Sold">Sold</option>
-                        </select></div>
-                        <div className="form-group"><label>Assigned</label><input type="text" value={assigned}
-                                                                                  onChange={e => setAssigned(e.target.value)}
-                                                                                  className="form-control"
-                                                                                  disabled={!canEditPickup}/></div>
-                        <div className="form-group"><label>Mileage</label><input type="number" value={mileage}
-                                                                                 onChange={e => setMileage(e.target.value)}
+                        <div className="form-section vehicle-info">
+                            <h3>Asset Details</h3>
+                            <div className="form-group"><label>VIN</label><input type="text" value={vin}
+                                                                                 onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                                                                 maxLength="17"
                                                                                  className="form-control"
                                                                                  disabled={!canEditPickup}/></div>
-                    </div>
-                    <div className="form-section vehicle-info">
-                        <h3>Asset Details</h3>
-                        <div className="form-group"><label>VIN</label><input type="text" value={vin}
-                                                                             onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
-                                                                             maxLength="17"
-                                                                             className="form-control"
-                                                                             disabled={!canEditPickup}/></div>
-                        <div className="form-group"><label>Make</label><input type="text" value={make}
-                                                                              onChange={e => setMake(e.target.value)}
-                                                                              className="form-control"
-                                                                              disabled={!canEditPickup}/></div>
-                        <div className="form-group"><label>Model</label><input type="text" value={model}
-                                                                               onChange={e => setModel(e.target.value)}
-                                                                               className="form-control"
-                                                                               disabled={!canEditPickup}/></div>
-                        <div className="form-group"><label>Year</label><input type="text" value={year}
-                                                                              onChange={e => setYear(e.target.value)}
-                                                                              className="form-control"
-                                                                              disabled={!canEditPickup}/></div>
-                        <div className="form-group"><label>Comments</label><textarea value={comments}
-                                                                                     onChange={e => setComments(e.target.value)}
-                                                                                     className="form-control"
-                                                                                     rows={3}
-                                                                                     disabled={!canEditPickup}/></div>
+                            <div className="form-group"><label>Make</label><input type="text" value={make}
+                                                                                  onChange={e => setMake(e.target.value)}
+                                                                                  className="form-control"
+                                                                                  disabled={!canEditPickup}/></div>
+                            <div className="form-group"><label>Model</label><input type="text" value={model}
+                                                                                   onChange={e => setModel(e.target.value)}
+                                                                                   className="form-control"
+                                                                                   disabled={!canEditPickup}/></div>
+                            <div className="form-group"><label>Year</label><input type="text" value={year}
+                                                                                  onChange={e => setYear(e.target.value)}
+                                                                                  className="form-control"
+                                                                                  disabled={!canEditPickup}/></div>
+                            <div className="form-group"><label>Comments</label><textarea value={comments}
+                                                                                         onChange={e => setComments(e.target.value)}
+                                                                                         className="form-control"
+                                                                                         rows={3}
+                                                                                         disabled={!canEditPickup}/>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </DetailViewSection>
+            </DetailViewSection>
         </>
     )
 }

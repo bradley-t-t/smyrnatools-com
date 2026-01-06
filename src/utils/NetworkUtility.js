@@ -39,7 +39,7 @@ const NetworkUtility = {
     async checkConnection() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), PING_TIMEOUT)
-        
+
         if (!isMobileDevice()) {
             try {
                 await fetch('https://clients3.google.com/generate_204', {
@@ -54,7 +54,7 @@ const NetworkUtility = {
             } catch {
             }
         }
-        
+
         try {
             const res = await fetch(`/version.json?cb=${Date.now()}`, {
                 method: 'GET',

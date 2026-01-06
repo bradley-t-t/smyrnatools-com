@@ -5,7 +5,7 @@ import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import MaintenanceFormView from './MaintenanceFormView'
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
-import {getStatusBadgeClass, formatMaintenanceDate, formatFrequency} from '../../utils/MaintenanceUtility'
+import {formatFrequency, formatMaintenanceDate, getStatusBadgeClass} from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceView() {
     const [loading, setLoading] = useState(true)
@@ -28,7 +28,10 @@ export default function MaintenanceView() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const perms = await MaintenanceService.checkPermissions().catch(() => ({canCreate: false, canReview: false}))
+            const perms = await MaintenanceService.checkPermissions().catch(() => ({
+                canCreate: false,
+                canReview: false
+            }))
             setPermissions(perms)
 
             const user = await UserService.getCurrentUser()
@@ -145,7 +148,8 @@ export default function MaintenanceView() {
                             <i className="fas fa-clipboard-list"></i>
                             <span>My Tasks</span>
                             {dueItems.filter(i => i.status !== 'completed').length > 0 && (
-                                <span className="tab-badge">{dueItems.filter(i => i.status !== 'completed').length}</span>
+                                <span
+                                    className="tab-badge">{dueItems.filter(i => i.status !== 'completed').length}</span>
                             )}
                         </button>
                         {permissions.canReview && (
@@ -175,7 +179,7 @@ export default function MaintenanceView() {
 
             <div className="maintenance-content">
                 {loading ? (
-                    <LoadingScreen inline message="Loading maintenance data..." />
+                    <LoadingScreen inline message="Loading maintenance data..."/>
                 ) : (
                     <>
                         {activeTab === 'due' && (
@@ -224,7 +228,8 @@ export default function MaintenanceView() {
                                                     </div>
                                                 </div>
                                                 <div className="maintenance-item-status">
-                                                    <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
+                                                    <span
+                                                        className={`status-badge ${getStatusBadgeClass(item.status)}`}>
                                                         {item.status}
                                                     </span>
                                                 </div>
@@ -293,7 +298,8 @@ export default function MaintenanceView() {
                                                             </div>
                                                         </div>
                                                         <div className="maintenance-item-status">
-                                                            <span className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
+                                                            <span
+                                                                className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
                                                                 {submission.status}
                                                             </span>
                                                         </div>
@@ -342,7 +348,8 @@ export default function MaintenanceView() {
                                                             </div>
                                                         </div>
                                                         <div className="maintenance-item-status">
-                                                            <span className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
+                                                            <span
+                                                                className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
                                                                 {submission.status}
                                                             </span>
                                                         </div>
@@ -402,7 +409,8 @@ export default function MaintenanceView() {
                                                     </div>
                                                 </div>
                                                 <div className="maintenance-item-status">
-                                                    <span className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
+                                                    <span
+                                                        className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
                                                         {submission.status}
                                                     </span>
                                                 </div>

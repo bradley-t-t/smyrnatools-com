@@ -72,7 +72,7 @@ function AppInstallPromptModal() {
                 <p className="app-install-description">
                     Add Smyrna Tools to your home screen for quick access and a better experience!
                 </p>
-                
+
                 <div className="app-install-steps">
                     {isIOS && (
                         <>
@@ -85,7 +85,8 @@ function AppInstallPromptModal() {
                             <div className="app-install-step">
                                 <div className="step-number">2</div>
                                 <div className="step-content">
-                                    <span>Scroll down and tap <strong>Add to Home Screen</strong> <i className="fas fa-plus-square"></i></span>
+                                    <span>Scroll down and tap <strong>Add to Home Screen</strong> <i
+                                        className="fas fa-plus-square"></i></span>
                                 </div>
                             </div>
                             <div className="app-install-step">

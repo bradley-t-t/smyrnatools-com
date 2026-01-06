@@ -1142,7 +1142,7 @@
 }
 
 .selected-chip button:hover {
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .field-type-buttons {

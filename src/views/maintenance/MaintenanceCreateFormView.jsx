@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
@@ -73,7 +73,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
         const plants = form.plant_codes || (form.plant_code ? [form.plant_code] : [])
         setSelectedPlants(plants)
         setStartDate(form.start_date || new Date().toISOString().split('T')[0])
-        
+
         const existingFields = (form.maintenance_form_fields || [])
             .sort((a, b) => a.field_order - b.field_order)
             .map(f => ({
@@ -84,7 +84,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                 is_required: f.is_required,
                 options: f.options || {}
             }))
-        
+
         setFields(existingFields)
     }
 
@@ -200,7 +200,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                     description: field.description?.trim() || null,
                     is_required: field.is_required,
                     field_order: index,
-                    options: field.field_type === 'checklist' 
+                    options: field.field_type === 'checklist'
                         ? {items: (field.options?.items || []).filter(item => item.trim())}
                         : null
                 }))
@@ -243,8 +243,8 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                     <h1>{editingForm ? 'Edit Form' : 'Create Maintenance Form'}</h1>
                 </div>
                 {editingForm && (
-                    <button 
-                        className="delete-btn" 
+                    <button
+                        className="delete-btn"
                         onClick={() => setShowDeleteConfirm(true)}
                     >
                         <i className="fas fa-trash"></i>
@@ -255,7 +255,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
             <div className="maintenance-create-content">
                 <div className="create-section">
                     <h3>Form Details</h3>
-                    
+
                     <div className="form-group">
                         <label>Title <span className="required">*</span></label>
                         <input
@@ -279,7 +279,8 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                         return (
                                             <span key={code} className="selected-plant-chip">
                                                 {name}
-                                                <button type="button" onClick={() => setSelectedPlants(selectedPlants.filter(c => c !== code))}>
+                                                <button type="button"
+                                                        onClick={() => setSelectedPlants(selectedPlants.filter(c => c !== code))}>
                                                     <i className="fas fa-times"></i>
                                                 </button>
                                             </span>
@@ -377,20 +378,20 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                 <div className="create-section">
                     <h3>Assigned Roles <span className="required">*</span></h3>
                     <p className="section-description">Select which roles are responsible for completing this form.</p>
-                    
+
                     {errors.assignment && <span className="field-error">{errors.assignment}</span>}
 
                     <div className="assignment-group">
                         <div className="assignment-header">
                             <span>Roles ({assignedRoles.length} selected)</span>
-                            <button 
+                            <button
                                 className="add-btn"
                                 onClick={() => setShowRoleSelector(!showRoleSelector)}
                             >
                                 <i className={`fas ${showRoleSelector ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
                             </button>
                         </div>
-                        
+
                         {showRoleSelector && (
                             <div className="selector-list">
                                 {availableRoles.length === 0 ? (
@@ -465,21 +466,21 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                         <span>{getFieldTypeName(field.field_type)}</span>
                                     </div>
                                     <div className="field-editor-actions">
-                                        <button 
-                                            onClick={() => moveField(index, -1)} 
+                                        <button
+                                            onClick={() => moveField(index, -1)}
                                             disabled={index === 0}
                                             title="Move Up"
                                         >
                                             <i className="fas fa-arrow-up"></i>
                                         </button>
-                                        <button 
-                                            onClick={() => moveField(index, 1)} 
+                                        <button
+                                            onClick={() => moveField(index, 1)}
                                             disabled={index === fields.length - 1}
                                             title="Move Down"
                                         >
                                             <i className="fas fa-arrow-down"></i>
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => removeField(index)}
                                             className="remove-btn"
                                             title="Remove Field"
@@ -519,7 +520,8 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                         <div className="checklist-editor">
                                             <label>Checklist Items <span className="required">*</span></label>
                                             {errors[`field-${index}-checklist`] && (
-                                                <span className="field-error">{errors[`field-${index}-checklist`]}</span>
+                                                <span
+                                                    className="field-error">{errors[`field-${index}-checklist`]}</span>
                                             )}
                                             {(field.options?.items || []).map((item, itemIndex) => (
                                                 <div key={itemIndex} className="checklist-item-editor">
@@ -530,7 +532,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                                         onChange={(e) => updateChecklistItem(index, itemIndex, e.target.value)}
                                                         placeholder={`Item ${itemIndex + 1}`}
                                                     />
-                                                    <button 
+                                                    <button
                                                         onClick={() => removeChecklistItem(index, itemIndex)}
                                                         className="remove-item-btn"
                                                     >
@@ -538,7 +540,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                                     </button>
                                                 </div>
                                             ))}
-                                            <button 
+                                            <button
                                                 className="add-checklist-item-btn"
                                                 onClick={() => addChecklistItem(index)}
                                             >
@@ -580,7 +582,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                     <button className="cancel-btn" onClick={onBack}>
                         Cancel
                     </button>
-                    <button 
+                    <button
                         className="save-btn"
                         onClick={handleSave}
                         disabled={saving}
@@ -606,14 +608,14 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                         <h3>Delete Form</h3>
                         <p>Are you sure you want to delete this form? This action cannot be undone.</p>
                         <div className="confirm-actions">
-                            <button 
-                                className="cancel-btn" 
+                            <button
+                                className="cancel-btn"
                                 onClick={() => setShowDeleteConfirm(false)}
                             >
                                 Cancel
                             </button>
-                            <button 
-                                className="delete-confirm-btn" 
+                            <button
+                                className="delete-confirm-btn"
                                 onClick={handleDelete}
                                 disabled={saving}
                             >

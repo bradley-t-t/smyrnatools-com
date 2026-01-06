@@ -166,14 +166,14 @@ function SettingsView() {
                     <div className="settings-section">
                         <h3>Background</h3>
                         <div className="background-selector">
-                            <div 
+                            <div
                                 className={`background-option ${!preferences.blurBg && !preferences.solidBg ? 'active' : ''}`}
                                 onClick={() => save(setBackgroundMode, 'video')}
                             >
                                 <i className="fas fa-video"></i>
                                 <span>Video</span>
                             </div>
-                            <div 
+                            <div
                                 className={`background-option ${preferences.blurBg && !preferences.solidBg ? 'active' : ''}`}
                                 onClick={() => save(setBackgroundMode, 'blurred')}
                             >
@@ -181,7 +181,7 @@ function SettingsView() {
                                 <span>Blurred</span>
                             </div>
                             {!['light', 'blue-light', 'red-light'].includes(preferences.themeMode) && (
-                                <div 
+                                <div
                                     className={`background-option ${preferences.solidBg ? 'active' : ''}`}
                                     onClick={() => save(setBackgroundMode, 'solid')}
                                 >

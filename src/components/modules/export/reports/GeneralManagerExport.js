@@ -47,13 +47,13 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
 
     const {wb, ExcelLib, logoBase64} = initData
     const [mixers, tractors, trailers, equipment, pickups] = assetResults
-    
+
     const plantCodes = new Set(plants.map(p => String(p.plant_code || '').trim().toUpperCase()))
     const filterByPlant = (items) => items.filter(item => {
         const plantCode = String(item.assignedPlant || item.assigned_plant || '').trim().toUpperCase()
         return plantCodes.has(plantCode)
     })
-    
+
     const assetData = {
         mixers: filterByPlant(mixers),
         tractors: filterByPlant(tractors),
@@ -85,7 +85,9 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             return {weekIso: w, reports}
         })).then(results => {
             const map = {}
-            results.forEach(r => { map[r.weekIso] = r.reports })
+            results.forEach(r => {
+                map[r.weekIso] = r.reports
+            })
             return map
         }),
         Promise.all(weekIsos.map(async w => {
@@ -93,7 +95,9 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             return {weekIso: w, data}
         })).then(results => {
             const map = {}
-            results.forEach(r => { map[r.weekIso] = r.data })
+            results.forEach(r => {
+                map[r.weekIso] = r.data
+            })
             return map
         }),
         Promise.all(weekIsos.map(async w => {
@@ -101,7 +105,9 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             return {weekIso: w, report}
         })).then(results => {
             const map = {}
-            results.forEach(r => { map[r.weekIso] = r.report })
+            results.forEach(r => {
+                map[r.weekIso] = r.report
+            })
             return map
         }),
         Promise.all(weekIsos.map(async w => {
@@ -109,7 +115,9 @@ export async function exportGeneralManagerReport({form, plants, weekIso, filenam
             return {weekIso: w, aggData}
         })).then(results => {
             const map = {}
-            results.forEach(r => { map[r.weekIso] = r.aggData })
+            results.forEach(r => {
+                map[r.weekIso] = r.aggData
+            })
             return map
         })
     ])
@@ -1037,7 +1045,9 @@ async function createWeekSheet(wb, ExcelLib, form, plants, weekIso, prevGMData, 
 
     const calcAggregateFromReports = (reports, fields) => {
         const totals = {}
-        fields.forEach(([key]) => { totals[key] = 0 })
+        fields.forEach(([key]) => {
+            totals[key] = 0
+        })
         reports.forEach(data => {
             if (!data) return
             fields.forEach(([key]) => {
