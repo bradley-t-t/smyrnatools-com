@@ -14,7 +14,7 @@ const ANIMATION_TIMING = {
 }
 
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
-const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards']
+const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards', 'Calculators', 'Maintenance']
 const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
 const OFFICE_ONLY_ITEMS = ['Roles']
 
@@ -60,6 +60,8 @@ const getIconForMenuItem = (id) => {
             return <i className="fas fa-lock"></i>
         case 'Calculators':
             return <i className="fas fa-calculator"></i>
+        case 'Maintenance':
+            return <i className="fas fa-wrench"></i>
         default:
             return <i className="fas fa-clipboard-list"></i>
     }
@@ -80,7 +82,8 @@ const menuItems = [
     {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false},
     {text: 'Roles', id: 'Roles', permission: 'roles.view', alwaysVisible: false},
     {text: 'Calculators', id: 'Calculators', permission: 'calculator.view', alwaysVisible: false},
-    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view', alwaysVisible: false}
+    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view', alwaysVisible: false},
+    {text: 'Maintenance', id: 'Maintenance', permission: 'maintenance.view', alwaysVisible: false}
 ]
 
 export default function Navigation({
