@@ -560,6 +560,7 @@ export class MaintenanceService {
             if (!hasReviewPermission) return []
 
             const hasItPermission = await UserService.hasPermission(user.id, 'maintenance.it').catch(() => false)
+            const hasBypassPlantRestriction = await UserService.hasPermission(user.id, 'maintenance.bypass.plantrestriction').catch(() => false)
 
             const {data, error} = await supabase
                 .from('maintenance_submissions')
@@ -590,14 +591,16 @@ export class MaintenanceService {
                 .maybeSingle()
             const currentUserPlantCode = currentUserProfile?.plant_code
 
-            let regionalPlantCodes = new Set()
-            if (currentUserPlantCode) {
+            let allowedPlantCodes = new Set()
+            if (hasBypassPlantRestriction && currentUserPlantCode) {
                 const {RegionService} = await import('./RegionService')
                 const regions = await RegionService.fetchRegionsByPlantCode(currentUserPlantCode).catch(() => [])
                 for (const region of regions) {
                     const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
-                    plants.forEach(p => regionalPlantCodes.add(p.plantCode))
+                    plants.forEach(p => allowedPlantCodes.add(p.plantCode))
                 }
+            } else if (currentUserPlantCode) {
+                allowedPlantCodes.add(currentUserPlantCode)
             }
 
             const filteredData = []
@@ -605,18 +608,11 @@ export class MaintenanceService {
                 if (submission.submitted_by === user.id) continue
 
                 const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
-
                 if (submitterWeight > currentUserWeight) continue
 
-                const {data: submitterProfile} = await supabase
-                    .from('users_profiles')
-                    .select('plant_code')
-                    .eq('id', submission.submitted_by)
-                    .maybeSingle()
-                const submitterPlantCode = submitterProfile?.plant_code
-
-                if (regionalPlantCodes.size > 0 && submitterPlantCode) {
-                    if (!regionalPlantCodes.has(submitterPlantCode)) continue
+                const submissionPlantCode = submission.plant_code
+                if (allowedPlantCodes.size > 0) {
+                    if (!submissionPlantCode || !allowedPlantCodes.has(submissionPlantCode)) continue
                 }
 
                 filteredData.push(submission)
@@ -664,6 +660,7 @@ export class MaintenanceService {
             if (!hasReviewPermission) return []
 
             const hasItPermission = await UserService.hasPermission(user.id, 'maintenance.it').catch(() => false)
+            const hasBypassPlantRestriction = await UserService.hasPermission(user.id, 'maintenance.bypass.plantrestriction').catch(() => false)
 
             const {data, error} = await supabase
                 .from('maintenance_submissions')
@@ -694,14 +691,16 @@ export class MaintenanceService {
                 .maybeSingle()
             const currentUserPlantCode = currentUserProfile?.plant_code
 
-            let regionalPlantCodes = new Set()
-            if (currentUserPlantCode) {
+            let allowedPlantCodes = new Set()
+            if (hasBypassPlantRestriction && currentUserPlantCode) {
                 const {RegionService} = await import('./RegionService')
                 const regions = await RegionService.fetchRegionsByPlantCode(currentUserPlantCode).catch(() => [])
                 for (const region of regions) {
                     const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
-                    plants.forEach(p => regionalPlantCodes.add(p.plantCode))
+                    plants.forEach(p => allowedPlantCodes.add(p.plantCode))
                 }
+            } else if (currentUserPlantCode) {
+                allowedPlantCodes.add(currentUserPlantCode)
             }
 
             const filteredData = []
@@ -709,18 +708,11 @@ export class MaintenanceService {
                 if (submission.submitted_by === user.id) continue
 
                 const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
-
                 if (submitterWeight > currentUserWeight) continue
 
-                const {data: submitterProfile} = await supabase
-                    .from('users_profiles')
-                    .select('plant_code')
-                    .eq('id', submission.submitted_by)
-                    .maybeSingle()
-                const submitterPlantCode = submitterProfile?.plant_code
-
-                if (regionalPlantCodes.size > 0 && submitterPlantCode) {
-                    if (!regionalPlantCodes.has(submitterPlantCode)) continue
+                const submissionPlantCode = submission.plant_code
+                if (allowedPlantCodes.size > 0) {
+                    if (!submissionPlantCode || !allowedPlantCodes.has(submissionPlantCode)) continue
                 }
 
                 filteredData.push(submission)

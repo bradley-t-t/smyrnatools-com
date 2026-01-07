@@ -293,7 +293,7 @@ export default function MaintenanceView() {
                                                                 </span>
                                                                 <span className="meta-item">
                                                                     <i className="fas fa-building"></i>
-                                                                    {submission.maintenance_forms?.plant_code}
+                                                                    {submission.plant_code || 'N/A'}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -343,7 +343,7 @@ export default function MaintenanceView() {
                                                                 </span>
                                                                 <span className="meta-item">
                                                                     <i className="fas fa-building"></i>
-                                                                    {submission.maintenance_forms?.plant_code}
+                                                                    {submission.plant_code || 'N/A'}
                                                                 </span>
                                                             </div>
                                                         </div>
