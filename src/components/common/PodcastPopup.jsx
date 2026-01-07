@@ -146,9 +146,11 @@ function PodcastPopup() {
                 />
             )}
             {isMinimized ? (
-                <div className="podcast-minimized" onClick={handleMinimize}>
-                    <i className="fas fa-podcast"></i>
-                    <span>{isPlaying ? 'Playing...' : 'New Episode'}</span>
+                <div className="podcast-minimized-compact" onClick={handleMinimize}>
+                    <span className="podcast-status">{isPlaying ? 'Playing' : 'Podcast'}</span>
+                    <button className="podcast-icon-btn" tabIndex={-1} aria-hidden="true">
+                        <i className={`fas ${isPlaying ? 'fa-volume-high' : 'fa-podcast'}`}></i>
+                    </button>
                 </div>
             ) : (
                 <>

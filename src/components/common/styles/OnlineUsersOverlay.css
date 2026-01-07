@@ -440,3 +440,52 @@
     color: var(--text-primary);
 }
 
+@media (max-width: 768px) {
+    .ouo-online-users-overlay {
+        bottom: 70px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-width: none;
+    }
+
+    .ouo-online-users-overlay.minimized {
+        bottom: 70px;
+        right: 10px;
+        left: auto;
+        width: auto;
+    }
+
+    .ouo-online-users-overlay.expanded {
+        width: auto;
+        max-width: none;
+    }
+
+    .ouo-online-users-header {
+        padding: 10px 12px;
+    }
+
+    .ouo-header-title {
+        font-size: 13px;
+    }
+
+    .ouo-online-user {
+        padding: 8px 10px;
+        margin: 0 4px 4px 4px;
+    }
+
+    .ouo-user-avatar {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        font-size: 13px;
+    }
+
+    .ouo-user-name {
+        font-size: 14px;
+    }
+
+    .ouo-user-meta {
+        font-size: 11px;
+    }
+}
