@@ -82,6 +82,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                 label: f.label,
                 description: f.description || '',
                 is_required: f.is_required,
+                image_required: f.image_required || false,
                 options: f.options || {}
             }))
 
@@ -95,6 +96,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
             label: '',
             description: '',
             is_required: false,
+            image_required: false,
             options: type === 'checklist' ? {items: ['']} : {}
         }
         setFields([...fields, newField])
@@ -199,6 +201,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                     label: field.label.trim(),
                     description: field.description?.trim() || null,
                     is_required: field.is_required,
+                    image_required: field.image_required || false,
                     field_order: index,
                     options: field.field_type === 'checklist'
                         ? {items: (field.options?.items || []).filter(item => item.trim())}
@@ -557,6 +560,14 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                             onChange={(e) => updateField(index, {is_required: e.target.checked})}
                                         />
                                         <span>Required field</span>
+                                    </label>
+                                    <label className="required-toggle">
+                                        <input
+                                            type="checkbox"
+                                            checked={field.image_required || false}
+                                            onChange={(e) => updateField(index, {image_required: e.target.checked})}
+                                        />
+                                        <span>Image required</span>
                                     </label>
                                 </div>
                             </div>

@@ -428,11 +428,25 @@
     height: 3px;
 }
 
-.planner-stat-card.total::before { background: var(--accent); }
-.planner-stat-card.overdue::before { background: var(--danger); }
-.planner-stat-card.pending::before { background: var(--warning); }
-.planner-stat-card.completed::before { background: var(--success); }
-.planner-stat-card.progress::before { background: linear-gradient(90deg, var(--accent), var(--success)); }
+.planner-stat-card.total::before {
+    background: var(--accent);
+}
+
+.planner-stat-card.overdue::before {
+    background: var(--danger);
+}
+
+.planner-stat-card.pending::before {
+    background: var(--warning);
+}
+
+.planner-stat-card.completed::before {
+    background: var(--success);
+}
+
+.planner-stat-card.progress::before {
+    background: linear-gradient(90deg, var(--accent), var(--success));
+}
 
 .planner-stat-card .stat-icon {
     width: 40px;
@@ -444,11 +458,30 @@
     flex-shrink: 0;
 }
 
-.planner-stat-card.total .stat-icon { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
-.planner-stat-card.overdue .stat-icon { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
-.planner-stat-card.pending .stat-icon { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
-.planner-stat-card.completed .stat-icon { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
-.planner-stat-card.progress .stat-icon { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.planner-stat-card.total .stat-icon {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+}
+
+.planner-stat-card.overdue .stat-icon {
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+}
+
+.planner-stat-card.pending .stat-icon {
+    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning);
+}
+
+.planner-stat-card.completed .stat-icon {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+}
+
+.planner-stat-card.progress .stat-icon {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+}
 
 .planner-stat-card .stat-icon i {
     font-size: 18px;
@@ -493,12 +526,29 @@
     border-bottom: 1px solid var(--divider);
 }
 
-.planner-group.overdue .planner-group-header { border-left: 4px solid var(--danger); }
-.planner-group.today .planner-group-header { border-left: 4px solid var(--warning); }
-.planner-group.tomorrow .planner-group-header { border-left: 4px solid var(--info); }
-.planner-group.thisWeek .planner-group-header { border-left: 4px solid var(--accent); }
-.planner-group.later .planner-group-header { border-left: 4px solid var(--text-secondary); }
-.planner-group.completed .planner-group-header { border-left: 4px solid var(--success); }
+.planner-group.overdue .planner-group-header {
+    border-left: 4px solid var(--danger);
+}
+
+.planner-group.today .planner-group-header {
+    border-left: 4px solid var(--warning);
+}
+
+.planner-group.tomorrow .planner-group-header {
+    border-left: 4px solid var(--info);
+}
+
+.planner-group.thisWeek .planner-group-header {
+    border-left: 4px solid var(--accent);
+}
+
+.planner-group.later .planner-group-header {
+    border-left: 4px solid var(--text-secondary);
+}
+
+.planner-group.completed .planner-group-header {
+    border-left: 4px solid var(--success);
+}
 
 .planner-group-header .group-title {
     display: flex;
@@ -509,12 +559,29 @@
     color: var(--text-primary);
 }
 
-.planner-group.overdue .group-title i { color: var(--danger); }
-.planner-group.today .group-title i { color: var(--warning); }
-.planner-group.tomorrow .group-title i { color: var(--info); }
-.planner-group.thisWeek .group-title i { color: var(--accent); }
-.planner-group.later .group-title i { color: var(--text-secondary); }
-.planner-group.completed .group-title i { color: var(--success); }
+.planner-group.overdue .group-title i {
+    color: var(--danger);
+}
+
+.planner-group.today .group-title i {
+    color: var(--warning);
+}
+
+.planner-group.tomorrow .group-title i {
+    color: var(--info);
+}
+
+.planner-group.thisWeek .group-title i {
+    color: var(--accent);
+}
+
+.planner-group.later .group-title i {
+    color: var(--text-secondary);
+}
+
+.planner-group.completed .group-title i {
+    color: var(--success);
+}
 
 .planner-group-header .group-count {
     background: var(--bg-tertiary);
@@ -674,11 +741,11 @@
     .planner-stats-row {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .planner-item .item-meta {
         gap: 10px;
     }
-    
+
     .planner-item .meta-tag.creator {
         display: none;
     }
@@ -688,11 +755,11 @@
     .planner-stats-row {
         grid-template-columns: 1fr;
     }
-    
+
     .planner-item {
         padding: 12px 14px;
     }
-    
+
     .planner-item .item-header {
         flex-direction: column;
         align-items: flex-start;

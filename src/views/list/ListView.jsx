@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useMemo} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import './styles/List.css'
 import '../../styles/FilterStyles.css'
 import {ListService} from '../../services/ListService'
@@ -39,20 +39,20 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
 
     const groupedItems = useMemo(() => {
         const groups = {
-            today: { label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning' },
-            overdue: { label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger' },
-            tomorrow: { label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info' },
-            thisWeek: { label: 'This Week', icon: 'fa-calendar-week', items: [], color: 'accent' },
-            later: { label: 'Later', icon: 'fa-calendar-alt', items: [], color: 'secondary' },
-            completed: { label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success' }
+            today: {label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning'},
+            overdue: {label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger'},
+            tomorrow: {label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info'},
+            thisWeek: {label: 'This Week', icon: 'fa-calendar-week', items: [], color: 'accent'},
+            later: {label: 'Later', icon: 'fa-calendar-alt', items: [], color: 'secondary'},
+            completed: {label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success'}
         }
 
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-        
+
         const tomorrow = new Date(today)
         tomorrow.setDate(tomorrow.getDate() + 1)
-        
+
         const endOfWeek = new Date(today)
         endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
 
@@ -318,7 +318,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                         if (statusFilter === 'completed' && key !== 'completed') return null
                                         if (statusFilter === 'pending' && key === 'completed') return null
                                         if (statusFilter === 'overdue' && key !== 'overdue') return null
-                                        
+
                                         return (
                                             <div key={key} className={`planner-group ${key}`}>
                                                 <div className="planner-group-header">
@@ -335,17 +335,22 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                             className={`planner-item ${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'selected' : ''}`}
                                                             onClick={() => handleSelectItem(item)}
                                                         >
-                                                            <div className="item-checkbox" onClick={e => { e.stopPropagation(); toggleSelect(item.id); }}>
-                                                                <input 
-                                                                    type="checkbox" 
+                                                            <div className="item-checkbox" onClick={e => {
+                                                                e.stopPropagation();
+                                                                toggleSelect(item.id);
+                                                            }}>
+                                                                <input
+                                                                    type="checkbox"
                                                                     checked={selectedIds.has(item.id)}
-                                                                    onChange={() => {}}
+                                                                    onChange={() => {
+                                                                    }}
                                                                 />
                                                             </div>
                                                             <div className="item-content">
                                                                 <div className="item-header">
                                                                     <h4 className="item-title">{truncateText(item.description, 80)}</h4>
-                                                                    <span className={`item-status ${item.completed ? 'completed' : ListService.isOverdue(item) ? 'overdue' : 'pending'}`}>
+                                                                    <span
+                                                                        className={`item-status ${item.completed ? 'completed' : ListService.isOverdue(item) ? 'overdue' : 'pending'}`}>
                                                                         {item.completed ? 'Completed' : ListService.isOverdue(item) ? 'Overdue' : 'Pending'}
                                                                     </span>
                                                                 </div>
@@ -354,9 +359,13 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                                         <i className="fas fa-building"></i>
                                                                         {getPlantName(item.plant_code)}
                                                                     </span>
-                                                                    <span className={`meta-tag deadline ${ListService.isOverdue(item) && !item.completed ? 'overdue' : ''}`}>
+                                                                    <span
+                                                                        className={`meta-tag deadline ${ListService.isOverdue(item) && !item.completed ? 'overdue' : ''}`}>
                                                                         <i className="fas fa-calendar"></i>
-                                                                        {new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                        {new Date(item.deadline).toLocaleDateString('en-US', {
+                                                                            month: 'short',
+                                                                            day: 'numeric'
+                                                                        })}
                                                                     </span>
                                                                     <span className="meta-tag creator">
                                                                         <i className="fas fa-user"></i>

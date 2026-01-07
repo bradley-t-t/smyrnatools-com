@@ -83,6 +83,7 @@ export class MaintenanceService {
                 label: field.label,
                 description: field.description || null,
                 is_required: field.is_required || false,
+                image_required: field.image_required || false,
                 field_order: index,
                 options: field.options || null,
                 created_at: new Date().toISOString(),
@@ -132,6 +133,7 @@ export class MaintenanceService {
                     label: field.label,
                     description: field.description || null,
                     is_required: field.is_required || false,
+                    image_required: field.image_required || false,
                     field_order: index,
                     options: field.options || null,
                     created_at: new Date().toISOString(),
@@ -415,6 +417,8 @@ export class MaintenanceService {
                 response_value: response.response_value || null,
                 checklist_values: response.checklist_values || null,
                 checklist_comments: response.checklist_comments || null,
+                checklist_images: response.checklist_images || null,
+                image_url: response.image_url || null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }))
@@ -455,6 +459,8 @@ export class MaintenanceService {
                 response_value: response.response_value || null,
                 checklist_values: response.checklist_values || null,
                 checklist_comments: response.checklist_comments || null,
+                checklist_images: response.checklist_images || null,
+                image_url: response.image_url || null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }))
@@ -559,7 +565,10 @@ export class MaintenanceService {
                 .from('maintenance_submissions')
                 .select(`
                     *,
-                    maintenance_forms(*),
+                    maintenance_forms(
+                        *,
+                        maintenance_form_fields(*)
+                    ),
                     maintenance_submission_responses(
                         *,
                         maintenance_form_fields(*)
@@ -627,7 +636,10 @@ export class MaintenanceService {
                 .from('maintenance_submissions')
                 .select(`
                     *,
-                    maintenance_forms(*),
+                    maintenance_forms(
+                        *,
+                        maintenance_form_fields(*)
+                    ),
                     maintenance_submission_responses(
                         *,
                         maintenance_form_fields(*)
@@ -657,7 +669,10 @@ export class MaintenanceService {
                 .from('maintenance_submissions')
                 .select(`
                     *,
-                    maintenance_forms(*),
+                    maintenance_forms(
+                        *,
+                        maintenance_form_fields(*)
+                    ),
                     maintenance_submission_responses(
                         *,
                         maintenance_form_fields(*)
@@ -731,6 +746,79 @@ export class MaintenanceService {
         } catch (e) {
             return {canCreate: false, canReview: false}
         }
+    }
+
+    static async uploadImage(file, formId, fieldId) {
+        try {
+            const user = await UserService.getCurrentUser()
+            if (!user?.id) throw new Error('User not authenticated')
+
+            const sanitizedFieldId = String(fieldId).replace(/[^a-zA-Z0-9_-]/g, '_')
+            const timestamp = Date.now()
+            const fileExt = file.name.split('.').pop()
+            const fileName = `maintenance/${formId}/${sanitizedFieldId}/${user.id}_${timestamp}.${fileExt}`
+
+            const {error} = await supabase.storage
+                .from('smyrna')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                })
+
+            if (error) throw error
+
+            const {data: urlData} = supabase.storage
+                .from('smyrna')
+                .getPublicUrl(fileName)
+
+            return urlData?.publicUrl || fileName
+        } catch (e) {
+            throw new Error('Failed to upload image: ' + e.message)
+        }
+    }
+
+    static async deleteImage(imagePath) {
+        try {
+            const path = imagePath.includes('smyrna/')
+                ? imagePath.split('smyrna/')[1]
+                : imagePath
+
+            const {error} = await supabase.storage
+                .from('smyrna')
+                .remove([path])
+
+            if (error) throw error
+            return true
+        } catch (e) {
+            throw new Error('Failed to delete image: ' + e.message)
+        }
+    }
+
+    static getImageUrl(imagePath) {
+        if (!imagePath) return null
+        if (typeof imagePath !== 'string') return null
+
+        const trimmed = imagePath.trim()
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+            return trimmed
+        }
+
+        let path = trimmed
+        if (path.includes('smyrna/')) {
+            path = path.split('smyrna/')[1]
+        }
+        if (!path.startsWith('maintenance/') && !path.includes('/')) {
+            return null
+        }
+        if (!path.startsWith('maintenance/')) {
+            path = `maintenance/${path}`
+        }
+
+        const {data} = supabase.storage
+            .from('smyrna')
+            .getPublicUrl(path)
+
+        return data?.publicUrl || null
     }
 }
 
