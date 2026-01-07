@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
+import PlantService from '../../services/PlantService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import MaintenanceFormView from './MaintenanceFormView'
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
@@ -14,6 +15,7 @@ export default function MaintenanceView() {
     const [reviewSubTab, setReviewSubTab] = useState('pending')
     const [dueItems, setDueItems] = useState([])
     const [pendingReviews, setPendingReviews] = useState([])
+    const [allPlants, setAllPlants] = useState([])
     const [reviewedSubmissions, setReviewedSubmissions] = useState([])
     const [mySubmissions, setMySubmissions] = useState([])
     const [myForms, setMyForms] = useState([])
@@ -68,9 +70,10 @@ export default function MaintenanceView() {
         const plantsMap = new Map()
         items.forEach(item => {
             if (item.plant_code && !plantsMap.has(item.plant_code)) {
+                const plantData = allPlants.find(p => p.plantCode === item.plant_code || p.plant_code === item.plant_code)
                 plantsMap.set(item.plant_code, {
                     plantCode: item.plant_code,
-                    plantName: item.plant_code
+                    plantName: plantData?.plantName || plantData?.plant_name || item.plant_code
                 })
             }
         })
