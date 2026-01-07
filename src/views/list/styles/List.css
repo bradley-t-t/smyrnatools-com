@@ -9,6 +9,10 @@
     background: transparent;
 }
 
+.list-view .list-headers.header-row {
+    display: none !important;
+}
+
 .bulk-actions-popup {
     position: fixed;
     left: 50%;
