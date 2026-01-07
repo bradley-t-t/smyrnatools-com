@@ -1251,15 +1251,18 @@
     display: flex;
     flex-direction: column;
     background: transparent;
-    padding-top: 130px;
+    padding-top: 140px;
 }
 
 .step-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 24px;
+    padding: 16px 24px;
+    min-height: 60px;
     background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border-light);
     position: fixed;
     top: 60px;
@@ -1637,18 +1640,20 @@
     left: 0;
     right: 0;
     z-index: 100;
-    padding: 12px 24px;
+    padding: 16px 24px;
     background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border-light);
     display: flex;
     align-items: center;
     gap: 16px;
-    min-height: 56px;
+    min-height: 60px;
 }
 
 .review-content,
 .view-content {
-    padding: 80px 24px 40px;
+    padding: 90px 24px 40px;
     max-width: 700px;
     margin: 0 auto;
 }
