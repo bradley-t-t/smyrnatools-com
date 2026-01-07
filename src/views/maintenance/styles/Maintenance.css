@@ -392,13 +392,6 @@
     background: transparent;
 }
 
-.maintenance-form-content,
-.maintenance-create-content {
-    padding: 100px 20px 40px 20px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
 .back-btn {
     width: 40px;
     height: 40px;
@@ -453,19 +446,6 @@
     color: white;
 }
 
-.form-description {
-    padding: 16px;
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
-    border-radius: 10px;
-    margin-bottom: 24px;
-}
-
-.form-description p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
 .form-fields {
     display: flex;
     flex-direction: column;
@@ -487,12 +467,6 @@
 .field-label .required {
     color: var(--danger);
     margin-left: 4px;
-}
-
-.field-description {
-    margin: 0;
-    font-size: 13px;
-    color: var(--text-secondary);
 }
 
 .field-error {
@@ -636,12 +610,6 @@
     font-size: 12px;
 }
 
-.maintenance-checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
 .checklist-item {
     display: flex;
     align-items: center;
@@ -683,11 +651,6 @@
     font-weight: 900;
     font-size: 12px;
     color: white;
-}
-
-.checklist-label {
-    font-size: 15px;
-    color: var(--text-primary);
 }
 
 .submit-error {
@@ -759,36 +722,6 @@
     background: var(--bg-tertiary);
 }
 
-.review-section {
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid var(--divider);
-}
-
-.review-section h3 {
-    margin: 0 0 16px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.review-notes-field {
-    margin-bottom: 20px;
-}
-
-.review-notes-field label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.review-actions {
-    display: flex;
-    gap: 12px;
-}
-
 .review-btn {
     flex: 1;
     display: flex;
@@ -823,28 +756,6 @@
     cursor: not-allowed;
 }
 
-.completed-notice {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 16px;
-    background: color-mix(in srgb, var(--success) 10%, transparent);
-    border-radius: 10px;
-    color: var(--success);
-    font-size: 15px;
-    font-weight: 500;
-    margin-top: 24px;
-}
-
-.completed-notice i {
-    font-size: 18px;
-}
-
-.view-only-notice {
-    margin-top: 24px;
-}
-
 .status-banner {
     display: flex;
     align-items: center;
@@ -873,29 +784,6 @@
 
 .status-banner i {
     font-size: 20px;
-}
-
-.review-notes-display {
-    margin-top: 16px;
-    padding: 16px;
-    background: var(--bg-secondary);
-    border-radius: 10px;
-}
-
-.review-notes-display label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-}
-
-.review-notes-display p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--text-primary);
-    line-height: 1.5;
 }
 
 .create-section {
@@ -968,12 +856,6 @@
 .frequency-input span {
     font-size: 14px;
     color: var(--text-secondary);
-}
-
-.assignment-groups {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
 }
 
 .assignment-group {
@@ -1064,43 +946,6 @@
 .selector-item small {
     font-size: 11px;
     color: var(--text-secondary);
-}
-
-.custom-permission-input {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.custom-permission-input .maintenance-input {
-    flex: 1;
-    padding: 10px 12px;
-    font-size: 14px;
-}
-
-.add-permission-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.add-permission-btn:hover:not(:disabled) {
-    filter: brightness(1.1);
-}
-
-.add-permission-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .selected-items {
@@ -2275,10 +2120,6 @@
         justify-content: center;
     }
 
-    .review-actions {
-        flex-direction: column;
-    }
-
     .form-actions {
         flex-direction: column;
     }
@@ -2380,14 +2221,6 @@
         padding: 10px 16px;
         min-height: 50px;
     }
-}
-
-.step-image-upload {
-    width: 100%;
-}
-
-.step-image-upload.error .image-upload-zone {
-    border-color: var(--danger);
 }
 
 .image-upload-zone {
@@ -2504,22 +2337,6 @@
 
 .upload-success i {
     font-size: 14px;
-}
-
-.step-image-display {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--divider);
-}
-
-.step-image-display img {
-    width: 100%;
-    height: auto;
-    display: block;
-    cursor: pointer;
 }
 
 .image-preview-modal {

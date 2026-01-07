@@ -1154,11 +1154,6 @@ button.primary:hover {
     z-index: 99999;
 }
 
-.edit-instructions {
-    background-color: var(--accent);
-    border-left: 3px solid var(--accent);
-}
-
 .dark-mode .edit-instructions {
     background-color: var(--accent);
 }
@@ -1170,10 +1165,6 @@ button.primary:hover {
 
 .dark-mode .rating-value-display {
     background-color: var(--accent);
-}
-
-.edit-instructions {
-    color: #fff !important;
 }
 
 .rating-label {

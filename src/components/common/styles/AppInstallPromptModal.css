@@ -332,36 +332,6 @@
         font-size: 14px;
     }
 
-    .app-install-platforms {
-        grid-template-columns: 1fr;
-        gap: 1px;
-    }
-
-    .app-install-platform {
-        padding: 24px;
-    }
-
-    .platform-header {
-        gap: 12px;
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-    }
-
-    .platform-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 24px;
-        border-radius: 12px;
-    }
-
-    .platform-info h3 {
-        font-size: 18px;
-    }
-
-    .platform-info p {
-        font-size: 12px;
-    }
-
     .app-install-steps {
         gap: 14px;
     }
@@ -456,30 +426,6 @@
 
     .app-install-description {
         font-size: 13px;
-    }
-
-    .app-install-platform {
-        padding: 20px;
-    }
-
-    .platform-header {
-        gap: 10px;
-        margin-bottom: 16px;
-        padding-bottom: 14px;
-    }
-
-    .platform-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 20px;
-    }
-
-    .platform-info h3 {
-        font-size: 16px;
-    }
-
-    .platform-info p {
-        font-size: 11px;
     }
 
     .app-install-steps {

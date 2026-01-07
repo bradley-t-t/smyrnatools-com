@@ -641,17 +641,6 @@ body:has(.my-account-wrapper) .content-area {
     justify-content: space-between;
 }
 
-.mobile-notification-badge {
-    background: var(--accent);
-    color: var(--text-light);
-    border-radius: 12px;
-    padding: 2px 8px;
-    font-size: 12px;
-    font-weight: 600;
-    min-width: 20px;
-    text-align: center;
-}
-
 .mobile-menu-divider {
     padding: 12px 20px 8px;
     color: var(--text-secondary);
