@@ -5,6 +5,7 @@ import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import MaintenanceFormView from './MaintenanceFormView'
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
+import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import {formatFrequency, formatMaintenanceDate, getStatusBadgeClass} from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceView() {
@@ -20,6 +21,9 @@ export default function MaintenanceView() {
     const [selectedItem, setSelectedItem] = useState(null)
     const [showCreateForm, setShowCreateForm] = useState(false)
     const [editingForm, setEditingForm] = useState(null)
+    const [plantFilter, setPlantFilter] = useState('')
+    const [formTypeFilter, setFormTypeFilter] = useState('')
+    const [showPlantModal, setShowPlantModal] = useState(false)
 
     useEffect(() => {
         loadData()
@@ -59,6 +63,48 @@ export default function MaintenanceView() {
             setLoading(false)
         }
     }
+
+    const getUniquePlants = (items) => {
+        const plantsMap = new Map()
+        items.forEach(item => {
+            if (item.plant_code && !plantsMap.has(item.plant_code)) {
+                plantsMap.set(item.plant_code, {
+                    plantCode: item.plant_code,
+                    plantName: item.plant_code
+                })
+            }
+        })
+        return Array.from(plantsMap.values()).sort((a, b) => 
+            parseInt(a.plantCode.replace(/\D/g, '') || '0') - parseInt(b.plantCode.replace(/\D/g, '') || '0')
+        )
+    }
+
+    const getUniqueFormTypes = (items, isSubmission = false) => {
+        const forms = new Set()
+        items.forEach(item => {
+            const title = isSubmission ? item.maintenance_forms?.title : item.form?.title
+            if (title) forms.add(title)
+        })
+        return Array.from(forms).sort()
+    }
+
+    const filterItems = (items, isSubmission = false) => {
+        return items.filter(item => {
+            const plantCode = item.plant_code
+            const formTitle = isSubmission ? item.maintenance_forms?.title : item.form?.title
+            if (plantFilter && plantCode !== plantFilter) return false
+            if (formTypeFilter && formTitle !== formTypeFilter) return false
+            return true
+        })
+    }
+
+    const filteredDueItems = filterItems(dueItems, false)
+    const filteredPendingReviews = filterItems(pendingReviews, true)
+    const filteredReviewedSubmissions = filterItems(reviewedSubmissions, true)
+    const duePlants = getUniquePlants(dueItems)
+    const dueFormTypes = getUniqueFormTypes(dueItems, false)
+    const reviewPlants = getUniquePlants([...pendingReviews, ...reviewedSubmissions])
+    const reviewFormTypes = getUniqueFormTypes([...pendingReviews, ...reviewedSubmissions], true)
 
     const handleItemClick = async (item) => {
         if (item.status === 'completed' && item.submission_id) {
@@ -184,15 +230,67 @@ export default function MaintenanceView() {
                     <>
                         {activeTab === 'due' && (
                             <div className="maintenance-section">
-                                {dueItems.length === 0 ? (
+                                {dueItems.length > 0 && (
+                                    <div className="maintenance-filters">
+                                        <div className="filter-group">
+                                            <label className="filter-label">
+                                                <i className="fas fa-building"></i>
+                                                Plant
+                                            </label>
+                                            <button 
+                                                className={`filter-button ${plantFilter ? 'active' : ''}`}
+                                                onClick={() => setShowPlantModal(true)}
+                                            >
+                                                <span>{plantFilter || 'All Plants'}</span>
+                                                <i className="fas fa-chevron-down"></i>
+                                            </button>
+                                        </div>
+                                        <div className="filter-group">
+                                            <label className="filter-label">
+                                                <i className="fas fa-file-alt"></i>
+                                                Form
+                                            </label>
+                                            <select 
+                                                className="filter-select"
+                                                value={formTypeFilter}
+                                                onChange={(e) => setFormTypeFilter(e.target.value)}
+                                            >
+                                                <option value="">All Forms</option>
+                                                {dueFormTypes.map(form => (
+                                                    <option key={form} value={form}>{form}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        {(plantFilter || formTypeFilter) && (
+                                            <button 
+                                                className="filter-clear-btn"
+                                                onClick={() => { setPlantFilter(''); setFormTypeFilter(''); }}
+                                            >
+                                                <i className="fas fa-times"></i>
+                                                <span>Clear Filters</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                <PlantDropdownModal
+                                    isOpen={showPlantModal && activeTab === 'due'}
+                                    onClose={() => setShowPlantModal(false)}
+                                    plants={duePlants}
+                                    showAllPlants={true}
+                                    onSelect={(code) => {
+                                        setPlantFilter(code === 'All' ? '' : code)
+                                        setShowPlantModal(false)
+                                    }}
+                                />
+                                {filteredDueItems.length === 0 ? (
                                     <div className="maintenance-empty">
                                         <i className="fas fa-check-circle"></i>
-                                        <h3>All caught up!</h3>
-                                        <p>You have no maintenance tasks due at this time.</p>
+                                        <h3>{dueItems.length === 0 ? 'All caught up!' : 'No matching tasks'}</h3>
+                                        <p>{dueItems.length === 0 ? 'You have no maintenance tasks due at this time.' : 'Try adjusting your filters.'}</p>
                                     </div>
                                 ) : (
                                     <div className="maintenance-list">
-                                        {dueItems.map(item => (
+                                        {filteredDueItems.map(item => (
                                             <div
                                                 key={item.id}
                                                 className={`maintenance-item ${item.status === 'completed' ? 'completed' : ''}`}
@@ -262,15 +360,15 @@ export default function MaintenanceView() {
 
                                 {reviewSubTab === 'pending' && (
                                     <>
-                                        {pendingReviews.length === 0 ? (
+                                        {filteredPendingReviews.length === 0 ? (
                                             <div className="maintenance-empty">
                                                 <i className="fas fa-inbox"></i>
-                                                <h3>No pending reviews</h3>
-                                                <p>All submissions have been reviewed.</p>
+                                                <h3>{pendingReviews.length === 0 ? 'No pending reviews' : 'No matching reviews'}</h3>
+                                                <p>{pendingReviews.length === 0 ? 'All submissions have been reviewed.' : 'Try adjusting your filters.'}</p>
                                             </div>
                                         ) : (
                                             <div className="maintenance-list">
-                                                {pendingReviews.map(submission => (
+                                                {filteredPendingReviews.map(submission => (
                                                     <div
                                                         key={submission.id}
                                                         className="maintenance-item"
@@ -312,15 +410,15 @@ export default function MaintenanceView() {
 
                                 {reviewSubTab === 'reviewed' && (
                                     <>
-                                        {reviewedSubmissions.length === 0 ? (
+                                        {filteredReviewedSubmissions.length === 0 ? (
                                             <div className="maintenance-empty">
                                                 <i className="fas fa-clipboard-check"></i>
-                                                <h3>No reviewed submissions</h3>
-                                                <p>Submissions you have reviewed will appear here.</p>
+                                                <h3>{reviewedSubmissions.length === 0 ? 'No reviewed submissions' : 'No matching submissions'}</h3>
+                                                <p>{reviewedSubmissions.length === 0 ? 'Submissions you have reviewed will appear here.' : 'Try adjusting your filters.'}</p>
                                             </div>
                                         ) : (
                                             <div className="maintenance-list">
-                                                {reviewedSubmissions.map(submission => (
+                                                {filteredReviewedSubmissions.map(submission => (
                                                     <div
                                                         key={submission.id}
                                                         className="maintenance-item"

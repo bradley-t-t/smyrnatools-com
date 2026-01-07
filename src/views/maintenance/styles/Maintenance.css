@@ -116,6 +116,103 @@
     font-weight: 700;
 }
 
+.maintenance-tabs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.maintenance-header-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.header-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.header-filter-btn:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+}
+
+.header-filter-btn.active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+}
+
+.header-filter-btn i:first-child {
+    opacity: 0.7;
+}
+
+.header-filter-btn i:last-child {
+    font-size: 10px;
+    opacity: 0.5;
+}
+
+.header-filter-select {
+    padding: 8px 28px 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    max-width: 180px;
+}
+
+.header-filter-select:hover {
+    border-color: var(--accent);
+}
+
+.header-filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.header-filter-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.header-filter-clear:hover {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+}
+
 .review-sub-tabs {
     display: flex;
     gap: 4px;
@@ -163,6 +260,139 @@
 .review-sub-tab.active .sub-tab-badge {
     background: rgba(255, 255, 255, 0.25);
     color: white;
+}
+
+.maintenance-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+    border-radius: 12px;
+    border: 1px solid var(--divider);
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-label i {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.filter-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    text-align: left;
+}
+
+.filter-button:hover {
+    border-color: var(--accent);
+    background: var(--bg-secondary);
+}
+
+.filter-button.active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    color: var(--accent);
+}
+
+.filter-button i {
+    font-size: 10px;
+    opacity: 0.6;
+    transition: transform 0.2s;
+}
+
+.filter-button:hover i {
+    opacity: 1;
+}
+
+.filter-select {
+    padding: 10px 32px 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    width: 100%;
+}
+
+.filter-select:hover {
+    border-color: var(--accent);
+    background-color: var(--bg-secondary);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.filter-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    align-self: flex-end;
+    height: 40px;
+}
+
+.filter-clear-btn:hover {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--danger);
+}
+
+.filter-clear-btn i {
+    font-size: 11px;
 }
 
 .maintenance-content {
@@ -2084,6 +2314,60 @@
 
     .maintenance-content {
         padding: 150px 12px 24px 12px;
+    }
+
+    .maintenance-tabs-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .maintenance-header-filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .header-filter-btn {
+        flex: 1;
+        min-width: 0;
+        justify-content: space-between;
+    }
+
+    .header-filter-btn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .header-filter-select {
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .maintenance-filters {
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .filter-group {
+        max-width: none;
+        width: 100%;
+    }
+
+    .filter-button {
+        padding: 12px 14px;
+    }
+
+    .filter-select {
+        padding: 12px 32px 12px 14px;
+    }
+
+    .filter-clear-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 16px;
+        height: auto;
     }
 
     .maintenance-title {
