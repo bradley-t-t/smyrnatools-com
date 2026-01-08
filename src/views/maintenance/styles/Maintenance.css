@@ -608,18 +608,25 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 20px;
-    background: color-mix(in srgb, var(--background) 70%, transparent);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    padding: 16px 24px;
+    background: color-mix(in srgb, var(--background) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--divider);
     z-index: 100;
+    box-sizing: border-box;
 }
 
 .maintenance-form-view,
 .maintenance-create-view {
     min-height: 100vh;
     background: transparent;
+}
+
+.maintenance-create-content {
+    padding: 140px 20px 40px 20px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .back-btn {
@@ -1017,18 +1024,22 @@
 }
 
 .create-section {
-    background: color-mix(in srgb, var(--card-bg) 50%, transparent);
+    background: color-mix(in srgb, var(--card-bg) 60%, transparent);
     border: 1px solid var(--divider);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .create-section h3 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
+    margin: 0 0 16px 0;
+    font-size: 17px;
     font-weight: 600;
     color: var(--text-primary);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--divider);
 }
 
 .create-section .required {
@@ -2394,6 +2405,25 @@
     .maintenance-item-status {
         width: 100%;
         margin-top: 8px;
+    }
+
+    .maintenance-create-content {
+        padding: 130px 16px 32px 16px;
+    }
+
+    .maintenance-form-header {
+        padding: 14px 16px;
+    }
+
+    .create-section {
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .create-section h3 {
+        font-size: 15px;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
     }
 
     .form-row {
