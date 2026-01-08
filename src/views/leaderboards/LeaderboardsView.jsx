@@ -60,8 +60,8 @@ export default function LeaderboardsView() {
                     plantNames[p.plantCode] = p.plantName
                 })
 
-                const startOfYear = new Date(selectedYear, 0, 1)
-                const endOfYear = new Date(selectedYear, 11, 31, 23, 59, 59)
+                const extendedStartDate = new Date(selectedYear - 1, 11, 25)
+                const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
 
                 const {data: profilesData, error: profilesError} = await supabase
                     .from('users_profiles')
@@ -95,14 +95,14 @@ export default function LeaderboardsView() {
                         .select('*')
                         .eq('report_name', 'plant_manager')
                         .in('user_id', allUserIds)
-                        .gte('week', startOfYear.toISOString())
-                        .lte('week', endOfYear.toISOString()),
+                        .gte('week', extendedStartDate.toISOString())
+                        .lte('week', extendedEndDate.toISOString()),
                     supabase
                         .from('reports')
                         .select('*')
                         .eq('report_name', 'safety_manager')
-                        .gte('week', startOfYear.toISOString())
-                        .lte('week', endOfYear.toISOString())
+                        .gte('week', extendedStartDate.toISOString())
+                        .lte('week', extendedEndDate.toISOString())
                 ])
 
                 if (reportsError) throw reportsError
