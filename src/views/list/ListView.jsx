@@ -395,21 +395,21 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                     onClick={() => bulkToggleCompletion(true)}
                                 >
                                     <i className="fas fa-check"></i>
-                                    Mark as Completed
+                                    <span>Complete</span>
                                 </button>
                                 <button
                                     className="bulk-action-button delete"
                                     onClick={bulkDelete}
                                 >
                                     <i className="fas fa-trash"></i>
-                                    Delete
+                                    <span>Delete</span>
                                 </button>
                                 <button
                                     className="bulk-action-button cancel"
                                     onClick={() => setSelectedIds(new Set())}
                                 >
                                     <i className="fas fa-times"></i>
-                                    Cancel
+                                    <span>Cancel</span>
                                 </button>
                             </div>
                         </div>

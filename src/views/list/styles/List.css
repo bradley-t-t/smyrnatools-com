@@ -611,6 +611,39 @@
 
 @media (max-width: 768px) {
 
+    .bulk-actions-popup {
+        flex-direction: column;
+        padding: 12px;
+        gap: 10px;
+        width: calc(100% - 20px);
+    }
+
+    .bulk-actions-popup .bulk-count {
+        font-size: 13px;
+    }
+
+    .bulk-actions-content {
+        width: 100%;
+        flex-direction: row;
+        justify-content: stretch;
+    }
+
+    .bulk-action-button {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px;
+        font-size: 13px;
+        justify-content: center;
+    }
+
+    .bulk-action-button span {
+        display: none;
+    }
+
+    .bulk-action-button i {
+        margin: 0;
+    }
+
     .planner-item .item-meta {
         gap: 10px;
     }
@@ -621,6 +654,16 @@
 }
 
 @media (max-width: 480px) {
+
+    .bulk-actions-popup {
+        padding: 10px;
+        border-radius: var(--radius-lg);
+    }
+
+    .bulk-action-button {
+        padding: 12px;
+        border-radius: var(--radius-sm);
+    }
 
     .planner-item {
         padding: 12px 14px;
