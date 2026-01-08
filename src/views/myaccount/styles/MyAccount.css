@@ -281,7 +281,7 @@ html.blue-dark-mode .myaccount-video-background {
     margin-top: 1.5rem;
 }
 
-.btn.primary, .btn.action-btn {
+.btn.primary, .btn.ma-change-password-btn {
     padding: 0.6rem 1.2rem;
     border-radius: 6px;
     border: none;
