@@ -995,6 +995,7 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                                         <div className="pm-help-entry-value">
                                             {entry.destination_plant
                                                 ? (() => {
+                                                    if (entry.destination_plant === 'OTHER_REGION') return 'Other Region';
                                                     const plant = plants.find(p => p.plant_code === entry.destination_plant);
                                                     return plant ? `${plant.plant_code} - ${plant.plant_name}` : entry.destination_plant;
                                                 })()
@@ -1011,6 +1012,7 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                                         >
                                             {entry.destination_plant
                                                 ? (() => {
+                                                    if (entry.destination_plant === 'OTHER_REGION') return 'Other Region';
                                                     const plant = plants.find(p => p.plant_code === entry.destination_plant);
                                                     return plant ? `${plant.plant_code} - ${plant.plant_name}` : entry.destination_plant;
                                                 })()
@@ -1134,7 +1136,10 @@ function OperatorsSentToHelp({entries, onUpdate, weekIso, readOnly, user, plantC
                         setShowPlantModal(false)
                         setSelectedEntryIdForPlant(null)
                     }}
-                    plants={plants.filter(p => p.plant_code !== currentPlantCode)}
+                    plants={[
+                        ...plants.filter(p => p.plant_code !== currentPlantCode),
+                        {plant_code: 'OTHER_REGION', plant_name: 'Other Region'}
+                    ]}
                     currentValue={selectedEntryIdForPlant
                         ? entries.find(e => e.id === selectedEntryIdForPlant)?.destination_plant
                         : ''}
