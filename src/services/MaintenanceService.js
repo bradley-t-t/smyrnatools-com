@@ -393,6 +393,27 @@ export class MaintenanceService {
         const user = await UserService.getCurrentUser()
         if (!user?.id) throw new Error('User not authenticated')
 
+        const {data: existingDraft} = await supabase
+            .from('maintenance_submissions')
+            .select('id')
+            .eq('form_id', formId)
+            .eq('due_date', dueDate)
+            .eq('submitted_by', user.id)
+            .eq('status', 'draft')
+            .maybeSingle()
+
+        if (existingDraft) {
+            await supabase
+                .from('maintenance_submission_responses')
+                .delete()
+                .eq('submission_id', existingDraft.id)
+
+            await supabase
+                .from('maintenance_submissions')
+                .delete()
+                .eq('id', existingDraft.id)
+        }
+
         const {data: submission, error: submissionError} = await supabase
             .from('maintenance_submissions')
             .insert({
@@ -473,6 +494,108 @@ export class MaintenanceService {
         }
 
         return true
+    }
+
+    static async saveDraftProgress(formId, dueDate, responses, plantCode = null, existingSubmissionId = null) {
+        const user = await UserService.getCurrentUser()
+        if (!user?.id) throw new Error('User not authenticated')
+
+        let submissionId = existingSubmissionId
+
+        if (!submissionId) {
+            const {data: existing} = await supabase
+                .from('maintenance_submissions')
+                .select('id')
+                .eq('form_id', formId)
+                .eq('due_date', dueDate)
+                .eq('submitted_by', user.id)
+                .eq('status', 'draft')
+                .maybeSingle()
+
+            if (existing) {
+                submissionId = existing.id
+            }
+        }
+
+        if (submissionId) {
+            const {error: updateError} = await supabase
+                .from('maintenance_submissions')
+                .update({
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', submissionId)
+
+            if (updateError) throw updateError
+
+            await supabase
+                .from('maintenance_submission_responses')
+                .delete()
+                .eq('submission_id', submissionId)
+        } else {
+            const {data: submission, error: submissionError} = await supabase
+                .from('maintenance_submissions')
+                .insert({
+                    form_id: formId,
+                    submitted_by: user.id,
+                    due_date: dueDate,
+                    plant_code: plantCode,
+                    status: 'draft',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+                .select()
+                .single()
+
+            if (submissionError) throw submissionError
+            submissionId = submission.id
+        }
+
+        if (responses && responses.length > 0) {
+            const responsesToInsert = responses.map(response => ({
+                submission_id: submissionId,
+                field_id: response.field_id,
+                response_value: response.response_value || null,
+                checklist_values: response.checklist_values || null,
+                checklist_comments: response.checklist_comments || null,
+                checklist_images: response.checklist_images || null,
+                image_url: response.image_url || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }))
+
+            const {error: responsesError} = await supabase
+                .from('maintenance_submission_responses')
+                .insert(responsesToInsert)
+
+            if (responsesError) throw responsesError
+        }
+
+        return submissionId
+    }
+
+    static async fetchDraft(formId, dueDate, plantCode = null) {
+        const user = await UserService.getCurrentUser()
+        if (!user?.id) return null
+
+        let query = supabase
+            .from('maintenance_submissions')
+            .select(`
+                *,
+                maintenance_submission_responses (*)
+            `)
+            .eq('form_id', formId)
+            .eq('due_date', dueDate)
+            .eq('submitted_by', user.id)
+            .eq('status', 'draft')
+
+        if (plantCode) {
+            query = query.eq('plant_code', plantCode)
+        }
+
+        const {data, error} = await query.maybeSingle()
+
+        if (error) return null
+        return data
     }
 
     static async fetchSubmissions(filters = {}) {

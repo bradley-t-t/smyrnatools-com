@@ -20,7 +20,12 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     const [loading, setLoading] = useState(false)
     const [imagePreview, setImagePreview] = useState(null)
     const [activeImageFieldId, setActiveImageFieldId] = useState(null)
+    const [draftSubmissionId, setDraftSubmissionId] = useState(null)
+    const [autoSaving, setAutoSaving] = useState(false)
+    const [lastSaved, setLastSaved] = useState(null)
     const fileInputRef = useRef(null)
+    const autoSaveTimerRef = useRef(null)
+    const pendingSaveRef = useRef(false)
 
     const formObj = formData || item?.form || item?.maintenance_forms || null
 
@@ -82,6 +87,92 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         }
     }, [getStorageKey, responses, checklistStates, checklistComments, fieldImages, currentStep, isReview, isViewOnly])
 
+    const buildResponseData = useCallback(() => {
+        return fields.map(field => {
+            if (field.field_type === 'checklist') {
+                const checklistImages = {}
+                const checkItems = field.options?.items || []
+                checkItems.forEach(checkItem => {
+                    const imageKey = `${field.id}_${checkItem}`
+                    const imgData = fieldImages[imageKey]
+                    if (imgData?.uploadedUrl) {
+                        checklistImages[checkItem] = imgData.uploadedUrl
+                    }
+                })
+                return {
+                    field_id: field.id,
+                    checklist_values: checklistStates[field.id] || {},
+                    checklist_comments: checklistComments[field.id] || {},
+                    checklist_images: Object.keys(checklistImages).length > 0 ? checklistImages : null
+                }
+            }
+
+            const imageData = fieldImages[field.id]
+            const imageUrl = imageData?.uploadedUrl || null
+            return {
+                field_id: field.id,
+                response_value: responses[field.id] || '',
+                image_url: imageUrl
+            }
+        })
+    }, [fields, responses, checklistStates, checklistComments, fieldImages])
+
+    const saveToDatabase = useCallback(async () => {
+        if (!formObj?.id || !item?.due_date || isReview || isViewOnly) return
+
+        if (fields.length === 0) return
+
+        pendingSaveRef.current = false
+        setAutoSaving(true)
+
+        try {
+            const responseData = buildResponseData()
+            const newSubmissionId = await MaintenanceService.saveDraftProgress(
+                formObj.id,
+                item.due_date,
+                responseData,
+                item.plant_code,
+                draftSubmissionId
+            )
+            if (newSubmissionId && newSubmissionId !== draftSubmissionId) {
+                setDraftSubmissionId(newSubmissionId)
+            }
+            setLastSaved(new Date())
+        } catch (error) {
+        } finally {
+            setAutoSaving(false)
+            if (pendingSaveRef.current) {
+                pendingSaveRef.current = false
+                saveToDatabase()
+            }
+        }
+    }, [formObj?.id, item?.due_date, item?.plant_code, isReview, isViewOnly, fields, buildResponseData, draftSubmissionId])
+
+    const triggerAutoSave = useCallback(() => {
+        if (isReview || isViewOnly || loading) return
+
+        if (autoSaveTimerRef.current) {
+            clearTimeout(autoSaveTimerRef.current)
+        }
+
+        if (autoSaving) {
+            pendingSaveRef.current = true
+            return
+        }
+
+        autoSaveTimerRef.current = setTimeout(() => {
+            saveToDatabase()
+        }, 1000)
+    }, [isReview, isViewOnly, loading, autoSaving, saveToDatabase])
+
+    useEffect(() => {
+        return () => {
+            if (autoSaveTimerRef.current) {
+                clearTimeout(autoSaveTimerRef.current)
+            }
+        }
+    }, [])
+
     const loadDraft = useCallback(() => {
         const key = getStorageKey()
         if (!key) return null
@@ -107,10 +198,11 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     }, [getStorageKey])
 
     useEffect(() => {
-        if (!loading && !isReview && !isViewOnly && !isEditing) {
+        if (!loading && !isReview && !isViewOnly && !isEditing && fields.length > 0) {
             saveDraft()
+            triggerAutoSave()
         }
-    }, [responses, checklistStates, checklistComments, fieldImages, currentStep, loading, isReview, isViewOnly, isEditing, saveDraft])
+    }, [responses, checklistStates, checklistComments, fieldImages, currentStep, loading, isReview, isViewOnly, isEditing, saveDraft, triggerAutoSave, fields.length])
 
     useEffect(() => {
         const loadFormData = async () => {
@@ -131,29 +223,77 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 Array.isArray(existingForm.maintenance_form_fields) &&
                 existingForm.maintenance_form_fields.length > 0
 
+            const formId = existingForm?.id || item?.form_id
+
             if (hasFields) {
                 setFormData(existingForm)
-                initializeResponses()
-                return
-            }
-
-            const formId = existingForm?.id || item?.form_id
-            if (formId) {
+            } else if (formId) {
                 setLoading(true)
                 try {
                     const fetchedForm = await MaintenanceService.fetchFormById(formId)
                     if (fetchedForm) {
                         setFormData(fetchedForm)
                     }
-                    initializeResponses()
                 } catch (error) {
-                    initializeResponses()
                 } finally {
                     setLoading(false)
                 }
-            } else {
-                initializeResponses()
             }
+
+            if (formId && item?.due_date) {
+                setLoading(true)
+                try {
+                    const dbDraft = await MaintenanceService.fetchDraft(formId, item.due_date, item.plant_code)
+                    if (dbDraft && dbDraft.maintenance_submission_responses?.length > 0) {
+                        setDraftSubmissionId(dbDraft.id)
+                        const respMap = {}
+                        const checkMap = {}
+                        const commentMap = {}
+                        const imageMap = {}
+                        dbDraft.maintenance_submission_responses.forEach(resp => {
+                            const fieldId = String(resp.field_id)
+                            if (resp.checklist_values) {
+                                checkMap[fieldId] = typeof resp.checklist_values === 'string'
+                                    ? JSON.parse(resp.checklist_values)
+                                    : resp.checklist_values
+                            } else {
+                                respMap[fieldId] = resp.response_value || ''
+                            }
+                            if (resp.checklist_comments) {
+                                const comments = typeof resp.checklist_comments === 'string'
+                                    ? JSON.parse(resp.checklist_comments)
+                                    : resp.checklist_comments
+                                commentMap[fieldId] = comments
+                            }
+                            if (resp.image_url) {
+                                imageMap[fieldId] = {uploadedUrl: resp.image_url, uploaded: true}
+                            }
+                            if (resp.checklist_images) {
+                                const checkImages = typeof resp.checklist_images === 'string'
+                                    ? JSON.parse(resp.checklist_images)
+                                    : resp.checklist_images
+                                if (checkImages && typeof checkImages === 'object') {
+                                    Object.entries(checkImages).forEach(([checkItem, imgUrl]) => {
+                                        const imageKey = `${fieldId}_${checkItem.trim()}`
+                                        imageMap[imageKey] = {uploadedUrl: imgUrl, uploaded: true}
+                                    })
+                                }
+                            }
+                        })
+                        setResponses(respMap)
+                        setChecklistStates(checkMap)
+                        setChecklistComments(commentMap)
+                        setFieldImages(imageMap)
+                        setLastSaved(new Date(dbDraft.updated_at))
+                        setLoading(false)
+                        return
+                    }
+                } catch (error) {
+                }
+                setLoading(false)
+            }
+
+            initializeResponses()
         }
         loadFormData()
     }, [item])
@@ -1099,6 +1239,15 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 <div className="step-info">
                     <span className="step-title">{formObj?.title}</span>
                     <span className="step-due">Due {formatMaintenanceDateShort(item?.due_date)}</span>
+                    {!isReview && !isViewOnly && (
+                        <span className="step-autosave-status">
+                            {autoSaving ? (
+                                <><i className="fas fa-sync fa-spin"></i> Saving...</>
+                            ) : lastSaved ? (
+                                <><i className="fas fa-check"></i> Saved</>
+                            ) : null}
+                        </span>
+                    )}
                 </div>
                 <div className="step-progress">
                     <div className="step-progress-bar">
