@@ -78,22 +78,37 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                 const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate()
                 const endOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
-                const {data, error} = await supabase
-                    .from('reports')
-                    .select('*')
-                    .eq('report_name', 'plant_manager')
-                    .eq('completed', true)
-                    .gte('week', startOfMonthStr)
-                    .lte('week', endOfMonthStr + 'T23:59:59.999Z')
-                    .order('week', {ascending: true})
+                const startOfYear = new Date(currentYear, 0, 1)
+                const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
+
+                const [{data, error}, {data: yearData, error: yearError}] = await Promise.all([
+                    supabase
+                        .from('reports')
+                        .select('*')
+                        .eq('report_name', 'plant_manager')
+                        .eq('completed', true)
+                        .gte('week', startOfMonthStr)
+                        .lte('week', endOfMonthStr + 'T23:59:59.999Z')
+                        .order('week', {ascending: true}),
+                    supabase
+                        .from('reports')
+                        .select('*')
+                        .eq('report_name', 'plant_manager')
+                        .eq('completed', true)
+                        .gte('week', startOfYear.toISOString())
+                        .lte('week', endOfYear.toISOString())
+                ])
 
                 if (error) throw error
+                if (yearError) throw yearError
 
                 if (!mounted) {
                     setLoading(false)
                     return
                 }
 
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(yearData, effectivePlantCode)
+                
                 const userIds = [...new Set(data.map(r => r.user_id).filter(Boolean))]
                 const usersMap = {}
 
@@ -158,34 +173,20 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                             }
                         }
                         if (report) {
-                            const yardage = parseFloat(report.data?.yardage || 0)
-                            const hours = parseFloat(report.data?.total_hours || 0)
-                            const rawYph = hours > 0 ? yardage / hours : 0
-                            
-                            let totalHoursSent = 0
-                            const operatorsSentToHelp = report.data?.operators_sent_to_help || []
-                            if (Array.isArray(operatorsSentToHelp)) {
-                                operatorsSentToHelp.forEach(entry => {
-                                    if (entry.operators && Array.isArray(entry.operators)) {
-                                        entry.operators.forEach(op => {
-                                            totalHoursSent += parseFloat(op.hours) || 0
-                                        })
-                                    }
-                                })
-                            }
-                            
-                            const adjustedHours = hours - totalHoursSent
-                            const adjustedYph = adjustedHours > 0 ? yardage / adjustedHours : rawYph
+                            const reportWeekStr = ReportUtility.normalizeWeekStr(report.week)
+                            const hoursReceived = hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
+                            const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
                             
                             return {
                                 weekIso: weekStr,
-                                yph: rawYph,
-                                rawYph,
-                                adjustedYph,
-                                hoursSent: totalHoursSent,
+                                yph: metrics.rawYph,
+                                rawYph: metrics.rawYph,
+                                adjustedYph: metrics.adjustedYph,
+                                hoursSent: metrics.hoursSent,
+                                hoursReceived: metrics.hoursReceived,
                                 lost: parseFloat(report.data?.total_yards_lost || 0),
-                                yards: yardage,
-                                hours,
+                                yards: parseFloat(report.data?.yardage || 0),
+                                hours: parseFloat(report.data?.total_hours || 0),
                                 data: report.data,
                                 isCurrentWeek: weekStr === currentWeekDateOnly,
                                 userId: report.user_id,
@@ -198,6 +199,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                 rawYph: 0,
                                 adjustedYph: 0,
                                 hoursSent: 0,
+                                hoursReceived: 0,
                                 lost: 0,
                                 yards: 0,
                                 hours: 0,
@@ -241,7 +243,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
 
-                const {data, error} = await supabase
+                const {data: allData, error} = await supabase
                     .from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
@@ -256,7 +258,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                     return
                 }
 
-                const userIds = [...new Set(data.map(r => r.user_id).filter(Boolean))]
+                const userIds = [...new Set(allData.map(r => r.user_id).filter(Boolean))]
                 const usersMap = {}
 
                 if (userIds.length > 0) {
@@ -272,7 +274,29 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                     }
                 }
 
-                const filteredData = data.filter(report => {
+                const hoursReceivedByWeek = {}
+                const effectivePlantCodeStr = String(effectivePlantCode || '')
+                allData.forEach(report => {
+                    const rawWeekStr = report.week.split('T')[0]
+                    const [y, m, d] = rawWeekStr.split('-').map(Number)
+                    const weekStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                    const helpEntries = report.data?.operators_sent_to_help || []
+                    if (Array.isArray(helpEntries)) {
+                        helpEntries.forEach(entry => {
+                            const destPlant = String(entry.destination_plant || '')
+                            if (destPlant === effectivePlantCodeStr && entry.operators && Array.isArray(entry.operators)) {
+                                if (!hoursReceivedByWeek[weekStr]) {
+                                    hoursReceivedByWeek[weekStr] = 0
+                                }
+                                entry.operators.forEach(op => {
+                                    hoursReceivedByWeek[weekStr] += parseFloat(op.hours) || 0
+                                })
+                            }
+                        })
+                    }
+                })
+
+                const filteredData = allData.filter(report => {
                     const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
                     return reportPlant === effectivePlantCode ||
                         (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
@@ -350,35 +374,20 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                         const report = reportsByWeek.get(weekStr)
 
                         if (report) {
-                            const yardage = parseFloat(report.data?.yardage || 0)
-                            const hours = parseFloat(report.data?.total_hours || 0)
-                            const lost = parseFloat(report.data?.total_yards_lost || 0)
-                            const rawYph = hours > 0 ? yardage / hours : 0
-                            
-                            let totalHoursSent = 0
-                            const operatorsSentToHelp = report.data?.operators_sent_to_help || []
-                            if (Array.isArray(operatorsSentToHelp)) {
-                                operatorsSentToHelp.forEach(entry => {
-                                    if (entry.operators && Array.isArray(entry.operators)) {
-                                        entry.operators.forEach(op => {
-                                            totalHoursSent += parseFloat(op.hours) || 0
-                                        })
-                                    }
-                                })
-                            }
-                            
-                            const adjustedHours = hours - totalHoursSent
-                            const adjustedYph = adjustedHours > 0 ? yardage / adjustedHours : rawYph
+                            const reportWeekStr = ReportUtility.normalizeWeekStr(report.week)
+                            const hoursReceived = hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
+                            const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
 
                             allWeeks.push({
                                 week: weekStr,
-                                yardage,
-                                hours,
-                                yph: rawYph,
-                                rawYph,
-                                adjustedYph,
-                                hoursSent: totalHoursSent,
-                                lost,
+                                yardage: parseFloat(report.data?.yardage || 0),
+                                hours: parseFloat(report.data?.total_hours || 0),
+                                yph: metrics.rawYph,
+                                rawYph: metrics.rawYph,
+                                adjustedYph: metrics.adjustedYph,
+                                hoursSent: metrics.hoursSent,
+                                hoursReceived: metrics.hoursReceived,
+                                lost: parseFloat(report.data?.total_yards_lost || 0),
                                 isMissing: false,
                                 isNotSubmitted: !report.completed,
                                 userId: report.user_id
@@ -392,6 +401,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                 rawYph: 0,
                                 adjustedYph: 0,
                                 hoursSent: 0,
+                                hoursReceived: 0,
                                 lost: 0,
                                 isMissing: true,
                                 isNotSubmitted: false,
@@ -1211,6 +1221,9 @@ export function PlantManagerSubmitPlugin({
     const {preferences} = usePreferences()
     const isDark = preferences.themeMode === 'dark'
     const [userPlantCode, setUserPlantCode] = useState(user?.plant_code || '')
+    const [calculatedYph, setCalculatedYph] = useState({raw: 0, adjusted: 0})
+    const [calculatedGrade, setCalculatedGrade] = useState({raw: '', adjusted: ''})
+    const [calculatedLabel, setCalculatedLabel] = useState({raw: '', adjusted: ''})
 
     useEffect(() => {
         async function fetchUserPlant() {
@@ -1235,12 +1248,56 @@ export function PlantManagerSubmitPlugin({
         fetchUserPlant()
     }, [user?.id, user?.plant_code])
 
+    const plantCode = form?.plant || userPlantCode || ''
+
+    useEffect(() => {
+        async function calculateYph() {
+            if (!weekIso || !plantCode) {
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({raw: metrics.raw, adjusted: metrics.adjusted})
+                setCalculatedGrade({raw: metrics.rawGrade, adjusted: metrics.adjustedGrade})
+                setCalculatedLabel({raw: metrics.rawLabel, adjusted: metrics.adjustedLabel})
+                return
+            }
+
+            try {
+                const weekStart = weekIso.split('T')[0]
+                const [year] = weekStart.split('-').map(Number)
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
+
+                const {data: allReports} = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .eq('completed', true)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
+                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
+                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
+
+                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
+                setCalculatedYph({raw: metrics.raw, adjusted: metrics.adjusted})
+                setCalculatedGrade({raw: metrics.rawGrade, adjusted: metrics.adjustedGrade})
+                setCalculatedLabel({raw: metrics.rawLabel, adjusted: metrics.adjustedLabel})
+            } catch (err) {
+                console.error('Error calculating YPH:', err)
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({raw: metrics.raw, adjusted: metrics.adjusted})
+                setCalculatedGrade({raw: metrics.rawGrade, adjusted: metrics.adjustedGrade})
+                setCalculatedLabel({raw: metrics.rawLabel, adjusted: metrics.adjustedLabel})
+            }
+        }
+
+        calculateYph()
+    }, [weekIso, plantCode, form])
+
     const formatYph = v => {
         const n = typeof v === 'number' ? v : (typeof v === 'string' ? Number(v) : NaN)
         return Number.isFinite(n) ? n.toFixed(2) : '--'
     }
-
-    const plantCode = form?.plant || userPlantCode || ''
 
     const handleOperatorsUpdate = (entries) => {
         setForm({...form, operators_sent_to_help: entries})
@@ -1344,13 +1401,61 @@ export function PlantManagerReviewPlugin({
                                          }) {
     const {preferences} = usePreferences()
     const isDark = preferences.themeMode === 'dark'
+    const [calculatedYph, setCalculatedYph] = useState({raw: 0, adjusted: 0})
+    const [calculatedGrade, setCalculatedGrade] = useState({raw: '', adjusted: ''})
+    const [calculatedLabel, setCalculatedLabel] = useState({raw: '', adjusted: ''})
+
+    const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
+    const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
+
+    useEffect(() => {
+        async function calculateYph() {
+            if (!weekIso || !plantCode) {
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({raw: metrics.raw, adjusted: metrics.adjusted})
+                setCalculatedGrade({raw: metrics.rawGrade, adjusted: metrics.adjustedGrade})
+                setCalculatedLabel({raw: metrics.rawLabel, adjusted: metrics.adjustedLabel})
+                return
+            }
+
+            try {
+                const weekStart = weekIso.split('T')[0]
+                const [year] = weekStart.split('-').map(Number)
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
+
+                const {data: allReports} = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .eq('completed', true)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
+                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
+                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
+
+                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
+                setCalculatedYph({raw: metrics.raw, adjusted: metrics.adjusted})
+                setCalculatedGrade({raw: metrics.rawGrade, adjusted: metrics.adjustedGrade})
+                setCalculatedLabel({raw: metrics.rawLabel, adjusted: metrics.adjustedLabel})
+            } catch (err) {
+                console.error('Error calculating YPH:', err)
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({raw: metrics.raw, adjusted: metrics.adjusted})
+                setCalculatedGrade({raw: metrics.rawGrade, adjusted: metrics.adjustedGrade})
+                setCalculatedLabel({raw: metrics.rawLabel, adjusted: metrics.adjustedLabel})
+            }
+        }
+
+        calculateYph()
+    }, [weekIso, plantCode, form])
+
     const formatYph = v => {
         const n = typeof v === 'number' ? v : (typeof v === 'string' ? Number(v) : NaN)
         return Number.isFinite(n) ? n.toFixed(2) : '--'
     }
-
-    const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
-    const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
 
     return (
         <div className="pm-report-container">
@@ -1384,9 +1489,9 @@ export function PlantManagerReviewPlugin({
                         <div
                             className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
                             title="Left: Raw YPH / Right: Adjusted for help sent">
-                            <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
+                            <span className="pm-yph-raw">{formatYph(calculatedYph.raw)}</span>
                             <span className="pm-yph-separator">/</span>
-                            <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
+                            <span className="pm-yph-adjusted">{formatYph(calculatedYph.adjusted)}</span>
                         </div>
                         <div className="pm-yph-labels">
                             <span className="pm-yph-label-item">Raw</span>
@@ -1394,13 +1499,13 @@ export function PlantManagerReviewPlugin({
                         </div>
                         <div
                             className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {yphLabel?.adjusted ?? yphLabel}
+                            {calculatedLabel.adjusted}
                         </div>
                         <div className="pm-metric-scale">
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
+                            <span className={calculatedGrade.adjusted === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                            <span className={calculatedGrade.adjusted === 'good' ? 'active good' : ''}>Good</span>
+                            <span className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>Average</span>
+                            <span className={calculatedGrade.adjusted === 'poor' ? 'active poor' : ''}>Poor</span>
                         </div>
                     </div>
 

@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import './styles/Reports.css'
+import {supabase} from '../../services/DatabaseService'
 import {UserService} from '../../services/UserService'
 import {ReportService} from '../../services/ReportService'
 import {PlantManagerReviewPlugin} from './types/WeeklyPlantManagerReport'
@@ -35,6 +36,70 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     const [exportError, setExportError] = useState('')
     const [isPlantShutdown, setIsPlantShutdown] = useState(false)
     const [loadingPlants, setLoadingPlants] = useState(true)
+    const [hoursReceivedFromOtherPlants, setHoursReceivedFromOtherPlants] = useState(0)
+
+    useEffect(() => {
+        async function fetchHoursReceived() {
+            const plantCode = String(assignedPlant || form?.plant || '')
+            if (report.name !== 'plant_manager' || !report.weekIso || !plantCode) {
+                setHoursReceivedFromOtherPlants(0)
+                return
+            }
+            
+            try {
+                const weekStart = report.weekIso.split('T')[0]
+                const [year, month, day] = weekStart.split('-').map(Number)
+                const normalizedWeekStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
+                
+                const {data: allReports, error} = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .eq('completed', true)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+                
+                if (error) {
+                    console.error('Error fetching reports:', error)
+                    setHoursReceivedFromOtherPlants(0)
+                    return
+                }
+                
+                let totalReceived = 0
+                if (allReports && Array.isArray(allReports)) {
+                    allReports.forEach(otherReport => {
+                        const rawWeekStr = otherReport.week.split('T')[0]
+                        const [wy, wm, wd] = rawWeekStr.split('-').map(Number)
+                        const reportWeekStr = `${wy}-${String(wm).padStart(2, '0')}-${String(wd).padStart(2, '0')}`
+                        
+                        if (reportWeekStr === normalizedWeekStr) {
+                            const helpEntries = otherReport.data?.operators_sent_to_help || []
+                            if (Array.isArray(helpEntries)) {
+                                helpEntries.forEach(entry => {
+                                    const destPlant = String(entry.destination_plant || '')
+                                    if (destPlant === plantCode && entry.operators && Array.isArray(entry.operators)) {
+                                        entry.operators.forEach(op => {
+                                            totalReceived += parseFloat(op.hours) || 0
+                                        })
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+                
+                setHoursReceivedFromOtherPlants(totalReceived)
+            } catch (err) {
+                console.error('Error fetching hours received:', err)
+                setHoursReceivedFromOtherPlants(0)
+            }
+        }
+        
+        fetchHoursReceived()
+    }, [report.name, report.weekIso, assignedPlant, form?.plant])
 
     useEffect(() => {
         if (report.name === 'plant_production' && operatorOptions.length > 0) {
@@ -171,52 +236,31 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
 
     let reportTitle = report.title || 'Report Review'
 
-    let {yph: rawYphValue, yphGrade: rawYphGrade, yphLabel: rawYphLabel, lost, lostGrade, lostLabel} = ReportService.getYardageMetrics(form)
-    
-    let adjustedYphValue = rawYphValue
-    let adjustedYphGrade = rawYphGrade
-    let adjustedYphLabel = rawYphLabel
-    
-    if (report.name === 'plant_manager') {
-        let totalHoursSent = 0
+    const {yph, yphGrade, yphLabel, lost, lostGrade, lostLabel} = useMemo(() => {
+        const {lost, lostGrade, lostLabel} = ReportService.getYardageMetrics(form)
         
-        if (form.operators_sent_to_help && Array.isArray(form.operators_sent_to_help)) {
-            form.operators_sent_to_help.forEach(entry => {
-                if (entry.operators && Array.isArray(entry.operators)) {
-                    entry.operators.forEach(op => {
-                        const hours = parseFloat(op.hours) || 0
-                        totalHoursSent += hours
-                    })
-                }
-            })
-        }
-        
-        if (totalHoursSent > 0) {
-            const yards = parseFloat(form.total_yards_delivered || form['Yardage'] || form['yardage']) || 0
-            const hours = parseFloat(form.total_operator_hours || form['Total Hours'] || form['total_hours'] || form['total_operator_hours']) || 0
-            
-            if (hours > 0 && yards > 0) {
-                const adjustedHours = hours - totalHoursSent
-                if (adjustedHours > 0) {
-                    adjustedYphValue = yards / adjustedHours
-                    
-                    if (adjustedYphValue >= 6) adjustedYphGrade = 'excellent'
-                    else if (adjustedYphValue >= 4) adjustedYphGrade = 'good'
-                    else if (adjustedYphValue >= 3) adjustedYphGrade = 'average'
-                    else adjustedYphGrade = 'poor'
-                    
-                    if (adjustedYphGrade === 'excellent') adjustedYphLabel = 'Excellent'
-                    else if (adjustedYphGrade === 'good') adjustedYphLabel = 'Good'
-                    else if (adjustedYphGrade === 'average') adjustedYphLabel = 'Average'
-                    else adjustedYphLabel = 'Poor'
-                }
+        if (report.name === 'plant_manager') {
+            const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
+            return {
+                yph: {raw: metrics.raw, adjusted: metrics.adjusted},
+                yphGrade: {raw: metrics.rawGrade, adjusted: metrics.adjustedGrade},
+                yphLabel: {raw: metrics.rawLabel, adjusted: metrics.adjustedLabel},
+                lost,
+                lostGrade,
+                lostLabel
+            }
+        } else {
+            const {yph, yphGrade, yphLabel} = ReportService.getYardageMetrics(form)
+            return {
+                yph: {raw: yph, adjusted: yph},
+                yphGrade: {raw: yphGrade, adjusted: yphGrade},
+                yphLabel: {raw: yphLabel, adjusted: yphLabel},
+                lost,
+                lostGrade,
+                lostLabel
             }
         }
-    }
-    
-    const yph = {raw: rawYphValue, adjusted: adjustedYphValue}
-    const yphGrade = {raw: rawYphGrade, adjusted: adjustedYphGrade}
-    const yphLabel = {raw: rawYphLabel, adjusted: adjustedYphLabel}
+    }, [form, report.name, hoursReceivedFromOtherPlants])
     
     ReportService.getYphColor(yphGrade.adjusted)
     ReportService.getYphColor(lostGrade)
