@@ -21,11 +21,10 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     const [imagePreview, setImagePreview] = useState(null)
     const [activeImageFieldId, setActiveImageFieldId] = useState(null)
     const [draftSubmissionId, setDraftSubmissionId] = useState(null)
-    const [autoSaving, setAutoSaving] = useState(false)
-    const [lastSaved, setLastSaved] = useState(null)
     const fileInputRef = useRef(null)
     const autoSaveTimerRef = useRef(null)
     const pendingSaveRef = useRef(false)
+    const savingRef = useRef(false)
 
     const formObj = formData || item?.form || item?.maintenance_forms || null
 
@@ -123,7 +122,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         if (fields.length === 0) return
 
         pendingSaveRef.current = false
-        setAutoSaving(true)
+        savingRef.current = true
 
         try {
             const responseData = buildResponseData()
@@ -137,10 +136,9 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             if (newSubmissionId && newSubmissionId !== draftSubmissionId) {
                 setDraftSubmissionId(newSubmissionId)
             }
-            setLastSaved(new Date())
         } catch (error) {
         } finally {
-            setAutoSaving(false)
+            savingRef.current = false
             if (pendingSaveRef.current) {
                 pendingSaveRef.current = false
                 saveToDatabase()
@@ -155,7 +153,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             clearTimeout(autoSaveTimerRef.current)
         }
 
-        if (autoSaving) {
+        if (savingRef.current) {
             pendingSaveRef.current = true
             return
         }
@@ -163,7 +161,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         autoSaveTimerRef.current = setTimeout(() => {
             saveToDatabase()
         }, 1000)
-    }, [isReview, isViewOnly, loading, autoSaving, saveToDatabase])
+    }, [isReview, isViewOnly, loading, saveToDatabase])
 
     useEffect(() => {
         return () => {
@@ -284,7 +282,6 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                         setChecklistStates(checkMap)
                         setChecklistComments(commentMap)
                         setFieldImages(imageMap)
-                        setLastSaved(new Date(dbDraft.updated_at))
                         setLoading(false)
                         return
                     }
@@ -1239,15 +1236,6 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 <div className="step-info">
                     <span className="step-title">{formObj?.title}</span>
                     <span className="step-due">Due {formatMaintenanceDateShort(item?.due_date)}</span>
-                    {!isReview && !isViewOnly && (
-                        <span className="step-autosave-status">
-                            {autoSaving ? (
-                                <><i className="fas fa-sync fa-spin"></i> Saving...</>
-                            ) : lastSaved ? (
-                                <><i className="fas fa-check"></i> Saved</>
-                            ) : null}
-                        </span>
-                    )}
                 </div>
                 <div className="step-progress">
                     <div className="step-progress-bar">

@@ -1551,30 +1551,6 @@
     color: var(--text-secondary);
 }
 
-.step-autosave-status {
-    font-size: 11px;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: 8px;
-    padding: 2px 8px;
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    border-radius: 12px;
-}
-
-.step-autosave-status i {
-    font-size: 10px;
-}
-
-.step-autosave-status i.fa-check {
-    color: var(--success, #22c55e);
-}
-
-.step-autosave-status i.fa-sync {
-    color: var(--accent);
-}
-
 .step-progress {
     display: flex;
     align-items: center;
