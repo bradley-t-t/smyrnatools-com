@@ -180,7 +180,6 @@ function ReportsSubmitView({
         try {
             await onSubmit(form, 'submit')
             setSuccess(true)
-            await EmailUtility.sendReportSubmittedEmail({report, weekVerbose})
         } catch (err) {
             setError(err?.message || 'Error submitting report')
         }
@@ -199,7 +198,6 @@ function ReportsSubmitView({
             }
             await onSubmit(submitData, 'submit')
             setSuccess(true)
-            await EmailUtility.sendReportSubmittedEmail({report, weekVerbose})
         } catch (err) {
             setError(err?.message || 'Error submitting report')
         }
@@ -391,9 +389,52 @@ function ReportsSubmitView({
 
     useEffect(() => {
         let {yph, yphGrade, yphLabel, lost, lostGrade, lostLabel} = ReportService.getYardageMetrics(form)
-        setYph(yph)
-        setYphGrade(yphGrade)
-        setYphLabel(yphLabel)
+        
+        let rawYph = yph
+        let adjustedYph = yph
+        let adjustedYphGrade = yphGrade
+        let adjustedYphLabel = yphLabel
+        
+        if (report.name === 'plant_manager') {
+            let totalHoursSent = 0
+            
+            if (form.operators_sent_to_help && Array.isArray(form.operators_sent_to_help)) {
+                form.operators_sent_to_help.forEach(entry => {
+                    if (entry.operators && Array.isArray(entry.operators)) {
+                        entry.operators.forEach(op => {
+                            const hours = parseFloat(op.hours) || 0
+                            totalHoursSent += hours
+                        })
+                    }
+                })
+            }
+            
+            if (totalHoursSent > 0) {
+                const yards = parseFloat(form.total_yards_delivered || form['Yardage'] || form['yardage']) || 0
+                const hours = parseFloat(form.total_operator_hours || form['Total Hours'] || form['total_hours'] || form['total_operator_hours']) || 0
+                
+                if (hours > 0 && yards > 0) {
+                    const adjustedHours = hours - totalHoursSent
+                    if (adjustedHours > 0) {
+                        adjustedYph = yards / adjustedHours
+                        
+                        if (adjustedYph >= 6) adjustedYphGrade = 'excellent'
+                        else if (adjustedYph >= 4) adjustedYphGrade = 'good'
+                        else if (adjustedYph >= 3) adjustedYphGrade = 'average'
+                        else adjustedYphGrade = 'poor'
+                        
+                        if (adjustedYphGrade === 'excellent') adjustedYphLabel = 'Excellent'
+                        else if (adjustedYphGrade === 'good') adjustedYphLabel = 'Good'
+                        else if (adjustedYphGrade === 'average') adjustedYphLabel = 'Average'
+                        else adjustedYphLabel = 'Poor'
+                    }
+                }
+            }
+        }
+        
+        setYph({raw: rawYph, adjusted: adjustedYph})
+        setYphGrade({raw: yphGrade, adjusted: adjustedYphGrade})
+        setYphLabel({raw: yphLabel, adjusted: adjustedYphLabel})
         setLost(lost)
         setLostGrade(lostGrade)
         setLostLabel(lostLabel)

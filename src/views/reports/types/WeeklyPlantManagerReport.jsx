@@ -158,12 +158,34 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                             }
                         }
                         if (report) {
+                            const yardage = parseFloat(report.data?.yardage || 0)
+                            const hours = parseFloat(report.data?.total_hours || 0)
+                            const rawYph = hours > 0 ? yardage / hours : 0
+                            
+                            let totalHoursSent = 0
+                            const operatorsSentToHelp = report.data?.operators_sent_to_help || []
+                            if (Array.isArray(operatorsSentToHelp)) {
+                                operatorsSentToHelp.forEach(entry => {
+                                    if (entry.operators && Array.isArray(entry.operators)) {
+                                        entry.operators.forEach(op => {
+                                            totalHoursSent += parseFloat(op.hours) || 0
+                                        })
+                                    }
+                                })
+                            }
+                            
+                            const adjustedHours = hours - totalHoursSent
+                            const adjustedYph = adjustedHours > 0 ? yardage / adjustedHours : rawYph
+                            
                             return {
                                 weekIso: weekStr,
-                                yph: parseFloat(report.data?.yardage || 0) / parseFloat(report.data?.total_hours || 1),
+                                yph: rawYph,
+                                rawYph,
+                                adjustedYph,
+                                hoursSent: totalHoursSent,
                                 lost: parseFloat(report.data?.total_yards_lost || 0),
-                                yards: parseFloat(report.data?.yardage || 0),
-                                hours: parseFloat(report.data?.total_hours || 0),
+                                yards: yardage,
+                                hours,
                                 data: report.data,
                                 isCurrentWeek: weekStr === currentWeekDateOnly,
                                 userId: report.user_id,
@@ -173,6 +195,9 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                             return {
                                 weekIso: weekStr,
                                 yph: 0,
+                                rawYph: 0,
+                                adjustedYph: 0,
+                                hoursSent: 0,
                                 lost: 0,
                                 yards: 0,
                                 hours: 0,
@@ -328,13 +353,31 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                             const yardage = parseFloat(report.data?.yardage || 0)
                             const hours = parseFloat(report.data?.total_hours || 0)
                             const lost = parseFloat(report.data?.total_yards_lost || 0)
-                            const yph = hours > 0 ? yardage / hours : 0
+                            const rawYph = hours > 0 ? yardage / hours : 0
+                            
+                            let totalHoursSent = 0
+                            const operatorsSentToHelp = report.data?.operators_sent_to_help || []
+                            if (Array.isArray(operatorsSentToHelp)) {
+                                operatorsSentToHelp.forEach(entry => {
+                                    if (entry.operators && Array.isArray(entry.operators)) {
+                                        entry.operators.forEach(op => {
+                                            totalHoursSent += parseFloat(op.hours) || 0
+                                        })
+                                    }
+                                })
+                            }
+                            
+                            const adjustedHours = hours - totalHoursSent
+                            const adjustedYph = adjustedHours > 0 ? yardage / adjustedHours : rawYph
 
                             allWeeks.push({
                                 week: weekStr,
                                 yardage,
                                 hours,
-                                yph,
+                                yph: rawYph,
+                                rawYph,
+                                adjustedYph,
+                                hoursSent: totalHoursSent,
                                 lost,
                                 isMissing: false,
                                 isNotSubmitted: !report.completed,
@@ -346,6 +389,9 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                 yardage: 0,
                                 hours: 0,
                                 yph: 0,
+                                rawYph: 0,
+                                adjustedYph: 0,
+                                hoursSent: 0,
                                 lost: 0,
                                 isMissing: true,
                                 isNotSubmitted: false,
@@ -552,8 +598,11 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                             </div>
                                             <div className="pm-timeline-metrics">
                                                 <div className="pm-timeline-metric">
-                                                    <span
-                                                        className="pm-timeline-metric-value">{report.yph.toFixed(2)}</span>
+                                                    <span className="pm-timeline-metric-value pm-timeline-yph-dual" title="Raw / Adjusted YPH">
+                                                        <span className="pm-timeline-yph-raw">{(report.rawYph ?? report.yph).toFixed(2)}</span>
+                                                        <span className="pm-timeline-yph-sep">/</span>
+                                                        <span className="pm-timeline-yph-adj">{(report.adjustedYph ?? report.yph).toFixed(2)}</span>
+                                                    </span>
                                                     <span className="pm-timeline-metric-label">YPH</span>
                                                     {yphVariance !== null && (
                                                         <span
@@ -633,8 +682,14 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                         <td className="pm-breakdown-value">
                                             {week.isMissing || week.isNotSubmitted ? '--' : week.hours.toLocaleString()}
                                         </td>
-                                        <td className="pm-breakdown-value">
-                                            {week.isMissing || week.isNotSubmitted ? '--' : week.yph.toFixed(2)}
+                                        <td className="pm-breakdown-value pm-breakdown-yph-dual">
+                                            {week.isMissing || week.isNotSubmitted ? '--' : (
+                                                <span className="pm-breakdown-yph-container" title="Raw / Adjusted YPH">
+                                                    <span className="pm-breakdown-yph-raw">{(week.rawYph ?? week.yph).toFixed(2)}</span>
+                                                    <span className="pm-breakdown-yph-sep">/</span>
+                                                    <span className="pm-breakdown-yph-adj">{(week.adjustedYph ?? week.yph).toFixed(2)}</span>
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="pm-breakdown-value">
                                             {week.isMissing || week.isNotSubmitted ? '--' : dailyAvg.toLocaleString()}
@@ -1220,18 +1275,25 @@ export function PlantManagerSubmitPlugin({
                             <span className="pm-metric-title">Yards per Man-Hour</span>
                         </div>
                         <div
-                            className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {formatYph(yph)}
+                            className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            title="Left: Raw YPH / Right: Adjusted for help sent">
+                            <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
+                            <span className="pm-yph-separator">/</span>
+                            <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
+                        </div>
+                        <div className="pm-yph-labels">
+                            <span className="pm-yph-label-item">Raw</span>
+                            <span className="pm-yph-label-item">Adjusted</span>
                         </div>
                         <div
                             className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {yphLabel}
+                            {yphLabel?.adjusted ?? yphLabel}
                         </div>
                         <div className="pm-metric-scale">
-                            <span className={yphGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={yphGrade === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={yphGrade === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={yphGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
                         </div>
                     </div>
 
@@ -1320,18 +1382,25 @@ export function PlantManagerReviewPlugin({
                             <span className="pm-metric-title">Yards per Man-Hour</span>
                         </div>
                         <div
-                            className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {formatYph(yph)}
+                            className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            title="Left: Raw YPH / Right: Adjusted for help sent">
+                            <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
+                            <span className="pm-yph-separator">/</span>
+                            <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
+                        </div>
+                        <div className="pm-yph-labels">
+                            <span className="pm-yph-label-item">Raw</span>
+                            <span className="pm-yph-label-item">Adjusted</span>
                         </div>
                         <div
                             className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {yphLabel}
+                            {yphLabel?.adjusted ?? yphLabel}
                         </div>
                         <div className="pm-metric-scale">
-                            <span className={yphGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={yphGrade === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={yphGrade === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={yphGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
+                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
                         </div>
                     </div>
 
