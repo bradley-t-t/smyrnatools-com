@@ -614,7 +614,8 @@ function MyAccountView({userId}) {
                                             className="fas fa-key"></i></div>
                                         <h3>Password Management</h3>
                                         <p>Change your password regularly to keep your account secure</p>
-                                        <button className="btn ma-change-password-btn" onClick={() => setShowPasswordModal(true)}
+                                        <button className="btn ma-change-password-btn"
+                                                onClick={() => setShowPasswordModal(true)}
                                                 style={{backgroundColor: 'var(--myaccount-accent)'}}><i
                                             className="fas fa-lock"></i> Change Password
                                         </button>

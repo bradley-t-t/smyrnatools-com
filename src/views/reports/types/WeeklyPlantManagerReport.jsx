@@ -108,7 +108,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                 }
 
                 const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(yearData, effectivePlantCode)
-                
+
                 const userIds = [...new Set(data.map(r => r.user_id).filter(Boolean))]
                 const usersMap = {}
 
@@ -176,7 +176,7 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                             const reportWeekStr = ReportUtility.normalizeWeekStr(report.week)
                             const hoursReceived = hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
                             const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
-                            
+
                             return {
                                 weekIso: weekStr,
                                 yph: metrics.rawYph,
@@ -608,10 +608,13 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                             </div>
                                             <div className="pm-timeline-metrics">
                                                 <div className="pm-timeline-metric">
-                                                    <span className="pm-timeline-metric-value pm-timeline-yph-dual" title="Raw / Adjusted YPH">
-                                                        <span className="pm-timeline-yph-raw">{(report.rawYph ?? report.yph).toFixed(2)}</span>
+                                                    <span className="pm-timeline-metric-value pm-timeline-yph-dual"
+                                                          title="Raw / Adjusted YPH">
+                                                        <span
+                                                            className="pm-timeline-yph-raw">{(report.rawYph ?? report.yph).toFixed(2)}</span>
                                                         <span className="pm-timeline-yph-sep">/</span>
-                                                        <span className="pm-timeline-yph-adj">{(report.adjustedYph ?? report.yph).toFixed(2)}</span>
+                                                        <span
+                                                            className="pm-timeline-yph-adj">{(report.adjustedYph ?? report.yph).toFixed(2)}</span>
                                                     </span>
                                                     <span className="pm-timeline-metric-label">YPH</span>
                                                     {yphVariance !== null && (
@@ -695,9 +698,11 @@ function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
                                         <td className="pm-breakdown-value pm-breakdown-yph-dual">
                                             {week.isMissing || week.isNotSubmitted ? '--' : (
                                                 <span className="pm-breakdown-yph-container" title="Raw / Adjusted YPH">
-                                                    <span className="pm-breakdown-yph-raw">{(week.rawYph ?? week.yph).toFixed(2)}</span>
+                                                    <span
+                                                        className="pm-breakdown-yph-raw">{(week.rawYph ?? week.yph).toFixed(2)}</span>
                                                     <span className="pm-breakdown-yph-sep">/</span>
-                                                    <span className="pm-breakdown-yph-adj">{(week.adjustedYph ?? week.yph).toFixed(2)}</span>
+                                                    <span
+                                                        className="pm-breakdown-yph-adj">{(week.adjustedYph ?? week.yph).toFixed(2)}</span>
                                                 </span>
                                             )}
                                         </td>
@@ -1352,10 +1357,14 @@ export function PlantManagerSubmitPlugin({
                             {yphLabel?.adjusted ?? yphLabel}
                         </div>
                         <div className="pm-metric-scale">
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
+                            <span
+                                className={(yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                            <span
+                                className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
+                            <span
+                                className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
+                            <span
+                                className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
                         </div>
                     </div>
 
@@ -1507,9 +1516,11 @@ export function PlantManagerReviewPlugin({
                             {calculatedLabel.adjusted}
                         </div>
                         <div className="pm-metric-scale">
-                            <span className={calculatedGrade.adjusted === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                            <span
+                                className={calculatedGrade.adjusted === 'excellent' ? 'active excellent' : ''}>Excellent</span>
                             <span className={calculatedGrade.adjusted === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>Average</span>
+                            <span
+                                className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>Average</span>
                             <span className={calculatedGrade.adjusted === 'poor' ? 'active poor' : ''}>Poor</span>
                         </div>
                     </div>

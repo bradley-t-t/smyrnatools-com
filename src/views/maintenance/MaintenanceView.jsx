@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react'
 import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
-import PlantService from '../../services/PlantService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import MaintenanceFormView from './MaintenanceFormView'
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
@@ -77,7 +76,7 @@ export default function MaintenanceView() {
                 })
             }
         })
-        return Array.from(plantsMap.values()).sort((a, b) => 
+        return Array.from(plantsMap.values()).sort((a, b) =>
             parseInt(a.plantCode.replace(/\D/g, '') || '0') - parseInt(b.plantCode.replace(/\D/g, '') || '0')
         )
     }
@@ -240,7 +239,7 @@ export default function MaintenanceView() {
                                                 <i className="fas fa-building"></i>
                                                 Plant
                                             </label>
-                                            <button 
+                                            <button
                                                 className={`filter-button ${plantFilter ? 'active' : ''}`}
                                                 onClick={() => setShowPlantModal(true)}
                                             >
@@ -253,7 +252,7 @@ export default function MaintenanceView() {
                                                 <i className="fas fa-file-alt"></i>
                                                 Form
                                             </label>
-                                            <select 
+                                            <select
                                                 className="filter-select"
                                                 value={formTypeFilter}
                                                 onChange={(e) => setFormTypeFilter(e.target.value)}
@@ -265,9 +264,12 @@ export default function MaintenanceView() {
                                             </select>
                                         </div>
                                         {(plantFilter || formTypeFilter) && (
-                                            <button 
+                                            <button
                                                 className="filter-clear-btn"
-                                                onClick={() => { setPlantFilter(''); setFormTypeFilter(''); }}
+                                                onClick={() => {
+                                                    setPlantFilter('');
+                                                    setFormTypeFilter('');
+                                                }}
                                             >
                                                 <i className="fas fa-times"></i>
                                                 <span>Clear Filters</span>

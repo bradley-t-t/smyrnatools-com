@@ -45,15 +45,15 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                 setHoursReceivedFromOtherPlants(0)
                 return
             }
-            
+
             try {
                 const weekStart = report.weekIso.split('T')[0]
                 const [year, month, day] = weekStart.split('-').map(Number)
                 const normalizedWeekStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                
+
                 const startOfYear = new Date(year, 0, 1)
                 const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-                
+
                 const {data: allReports, error} = await supabase
                     .from('reports')
                     .select('*')
@@ -61,20 +61,20 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                     .eq('completed', true)
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
-                
+
                 if (error) {
                     console.error('Error fetching reports:', error)
                     setHoursReceivedFromOtherPlants(0)
                     return
                 }
-                
+
                 let totalReceived = 0
                 if (allReports && Array.isArray(allReports)) {
                     allReports.forEach(otherReport => {
                         const rawWeekStr = otherReport.week.split('T')[0]
                         const [wy, wm, wd] = rawWeekStr.split('-').map(Number)
                         const reportWeekStr = `${wy}-${String(wm).padStart(2, '0')}-${String(wd).padStart(2, '0')}`
-                        
+
                         if (reportWeekStr === normalizedWeekStr) {
                             const helpEntries = otherReport.data?.operators_sent_to_help || []
                             if (Array.isArray(helpEntries)) {
@@ -90,14 +90,14 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
                         }
                     })
                 }
-                
+
                 setHoursReceivedFromOtherPlants(totalReceived)
             } catch (err) {
                 console.error('Error fetching hours received:', err)
                 setHoursReceivedFromOtherPlants(0)
             }
         }
-        
+
         fetchHoursReceived()
     }, [report.name, report.weekIso, assignedPlant, form?.plant])
 
@@ -238,7 +238,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
 
     const {yph, yphGrade, yphLabel, lost, lostGrade, lostLabel} = useMemo(() => {
         const {lost, lostGrade, lostLabel} = ReportService.getYardageMetrics(form)
-        
+
         if (report.name === 'plant_manager') {
             const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
             return {
@@ -261,7 +261,7 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
             }
         }
     }, [form, report.name, hoursReceivedFromOtherPlants])
-    
+
     ReportService.getYphColor(yphGrade.adjusted)
     ReportService.getYphColor(lostGrade)
     const PluginComponent = plugins[report.name]

@@ -506,16 +506,16 @@ class ReportServiceImpl {
 
     async fetchPlantManagerReportsForWeek(weekIso, excludePlantCode) {
         if (!weekIso) return {data: [], error: null}
-        
+
         try {
             const weekStart = weekIso.split('T')[0]
-            
+
             const [year, month, day] = weekStart.split('-').map(Number)
             const startDate = new Date(year, month - 1, day - 1)
             const weekStartStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`
             const weekEndDate = new Date(year, month - 1, day + 7)
             const weekEndStr = `${weekEndDate.getFullYear()}-${String(weekEndDate.getMonth() + 1).padStart(2, '0')}-${String(weekEndDate.getDate()).padStart(2, '0')}`
-            
+
             const {data, error} = await supabase
                 .from('reports')
                 .select('*')
@@ -523,15 +523,15 @@ class ReportServiceImpl {
                 .eq('completed', true)
                 .gte('week', weekStartStr)
                 .lte('week', weekEndStr + 'T23:59:59.999Z')
-            
+
             if (error) return {data: [], error}
-            
+
             const excludePlantCodeStr = String(excludePlantCode || '')
             const filteredData = (data || []).filter(report => {
                 const reportPlant = String(report.data?.plant || '')
                 return reportPlant && reportPlant !== excludePlantCodeStr
             })
-            
+
             return {data: filteredData, error: null}
         } catch (err) {
             console.error('Error fetching plant manager reports for week:', err)

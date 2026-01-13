@@ -240,20 +240,20 @@ const ReportUtility = {
 
     calculateAdjustedYph(reportData, hoursReceived = 0) {
         const yards = parseFloat(
-            reportData?.total_yards_delivered || 
-            reportData?.yardage || 
-            reportData?.['Yardage'] || 
+            reportData?.total_yards_delivered ||
+            reportData?.yardage ||
+            reportData?.['Yardage'] ||
             0
         )
         const hours = parseFloat(
-            reportData?.total_operator_hours || 
-            reportData?.total_hours || 
-            reportData?.['Total Hours'] || 
+            reportData?.total_operator_hours ||
+            reportData?.total_hours ||
+            reportData?.['Total Hours'] ||
             0
         )
 
         if (hours <= 0 || yards <= 0) {
-            return { rawYph: 0, adjustedYph: 0, hoursSent: 0, hoursReceived: 0 }
+            return {rawYph: 0, adjustedYph: 0, hoursSent: 0, hoursReceived: 0}
         }
 
         const rawYph = yards / hours
@@ -261,7 +261,7 @@ const ReportUtility = {
         const adjustedHours = hours - hoursSent + hoursReceived
         const adjustedYph = adjustedHours > 0 ? yards / adjustedHours : rawYph
 
-        return { rawYph, adjustedYph, hoursSent, hoursReceived }
+        return {rawYph, adjustedYph, hoursSent, hoursReceived}
     },
 
     getYphGradeAndLabel(yph) {
@@ -279,11 +279,11 @@ const ReportUtility = {
             label = 'Average'
         }
 
-        return { grade, label }
+        return {grade, label}
     },
 
     getFullYphMetrics(reportData, hoursReceived = 0) {
-        const { rawYph, adjustedYph, hoursSent } = this.calculateAdjustedYph(reportData, hoursReceived)
+        const {rawYph, adjustedYph, hoursSent} = this.calculateAdjustedYph(reportData, hoursReceived)
         const rawGradeInfo = this.getYphGradeAndLabel(rawYph)
         const adjustedGradeInfo = this.getYphGradeAndLabel(adjustedYph)
 

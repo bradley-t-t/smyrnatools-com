@@ -10,7 +10,6 @@ import {GeneralManagerSubmitPlugin} from './types/WeeklyGeneralManagerReport'
 import {AggregateProductionSubmitPlugin} from './types/WeeklyAggregateProductionReport'
 import {ReadyMixInstructorSubmitPlugin} from './types/WeeklyReadyMixInstructorReport'
 import {ReportUtility} from '../../utils/ReportUtility'
-import {EmailUtility} from '../../utils/EmailUtility'
 import {exportGeneralManagerReport} from '../../utils/ExportUtility'
 import {DateUtility} from '../../utils/DateUtility'
 
@@ -397,14 +396,14 @@ function ReportsSubmitView({
                 setHoursReceivedFromOtherPlants(0)
                 return
             }
-            
+
             try {
                 const weekStart = report.weekIso.split('T')[0]
                 const [year] = weekStart.split('-').map(Number)
-                
+
                 const startOfYear = new Date(year, 0, 1)
                 const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-                
+
                 const {data: allReports, error} = await supabase
                     .from('reports')
                     .select('*')
@@ -412,13 +411,13 @@ function ReportsSubmitView({
                     .eq('completed', true)
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
-                
+
                 if (error) {
                     console.error('Error fetching reports:', error)
                     setHoursReceivedFromOtherPlants(0)
                     return
                 }
-                
+
                 const totalReceived = ReportUtility.calculateHoursReceivedForWeek(allReports, report.weekIso, plantCode)
                 setHoursReceivedFromOtherPlants(totalReceived)
             } catch (err) {
@@ -426,13 +425,13 @@ function ReportsSubmitView({
                 setHoursReceivedFromOtherPlants(0)
             }
         }
-        
+
         fetchHoursReceived()
     }, [report.name, report.weekIso, user?.plant_code, form?.plant])
 
     useEffect(() => {
         const {lost, lostGrade, lostLabel} = ReportService.getYardageMetrics(form)
-        
+
         if (report.name === 'plant_manager') {
             const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
             setYph({raw: metrics.raw, adjusted: metrics.adjusted})
@@ -444,7 +443,7 @@ function ReportsSubmitView({
             setYphGrade({raw: yphGrade, adjusted: yphGrade})
             setYphLabel({raw: yphLabel, adjusted: yphLabel})
         }
-        
+
         setLost(lost)
         setLostGrade(lostGrade)
         setLostLabel(lostLabel)

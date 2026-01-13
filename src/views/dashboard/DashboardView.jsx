@@ -1396,7 +1396,8 @@ export default function DashboardView() {
                                             <div className="kpi-pill">Asset Allocation {stats.mixers.allocationPercent}%
                                             </div>
                                             {stats.mixers.avgCleanliness !== null && (
-                                                <div className="kpi-pill">Avg Cleanliness {stats.mixers.avgCleanliness}</div>
+                                                <div className="kpi-pill">Avg
+                                                    Cleanliness {stats.mixers.avgCleanliness}</div>
                                             )}
                                             <div className="kpi-pill">Issues {stats.mixers.issues}</div>
                                             <div className="kpi-pill">Comments {stats.mixers.comments}</div>
@@ -1415,7 +1416,8 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Asset Allocation {stats.tractors.allocationPercent}%
                                         </div>
                                         {stats.tractors.avgCleanliness !== null && (
-                                            <div className="kpi-pill">Avg Cleanliness {stats.tractors.avgCleanliness}</div>
+                                            <div className="kpi-pill">Avg
+                                                Cleanliness {stats.tractors.avgCleanliness}</div>
                                         )}
                                         <div className="kpi-pill">Issues {stats.tractors.issues}</div>
                                         <div className="kpi-pill">Comments {stats.tractors.comments}</div>
@@ -1431,7 +1433,8 @@ export default function DashboardView() {
                                         <div className="kpi-pill">Asset Allocation {stats.trailers.allocationPercent}%
                                         </div>
                                         {stats.trailers.avgCleanliness !== null && (
-                                            <div className="kpi-pill">Avg Cleanliness {stats.trailers.avgCleanliness}</div>
+                                            <div className="kpi-pill">Avg
+                                                Cleanliness {stats.trailers.avgCleanliness}</div>
                                         )}
                                         <div className="kpi-pill">Issues {stats.trailers.issues}</div>
                                         <div className="kpi-pill">Comments {stats.trailers.comments}</div>
@@ -1448,7 +1451,8 @@ export default function DashboardView() {
                                             Allocation {stats.equipment.allocationPercent}%
                                         </div>
                                         {stats.equipment.avgCleanliness !== null && (
-                                            <div className="kpi-pill">Avg Cleanliness {stats.equipment.avgCleanliness}</div>
+                                            <div className="kpi-pill">Avg
+                                                Cleanliness {stats.equipment.avgCleanliness}</div>
                                         )}
                                         <div className="kpi-pill">Issues {stats.equipment.issues}</div>
                                         <div className="kpi-pill">Comments {stats.equipment.comments}</div>
