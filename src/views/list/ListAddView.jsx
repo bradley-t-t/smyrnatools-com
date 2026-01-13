@@ -23,9 +23,6 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     const [isSaving, setIsSaving] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [errors, setErrors] = useState({});
-    const [userPlantCode, setUserPlantCode] = useState(null);
-    const [canBypassPlantRestriction, setCanBypassPlantRestriction] = useState(null);
-    const [plantRestrictionMessage, setPlantRestrictionMessage] = useState('');
     const [plants, setPlants] = useState([]);
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
 
@@ -34,16 +31,6 @@ function ListAddView({onClose, onItemAdded, item = null}) {
             const user = await UserService.getCurrentUser();
             if (!user) return;
             setCurrentUserId(user.id);
-            const hasPermission = await UserService.hasPermission(user.id, 'list.bypass.plantrestriction');
-            setCanBypassPlantRestriction(hasPermission);
-            if (!hasPermission) {
-                const plantData = await UserService.getUserPlant(user.id);
-                if (plantData) {
-                    setUserPlantCode(plantData);
-                    setPlantCode(plantData);
-                    setPlantRestrictionMessage(`You can only create items for your assigned plant (${plantData}).`);
-                }
-            }
         }
 
         fetchCurrentUser();
@@ -62,42 +49,31 @@ function ListAddView({onClose, onItemAdded, item = null}) {
             }
         }
 
-        if (canBypassPlantRestriction !== null || userPlantCode !== null) {
-            fetchPlants();
-        }
-    }, [canBypassPlantRestriction, userPlantCode, preferences]);
+        fetchPlants();
+    }, [preferences]);
 
     useEffect(() => {
         if (item) {
             setDescription(item.description || '');
-            if (canBypassPlantRestriction || !userPlantCode || item.plantCode === userPlantCode) {
-                setPlantCode(item.plantCode || '');
-            }
+            setPlantCode(item.plantCode || '');
             setDeadline(item.deadline ? new Date(item.deadline).toISOString().slice(0, 16) : deadline);
             setComments(item.comments || '');
         }
-    }, [item, canBypassPlantRestriction, userPlantCode]);
+    }, [item]);
 
-    const visiblePlants = plants.filter(p => canBypassPlantRestriction || !userPlantCode || p.plant_code === userPlantCode);
-    const selectedPlantObj = visiblePlants.find(p => p.plant_code === plantCode);
+    const selectedPlantObj = plants.find(p => p.plant_code === plantCode);
     const plantDisplayText = plantCode ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'Select Plant';
-
 
     const validate = () => {
         const newErrors = {};
         if (!description.trim()) newErrors.description = 'Description is required';
         const isBulkMode = selectedPlantCodes.length > 0;
         if (isBulkMode) {
-            if (!canBypassPlantRestriction) {
-                newErrors.plantCode = 'You do not have permission to add items to multiple plants';
-            } else if (!selectedPlantCodes.length) {
+            if (!selectedPlantCodes.length) {
                 newErrors.plantCode = 'At least one plant is required';
             }
         } else {
             if (!plantCode) newErrors.plantCode = 'Plant is required';
-            if (!canBypassPlantRestriction && userPlantCode && plantCode !== userPlantCode) {
-                newErrors.plantCode = `You can only create items for your assigned plant (${userPlantCode})`;
-            }
         }
         if (!deadline) newErrors.deadline = 'Deadline is required';
         setErrors(newErrors);
@@ -149,11 +125,6 @@ function ListAddView({onClose, onItemAdded, item = null}) {
     return (
         <>
             <AddViewSection title={item ? 'Edit List Item' : 'Add New List Item'} onClose={onClose} isListItem={true}>
-                {plantRestrictionMessage && (
-                    <div className="plant-restriction-notice">
-                        <i className="fas fa-info-circle"></i> {plantRestrictionMessage}
-                    </div>
-                )}
                 <form onSubmit={handleSubmit} autoComplete="off">
                     <div className="form-section">
                         <div className="form-row">
@@ -175,88 +146,52 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                     </div>
                     <div className="form-section">
                         <div className="form-row">
-                            {canBypassPlantRestriction ? (
-                                <div className="form-group">
-                                    <label
-                                        htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
-                                    {!item ? (
-                                        <>
-                                            <button
-                                                type="button"
-                                                className="ios-select"
-                                                onClick={() => setIsPlantModalOpen(true)}
-                                                aria-label="Select plants"
-                                            >
-                                                {selectedPlantCodes.length === 0
-                                                    ? 'Select Plants'
-                                                    : `${selectedPlantCodes.length} plant${selectedPlantCodes.length !== 1 ? 's' : ''} selected`}
-                                            </button>
-                                            {selectedPlantCodes.length > 0 && (
-                                                <div className="selected-plants-list">
-                                                    {selectedPlantCodes.map(code => {
-                                                        const plant = visiblePlants.find(p => p.plant_code === code);
-                                                        return (
-                                                            <div key={code} className="selected-plant-chip">
-                                                                <span>({plant?.plant_code}) {plant?.plant_name}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    className="remove-plant-button"
-                                                                    onClick={() => setSelectedPlantCodes(prev => prev.filter(c => c !== code))}
-                                                                    aria-label="Remove plant"
-                                                                >
-                                                                    <i className="fas fa-times"></i>
-                                                                </button>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
+                            <div className="form-group">
+                                <label htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
+                                {!item ? (
+                                    <>
                                         <button
                                             type="button"
                                             className="ios-select"
                                             onClick={() => setIsPlantModalOpen(true)}
-                                            aria-label="Select plant"
+                                            aria-label="Select plants"
                                         >
-                                            {plantDisplayText}
+                                            {selectedPlantCodes.length === 0
+                                                ? 'Select Plants'
+                                                : `${selectedPlantCodes.length} plant${selectedPlantCodes.length !== 1 ? 's' : ''} selected`}
                                         </button>
-                                    )}
-                                </div>
-                            ) : !canBypassPlantRestriction && (
-                                <div className="form-group">
-                                    <label htmlFor="plantCode">Plant*</label>
-                                    {userPlantCode ? (
-                                        <>
-                                            <input
-                                                id="plantCode"
-                                                type="text"
-                                                className="ios-input plant-input-disabled"
-                                                value={plantDisplayText}
-                                                disabled
-                                            />
-                                            <div className="plant-assignment-info">
-                                                <i className="fas fa-info-circle"></i>
-                                                <span>You are creating items for Plant {userPlantCode}{selectedPlantObj?.plant_name ? ` (${selectedPlantObj.plant_name})` : ''} because you are assigned there.</span>
+                                        {selectedPlantCodes.length > 0 && (
+                                            <div className="selected-plants-list">
+                                                {selectedPlantCodes.map(code => {
+                                                    const plant = plants.find(p => p.plant_code === code);
+                                                    return (
+                                                        <div key={code} className="selected-plant-chip">
+                                                            <span>({plant?.plant_code}) {plant?.plant_name}</span>
+                                                            <button
+                                                                type="button"
+                                                                className="remove-plant-button"
+                                                                onClick={() => setSelectedPlantCodes(prev => prev.filter(c => c !== code))}
+                                                                aria-label="Remove plant"
+                                                            >
+                                                                <i className="fas fa-times"></i>
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <input
-                                                id="plantCode"
-                                                type="text"
-                                                className="ios-input plant-input-disabled"
-                                                value="No Plant Assigned"
-                                                disabled
-                                            />
-                                            <div className="plant-assignment-info">
-                                                <i className="fas fa-exclamation-triangle"></i>
-                                                <span>You need to be assigned to a plant before you can create list items. Please contact your administrator.</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="ios-select"
+                                        onClick={() => setIsPlantModalOpen(true)}
+                                        aria-label="Select plant"
+                                    >
+                                        {plantDisplayText}
+                                    </button>
+                                )}
+                            </div>
                             <div className="form-group">
                                 <label htmlFor="deadline">Deadline*</label>
                                 <input
@@ -294,7 +229,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                 {errors.description && <div className="error-message">{errors.description}</div>}
                 {errors.plantCode && <div className="error-message">{errors.plantCode}</div>}
             </AddViewSection>
-            {isPlantModalOpen && canBypassPlantRestriction && (
+            {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
                     onClose={() => setIsPlantModalOpen(false)}
@@ -308,7 +243,7 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                             setIsPlantModalOpen(false);
                         }
                     }}
-                    plants={visiblePlants}
+                    plants={plants}
                     allowMultiple={!item}
                     selectedPlantCodes={selectedPlantCodes}
                 />
