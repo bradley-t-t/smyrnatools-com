@@ -1122,12 +1122,8 @@
 
 @media (max-width: 480px) {
 
-    .view-mode-btn span {
-        display: none;
-    }
-
     .view-mode-btn {
-        padding: 8px 12px;
+        padding: 10px;
     }
 
     .bulk-actions-popup {
@@ -1138,19 +1134,6 @@
     .bulk-action-button {
         padding: 12px;
         border-radius: var(--radius-sm);
-    }
-
-    .planner-sidebar {
-        grid-template-columns: 1fr;
-    }
-
-    .summary-stats {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .urgent-card,
-    .completed-card {
-        grid-column: 1;
     }
 
     .planner-item {
@@ -1165,9 +1148,5 @@
 
     .planner-item .item-status {
         align-self: flex-start;
-    }
-
-    .view-mode-btn span {
-        display: none;
     }
 }
