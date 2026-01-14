@@ -1096,7 +1096,15 @@
     }
 
     .planner-sticky-cover {
-        display: none !important;
+        display: block !important;
+        position: sticky;
+        top: 0;
+        height: 110px;
+        margin-top: -110px;
+        margin-bottom: 0;
+        background: var(--bg-primary);
+        z-index: 90;
+        pointer-events: none;
     }
 
     .planner-groups {
