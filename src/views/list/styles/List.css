@@ -1028,22 +1028,11 @@
 
 @media (max-width: 768px) {
 
-    .content-area:has(.list-view) {
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    .list-view .global-content-container,
-    .list-view .content-container {
-        overflow: hidden !important;
-    }
-
     .list-planner-dashboard {
         display: flex !important;
         flex-direction: column !important;
         grid-template-columns: unset !important;
-        height: calc(100vh - 200px);
-        overflow: hidden;
+        padding-bottom: 20px;
     }
 
     .planner-sidebar,
@@ -1058,13 +1047,11 @@
         width: 100%;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
-        flex: 1;
     }
 
     .planner-toolbar,
     .planner-toolbar-sticky {
-        position: relative !important;
+        position: sticky !important;
         top: 0 !important;
         flex-direction: column !important;
         align-items: stretch !important;
@@ -1073,8 +1060,8 @@
         margin-bottom: 10px;
         width: 100%;
         box-sizing: border-box;
-        overflow: hidden;
-        flex-shrink: 0;
+        background: var(--bg-primary);
+        z-index: 100;
     }
 
     .view-mode-toggle {
@@ -1114,10 +1101,7 @@
 
     .planner-groups {
         width: 100%;
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        padding-bottom: 40px;
     }
 
     .planner-group {
