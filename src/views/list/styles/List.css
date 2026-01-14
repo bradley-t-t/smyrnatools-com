@@ -948,38 +948,38 @@
 }
 
 .planner-item .item-status.pending {
-    background: color-mix(in srgb, var(--warning) 15%, transparent);
-    color: var(--warning);
+    background: color-mix(in srgb, #5c6bc0 15%, transparent);
+    color: #5c6bc0;
 }
 
 .planner-item .item-status.overdue {
-    background: color-mix(in srgb, var(--danger) 15%, transparent);
-    color: var(--danger);
+    background: color-mix(in srgb, #e53935 15%, transparent);
+    color: #e53935;
 }
 
 .planner-item .item-status.completed {
-    background: color-mix(in srgb, var(--success) 15%, transparent);
-    color: var(--success);
+    background: color-mix(in srgb, #43a047 15%, transparent);
+    color: #43a047;
 }
 
 .planner-item .item-status.ordered {
-    background: color-mix(in srgb, var(--info) 15%, transparent);
-    color: var(--info);
+    background: color-mix(in srgb, #26a69a 15%, transparent);
+    color: #26a69a;
 }
 
-.planner-item .item-status.in_progress {
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    color: var(--accent);
+.planner-item .item-status.in-progress {
+    background: color-mix(in srgb, #1e88e5 15%, transparent);
+    color: #1e88e5;
 }
 
 .planner-item .item-status.blocked {
-    background: color-mix(in srgb, var(--danger) 15%, transparent);
-    color: var(--danger);
+    background: color-mix(in srgb, #d32f2f 15%, transparent);
+    color: #d32f2f;
 }
 
 .planner-item .item-status.waiting {
-    background: color-mix(in srgb, var(--warning) 15%, transparent);
-    color: var(--warning);
+    background: color-mix(in srgb, #fb8c00 15%, transparent);
+    color: #fb8c00;
 }
 
 .planner-item .meta-tag.responsible {

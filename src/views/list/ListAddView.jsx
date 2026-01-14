@@ -124,11 +124,11 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                 await ListService.updateListItem({...item, ...updateData});
             } else if (selectedPlantCodes.length > 0) {
                 const promises = selectedPlantCodes.map(code =>
-                    ListService.createListItem(code, description, new Date(deadline), comments)
+                    ListService.createListItem(code, description, new Date(deadline), comments, status, responsibleRole)
                 );
                 await Promise.all(promises);
             } else {
-                await ListService.createListItem(plantCode, description, new Date(deadline), comments);
+                await ListService.createListItem(plantCode, description, new Date(deadline), comments, status, responsibleRole);
             }
             onItemAdded?.();
             onClose?.();
