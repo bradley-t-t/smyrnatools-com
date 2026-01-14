@@ -1029,37 +1029,56 @@
 @media (max-width: 768px) {
 
     .list-planner-dashboard {
-        grid-template-columns: 1fr;
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: unset !important;
     }
 
     .planner-sidebar,
-    .planner-sidebar-sticky {
+    .planner-sidebar-sticky,
+    .summary-card,
+    .urgent-card,
+    .completed-card {
         display: none !important;
+    }
+
+    .planner-main {
+        width: 100%;
     }
 
     .planner-toolbar,
     .planner-toolbar-sticky {
         position: relative !important;
         top: 0 !important;
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: column !important;
+        align-items: stretch !important;
         gap: 8px;
-        padding: 10px 12px;
+        padding: 10px;
         margin-bottom: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .view-mode-toggle {
         width: 100%;
         justify-content: center;
+        flex-wrap: nowrap;
     }
 
     .view-mode-btn {
         flex: 1;
         justify-content: center;
+        padding: 10px 8px;
+        min-width: 0;
     }
 
     .view-mode-btn span {
-        display: none;
+        display: none !important;
+    }
+
+    .view-mode-btn i {
+        margin: 0;
     }
 
     .planner-filters {
@@ -1069,6 +1088,7 @@
     .role-filter-select {
         width: 100%;
         padding: 10px 12px;
+        box-sizing: border-box;
     }
 
     .planner-sticky-cover {
@@ -1076,7 +1096,7 @@
     }
 
     .planner-groups {
-        grid-template-columns: 1fr;
+        width: 100%;
     }
 
     .planner-group {
