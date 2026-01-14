@@ -1032,24 +1032,20 @@
         grid-template-columns: 1fr;
     }
 
-    .planner-sidebar {
-        position: relative;
-        top: 0;
-        max-height: none;
-        overflow-y: visible;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+    .planner-sidebar,
+    .planner-sidebar-sticky {
+        display: none !important;
     }
 
-    .summary-card {
-        grid-column: 1 / -1;
-    }
-
-    .planner-toolbar {
+    .planner-toolbar,
+    .planner-toolbar-sticky {
+        position: relative !important;
+        top: 0 !important;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
     }
 
     .view-mode-toggle {
@@ -1062,12 +1058,21 @@
         justify-content: center;
     }
 
+    .view-mode-btn span {
+        display: none;
+    }
+
     .planner-filters {
         width: 100%;
     }
 
     .role-filter-select {
         width: 100%;
+        padding: 10px 12px;
+    }
+
+    .planner-sticky-cover {
+        display: none !important;
     }
 
     .planner-groups {
