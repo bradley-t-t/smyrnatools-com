@@ -24,6 +24,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const [selectedIds, setSelectedIds] = useState(new Set())
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
+    const [viewMode, setViewMode] = useState('date')
+    const [roleFilter, setRoleFilter] = useState('')
 
     const baseFilteredItems = ListService.getFilteredItems({
         filterType: '',
@@ -37,14 +39,18 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         ? baseFilteredItems.filter(item => regionPlantCodes.has(String(item.plant_code || '').trim().toUpperCase()))
         : baseFilteredItems
 
-    const groupedItems = useMemo(() => {
+    const roleFilteredItems = roleFilter 
+        ? filteredItems.filter(item => item.responsible_role === roleFilter)
+        : filteredItems
+
+    const groupedByDate = useMemo(() => {
         const groups = {
-            today: {label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning'},
-            overdue: {label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger'},
-            tomorrow: {label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info'},
-            thisWeek: {label: 'This Week', icon: 'fa-calendar-week', items: [], color: 'accent'},
-            later: {label: 'Later', icon: 'fa-calendar-alt', items: [], color: 'secondary'},
-            completed: {label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success'}
+            overdue: {label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger', priority: 1},
+            today: {label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning', priority: 2},
+            tomorrow: {label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info', priority: 3},
+            thisWeek: {label: 'This Week', icon: 'fa-calendar-week', items: [], color: 'accent', priority: 4},
+            later: {label: 'Later', icon: 'fa-calendar-alt', items: [], color: 'secondary', priority: 5},
+            completed: {label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success', priority: 6}
         }
 
         const today = new Date()
@@ -56,8 +62,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         const endOfWeek = new Date(today)
         endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
 
-        filteredItems.forEach(item => {
-            if (item.completed) {
+        roleFilteredItems.forEach(item => {
+            if (item.completed || item.status === 'completed') {
                 groups.completed.items.push(item)
                 return
             }
@@ -65,7 +71,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
             const deadline = new Date(item.deadline)
             deadline.setHours(0, 0, 0, 0)
 
-            if (deadline < today) {
+            if (deadline < today || item.status === 'overdue') {
                 groups.overdue.items.push(item)
             } else if (deadline.getTime() === today.getTime()) {
                 groups.today.items.push(item)
@@ -83,10 +89,118 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         })
 
         return groups
-    }, [filteredItems])
+    }, [roleFilteredItems])
+
+    const groupedByStatus = useMemo(() => {
+        const groups = {
+            overdue: {label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger', priority: 1},
+            in_progress: {label: 'In Progress', icon: 'fa-spinner', items: [], color: 'accent', priority: 2},
+            blocked: {label: 'Blocked', icon: 'fa-ban', items: [], color: 'danger', priority: 3},
+            waiting: {label: 'Waiting', icon: 'fa-hourglass-half', items: [], color: 'warning', priority: 4},
+            ordered_materials: {label: 'Ordered Materials', icon: 'fa-truck-loading', items: [], color: 'info', priority: 5},
+            pending: {label: 'Pending', icon: 'fa-clock', items: [], color: 'secondary', priority: 6},
+            completed: {label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success', priority: 7}
+        }
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        roleFilteredItems.forEach(item => {
+            if (item.completed || item.status === 'completed') {
+                groups.completed.items.push(item)
+                return
+            }
+            
+            const deadline = new Date(item.deadline)
+            deadline.setHours(0, 0, 0, 0)
+            const isOverdue = deadline < today
+
+            if (isOverdue && item.status !== 'in_progress' && item.status !== 'blocked' && item.status !== 'waiting' && item.status !== 'ordered_materials') {
+                groups.overdue.items.push(item)
+            } else if (item.status === 'in_progress') {
+                groups.in_progress.items.push(item)
+            } else if (item.status === 'blocked') {
+                groups.blocked.items.push(item)
+            } else if (item.status === 'waiting') {
+                groups.waiting.items.push(item)
+            } else if (item.status === 'ordered_materials') {
+                groups.ordered_materials.items.push(item)
+            } else {
+                groups.pending.items.push(item)
+            }
+        })
+
+        Object.values(groups).forEach(group => {
+            group.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+        })
+
+        return groups
+    }, [roleFilteredItems])
+
+    const groupedByRole = useMemo(() => {
+        const groups = {
+            district_manager: {label: 'District Manager', icon: 'fa-user-shield', items: [], color: 'accent', priority: 1},
+            plant_manager: {label: 'Plant Manager', icon: 'fa-user-tie', items: [], color: 'info', priority: 2},
+            maintenance: {label: 'Maintenance', icon: 'fa-wrench', items: [], color: 'warning', priority: 3},
+            unassigned: {label: 'Unassigned', icon: 'fa-users', items: [], color: 'secondary', priority: 4}
+        }
+
+        roleFilteredItems.filter(item => !item.completed && item.status !== 'completed').forEach(item => {
+            const role = item.responsible_role || 'unassigned'
+            if (groups[role]) {
+                groups[role].items.push(item)
+            } else {
+                groups.unassigned.items.push(item)
+            }
+        })
+
+        Object.values(groups).forEach(group => {
+            group.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+        })
+
+        return groups
+    }, [roleFilteredItems])
+
+    const groupedItems = viewMode === 'date' ? groupedByDate : viewMode === 'status' ? groupedByStatus : groupedByRole
+
+    const summaryStats = useMemo(() => {
+        const total = roleFilteredItems.length
+        const completed = roleFilteredItems.filter(i => i.completed || i.status === 'completed').length
+        const overdue = groupedByDate.overdue?.items?.length || 0
+        const dueToday = groupedByDate.today?.items?.length || 0
+        const inProgress = roleFilteredItems.filter(i => i.status === 'in_progress').length
+        const blocked = roleFilteredItems.filter(i => i.status === 'blocked').length
+        const pending = total - completed
+        return { total, completed, overdue, dueToday, inProgress, blocked, pending }
+    }, [roleFilteredItems, groupedByDate])
+
+    const urgentItems = useMemo(() => {
+        return [...(groupedByDate.overdue?.items || []), ...(groupedByDate.today?.items || [])].slice(0, 5)
+    }, [groupedByDate])
+
+    const recentlyCompleted = useMemo(() => {
+        return roleFilteredItems
+            .filter(i => i.completed || i.status === 'completed')
+            .sort((a, b) => new Date(b.completed_at || b.deadline) - new Date(a.completed_at || a.deadline))
+            .slice(0, 3)
+    }, [roleFilteredItems])
 
     useEffect(() => {
         fetchAllData()
+    }, [])
+
+    useEffect(() => {
+        const contentArea = document.querySelector('.content-area')
+        if (contentArea) {
+            contentArea.style.overflowY = 'auto'
+            contentArea.style.overflowX = 'hidden'
+        }
+        return () => {
+            if (contentArea) {
+                contentArea.style.overflowY = ''
+                contentArea.style.overflowX = ''
+            }
+        }
     }, [])
 
     useEffect(() => {
@@ -225,7 +339,9 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         return plants
     })()
 
-    const derivedStatusOptions = ['All Statuses', 'Pending', 'Completed', 'Overdue']
+    const derivedStatusOptions = ['All Statuses', 'Pending', 'In Progress', 'Ordered Materials', 'Blocked', 'Waiting', 'Overdue', 'Completed']
+
+    const derivedRoleOptions = ['All Roles', 'Maintenance', 'Plant Manager', 'District Manager', 'Unassigned']
 
     const derivedStatusValueForTop = (() => {
         if (!statusFilter) return 'All Statuses'
@@ -233,7 +349,20 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         if (v === 'completed') return 'Completed'
         if (v === 'overdue') return 'Overdue'
         if (v === 'pending') return 'Pending'
+        if (v === 'in_progress') return 'In Progress'
+        if (v === 'ordered_materials') return 'Ordered Materials'
+        if (v === 'blocked') return 'Blocked'
+        if (v === 'waiting') return 'Waiting'
         return 'All Statuses'
+    })()
+
+    const derivedRoleValueForTop = (() => {
+        if (!roleFilter) return 'All Roles'
+        if (roleFilter === 'maintenance') return 'Maintenance'
+        if (roleFilter === 'plant_manager') return 'Plant Manager'
+        if (roleFilter === 'district_manager') return 'District Manager'
+        if (roleFilter === 'unassigned') return 'Unassigned'
+        return 'All Roles'
     })()
 
     const derivedListHeaderLabels = statusFilter === 'completed'
@@ -244,7 +373,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         ? ['2%', '37%', '14%', '12%', '16%', '11%', '8%']
         : ['2%', '42%', '16%', '14%', '16%', '10%']
 
-    const derivedShowReset = !!(searchText || selectedPlant || statusFilter)
+    const derivedShowReset = !!(searchText || selectedPlant || statusFilter || roleFilter)
 
     const hasBulkPopup = selectedIds.size > 0
 
@@ -276,7 +405,14 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                         statusFilter={derivedStatusValueForTop}
                         statusOptions={derivedStatusOptions}
                         onStatusFilterChange={v => {
-                            const mapped = v === 'All Status' ? '' : v.toLowerCase();
+                            let mapped = ''
+                            if (v === 'Pending') mapped = 'pending'
+                            else if (v === 'Completed') mapped = 'completed'
+                            else if (v === 'Overdue') mapped = 'overdue'
+                            else if (v === 'Ordered Materials') mapped = 'ordered_materials'
+                            else if (v === 'In Progress') mapped = 'in_progress'
+                            else if (v === 'Blocked') mapped = 'blocked'
+                            else if (v === 'Waiting') mapped = 'waiting'
                             setStatusFilter(mapped);
                             if (onStatusFilterChange) onStatusFilterChange(mapped)
                         }}
@@ -286,6 +422,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                             setSearchInput('');
                             setSelectedPlant('');
                             setStatusFilter('');
+                            setRoleFilter('');
                         }}
                         forwardedRef={headerRef}
                         sticky={true}
@@ -311,8 +448,128 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 </button>
                             </div>
                         ) : (
-                            <div className="list-planner-view">
-                                <div className="planner-groups">
+                            <div className="list-planner-dashboard">
+                                <div className="planner-sidebar" style={{position: 'sticky', top: '130px', alignSelf: 'start', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto'}}>
+                                    <div className="summary-card">
+                                        <h3 className="summary-title">Overview</h3>
+                                        <div className="summary-stats">
+                                            <div className="stat-item">
+                                                <span className="stat-value">{summaryStats.total}</span>
+                                                <span className="stat-label">Total</span>
+                                            </div>
+                                            <div className="stat-item danger">
+                                                <span className="stat-value">{summaryStats.overdue}</span>
+                                                <span className="stat-label">Overdue</span>
+                                            </div>
+                                            <div className="stat-item warning">
+                                                <span className="stat-value">{summaryStats.dueToday}</span>
+                                                <span className="stat-label">Due Today</span>
+                                            </div>
+                                            <div className="stat-item accent">
+                                                <span className="stat-value">{summaryStats.inProgress}</span>
+                                                <span className="stat-label">In Progress</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {urgentItems.length > 0 && (
+                                        <div className="urgent-card">
+                                            <h3 className="urgent-title">
+                                                <i className="fas fa-fire"></i>
+                                                Needs Attention
+                                            </h3>
+                                            <div className="urgent-items">
+                                                {urgentItems.map(item => (
+                                                    <div 
+                                                        key={item.id} 
+                                                        className={`urgent-item ${groupedByDate.overdue?.items?.includes(item) ? 'overdue' : 'today'}`}
+                                                        onClick={() => handleSelectItem(item)}
+                                                    >
+                                                        <div className="urgent-item-content">
+                                                            <span className="urgent-item-title">{truncateText(item.description, 40)}</span>
+                                                            <span className="urgent-item-meta">
+                                                                <i className="fas fa-building"></i>
+                                                                {getPlantName(item.plant_code)}
+                                                            </span>
+                                                        </div>
+                                                        <span className={`urgent-badge ${groupedByDate.overdue?.items?.includes(item) ? 'overdue' : 'today'}`}>
+                                                            {groupedByDate.overdue?.items?.includes(item) ? 'Overdue' : 'Today'}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {recentlyCompleted.length > 0 && (
+                                        <div className="completed-card">
+                                            <h3 className="completed-title">
+                                                <i className="fas fa-check-circle"></i>
+                                                Recently Completed
+                                            </h3>
+                                            <div className="completed-items">
+                                                {recentlyCompleted.map(item => (
+                                                    <div 
+                                                        key={item.id} 
+                                                        className="completed-item"
+                                                        onClick={() => handleSelectItem(item)}
+                                                    >
+                                                        <span className="completed-item-title">{truncateText(item.description, 35)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="planner-main">
+                                    <div className="planner-toolbar" style={{position: 'sticky', top: '120px', zIndex: 100, background: 'var(--bg-primary)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)'}}>
+                                        <div className="view-mode-toggle">
+                                            <button 
+                                                className={`view-mode-btn ${viewMode === 'date' ? 'active' : ''}`}
+                                                onClick={() => setViewMode('date')}
+                                            >
+                                                <i className="fas fa-calendar-alt"></i>
+                                                <span>By Date</span>
+                                            </button>
+                                            <button 
+                                                className={`view-mode-btn ${viewMode === 'status' ? 'active' : ''}`}
+                                                onClick={() => setViewMode('status')}
+                                            >
+                                                <i className="fas fa-tasks"></i>
+                                                <span>By Status</span>
+                                            </button>
+                                            <button 
+                                                className={`view-mode-btn ${viewMode === 'role' ? 'active' : ''}`}
+                                                onClick={() => setViewMode('role')}
+                                            >
+                                                <i className="fas fa-user-tag"></i>
+                                                <span>By Assigned</span>
+                                            </button>
+                                        </div>
+                                        <div className="planner-filters">
+                                            <select 
+                                                className="role-filter-select"
+                                                value={derivedRoleValueForTop}
+                                                onChange={e => {
+                                                    const v = e.target.value
+                                                    let mapped = ''
+                                                    if (v === 'Maintenance') mapped = 'maintenance'
+                                                    else if (v === 'Plant Manager') mapped = 'plant_manager'
+                                                    else if (v === 'District Manager') mapped = 'district_manager'
+                                                    else if (v === 'Unassigned') mapped = 'unassigned'
+                                                    setRoleFilter(mapped)
+                                                }}
+                                            >
+                                                {derivedRoleOptions.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="planner-sticky-cover" style={{position: 'sticky', top: '0', height: '140px', marginTop: '-140px', marginBottom: '0', background: 'linear-gradient(to bottom, var(--bg-primary) 0%, var(--bg-primary) 80%, transparent 100%)', zIndex: 50, pointerEvents: 'none'}}></div>
+                                    <div className="planner-groups">
                                     {Object.entries(groupedItems).map(([key, group]) => {
                                         if (group.items.length === 0) return null
                                         if (statusFilter === 'completed' && key !== 'completed') return null
@@ -320,7 +577,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                         if (statusFilter === 'overdue' && key !== 'overdue') return null
 
                                         return (
-                                            <div key={key} className={`planner-group ${key}`}>
+                                            <div key={key} className={`planner-group ${key} ${group.color}`}>
                                                 <div className="planner-group-header">
                                                     <div className="group-title">
                                                         <i className={`fas ${group.icon}`}></i>
@@ -355,8 +612,9 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                                         )}
                                                                     </div>
                                                                     <span
-                                                                        className={`item-status ${item.completed ? 'completed' : ListService.isOverdue(item) ? 'overdue' : 'pending'}`}>
-                                                                        {item.completed ? 'Completed' : ListService.isOverdue(item) ? 'Overdue' : 'Pending'}
+                                                                        className={`item-status ${ListService.getStatusColor(item.completed ? 'completed' : item.status || 'pending')}`}>
+                                                                        <i className={`fas ${ListService.getStatusIcon(item.completed ? 'completed' : item.status || 'pending')}`}></i>
+                                                                        {ListService.getStatusLabel(item.completed ? 'completed' : item.status || 'pending')}
                                                                     </span>
                                                                 </div>
                                                                 <div className="item-meta">
@@ -365,13 +623,19 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                                         {getPlantName(item.plant_code)}
                                                                     </span>
                                                                     <span
-                                                                        className={`meta-tag deadline ${ListService.isOverdue(item) && !item.completed ? 'overdue' : ''}`}>
+                                                                        className={`meta-tag deadline ${(ListService.isOverdue(item) || item.status === 'overdue') && !item.completed ? 'overdue' : ''}`}>
                                                                         <i className="fas fa-calendar"></i>
                                                                         {new Date(item.deadline).toLocaleDateString('en-US', {
                                                                             month: 'short',
                                                                             day: 'numeric'
                                                                         })}
                                                                     </span>
+                                                                    {item.responsible_role && (
+                                                                        <span className={`meta-tag responsible ${item.responsible_role}`}>
+                                                                            <i className={`fas ${ListService.getResponsibleRoleIcon(item.responsible_role)}`}></i>
+                                                                            {ListService.getResponsibleRoleLabel(item.responsible_role)}
+                                                                        </span>
+                                                                    )}
                                                                     <span className="meta-tag creator">
                                                                         <i className="fas fa-user"></i>
                                                                         {truncateText(ListService.getCreatorName(item.user_id), 15)}
@@ -387,6 +651,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                             </div>
                                         )
                                     })}
+                                </div>
                                 </div>
                             </div>
                         )}

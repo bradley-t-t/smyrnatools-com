@@ -71,7 +71,7 @@ class ListServiceImpl {
         return this.creatorProfiles
     }
 
-    async createListItem(plantCode, description, deadline, comments) {
+    async createListItem(plantCode, description, deadline, comments, status = 'pending', responsibleRole = null) {
         const user = await UserService.getCurrentUser()
         if (!user) throw new Error('No authenticated user')
         const desc = GrammarUtility.cleanDescription(description || '')
@@ -84,7 +84,9 @@ class ListServiceImpl {
             plantCode,
             description: desc,
             deadline: deadlineString,
-            comments: GrammarUtility.cleanComments(comments || '')
+            comments: GrammarUtility.cleanComments(comments || ''),
+            status: status || 'pending',
+            responsible_role: responsibleRole || null
         })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to create list item')
         CacheUtility.delete('list:items-with-profiles')
@@ -103,7 +105,9 @@ class ListServiceImpl {
             deadline: item.deadline,
             comments: GrammarUtility.cleanComments(item?.comments || ''),
             completed: item.completed ?? false,
-            completed_at: item.completed_at
+            completed_at: item.completed_at,
+            status: item.status || 'pending',
+            responsible_role: item.responsible_role || null
         }
         const {res, json} = await APIUtility.post('/list-service/update', {item: update})
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to update list item')
@@ -202,14 +206,75 @@ class ListServiceImpl {
 
     calculateStatusInfo(item) {
         if (!item) return {color: 'var(--gray-500)', label: 'Unknown', icon: 'question-circle'}
-        if (item.completed) return {color: 'var(--success)', label: 'Completed', icon: 'check-circle'}
+        if (item.completed || item.status === 'completed') return {color: 'var(--success)', label: 'Completed', icon: 'check-circle'}
+        if (item.status === 'in_progress') return {color: 'var(--accent)', label: 'In Progress', icon: 'spinner'}
+        if (item.status === 'ordered_materials') return {color: 'var(--info)', label: 'Ordered Materials', icon: 'truck-loading'}
+        if (item.status === 'blocked') return {color: 'var(--danger)', label: 'Blocked', icon: 'ban'}
+        if (item.status === 'waiting') return {color: 'var(--warning)', label: 'Waiting', icon: 'hourglass-half'}
         const deadline = new Date(item.deadline)
         const now = new Date()
         if (isNaN(deadline.getTime())) return {color: 'var(--gray-500)', label: 'No Deadline', icon: 'calendar-times'}
-        if (deadline < now) return {color: 'var(--danger)', label: 'Overdue', icon: 'exclamation-circle'}
+        if (deadline < now || item.status === 'overdue') return {color: 'var(--danger)', label: 'Overdue', icon: 'exclamation-circle'}
         const hours = (deadline - now) / (1000 * 60 * 60)
         if (hours < 24) return {color: 'var(--warning)', label: 'Due Soon', icon: 'clock'}
-        return {color: 'var(--primary)', label: 'Upcoming', icon: 'calendar-check'}
+        return {color: 'var(--primary)', label: 'Pending', icon: 'calendar-check'}
+    }
+
+    getStatusLabel(status) {
+        const labels = {
+            'pending': 'Pending',
+            'in_progress': 'In Progress',
+            'ordered_materials': 'Ordered Materials',
+            'blocked': 'Blocked',
+            'waiting': 'Waiting',
+            'overdue': 'Overdue',
+            'completed': 'Completed'
+        }
+        return labels[status] || 'Pending'
+    }
+
+    getStatusIcon(status) {
+        const icons = {
+            'pending': 'fa-clock',
+            'in_progress': 'fa-spinner',
+            'ordered_materials': 'fa-truck-loading',
+            'blocked': 'fa-ban',
+            'waiting': 'fa-hourglass-half',
+            'overdue': 'fa-exclamation-circle',
+            'completed': 'fa-check-circle'
+        }
+        return icons[status] || 'fa-clock'
+    }
+
+    getStatusColor(status) {
+        const colors = {
+            'pending': 'pending',
+            'in_progress': 'in-progress',
+            'ordered_materials': 'ordered',
+            'blocked': 'blocked',
+            'waiting': 'waiting',
+            'overdue': 'overdue',
+            'completed': 'completed'
+        }
+        return colors[status] || 'pending'
+    }
+
+    getResponsibleRoleLabel(role) {
+        const labels = {
+            'maintenance': 'Maintenance',
+            'plant_manager': 'Plant Manager',
+            'district_manager': 'District Manager'
+        }
+        return labels[role] || 'Unassigned'
+    }
+
+    getResponsibleRoleIcon(role) {
+        const icons = {
+            'maintenance': 'fa-wrench',
+            'plant_manager': 'fa-user-tie',
+            'district_manager': 'fa-user-shield'
+        }
+        return icons[role] || 'fa-users'
     }
 
     getPlantName(plantCode) {

@@ -16,9 +16,26 @@ function ListDetailView({itemId, onClose}) {
     const [completer, setCompleter] = useState(null);
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [formData, setFormData] = useState({description: '', plantCode: '', deadline: '', comments: ''});
-    const [status, setStatus] = useState('');
+    const [status, setStatus] = useState('pending');
+    const [responsibleRole, setResponsibleRole] = useState('');
     const [plants, setPlants] = useState([]);
     const [message, setMessage] = useState('');
+
+    const statusOptions = [
+        {value: 'pending', label: 'Pending'},
+        {value: 'in_progress', label: 'In Progress'},
+        {value: 'ordered_materials', label: 'Ordered Materials / Parts'},
+        {value: 'waiting', label: 'Waiting'},
+        {value: 'blocked', label: 'Blocked'},
+        {value: 'completed', label: 'Completed'}
+    ];
+
+    const responsibleRoleOptions = [
+        {value: '', label: 'Unassigned'},
+        {value: 'maintenance', label: 'Maintenance'},
+        {value: 'plant_manager', label: 'Plant Manager'},
+        {value: 'district_manager', label: 'District Manager'}
+    ];
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set());
     const [showPlantModal, setShowPlantModal] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -69,13 +86,16 @@ function ListDetailView({itemId, onClose}) {
             });
             setCreator(ListService.creatorProfiles[found?.user_id]);
             setCompleter(ListService.creatorProfiles[found?.completed_by]);
-            setStatus(found?.completed ? 'Completed' : 'Pending');
+            const loadedStatus = found?.status || (found?.completed ? 'completed' : 'pending');
+            setStatus(loadedStatus);
+            setResponsibleRole(found?.responsible_role || '');
             setOriginalValues({
                 description: found?.description || '',
                 plantCode: found?.plant_code || '',
                 deadline: ListService.formatDateForInput(found?.deadline) || '',
                 comments: found?.comments || '',
-                status: found?.completed ? 'Completed' : 'Pending'
+                status: loadedStatus,
+                responsibleRole: found?.responsible_role || ''
             });
         } catch {
             showMessage('Failed to load item details', 'error');
@@ -145,9 +165,10 @@ function ListDetailView({itemId, onClose}) {
             formData.plantCode !== originalValues.plantCode ||
             formData.deadline !== originalValues.deadline ||
             formData.comments !== originalValues.comments ||
-            status !== originalValues.status
+            status !== originalValues.status ||
+            responsibleRole !== originalValues.responsibleRole
         setHasUnsavedChanges(hasChanges)
-    }, [formData, status, originalValues])
+    }, [formData, status, responsibleRole, originalValues])
 
     function handleChange(e) {
         setFormData(prev => ({...prev, [e.target.name]: e.target.value}));
@@ -169,7 +190,9 @@ function ListDetailView({itemId, onClose}) {
                 plant_code: formData.plantCode || null,
                 deadline: deadlineDate.toISOString(),
                 comments: formData.comments || null,
-                completed: status === 'Completed'
+                completed: status === 'completed',
+                status: status,
+                responsible_role: responsibleRole || null
             });
             await fetchItem();
             setHasUnsavedChanges(false);
@@ -314,8 +337,18 @@ function ListDetailView({itemId, onClose}) {
                                 <label htmlFor="status">Status</label>
                                 <select id="status" value={status} onChange={e => setStatus(e.target.value)}
                                         disabled={!canEdit || !canEditList} className="form-control">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Completed">Completed</option>
+                                    {statusOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="responsibleRole">Responsible</label>
+                                <select id="responsibleRole" value={responsibleRole} onChange={e => setResponsibleRole(e.target.value)}
+                                        disabled={!canEdit || !canEditList} className="form-control">
+                                    {responsibleRoleOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>

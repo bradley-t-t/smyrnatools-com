@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
                         headers: corsHeaders
                     });
                 }
-                let {userId, plantCode, description, deadline, comments} = body || {};
+                let {userId, plantCode, description, deadline, comments, status, responsible_role} = body || {};
                 if (typeof userId !== "string" || !userId) return new Response(JSON.stringify({error: "User ID is required"}), {
                     status: 400,
                     headers: corsHeaders
@@ -138,7 +138,9 @@ Deno.serve(async (req) => {
                     created_at: now,
                     completed: false,
                     completed_at: null,
-                    completed_by: null
+                    completed_by: null,
+                    status: typeof status === "string" ? status : "pending",
+                    responsible_role: typeof responsible_role === "string" && responsible_role ? responsible_role : null
                 };
                 const {error} = await supabase.from("list_items").insert(item);
                 if (error) return new Response(JSON.stringify({error: error.message}), {
@@ -172,7 +174,9 @@ Deno.serve(async (req) => {
                     deadline: item.deadline ?? null,
                     comments: typeof item.comments === "string" ? item.comments.trim() : "",
                     completed: !!item.completed,
-                    completed_at: item.completed_at ?? null
+                    completed_at: item.completed_at ?? null,
+                    status: typeof item.status === "string" ? item.status : "pending",
+                    responsible_role: typeof item.responsible_role === "string" && item.responsible_role ? item.responsible_role : null
                 };
                 const {error} = await supabase
                     .from("list_items")
@@ -220,7 +224,8 @@ Deno.serve(async (req) => {
                 const update = {
                     completed: newStatus,
                     completed_at: newStatus ? now : null,
-                    completed_by: newStatus ? currentUserId : null
+                    completed_by: newStatus ? currentUserId : null,
+                    status: newStatus ? "completed" : "pending"
                 };
                 const {error} = await supabase.from("list_items").update(update).eq("id", id);
                 if (error) return new Response(JSON.stringify({error: error.message}), {

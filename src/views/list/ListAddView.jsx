@@ -20,11 +20,28 @@ function ListAddView({onClose, onItemAdded, item = null}) {
         return today.toISOString().slice(0, 16);
     });
     const [comments, setComments] = useState('');
+    const [status, setStatus] = useState('pending');
+    const [responsibleRole, setResponsibleRole] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [errors, setErrors] = useState({});
     const [plants, setPlants] = useState([]);
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
+
+    const statusOptions = [
+        {value: 'pending', label: 'Pending'},
+        {value: 'in_progress', label: 'In Progress'},
+        {value: 'ordered_materials', label: 'Ordered Materials / Parts'},
+        {value: 'waiting', label: 'Waiting'},
+        {value: 'blocked', label: 'Blocked'}
+    ];
+
+    const responsibleRoleOptions = [
+        {value: '', label: 'Unassigned'},
+        {value: 'maintenance', label: 'Maintenance'},
+        {value: 'plant_manager', label: 'Plant Manager'},
+        {value: 'district_manager', label: 'District Manager'}
+    ];
 
     useEffect(() => {
         async function fetchCurrentUser() {
@@ -202,6 +219,34 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                                     onChange={e => setDeadline(e.target.value)}
                                     required
                                 />
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="status">Status</label>
+                                <select
+                                    id="status"
+                                    className="ios-select"
+                                    value={status}
+                                    onChange={e => setStatus(e.target.value)}
+                                >
+                                    {statusOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="responsibleRole">Responsible</label>
+                                <select
+                                    id="responsibleRole"
+                                    className="ios-select"
+                                    value={responsibleRole}
+                                    onChange={e => setResponsibleRole(e.target.value)}
+                                >
+                                    {responsibleRoleOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>
