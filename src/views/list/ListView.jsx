@@ -348,7 +348,12 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                             </div>
                                                             <div className="item-content">
                                                                 <div className="item-header">
-                                                                    <h4 className="item-title">{truncateText(item.description, 80)}</h4>
+                                                                    <div className="item-main-content">
+                                                                        <h4 className="item-title">{truncateText(item.description, 80)}</h4>
+                                                                        {item.comments && (
+                                                                            <p className="item-comments">{truncateText(item.comments, 60)}</p>
+                                                                        )}
+                                                                    </div>
                                                                     <span
                                                                         className={`item-status ${item.completed ? 'completed' : ListService.isOverdue(item) ? 'overdue' : 'pending'}`}>
                                                                         {item.completed ? 'Completed' : ListService.isOverdue(item) ? 'Overdue' : 'Pending'}
