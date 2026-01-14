@@ -45,9 +45,9 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
 
     const groupedByDate = useMemo(() => {
         const groups = {
-            overdue: {label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger', priority: 1},
-            today: {label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning', priority: 2},
-            tomorrow: {label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info', priority: 3},
+            today: {label: 'Today', icon: 'fa-calendar-day', items: [], color: 'warning', priority: 1},
+            tomorrow: {label: 'Tomorrow', icon: 'fa-calendar-plus', items: [], color: 'info', priority: 2},
+            overdue: {label: 'Overdue', icon: 'fa-exclamation-circle', items: [], color: 'danger', priority: 3},
             thisWeek: {label: 'This Week', icon: 'fa-calendar-week', items: [], color: 'accent', priority: 4},
             later: {label: 'Later', icon: 'fa-calendar-alt', items: [], color: 'secondary', priority: 5},
             completed: {label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success', priority: 6}
