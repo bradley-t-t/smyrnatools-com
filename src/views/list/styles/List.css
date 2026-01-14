@@ -1028,10 +1028,22 @@
 
 @media (max-width: 768px) {
 
+    .content-area:has(.list-view) {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .list-view .global-content-container,
+    .list-view .content-container {
+        overflow: hidden !important;
+    }
+
     .list-planner-dashboard {
         display: flex !important;
         flex-direction: column !important;
         grid-template-columns: unset !important;
+        height: calc(100vh - 200px);
+        overflow: hidden;
     }
 
     .planner-sidebar,
@@ -1044,6 +1056,10 @@
 
     .planner-main {
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        flex: 1;
     }
 
     .planner-toolbar,
@@ -1058,6 +1074,7 @@
         width: 100%;
         box-sizing: border-box;
         overflow: hidden;
+        flex-shrink: 0;
     }
 
     .view-mode-toggle {
@@ -1097,6 +1114,10 @@
 
     .planner-groups {
         width: 100%;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
     .planner-group {
