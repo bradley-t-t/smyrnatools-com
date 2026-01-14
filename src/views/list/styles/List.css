@@ -1052,7 +1052,7 @@
     .planner-toolbar,
     .planner-toolbar-sticky {
         position: sticky !important;
-        top: 30px !important;
+        top: 110px !important;
         flex-direction: column !important;
         align-items: stretch !important;
         gap: 8px;
