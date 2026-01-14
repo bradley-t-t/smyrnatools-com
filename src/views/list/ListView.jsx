@@ -190,20 +190,6 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     }, [])
 
     useEffect(() => {
-        const contentArea = document.querySelector('.content-area')
-        if (contentArea) {
-            contentArea.style.overflowY = 'auto'
-            contentArea.style.overflowX = 'hidden'
-        }
-        return () => {
-            if (contentArea) {
-                contentArea.style.overflowY = ''
-                contentArea.style.overflowX = ''
-            }
-        }
-    }, [])
-
-    useEffect(() => {
         let cancelled = false
 
         async function loadRegionPlants() {
@@ -449,7 +435,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                             </div>
                         ) : (
                             <div className="list-planner-dashboard">
-                                <div className="planner-sidebar" style={{position: 'sticky', top: '130px', alignSelf: 'start', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto'}}>
+                                <div className="planner-sidebar planner-sidebar-sticky">
                                     <div className="summary-card">
                                         <h3 className="summary-title">Overview</h3>
                                         <div className="summary-stats">
@@ -523,7 +509,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 </div>
 
                                 <div className="planner-main">
-                                    <div className="planner-toolbar" style={{position: 'sticky', top: '120px', zIndex: 100, background: 'var(--bg-primary)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)'}}>
+                                    <div className="planner-toolbar planner-toolbar-sticky">
                                         <div className="view-mode-toggle">
                                             <button 
                                                 className={`view-mode-btn ${viewMode === 'date' ? 'active' : ''}`}
@@ -568,7 +554,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                         </div>
                                     </div>
                                     
-                                    <div className="planner-sticky-cover" style={{position: 'sticky', top: '0', height: '140px', marginTop: '-140px', marginBottom: '0', background: 'linear-gradient(to bottom, var(--bg-primary) 0%, var(--bg-primary) 80%, transparent 100%)', zIndex: 50, pointerEvents: 'none'}}></div>
+                                    <div className="planner-sticky-cover"></div>
                                     <div className="planner-groups">
                                     {Object.entries(groupedItems).map(([key, group]) => {
                                         if (group.items.length === 0) return null

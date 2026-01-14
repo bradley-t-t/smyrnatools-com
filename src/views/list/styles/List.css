@@ -24,6 +24,34 @@
     display: none !important;
 }
 
+.planner-sidebar-sticky {
+    position: sticky;
+    top: 150px;
+    align-self: start;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+.planner-toolbar-sticky {
+    position: sticky;
+    top: 150px;
+    z-index: 200;
+    background: var(--bg-primary);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.planner-sticky-cover {
+    position: sticky;
+    top: 0;
+    height: 170px;
+    margin-top: -170px;
+    margin-bottom: 0;
+    background: linear-gradient(to bottom, var(--bg-primary) 0%, var(--bg-primary) 80%, transparent 100%);
+    z-index: 150;
+    pointer-events: none;
+}
+
 .planner-toolbar {
     display: flex;
     align-items: center;
@@ -464,20 +492,6 @@
     flex-direction: column;
     gap: 12px;
     padding-right: 4px;
-    position: sticky;
-    top: 10px;
-    align-self: start;
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-}
-
-.planner-main .planner-toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: color-mix(in srgb, var(--bg-primary) 95%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
 }
 
 .summary-card,
@@ -1030,11 +1044,6 @@
 
     .summary-card {
         grid-column: 1 / -1;
-    }
-
-    .planner-main .planner-toolbar {
-        position: sticky;
-        top: 0;
     }
 
     .planner-toolbar {

@@ -530,9 +530,9 @@ function AppContent() {
                 return <ManagersView title={title}/>
             case 'List': {
                 if (selectedItem) {
-                    return <ListDetailView itemId={selectedItem} onClose={() => setSelectedItem(null)}/>
+                    return <ListDetailView key={`detail-${selectedItem}`} itemId={selectedItem} onClose={() => setSelectedItem(null)}/>
                 }
-                return <ListView title="Tasks List" onSelectItem={setSelectedItem}/>
+                return <ListView key="list-view" title="Tasks List" onSelectItem={setSelectedItem}/>
             }
             case 'Archive':
                 return <ListView title="Archived Items" showArchived/>

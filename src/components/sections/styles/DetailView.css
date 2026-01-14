@@ -1,12 +1,12 @@
 .content-area:has(.detail-view) {
-    padding: 0;
-    overflow: hidden;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
 
 .dashboard-container:has(.detail-view) {
-    padding: 0;
-    gap: 0;
-    overflow: hidden;
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow: hidden !important;
 }
 
 .detail-view {

@@ -46,6 +46,11 @@ function ListDetailView({itemId, onClose}) {
     const canEdit = true;
 
     useEffect(() => {
+        const contentArea = document.querySelector('.content-area')
+        if (contentArea) contentArea.scrollTop = 0
+    }, [])
+
+    useEffect(() => {
         if (itemId) {
             Promise.all([fetchItem(), fetchPlants()]).catch(() => {
             });
