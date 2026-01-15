@@ -26,30 +26,76 @@
 
 .planner-sidebar-sticky {
     position: sticky;
-    top: 150px;
+    top: 210px;
     align-self: start;
-    max-height: calc(100vh - 220px);
+    max-height: calc(100vh - 280px);
     overflow-y: auto;
 }
 
+.list-view-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: transparent;
+}
+
+.list-view-filter-bar .view-mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-tertiary);
+    padding: 4px;
+    border-radius: var(--radius-md);
+}
+
+.list-view-filter-bar .view-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+}
+
+.list-view-filter-bar .view-mode-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.list-view-filter-bar .view-mode-btn.active {
+    background: var(--accent);
+    color: var(--text-light);
+}
+
+.list-view-filter-bar .planner-filters {
+    display: flex;
+    gap: 8px;
+}
+
+.list-view-filter-bar .role-filter-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+}
+
 .planner-toolbar-sticky {
-    position: sticky;
-    top: 150px;
-    z-index: 200;
-    background: var(--bg-primary);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    display: none;
 }
 
 .planner-sticky-cover {
-    position: sticky;
-    top: 0;
-    height: 170px;
-    margin-top: -170px;
-    margin-bottom: 0;
-    background: linear-gradient(to bottom, var(--bg-primary) 0%, var(--bg-primary) 80%, transparent 100%);
-    z-index: 150;
-    pointer-events: none;
+    display: none;
 }
 
 .planner-toolbar {
@@ -1098,7 +1144,9 @@
         margin-bottom: 10px;
         width: 100%;
         box-sizing: border-box;
-        background: var(--bg-primary);
+        background: color-mix(in srgb, var(--bg-primary) 70%, transparent);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         z-index: 100;
     }
 

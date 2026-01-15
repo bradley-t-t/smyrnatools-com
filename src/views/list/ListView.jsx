@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import './styles/List.css'
 import '../../styles/FilterStyles.css'
 import {ListService} from '../../services/ListService'
@@ -13,6 +13,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const {preferences} = usePreferences()
     const headerRef = useRef(null)
     const searchInputRef = useRef(null)
+    const toolbarRef = useRef(null)
+    const plannerGroupsRef = useRef(null)
     const [plants, setPlants] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchText, setSearchText] = useState('')
@@ -184,6 +186,44 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
             .sort((a, b) => new Date(b.completed_at || b.deadline) - new Date(a.completed_at || a.deadline))
             .slice(0, 3)
     }, [roleFilteredItems])
+
+    const handleScroll = useCallback(() => {
+        if (!headerRef.current || !plannerGroupsRef.current) return
+        const headerRect = headerRef.current.getBoundingClientRect()
+        const clipTop = headerRect.bottom
+        const items = plannerGroupsRef.current.querySelectorAll('.planner-group, .planner-item')
+        items.forEach(item => {
+            const itemRect = item.getBoundingClientRect()
+            if (itemRect.top < clipTop) {
+                const overlap = clipTop - itemRect.top
+                if (overlap >= itemRect.height) {
+                    item.style.opacity = '0'
+                    item.style.pointerEvents = 'none'
+                } else {
+                    item.style.clipPath = `inset(${overlap}px 0 0 0)`
+                    item.style.opacity = '1'
+                    item.style.pointerEvents = 'auto'
+                }
+            } else {
+                item.style.clipPath = 'none'
+                item.style.opacity = '1'
+                item.style.pointerEvents = 'auto'
+            }
+        })
+    }, [])
+
+    useEffect(() => {
+        const contentArea = document.querySelector('.content-area')
+        if (contentArea) {
+            contentArea.addEventListener('scroll', handleScroll)
+            handleScroll()
+        }
+        return () => {
+            if (contentArea) {
+                contentArea.removeEventListener('scroll', handleScroll)
+            }
+        }
+    }, [handleScroll])
 
     useEffect(() => {
         fetchAllData()
@@ -363,6 +403,53 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
 
     const hasBulkPopup = selectedIds.size > 0
 
+    const listViewFilterBar = (
+        <div ref={toolbarRef} className="list-view-filter-bar">
+            <div className="view-mode-toggle">
+                <button 
+                    className={`view-mode-btn ${viewMode === 'date' ? 'active' : ''}`}
+                    onClick={() => setViewMode('date')}
+                >
+                    <i className="fas fa-calendar-alt"></i>
+                    <span>By Date</span>
+                </button>
+                <button 
+                    className={`view-mode-btn ${viewMode === 'status' ? 'active' : ''}`}
+                    onClick={() => setViewMode('status')}
+                >
+                    <i className="fas fa-tasks"></i>
+                    <span>By Status</span>
+                </button>
+                <button 
+                    className={`view-mode-btn ${viewMode === 'role' ? 'active' : ''}`}
+                    onClick={() => setViewMode('role')}
+                >
+                    <i className="fas fa-user-tag"></i>
+                    <span>By Assigned</span>
+                </button>
+            </div>
+            <div className="planner-filters">
+                <select 
+                    className="role-filter-select"
+                    value={derivedRoleValueForTop}
+                    onChange={e => {
+                        const v = e.target.value
+                        let mapped = ''
+                        if (v === 'Maintenance') mapped = 'maintenance'
+                        else if (v === 'Plant Manager') mapped = 'plant_manager'
+                        else if (v === 'District Manager') mapped = 'district_manager'
+                        else if (v === 'Unassigned') mapped = 'unassigned'
+                        setRoleFilter(mapped)
+                    }}
+                >
+                    {derivedRoleOptions.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                </select>
+            </div>
+        </div>
+    )
+
     return (
         <>
             <div
@@ -419,6 +506,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                         onHeaderClick={handleHeaderClick}
                         sortKey={sortKey}
                         sortDirection={sortDirection}
+                        customBottomContent={listViewFilterBar}
                     />
                     <div className="global-content-container content-container">
                         {isLoading ? (
@@ -509,53 +597,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 </div>
 
                                 <div className="planner-main">
-                                    <div className="planner-toolbar planner-toolbar-sticky">
-                                        <div className="view-mode-toggle">
-                                            <button 
-                                                className={`view-mode-btn ${viewMode === 'date' ? 'active' : ''}`}
-                                                onClick={() => setViewMode('date')}
-                                            >
-                                                <i className="fas fa-calendar-alt"></i>
-                                                <span>By Date</span>
-                                            </button>
-                                            <button 
-                                                className={`view-mode-btn ${viewMode === 'status' ? 'active' : ''}`}
-                                                onClick={() => setViewMode('status')}
-                                            >
-                                                <i className="fas fa-tasks"></i>
-                                                <span>By Status</span>
-                                            </button>
-                                            <button 
-                                                className={`view-mode-btn ${viewMode === 'role' ? 'active' : ''}`}
-                                                onClick={() => setViewMode('role')}
-                                            >
-                                                <i className="fas fa-user-tag"></i>
-                                                <span>By Assigned</span>
-                                            </button>
-                                        </div>
-                                        <div className="planner-filters">
-                                            <select 
-                                                className="role-filter-select"
-                                                value={derivedRoleValueForTop}
-                                                onChange={e => {
-                                                    const v = e.target.value
-                                                    let mapped = ''
-                                                    if (v === 'Maintenance') mapped = 'maintenance'
-                                                    else if (v === 'Plant Manager') mapped = 'plant_manager'
-                                                    else if (v === 'District Manager') mapped = 'district_manager'
-                                                    else if (v === 'Unassigned') mapped = 'unassigned'
-                                                    setRoleFilter(mapped)
-                                                }}
-                                            >
-                                                {derivedRoleOptions.map(opt => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
                                     <div className="planner-sticky-cover"></div>
-                                    <div className="planner-groups">
+                                    <div ref={plannerGroupsRef} className="planner-groups">
                                     {Object.entries(groupedItems).map(([key, group]) => {
                                         if (group.items.length === 0) return null
                                         if (statusFilter === 'completed' && key !== 'completed') return null

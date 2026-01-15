@@ -43,7 +43,8 @@ function TopSection({
                         onHeaderClick,
                         sortKey,
                         sortDirection,
-                        isOfficeRegion = false
+                        isOfficeRegion = false,
+                        customBottomContent = null
                     }) {
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
@@ -274,6 +275,7 @@ function TopSection({
                                                                    onClick={() => l && l !== 'More' && l !== 'VIN' && onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
                             </div>
                         )}
+                        {customBottomContent}
                     </div>
                 </div>
                 {isPlantModalOpen && (
@@ -438,6 +440,7 @@ function TopSection({
                                                                onClick={() => l && l !== 'More' && l !== 'VIN' && onHeaderClick && onHeaderClick(l)}>{l}{sortKey === l && l !== '' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}</div>)}
                         </div>
                     )}
+                    {customBottomContent}
                 </div>
             </div>
             {isPlantModalOpen && (
