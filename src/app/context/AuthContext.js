@@ -10,7 +10,7 @@ export function useAuth() {
     return useContext(AuthContext)
 }
 
-function normalizeName(name) {
+function _normalizeName(name) {
     let n = name.replace(/\s+/g, '')
     if (!n) return ''
     return n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()

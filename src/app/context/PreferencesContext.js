@@ -123,7 +123,7 @@ export const PreferencesProvider = ({children}) => {
     const [preferences, setPreferences] = useState(defaultPreferences)
     const [loading, setLoading] = useState(true)
     const [userId, setUserId] = useState(null)
-    const [authTrigger, setAuthTrigger] = useState(0)
+    const [_authTrigger, setAuthTrigger] = useState(0)
 
     useEffect(() => {
         const handleAuthSuccess = () => {

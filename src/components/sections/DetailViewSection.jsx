@@ -34,7 +34,7 @@ function DetailViewSection({
                                assetType = null,
                                onRegionTransfer = null
                            }) {
-    const [internalCanEdit, setInternalCanEdit] = useState(itemAssignedPlant !== undefined ? false : canEdit)
+    const [_internalCanEdit, setInternalCanEdit] = useState(itemAssignedPlant !== undefined ? false : canEdit)
     const [internalRestrictionWarning, setInternalRestrictionWarning] = useState(restrictionWarning)
     const [showRegionTransferModal, setShowRegionTransferModal] = useState(false)
     const [hasRegionTransferPermission, setHasRegionTransferPermission] = useState(false)
