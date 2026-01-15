@@ -164,7 +164,8 @@ function ListAddView({onClose, onItemAdded, item = null}) {
                     <div className="form-section">
                         <div className="form-row">
                             <div className="form-group">
-                                <label htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
+                                <label
+                                    htmlFor="plantCode">{selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}</label>
                                 {!item ? (
                                     <>
                                         <button

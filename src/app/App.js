@@ -530,7 +530,8 @@ function AppContent() {
                 return <ManagersView title={title}/>
             case 'List': {
                 if (selectedItem) {
-                    return <ListDetailView key={`detail-${selectedItem}`} itemId={selectedItem} onClose={() => setSelectedItem(null)}/>
+                    return <ListDetailView key={`detail-${selectedItem}`} itemId={selectedItem}
+                                           onClose={() => setSelectedItem(null)}/>
                 }
                 return <ListView key="list-view" title="Tasks List" onSelectItem={setSelectedItem}/>
             }

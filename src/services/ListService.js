@@ -206,15 +206,27 @@ class ListServiceImpl {
 
     calculateStatusInfo(item) {
         if (!item) return {color: 'var(--gray-500)', label: 'Unknown', icon: 'question-circle'}
-        if (item.completed || item.status === 'completed') return {color: 'var(--success)', label: 'Completed', icon: 'check-circle'}
+        if (item.completed || item.status === 'completed') return {
+            color: 'var(--success)',
+            label: 'Completed',
+            icon: 'check-circle'
+        }
         if (item.status === 'in_progress') return {color: 'var(--accent)', label: 'In Progress', icon: 'spinner'}
-        if (item.status === 'ordered_materials') return {color: 'var(--info)', label: 'Ordered Materials', icon: 'truck-loading'}
+        if (item.status === 'ordered_materials') return {
+            color: 'var(--info)',
+            label: 'Ordered Materials',
+            icon: 'truck-loading'
+        }
         if (item.status === 'blocked') return {color: 'var(--danger)', label: 'Blocked', icon: 'ban'}
         if (item.status === 'waiting') return {color: 'var(--warning)', label: 'Waiting', icon: 'hourglass-half'}
         const deadline = new Date(item.deadline)
         const now = new Date()
         if (isNaN(deadline.getTime())) return {color: 'var(--gray-500)', label: 'No Deadline', icon: 'calendar-times'}
-        if (deadline < now || item.status === 'overdue') return {color: 'var(--danger)', label: 'Overdue', icon: 'exclamation-circle'}
+        if (deadline < now || item.status === 'overdue') return {
+            color: 'var(--danger)',
+            label: 'Overdue',
+            icon: 'exclamation-circle'
+        }
         const hours = (deadline - now) / (1000 * 60 * 60)
         if (hours < 24) return {color: 'var(--warning)', label: 'Due Soon', icon: 'clock'}
         return {color: 'var(--primary)', label: 'Pending', icon: 'calendar-check'}

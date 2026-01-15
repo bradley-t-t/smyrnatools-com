@@ -41,7 +41,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         ? baseFilteredItems.filter(item => regionPlantCodes.has(String(item.plant_code || '').trim().toUpperCase()))
         : baseFilteredItems
 
-    const roleFilteredItems = roleFilter 
+    const roleFilteredItems = roleFilter
         ? filteredItems.filter(item => item.responsible_role === roleFilter)
         : filteredItems
 
@@ -99,7 +99,13 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
             in_progress: {label: 'In Progress', icon: 'fa-spinner', items: [], color: 'accent', priority: 2},
             blocked: {label: 'Blocked', icon: 'fa-ban', items: [], color: 'danger', priority: 3},
             waiting: {label: 'Waiting', icon: 'fa-hourglass-half', items: [], color: 'warning', priority: 4},
-            ordered_materials: {label: 'Ordered Materials', icon: 'fa-truck-loading', items: [], color: 'info', priority: 5},
+            ordered_materials: {
+                label: 'Ordered Materials',
+                icon: 'fa-truck-loading',
+                items: [],
+                color: 'info',
+                priority: 5
+            },
             pending: {label: 'Pending', icon: 'fa-clock', items: [], color: 'secondary', priority: 6},
             completed: {label: 'Completed', icon: 'fa-check-circle', items: [], color: 'success', priority: 7}
         }
@@ -112,7 +118,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                 groups.completed.items.push(item)
                 return
             }
-            
+
             const deadline = new Date(item.deadline)
             deadline.setHours(0, 0, 0, 0)
             const isOverdue = deadline < today
@@ -141,7 +147,13 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
 
     const groupedByRole = useMemo(() => {
         const groups = {
-            district_manager: {label: 'District Manager', icon: 'fa-user-shield', items: [], color: 'accent', priority: 1},
+            district_manager: {
+                label: 'District Manager',
+                icon: 'fa-user-shield',
+                items: [],
+                color: 'accent',
+                priority: 1
+            },
             plant_manager: {label: 'Plant Manager', icon: 'fa-user-tie', items: [], color: 'info', priority: 2},
             maintenance: {label: 'Maintenance', icon: 'fa-wrench', items: [], color: 'warning', priority: 3},
             unassigned: {label: 'Unassigned', icon: 'fa-users', items: [], color: 'secondary', priority: 4}
@@ -173,7 +185,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         const inProgress = roleFilteredItems.filter(i => i.status === 'in_progress').length
         const blocked = roleFilteredItems.filter(i => i.status === 'blocked').length
         const pending = total - completed
-        return { total, completed, overdue, dueToday, inProgress, blocked, pending }
+        return {total, completed, overdue, dueToday, inProgress, blocked, pending}
     }, [roleFilteredItems, groupedByDate])
 
     const urgentItems = useMemo(() => {
@@ -406,21 +418,21 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
     const listViewFilterBar = (
         <div ref={toolbarRef} className="list-view-filter-bar">
             <div className="view-mode-toggle">
-                <button 
+                <button
                     className={`view-mode-btn ${viewMode === 'date' ? 'active' : ''}`}
                     onClick={() => setViewMode('date')}
                 >
                     <i className="fas fa-calendar-alt"></i>
                     <span>By Date</span>
                 </button>
-                <button 
+                <button
                     className={`view-mode-btn ${viewMode === 'status' ? 'active' : ''}`}
                     onClick={() => setViewMode('status')}
                 >
                     <i className="fas fa-tasks"></i>
                     <span>By Status</span>
                 </button>
-                <button 
+                <button
                     className={`view-mode-btn ${viewMode === 'role' ? 'active' : ''}`}
                     onClick={() => setViewMode('role')}
                 >
@@ -429,7 +441,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                 </button>
             </div>
             <div className="planner-filters">
-                <select 
+                <select
                     className="role-filter-select"
                     value={derivedRoleValueForTop}
                     onChange={e => {
@@ -545,7 +557,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {urgentItems.length > 0 && (
                                         <div className="urgent-card">
                                             <h3 className="urgent-title">
@@ -554,19 +566,21 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                             </h3>
                                             <div className="urgent-items">
                                                 {urgentItems.map(item => (
-                                                    <div 
-                                                        key={item.id} 
+                                                    <div
+                                                        key={item.id}
                                                         className={`urgent-item ${groupedByDate.overdue?.items?.includes(item) ? 'overdue' : 'today'}`}
                                                         onClick={() => handleSelectItem(item)}
                                                     >
                                                         <div className="urgent-item-content">
-                                                            <span className="urgent-item-title">{truncateText(item.description, 40)}</span>
+                                                            <span
+                                                                className="urgent-item-title">{truncateText(item.description, 40)}</span>
                                                             <span className="urgent-item-meta">
                                                                 <i className="fas fa-building"></i>
                                                                 {getPlantName(item.plant_code)}
                                                             </span>
                                                         </div>
-                                                        <span className={`urgent-badge ${groupedByDate.overdue?.items?.includes(item) ? 'overdue' : 'today'}`}>
+                                                        <span
+                                                            className={`urgent-badge ${groupedByDate.overdue?.items?.includes(item) ? 'overdue' : 'today'}`}>
                                                             {groupedByDate.overdue?.items?.includes(item) ? 'Overdue' : 'Today'}
                                                         </span>
                                                     </div>
@@ -583,12 +597,13 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                             </h3>
                                             <div className="completed-items">
                                                 {recentlyCompleted.map(item => (
-                                                    <div 
-                                                        key={item.id} 
+                                                    <div
+                                                        key={item.id}
                                                         className="completed-item"
                                                         onClick={() => handleSelectItem(item)}
                                                     >
-                                                        <span className="completed-item-title">{truncateText(item.description, 35)}</span>
+                                                        <span
+                                                            className="completed-item-title">{truncateText(item.description, 35)}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -599,88 +614,89 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 <div className="planner-main">
                                     <div className="planner-sticky-cover"></div>
                                     <div ref={plannerGroupsRef} className="planner-groups">
-                                    {Object.entries(groupedItems).map(([key, group]) => {
-                                        if (group.items.length === 0) return null
-                                        if (statusFilter === 'completed' && key !== 'completed') return null
-                                        if (statusFilter === 'pending' && key === 'completed') return null
-                                        if (statusFilter === 'overdue' && key !== 'overdue') return null
+                                        {Object.entries(groupedItems).map(([key, group]) => {
+                                            if (group.items.length === 0) return null
+                                            if (statusFilter === 'completed' && key !== 'completed') return null
+                                            if (statusFilter === 'pending' && key === 'completed') return null
+                                            if (statusFilter === 'overdue' && key !== 'overdue') return null
 
-                                        return (
-                                            <div key={key} className={`planner-group ${key} ${group.color}`}>
-                                                <div className="planner-group-header">
-                                                    <div className="group-title">
-                                                        <i className={`fas ${group.icon}`}></i>
-                                                        <span>{group.label}</span>
-                                                        <span className="group-count">{group.items.length}</span>
+                                            return (
+                                                <div key={key} className={`planner-group ${key} ${group.color}`}>
+                                                    <div className="planner-group-header">
+                                                        <div className="group-title">
+                                                            <i className={`fas ${group.icon}`}></i>
+                                                            <span>{group.label}</span>
+                                                            <span className="group-count">{group.items.length}</span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div className="planner-group-items">
-                                                    {group.items.map(item => (
-                                                        <div
-                                                            key={item.id}
-                                                            className={`planner-item ${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'selected' : ''}`}
-                                                            onClick={() => handleSelectItem(item)}
-                                                        >
-                                                            <div className="item-checkbox" onClick={e => {
-                                                                e.stopPropagation();
-                                                                toggleSelect(item.id);
-                                                            }}>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedIds.has(item.id)}
-                                                                    onChange={() => {
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                            <div className="item-content">
-                                                                <div className="item-header">
-                                                                    <div className="item-main-content">
-                                                                        <h4 className="item-title">{truncateText(item.description, 80)}</h4>
-                                                                        {item.comments && (
-                                                                            <p className="item-comments">{truncateText(item.comments, 60)}</p>
-                                                                        )}
-                                                                    </div>
-                                                                    <span
-                                                                        className={`item-status ${ListService.getStatusColor(item.completed ? 'completed' : item.status || 'pending')}`}>
-                                                                        <i className={`fas ${ListService.getStatusIcon(item.completed ? 'completed' : item.status || 'pending')}`}></i>
-                                                                        {ListService.getStatusLabel(item.completed ? 'completed' : item.status || 'pending')}
-                                                                    </span>
+                                                    <div className="planner-group-items">
+                                                        {group.items.map(item => (
+                                                            <div
+                                                                key={item.id}
+                                                                className={`planner-item ${item.completed ? 'completed' : ''} ${selectedIds.has(item.id) ? 'selected' : ''}`}
+                                                                onClick={() => handleSelectItem(item)}
+                                                            >
+                                                                <div className="item-checkbox" onClick={e => {
+                                                                    e.stopPropagation();
+                                                                    toggleSelect(item.id);
+                                                                }}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedIds.has(item.id)}
+                                                                        onChange={() => {
+                                                                        }}
+                                                                    />
                                                                 </div>
-                                                                <div className="item-meta">
+                                                                <div className="item-content">
+                                                                    <div className="item-header">
+                                                                        <div className="item-main-content">
+                                                                            <h4 className="item-title">{truncateText(item.description, 80)}</h4>
+                                                                            {item.comments && (
+                                                                                <p className="item-comments">{truncateText(item.comments, 60)}</p>
+                                                                            )}
+                                                                        </div>
+                                                                        <span
+                                                                            className={`item-status ${ListService.getStatusColor(item.completed ? 'completed' : item.status || 'pending')}`}>
+                                                                        <i className={`fas ${ListService.getStatusIcon(item.completed ? 'completed' : item.status || 'pending')}`}></i>
+                                                                            {ListService.getStatusLabel(item.completed ? 'completed' : item.status || 'pending')}
+                                                                    </span>
+                                                                    </div>
+                                                                    <div className="item-meta">
                                                                     <span className="meta-tag plant">
                                                                         <i className="fas fa-building"></i>
                                                                         {getPlantName(item.plant_code)}
                                                                     </span>
-                                                                    <span
-                                                                        className={`meta-tag deadline ${(ListService.isOverdue(item) || item.status === 'overdue') && !item.completed ? 'overdue' : ''}`}>
+                                                                        <span
+                                                                            className={`meta-tag deadline ${(ListService.isOverdue(item) || item.status === 'overdue') && !item.completed ? 'overdue' : ''}`}>
                                                                         <i className="fas fa-calendar"></i>
-                                                                        {new Date(item.deadline).toLocaleDateString('en-US', {
-                                                                            month: 'short',
-                                                                            day: 'numeric'
-                                                                        })}
+                                                                            {new Date(item.deadline).toLocaleDateString('en-US', {
+                                                                                month: 'short',
+                                                                                day: 'numeric'
+                                                                            })}
                                                                     </span>
-                                                                    {item.responsible_role && (
-                                                                        <span className={`meta-tag responsible ${item.responsible_role}`}>
+                                                                        {item.responsible_role && (
+                                                                            <span
+                                                                                className={`meta-tag responsible ${item.responsible_role}`}>
                                                                             <i className={`fas ${ListService.getResponsibleRoleIcon(item.responsible_role)}`}></i>
-                                                                            {ListService.getResponsibleRoleLabel(item.responsible_role)}
+                                                                                {ListService.getResponsibleRoleLabel(item.responsible_role)}
                                                                         </span>
-                                                                    )}
-                                                                    <span className="meta-tag creator">
+                                                                        )}
+                                                                        <span className="meta-tag creator">
                                                                         <i className="fas fa-user"></i>
-                                                                        {truncateText(ListService.getCreatorName(item.user_id), 15)}
+                                                                            {truncateText(ListService.getCreatorName(item.user_id), 15)}
                                                                     </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="item-action">
+                                                                    <i className="fas fa-chevron-right"></i>
                                                                 </div>
                                                             </div>
-                                                            <div className="item-action">
-                                                                <i className="fas fa-chevron-right"></i>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
+                                            )
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         )}

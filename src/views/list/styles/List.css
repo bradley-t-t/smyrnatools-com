@@ -90,26 +90,8 @@
     cursor: pointer;
 }
 
-.planner-toolbar-sticky {
-    display: none;
-}
-
 .planner-sticky-cover {
     display: none;
-}
-
-.planner-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: var(--radius-lg);
-    margin-bottom: 16px;
-    gap: 16px;
-    flex-wrap: wrap;
 }
 
 .view-mode-toggle {
@@ -244,46 +226,6 @@
 
 .card-status-indicator.status-pending {
     background-color: var(--info);
-}
-
-.plant-restriction-notice {
-    background-color: var(--warning-bg);
-    color: var(--warning-text);
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.plant-restriction-notice i {
-    font-size: 16px;
-}
-
-.plant-assignment-info {
-    background-color: var(--accent-border);
-    color: var(--accent-dark);
-    padding: 12px 16px;
-    margin-top: 8px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid var(--accent);
-}
-
-.plant-assignment-info i {
-    font-size: 16px;
-    color: var(--accent);
-}
-
-.plant-input-disabled {
-    background-color: var(--bg-tertiary);
-    cursor: not-allowed;
 }
 
 .error-message {
@@ -746,17 +688,6 @@
     padding-bottom: 20px;
 }
 
-.list-planner-view {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding: 0 4px 24px 4px;
-    position: relative;
-    z-index: 1;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-}
-
 .planner-groups {
     display: flex;
     flex-direction: column;
@@ -1131,23 +1062,6 @@
         width: 100%;
         display: flex;
         flex-direction: column;
-    }
-
-    .planner-toolbar,
-    .planner-toolbar-sticky {
-        position: sticky !important;
-        top: 110px !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-        width: 100%;
-        box-sizing: border-box;
-        background: color-mix(in srgb, var(--bg-primary) 70%, transparent);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        z-index: 100;
     }
 
     .view-mode-toggle {

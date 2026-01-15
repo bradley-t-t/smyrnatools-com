@@ -349,7 +349,8 @@ function ListDetailView({itemId, onClose}) {
                             </div>
                             <div className="form-group">
                                 <label htmlFor="responsibleRole">Responsible</label>
-                                <select id="responsibleRole" value={responsibleRole} onChange={e => setResponsibleRole(e.target.value)}
+                                <select id="responsibleRole" value={responsibleRole}
+                                        onChange={e => setResponsibleRole(e.target.value)}
                                         disabled={!canEdit || !canEditList} className="form-control">
                                     {responsibleRoleOptions.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
