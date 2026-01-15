@@ -5,6 +5,7 @@ import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
 import VideoBackground from './VideoBackground'
 import NotificationsModal from './NotificationsModal'
+import AIAgentPopup from './AIAgentPopup'
 import {useNotifications} from '../../hooks/useNotifications'
 
 const ANIMATION_TIMING = {
@@ -115,6 +116,7 @@ export default function Navigation({
     const productivityDropdownRef = useRef(null)
     const [showNotifications, setShowNotifications] = useState(false)
     const [notificationsAnchor, setNotificationsAnchor] = useState(null)
+    const [showAIAgent, setShowAIAgent] = useState(false)
 
     const {count: notificationsCount} = useNotifications(userId, preferences?.selectedRegion)
 
@@ -1018,6 +1020,16 @@ export default function Navigation({
                                     <span className="notification-badge">{notificationsCount}</span>
                                 )}
                             </div>
+                            <div
+                                className="menu-item ai-agent-item"
+                                title="AI Assistant"
+                                aria-label="AI Assistant"
+                                onClick={() => setShowAIAgent(true)}
+                            >
+                            <span className="menu-icon">
+                                <i className="fas fa-robot"></i>
+                            </span>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -1033,6 +1045,13 @@ export default function Navigation({
                         }
                     }} anchorRect={notificationsAnchor}/>
                 )}
+                <AIAgentPopup
+                    isOpen={showAIAgent}
+                    onClose={() => setShowAIAgent(false)}
+                    regionName={preferences?.selectedRegion?.name || ''}
+                    regionCode={preferences?.selectedRegion?.code || preferences?.selectedRegion?.regionCode || preferences?.selectedRegion?.region_code || ''}
+                    selectedPlant={null}
+                />
             </div>
         </>
     )

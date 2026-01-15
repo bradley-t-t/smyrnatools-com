@@ -376,6 +376,19 @@
     position: relative;
 }
 
+.ai-agent-item {
+    position: relative;
+}
+
+.ai-agent-item .menu-icon {
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.ai-agent-item:hover .menu-icon {
+    color: var(--accent);
+}
+
 .notification-badge {
     position: absolute;
     top: -2px;

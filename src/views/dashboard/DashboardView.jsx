@@ -1176,14 +1176,6 @@ export default function DashboardView() {
         }
     }
 
-    const timeAgo = d => {
-        if (!d) return ''
-        const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000)
-        if (diff < 60) return 'just now'
-        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-        return `${Math.floor(diff / 86400)}d ago`
-    }
     const showSkeleton = !dataReady
 
     const filteredTrainingOperators = (() => {
@@ -1253,6 +1245,7 @@ export default function DashboardView() {
                     </div>
                 </div>
             </div>
+            
             <div className="dashboard-hero simple slide-in-hero">
                 <div className="hero-left">
                     <div className="hero-region">
@@ -1318,6 +1311,7 @@ export default function DashboardView() {
                     <button className="btn danger ghost" onClick={onRetry}>Retry</button>
                 </div>
             </div>}
+            
             <div className="global-content-container content-container" aria-busy={showSkeleton}>
                 {showSkeleton ? (
                     <div className="group-grid">
