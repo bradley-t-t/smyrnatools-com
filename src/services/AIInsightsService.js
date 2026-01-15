@@ -1,4 +1,4 @@
-const GROK_API_KEY = 'xai-ggJlLMLkJdfpFS6qlpC1uLcHvh6w7ymFPVEMd85Wv1xzhrCQaCqQvHpToTtvw8yg26X3oGWufvCO9jLU';
+const GROK_API_KEY = process.env.REACT_APP_GROK_API_KEY;
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
 
 class AIInsightsServiceClass {
@@ -29,7 +29,7 @@ If everything looks good, respond with: [i] No significant issues detected at th
                     'Authorization': `Bearer ${GROK_API_KEY}`
                 },
                 body: JSON.stringify({
-                    model: 'grok-3-latest',
+                    model: 'grok-4',
                     messages: [
                         { role: 'system', content: systemPrompt },
                         { role: 'user', content: userPrompt }
@@ -84,11 +84,11 @@ DATA AVAILABLE:
 
 Answer questions using the provided data. If specific data needed to answer isn't in the context, explain what data would be needed. Do not use markdown formatting.`;
 
-        const formattedContext = this.formatContextForFollowUp(contextData);
+        const formattedContext = this.selectRelevantContext(question, contextData);
         
         const messages = [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Current operational data:\n${formattedContext}` }
+            { role: 'user', content: formattedContext }
         ];
 
         conversationHistory.forEach(msg => {
@@ -96,6 +96,13 @@ Answer questions using the provided data. If specific data needed to answer isn'
         });
 
         try {
+            if (!GROK_API_KEY) {
+                console.error('REACT_APP_GROK_API_KEY not set');
+                return 'AI not configured. Restart dev server.';
+            }
+            
+            console.log('AI Agent - Sending request with context size:', formattedContext.length);
+            
             const response = await fetch(GROK_API_URL, {
                 method: 'POST',
                 headers: {
@@ -103,23 +110,111 @@ Answer questions using the provided data. If specific data needed to answer isn'
                     'Authorization': `Bearer ${GROK_API_KEY}`
                 },
                 body: JSON.stringify({
-                    model: 'grok-3-latest',
+                    model: 'grok-4',
                     messages,
                     stream: false,
-                    temperature: 0.4
+                    temperature: 0.3
                 })
             });
 
+            if (response.status === 429) {
+                return 'Rate limited. Please wait a moment and try again.';
+            }
+
             if (!response.ok) {
-                throw new Error('Failed to get response');
+                const errorText = await response.text();
+                console.error('API Error:', response.status, errorText);
+                return 'Error connecting to AI service.';
             }
 
             const data = await response.json();
-            return data.choices?.[0]?.message?.content || 'I could not process that question. Please try again.';
+            return data.choices?.[0]?.message?.content || 'Could not process that question.';
         } catch (error) {
-            console.error('AI Follow-up Error:', error);
-            throw error;
+            console.error('AI Error:', error);
+            return 'Error connecting to AI service.';
         }
+    }
+
+    selectRelevantContext(question, ctx) {
+        const q = question.toLowerCase();
+        const parts = [];
+        
+        parts.push(`Region: ${ctx.regionName || 'Unknown'}, Date: ${ctx.currentDate || new Date().toISOString().slice(0, 10)}`);
+        
+        const mentionsSpecificTruck = q.match(/\b\d{3,5}\b/);
+        const mentionsPlant = q.match(/\b(40[1-8]|410|45[35]|46[18]|455)\b/);
+        const mentionsOperatorName = ctx.allOperatorsList?.find(o => q.includes(o.name?.toLowerCase()));
+        
+        if (mentionsSpecificTruck) {
+            const truckNum = mentionsSpecificTruck[0];
+            const mixer = ctx.allMixersList?.find(m => String(m.truckNumber) === truckNum || String(m.truckNumber).includes(truckNum));
+            if (mixer) {
+                parts.push(`Mixer ${mixer.truckNumber}: ${mixer.status} at Plant ${mixer.plant}, Operator: ${mixer.operatorName || 'Unassigned'}, VIN: ${mixer.vin || 'N/A'}, Make: ${mixer.make || 'N/A'}, Model: ${mixer.model || 'N/A'}, Year: ${mixer.year || 'N/A'}, Last Service: ${mixer.lastServiceDate?.slice(0,10) || 'N/A'}`);
+            }
+            const tractor = ctx.allTractorsList?.find(t => String(t.truckNumber) === truckNum || String(t.truckNumber).includes(truckNum));
+            if (tractor) {
+                parts.push(`Tractor ${tractor.truckNumber}: ${tractor.status} at Plant ${tractor.plant}, Operator: ${tractor.operatorName || 'Unassigned'}, Type: ${tractor.type || 'N/A'}`);
+            }
+            const history = ctx.operatorAssignmentHistory?.filter(h => String(h.truckNumber) === truckNum || String(h.truckNumber).includes(truckNum)) || [];
+            if (history.length > 0) {
+                const operators = [...new Set(history.map(h => h.newOperator).filter(o => o && o !== 'None' && o !== 'Unknown Operator'))];
+                if (operators.length > 0) {
+                    parts.push(`Operators who have driven ${truckNum}: ${operators.join(', ')}`);
+                }
+            }
+        }
+        
+        if (mentionsOperatorName) {
+            const op = mentionsOperatorName;
+            parts.push(`Operator ${op.name}: ${op.status} at Plant ${op.plant}, Position: ${op.position || 'Operator'}`);
+            const assignedMixer = ctx.allMixersList?.find(m => m.operatorName === op.name);
+            if (assignedMixer) {
+                parts.push(`${op.name} is currently driving Mixer ${assignedMixer.truckNumber} at Plant ${assignedMixer.plant}`);
+            }
+            const assignedTractor = ctx.allTractorsList?.find(t => t.operatorName === op.name);
+            if (assignedTractor) {
+                parts.push(`${op.name} is currently driving Tractor ${assignedTractor.truckNumber} at Plant ${assignedTractor.plant}`);
+            }
+        }
+        
+        if (q.includes('fleet') || q.includes('status') || q.includes('how many') || q.includes('total')) {
+            if (ctx.mixerStats) parts.push(`Mixers: ${ctx.mixerStats.total} total, ${ctx.mixerStats.active} active, ${ctx.mixerStats.inShop} in shop, ${ctx.mixerStats.spare} spare`);
+            if (ctx.tractorStats) parts.push(`Tractors: ${ctx.tractorStats.total} total, ${ctx.tractorStats.active} active, ${ctx.tractorStats.inShop} in shop`);
+            if (ctx.trailerStats) parts.push(`Trailers: ${ctx.trailerStats.total} total, ${ctx.trailerStats.active} active`);
+            if (ctx.operatorStats) parts.push(`Operators: ${ctx.operatorStats.total} total, ${ctx.operatorStats.active} active`);
+        }
+        
+        if (q.includes('operator') && mentionsPlant) {
+            const plantCode = mentionsPlant[0];
+            const ops = ctx.allOperatorsList?.filter(o => String(o.plant) === plantCode) || [];
+            if (ops.length > 0) {
+                parts.push(`Operators at Plant ${plantCode}: ${ops.map(o => o.name).join(', ')}`);
+            }
+        }
+        
+        if (q.includes('shop')) {
+            if (ctx.mixersInShop?.length > 0) {
+                parts.push(`Mixers in shop: ${ctx.mixersInShop.map(m => `${m.truckNumber} (${m.plant})`).join(', ')}`);
+            }
+        }
+        
+        if (q.includes('yard') || q.includes('report') || q.includes('production')) {
+            if (mentionsPlant) {
+                const plantCode = mentionsPlant[0];
+                const reports = ctx.plantManagerReports?.filter(r => String(r.plant) === plantCode).slice(0, 5) || [];
+                reports.forEach(r => parts.push(`Week ${r.week} Plant ${r.plant}: ${r.yardage} yards, ${r.totalHours} hours`));
+            } else {
+                const latestWeek = ctx.plantManagerReports?.[0]?.week;
+                if (latestWeek) {
+                    const weekReports = ctx.plantManagerReports.filter(r => r.week === latestWeek);
+                    const totalYards = weekReports.reduce((sum, r) => sum + (r.yardage || 0), 0);
+                    parts.push(`Week ${latestWeek}: ${totalYards} total yards across ${weekReports.length} plants`);
+                }
+            }
+        }
+        
+        console.log('AI Agent - Context size:', parts.join('\n').length, 'chars');
+        return parts.join('\n');
     }
 
     formatContextForFollowUp(ctx) {
@@ -217,16 +312,130 @@ Answer questions using the provided data. If specific data needed to answer isn'
         }
         
         if (ctx.allMixersList?.length > 0) {
-            parts.push(`\n=== ALL MIXERS (${ctx.allMixersList.length}) ===`);
+            parts.push(`\n=== ALL MIXERS - FULL DETAILS (${ctx.allMixersList.length}) ===`);
             ctx.allMixersList.forEach(m => {
-                parts.push(`  Truck ${m.truckNumber}: ${m.status} at Plant ${m.plant}, Operator: ${m.operator || 'Unassigned'}`);
+                let details = `  Truck ${m.truckNumber}: ${m.status} at Plant ${m.plant}, Operator: ${m.operatorName || 'Unassigned'}`;
+                if (m.vin) details += `, VIN: ${m.vin}`;
+                if (m.make) details += `, Make: ${m.make}`;
+                if (m.model) details += `, Model: ${m.model}`;
+                if (m.year) details += `, Year: ${m.year}`;
+                if (m.licensePlate) details += `, License: ${m.licensePlate}`;
+                if (m.mileage) details += `, Mileage: ${m.mileage}`;
+                if (m.drumCapacity) details += `, Capacity: ${m.drumCapacity} yards`;
+                if (m.lastServiceDate) details += `, Last Service: ${m.lastServiceDate.slice(0, 10)}`;
+                parts.push(details);
             });
         }
         
         if (ctx.allTractorsList?.length > 0) {
-            parts.push(`\n=== ALL TRACTORS (${ctx.allTractorsList.length}) ===`);
+            parts.push(`\n=== ALL TRACTORS - FULL DETAILS (${ctx.allTractorsList.length}) ===`);
             ctx.allTractorsList.forEach(t => {
-                parts.push(`  Truck ${t.truckNumber} (${t.type || 'Unknown'}): ${t.status} at Plant ${t.plant}, Operator: ${t.operator || 'Unassigned'}`);
+                let details = `  Truck ${t.truckNumber} (${t.type || 'Unknown'}): ${t.status} at Plant ${t.plant}, Operator: ${t.operatorName || 'Unassigned'}`;
+                if (t.vin) details += `, VIN: ${t.vin}`;
+                if (t.make) details += `, Make: ${t.make}`;
+                if (t.model) details += `, Model: ${t.model}`;
+                if (t.year) details += `, Year: ${t.year}`;
+                if (t.licensePlate) details += `, License: ${t.licensePlate}`;
+                if (t.mileage) details += `, Mileage: ${t.mileage}`;
+                if (t.lastServiceDate) details += `, Last Service: ${t.lastServiceDate.slice(0, 10)}`;
+                parts.push(details);
+            });
+        }
+
+        if (ctx.allTrailersList?.length > 0) {
+            parts.push(`\n=== ALL TRAILERS - FULL DETAILS (${ctx.allTrailersList.length}) ===`);
+            ctx.allTrailersList.forEach(t => {
+                let details = `  Trailer ${t.trailerNumber} (${t.type || 'Unknown'}): ${t.status} at Plant ${t.plant}`;
+                if (t.vin) details += `, VIN: ${t.vin}`;
+                if (t.make) details += `, Make: ${t.make}`;
+                if (t.model) details += `, Model: ${t.model}`;
+                if (t.year) details += `, Year: ${t.year}`;
+                if (t.licensePlate) details += `, License: ${t.licensePlate}`;
+                if (t.lastServiceDate) details += `, Last Service: ${t.lastServiceDate.slice(0, 10)}`;
+                parts.push(details);
+            });
+        }
+
+        if (ctx.allEquipmentList?.length > 0) {
+            parts.push(`\n=== ALL EQUIPMENT - FULL DETAILS (${ctx.allEquipmentList.length}) ===`);
+            ctx.allEquipmentList.forEach(e => {
+                let details = `  ${e.identifyingNumber} (${e.type || 'Unknown'}): ${e.status} at Plant ${e.plant}`;
+                if (e.make) details += `, Make: ${e.make}`;
+                if (e.model) details += `, Model: ${e.model}`;
+                if (e.year) details += `, Year: ${e.year}`;
+                if (e.serialNumber) details += `, Serial: ${e.serialNumber}`;
+                if (e.lastServiceDate) details += `, Last Service: ${e.lastServiceDate.slice(0, 10)}`;
+                parts.push(details);
+            });
+        }
+
+        if (ctx.allPickupsList?.length > 0) {
+            parts.push(`\n=== ALL PICKUP TRUCKS - FULL DETAILS (${ctx.allPickupsList.length}) ===`);
+            ctx.allPickupsList.forEach(p => {
+                let details = `  Truck ${p.truckNumber}: ${p.status} at Plant ${p.plant}`;
+                if (p.assignedTo) details += `, Assigned To: ${p.assignedTo}`;
+                if (p.vin) details += `, VIN: ${p.vin}`;
+                if (p.make) details += `, Make: ${p.make}`;
+                if (p.model) details += `, Model: ${p.model}`;
+                if (p.year) details += `, Year: ${p.year}`;
+                if (p.licensePlate) details += `, License: ${p.licensePlate}`;
+                if (p.mileage) details += `, Mileage: ${p.mileage}`;
+                parts.push(details);
+            });
+        }
+
+        const operatorTruckMap = [];
+        if (ctx.allMixersList?.length > 0) {
+            ctx.allMixersList.filter(m => m.operatorName && m.operatorName !== 'Unassigned').forEach(m => {
+                operatorTruckMap.push({name: m.operatorName, truck: m.truckNumber, type: 'Mixer', plant: m.plant, status: m.status});
+            });
+        }
+        if (ctx.allTractorsList?.length > 0) {
+            ctx.allTractorsList.filter(t => t.operatorName && t.operatorName !== 'Unassigned').forEach(t => {
+                operatorTruckMap.push({name: t.operatorName, truck: t.truckNumber, type: 'Tractor', plant: t.plant, status: t.status});
+            });
+        }
+        if (operatorTruckMap.length > 0) {
+            parts.push(`\n=== CURRENT OPERATOR TRUCK ASSIGNMENTS (${operatorTruckMap.length} assigned) ===`);
+            operatorTruckMap.forEach(a => {
+                parts.push(`  ${a.name} is driving ${a.type} ${a.truck} at Plant ${a.plant} (${a.status})`);
+            });
+        }
+
+        if (ctx.allOperatorsList?.length > 0) {
+            parts.push(`\n=== ALL OPERATORS - FULL DETAILS (${ctx.allOperatorsList.length}) ===`);
+            ctx.allOperatorsList.forEach(o => {
+                let details = `  ${o.name}: ${o.status} at Plant ${o.plant}, Position: ${o.position || 'Unknown'}`;
+                if (o.hireDate) details += `, Hire Date: ${o.hireDate.slice(0, 10)}`;
+                if (o.trainer) details += `, Trainer: ${o.trainer}`;
+                parts.push(details);
+            });
+        }
+
+        if (ctx.operatorAssignmentHistory?.length > 0) {
+            parts.push(`\n=== OPERATOR ASSIGNMENT HISTORY (showing 50 of ${ctx.operatorAssignmentHistory.length} changes) ===`);
+            ctx.operatorAssignmentHistory.slice(0, 50).forEach(h => {
+                parts.push(`  ${h.changedAt?.slice(0, 10)}: ${h.assetType} ${h.truckNumber} at Plant ${h.plant} - Previous: ${h.previousOperator}, New: ${h.newOperator}`);
+            });
+            
+            const truckOperatorMap = {};
+            ctx.operatorAssignmentHistory.forEach(h => {
+                const key = `${h.assetType} ${h.truckNumber}`;
+                if (!truckOperatorMap[key]) truckOperatorMap[key] = new Set();
+                if (h.previousOperator && h.previousOperator !== 'None' && h.previousOperator !== 'Unknown Operator') {
+                    truckOperatorMap[key].add(h.previousOperator);
+                }
+                if (h.newOperator && h.newOperator !== 'None' && h.newOperator !== 'Unknown Operator') {
+                    truckOperatorMap[key].add(h.newOperator);
+                }
+            });
+            
+            parts.push(`\n=== OPERATORS WHO HAVE DRIVEN EACH TRUCK (based on history) ===`);
+            Object.keys(truckOperatorMap).sort().forEach(truck => {
+                const operators = Array.from(truckOperatorMap[truck]);
+                if (operators.length > 0) {
+                    parts.push(`  ${truck}: ${operators.join(', ')}`);
+                }
             });
         }
         
@@ -398,21 +607,18 @@ Answer questions using the provided data. If specific data needed to answer isn'
         }
         
         if (ctx.aggregateReports?.length > 0) {
-            parts.push(`\n=== AGGREGATE PRODUCTION REPORTS (${ctx.aggregateReports.length} reports) ===`);
-            ctx.aggregateReports.forEach(r => {
-                parts.push(`  Week ${r.week} - Location ${r.location}:`);
-                if (r.materials?.length > 0) {
-                    r.materials.forEach(m => {
-                        parts.push(`    ${m.material || m.name}: ${m.quantity || m.tons || 0} tons`);
-                    });
-                }
+            const recentAggReports = ctx.aggregateReports.slice(0, 10);
+            parts.push(`\n=== AGGREGATE PRODUCTION REPORTS (showing ${recentAggReports.length} of ${ctx.aggregateReports.length} reports) ===`);
+            recentAggReports.forEach(r => {
+                parts.push(`  Week ${r.week} - Location ${r.location}`);
             });
         }
         
         if (ctx.rmiReports?.length > 0) {
-            parts.push(`\n=== RMI REPORTS (${ctx.rmiReports.length} reports) ===`);
-            ctx.rmiReports.forEach(r => {
-                parts.push(`  Week ${r.week}: ${JSON.stringify(r.data || {})}`);
+            const recentRMI = ctx.rmiReports.slice(0, 10);
+            parts.push(`\n=== RMI REPORTS (showing ${recentRMI.length} of ${ctx.rmiReports.length} reports) ===`);
+            recentRMI.forEach(r => {
+                parts.push(`  Week ${r.week}`);
             });
         }
         

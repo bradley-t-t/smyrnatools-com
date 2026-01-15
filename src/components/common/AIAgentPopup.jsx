@@ -72,14 +72,16 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                 operatorsRes, 
                 listItemsRes
             ] = await Promise.all([
-                MixerService.fetchMixers().catch(() => []),
-                TractorService.fetchTractors().catch(() => []),
-                TrailerService.fetchTrailers().catch(() => []),
-                EquipmentService.fetchEquipments().catch(() => []),
-                PickupTruckService.fetchAll().catch(() => []),
-                OperatorService.fetchOperators().catch(() => []),
-                ListService.fetchListItems().catch(() => [])
+                MixerService.fetchMixers().catch(e => { console.error('AI Agent - Mixers fetch error:', e); return [] }),
+                TractorService.fetchTractors().catch(e => { console.error('AI Agent - Tractors fetch error:', e); return [] }),
+                TrailerService.fetchTrailers().catch(e => { console.error('AI Agent - Trailers fetch error:', e); return [] }),
+                EquipmentService.fetchEquipments().catch(e => { console.error('AI Agent - Equipment fetch error:', e); return [] }),
+                PickupTruckService.fetchAll().catch(e => { console.error('AI Agent - Pickups fetch error:', e); return [] }),
+                OperatorService.fetchOperators().catch(e => { console.error('AI Agent - Operators fetch error:', e); return [] }),
+                ListService.fetchListItems().catch(e => { console.error('AI Agent - ListItems fetch error:', e); return [] })
             ])
+            
+            console.log('AI Agent - operatorsRes type:', typeof operatorsRes, 'length:', operatorsRes?.length)
 
             let reportsData = []
             let userIdToPlantCode = new Map()
@@ -116,6 +118,20 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
             const pickups = allPickups.filter(p => filterByPlant(p))
             const operators = allOperators.filter(o => filterByPlant(o, 'plantCode'))
             const listItems = allListItems.filter(li => filterByPlant(li, 'plantCode'))
+
+            if (allOperators.length > 0) {
+                console.log('AI Agent - Sample operator object keys:', Object.keys(allOperators[0]))
+                console.log('AI Agent - Sample operator:', allOperators[0])
+            }
+
+            const operatorIdToName = new Map()
+            allOperators.forEach(o => {
+                const opId = o.employeeId || o.employee_id || o.id
+                const opName = o.name
+                if (opId && opName) {
+                    operatorIdToName.set(opId, opName)
+                }
+            })
 
             console.log('AI Agent - Raw counts:', {
                 allMixers: allMixers.length,
@@ -234,15 +250,66 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                 truckNumber: m.truckNumber,
                 status: m.status,
                 plant: m.assignedPlant,
-                operator: m.assignedOperator
+                operatorId: m.assignedOperator,
+                operatorName: operatorIdToName.get(m.assignedOperator) || 'Unassigned',
+                vin: m.vin || '',
+                make: m.make || '',
+                model: m.model || '',
+                year: m.year || '',
+                lastServiceDate: m.lastServiceDate || '',
+                cleanlinessRating: m.cleanlinessRating || 0
             }))
 
             const allTractorsList = tractors.filter(t => t.status !== 'Retired').map(t => ({
                 truckNumber: t.truckNumber,
                 status: t.status,
                 plant: t.assignedPlant,
-                operator: t.assignedOperator,
-                type: t.freight || 'Cement'
+                operatorId: t.assignedOperator,
+                operatorName: operatorIdToName.get(t.assignedOperator) || 'Unassigned',
+                type: t.freight || t.tractorType || 'Unknown',
+                vin: t.vin || '',
+                make: t.make || '',
+                model: t.model || '',
+                year: t.year || '',
+                lastServiceDate: t.lastServiceDate || ''
+            }))
+
+            const allTrailersList = trailers.filter(t => t.status !== 'Retired').map(t => ({
+                trailerNumber: t.trailerNumber,
+                status: t.status,
+                plant: t.assignedPlant,
+                type: t.trailerType,
+                vin: t.vin,
+                make: t.make,
+                model: t.model,
+                year: t.year,
+                licensePlate: t.licensePlate,
+                lastServiceDate: t.lastServiceDate
+            }))
+
+            const allEquipmentList = equipment.filter(e => e.status !== 'Retired').map(e => ({
+                identifyingNumber: e.identifyingNumber,
+                status: e.status,
+                plant: e.assignedPlant,
+                type: e.equipmentType,
+                make: e.make,
+                model: e.model,
+                year: e.year,
+                serialNumber: e.serialNumber,
+                lastServiceDate: e.lastServiceDate
+            }))
+
+            const allPickupsList = pickups.filter(p => p.status !== 'Retired').map(p => ({
+                truckNumber: p.truckNumber,
+                status: p.status,
+                plant: p.assignedPlant,
+                assignedTo: p.assignedTo,
+                vin: p.vin,
+                make: p.make,
+                model: p.model,
+                year: p.year,
+                licensePlate: p.licensePlate,
+                mileage: p.mileage
             }))
 
             const operatorsTraining = operators.filter(o => o.status === 'Training').map(o => ({
@@ -274,12 +341,14 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                 plant: li.plantCode
             }))
 
-            const [mixersHistRes, tractorsHistRes, trailersHistRes, equipmentHistRes, pickupsHistRes] = await Promise.all([
+            const [mixersHistRes, tractorsHistRes, trailersHistRes, equipmentHistRes, pickupsHistRes, mixerOpHistRes, tractorOpHistRes] = await Promise.all([
                 supabase.from('mixers_history').select('mixer_id, field_name, old_value, new_value, changed_at').eq('field_name', 'status').order('changed_at', {ascending: false}),
                 supabase.from('tractors_history').select('tractor_id, field_name, old_value, new_value, changed_at').eq('field_name', 'status').order('changed_at', {ascending: false}),
                 supabase.from('trailers_history').select('trailer_id, field_name, old_value, new_value, changed_at').eq('field_name', 'status').order('changed_at', {ascending: false}),
                 supabase.from('heavy_equipment_history').select('equipment_id, field_name, old_value, new_value, changed_at').eq('field_name', 'status').order('changed_at', {ascending: false}),
-                supabase.from('pickup_trucks_history').select('pickup_id, field_name, old_value, new_value, changed_at').eq('field_name', 'status').order('changed_at', {ascending: false})
+                supabase.from('pickup_trucks_history').select('truck_id, field_name, old_value, new_value, changed_at').eq('field_name', 'status').order('changed_at', {ascending: false}),
+                supabase.from('mixers_history').select('mixer_id, field_name, old_value, new_value, changed_at').eq('field_name', 'assigned_operator').order('changed_at', {ascending: false}),
+                supabase.from('tractors_history').select('tractor_id, field_name, old_value, new_value, changed_at').eq('field_name', 'assigned_operator').order('changed_at', {ascending: false})
             ])
 
             const mixerIdToPlant = new Map(mixers.map(m => [m.id, m.assignedPlant]))
@@ -297,7 +366,66 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
             const tractorsHistory = (tractorsHistRes.data || []).filter(h => tractorIdToPlant.has(h.tractor_id)).map(h => ({assetNumber: tractorIdToTruck.get(h.tractor_id), plant: tractorIdToPlant.get(h.tractor_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
             const trailersHistory = (trailersHistRes.data || []).filter(h => trailerIdToPlant.has(h.trailer_id)).map(h => ({assetNumber: trailerIdToNumber.get(h.trailer_id), plant: trailerIdToPlant.get(h.trailer_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
             const equipmentHistory = (equipmentHistRes.data || []).filter(h => equipmentIdToPlant.has(h.equipment_id)).map(h => ({assetNumber: equipmentIdToNumber.get(h.equipment_id), plant: equipmentIdToPlant.get(h.equipment_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
-            const pickupsHistory = (pickupsHistRes.data || []).filter(h => pickupIdToPlant.has(h.pickup_id)).map(h => ({assetNumber: pickupIdToTruck.get(h.pickup_id), plant: pickupIdToPlant.get(h.pickup_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
+            const pickupsHistory = (pickupsHistRes.data || []).filter(h => pickupIdToPlant.has(h.truck_id)).map(h => ({assetNumber: pickupIdToTruck.get(h.truck_id), plant: pickupIdToPlant.get(h.truck_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
+
+            const getOperatorName = (id) => {
+                if (!id || id === 'null' || id === 'undefined') return 'None'
+                const name = operatorIdToName.get(id)
+                if (name) return name
+                const idLower = String(id).toLowerCase()
+                for (const [key, value] of operatorIdToName.entries()) {
+                    if (String(key).toLowerCase() === idLower) return value
+                }
+                return 'Unknown Operator'
+            }
+
+            console.log('AI Agent - Operator ID to Name map size:', operatorIdToName.size)
+            console.log('AI Agent - Sample operator IDs:', Array.from(operatorIdToName.keys()).slice(0, 5))
+            
+            const rawMixerOpHist = mixerOpHistRes.data || []
+            console.log('AI Agent - Mixer operator history count:', rawMixerOpHist.length)
+            if (rawMixerOpHist.length > 0) {
+                console.log('AI Agent - Sample mixer op history entry:', rawMixerOpHist[0])
+            }
+
+            const mixerOperatorHistory = rawMixerOpHist.filter(h => mixerIdToPlant.has(h.mixer_id)).map(h => ({
+                truckNumber: mixerIdToTruck.get(h.mixer_id),
+                plant: mixerIdToPlant.get(h.mixer_id),
+                previousOperator: getOperatorName(h.old_value),
+                previousOperatorId: h.old_value,
+                newOperator: getOperatorName(h.new_value),
+                newOperatorId: h.new_value,
+                changedAt: h.changed_at,
+                assetType: 'Mixer'
+            }))
+            const tractorOperatorHistory = (tractorOpHistRes.data || []).filter(h => tractorIdToPlant.has(h.tractor_id)).map(h => ({
+                truckNumber: tractorIdToTruck.get(h.tractor_id),
+                plant: tractorIdToPlant.get(h.tractor_id),
+                previousOperator: getOperatorName(h.old_value),
+                previousOperatorId: h.old_value,
+                newOperator: getOperatorName(h.new_value),
+                newOperatorId: h.new_value,
+                changedAt: h.changed_at,
+                assetType: 'Tractor'
+            }))
+            const operatorAssignmentHistory = [...mixerOperatorHistory, ...tractorOperatorHistory].sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt))
+            
+            console.log('AI Agent - Operator assignment history count:', operatorAssignmentHistory.length)
+            if (operatorAssignmentHistory.length > 0) {
+                console.log('AI Agent - Sample assignment history:', operatorAssignmentHistory[0])
+            }
+
+            const allOperatorsList = operators.map(o => ({
+                id: o.employeeId || o.employee_id || o.id,
+                name: o.name,
+                status: o.status,
+                plant: o.plantCode,
+                position: o.position,
+                hireDate: o.createdAt,
+                trainer: o.assignedTrainer,
+                isTrainer: o.isTrainer,
+                phone: o.phone
+            }))
 
             const statusHistorySummary = {
                 mixers: {totalChanges: mixersHistory.length, enteredShop: mixersHistory.filter(h => h.newStatus === 'In Shop').length, exitedShop: mixersHistory.filter(h => h.oldStatus === 'In Shop').length, byPlant: {}},
@@ -413,6 +541,11 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                 trailersHistory,
                 equipmentHistory,
                 pickupsHistory,
+                operatorAssignmentHistory,
+                allOperatorsList,
+                allTrailersList,
+                allEquipmentList,
+                allPickupsList,
                 plantManagerReports,
                 efficiencyReports,
                 aggregateReports,
