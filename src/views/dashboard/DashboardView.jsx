@@ -1245,7 +1245,7 @@ export default function DashboardView() {
                     </div>
                 </div>
             </div>
-            
+
             <div className="dashboard-hero simple slide-in-hero">
                 <div className="hero-left">
                     <div className="hero-region">
@@ -1311,7 +1311,7 @@ export default function DashboardView() {
                     <button className="btn danger ghost" onClick={onRetry}>Retry</button>
                 </div>
             </div>}
-            
+
             <div className="global-content-container content-container" aria-busy={showSkeleton}>
                 {showSkeleton ? (
                     <div className="group-grid">

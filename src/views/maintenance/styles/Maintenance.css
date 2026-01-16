@@ -2113,6 +2113,138 @@
     font-size: 13px;
 }
 
+.image-upload-options {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+    border: 1px dashed var(--divider);
+    border-radius: 12px;
+    justify-content: center;
+}
+
+.image-upload-options.error {
+    border-color: var(--danger);
+}
+
+.image-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 100px;
+}
+
+.image-option-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image-option-btn.camera {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.image-option-btn.camera:hover:not(:disabled) {
+    background: var(--accent);
+    color: white;
+}
+
+.image-option-btn.gallery {
+    border-color: var(--text-secondary);
+}
+
+.image-option-btn.gallery:hover:not(:disabled) {
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+}
+
+.image-option-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.image-option-btn i {
+    font-size: 24px;
+}
+
+.image-uploading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    color: var(--text-secondary);
+}
+
+.image-uploading i {
+    font-size: 24px;
+    color: var(--accent);
+}
+
+.checklist-image-options {
+    display: flex;
+    gap: 8px;
+}
+
+.checklist-image-options.error {
+    border: 1px dashed var(--danger);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.checklist-image-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.checklist-image-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.checklist-image-btn.camera {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.checklist-image-btn.camera:hover:not(:disabled) {
+    background: var(--accent);
+    color: white;
+}
+
+.checklist-image-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checklist-image-uploading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    color: var(--accent);
+}
+
 .image-preview-container.compact {
     max-width: 200px;
 }

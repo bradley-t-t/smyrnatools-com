@@ -31,8 +31,8 @@ If everything looks good, respond with: [i] No significant issues detected at th
                 body: JSON.stringify({
                     model: 'grok-4',
                     messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: userPrompt }
+                        {role: 'system', content: systemPrompt},
+                        {role: 'user', content: userPrompt}
                     ],
                     stream: false,
                     temperature: 0.3
@@ -85,14 +85,14 @@ DATA AVAILABLE:
 Answer questions using the provided data. If specific data needed to answer isn't in the context, explain what data would be needed. Do not use markdown formatting.`;
 
         const formattedContext = this.selectRelevantContext(question, contextData);
-        
+
         const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: formattedContext }
+            {role: 'system', content: systemPrompt},
+            {role: 'user', content: formattedContext}
         ];
 
         conversationHistory.forEach(msg => {
-            messages.push({ role: msg.role, content: msg.content });
+            messages.push({role: msg.role, content: msg.content});
         });
 
         try {
@@ -100,9 +100,9 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 console.error('REACT_APP_GROK_API_KEY not set');
                 return 'AI not configured. Restart dev server.';
             }
-            
+
             console.log('AI Agent - Sending request with context size:', formattedContext.length);
-            
+
             const response = await fetch(GROK_API_URL, {
                 method: 'POST',
                 headers: {
@@ -138,18 +138,18 @@ Answer questions using the provided data. If specific data needed to answer isn'
     selectRelevantContext(question, ctx) {
         const q = question.toLowerCase();
         const parts = [];
-        
+
         parts.push(`Region: ${ctx.regionName || 'Unknown'}, Date: ${ctx.currentDate || new Date().toISOString().slice(0, 10)}`);
-        
+
         const mentionsSpecificTruck = q.match(/\b\d{3,5}\b/);
         const mentionsPlant = q.match(/\b(40[1-8]|410|45[35]|46[18]|455)\b/);
         const mentionsOperatorName = ctx.allOperatorsList?.find(o => q.includes(o.name?.toLowerCase()));
-        
+
         if (mentionsSpecificTruck) {
             const truckNum = mentionsSpecificTruck[0];
             const mixer = ctx.allMixersList?.find(m => String(m.truckNumber) === truckNum || String(m.truckNumber).includes(truckNum));
             if (mixer) {
-                parts.push(`Mixer ${mixer.truckNumber}: ${mixer.status} at Plant ${mixer.plant}, Operator: ${mixer.operatorName || 'Unassigned'}, VIN: ${mixer.vin || 'N/A'}, Make: ${mixer.make || 'N/A'}, Model: ${mixer.model || 'N/A'}, Year: ${mixer.year || 'N/A'}, Last Service: ${mixer.lastServiceDate?.slice(0,10) || 'N/A'}`);
+                parts.push(`Mixer ${mixer.truckNumber}: ${mixer.status} at Plant ${mixer.plant}, Operator: ${mixer.operatorName || 'Unassigned'}, VIN: ${mixer.vin || 'N/A'}, Make: ${mixer.make || 'N/A'}, Model: ${mixer.model || 'N/A'}, Year: ${mixer.year || 'N/A'}, Last Service: ${mixer.lastServiceDate?.slice(0, 10) || 'N/A'}`);
             }
             const tractor = ctx.allTractorsList?.find(t => String(t.truckNumber) === truckNum || String(t.truckNumber).includes(truckNum));
             if (tractor) {
@@ -163,7 +163,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 }
             }
         }
-        
+
         if (mentionsOperatorName) {
             const op = mentionsOperatorName;
             parts.push(`Operator ${op.name}: ${op.status} at Plant ${op.plant}, Position: ${op.position || 'Operator'}`);
@@ -176,14 +176,14 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(`${op.name} is currently driving Tractor ${assignedTractor.truckNumber} at Plant ${assignedTractor.plant}`);
             }
         }
-        
+
         if (q.includes('fleet') || q.includes('status') || q.includes('how many') || q.includes('total')) {
             if (ctx.mixerStats) parts.push(`Mixers: ${ctx.mixerStats.total} total, ${ctx.mixerStats.active} active, ${ctx.mixerStats.inShop} in shop, ${ctx.mixerStats.spare} spare`);
             if (ctx.tractorStats) parts.push(`Tractors: ${ctx.tractorStats.total} total, ${ctx.tractorStats.active} active, ${ctx.tractorStats.inShop} in shop`);
             if (ctx.trailerStats) parts.push(`Trailers: ${ctx.trailerStats.total} total, ${ctx.trailerStats.active} active`);
             if (ctx.operatorStats) parts.push(`Operators: ${ctx.operatorStats.total} total, ${ctx.operatorStats.active} active`);
         }
-        
+
         if (q.includes('operator') && mentionsPlant) {
             const plantCode = mentionsPlant[0];
             const ops = ctx.allOperatorsList?.filter(o => String(o.plant) === plantCode) || [];
@@ -191,13 +191,13 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(`Operators at Plant ${plantCode}: ${ops.map(o => o.name).join(', ')}`);
             }
         }
-        
+
         if (q.includes('shop')) {
             if (ctx.mixersInShop?.length > 0) {
                 parts.push(`Mixers in shop: ${ctx.mixersInShop.map(m => `${m.truckNumber} (${m.plant})`).join(', ')}`);
             }
         }
-        
+
         if (q.includes('yard') || q.includes('report') || q.includes('production')) {
             if (mentionsPlant) {
                 const plantCode = mentionsPlant[0];
@@ -212,20 +212,20 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 }
             }
         }
-        
+
         console.log('AI Agent - Context size:', parts.join('\n').length, 'chars');
         return parts.join('\n');
     }
 
     formatContextForFollowUp(ctx) {
         const parts = [];
-        
+
         parts.push(`Region: ${ctx.regionName || 'Unknown'}`);
         if (ctx.selectedPlant) parts.push(`Selected Plant: ${ctx.selectedPlant}`);
         if (ctx.currentDate) parts.push(`Current Date: ${ctx.currentDate}`);
-        
+
         parts.push(`\n=== CURRENT FLEET STATUS ===`);
-        
+
         if (ctx.mixerStats) {
             parts.push(`MIXERS: ${ctx.mixerStats.total} total, ${ctx.mixerStats.active} active, ${ctx.mixerStats.inShop} in shop, ${ctx.mixerStats.spare} spare`);
             parts.push(`  Service Overdue: ${ctx.mixerStats.serviceOverdue || 0}, Open Issues: ${ctx.mixerStats.openIssues || 0}`);
@@ -246,17 +246,17 @@ Answer questions using the provided data. If specific data needed to answer isn'
         if (ctx.pickupStats) {
             parts.push(`PICKUP TRUCKS: ${ctx.pickupStats.total} total, ${ctx.pickupStats.active} active, ${ctx.pickupStats.inShop} in shop, ${ctx.pickupStats.spare} spare, ${ctx.pickupStats.stationary} stationary`);
         }
-        
+
         if (ctx.operatorStats) {
             parts.push(`\n=== OPERATORS ===`);
             parts.push(`Total: ${ctx.operatorStats.total}, Active: ${ctx.operatorStats.active}, Training: ${ctx.operatorStats.training}, Pending Start: ${ctx.operatorStats.pending}`);
             parts.push(`Light Duty: ${ctx.operatorStats.lightDuty || 0}, Terminated: ${ctx.operatorStats.terminated || 0}`);
         }
-        
+
         parts.push(`\n=== MAINTENANCE SUMMARY ===`);
         parts.push(`Total Service Overdue: ${ctx.totalServiceOverdue || 0}`);
         parts.push(`Total Open Maintenance Issues: ${ctx.totalOpenMaintenanceIssues || 0}`);
-        
+
         if (ctx.mixersInShop?.length > 0) {
             parts.push(`\n=== MIXERS IN SHOP (${ctx.mixersInShop.length}) ===`);
             ctx.mixersInShop.forEach(m => {
@@ -266,7 +266,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(line);
             });
         }
-        
+
         if (ctx.tractorsInShop?.length > 0) {
             parts.push(`\n=== TRACTORS IN SHOP (${ctx.tractorsInShop.length}) ===`);
             ctx.tractorsInShop.forEach(t => {
@@ -276,7 +276,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(line);
             });
         }
-        
+
         if (ctx.trailersInShop?.length > 0) {
             parts.push(`\n=== TRAILERS IN SHOP (${ctx.trailersInShop.length}) ===`);
             ctx.trailersInShop.forEach(t => {
@@ -286,7 +286,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(line);
             });
         }
-        
+
         if (ctx.equipmentInShop?.length > 0) {
             parts.push(`\n=== EQUIPMENT IN SHOP (${ctx.equipmentInShop.length}) ===`);
             ctx.equipmentInShop.forEach(e => {
@@ -296,21 +296,21 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(line);
             });
         }
-        
+
         if (ctx.mixersSpare?.length > 0) {
             parts.push(`\n=== SPARE MIXERS (${ctx.mixersSpare.length}) ===`);
             ctx.mixersSpare.forEach(m => {
                 parts.push(`  Truck ${m.truckNumber} at Plant ${m.plant}`);
             });
         }
-        
+
         if (ctx.tractorsSpare?.length > 0) {
             parts.push(`\n=== SPARE TRACTORS (${ctx.tractorsSpare.length}) ===`);
             ctx.tractorsSpare.forEach(t => {
                 parts.push(`  Truck ${t.truckNumber} (${t.type || 'Unknown'}) at Plant ${t.plant}`);
             });
         }
-        
+
         if (ctx.allMixersList?.length > 0) {
             parts.push(`\n=== ALL MIXERS - FULL DETAILS (${ctx.allMixersList.length}) ===`);
             ctx.allMixersList.forEach(m => {
@@ -326,7 +326,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(details);
             });
         }
-        
+
         if (ctx.allTractorsList?.length > 0) {
             parts.push(`\n=== ALL TRACTORS - FULL DETAILS (${ctx.allTractorsList.length}) ===`);
             ctx.allTractorsList.forEach(t => {
@@ -387,12 +387,24 @@ Answer questions using the provided data. If specific data needed to answer isn'
         const operatorTruckMap = [];
         if (ctx.allMixersList?.length > 0) {
             ctx.allMixersList.filter(m => m.operatorName && m.operatorName !== 'Unassigned').forEach(m => {
-                operatorTruckMap.push({name: m.operatorName, truck: m.truckNumber, type: 'Mixer', plant: m.plant, status: m.status});
+                operatorTruckMap.push({
+                    name: m.operatorName,
+                    truck: m.truckNumber,
+                    type: 'Mixer',
+                    plant: m.plant,
+                    status: m.status
+                });
             });
         }
         if (ctx.allTractorsList?.length > 0) {
             ctx.allTractorsList.filter(t => t.operatorName && t.operatorName !== 'Unassigned').forEach(t => {
-                operatorTruckMap.push({name: t.operatorName, truck: t.truckNumber, type: 'Tractor', plant: t.plant, status: t.status});
+                operatorTruckMap.push({
+                    name: t.operatorName,
+                    truck: t.truckNumber,
+                    type: 'Tractor',
+                    plant: t.plant,
+                    status: t.status
+                });
             });
         }
         if (operatorTruckMap.length > 0) {
@@ -417,7 +429,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
             ctx.operatorAssignmentHistory.slice(0, 50).forEach(h => {
                 parts.push(`  ${h.changedAt?.slice(0, 10)}: ${h.assetType} ${h.truckNumber} at Plant ${h.plant} - Previous: ${h.previousOperator}, New: ${h.newOperator}`);
             });
-            
+
             const truckOperatorMap = {};
             ctx.operatorAssignmentHistory.forEach(h => {
                 const key = `${h.assetType} ${h.truckNumber}`;
@@ -429,7 +441,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                     truckOperatorMap[key].add(h.newOperator);
                 }
             });
-            
+
             parts.push(`\n=== OPERATORS WHO HAVE DRIVEN EACH TRUCK (based on history) ===`);
             Object.keys(truckOperatorMap).sort().forEach(truck => {
                 const operators = Array.from(truckOperatorMap[truck]);
@@ -438,38 +450,38 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 }
             });
         }
-        
+
         if (ctx.operatorsTraining?.length > 0) {
             parts.push(`\n=== OPERATORS IN TRAINING (${ctx.operatorsTraining.length}) ===`);
             ctx.operatorsTraining.forEach(o => {
                 parts.push(`  ${o.name} at Plant ${o.plant} (${o.position || 'Unknown Position'}), Trainer: ${o.trainer || 'Not Assigned'}`);
             });
         }
-        
+
         if (ctx.operatorsPendingStart?.length > 0) {
             parts.push(`\n=== OPERATORS PENDING START (${ctx.operatorsPendingStart.length}) ===`);
             ctx.operatorsPendingStart.forEach(o => {
                 parts.push(`  ${o.name} at Plant ${o.plant}, Start Date: ${o.pendingDate || 'TBD'}`);
             });
         }
-        
+
         if (ctx.recentReports) {
             parts.push(`\n=== RECENT REPORTS (Last 4 Weeks) ===`);
-            
+
             if (ctx.recentReports.plantManager?.length > 0) {
                 parts.push(`\nPlant Manager Reports (${ctx.recentReports.plantManager.length}):`);
                 ctx.recentReports.plantManager.forEach(r => {
                     parts.push(`  Week ${r.week}, Plant ${r.plant}: ${r.yardage || 0} yards, ${r.hours || 0} hrs, ${r.loadsLost || 0} loads lost`);
                 });
             }
-            
+
             if (ctx.recentReports.efficiency?.length > 0) {
                 parts.push(`\nEfficiency Reports (${ctx.recentReports.efficiency.length}):`);
                 ctx.recentReports.efficiency.forEach(r => {
                     parts.push(`  Week ${r.week}, Plant ${r.plant}: Start ${r.avgStartTime || 'N/A'}, End ${r.avgEndTime || 'N/A'}, ${r.loadsPerHour || 'N/A'} loads/hr`);
                 });
             }
-            
+
             if (ctx.recentReports.generalManager?.length > 0) {
                 parts.push(`\nGeneral Manager Reports (${ctx.recentReports.generalManager.length}):`);
                 ctx.recentReports.generalManager.forEach(r => {
@@ -477,7 +489,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 });
             }
         }
-        
+
         if (ctx.pendingListItems?.length > 0) {
             parts.push(`\n=== PENDING LIST ITEMS (${ctx.pendingListItems.length}) ===`);
             ctx.pendingListItems.slice(0, 30).forEach(li => {
@@ -488,17 +500,17 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(line);
             });
         }
-        
+
         if (ctx.completedListItems?.length > 0) {
             parts.push(`\n=== RECENTLY COMPLETED LIST ITEMS (${ctx.completedListItems.length}) ===`);
             ctx.completedListItems.slice(0, 10).forEach(li => {
                 parts.push(`  Plant ${li.plant}: ${li.description} (Completed: ${li.completedAt?.slice(0, 10) || 'N/A'})`);
             });
         }
-        
+
         if (ctx.statusHistorySummary) {
             parts.push(`\n=== STATUS HISTORY SUMMARY (ALL TIME) ===`);
-            
+
             const addSummary = (name, summary) => {
                 parts.push(`\n${name}:`);
                 parts.push(`  Total Status Changes: ${summary.totalChanges}, Entered Shop: ${summary.enteredShop}, Exited Shop: ${summary.exitedShop}`);
@@ -509,49 +521,49 @@ Answer questions using the provided data. If specific data needed to answer isn'
                     });
                 }
             };
-            
+
             if (ctx.statusHistorySummary.mixers) addSummary('Mixers', ctx.statusHistorySummary.mixers);
             if (ctx.statusHistorySummary.tractors) addSummary('Tractors', ctx.statusHistorySummary.tractors);
             if (ctx.statusHistorySummary.trailers) addSummary('Trailers', ctx.statusHistorySummary.trailers);
             if (ctx.statusHistorySummary.equipment) addSummary('Equipment', ctx.statusHistorySummary.equipment);
             if (ctx.statusHistorySummary.pickups) addSummary('Pickup Trucks', ctx.statusHistorySummary.pickups);
         }
-        
+
         if (ctx.mixersHistory?.length > 0) {
             parts.push(`\n=== MIXER STATUS CHANGE HISTORY (${ctx.mixersHistory.length} records) ===`);
             ctx.mixersHistory.forEach(h => {
                 parts.push(`  ${h.assetNumber} at Plant ${h.plant}: ${h.oldStatus} -> ${h.newStatus} on ${h.changedAt?.slice(0, 10)}`);
             });
         }
-        
+
         if (ctx.tractorsHistory?.length > 0) {
             parts.push(`\n=== TRACTOR STATUS CHANGE HISTORY (${ctx.tractorsHistory.length} records) ===`);
             ctx.tractorsHistory.forEach(h => {
                 parts.push(`  ${h.assetNumber} at Plant ${h.plant}: ${h.oldStatus} -> ${h.newStatus} on ${h.changedAt?.slice(0, 10)}`);
             });
         }
-        
+
         if (ctx.trailersHistory?.length > 0) {
             parts.push(`\n=== TRAILER STATUS CHANGE HISTORY (${ctx.trailersHistory.length} records) ===`);
             ctx.trailersHistory.forEach(h => {
                 parts.push(`  ${h.assetNumber} at Plant ${h.plant}: ${h.oldStatus} -> ${h.newStatus} on ${h.changedAt?.slice(0, 10)}`);
             });
         }
-        
+
         if (ctx.equipmentHistory?.length > 0) {
             parts.push(`\n=== EQUIPMENT STATUS CHANGE HISTORY (${ctx.equipmentHistory.length} records) ===`);
             ctx.equipmentHistory.forEach(h => {
                 parts.push(`  ${h.assetNumber} at Plant ${h.plant}: ${h.oldStatus} -> ${h.newStatus} on ${h.changedAt?.slice(0, 10)}`);
             });
         }
-        
+
         if (ctx.pickupsHistory?.length > 0) {
             parts.push(`\n=== PICKUP TRUCK STATUS CHANGE HISTORY (${ctx.pickupsHistory.length} records) ===`);
             ctx.pickupsHistory.forEach(h => {
                 parts.push(`  ${h.assetNumber} at Plant ${h.plant}: ${h.oldStatus} -> ${h.newStatus} on ${h.changedAt?.slice(0, 10)}`);
             });
         }
-        
+
         if (ctx.statusChangeHistory) {
             if (ctx.statusChangeHistory.mixers?.length > 0) {
                 parts.push(`\n=== RECENT MIXER STATUS CHANGES ===`);
@@ -559,7 +571,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                     parts.push(`  Truck ${h.truckNumber} at Plant ${h.plant}: ${h.oldStatus} -> ${h.newStatus} on ${h.changedAt?.slice(0, 10)}`);
                 });
             }
-            
+
             if (ctx.statusChangeHistory.tractors?.length > 0) {
                 parts.push(`\n=== RECENT TRACTOR STATUS CHANGES ===`);
                 ctx.statusChangeHistory.tractors.slice(0, 20).forEach(h => {
@@ -567,7 +579,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 });
             }
         }
-        
+
         if (ctx.stats) {
             parts.push(`\n=== LEGACY STATS (if different from above) ===`);
             if (ctx.stats.mixers) {
@@ -581,7 +593,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(`  Mixer operators: ${ctx.stats.operators.mixerAssigned || 0}, Tractor operators: ${ctx.stats.operators.tractorAssigned || 0}`);
             }
         }
-        
+
         if (ctx.plantManagerReports?.length > 0) {
             parts.push(`\n=== PLANT MANAGER REPORTS (${ctx.plantManagerReports.length} reports) ===`);
             ctx.plantManagerReports.forEach(r => {
@@ -593,7 +605,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 }
             });
         }
-        
+
         if (ctx.efficiencyReports?.length > 0) {
             parts.push(`\n=== EFFICIENCY REPORTS (${ctx.efficiencyReports.length} reports) ===`);
             ctx.efficiencyReports.forEach(r => {
@@ -605,7 +617,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 }
             });
         }
-        
+
         if (ctx.aggregateReports?.length > 0) {
             const recentAggReports = ctx.aggregateReports.slice(0, 10);
             parts.push(`\n=== AGGREGATE PRODUCTION REPORTS (showing ${recentAggReports.length} of ${ctx.aggregateReports.length} reports) ===`);
@@ -613,7 +625,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(`  Week ${r.week} - Location ${r.location}`);
             });
         }
-        
+
         if (ctx.rmiReports?.length > 0) {
             const recentRMI = ctx.rmiReports.slice(0, 10);
             parts.push(`\n=== RMI REPORTS (showing ${recentRMI.length} of ${ctx.rmiReports.length} reports) ===`);
@@ -621,7 +633,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
                 parts.push(`  Week ${r.week}`);
             });
         }
-        
+
         return parts.join('\n');
     }
 
@@ -641,8 +653,8 @@ Answer questions using the provided data. If specific data needed to answer isn'
         parts.push(`\n=== FLEET STATUS ===`);
 
         if (data.mixerStats) {
-            const utilizationRate = data.mixerStats.total > 0 
-                ? Math.round((data.mixerStats.active / data.mixerStats.total) * 100) 
+            const utilizationRate = data.mixerStats.total > 0
+                ? Math.round((data.mixerStats.active / data.mixerStats.total) * 100)
                 : 0;
             parts.push(`\nMIXERS: ${data.mixerStats.total} total`);
             parts.push(`  Active: ${data.mixerStats.active} | Spare: ${data.mixerStats.spare} | In Shop: ${data.mixerStats.inShop}`);
@@ -650,8 +662,8 @@ Answer questions using the provided data. If specific data needed to answer isn'
         }
 
         if (data.tractorStats) {
-            const utilizationRate = data.tractorStats.total > 0 
-                ? Math.round((data.tractorStats.active / data.tractorStats.total) * 100) 
+            const utilizationRate = data.tractorStats.total > 0
+                ? Math.round((data.tractorStats.active / data.tractorStats.total) * 100)
                 : 0;
             parts.push(`\nTRACTORS: ${data.tractorStats.total} total`);
             parts.push(`  Active: ${data.tractorStats.active} | Spare: ${data.tractorStats.spare} | In Shop: ${data.tractorStats.inShop}`);
@@ -669,7 +681,7 @@ Answer questions using the provided data. If specific data needed to answer isn'
         }
 
         parts.push(`\n=== OPERATORS ===`);
-        
+
         if (data.operatorStats) {
             parts.push(`Total Operators: ${data.operatorStats.total}`);
             parts.push(`Active: ${data.operatorStats.active}`);
@@ -687,14 +699,14 @@ Answer questions using the provided data. If specific data needed to answer isn'
 
         if (data.statusHistory) {
             parts.push(`\n=== HISTORICAL TRENDS (${data.historyDateRange || 'all time'}) ===`);
-            
+
             if (data.statusHistory.mixers?.length > 0) {
                 parts.push(`Mixer Time Distribution:`);
                 data.statusHistory.mixers.slice(0, 3).forEach(s => {
                     parts.push(`  ${s.status}: ${s.percentage}%`);
                 });
             }
-            
+
             if (data.statusHistory.tractors?.length > 0) {
                 parts.push(`Tractor Time Distribution:`);
                 data.statusHistory.tractors.slice(0, 3).forEach(s => {
@@ -706,35 +718,35 @@ Answer questions using the provided data. If specific data needed to answer isn'
         if (data.recentReports) {
             parts.push(`\n=== RECENT REPORTS (Last 4 Weeks) ===`);
             parts.push(`Total Completed Reports: ${data.recentReports.totalReportsLast4Weeks || 0}`);
-            
+
             if (data.recentReports.plantManagerReports?.length > 0) {
                 parts.push(`\nPLANT MANAGER REPORTS:`);
                 data.recentReports.plantManagerReports.forEach(r => {
                     parts.push(`  Week ${r.week} - Plant ${r.plant}: ${r.yardage || 0} yards, ${r.hours || 0} hours, ${r.operatorCount || 0} operators, ${r.loadsLost || 0} loads lost`);
                 });
             }
-            
+
             if (data.recentReports.generalManagerReports?.length > 0) {
                 parts.push(`\nGENERAL MANAGER REPORTS:`);
                 data.recentReports.generalManagerReports.forEach(r => {
                     parts.push(`  Week ${r.week}: ${r.totalYardage || 0} total yards, ${r.totalHours || 0} hours, ${r.operatorsActive || 0} active operators, ${r.mixersRunnable || 0} runnable/${r.mixersDown || 0} down`);
                 });
             }
-            
+
             if (data.recentReports.efficiencyReports?.length > 0) {
                 parts.push(`\nEFFICIENCY REPORTS:`);
                 data.recentReports.efficiencyReports.forEach(r => {
                     parts.push(`  Week ${r.week} - Plant ${r.plant}: Start ${r.avgStartTime || 'N/A'}, End ${r.avgEndTime || 'N/A'}, ${r.loadsPerHour || 'N/A'} loads/hr`);
                 });
             }
-            
+
             if (data.recentReports.rmiReports?.length > 0) {
                 parts.push(`\nRMI (TRAINING/HIRING) REPORTS:`);
                 data.recentReports.rmiReports.forEach(r => {
                     parts.push(`  Week ${r.week}: ${r.trainersActive || 0} active trainers, ${r.pendingHires || 0} pending hires, goal: ${r.hiringGoal || 0}`);
                 });
             }
-            
+
             if (data.recentReports.aggregateReports?.length > 0) {
                 parts.push(`\nAGGREGATE PRODUCTION REPORTS:`);
                 data.recentReports.aggregateReports.slice(0, 4).forEach(r => {

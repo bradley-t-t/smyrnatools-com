@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect, useCallback} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import './styles/AIAgentPopup.css'
 import {AIInsightsService} from '../../services/AIInsightsService'
 import {RegionService} from '../../services/RegionService'
@@ -64,23 +64,44 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
             }
 
             const [
-                mixersRes, 
-                tractorsRes, 
-                trailersRes, 
-                equipmentRes, 
+                mixersRes,
+                tractorsRes,
+                trailersRes,
+                equipmentRes,
                 pickupsRes,
-                operatorsRes, 
+                operatorsRes,
                 listItemsRes
             ] = await Promise.all([
-                MixerService.fetchMixers().catch(e => { console.error('AI Agent - Mixers fetch error:', e); return [] }),
-                TractorService.fetchTractors().catch(e => { console.error('AI Agent - Tractors fetch error:', e); return [] }),
-                TrailerService.fetchTrailers().catch(e => { console.error('AI Agent - Trailers fetch error:', e); return [] }),
-                EquipmentService.fetchEquipments().catch(e => { console.error('AI Agent - Equipment fetch error:', e); return [] }),
-                PickupTruckService.fetchAll().catch(e => { console.error('AI Agent - Pickups fetch error:', e); return [] }),
-                OperatorService.fetchOperators().catch(e => { console.error('AI Agent - Operators fetch error:', e); return [] }),
-                ListService.fetchListItems().catch(e => { console.error('AI Agent - ListItems fetch error:', e); return [] })
+                MixerService.fetchMixers().catch(e => {
+                    console.error('AI Agent - Mixers fetch error:', e);
+                    return []
+                }),
+                TractorService.fetchTractors().catch(e => {
+                    console.error('AI Agent - Tractors fetch error:', e);
+                    return []
+                }),
+                TrailerService.fetchTrailers().catch(e => {
+                    console.error('AI Agent - Trailers fetch error:', e);
+                    return []
+                }),
+                EquipmentService.fetchEquipments().catch(e => {
+                    console.error('AI Agent - Equipment fetch error:', e);
+                    return []
+                }),
+                PickupTruckService.fetchAll().catch(e => {
+                    console.error('AI Agent - Pickups fetch error:', e);
+                    return []
+                }),
+                OperatorService.fetchOperators().catch(e => {
+                    console.error('AI Agent - Operators fetch error:', e);
+                    return []
+                }),
+                ListService.fetchListItems().catch(e => {
+                    console.error('AI Agent - ListItems fetch error:', e);
+                    return []
+                })
             ])
-            
+
             console.log('AI Agent - operatorsRes type:', typeof operatorsRes, 'length:', operatorsRes?.length)
 
             let reportsData = []
@@ -362,11 +383,41 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
             const equipmentIdToNumber = new Map(equipment.map(e => [e.id, e.identifyingNumber]))
             const pickupIdToTruck = new Map(pickups.map(p => [p.id, p.truckNumber]))
 
-            const mixersHistory = (mixersHistRes.data || []).filter(h => mixerIdToPlant.has(h.mixer_id)).map(h => ({assetNumber: mixerIdToTruck.get(h.mixer_id), plant: mixerIdToPlant.get(h.mixer_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
-            const tractorsHistory = (tractorsHistRes.data || []).filter(h => tractorIdToPlant.has(h.tractor_id)).map(h => ({assetNumber: tractorIdToTruck.get(h.tractor_id), plant: tractorIdToPlant.get(h.tractor_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
-            const trailersHistory = (trailersHistRes.data || []).filter(h => trailerIdToPlant.has(h.trailer_id)).map(h => ({assetNumber: trailerIdToNumber.get(h.trailer_id), plant: trailerIdToPlant.get(h.trailer_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
-            const equipmentHistory = (equipmentHistRes.data || []).filter(h => equipmentIdToPlant.has(h.equipment_id)).map(h => ({assetNumber: equipmentIdToNumber.get(h.equipment_id), plant: equipmentIdToPlant.get(h.equipment_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
-            const pickupsHistory = (pickupsHistRes.data || []).filter(h => pickupIdToPlant.has(h.truck_id)).map(h => ({assetNumber: pickupIdToTruck.get(h.truck_id), plant: pickupIdToPlant.get(h.truck_id), oldStatus: h.old_value, newStatus: h.new_value, changedAt: h.changed_at}))
+            const mixersHistory = (mixersHistRes.data || []).filter(h => mixerIdToPlant.has(h.mixer_id)).map(h => ({
+                assetNumber: mixerIdToTruck.get(h.mixer_id),
+                plant: mixerIdToPlant.get(h.mixer_id),
+                oldStatus: h.old_value,
+                newStatus: h.new_value,
+                changedAt: h.changed_at
+            }))
+            const tractorsHistory = (tractorsHistRes.data || []).filter(h => tractorIdToPlant.has(h.tractor_id)).map(h => ({
+                assetNumber: tractorIdToTruck.get(h.tractor_id),
+                plant: tractorIdToPlant.get(h.tractor_id),
+                oldStatus: h.old_value,
+                newStatus: h.new_value,
+                changedAt: h.changed_at
+            }))
+            const trailersHistory = (trailersHistRes.data || []).filter(h => trailerIdToPlant.has(h.trailer_id)).map(h => ({
+                assetNumber: trailerIdToNumber.get(h.trailer_id),
+                plant: trailerIdToPlant.get(h.trailer_id),
+                oldStatus: h.old_value,
+                newStatus: h.new_value,
+                changedAt: h.changed_at
+            }))
+            const equipmentHistory = (equipmentHistRes.data || []).filter(h => equipmentIdToPlant.has(h.equipment_id)).map(h => ({
+                assetNumber: equipmentIdToNumber.get(h.equipment_id),
+                plant: equipmentIdToPlant.get(h.equipment_id),
+                oldStatus: h.old_value,
+                newStatus: h.new_value,
+                changedAt: h.changed_at
+            }))
+            const pickupsHistory = (pickupsHistRes.data || []).filter(h => pickupIdToPlant.has(h.truck_id)).map(h => ({
+                assetNumber: pickupIdToTruck.get(h.truck_id),
+                plant: pickupIdToPlant.get(h.truck_id),
+                oldStatus: h.old_value,
+                newStatus: h.new_value,
+                changedAt: h.changed_at
+            }))
 
             const getOperatorName = (id) => {
                 if (!id || id === 'null' || id === 'undefined') return 'None'
@@ -381,7 +432,7 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
 
             console.log('AI Agent - Operator ID to Name map size:', operatorIdToName.size)
             console.log('AI Agent - Sample operator IDs:', Array.from(operatorIdToName.keys()).slice(0, 5))
-            
+
             const rawMixerOpHist = mixerOpHistRes.data || []
             console.log('AI Agent - Mixer operator history count:', rawMixerOpHist.length)
             if (rawMixerOpHist.length > 0) {
@@ -409,7 +460,7 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                 assetType: 'Tractor'
             }))
             const operatorAssignmentHistory = [...mixerOperatorHistory, ...tractorOperatorHistory].sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt))
-            
+
             console.log('AI Agent - Operator assignment history count:', operatorAssignmentHistory.length)
             if (operatorAssignmentHistory.length > 0) {
                 console.log('AI Agent - Sample assignment history:', operatorAssignmentHistory[0])
@@ -428,18 +479,47 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
             }))
 
             const statusHistorySummary = {
-                mixers: {totalChanges: mixersHistory.length, enteredShop: mixersHistory.filter(h => h.newStatus === 'In Shop').length, exitedShop: mixersHistory.filter(h => h.oldStatus === 'In Shop').length, byPlant: {}},
-                tractors: {totalChanges: tractorsHistory.length, enteredShop: tractorsHistory.filter(h => h.newStatus === 'In Shop').length, exitedShop: tractorsHistory.filter(h => h.oldStatus === 'In Shop').length, byPlant: {}},
-                trailers: {totalChanges: trailersHistory.length, enteredShop: trailersHistory.filter(h => h.newStatus === 'In Shop').length, exitedShop: trailersHistory.filter(h => h.oldStatus === 'In Shop').length, byPlant: {}},
-                equipment: {totalChanges: equipmentHistory.length, enteredShop: equipmentHistory.filter(h => h.newStatus === 'In Shop').length, exitedShop: equipmentHistory.filter(h => h.oldStatus === 'In Shop').length, byPlant: {}},
-                pickups: {totalChanges: pickupsHistory.length, enteredShop: pickupsHistory.filter(h => h.newStatus === 'In Shop').length, exitedShop: pickupsHistory.filter(h => h.oldStatus === 'In Shop').length, byPlant: {}}
-            }
+                    mixers: {
+                        totalChanges: mixersHistory.length,
+                        enteredShop: mixersHistory.filter(h => h.newStatus === 'In Shop').length,
+                        exitedShop: mixersHistory.filter(h => h.oldStatus === 'In Shop').length,
+                        byPlant: {}
+                    },
+                    tractors: {
+                        totalChanges: tractorsHistory.length,
+                        enteredShop: tractorsHistory.filter(h => h.newStatus === 'In Shop').length,
+                        exitedShop: tractorsHistory.filter(h => h.oldStatus === 'In Shop').length,
+                        byPlant: {}
+                    },
+                    trailers: {
+                        totalChanges: trailersHistory.length,
+                        enteredShop: trailersHistory.filter(h => h.newStatus === 'In Shop').length,
+                        exitedShop: trailersHistory.filter(h => h.oldStatus === 'In Shop').length,
+                        byPlant: {}
+                    },
+                    equipment: {
+                        totalChanges: equipmentHistory.length,
+                        enteredShop: equipmentHistory.filter(h => h.newStatus === 'In Shop').length,
+                        exitedShop: equipmentHistory.filter(h => h.oldStatus === 'In Shop').length,
+                        byPlant: {}
+                    },
+                    pickups: {
+                        totalChanges: pickupsHistory.length,
+                        enteredShop: pickupsHistory.filter(h => h.newStatus === 'In Shop').length,
+                        exitedShop: pickupsHistory.filter(h => h.oldStatus === 'In Shop').length,
+                        byPlant: {}
+                    }
+                }
 
             ;[mixersHistory, tractorsHistory, trailersHistory, equipmentHistory, pickupsHistory].forEach((hist, i) => {
                 const key = ['mixers', 'tractors', 'trailers', 'equipment', 'pickups'][i]
                 hist.forEach(h => {
                     const plant = h.plant || 'Unknown'
-                    if (!statusHistorySummary[key].byPlant[plant]) statusHistorySummary[key].byPlant[plant] = {enteredShop: 0, exitedShop: 0, totalChanges: 0}
+                    if (!statusHistorySummary[key].byPlant[plant]) statusHistorySummary[key].byPlant[plant] = {
+                        enteredShop: 0,
+                        exitedShop: 0,
+                        totalChanges: 0
+                    }
                     statusHistorySummary[key].byPlant[plant].totalChanges++
                     if (h.newStatus === 'In Shop') statusHistorySummary[key].byPlant[plant].enteredShop++
                     if (h.oldStatus === 'In Shop') statusHistorySummary[key].byPlant[plant].exitedShop++
@@ -497,17 +577,25 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                     plantCode = userIdToPlantCode.get(r.user_id) || ''
                 }
                 return {
-                    week: r.week?.slice(0, 10), 
-                    submittedAt: r.submitted_at, 
+                    week: r.week?.slice(0, 10),
+                    submittedAt: r.submitted_at,
                     plant: plantCode,
-                    rows: (r.data?.rows || []).map(row => ({date: row.date, avgStart: row.avgStart, avgEnd: row.avgEnd, loadsPerHour: row.loadsPerHour}))
+                    rows: (r.data?.rows || []).map(row => ({
+                        date: row.date,
+                        avgStart: row.avgStart,
+                        avgEnd: row.avgEnd,
+                        loadsPerHour: row.loadsPerHour
+                    }))
                 }
             }).filter(r => {
                 if (regionPlantCodes.size === 0) return true
                 return regionPlantCodes.has(r.plant) || regionPlantCodes.has(String(r.plant).toUpperCase())
             })
             const aggregateReports = allReports.filter(r => r.report_name === 'aggregate_production').map(r => ({
-                week: r.week?.slice(0, 10), submittedAt: r.submitted_at, location: r.data?.location, materials: r.data?.materials || []
+                week: r.week?.slice(0, 10),
+                submittedAt: r.submitted_at,
+                location: r.data?.location,
+                materials: r.data?.materials || []
             }))
             const rmiReports = allReports.filter(r => r.report_name === 'rmi').map(r => ({
                 week: r.week?.slice(0, 10), submittedAt: r.submitted_at, data: r.data

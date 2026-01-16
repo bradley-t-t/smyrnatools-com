@@ -22,6 +22,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     const [activeImageFieldId, setActiveImageFieldId] = useState(null)
     const [draftSubmissionId, setDraftSubmissionId] = useState(null)
     const fileInputRef = useRef(null)
+    const cameraInputRef = useRef(null)
     const autoSaveTimerRef = useRef(null)
     const pendingSaveRef = useRef(false)
     const savingRef = useRef(false)
@@ -525,6 +526,14 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         }, 0)
     }
 
+    const triggerCameraCapture = (fieldId, checklistItem = null) => {
+        const imageKey = checklistItem ? `${fieldId}_${checklistItem}` : fieldId
+        setActiveImageFieldId(imageKey)
+        setTimeout(() => {
+            cameraInputRef.current?.click()
+        }, 0)
+    }
+
     const onFileInputChange = (e) => {
         const file = e.target.files?.[0]
         if (file && activeImageFieldId) {
@@ -828,21 +837,32 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                                                     )}
                                                 </div>
                                             ) : isChecked && field.image_required ? (
-                                                <button
-                                                    className={`checklist-image-upload-btn ${imageError ? 'error' : ''}`}
-                                                    onClick={() => !isDisabled && !isUploadingThis && triggerImageUpload(field.id, checkItem)}
-                                                    type="button"
-                                                    disabled={isDisabled}
-                                                >
+                                                <div className={`checklist-image-options ${imageError ? 'error' : ''}`}>
                                                     {isUploadingThis ? (
-                                                        <i className="fas fa-spinner fa-spin"></i>
+                                                        <div className="checklist-image-uploading">
+                                                            <i className="fas fa-spinner fa-spin"></i>
+                                                        </div>
                                                     ) : (
                                                         <>
-                                                            <i className="fas fa-camera"></i>
-                                                            <span>Add Photo</span>
+                                                            <button
+                                                                className="checklist-image-btn camera"
+                                                                onClick={() => !isDisabled && triggerCameraCapture(field.id, checkItem)}
+                                                                type="button"
+                                                                disabled={isDisabled}
+                                                            >
+                                                                <i className="fas fa-camera"></i>
+                                                            </button>
+                                                            <button
+                                                                className="checklist-image-btn gallery"
+                                                                onClick={() => !isDisabled && triggerImageUpload(field.id, checkItem)}
+                                                                type="button"
+                                                                disabled={isDisabled}
+                                                            >
+                                                                <i className="fas fa-images"></i>
+                                                            </button>
                                                         </>
                                                     )}
-                                                </button>
+                                                </div>
                                             ) : null}
                                             {imageError && (
                                                 <span className="checklist-image-error">{imageError}</span>
@@ -927,19 +947,32 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                         )}
                     </div>
                 ) : (
-                    <div
-                        className={`image-upload-zone compact ${hasError ? 'error' : ''}`}
-                        onClick={() => !isDisabled && !isUploading && triggerImageUpload(field.id)}
-                    >
+                    <div className={`image-upload-options ${hasError ? 'error' : ''}`}>
                         {isUploading ? (
-                            <>
+                            <div className="image-uploading">
                                 <i className="fas fa-spinner fa-spin"></i>
                                 <span>Uploading...</span>
-                            </>
+                            </div>
                         ) : (
                             <>
-                                <i className="fas fa-camera"></i>
-                                <span>Tap to attach photo</span>
+                                <button
+                                    type="button"
+                                    className="image-option-btn camera"
+                                    onClick={() => !isDisabled && triggerCameraCapture(field.id)}
+                                    disabled={isDisabled}
+                                >
+                                    <i className="fas fa-camera"></i>
+                                    <span>Take Photo</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="image-option-btn gallery"
+                                    onClick={() => !isDisabled && triggerImageUpload(field.id)}
+                                    disabled={isDisabled}
+                                >
+                                    <i className="fas fa-images"></i>
+                                    <span>Upload</span>
+                                </button>
                             </>
                         )}
                     </div>
@@ -1321,6 +1354,14 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
 
             <input
                 ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={onFileInputChange}
+                style={{display: 'none'}}
+            />
+
+            <input
+                ref={cameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
