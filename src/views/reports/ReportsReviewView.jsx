@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useState} from 'react'
-import './styles/Reports.css'
 import {supabase} from '../../services/DatabaseService'
 import {UserService} from '../../services/UserService'
 import {ReportService} from '../../services/ReportService'
@@ -22,6 +21,23 @@ const plugins = {
 }
 
 function ReportsReviewView({report, initialData, onBack, user, completedByUser, onManagerEdit}) {
+    const styles = {
+        container: { width: '100%', minHeight: '100vh', background: '#f8fafc', padding: '0' },
+        header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: 'white', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 40, flexWrap: 'wrap', gap: '1rem' },
+        headerLeft: { display: 'flex', alignItems: 'center', gap: '1rem' },
+        backBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', borderRadius: '10px', background: '#f1f5f9', color: '#475569', fontSize: '1rem', cursor: 'pointer' },
+        titleSection: { display: 'flex', flexDirection: 'column', gap: '0.25rem' },
+        title: { fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 },
+        subtitle: { fontSize: '0.875rem', color: '#64748b', margin: 0 },
+        headerRight: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
+        metaBar: { display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e5e7eb', flexWrap: 'wrap' },
+        metaItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#64748b' },
+        metaIcon: { color: '#94a3b8' },
+        metaStrong: { fontWeight: 600, color: '#1e293b' },
+        exportBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' },
+        editBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: '#1e3a5f', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }
+    }
+
     const [form, setForm] = useState(initialData?.data || initialData || {})
     const [maintenanceItems, setMaintenanceItems] = useState([])
     const [ownerName, setOwnerName] = useState('')
@@ -299,184 +315,210 @@ function ReportsReviewView({report, initialData, onBack, user, completedByUser, 
     }
 
     return (
-        <div className="rpts-reports-review-view">
-            <div className="rpts-reports-review-container">
-                <div className="rpts-report-header">
-                    <div className="rpts-report-header-top">
-                        <div className="rpts-report-header-left">
-                            <button className="rpts-report-back-btn" onClick={onBack} type="button">
-                                <i className="fas fa-arrow-left"></i> Back
-                            </button>
-                            <h1 className="rpts-report-header-title">{reportTitle}</h1>
-                        </div>
-                        <div className="rpts-report-header-actions">
-                            <div className={`rpts-report-status-badge ${isSubmitted ? 'submitted' : 'draft'}`}>
-                                <i className={`fas ${isSubmitted ? 'fa-check-circle' : 'fa-save'}`}></i>
-                                {statusText}
-                            </div>
-                            {report.name === 'general_manager' && (
-                                <button type="button" className="rpts-manager-edit-button" disabled={exporting}
-                                        onClick={handleExport}>
-                                    <i className="fas fa-file-export"></i>
-                                    {exporting ? 'Exporting...' : 'Export'}
-                                </button>
-                            )}
-                            {hasManagerEditPermission && showManagerEditButton && (
-                                <button type="button" className="rpts-manager-edit-button"
-                                        onClick={() => onManagerEdit(report, initialData)}>
-                                    <i className="fas fa-edit"></i>
-                                    Manager Edit
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                    <div className="rpts-report-header-divider"></div>
-                    <div className="rpts-report-header-meta">
-                        {weekVerbose && (
-                            <div className="rpts-report-meta-item">
-                                <i className="far fa-calendar-alt"></i>
-                                <span>Week:</span>
-                                <strong>{weekVerbose}</strong>
-                            </div>
-                        )}
-                        {reportDateVerbose && (
-                            <div className="rpts-report-meta-item">
-                                <i className="far fa-calendar-check"></i>
-                                <span>Report Date:</span>
-                                <strong>{reportDateVerbose}</strong>
-                            </div>
-                        )}
-                        {ownerName && (
-                            <div className="rpts-report-meta-item">
-                                <i className="fas fa-user"></i>
-                                <span>Submitted By:</span>
-                                <strong>{ownerName}</strong>
-                            </div>
-                        )}
-                        {assignedPlant && (
-                            <div className="rpts-report-meta-item">
-                                <i className="fas fa-industry"></i>
-                                <span>Plant:</span>
-                                <strong>{assignedPlant}</strong>
-                            </div>
-                        )}
-                        {submittedAt && (
-                            <div className="rpts-report-meta-item">
-                                <i className="far fa-clock"></i>
-                                <span>{isSubmitted ? 'Submitted:' : 'Saved:'}</span>
-                                <strong>{submittedAt}</strong>
-                            </div>
-                        )}
+        <div style={styles.container}>
+            <style>{`
+                .rpts-sbmt-error { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin: 1rem 1.5rem; font-size: 0.875rem; font-weight: 500; }
+                .rpts-plant-shutdown-notice { background: #fef3c7; color: #92400e; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; font-weight: 500; }
+                .rpts-form-body-wide { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+                .rpts-form-fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+                .rpts-form-field-wide { display: flex; flex-direction: column; gap: 0.5rem; }
+                .rpts-form-field-wide label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+                .rpts-form-field-wide input, .rpts-form-field-wide select, .rpts-form-field-wide textarea { padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: #f8fafc; }
+                .rpts-modal-required { color: #ef4444; margin-left: 0.25rem; }
+                .pm-metrics-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+                .pm-metrics-header { margin-bottom: 1.25rem; }
+                .pm-metrics-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+                .pm-metrics-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+                .pm-production-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+                .pm-production-field { display: flex; flex-direction: column; gap: 0.5rem; }
+                .pm-production-field-header { display: flex; align-items: center; gap: 0.5rem; }
+                .pm-production-field-icon { color: #1e3a5f; font-size: 0.875rem; }
+                .pm-production-field label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+                .pm-production-input { padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: #f8fafc; width: 100%; box-sizing: border-box; }
+                .rpt-table-wrapper { background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 1.5rem; }
+                .rpt-table { width: 100%; border-collapse: collapse; }
+                .rpt-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; }
+                .rpt-table td { padding: 0.75rem 1rem; font-size: 0.9375rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+                .rpt-table tr:last-child td { border-bottom: none; }
+            `}</style>
+            <div style={styles.header}>
+                <div style={styles.headerLeft}>
+                    <button style={styles.backBtn} onClick={onBack} type="button">
+                        <i className="fas fa-arrow-left"></i>
+                    </button>
+                    <div style={styles.titleSection}>
+                        <h1 style={styles.title}>{reportTitle}</h1>
+                        <p style={styles.subtitle}>{weekVerbose}</p>
                     </div>
                 </div>
-                {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
-                {isPlantShutdown && (
-                    <div className="rpts-plant-shutdown-notice">
-                        <i className="fas fa-info-circle"></i>
-                        <span>Plant was shut down on {reportDateVerbose || 'the reported date'}</span>
+                <div style={styles.headerRight}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        background: isSubmitted ? '#d1fae5' : '#fef3c7',
+                        color: isSubmitted ? '#059669' : '#d97706'
+                    }}>
+                        <i className={`fas ${isSubmitted ? 'fa-check-circle' : 'fa-save'}`}></i>
+                        {statusText}
+                    </div>
+                    {report.name === 'general_manager' && (
+                        <button type="button" style={styles.exportBtn} disabled={exporting}
+                                onClick={handleExport}>
+                            <i className="fas fa-file-export"></i>
+                            {exporting ? 'Exporting...' : 'Export'}
+                        </button>
+                    )}
+                    {hasManagerEditPermission && showManagerEditButton && (
+                        <button type="button" style={styles.editBtn}
+                                onClick={() => onManagerEdit(report, initialData)}>
+                            <i className="fas fa-edit"></i>
+                            Manager Edit
+                        </button>
+                    )}
+                </div>
+            </div>
+            <div style={styles.metaBar}>
+                {reportDateVerbose && (
+                    <div style={styles.metaItem}>
+                        <i className="far fa-calendar-check" style={styles.metaIcon}></i>
+                        <span>Report Date:</span>
+                        <strong style={styles.metaStrong}>{reportDateVerbose}</strong>
                     </div>
                 )}
-                <div className="rpts-form-body-wide">
-                    <>
-                        {report.name === 'plant_manager' ? (
-                            <div className="pm-metrics-section pm-production-data-section">
-                                <div className="pm-metrics-header">
-                                    <h3 className="pm-metrics-title">
-                                        <i className="fas fa-clipboard-list"></i>
-                                        Weekly Production Data
-                                    </h3>
-                                    <p className="pm-metrics-subtitle">
-                                        Key production metrics for this reporting period
-                                    </p>
-                                </div>
-                                <div className="pm-production-grid">
-                                    {report.fields.map(field => (
-                                        field.name === 'issues' || field.type === 'table' ? null : (
-                                            <div key={field.name} className="pm-production-field">
-                                                <div className="pm-production-field-header">
-                                                    <i className={`fas ${field.name === 'yardage' ? 'fa-box' : field.name === 'total_hours' ? 'fa-clock' : field.name === 'total_yards_lost' ? 'fa-exclamation-triangle' : 'fa-recycle'} pm-production-field-icon`}></i>
-                                                    <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}</label>
-                                                </div>
-                                                <input type={field.type} value={form[field.name] ?? ''} readOnly
-                                                       disabled className="pm-production-input"/>
-                                            </div>
-                                        )
-                                    ))}
-                                </div>
+                {ownerName && (
+                    <div style={styles.metaItem}>
+                        <i className="fas fa-user" style={styles.metaIcon}></i>
+                        <span>Submitted By:</span>
+                        <strong style={styles.metaStrong}>{ownerName}</strong>
+                    </div>
+                )}
+                {assignedPlant && (
+                    <div style={styles.metaItem}>
+                        <i className="fas fa-industry" style={styles.metaIcon}></i>
+                        <span>Plant:</span>
+                        <strong style={styles.metaStrong}>{assignedPlant}</strong>
+                    </div>
+                )}
+                {submittedAt && (
+                    <div style={styles.metaItem}>
+                        <i className="far fa-clock" style={styles.metaIcon}></i>
+                        <span>{isSubmitted ? 'Submitted:' : 'Saved:'}</span>
+                        <strong style={styles.metaStrong}>{submittedAt}</strong>
+                    </div>
+                )}
+            </div>
+            {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
+            {isPlantShutdown && (
+                <div className="rpts-plant-shutdown-notice">
+                    <i className="fas fa-info-circle"></i>
+                    <span>Plant was shut down on {reportDateVerbose || 'the reported date'}</span>
+                </div>
+            )}
+            <div className="rpts-form-body-wide">
+                <>
+                    {report.name === 'plant_manager' ? (
+                        <div className="pm-metrics-section pm-production-data-section">
+                            <div className="pm-metrics-header">
+                                <h3 className="pm-metrics-title">
+                                    <i className="fas fa-clipboard-list"></i>
+                                    Weekly Production Data
+                                </h3>
+                                <p className="pm-metrics-subtitle">
+                                    Key production metrics for this reporting period
+                                </p>
                             </div>
-                        ) : report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' || report.name === 'ready_mix_instructor' ? null : (
-                            <div className="rpts-form-fields-grid">
+                            <div className="pm-production-grid">
                                 {report.fields.map(field => (
-                                    (report.name === 'safety_manager' && field.name === 'issues') || field.type === 'table' ? null : (
-                                        <div key={field.name} className="rpts-form-field-wide">
-                                            <label>
-                                                {field.name === 'yardage' ? 'Total Yardage' : field.label}
-                                                {field.required && <span className="rpts-modal-required">*</span>}
-                                            </label>
-                                            {field.type === 'textarea' || (typeof form[field.name] === 'string' && form[field.name].length > 80) ? (
-                                                <textarea
-                                                    value={form[field.name] ?? ''}
-                                                    readOnly
-                                                    disabled
-                                                />
-                                            ) : field.type === 'select' ? (
-                                                <select value={form[field.name] ?? ''} readOnly disabled>
-                                                    <option value="">Select...</option>
-                                                    {field.options?.map(opt => (
-                                                        <option key={opt} value={opt}>{opt}</option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <input type={field.type} value={form[field.name] ?? ''} readOnly
-                                                       disabled/>
-                                            )}
+                                    field.name === 'issues' || field.type === 'table' ? null : (
+                                        <div key={field.name} className="pm-production-field">
+                                            <div className="pm-production-field-header">
+                                                <i className={`fas ${field.name === 'yardage' ? 'fa-box' : field.name === 'total_hours' ? 'fa-clock' : field.name === 'total_yards_lost' ? 'fa-exclamation-triangle' : 'fa-recycle'} pm-production-field-icon`}></i>
+                                                <label>{field.name === 'yardage' ? 'Total Yardage' : field.label}</label>
+                                            </div>
+                                            <input type={field.type} value={form[field.name] ?? ''} readOnly
+                                                   disabled className="pm-production-input"/>
                                         </div>
                                     )
                                 ))}
                             </div>
-                        )}
-                        {PluginComponent && (
-                            <PluginComponent
-                                form={form}
-                                yph={yph}
-                                yphGrade={yphGrade}
-                                yphLabel={yphLabel}
-                                lost={lost}
-                                lostGrade={lostGrade}
-                                lostLabel={lostLabel}
-                                summaryTab={summaryTab}
-                                setSummaryTab={setSummaryTab}
-                                maintenanceItems={maintenanceItems}
-                                operatorOptions={operatorOptions}
-                                plants={plants}
-                                weekIso={report.weekIso || initialData?.week}
-                                user={completedByUser || user}
-                                assignedPlant={assignedPlant}
-                                reportUserId={initialData?.user_id}
-                            />
-                        )}
-                        {report.name === 'aggregate_production' && (
-                            <div className="rpt-table-wrapper">
-                                <table className="rpt-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Material</th>
-                                        <th>Amount</th>
+                        </div>
+                    ) : report.name === 'plant_production' || report.name === 'general_manager' || report.name === 'aggregate_production' || report.name === 'district_manager' || report.name === 'ready_mix_instructor' ? null : (
+                        <div className="rpts-form-fields-grid">
+                            {report.fields.map(field => (
+                                (report.name === 'safety_manager' && field.name === 'issues') || field.type === 'table' ? null : (
+                                    <div key={field.name} className="rpts-form-field-wide">
+                                        <label>
+                                            {field.name === 'yardage' ? 'Total Yardage' : field.label}
+                                            {field.required && <span className="rpts-modal-required">*</span>}
+                                        </label>
+                                        {field.type === 'textarea' || (typeof form[field.name] === 'string' && form[field.name].length > 80) ? (
+                                            <textarea
+                                                value={form[field.name] ?? ''}
+                                                readOnly
+                                                disabled
+                                            />
+                                        ) : field.type === 'select' ? (
+                                            <select value={form[field.name] ?? ''} readOnly disabled>
+                                                <option value="">Select...</option>
+                                                {field.options?.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <input type={field.type} value={form[field.name] ?? ''} readOnly
+                                                   disabled/>
+                                        )}
+                                    </div>
+                                )
+                            ))}
+                        </div>
+                    )}
+                    {PluginComponent && (
+                        <PluginComponent
+                            form={form}
+                            yph={yph}
+                            yphGrade={yphGrade}
+                            yphLabel={yphLabel}
+                            lost={lost}
+                            lostGrade={lostGrade}
+                            lostLabel={lostLabel}
+                            summaryTab={summaryTab}
+                            setSummaryTab={setSummaryTab}
+                            maintenanceItems={maintenanceItems}
+                            operatorOptions={operatorOptions}
+                            plants={plants}
+                            weekIso={report.weekIso || initialData?.week}
+                            user={completedByUser || user}
+                            assignedPlant={assignedPlant}
+                            reportUserId={initialData?.user_id}
+                        />
+                    )}
+                    {report.name === 'aggregate_production' && (
+                        <div className="rpt-table-wrapper">
+                            <table className="rpt-table">
+                                <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Amount</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {report.fields.map(field => (
+                                    <tr key={field.name}>
+                                        <td>{field.label}</td>
+                                        <td>{form[field.name] || 0}</td>
                                     </tr>
-                                    </thead>
-                                    <tbody>
-                                    {report.fields.map(field => (
-                                        <tr key={field.name}>
-                                            <td>{field.label}</td>
-                                            <td>{form[field.name] || 0}</td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </>
-                </div>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </>
             </div>
         </div>
     )

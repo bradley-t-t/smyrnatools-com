@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {TractorService} from '../../services/TractorService';
 import {Tractor} from '../../models/tractors/Tractor';
 import {AuthService} from '../../services/AuthService';
-import './styles/Tractors.css';
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';

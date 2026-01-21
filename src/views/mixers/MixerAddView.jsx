@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {MixerService} from '../../services/MixerService';
 import {Mixer} from '../../models/mixers/Mixer';
 import {AuthService} from '../../services/AuthService';
-import './styles/Mixers.css';
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
@@ -64,6 +63,52 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
     const selectedPlantObj = visiblePlants.find(p => p.plantCode === assignedPlant);
     const plantDisplayText = assignedPlant ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}` : 'Select Plant';
 
+    const styles = {
+        form: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem'
+        },
+        section: {
+            background: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            padding: '1rem 1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+        },
+        sectionTitle: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            paddingBottom: '0.5rem',
+            borderBottom: '1px solid #e5e7eb'
+        },
+        sectionIcon: {
+            fontSize: '0.875rem',
+            color: '#1e3a5f',
+            opacity: 0.8
+        },
+        row: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem'
+        },
+        actions: {
+            marginTop: '0.5rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'flex-end'
+        }
+    };
+
     async function handleSubmit(e) {
         e.preventDefault();
         setError('');
@@ -110,13 +155,13 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
     return (
         <>
             <AddViewSection title="Add New Mixer" onClose={onClose} error={error}>
-                <form onSubmit={handleSubmit} autoComplete="off" className="add-form">
-                    <div className="add-form-section">
-                        <div className="add-form-section-title">
-                            <i className="fas fa-truck"></i>
+                <form onSubmit={handleSubmit} autoComplete="off" style={styles.form}>
+                    <div style={styles.section}>
+                        <div style={styles.sectionTitle}>
+                            <i className="fas fa-truck" style={styles.sectionIcon}></i>
                             <span>Basic Information</span>
                         </div>
-                        <div className="add-form-row">
+                        <div style={styles.row}>
                             <div className="form-group">
                                 <label htmlFor="truckNumber">Truck Number*</label>
                                 <input
@@ -133,12 +178,12 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                         </div>
                     </div>
 
-                    <div className="add-form-section">
-                        <div className="add-form-section-title">
-                            <i className="fas fa-building"></i>
+                    <div style={styles.section}>
+                        <div style={styles.sectionTitle}>
+                            <i className="fas fa-building" style={styles.sectionIcon}></i>
                             <span>Assignment & Status</span>
                         </div>
-                        <div className="add-form-row">
+                        <div style={styles.row}>
                             <div className="form-group">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
@@ -167,7 +212,7 @@ function MixerAddView({plants, onClose, onMixerAdded}) {
                         </div>
                     </div>
 
-                    <div className="add-form-actions">
+                    <div style={styles.actions}>
                         <button type="submit" className="ios-button-primary" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Mixer'}
                         </button>

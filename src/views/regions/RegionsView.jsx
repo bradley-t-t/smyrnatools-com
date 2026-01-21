@@ -1,8 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {RegionService} from '../../services/RegionService'
 import LoadingScreen from '../../components/common/LoadingScreen'
-import '../../styles/FilterStyles.css'
-import './styles/Regions.css'
 import RegionsDetailView from './RegionsDetailView'
 import RegionsAddView from './RegionsAddView'
 import TopSection from '../../components/sections/TopSection'

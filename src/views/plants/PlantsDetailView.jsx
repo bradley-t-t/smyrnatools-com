@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import {PlantService} from '../../services/PlantService'
-import './styles/Plants.css'
 
 function PlantsDetailView({plant, onClose, onDelete}) {
     const [plantName, setPlantName] = useState(plant.plant_name || plant.plantName || '')

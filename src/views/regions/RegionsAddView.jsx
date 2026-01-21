@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {RegionService} from '../../services/RegionService';
-import './styles/Regions.css';
 
 function RegionsAddView({onClose, onRegionAdded}) {
     const [regionCode, setRegionCode] = useState('');

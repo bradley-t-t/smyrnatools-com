@@ -1,6 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import '../../styles/FilterStyles.css'
-import './styles/PickupTrucks.css'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import PickupTrucksCard from './PickupTrucksCard'
 import PickupTrucksDetailView from './PickupTrucksDetailView'
@@ -311,73 +309,94 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                 headerLabels={['Plant', 'Status', 'Assigned', 'Year', 'Make & Model', 'VIN', 'Mileage', 'More']}
                 colWidths={['12%', '12%', '12%', '8%', '18%', '15%', '10%', '13%']}
                 renderRow={(item, handleSelect, onComment, onIssue) => {
-                    const statusClass = String(item.status || '').toLowerCase().replace(/\s+/g, '-')
                     const vinKey = String(item.vin || '').trim().toUpperCase().replace(/\s+/g, '')
                     const assignedKey = String(item.assigned || '').trim().toLowerCase()
+                    const cellStyle = {
+                        padding: '20px 16px',
+                        fontSize: '14px',
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb',
+                        verticalAlign: 'middle'
+                    };
+                    const cellBoldStyle = {
+                        ...cellStyle,
+                        fontWeight: 700,
+                        color: '#1e3a5f',
+                        fontSize: '15px'
+                    };
+                    const statusBadge = (status) => {
+                        let bg = '#f1f5f9', color = '#64748b';
+                        if (status === 'Active') { bg = '#dcfce7'; color = '#166534'; }
+                        else if (status === 'Spare') { bg = '#dbeafe'; color = '#1e40af'; }
+                        else if (status === 'In Shop') { bg = '#fef3c7'; color = '#92400e'; }
+                        else if (status === 'Stationary') { bg = '#e0e7ff'; color = '#3730a3'; }
+                        else if (status === 'Sold' || status === 'Retired') { bg = '#f1f5f9'; color = '#64748b'; }
+                        return { display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backgroundColor: bg, color: color };
+                    };
+                    const actionBtnStyle = {
+                        width: '36px',
+                        height: '36px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        backgroundColor: 'white',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        marginRight: '8px'
+                    };
+                    const warningBadge = {
+                        marginLeft: '8px',
+                        backgroundColor: '#fef3c7',
+                        color: '#92400e',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '10px',
+                        fontWeight: 700
+                    };
                     return (
-                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td style={{width: '12%'}}>{item.assignedPlant || '---'}</td>
-                            <td style={{width: '12%'}}><span
-                                className={`item-status-dot ${statusClass}`}></span>{item.status || '---'}</td>
-                            <td style={{width: '12%'}}>{item.assigned ? <span
-                                className="cell-inline"><span>{item.assigned}</span>{duplicateAssigned.has(assignedKey) &&
-                                <span className="warning-badge" title="Assigned to multiple pickups"><i
-                                    className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
-                            <td style={{width: '8%'}}>{item.year || '---'}</td>
-                            <td style={{width: '18%'}}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
-                            <td style={{width: '15%'}}>{item.vin ?
-                                <span className="cell-inline"><span>{item.vin}</span>{duplicateVINs.has(vinKey) &&
-                                    <span className="warning-badge" title="Duplicate VIN"><i
-                                        className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
-                            <td style={{width: '10%'}}>{typeof item.mileage === 'number' ? <span
-                                className="mileage-cell"><span>{item.mileage.toLocaleString()}</span>{item.mileage > 300000 &&
-                                <span className="warning-badge" title="High mileage"><i
-                                    className="fas fa-exclamation-triangle"></i></span>}</span> : '---'}</td>
-                            <td style={{width: '13%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        onComment(item.id, item.assigned || item.vin || 'Unknown');
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View comments"><i className="fas fa-comments" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i><span>{item.commentsCount || 0}</span></button>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        onIssue(item.id, item.assigned || item.vin || 'Unknown');
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View issues"><i className="fas fa-tools" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i><span>{item.openIssuesCount || 0}</span></button>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        setSelectedPickupForHistory(item);
-                                        setShowHistoryModal(true);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View history"><i className="fas fa-history" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i></button>
+                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}
+                            onMouseEnter={(e) => { 
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe'); 
+                            }}
+                            onMouseLeave={(e) => { 
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = ''); 
+                            }}>
+                            <td style={{...cellStyle, width: '12%'}}>{item.assignedPlant || '---'}</td>
+                            <td style={{...cellStyle, width: '12%'}}>
+                                <span style={statusBadge(item.status)}>{item.status || '---'}</span>
+                            </td>
+                            <td style={{...cellStyle, width: '12%'}}>
+                                {item.assigned || '---'}
+                                {duplicateAssigned.has(assignedKey) && <span style={warningBadge} title="Assigned to multiple pickups"><i className="fas fa-exclamation-triangle"></i></span>}
+                            </td>
+                            <td style={{...cellStyle, width: '8%'}}>{item.year || '---'}</td>
+                            <td style={{...cellBoldStyle, width: '18%'}}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
+                            <td style={{...cellStyle, width: '15%', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#64748b'}}>
+                                {item.vin || '---'}
+                                {duplicateVINs.has(vinKey) && <span style={warningBadge} title="Duplicate VIN"><i className="fas fa-exclamation-triangle"></i></span>}
+                            </td>
+                            <td style={{...cellStyle, width: '10%'}}>
+                                {typeof item.mileage === 'number' ? (
+                                    <>
+                                        {item.mileage.toLocaleString()}
+                                        {item.mileage > 300000 && <span style={{...warningBadge, backgroundColor: '#fef2f2', color: '#991b1b'}} title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}
+                                    </>
+                                ) : '---'}
+                            </td>
+                            <td style={{...cellStyle, width: '13%'}}>
+                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.assigned || item.vin || 'Unknown'); }} style={actionBtnStyle} title="View comments">
+                                        <i className="fas fa-comments"></i>
+                                    </button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.assigned || item.vin || 'Unknown'); }} style={actionBtnStyle} title="View issues">
+                                        <i className="fas fa-tools"></i>
+                                    </button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); setSelectedPickupForHistory(item); setShowHistoryModal(true); }} style={actionBtnStyle} title="View history">
+                                        <i className="fas fa-history"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>

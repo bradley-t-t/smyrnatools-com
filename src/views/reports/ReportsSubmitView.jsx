@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react'
-import './styles/Reports.css'
 import {supabase} from '../../services/DatabaseService'
 import {ReportService} from '../../services/ReportService'
 import {PlantManagerSubmitPlugin} from './types/WeeklyPlantManagerReport'
@@ -12,6 +11,328 @@ import {ReadyMixInstructorSubmitPlugin} from './types/WeeklyReadyMixInstructorRe
 import {ReportUtility} from '../../utils/ReportUtility'
 import {exportGeneralManagerReport} from '../../utils/ExportUtility'
 import {DateUtility} from '../../utils/DateUtility'
+
+const styles = {
+    container: {
+        width: '100%',
+        minHeight: '100vh',
+        background: '#f8fafc',
+        padding: '0'
+    },
+    header: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '1rem 1.5rem',
+        background: 'white',
+        borderBottom: '1px solid #e5e7eb',
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+        flexWrap: 'wrap',
+        gap: '1rem'
+    },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem'
+    },
+    backBtn: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '40px',
+        height: '40px',
+        border: 'none',
+        borderRadius: '10px',
+        background: '#f1f5f9',
+        color: '#475569',
+        fontSize: '1rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    titleSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.25rem'
+    },
+    title: {
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        color: '#1e293b',
+        margin: 0
+    },
+    subtitle: {
+        fontSize: '0.875rem',
+        color: '#64748b',
+        margin: 0
+    },
+    headerRight: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem'
+    },
+    exportBtn: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        padding: '0.625rem 1rem',
+        background: '#10b981',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    metaBar: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1.5rem',
+        padding: '1rem 1.5rem',
+        background: '#f8fafc',
+        borderBottom: '1px solid #e5e7eb',
+        flexWrap: 'wrap'
+    },
+    metaItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        fontSize: '0.875rem',
+        color: '#64748b'
+    },
+    metaIcon: {
+        color: '#94a3b8'
+    },
+    metaStrong: {
+        fontWeight: 600,
+        color: '#1e293b'
+    },
+    content: {
+        padding: '1.5rem',
+        maxWidth: '1200px',
+        margin: '0 auto'
+    },
+    section: {
+        background: 'white',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        padding: '1.5rem',
+        marginBottom: '1.5rem'
+    },
+    sectionHeader: {
+        marginBottom: '1.25rem'
+    },
+    sectionTitle: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        fontSize: '1.125rem',
+        fontWeight: 600,
+        color: '#1e293b',
+        margin: 0
+    },
+    sectionSubtitle: {
+        fontSize: '0.875rem',
+        color: '#64748b',
+        margin: '0.5rem 0 0 0'
+    },
+    fieldsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '1.25rem'
+    },
+    field: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem'
+    },
+    fieldHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem'
+    },
+    fieldIcon: {
+        color: '#1e3a5f',
+        fontSize: '0.875rem'
+    },
+    fieldLabel: {
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        color: '#374151'
+    },
+    required: {
+        color: '#ef4444',
+        marginLeft: '0.25rem'
+    },
+    input: {
+        padding: '0.75rem 1rem',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        color: '#1e293b',
+        background: 'white',
+        outline: 'none',
+        transition: 'all 0.2s',
+        width: '100%',
+        boxSizing: 'border-box'
+    },
+    textarea: {
+        padding: '0.75rem 1rem',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        color: '#1e293b',
+        background: 'white',
+        outline: 'none',
+        transition: 'all 0.2s',
+        width: '100%',
+        boxSizing: 'border-box',
+        minHeight: '100px',
+        resize: 'vertical'
+    },
+    select: {
+        padding: '0.75rem 1rem',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        color: '#1e293b',
+        background: 'white',
+        cursor: 'pointer',
+        outline: 'none',
+        width: '100%',
+        boxSizing: 'border-box'
+    },
+    error: {
+        background: '#fee2e2',
+        color: '#dc2626',
+        padding: '1rem',
+        borderRadius: '8px',
+        marginBottom: '1rem',
+        fontSize: '0.875rem',
+        fontWeight: 500
+    },
+    success: {
+        background: '#d1fae5',
+        color: '#059669',
+        padding: '1rem',
+        borderRadius: '8px',
+        marginBottom: '1rem',
+        fontSize: '0.875rem',
+        fontWeight: 500
+    },
+    actions: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: '0.75rem',
+        paddingTop: '1.5rem',
+        borderTop: '1px solid #e5e7eb',
+        marginTop: '1.5rem'
+    },
+    cancelBtn: {
+        padding: '0.75rem 1.5rem',
+        background: '#f1f5f9',
+        color: '#475569',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    saveBtn: {
+        padding: '0.75rem 1.5rem',
+        background: '#e0f2fe',
+        color: '#0369a1',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    submitBtn: {
+        padding: '0.75rem 1.5rem',
+        background: '#1e3a5f',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    modalBackdrop: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '1rem'
+    },
+    modalContent: {
+        background: 'white',
+        borderRadius: '16px',
+        padding: '2rem',
+        maxWidth: '500px',
+        width: '100%',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+    },
+    modalTitle: {
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        color: '#1e293b',
+        marginBottom: '1rem'
+    },
+    modalText: {
+        fontSize: '0.9375rem',
+        color: '#64748b',
+        marginBottom: '1.5rem'
+    },
+    checkboxLabel: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '0.75rem',
+        fontSize: '0.9375rem',
+        color: '#374151',
+        marginBottom: '1rem',
+        cursor: 'pointer'
+    },
+    modalActions: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: '0.75rem',
+        marginTop: '1.5rem'
+    },
+    btnSecondary: {
+        padding: '0.75rem 1.5rem',
+        background: '#f1f5f9',
+        color: '#475569',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        cursor: 'pointer'
+    },
+    btnConfirm: {
+        padding: '0.75rem 1.5rem',
+        background: '#1e3a5f',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        cursor: 'pointer'
+    }
+}
 
 const plugins = {
     plant_manager: PlantManagerSubmitPlugin,
@@ -498,71 +819,137 @@ function ReportsSubmitView({
     const isCompleted = initialData?.completed || false
 
     return (
-        <div className="rpts-sbmt-root">
-            <div className="rpts-sbmt-container">
+        <div style={styles.container}>
+            <style>{`
+                .rpts-sbmt-error { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin: 1rem; font-size: 0.875rem; font-weight: 500; }
+                .rpts-sbmt-success { background: #d1fae5; color: #059669; padding: 1rem; border-radius: 8px; margin: 1rem; font-size: 0.875rem; font-weight: 500; }
+                .rpts-sbmt-fields-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; }
+                .rpts-sbmt-field-wide { display: flex; flex-direction: column; gap: 0.5rem; }
+                .rpts-sbmt-field-wide label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+                .rpts-sbmt-field-wide input, .rpts-sbmt-field-wide select, .rpts-sbmt-field-wide textarea { padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; }
+                .rpts-sbmt-field-wide textarea { min-height: 100px; resize: vertical; }
+                .rpts-sbmt-required { color: #ef4444; margin-left: 0.25rem; }
+                .rpts-sbmt-actions, .rpts-sbmt-actions-wide { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; margin-top: 1.5rem; }
+                .rpts-sbmt-cancel { padding: 0.75rem 1.5rem; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+                .rpts-sbmt-save { padding: 0.75rem 1.5rem; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+                .rpts-sbmt-submit { padding: 0.75rem 1.5rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+                .rpts-sbmt-modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+                .rpts-sbmt-modal-content { background: white; border-radius: 16px; padding: 2rem; max-width: 500px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+                .rpts-sbmt-modal-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
+                .rpts-sbmt-modal-text { font-size: 0.9375rem; color: #64748b; margin-bottom: 1.5rem; }
+                .rpts-sbmt-checkbox-label { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.9375rem; color: #374151; margin-bottom: 1rem; cursor: pointer; }
+                .rpts-sbmt-modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+                .rpts-sbmt-btn-secondary { padding: 0.75rem 1.5rem; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+                .rpts-sbmt-btn-confirm { padding: 0.75rem 1.5rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+                .rpts-sbmt-btn-confirm:disabled { background: #94a3b8; cursor: not-allowed; }
+                .rpts-sbmt-muted { color: #64748b; font-size: 0.875rem; padding: 1rem; background: #f8fafc; border-radius: 8px; text-align: center; }
+                .rpts-sbmt-mb-18 { margin-bottom: 1.125rem; }
+                .rpts-sbmt-my-18 { margin: 1.125rem 0; }
+                .rpts-sbmt-grid-col-span-all { grid-column: 1 / -1; }
+                .rpts-sbmt-op-carousel { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+                .rpts-sbmt-op-dot { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #f1f5f9; color: #64748b; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+                .rpts-sbmt-op-dot:hover { background: #e2e8f0; }
+                .rpts-sbmt-op-dot.active { background: #1e3a5f; color: white; border-color: #1e3a5f; }
+                .rpts-sbmt-op-card { background: #f8fafc; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.25rem; }
+                .rpts-sbmt-op-card-body { display: flex; flex-direction: column; gap: 1rem; }
+                .rpts-sbmt-op-card-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; flex-wrap: wrap; }
+                .rpts-sbmt-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
+                .rpts-sbmt-col { display: flex; flex-direction: column; gap: 0.375rem; }
+                .rpts-sbmt-w-120 { width: 120px; display: flex; flex-direction: column; gap: 0.375rem; }
+                .rpts-sbmt-label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+                .rpts-sbmt-field { padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; width: 100%; box-sizing: border-box; }
+                .rpts-sbmt-field:disabled { background: #f1f5f9; color: #64748b; }
+                .rpts-sbmt-textarea { padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; width: 100%; box-sizing: border-box; min-height: 80px; resize: vertical; }
+                .rpts-sbmt-nav-row { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; flex-wrap: wrap; }
+                .rpts-sbmt-btn-danger { padding: 0.5rem 1rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 1rem; }
+                .rpts-sbmt-btn-danger:hover { background: #fecaca; }
+                .rpts-sbmt-btn-primary { padding: 0.5rem 1rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+                .rpts-sbmt-btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+                .rpts-sbmt-operator-count { font-size: 0.875rem; color: #64748b; font-weight: 500; }
+                .rpts-sbmt-section-title { font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+                .rpts-sbmt-flex-wrap { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+                .rpts-sbmt-chip-btn { padding: 0.5rem 0.875rem; background: #e0f2fe; color: #0369a1; border: none; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+                .rpts-sbmt-chip-btn:hover { background: #bae6fd; }
+                .pm-metrics-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+                .pm-metrics-header { margin-bottom: 1.25rem; }
+                .pm-metrics-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+                .pm-metrics-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+                .pm-production-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+                .pm-production-field { display: flex; flex-direction: column; gap: 0.5rem; }
+                .pm-production-field-header { display: flex; align-items: center; gap: 0.5rem; }
+                .pm-production-field-icon { color: #1e3a5f; font-size: 0.875rem; }
+                .pm-production-field label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+                .pm-production-input { padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; width: 100%; box-sizing: border-box; }
+                .pm-production-input:disabled { background: #f8fafc; color: #64748b; }
+            `}</style>
+            <div>
                 {managerEditUser && (
-                    <div className="rpts-sbmt-edit-banner">
+                    <div style={{background: '#fef3c7', color: '#92400e', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500}}>
                         <i className="fas fa-edit"></i>
                         {`Editing ${editingUserName}'s Report`}
                     </div>
                 )}
-                <div className="rpts-report-header">
-                    <div className="rpts-report-header-top">
-                        <div className="rpts-report-header-left">
-                            <button className="rpts-report-back-btn" onClick={handleBackClick} type="button">
-                                <i className="fas fa-arrow-left"></i> Back
-                            </button>
-                            <h1 className="rpts-report-header-title">{report.title || ''}</h1>
-                        </div>
-                        <div className="rpts-report-header-actions">
-                            <div className={`rpts-report-status-badge ${isCompleted ? 'submitted' : 'draft'}`}>
-                                <i className={`fas ${isCompleted ? 'fa-check-circle' : 'fa-edit'}`}></i>
-                                {readOnly ? 'View Only' : (isCompleted ? 'Submitted' : 'Editing')}
-                            </div>
-                            {isGM && (
-                                <button type="button" className="rpts-manager-edit-button" onClick={handleExport}
-                                        disabled={exporting || loadingPlants}>
-                                    <i className="fas fa-file-export"></i>
-                                    {loadingPlants ? 'Loading...' : (exporting ? 'Exporting...' : 'Export')}
-                                </button>
-                            )}
+                <div style={styles.header}>
+                    <div style={styles.headerLeft}>
+                        <button style={styles.backBtn} onClick={handleBackClick} type="button">
+                            <i className="fas fa-arrow-left"></i>
+                        </button>
+                        <div style={styles.titleSection}>
+                            <h1 style={styles.title}>{report.title || ''}</h1>
+                            <p style={styles.subtitle}>{weekVerbose}</p>
                         </div>
                     </div>
-                    <div className="rpts-report-header-divider"></div>
-                    <div className="rpts-report-header-meta">
-                        {weekVerbose && (
-                            <div className="rpts-report-meta-item">
-                                <i className="far fa-calendar-alt"></i>
-                                <span>Week:</span>
-                                <strong>{weekVerbose}</strong>
-                            </div>
-                        )}
-                        {reportDateVerbose && (
-                            <div className="rpts-report-meta-item">
-                                <i className="far fa-calendar-check"></i>
-                                <span>Report Date:</span>
-                                <strong>{reportDateVerbose}</strong>
-                            </div>
-                        )}
-                        {(report.name === 'plant_production' && form.plant) && (
-                            <div className="rpts-report-meta-item">
-                                <i className="fas fa-industry"></i>
-                                <span>Plant:</span>
-                                <strong>{form.plant}</strong>
-                            </div>
+                    <div style={styles.headerRight}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            background: isCompleted ? '#d1fae5' : '#fef3c7',
+                            color: isCompleted ? '#059669' : '#d97706'
+                        }}>
+                            <i className={`fas ${isCompleted ? 'fa-check-circle' : 'fa-edit'}`}></i>
+                            {readOnly ? 'View Only' : (isCompleted ? 'Submitted' : 'Editing')}
+                        </div>
+                        {isGM && (
+                            <button type="button" style={styles.exportBtn} onClick={handleExport}
+                                    disabled={exporting || loadingPlants}>
+                                <i className="fas fa-file-export"></i>
+                                {loadingPlants ? 'Loading...' : (exporting ? 'Exporting...' : 'Export')}
+                            </button>
                         )}
                     </div>
                 </div>
-                {exportError && <div className="rpts-sbmt-error">{exportError}</div>}
-                <form className="rpts-sbmt-body" onSubmit={handleSubmit}>
-                    <div className="rpts-sbmt-grid">
+                <div style={styles.metaBar}>
+                    {reportDateVerbose && (
+                        <div style={styles.metaItem}>
+                            <i className="far fa-calendar-check" style={styles.metaIcon}></i>
+                            <span>Report Date:</span>
+                            <strong style={styles.metaStrong}>{reportDateVerbose}</strong>
+                        </div>
+                    )}
+                    {(report.name === 'plant_production' && form.plant) && (
+                        <div style={styles.metaItem}>
+                            <i className="fas fa-industry" style={styles.metaIcon}></i>
+                            <span>Plant:</span>
+                            <strong style={styles.metaStrong}>{form.plant}</strong>
+                        </div>
+                    )}
+                </div>
+                {exportError && <div style={styles.error}>{exportError}</div>}
+                <form style={styles.content} onSubmit={handleSubmit}>
+                    {report.name !== 'district_manager' && report.name !== 'general_manager' && report.name !== 'aggregate_production' && report.name !== 'safety_manager' && (
+                    <div style={styles.section}>
                         {report.name === 'plant_production' ? (
                             <>
-                                <div className="rpts-sbmt-pp-row">
-                                    <div className="rpts-sbmt-col">
-                                        <label>
+                                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem'}}>
+                                    <div style={styles.field}>
+                                        <label style={styles.fieldLabel}>
                                             Plant
-                                            <span className="rpts-sbmt-required">*</span>
+                                            <span style={styles.required}>*</span>
                                         </label>
                                         <select
                                             value={form.plant ?? ''}
@@ -573,7 +960,7 @@ function ReportsSubmitView({
                                             }}
                                             required
                                             disabled={readOnly}
-                                            className="rpts-sbmt-input rpts-sbmt-select"
+                                            style={styles.select}
                                         >
                                             <option value="">Select Plant...</option>
                                             {plants.map(p => (
@@ -581,20 +968,20 @@ function ReportsSubmitView({
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="rpts-sbmt-right-col">
-                                        <label>
+                                    <div style={styles.field}>
+                                        <label style={styles.fieldLabel}>
                                             Report Date
-                                            <span className="rpts-sbmt-required">*</span>
+                                            <span style={styles.required}>*</span>
                                         </label>
                                         <input
                                             type="date"
                                             value={form.report_date ?? ''}
                                             required
                                             disabled={readOnly || report.name === 'plant_production'}
-                                            className="rpts-sbmt-input rpts-sbmt-date"
+                                            style={styles.input}
                                         />
                                         {report.name === 'plant_production' && (
-                                            <div className="rpts-sbmt-next-report-notice">
+                                            <div style={{fontSize: '0.8125rem', color: '#64748b', marginTop: '0.25rem'}}>
                                                 Next Report {ReportUtility.formatDate(nextForcedReportDate)}
                                             </div>
                                         )}
@@ -821,6 +1208,7 @@ function ReportsSubmitView({
                             </div>
                         )}
                     </div>
+                    )}
                     {PluginComponent && (
                         <PluginComponent
                             form={form}

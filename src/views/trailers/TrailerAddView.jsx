@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {TrailerService} from '../../services/TrailerService';
 import Trailer from '../../models/trailers/Trailer';
 import {AuthService} from '../../services/AuthService';
-import './styles/Trailers.css';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import AddViewSection from '../../components/sections/AddViewSection';
 

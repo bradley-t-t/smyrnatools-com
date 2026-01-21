@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {UserService} from '../../services/UserService';
-import './styles/UserLabel.css';
 
 function UserLabel({userId, showInitials = false, showIcon = false, size = 'medium'}) {
     const [userName, setUserName] = useState('');
@@ -38,9 +37,9 @@ function UserLabel({userId, showInitials = false, showIcon = false, size = 'medi
                 } else {
                     setInitials(displayName.substring(0, 2).toUpperCase());
                 }
-            } catch (error) {
+            } catch (err) {
                 if (isMounted) {
-                    setError(error.message);
+                    setError(err.message);
                     setUserName('Unknown User');
                     setInitials('?');
                 }
@@ -58,38 +57,108 @@ function UserLabel({userId, showInitials = false, showIcon = false, size = 'medi
         };
     }, [userId]);
 
+    const getSizeStyles = () => {
+        switch (size) {
+            case 'small':
+                return {fontSize: '12px', initialsSize: '20px', initialsFontSize: '10px'};
+            case 'large':
+                return {fontSize: '16px', initialsSize: '32px', initialsFontSize: '13px'};
+            default:
+                return {fontSize: '14px', initialsSize: '26px', initialsFontSize: '11px'};
+        }
+    };
+
+    const sizeStyles = getSizeStyles();
+
+    const labelStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: sizeStyles.fontSize,
+        color: '#374151'
+    };
+
+    const initialsStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: sizeStyles.initialsSize,
+        height: sizeStyles.initialsSize,
+        borderRadius: '50%',
+        backgroundColor: '#1e3a5f',
+        color: 'white',
+        fontSize: sizeStyles.initialsFontSize,
+        fontWeight: 600,
+        flexShrink: 0
+    };
+
+    const initialsErrorStyle = {
+        ...initialsStyle,
+        backgroundColor: '#fef2f2',
+        color: '#991b1b'
+    };
+
+    const initialsLoadingStyle = {
+        ...initialsStyle,
+        backgroundColor: '#f1f5f9',
+        color: '#94a3b8'
+    };
+
+    const nameStyle = {
+        color: '#374151',
+        fontWeight: 500
+    };
+
+    const nameLoadingStyle = {
+        ...nameStyle,
+        width: '80px',
+        height: '14px',
+        backgroundColor: '#e5e7eb',
+        borderRadius: '4px'
+    };
+
+    const iconStyle = {
+        color: '#64748b',
+        fontSize: sizeStyles.fontSize
+    };
+
+    const errorIconStyle = {
+        ...iconStyle,
+        color: '#f59e0b'
+    };
+
     if (isLoading) {
         return (
-            <span className={`user-label size-${size} loading`}>
-                {showIcon && <i className="fas fa-user"></i>}
-                {showInitials && <span className="user-initials loading">?</span>}
-                <span className="user-name loading"></span>
+            <span style={labelStyle}>
+                {showIcon && <i className="fas fa-user" style={iconStyle}></i>}
+                {showInitials && <span style={initialsLoadingStyle}>?</span>}
+                <span style={nameLoadingStyle}></span>
             </span>
         );
     }
 
     if (error) {
         return (
-            <span className={`user-label size-${size} error`} title={`Error: ${error}`}>
-        {showIcon ? (
-            <i className="fas fa-exclamation-triangle"></i>
-        ) : showInitials ? (
-            <span className="user-initials error">!</span>
-        ) : null}
-                <span className="user-name">Unknown User</span>
-      </span>
+            <span style={labelStyle} title={`Error: ${error}`}>
+                {showIcon ? (
+                    <i className="fas fa-exclamation-triangle" style={errorIconStyle}></i>
+                ) : showInitials ? (
+                    <span style={initialsErrorStyle}>!</span>
+                ) : null}
+                <span style={nameStyle}>Unknown User</span>
+            </span>
         );
     }
 
     return (
-        <span className={`user-label size-${size}`} data-testid={`user-label-${userId}`}>
-      {showIcon ? (
-          <i className="fas fa-user"></i>
-      ) : showInitials ? (
-          <span className="user-initials">{initials}</span>
-      ) : null}
-            <span className="user-name">{userName}</span>
-    </span>
+        <span style={labelStyle} data-testid={`user-label-${userId}`}>
+            {showIcon ? (
+                <i className="fas fa-user" style={iconStyle}></i>
+            ) : showInitials ? (
+                <span style={initialsStyle}>{initials}</span>
+            ) : null}
+            <span style={nameStyle}>{userName}</span>
+        </span>
     );
 }
 

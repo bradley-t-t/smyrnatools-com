@@ -1,6 +1,5 @@
 import React from 'react';
 import CardSection from '../../components/sections/CardSection';
-import './styles/Managers.css';
 import ThemeUtility from '../../utils/ThemeUtility';
 
 function ManagerCard({manager, plantName, onSelect}) {

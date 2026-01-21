@@ -64,72 +64,318 @@ const WaterCementCalculator = () => {
     const totalCite = (parseFloat(values.cementLbs) || 0) + (parseFloat(values.supplementalLbs) || 0)
     const hasData = waterGal > 0 && totalCite > 0
 
+    const styles = {
+        container: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb'
+        },
+        section: {
+            marginBottom: '2rem'
+        },
+        sectionHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginBottom: '1.5rem',
+            paddingBottom: '1rem',
+            borderBottom: '2px solid #f1f5f9',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b'
+        },
+        formulaLayout: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+        },
+        formulaRow: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2rem',
+            flexWrap: 'wrap',
+            padding: '2rem',
+            background: '#f8fafc',
+            borderRadius: '12px'
+        },
+        fraction: {
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: '300px'
+        },
+        fractionTop: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '1rem',
+            justifyContent: 'center'
+        },
+        fractionBar: {
+            height: '3px',
+            background: '#1e3a5f'
+        },
+        fractionBottom: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '1rem',
+            justifyContent: 'center'
+        },
+        formulaInputBlock: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            minWidth: '120px'
+        },
+        label: {
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            textAlign: 'center'
+        },
+        inputWrap: {
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center'
+        },
+        input: {
+            width: '100%',
+            padding: '0.625rem 3rem 0.625rem 0.75rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s'
+        },
+        inputLarge: {
+            width: '100%',
+            padding: '0.75rem 3.5rem 0.75rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s'
+        },
+        inputUnit: {
+            position: 'absolute',
+            right: '0.75rem',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#94a3b8'
+        },
+        formulaOp: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#1e3a5f'
+        },
+        constant: {
+            padding: '0.5rem 0.75rem',
+            background: '#eff6ff',
+            borderRadius: '6px',
+            border: '1px solid #dbeafe',
+            fontSize: '1rem',
+            fontWeight: 700,
+            color: '#1e3a5f'
+        },
+        resultBlock: (hasData, statusColor) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '1.5rem',
+            minWidth: '200px',
+            background: hasData ? (
+                statusColor === 'success' ? '#f0fdf4' :
+                statusColor === 'info' ? '#eff6ff' :
+                statusColor === 'warning' ? '#fffbeb' :
+                statusColor === 'error' ? '#fef2f2' : 'white'
+            ) : 'white',
+            border: `3px solid ${hasData ? (
+                statusColor === 'success' ? '#16a34a' :
+                statusColor === 'info' ? '#3b82f6' :
+                statusColor === 'warning' ? '#f59e0b' :
+                statusColor === 'error' ? '#ef4444' : '#e5e7eb'
+            ) : '#e5e7eb'}`,
+            borderRadius: '12px'
+        }),
+        resultNum: {
+            fontSize: '3rem',
+            fontWeight: 700,
+            color: '#1e3a5f',
+            lineHeight: 1
+        },
+        resultBadge: (color) => ({
+            padding: '0.375rem 0.75rem',
+            borderRadius: '6px',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            background: color === 'success' ? '#dcfce7' :
+                       color === 'info' ? '#dbeafe' :
+                       color === 'warning' ? '#fef3c7' :
+                       color === 'error' ? '#fee2e2' : '#f1f5f9',
+            color: color === 'success' ? '#16a34a' :
+                   color === 'info' ? '#3b82f6' :
+                   color === 'warning' ? '#f59e0b' :
+                   color === 'error' ? '#ef4444' : '#64748b'
+        }),
+        breakdown: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1rem',
+            padding: '1rem',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#64748b'
+        },
+        inputRow: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        perYardDisplay: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginTop: '1rem'
+        },
+        perYardItem: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            padding: '1rem',
+            background: '#f0fdf4',
+            border: '2px solid #dcfce7',
+            borderRadius: '8px'
+        },
+        perYardLabel: {
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        perYardValue: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#16a34a'
+        },
+        footer: {
+            display: 'flex',
+            justifyContent: 'center'
+        },
+        resetButton: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#64748b',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none'
+        }
+    }
+
+    const inputFocusHandlers = {
+        onFocus: (e) => {
+            e.target.style.borderColor = '#1e3a5f';
+            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+        },
+        onBlur: (e) => {
+            e.target.style.borderColor = '#e5e7eb';
+            e.target.style.boxShadow = 'none';
+        }
+    }
+
     return (
-        <div className="wc-calculator">
-            <div className="calc-section">
-                <div className="calc-section-header">
-                    <i className="fas fa-percentage"></i>
+        <div style={styles.container}>
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>
+                    <i className="fas fa-percentage" style={{color: '#1e3a5f'}}></i>
                     <span>W/C Ratio Formula</span>
                 </div>
-                <div className="wc-formula-layout">
-                    <div className="wc-formula-row">
-                        <div className="wc-fraction">
-                            <div className="wc-fraction-top">
-                                <div className="formula-input-block">
-                                    <label>Water</label>
-                                    <div className="input-wrap">
+                <div style={styles.formulaLayout}>
+                    <div style={styles.formulaRow}>
+                        <div style={styles.fraction}>
+                            <div style={styles.fractionTop}>
+                                <div style={styles.formulaInputBlock}>
+                                    <label style={styles.label}>Water</label>
+                                    <div style={styles.inputWrap}>
                                         <input
                                             type="number"
                                             value={values.waterGallons}
                                             onChange={(e) => handleChange('waterGallons', e.target.value)}
                                             placeholder="0"
+                                            style={styles.input}
+                                            {...inputFocusHandlers}
                                         />
-                                        <span className="input-unit">gal</span>
+                                        <span style={styles.inputUnit}>gal</span>
                                     </div>
                                 </div>
-                                <span className="formula-op small">×</span>
-                                <div className="formula-constant small">
-                                    <span className="constant-value">8.34</span>
+                                <span style={styles.formulaOp}>×</span>
+                                <div style={styles.constant}>
+                                    <span>8.34</span>
                                 </div>
                             </div>
-                            <div className="wc-fraction-bar"></div>
-                            <div className="wc-fraction-bottom">
-                                <div className="formula-input-block">
-                                    <label>Primary Powder</label>
-                                    <div className="input-wrap">
+                            <div style={styles.fractionBar}></div>
+                            <div style={styles.fractionBottom}>
+                                <div style={styles.formulaInputBlock}>
+                                    <label style={styles.label}>Primary Powder</label>
+                                    <div style={styles.inputWrap}>
                                         <input
                                             type="number"
                                             value={values.cementLbs}
                                             onChange={(e) => handleChange('cementLbs', e.target.value)}
                                             placeholder="0"
+                                            style={styles.input}
+                                            {...inputFocusHandlers}
                                         />
-                                        <span className="input-unit">lbs</span>
+                                        <span style={styles.inputUnit}>lbs</span>
                                     </div>
                                 </div>
-                                <span className="formula-op small">+</span>
-                                <div className="formula-input-block">
-                                    <label>Supplemental</label>
-                                    <div className="input-wrap">
+                                <span style={styles.formulaOp}>+</span>
+                                <div style={styles.formulaInputBlock}>
+                                    <label style={styles.label}>Supplemental</label>
+                                    <div style={styles.inputWrap}>
                                         <input
                                             type="number"
                                             value={values.supplementalLbs}
                                             onChange={(e) => handleChange('supplementalLbs', e.target.value)}
                                             placeholder="0"
+                                            style={styles.input}
+                                            {...inputFocusHandlers}
                                         />
-                                        <span className="input-unit">lbs</span>
+                                        <span style={styles.inputUnit}>lbs</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <span className="formula-op">=</span>
-                        <div className={`formula-result-block large ${hasData ? (status?.color || '') : ''}`}>
-                            <span className="result-num">{hasData ? result?.ratio : '—'}</span>
-                            {hasData && status &&
-                                <span className={`result-badge ${status.color}`}>{status.label}</span>}
+                        <span style={{...styles.formulaOp, fontSize: '2rem'}}>=</span>
+                        <div style={styles.resultBlock(hasData, status?.color)}>
+                            <span style={styles.resultNum}>{hasData ? result?.ratio : '—'}</span>
+                            {hasData && status && (
+                                <span style={styles.resultBadge(status.color)}>{status.label}</span>
+                            )}
                         </div>
                     </div>
                     {hasData && (
-                        <div className="wc-formula-breakdown">
+                        <div style={styles.breakdown}>
                             <span>{Math.round(waterLbs)} lbs</span>
                             <span>÷</span>
                             <span>{Math.round(totalCite)} lbs</span>
@@ -138,42 +384,53 @@ const WaterCementCalculator = () => {
                 </div>
             </div>
 
-            <div className="calc-section">
-                <div className="calc-section-header">
-                    <i className="fas fa-truck"></i>
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>
+                    <i className="fas fa-truck" style={{color: '#1e3a5f'}}></i>
                     <span>Per Yard (optional)</span>
                 </div>
-                <div className="calc-inputs-grid single">
-                    <div className="calc-input-row">
-                        <label>Batch Size</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={values.batchSize}
-                                onChange={(e) => handleChange('batchSize', e.target.value)}
-                                placeholder="10"
-                                step="0.5"
-                            />
-                            <span className="input-unit">yd</span>
-                        </div>
+                <div style={styles.inputRow}>
+                    <label style={{...styles.label, textAlign: 'left'}}>Batch Size</label>
+                    <div style={styles.inputWrap}>
+                        <input
+                            type="number"
+                            value={values.batchSize}
+                            onChange={(e) => handleChange('batchSize', e.target.value)}
+                            placeholder="10"
+                            step="0.5"
+                            style={styles.inputLarge}
+                            {...inputFocusHandlers}
+                        />
+                        <span style={styles.inputUnit}>yd</span>
                     </div>
                 </div>
                 {result?.batchSize && (
-                    <div className="per-yard-display">
-                        <div className="per-yard-item">
-                            <span className="per-yard-label">Water</span>
-                            <span className="per-yard-value">{result.waterPerYd} lbs/yd</span>
+                    <div style={styles.perYardDisplay}>
+                        <div style={styles.perYardItem}>
+                            <span style={styles.perYardLabel}>Water</span>
+                            <span style={styles.perYardValue}>{result.waterPerYd} lbs/yd</span>
                         </div>
-                        <div className="per-yard-item">
-                            <span className="per-yard-label">Cementitious</span>
-                            <span className="per-yard-value">{result.citePerYd} lbs/yd</span>
+                        <div style={styles.perYardItem}>
+                            <span style={styles.perYardLabel}>Cementitious</span>
+                            <span style={styles.perYardValue}>{result.citePerYd} lbs/yd</span>
                         </div>
                     </div>
                 )}
             </div>
 
-            <div className="calc-footer">
-                <button onClick={clearForm} className="btn-reset">
+            <div style={styles.footer}>
+                <button 
+                    onClick={clearForm} 
+                    style={styles.resetButton}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.style.borderColor = '#cbd5e1';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                    }}
+                >
                     <i className="fas fa-redo"></i>
                     <span>Reset</span>
                 </button>

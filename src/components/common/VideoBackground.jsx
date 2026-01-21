@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react'
-import './styles/VideoBackground.css'
 import vid1 from '../../assets/videos/1.mp4'
 import vid2 from '../../assets/videos/2.mp4'
 import vid3 from '../../assets/videos/3.mp4'
@@ -86,9 +85,55 @@ function VideoBackground({className = ''}) {
         setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % backgroundVideos.length)
     }
 
+    const containerStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        zIndex: 0
+    }
+
+    const fallbackStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: preferences.solidBg ? '#1e3a5f' : '#0a1929',
+        zIndex: 1
+    }
+
+    const videoStyle = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        minWidth: '100%',
+        minHeight: '100%',
+        width: 'auto',
+        height: 'auto',
+        transform: 'translate(-50%, -50%)',
+        objectFit: 'cover',
+        zIndex: 2,
+        opacity: showVideo ? 1 : 0,
+        transition: 'opacity 1.5s ease-in-out',
+        filter: preferences.blurBg ? `blur(${preferences.blurBgIntensity || 12}px)` : 'none'
+    }
+
+    const overlayStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        zIndex: 3
+    }
+
     return (
-        <div className={`video-background-container ${className} ${preferences.solidBg ? 'solid-background' : ''}`}>
-            <div className="video-background-fallback"/>
+        <div style={containerStyle} className={className}>
+            <div style={fallbackStyle}/>
             {!preferences.solidBg && (
                 <video
                     ref={videoRef}
@@ -101,13 +146,12 @@ function VideoBackground({className = ''}) {
                     onTimeUpdate={handleTimeUpdate}
                     onEnded={handleVideoEnd}
                     onError={() => setShowVideo(true)}
-                    className={`video-background-video ${showVideo ? 'video-visible' : ''} ${preferences.blurBg ? 'video-blurred' : ''}`}
-                    style={preferences.blurBg ? {filter: `blur(${preferences.blurBgIntensity || 12}px)`} : {}}
+                    style={videoStyle}
                 >
                     <source src={backgroundVideos[currentVideoIndex]} type="video/mp4"/>
                 </video>
             )}
-            <div className="video-background-overlay"/>
+            <div style={overlayStyle}/>
         </div>
     )
 }

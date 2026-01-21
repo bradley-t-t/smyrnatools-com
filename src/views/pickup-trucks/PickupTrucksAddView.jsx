@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {PickupTruckService} from '../../services/PickupTruckService'
 import {AuthService} from '../../services/AuthService'
-import './styles/PickupTrucks.css'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {PlantService} from '../../services/PlantService'
 import {RegionService} from '../../services/RegionService'

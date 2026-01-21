@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react'
-import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
 import {RegionService} from '../../services/RegionService'
@@ -236,54 +235,313 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
         }
     }
 
+    const styles = {
+        container: {
+            width: '100%',
+            minHeight: '100vh',
+            background: '#f8fafc'
+        },
+        header: {
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            padding: '1rem 2rem',
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        },
+        backBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40px',
+            height: '40px',
+            border: 'none',
+            borderRadius: '8px',
+            background: '#f1f5f9',
+            color: '#1e3a5f',
+            fontSize: '1rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        headerContent: {
+            flex: 1
+        },
+        title: {
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            margin: 0
+        },
+        deleteBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40px',
+            height: '40px',
+            border: 'none',
+            borderRadius: '8px',
+            background: '#fee2e2',
+            color: '#ef4444',
+            fontSize: '1rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        content: {
+            padding: '2rem',
+            maxWidth: '1000px',
+            margin: '0 auto'
+        },
+        section: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            marginBottom: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        },
+        sectionTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            marginBottom: '1.5rem'
+        },
+        formGroup: {
+            marginBottom: '1.5rem'
+        },
+        label: {
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#374151',
+            marginBottom: '0.5rem'
+        },
+        required: {
+            color: '#ef4444',
+            marginLeft: '0.25rem'
+        },
+        input: (hasError) => ({
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s'
+        }),
+        textarea: (hasError) => ({
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s',
+            minHeight: '100px',
+            resize: 'vertical'
+        }),
+        select: (hasError) => ({
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            background: 'white',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+        }),
+        error: {
+            display: 'block',
+            marginTop: '0.5rem',
+            fontSize: '0.8125rem',
+            color: '#ef4444',
+            fontWeight: 500
+        },
+        plantMultiSelect: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+        },
+        selectedPlantsList: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem'
+        },
+        plantChip: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 0.75rem',
+            background: '#eff6ff',
+            border: '1px solid #3b82f6',
+            borderRadius: '6px',
+            color: '#1e3a5f',
+            fontSize: '0.875rem',
+            fontWeight: 600
+        },
+        chipRemoveBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '18px',
+            height: '18px',
+            border: 'none',
+            borderRadius: '50%',
+            background: '#3b82f6',
+            color: 'white',
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            padding: 0,
+            transition: 'all 0.2s'
+        },
+        plantSelectorBtn: (hasError) => ({
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        }),
+        frequencyRow: {
+            display: 'flex',
+            gap: '1rem',
+            alignItems: 'flex-end'
+        },
+        frequencyGroup: {
+            flex: 1
+        },
+        valueGroup: {
+            width: '120px'
+        },
+        rolesGrid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '0.75rem'
+        },
+        roleCheckbox: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.75rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        roleCheckboxChecked: {
+            border: '2px solid #1e3a5f',
+            background: '#f0f7ff'
+        },
+        fieldsSection: {
+            marginTop: '2rem'
+        },
+        fieldTypeButtons: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginBottom: '1.5rem'
+        },
+        fieldTypeBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#1e3a5f',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        }
+    }
+
     return (
-        <div className="maintenance-create-view">
-            <div className="maintenance-form-header">
-                <button className="back-btn" onClick={onBack}>
+        <div style={styles.container}>
+            <div style={styles.header}>
+                <button 
+                    style={styles.backBtn} 
+                    onClick={onBack}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                >
                     <i className="fas fa-arrow-left"></i>
                 </button>
-                <div className="header-content">
-                    <h1>{editingForm ? 'Edit Form' : 'Create Maintenance Form'}</h1>
+                <div style={styles.headerContent}>
+                    <h1 style={styles.title}>{editingForm ? 'Edit Form' : 'Create Maintenance Form'}</h1>
                 </div>
                 {editingForm && (
                     <button
-                        className="delete-btn"
+                        style={styles.deleteBtn}
                         onClick={() => setShowDeleteConfirm(true)}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
                     >
                         <i className="fas fa-trash"></i>
                     </button>
                 )}
             </div>
 
-            <div className="maintenance-create-content">
-                <div className="create-section">
-                    <h3>Form Details</h3>
+            <div style={styles.content}>
+                <div style={styles.section}>
+                    <h3 style={styles.sectionTitle}>Form Details</h3>
 
-                    <div className="form-group">
-                        <label>Title <span className="required">*</span></label>
+                    <div style={styles.formGroup}>
+                        <label style={styles.label}>Title <span style={styles.required}>*</span></label>
                         <input
                             type="text"
-                            className={`maintenance-input ${errors.title ? 'error' : ''}`}
+                            style={styles.input(!!errors.title)}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Enter form title"
+                            onFocus={(e) => {
+                                if (!errors.title) {
+                                    e.target.style.borderColor = '#1e3a5f';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                }
+                            }}
+                            onBlur={(e) => {
+                                if (!errors.title) {
+                                    e.target.style.borderColor = '#e5e7eb';
+                                    e.target.style.boxShadow = 'none';
+                                }
+                            }}
                         />
-                        {errors.title && <span className="field-error">{errors.title}</span>}
+                        {errors.title && <span style={styles.error}>{errors.title}</span>}
                     </div>
 
-                    <div className="form-group">
-                        <label>Plants <span className="required">*</span></label>
-                        <div className="plant-multi-select">
+                    <div style={styles.formGroup}>
+                        <label style={styles.label}>Plants <span style={styles.required}>*</span></label>
+                        <div style={styles.plantMultiSelect}>
                             {selectedPlants.length > 0 && (
-                                <div className="selected-plants-list">
+                                <div style={styles.selectedPlantsList}>
                                     {selectedPlants.map(code => {
                                         const plant = availablePlants.find(p => (p.plantCode || p.plant_code) === code)
                                         const name = plant?.plantName || plant?.plant_name || code
                                         return (
-                                            <span key={code} className="selected-plant-chip">
+                                            <span key={code} style={styles.plantChip}>
                                                 {name}
-                                                <button type="button"
-                                                        onClick={() => setSelectedPlants(selectedPlants.filter(c => c !== code))}>
+                                                <button 
+                                                    type="button"
+                                                    style={styles.chipRemoveBtn}
+                                                    onClick={() => setSelectedPlants(selectedPlants.filter(c => c !== code))}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
+                                                >
                                                     <i className="fas fa-times"></i>
                                                 </button>
                                             </span>
@@ -293,8 +551,20 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                             )}
                             <button
                                 type="button"
-                                className={`maintenance-select plant-selector-btn ${errors.plants ? 'error' : ''}`}
+                                style={styles.plantSelectorBtn(!!errors.plants)}
                                 onClick={() => setShowPlantModal(true)}
+                                onMouseEnter={(e) => {
+                                    if (!errors.plants) {
+                                        e.currentTarget.style.borderColor = '#1e3a5f';
+                                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    if (!errors.plants) {
+                                        e.currentTarget.style.borderColor = '#e5e7eb';
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }
+                                }}
                             >
                                 {selectedPlants.length === 0 ? 'Select plants' : 'Add more plants'}
                                 <i className="fas fa-plus"></i>

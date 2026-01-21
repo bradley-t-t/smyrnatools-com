@@ -1,6 +1,5 @@
 import React from 'react';
 import CardSection from '../../components/sections/CardSection';
-import './styles/Operators.css';
 import ThemeUtility from '../../utils/ThemeUtility';
 import formatUtility from '../../utils/FormatUtility';
 import GrammarUtility from '../../utils/GrammarUtility';

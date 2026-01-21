@@ -1,8 +1,6 @@
 import React from 'react';
 import MixerUtility from '../../utils/MixerUtility';
 import CardSection from '../../components/sections/CardSection';
-import '../../components/sections/styles/DetailView.css';
-import './styles/Mixers.css';
 
 function MixerCard({
                        mixer,

@@ -8,7 +8,6 @@ import {UserService} from '../../services/UserService';
 import {FormatUtility} from '../../utils/FormatUtility';
 import {HistoryUtility} from '../../utils/HistoryUtility';
 import {supabase} from '../../services/DatabaseService';
-import './styles/HistoryView.css';
 
 function HistoryViewSection({item, type, onClose}) {
     const [history, setHistory] = useState([]);
@@ -537,9 +536,9 @@ function HistoryViewSection({item, type, onClose}) {
     const renderCleanlinessChart = () => {
         if (cleanlinessData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No cleanliness rating history available</p>
-                    <p className="empty-subtext">Cleanliness ratings will be charted here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No cleanliness rating history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Cleanliness ratings will be charted here once they are recorded.</p>
                 </div>
             );
         }
@@ -549,26 +548,26 @@ function HistoryViewSection({item, type, onClose}) {
         const padding = 40;
 
         return (
-            <div className="chart-container">
-                <h3 className="chart-title">Cleanliness Rating Over Time</h3>
-                <div className="chart-stats">
-                    <div className="stat-item">
-                        <span className="stat-label">Average Rating:</span>
-                        <span className="stat-value">
+            <div className="flex flex-col gap-2.5">
+                <h3 className="m-0 mb-3 text-sm font-bold text-slate-800">Cleanliness Rating Over Time</h3>
+                <div className="flex gap-4 mb-4 flex-wrap">
+                    <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
+                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Average Rating:</span>
+                        <span className="text-[15px] font-bold text-slate-800">
                             {(cleanlinessData.reduce((sum, d) => sum + d.rating, 0) / cleanlinessData.length).toFixed(1)}★
                         </span>
                     </div>
-                    <div className="stat-item">
-                        <span className="stat-label">Total Ratings:</span>
-                        <span className="stat-value">{cleanlinessData.length}</span>
+                    <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
+                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Total Ratings:</span>
+                        <span className="text-[15px] font-bold text-slate-800">{cleanlinessData.length}</span>
                     </div>
-                    <div className="stat-item">
-                        <span className="stat-label">Current Rating:</span>
-                        <span className="stat-value">{cleanlinessData[cleanlinessData.length - 1].rating}★</span>
+                    <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
+                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Current Rating:</span>
+                        <span className="text-[15px] font-bold text-slate-800">{cleanlinessData[cleanlinessData.length - 1].rating}★</span>
                     </div>
                 </div>
-                <div className="chart-scroll-container">
-                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
+                <div className="overflow-x-auto my-3 bg-slate-50 rounded-md p-3 border border-gray-200">
+                    <svg className="w-full min-h-[250px]" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
                          preserveAspectRatio="xMidYMid meet">
                         <g transform={`translate(${padding}, ${padding})`}>
                             {[5, 4, 3, 2, 1].map(rating => (
@@ -578,7 +577,7 @@ function HistoryViewSection({item, type, onClose}) {
                                         y1={(maxRating - rating) * (chartHeight / maxRating)}
                                         x2={1000 - padding * 2}
                                         y2={(maxRating - rating) * (chartHeight / maxRating)}
-                                        stroke="var(--border-light)"
+                                        stroke="#e5e7eb"
                                         strokeWidth="1"
                                         strokeDasharray="4"
                                     />
@@ -587,7 +586,7 @@ function HistoryViewSection({item, type, onClose}) {
                                         y={(maxRating - rating) * (chartHeight / maxRating) + 5}
                                         textAnchor="end"
                                         fontSize="12"
-                                        fill="var(--text-secondary)"
+                                        fill="#64748b"
                                     >
                                         {rating}★
                                     </text>
@@ -606,7 +605,7 @@ function HistoryViewSection({item, type, onClose}) {
                                                 y1={y}
                                                 x2={(index + 1) / (cleanlinessData.length - 1) * (1000 - padding * 2)}
                                                 y2={(maxRating - cleanlinessData[index + 1].rating) * (chartHeight / maxRating)}
-                                                stroke="var(--accent)"
+                                                stroke="#1e3a5f"
                                                 strokeWidth="3"
                                             />
                                         )}
@@ -614,8 +613,8 @@ function HistoryViewSection({item, type, onClose}) {
                                             cx={x}
                                             cy={y}
                                             r="6"
-                                            fill="var(--accent)"
-                                            stroke="var(--bg-primary)"
+                                            fill="#1e3a5f"
+                                            stroke="white"
                                             strokeWidth="2"
                                         />
                                         <text
@@ -623,7 +622,7 @@ function HistoryViewSection({item, type, onClose}) {
                                             y={chartHeight + 20}
                                             textAnchor="middle"
                                             fontSize="11"
-                                            fill="var(--text-secondary)"
+                                            fill="#64748b"
                                             transform={`rotate(-45, ${x}, ${chartHeight + 20})`}
                                         >
                                             {FormatUtility.formatDate(point.timestamp)}
@@ -641,9 +640,9 @@ function HistoryViewSection({item, type, onClose}) {
     const renderConditionChart = () => {
         if (conditionData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No condition rating history available</p>
-                    <p className="empty-subtext">Condition ratings will be charted here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No condition rating history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Condition ratings will be charted here once they are recorded.</p>
                 </div>
             );
         }
@@ -653,26 +652,26 @@ function HistoryViewSection({item, type, onClose}) {
         const padding = 40;
 
         return (
-            <div className="chart-container">
-                <h3 className="chart-title">Condition Rating Over Time</h3>
-                <div className="chart-stats">
-                    <div className="stat-item">
-                        <span className="stat-label">Average Rating:</span>
-                        <span className="stat-value">
+            <div className="flex flex-col gap-2.5">
+                <h3 className="m-0 mb-3 text-sm font-bold text-slate-800">Condition Rating Over Time</h3>
+                <div className="flex gap-4 mb-4 flex-wrap">
+                    <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
+                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Average Rating:</span>
+                        <span className="text-[15px] font-bold text-slate-800">
                             {(conditionData.reduce((sum, d) => sum + d.rating, 0) / conditionData.length).toFixed(1)}★
                         </span>
                     </div>
-                    <div className="stat-item">
-                        <span className="stat-label">Total Ratings:</span>
-                        <span className="stat-value">{conditionData.length}</span>
+                    <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
+                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Total Ratings:</span>
+                        <span className="text-[15px] font-bold text-slate-800">{conditionData.length}</span>
                     </div>
-                    <div className="stat-item">
-                        <span className="stat-label">Current Rating:</span>
-                        <span className="stat-value">{conditionData[conditionData.length - 1].rating}★</span>
+                    <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
+                        <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Current Rating:</span>
+                        <span className="text-[15px] font-bold text-slate-800">{conditionData[conditionData.length - 1].rating}★</span>
                     </div>
                 </div>
-                <div className="chart-scroll-container">
-                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
+                <div className="overflow-x-auto my-3 bg-slate-50 rounded-md p-3 border border-gray-200">
+                    <svg className="w-full min-h-[250px]" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
                          preserveAspectRatio="xMidYMid meet">
                         <g transform={`translate(${padding}, ${padding})`}>
                             {[5, 4, 3, 2, 1].map(rating => (
@@ -682,7 +681,7 @@ function HistoryViewSection({item, type, onClose}) {
                                         y1={(maxRating - rating) * (chartHeight / maxRating)}
                                         x2={1000 - padding * 2}
                                         y2={(maxRating - rating) * (chartHeight / maxRating)}
-                                        stroke="var(--border-light)"
+                                        stroke="#e5e7eb"
                                         strokeWidth="1"
                                         strokeDasharray="4"
                                     />
@@ -691,7 +690,7 @@ function HistoryViewSection({item, type, onClose}) {
                                         y={(maxRating - rating) * (chartHeight / maxRating) + 5}
                                         textAnchor="end"
                                         fontSize="12"
-                                        fill="var(--text-secondary)"
+                                        fill="#64748b"
                                     >
                                         {rating}★
                                     </text>
@@ -710,7 +709,7 @@ function HistoryViewSection({item, type, onClose}) {
                                                 y1={y}
                                                 x2={(index + 1) / (conditionData.length - 1) * (1000 - padding * 2)}
                                                 y2={(maxRating - conditionData[index + 1].rating) * (chartHeight / maxRating)}
-                                                stroke="var(--accent)"
+                                                stroke="#1e3a5f"
                                                 strokeWidth="3"
                                             />
                                         )}
@@ -718,8 +717,8 @@ function HistoryViewSection({item, type, onClose}) {
                                             cx={x}
                                             cy={y}
                                             r="6"
-                                            fill="var(--accent)"
-                                            stroke="var(--bg-primary)"
+                                            fill="#1e3a5f"
+                                            stroke="white"
                                             strokeWidth="2"
                                         />
                                         <text
@@ -727,7 +726,7 @@ function HistoryViewSection({item, type, onClose}) {
                                             y={chartHeight + 20}
                                             textAnchor="middle"
                                             fontSize="11"
-                                            fill="var(--text-secondary)"
+                                            fill="#64748b"
                                             transform={`rotate(-45, ${x}, ${chartHeight + 20})`}
                                         >
                                             {FormatUtility.formatDate(point.timestamp)}
@@ -745,9 +744,9 @@ function HistoryViewSection({item, type, onClose}) {
     const renderOperatorChart = () => {
         if (operatorData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No operator assignment history available</p>
-                    <p className="empty-subtext">Operator assignments will be charted here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No operator assignment history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Operator assignments will be charted here once they are recorded.</p>
                 </div>
             );
         }
@@ -858,57 +857,53 @@ function HistoryViewSection({item, type, onClose}) {
         }
 
         return (
-            <div className="chart-container">
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Current Operator</div>
-                        <div className="summary-value">{currentOperator || 'Not Assigned'}</div>
+            <div className="flex flex-col gap-2.5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Operator</div>
+                        <div className="text-base font-bold text-slate-800">{currentOperator || 'Not Assigned'}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Assignments</div>
-                        <div className="summary-value">{totalAssignments}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Assignments</div>
+                        <div className="text-base font-bold text-slate-800">{totalAssignments}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Unique Operators</div>
-                        <div className="summary-value">{uniqueOperators}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique Operators</div>
+                        <div className="text-base font-bold text-slate-800">{uniqueOperators}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Most Frequent</div>
-                        <div className="summary-value">{mostFrequentOperator || 'Not Assigned'}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most Frequent</div>
+                        <div className="text-base font-bold text-slate-800">{mostFrequentOperator || 'Not Assigned'}</div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Assignment Timeline</h3>
-                <div className="operator-timeline-modern">
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Assignment Timeline</h3>
+                <div className="flex flex-col gap-0">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
-                        <div key={index}
-                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''} ${entry.isEmpty ? 'timeline-entry-empty' : ''}`}>
-                            <div className="timeline-marker">
-                                <div className="timeline-dot"></div>
-                                {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
+                        <div key={index} className="flex gap-3 py-2">
+                            <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < consolidatedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
-                            <div className="timeline-card">
-                                <div className="timeline-card-header">
-                                    <span className="timeline-operator-name">{entry.operator}</span>
-                                    {entry.isCurrent && <span className="current-badge">Current</span>}
+                            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-sm font-semibold text-slate-800">{entry.operator}</span>
+                                    {entry.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                     {entry.isEmpty && !entry.isCurrent &&
-                                        <span className="empty-badge">No Operator</span>}
+                                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded uppercase">No Operator</span>}
                                 </div>
-                                <div className="timeline-card-meta">
-                                    <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span
-                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
+                                    <span className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                                 {entry.isEmpty && entry.statusPeriods && entry.statusPeriods.length > 0 && (
-                                    <div className="timeline-status-periods">
-                                        <div className="status-periods-label">Status during period:</div>
-                                        <div className="status-periods-list">
+                                    <div className="mt-2 pt-2 border-t border-gray-100">
+                                        <div className="text-[10px] text-slate-500 font-semibold mb-1">Status during period:</div>
+                                        <div className="flex flex-wrap gap-1">
                                             {entry.statusPeriods.map((statusPeriod, spIndex) => (
-                                                <div key={spIndex} className="status-period-item">
-                                                    <span className="status-period-name">{statusPeriod.status}</span>
-                                                    <span className="status-period-duration">
-                                                        ({statusPeriod.days} {statusPeriod.days === 1 ? 'day' : 'days'})
-                                                    </span>
+                                                <div key={spIndex} className="text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                    <span className="font-medium">{statusPeriod.status}</span>
+                                                    <span className="text-slate-400 ml-1">({statusPeriod.days} {statusPeriod.days === 1 ? 'day' : 'days'})</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -963,29 +958,29 @@ function HistoryViewSection({item, type, onClose}) {
         const getStatusColor = (status) => {
             switch (status) {
                 case 'Active':
-                    return 'var(--success)';
+                    return '#16a34a';
                 case 'Spare':
                     return '#9333ea';
                 case 'In Shop':
                     return '#3b82f6';
                 case 'Retired':
-                    return 'var(--error)';
+                    return '#dc2626';
                 default:
-                    return 'var(--accent)';
+                    return '#1e3a5f';
             }
         };
 
         return (
-            <div className="chart-container">
-                <div className="utilization-metrics">
-                    <h3 className="utilization-title">Asset Status Distribution</h3>
-                    <div className="utilization-bar-container">
-                        <div className="utilization-bar">
+            <div className="flex flex-col gap-2.5">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+                    <h3 className="text-sm font-bold text-slate-800 m-0 mb-4">Asset Status Distribution</h3>
+                    <div className="mb-4">
+                        <div className="flex h-6 rounded-xl overflow-hidden bg-slate-100">
                             {statusPercentages.map((item, index) => (
                                 parseFloat(item.percentage) > 0 && (
                                     <div
                                         key={index}
-                                        className="utilization-segment"
+                                        className="flex items-center justify-center text-white text-xs font-semibold min-w-[30px] transition-all"
                                         style={{
                                             width: `${item.percentage}%`,
                                             background: getStatusColor(item.status)
@@ -998,68 +993,64 @@ function HistoryViewSection({item, type, onClose}) {
                             ))}
                         </div>
                     </div>
-                    <div className="utilization-legend">
+                    <div className="flex flex-wrap gap-4">
                         {statusPercentages.map((item, index) => (
-                            <div key={index} className="legend-item">
+                            <div key={index} className="flex items-center gap-2">
                                 <div
-                                    className="legend-color"
+                                    className="w-3 h-3 rounded"
                                     style={{background: getStatusColor(item.status)}}
                                 ></div>
-                                <div className="legend-details">
-                                    <div className="legend-label">{item.status}</div>
-                                    <div className="legend-value">{item.days} days ({item.percentage}%)</div>
+                                <div className="flex flex-col">
+                                    <div className="text-xs font-semibold text-slate-800">{item.status}</div>
+                                    <div className="text-[11px] text-slate-500">{item.days} days ({item.percentage}%)</div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Current Status</div>
-                        <div className="summary-value">{currentStatus}</div>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Status</div>
+                        <div className="text-base font-bold text-slate-800">{currentStatus}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Status Changes</div>
-                        <div className="summary-value">{allStatusPeriodsData.length}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Status Changes</div>
+                        <div className="text-base font-bold text-slate-800">{allStatusPeriodsData.length}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Shop Days</div>
-                        <div className="summary-value">{totalShopDays}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Shop Days</div>
+                        <div className="text-base font-bold text-slate-800">{totalShopDays}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Days Since Creation</div>
-                        <div className="summary-value">{totalDaysSinceCreation}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Days Since Creation</div>
+                        <div className="text-base font-bold text-slate-800">{totalDaysSinceCreation}</div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Status Timeline</h3>
-                <div className="operator-timeline-modern">
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Status Timeline</h3>
+                <div className="flex flex-col gap-0">
                     {allStatusPeriodsData.length === 0 ? (
-                        <div className="timeline-entry timeline-entry-current">
-                            <div className="timeline-marker">
+                        <div className="flex gap-3 py-2">
+                            <div className="flex flex-col items-center w-5 flex-shrink-0">
                                 <div
-                                    className="timeline-dot"
+                                    className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"
                                     style={{background: getStatusColor(currentStatus)}}
                                 ></div>
                             </div>
-                            <div className="timeline-card">
-                                <div className="timeline-card-header">
-                                    <span className="timeline-operator-name">{currentStatus}</span>
-                                    <span className="current-badge">Current</span>
+                            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-sm font-semibold text-slate-800">{currentStatus}</span>
+                                    <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>
                                 </div>
-                                <div className="timeline-card-meta">
-                                    <span className="timeline-date">Since Creation</span>
-                                    <span className="timeline-duration">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <span className="text-xs text-slate-500">Since Creation</span>
+                                    <span className="text-xs text-[#1e3a5f] font-semibold">
                                         {statusDaysMap[currentStatus]} {statusDaysMap[currentStatus] === 1 ? 'day' : 'days'}
                                     </span>
                                 </div>
-                                <div className="timeline-card-meta">
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        color: 'var(--text-secondary)',
-                                        fontStyle: 'italic'
-                                    }}>
+                                <div className="flex items-center gap-3 flex-wrap mt-1">
+                                    <span className="text-xs text-slate-500 italic">
                                         No status changes recorded
                                     </span>
                                 </div>
@@ -1067,35 +1058,33 @@ function HistoryViewSection({item, type, onClose}) {
                         </div>
                     ) : (
                         allStatusPeriodsData.slice().reverse().map((period, index) => (
-                            <div key={index}
-                                 className={`timeline-entry ${period.isCurrent ? 'timeline-entry-current' : ''} ${period.status === 'In Shop' ? 'timeline-entry-shop' : ''}`}>
-                                <div className="timeline-marker">
+                            <div key={index} className="flex gap-3 py-2">
+                                <div className="flex flex-col items-center w-5 flex-shrink-0">
                                     <div
-                                        className="timeline-dot"
+                                        className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"
                                         style={{background: getStatusColor(period.status)}}
                                     ></div>
-                                    {index < allStatusPeriodsData.length - 1 && <div className="timeline-line"></div>}
+                                    {index < allStatusPeriodsData.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                 </div>
-                                <div className="timeline-card">
-                                    <div className="timeline-card-header">
-                                        <span className="timeline-operator-name">{period.status}</span>
-                                        {period.isCurrent && <span className="current-badge">Current</span>}
+                                <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        <span className="text-sm font-semibold text-slate-800">{period.status}</span>
+                                        {period.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                     </div>
-                                    <div className="timeline-card-meta">
-                                        <span className="timeline-date">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <span className="text-xs text-slate-500">
                                             {FormatUtility.formatDate(period.startTimestamp)}
                                             {period.endTimestamp && ` - ${FormatUtility.formatDate(period.endTimestamp)}`}
                                             {!period.endTimestamp && ' - Present'}
                                         </span>
-                                        <span
-                                            className="timeline-duration">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
+                                        <span className="text-xs text-[#1e3a5f] font-semibold">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
                                     </div>
-                                    <div className="timeline-card-meta">
-                                        <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>
+                                    <div className="flex items-center gap-3 flex-wrap mt-1">
+                                        <span className="text-xs text-slate-500">
                                             Started by: <UserLabel userId={period.changedBy} showIcon={false}/>
                                         </span>
                                         {period.endChangedBy && (
-                                            <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>
+                                            <span className="text-xs text-slate-500">
                                                 Ended by: <UserLabel userId={period.endChangedBy} showIcon={false}/>
                                             </span>
                                         )}
@@ -1179,129 +1168,105 @@ function HistoryViewSection({item, type, onClose}) {
         });
 
         return (
-            <div className="chart-container">
-                {actualServices.length > 0 && (
-                    <div className="operator-summary-cards">
-                        <div className="summary-card">
-                            <div className="summary-label">Last Service</div>
-                            <div
-                                className="summary-value summary-value-small">{FormatUtility.formatDate(lastService.serviceDate)}</div>
-                        </div>
-                        <div className="summary-card">
-                            <div className="summary-label">Days Since Service</div>
-                            <div className="summary-value">{daysSinceLastService}</div>
-                        </div>
-                        <div className="summary-card">
-                            <div className="summary-label">Total Services</div>
-                            <div className="summary-value">{actualServices.length}</div>
-                        </div>
-                        {avgDaysService && (
-                            <div className="summary-card">
-                                <div className="summary-label">Avg Service Interval</div>
-                                <div className="summary-value">{avgDaysService} <span
-                                    style={{fontSize: '0.6rem'}}>days</span></div>
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap gap-4 pb-4 border-b border-gray-200">
+                    {lastService && (
+                        <div className="flex items-center gap-2">
+                            <i className="fas fa-wrench text-[#1e3a5f]"></i>
+                            <div>
+                                <div className="text-xs text-slate-500">Last Service</div>
+                                <div className="text-sm font-semibold text-slate-800">{FormatUtility.formatDate(lastService.serviceDate)} ({daysSinceLastService} days ago)</div>
                             </div>
-                        )}
+                        </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                        <i className="fas fa-exclamation-circle text-amber-500"></i>
+                        <div>
+                            <div className="text-xs text-slate-500">Open Issues</div>
+                            <div className="text-sm font-semibold text-slate-800">{openIssues.length}</div>
+                        </div>
                     </div>
-                )}
-
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Open Issues</div>
-                        <div className="summary-value">{openIssues.length}</div>
-                    </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Resolved Issues</div>
-                        <div className="summary-value">{resolvedIssues.length}</div>
-                    </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Issues</div>
-                        <div className="summary-value">{issues.length}</div>
+                    <div className="flex items-center gap-2">
+                        <i className="fas fa-check-circle text-green-600"></i>
+                        <div>
+                            <div className="text-xs text-slate-500">Resolved</div>
+                            <div className="text-sm font-semibold text-slate-800">{resolvedIssues.length}</div>
+                        </div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Service & Issue Timeline</h3>
+                <h3 className="m-0 text-xs font-bold text-slate-800 uppercase tracking-wide">Timeline</h3>
                 <ErrorMessage message={error} onDismiss={() => setError(null)}/>
 
-                <div className="operator-timeline-modern">
+                <div className="flex flex-col gap-0">
                     {combinedTimeline.map((entry, index) => {
                         if (entry.type === 'service') {
                             return (
-                                <div key={`service-${index}`} className="timeline-entry">
-                                    <div className="timeline-marker">
-                                        <div className="timeline-dot" style={{background: 'var(--success)'}}></div>
-                                        {index < combinedTimeline.length - 1 && <div className="timeline-line"></div>}
+                                <div key={`service-${index}`} className="flex gap-3 py-2">
+                                    <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                        <div className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1] bg-green-600"></div>
+                                        {index < combinedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                     </div>
-                                    <div className="timeline-card">
-                                        <div className="timeline-card-header">
-                                            <span className="timeline-operator-name">
-                                                <i className="fas fa-wrench"></i> {entry.serviceType}
+                                    <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <span className="text-sm font-semibold text-slate-800">
+                                                <i className="fas fa-wrench mr-1"></i> {entry.serviceType}
                                             </span>
                                         </div>
-                                        <div className="timeline-card-meta">
-                                            <span
-                                                className="timeline-date">{FormatUtility.formatDate(entry.date)}</span>
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.date)}</span>
                                         </div>
                                     </div>
                                 </div>
                             );
                         } else {
                             const issue = entry.issue;
-                            const severityClass = entry.isCompleted ? 'completed' :
-                                issue.severity === 'High' ? 'high' :
-                                    issue.severity === 'Medium' ? 'medium' : 'low';
+                            const severityColor = entry.isCompleted ? '#16a34a' : issue.severity === 'High' ? '#dc2626' : issue.severity === 'Medium' ? '#f59e0b' : '#3b82f6';
                             return (
-                                <div key={`issue-${issue.id}`}
-                                     className={`timeline-entry timeline-issue ${entry.isCompleted ? 'timeline-issue-completed' : ''}`}>
-                                    <div className="timeline-marker">
-                                        <div className={`timeline-dot timeline-dot-${severityClass}`}></div>
-                                        {index < combinedTimeline.length - 1 && <div className="timeline-line"></div>}
+                                <div key={`issue-${issue.id}`} className="flex gap-3 py-2">
+                                    <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                        <div className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]" style={{background: severityColor}}></div>
+                                        {index < combinedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                     </div>
-                                    <div
-                                        className={`timeline-card timeline-card-issue timeline-card-issue-${severityClass}`}>
-                                        <div className="timeline-issue-header">
-                                            <div className="timeline-issue-content">
-                                                <div className="timeline-issue-badges">
-                                                    <i className={entry.isCompleted ? "fas fa-check-circle" : "fas fa-exclamation-circle"}></i>
-                                                    <span
-                                                        className={`issue-severity-badge ${getSeverityClass(issue.severity)}`}>
+                                    <div className={`flex-1 bg-white border rounded-lg p-3 ${entry.isCompleted ? 'border-green-200' : 'border-gray-200'}`}>
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <i className={`${entry.isCompleted ? "fas fa-check-circle text-green-600" : "fas fa-exclamation-circle text-amber-500"}`}></i>
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${issue.severity === 'High' ? 'bg-red-100 text-red-800' : issue.severity === 'Medium' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
                                                         {issue.severity}
                                                     </span>
                                                     {entry.isCompleted && (
-                                                        <span className="resolved-badge">RESOLVED</span>
+                                                        <span className="text-[10px] font-bold bg-green-100 text-green-800 px-1.5 py-0.5 rounded uppercase">RESOLVED</span>
                                                     )}
                                                 </div>
-                                                <div className="timeline-issue-text">{issue.issue}</div>
+                                                <div className="text-sm text-slate-700">{issue.issue}</div>
                                             </div>
                                             <button
                                                 onClick={() => handleDeleteIssue(issue.id)}
                                                 title="Delete issue"
-                                                className="timeline-issue-delete-btn"
+                                                className="text-slate-400 hover:text-red-600 p-1"
                                             >
-                                                <i className="fas fa-trash"></i>
+                                                <i className="fas fa-trash text-xs"></i>
                                             </button>
                                         </div>
-                                        <div className="timeline-issue-meta">
-                                            <div className="timeline-issue-info">
-                                                <span className="timeline-issue-creator">
-                                                    <i className="fas fa-user"></i> {getCreatorName(issue)}
-                                                </span>
-                                                <span className="timeline-date">
-                                                    <i className="fas fa-calendar-plus"></i> {formatDate(issue.time_created)}
-                                                </span>
+                                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 flex-wrap gap-2">
+                                            <div className="flex items-center gap-3 text-xs text-slate-500">
+                                                <span><i className="fas fa-user mr-1"></i> {getCreatorName(issue)}</span>
+                                                <span><i className="fas fa-calendar-plus mr-1"></i> {formatDate(issue.time_created)}</span>
                                             </div>
                                             {entry.isCompleted && entry.completedDate && (
-                                                <span className="timeline-completed-date">
-                                                    <i className="fas fa-check"></i> Completed: {formatDate(issue.time_completed)}
+                                                <span className="text-xs text-green-600">
+                                                    <i className="fas fa-check mr-1"></i> Completed: {formatDate(issue.time_completed)}
                                                 </span>
                                             )}
                                             {!entry.isCompleted && (
                                                 <button
                                                     onClick={() => handleCompleteIssue(issue.id)}
                                                     title="Mark as resolved"
-                                                    className="timeline-issue-resolve-btn"
+                                                    className="text-xs text-green-600 hover:text-green-800 font-semibold"
                                                 >
-                                                    <i className="fas fa-check"></i> Mark as Resolved
+                                                    <i className="fas fa-check mr-1"></i> Mark as Resolved
                                                 </button>
                                             )}
                                         </div>
@@ -1362,44 +1327,42 @@ function HistoryViewSection({item, type, onClose}) {
         }
 
         return (
-            <div className="chart-container">
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Current Plant</div>
-                        <div className="summary-value">{currentPlant}</div>
+            <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Plant</div>
+                        <div className="text-base font-bold text-slate-800">{currentPlant}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Transfers</div>
-                        <div className="summary-value">{totalAssignments}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Transfers</div>
+                        <div className="text-base font-bold text-slate-800">{totalAssignments}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Unique Plants</div>
-                        <div className="summary-value">{uniquePlants}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique Plants</div>
+                        <div className="text-base font-bold text-slate-800">{uniquePlants}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Most Frequent</div>
-                        <div className="summary-value summary-value-small">{mostFrequentPlant}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most Frequent</div>
+                        <div className="text-[13px] font-bold text-slate-800">{mostFrequentPlant}</div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Assignment Timeline</h3>
-                <div className="operator-timeline-modern">
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Assignment Timeline</h3>
+                <div className="flex flex-col gap-0">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
-                        <div key={index}
-                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
-                            <div className="timeline-marker">
-                                <div className="timeline-dot"></div>
-                                {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
+                        <div key={index} className="flex gap-3 py-2">
+                            <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < consolidatedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
-                            <div className="timeline-card">
-                                <div className="timeline-card-header">
-                                    <span className="timeline-operator-name">{entry.plant}</span>
-                                    {entry.isCurrent && <span className="current-badge">Current</span>}
+                            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-sm font-semibold text-slate-800">{entry.plant}</span>
+                                    {entry.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                 </div>
-                                <div className="timeline-card-meta">
-                                    <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span
-                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
+                                    <span className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1412,9 +1375,9 @@ function HistoryViewSection({item, type, onClose}) {
     const renderStatusHistory = () => {
         if (statusData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No status history available</p>
-                    <p className="empty-subtext">Status changes will appear here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No status history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Status changes will appear here once they are recorded.</p>
                 </div>
             );
         }
@@ -1456,44 +1419,42 @@ function HistoryViewSection({item, type, onClose}) {
         }
 
         return (
-            <div className="chart-container">
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Current Status</div>
-                        <div className="summary-value">{currentStatus}</div>
+            <div className="flex flex-col gap-2.5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Status</div>
+                        <div className="text-base font-bold text-slate-800">{currentStatus}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Changes</div>
-                        <div className="summary-value">{totalChanges}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Changes</div>
+                        <div className="text-base font-bold text-slate-800">{totalChanges}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Unique Statuses</div>
-                        <div className="summary-value">{uniqueStatuses}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique Statuses</div>
+                        <div className="text-base font-bold text-slate-800">{uniqueStatuses}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Most Frequent</div>
-                        <div className="summary-value">{mostFrequentStatus}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most Frequent</div>
+                        <div className="text-base font-bold text-slate-800">{mostFrequentStatus}</div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Status Timeline</h3>
-                <div className="operator-timeline-modern">
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Status Timeline</h3>
+                <div className="flex flex-col gap-0">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
-                        <div key={index}
-                             className={`timeline-entry ${entry.isCurrent ? 'timeline-entry-current' : ''}`}>
-                            <div className="timeline-marker">
-                                <div className="timeline-dot"></div>
-                                {index < consolidatedTimeline.length - 1 && <div className="timeline-line"></div>}
+                        <div key={index} className="flex gap-3 py-2">
+                            <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < consolidatedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
-                            <div className="timeline-card">
-                                <div className="timeline-card-header">
-                                    <span className="timeline-operator-name">{entry.status}</span>
-                                    {entry.isCurrent && <span className="current-badge">Current</span>}
+                            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-sm font-semibold text-slate-800">{entry.status}</span>
+                                    {entry.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                 </div>
-                                <div className="timeline-card-meta">
-                                    <span className="timeline-date">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span
-                                        className="timeline-duration">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
+                                    <span className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1506,9 +1467,9 @@ function HistoryViewSection({item, type, onClose}) {
     const renderPositionHistory = () => {
         if (positionData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No position history available</p>
-                    <p className="empty-subtext">Position changes will appear here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No position history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Position changes will appear here once they are recorded.</p>
                 </div>
             );
         }
@@ -1629,133 +1590,57 @@ function HistoryViewSection({item, type, onClose}) {
     const renderRatingsHistory = () => {
         if (ratingsData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No rating history available</p>
-                    <p className="empty-subtext">Rating changes will be charted here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No rating history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Rating changes will be charted here once they are recorded.</p>
                 </div>
             );
         }
-
-        const maxRating = 5;
-        const chartHeight = 300;
-        const padding = 40;
 
         const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
         const avgRating = ratingsData.reduce((sum, d) => sum + d.rating, 0) / ratingsData.length;
         const currentRating = ratingsData[ratingsData.length - 1].rating;
         const highestRating = Math.max(...ratingsData.map(d => d.rating));
 
-
         return (
-            <div className="chart-container">
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Current Rating</div>
-                        <div className="summary-value">{currentRating > 0 ? `${currentRating}★` : 'None'}</div>
+            <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Rating</div>
+                        <div className="text-base font-bold text-slate-800">{currentRating > 0 ? `${currentRating}★` : 'None'}</div>
                         {currentRating > 0 && (
-                            <div className="summary-subtext">{ratingLabels[currentRating]}</div>
+                            <div className="text-[10px] text-slate-500">{ratingLabels[currentRating]}</div>
                         )}
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Average Rating</div>
-                        <div className="summary-value">{avgRating.toFixed(1)}★</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Average Rating</div>
+                        <div className="text-base font-bold text-slate-800">{avgRating.toFixed(1)}★</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Highest Rating</div>
-                        <div className="summary-value">{highestRating}★</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Highest Rating</div>
+                        <div className="text-base font-bold text-slate-800">{highestRating}★</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Changes</div>
-                        <div className="summary-value">{ratingsData.length}</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Changes</div>
+                        <div className="text-base font-bold text-slate-800">{ratingsData.length}</div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Rating Over Time</h3>
-                <div className="chart-scroll-container">
-                    <svg className="chart-svg_fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
-                         preserveAspectRatio="xMidYMid meet">
-                        <g transform={`translate(${padding}, ${padding})`}>
-                            {[5, 4, 3, 2, 1].map(rating => (
-                                <g key={rating}>
-                                    <line
-                                        x1="0"
-                                        y1={(maxRating - rating) * (chartHeight / maxRating)}
-                                        x2={1000 - padding * 2}
-                                        y2={(maxRating - rating) * (chartHeight / maxRating)}
-                                        stroke="var(--border-light)"
-                                        strokeWidth="1"
-                                        strokeDasharray="4"
-                                    />
-                                    <text
-                                        x="-10"
-                                        y={(maxRating - rating) * (chartHeight / maxRating) + 5}
-                                        textAnchor="end"
-                                        fontSize="12"
-                                        fill="var(--text-secondary)"
-                                    >
-                                        {rating}★
-                                    </text>
-                                </g>
-                            ))}
-
-                            {ratingsData.map((point, index) => {
-                                const x = (index / (ratingsData.length - 1 || 1)) * (1000 - padding * 2);
-                                const y = (maxRating - point.rating) * (chartHeight / maxRating);
-
-                                return (
-                                    <g key={index}>
-                                        {index < ratingsData.length - 1 && (
-                                            <line
-                                                x1={x}
-                                                y1={y}
-                                                x2={(index + 1) / (ratingsData.length - 1) * (1000 - padding * 2)}
-                                                y2={(maxRating - ratingsData[index + 1].rating) * (chartHeight / maxRating)}
-                                                stroke="var(--accent)"
-                                                strokeWidth="3"
-                                            />
-                                        )}
-                                        <circle
-                                            cx={x}
-                                            cy={y}
-                                            r="6"
-                                            fill="var(--accent)"
-                                            stroke="var(--bg-primary)"
-                                            strokeWidth="2"
-                                        />
-                                        <text
-                                            x={x}
-                                            y={chartHeight + 20}
-                                            textAnchor="middle"
-                                            fontSize="11"
-                                            fill="var(--text-secondary)"
-                                            transform={`rotate(-45, ${x}, ${chartHeight + 20})`}
-                                        >
-                                            {FormatUtility.formatDate(point.timestamp)}
-                                        </text>
-                                    </g>
-                                );
-                            })}
-                        </g>
-                    </svg>
-                </div>
-
-
-                <h3 className="chart-section-title">Rating Timeline</h3>
-                <div className="operator-timeline-modern">
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Rating Timeline</h3>
+                <div className="flex flex-col gap-0">
                     {ratingsData.slice().reverse().map((entry, index) => (
-                        <div key={index} className={`timeline-entry ${index === 0 ? 'timeline-entry-current' : ''}`}>
-                            <div className="timeline-marker">
-                                <div className="timeline-dot"></div>
-                                {index < ratingsData.length - 1 && <div className="timeline-line"></div>}
+                        <div key={index} className="flex gap-3 py-2">
+                            <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < ratingsData.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
-                            <div className="timeline-card">
-                                <div className="timeline-card-header">
-                                    <span
-                                        className="timeline-operator-name">{entry.rating}★ - {ratingLabels[entry.rating]}</span>
-                                    {index === 0 && <span className="current-badge">Current</span>}
+                            <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-sm font-semibold text-slate-800">{entry.rating}★ - {ratingLabels[entry.rating]}</span>
+                                    {index === 0 && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                 </div>
-                                <div className="timeline-card-meta">
-                                    <span className="timeline-date">{FormatUtility.formatDate(entry.timestamp)}</span>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.timestamp)}</span>
                                     <UserLabel userId={entry.changedBy} showIcon={true}/>
                                 </div>
                             </div>
@@ -1769,9 +1654,9 @@ function HistoryViewSection({item, type, onClose}) {
     const renderMileageTracking = () => {
         if (mileageData.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No mileage history available</p>
-                    <p className="empty-subtext">Mileage updates will be tracked here once they are recorded.</p>
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No mileage history available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Mileage updates will be tracked here once they are recorded.</p>
                 </div>
             );
         }
@@ -1779,43 +1664,6 @@ function HistoryViewSection({item, type, onClose}) {
         const currentMileage = mileageData[mileageData.length - 1].mileage;
         const totalMileageChange = currentMileage - mileageData[0].mileage;
         const avgMileage = mileageData.reduce((sum, d) => sum + d.mileage, 0) / mileageData.length;
-
-        const calculateMilesPerPeriod = () => {
-            if (mileageData.length < 2) return {perWeek: 0, perMonth: 0, perYear: 0};
-
-            const intervals = [];
-            for (let i = 1; i < mileageData.length; i++) {
-                const prevEntry = mileageData[i - 1];
-                const currEntry = mileageData[i];
-                const milesDriven = currEntry.mileage - prevEntry.mileage;
-                const timeDiff = currEntry.date - prevEntry.date;
-                const days = timeDiff / (1000 * 60 * 60 * 24);
-
-                if (days > 0 && milesDriven > 0) {
-                    intervals.push({milesDriven, days});
-                }
-            }
-
-            if (intervals.length === 0) return {perWeek: 0, perMonth: 0, perYear: 0};
-
-            const totalMiles = intervals.reduce((sum, int) => sum + int.milesDriven, 0);
-            const totalDays = intervals.reduce((sum, int) => sum + int.days, 0);
-            const milesPerDay = totalMiles / totalDays;
-
-            return {
-                perWeek: Math.round(milesPerDay * 7),
-                perMonth: Math.round(milesPerDay * 30.44),
-                perYear: Math.round(milesPerDay * 365.25)
-            };
-        };
-
-        const {perWeek, perMonth, perYear} = calculateMilesPerPeriod();
-
-        const maxMileage = Math.max(...mileageData.map(d => d.mileage));
-        const minMileage = Math.min(...mileageData.map(d => d.mileage));
-        const mileageRange = maxMileage - minMileage;
-        const chartHeight = 300;
-        const padding = 60;
 
         const getMaintenanceMilestone = (miles) => {
             if (miles >= 300000) return {level: 'critical', label: 'High Mileage'};
@@ -1827,173 +1675,52 @@ function HistoryViewSection({item, type, onClose}) {
         const milestone = getMaintenanceMilestone(currentMileage);
 
         return (
-            <div className="chart-container">
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Current Mileage</div>
-                        <div className="summary-value">{currentMileage.toLocaleString()}</div>
-                        <div className="summary-subtext">{milestone.label}</div>
+            <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Mileage</div>
+                        <div className="text-base font-bold text-slate-800">{currentMileage.toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-500">{milestone.label}</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Total Change</div>
-                        <div
-                            className="summary-value">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
-                        <div className="summary-subtext">miles tracked</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Change</div>
+                        <div className="text-base font-bold text-slate-800">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-500">miles tracked</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Average</div>
-                        <div className="summary-value">{Math.round(avgMileage).toLocaleString()}</div>
-                        <div className="summary-subtext">miles</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Average</div>
+                        <div className="text-base font-bold text-slate-800">{Math.round(avgMileage).toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-500">miles</div>
                     </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Updates</div>
-                        <div className="summary-value">{mileageData.length}</div>
-                        <div className="summary-subtext">recorded</div>
-                    </div>
-                </div>
-
-                <h3 className="chart-section-title">Estimated Usage Rates</h3>
-                <div className="operator-summary-cards">
-                    <div className="summary-card">
-                        <div className="summary-label">Per Week</div>
-                        <div className="summary-value">{perWeek.toLocaleString()}</div>
-                        <div className="summary-subtext">miles/week</div>
-                    </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Per Month</div>
-                        <div className="summary-value">{perMonth.toLocaleString()}</div>
-                        <div className="summary-subtext">miles/month</div>
-                    </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Per Year</div>
-                        <div className="summary-value">{perYear.toLocaleString()}</div>
-                        <div className="summary-subtext">miles/year</div>
-                    </div>
-                    <div className="summary-card">
-                        <div className="summary-label">Next Service Est.</div>
-                        <div className="summary-value">
-                            {perWeek > 0 ? Math.round((5000 - (currentMileage % 5000)) / (perWeek / 7)) : '—'}
-                        </div>
-                        <div className="summary-subtext">days (if 5k interval)</div>
+                    <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Updates</div>
+                        <div className="text-base font-bold text-slate-800">{mileageData.length}</div>
+                        <div className="text-[10px] text-slate-500">recorded</div>
                     </div>
                 </div>
 
-                <h3 className="chart-section-title">Mileage Over Time</h3>
-                <div className="chart-scroll-container">
-                    <svg className="chart-svg-fullwidth" viewBox={`0 0 ${1000} ${chartHeight + padding * 2}`}
-                         preserveAspectRatio="xMidYMid meet">
-                        <g transform={`translate(${padding}, ${padding})`}>
-                            <line
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2={chartHeight}
-                                stroke="var(--border-light)"
-                                strokeWidth="2"
-                            />
-                            <line
-                                x1="0"
-                                y1={chartHeight}
-                                x2={1000 - padding * 2}
-                                y2={chartHeight}
-                                stroke="var(--border-light)"
-                                strokeWidth="2"
-                            />
-
-                            {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
-                                const yPos = chartHeight * (1 - fraction);
-                                const mileageValue = Math.round(minMileage + mileageRange * fraction);
-                                return (
-                                    <g key={fraction}>
-                                        <line
-                                            x1="0"
-                                            y1={yPos}
-                                            x2={1000 - padding * 2}
-                                            y2={yPos}
-                                            stroke="var(--border-light)"
-                                            strokeWidth="1"
-                                            strokeDasharray="4"
-                                        />
-                                        <text
-                                            x="-10"
-                                            y={yPos + 5}
-                                            textAnchor="end"
-                                            fontSize="12"
-                                            fill="var(--text-secondary)"
-                                        >
-                                            {mileageValue.toLocaleString()}
-                                        </text>
-                                    </g>
-                                );
-                            })}
-
-                            {mileageData.map((point, index) => {
-                                const x = (index / (mileageData.length - 1 || 1)) * (1000 - padding * 2);
-                                const normalizedY = (point.mileage - minMileage) / (mileageRange || 1);
-                                const y = chartHeight * (1 - normalizedY);
-
-                                return (
-                                    <g key={index}>
-                                        {index < mileageData.length - 1 && (
-                                            <line
-                                                x1={x}
-                                                y1={y}
-                                                x2={((index + 1) / (mileageData.length - 1)) * (1000 - padding * 2)}
-                                                y2={chartHeight * (1 - (mileageData[index + 1].mileage - minMileage) / (mileageRange || 1))}
-                                                stroke="var(--accent)"
-                                                strokeWidth="3"
-                                            />
-                                        )}
-                                        <circle
-                                            cx={x}
-                                            cy={y}
-                                            r="6"
-                                            fill="var(--accent)"
-                                            stroke="var(--bg-primary)"
-                                            strokeWidth="2"
-                                        />
-                                        <text
-                                            x={x}
-                                            y={chartHeight + 20}
-                                            textAnchor="middle"
-                                            fontSize="11"
-                                            fill="var(--text-secondary)"
-                                            transform={`rotate(-45, ${x}, ${chartHeight + 20})`}
-                                        >
-                                            {FormatUtility.formatDate(point.timestamp)}
-                                        </text>
-                                    </g>
-                                );
-                            })}
-                        </g>
-                    </svg>
-                </div>
-
-                <h3 className="chart-section-title">Mileage Timeline</h3>
-                <div className="operator-timeline-modern">
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Mileage Timeline</h3>
+                <div className="flex flex-col gap-0">
                     {mileageData.slice().reverse().map((entry, index) => {
                         const reversedIndex = mileageData.length - 1 - index;
                         const milesDriven = reversedIndex > 0 ? entry.mileage - mileageData[reversedIndex - 1].mileage : 0;
                         const daysSince = reversedIndex > 0 ? Math.round((entry.date - mileageData[reversedIndex - 1].date) / (1000 * 60 * 60 * 24)) : 0;
 
                         return (
-                            <div key={index}
-                                 className={`timeline-entry ${index === 0 ? 'timeline-entry-current' : ''}`}>
-                                <div className="timeline-marker">
-                                    <div className="timeline-dot"></div>
-                                    {index < mileageData.length - 1 && <div className="timeline-line"></div>}
+                            <div key={index} className="flex gap-3 py-2">
+                                <div className="flex flex-col items-center w-5 flex-shrink-0">
+                                    <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                    {index < mileageData.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                 </div>
-                                <div className="timeline-card">
-                                    <div className="timeline-card-header">
-                                        <span
-                                            className="timeline-operator-name">{entry.mileage.toLocaleString()} miles</span>
-                                        {index === 0 && <span className="current-badge">Current</span>}
+                                <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        <span className="text-sm font-semibold text-slate-800">{entry.mileage.toLocaleString()} miles</span>
+                                        {index === 0 && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                     </div>
-                                    <div className="timeline-card-meta">
-                                        <span
-                                            className="timeline-date">{FormatUtility.formatDate(entry.timestamp)}</span>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.timestamp)}</span>
                                         {milesDriven > 0 && daysSince > 0 && (
-                                            <span className="timeline-duration">
+                                            <span className="text-xs text-[#1e3a5f] font-semibold">
                                                 +{milesDriven.toLocaleString()} miles in {daysSince} {daysSince === 1 ? 'day' : 'days'}
                                             </span>
                                         )}
@@ -2158,7 +1885,7 @@ function HistoryViewSection({item, type, onClose}) {
     const renderContent = () => {
         if (isLoading) {
             return (
-                <div className="loading-spinner-container">
+                <div className="flex flex-col items-center justify-center py-12 px-6 text-slate-500">
                     <LoadingScreen message="Loading history..." inline={true}/>
                 </div>
             );
@@ -2166,18 +1893,18 @@ function HistoryViewSection({item, type, onClose}) {
 
         if (error) {
             return (
-                <div className="error-message">
+                <div className="text-center py-8 text-red-600">
                     <p>{error}</p>
-                    <button className="retry-button" onClick={fetchHistory}>Retry</button>
+                    <button className="bg-red-600 text-white border-none rounded-lg px-5 py-2.5 mt-4 text-sm font-semibold cursor-pointer hover:bg-red-700" onClick={fetchHistory}>Retry</button>
                 </div>
             );
         }
 
         if (history.length === 0) {
             return (
-                <div className="empty-history">
-                    <p>No history records found for this {type}.</p>
-                    <p className="empty-subtext">History entries will appear here when changes are made to
+                <div className="text-center py-12 px-6 text-slate-500">
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No history records found for this {type}.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">History entries will appear here when changes are made to
                         this {type}.</p>
                 </div>
             );
@@ -2186,41 +1913,39 @@ function HistoryViewSection({item, type, onClose}) {
         switch (activeTab) {
             case 'timeline':
                 return (
-                    <div className="history-timeline">
+                    <div className="flex flex-col gap-3">
                         {sortedHistory.map((entry, index) => {
                             const fieldName = entry.fieldName || entry.field_name;
                             const isCreatedEntry = fieldName === 'created';
 
                             return (
-                                <div key={entry.id || index} className="history-item">
-                                    <div className="history-item-header">
-                                        <div className="history-field-name">
+                                <div key={entry.id || index} className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-slate-400 hover:shadow-md transition-all">
+                                    <div className="flex justify-between items-center mb-2.5">
+                                        <div className="text-sm font-bold text-slate-800 capitalize">
                                             {formatFieldName(fieldName)}
                                         </div>
-                                        <div className="history-timestamp">
+                                        <div className="text-xs text-slate-500 font-medium">
                                             {formatTimestamp(entry.changedAt || entry.changed_at)}
                                         </div>
                                     </div>
                                     {isCreatedEntry ? (
-                                        <div className="history-change">
-                                            <div className="history-created-value">
+                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                            <div className="text-sm text-green-600 font-semibold">
                                                 {formatValue(fieldName, entry.newValue || entry.new_value)}
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="history-change">
-                                            <div className="history-old-value">
-                                                <span
-                                                    className="value-label">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
+                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                            <div className="text-[13px] text-slate-500">
+                                                <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
                                             </div>
-                                            <div className="history-arrow">→</div>
-                                            <div className="history-new-value">
-                                                <span
-                                                    className="value-label">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
+                                            <div className="text-[#1e3a5f] text-sm">→</div>
+                                            <div className="text-[13px] text-slate-800 font-semibold">
+                                                <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
                                             </div>
                                         </div>
                                     )}
-                                    <div className="history-user">
+                                    <div className="text-xs text-slate-500">
                                         <UserLabel userId={entry.changedBy || entry.changed_by} showIcon={true}/>
                                     </div>
                                 </div>
@@ -2364,31 +2089,31 @@ function HistoryViewSection({item, type, onClose}) {
     }
 
     return ReactDOM.createPortal(
-        <div className="history-modal-backdrop">
-            <div className="history-modal">
-                <div className="history-modal-header">
-                    <div className="history-modal-header-content">
-                        <i className="fas fa-history"></i>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-[900px] w-full max-h-[85vh] flex flex-col border border-gray-200">
+                <div className="bg-slate-50 flex justify-between items-center px-6 py-5 border-b border-gray-200 rounded-t-2xl">
+                    <div className="flex items-center gap-3">
+                        <i className="fas fa-history text-xl text-[#1e3a5f]"></i>
                         <div>
-                            <h2>{itemName}</h2>
-                            <span className="history-modal-subtitle">Change History</span>
+                            <h2 className="text-lg font-bold text-slate-800 m-0">{itemName}</h2>
+                            <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Change History</span>
                         </div>
                     </div>
-                    <button className="history-modal-close-button" onClick={onClose}>
+                    <button className="bg-transparent border-none text-xl text-slate-500 cursor-pointer p-2 flex items-center justify-center rounded-md hover:bg-gray-200 hover:text-slate-800 w-8 h-8" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
 
-                <div className="history-tabs">
+                <div className="flex gap-2 px-6 py-4 overflow-x-auto border-b border-gray-200 bg-slate-50 flex-shrink-0">
                     <button
-                        className={`history-tab ${activeTab === 'timeline' ? 'active' : ''}`}
+                        className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'timeline' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                         onClick={() => setActiveTab('timeline')}
                     >
                         Timeline
                     </button>
                     {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment' || type === 'pickup-truck') && (
                         <button
-                            className={`history-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'overview' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('overview')}
                         >
                             Overview
@@ -2396,7 +2121,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {(type === 'mixer' || type === 'tractor') && (
                         <button
-                            className={`history-tab ${activeTab === 'operators' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'operators' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('operators')}
                         >
                             Operators
@@ -2404,7 +2129,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {(type === 'mixer' || type === 'tractor' || type === 'equipment' || type === 'pickup-truck') && (
                         <button
-                            className={`history-tab ${activeTab === 'service' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'service' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('service')}
                         >
                             Service History
@@ -2412,7 +2137,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment' || type === 'pickup-truck') && (
                         <button
-                            className={`history-tab ${activeTab === 'plant' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'plant' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('plant')}
                         >
                             Plant Assignments
@@ -2420,7 +2145,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {(type === 'operator' || type === 'pickup-truck') && (
                         <button
-                            className={`history-tab ${activeTab === 'status' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'status' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('status')}
                         >
                             Status History
@@ -2428,7 +2153,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {type === 'operator' && (
                         <button
-                            className={`history-tab ${activeTab === 'position' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'position' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('position')}
                         >
                             Position History
@@ -2436,7 +2161,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {type === 'operator' && (
                         <button
-                            className={`history-tab ${activeTab === 'ratings' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'ratings' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('ratings')}
                         >
                             Ratings History
@@ -2444,7 +2169,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {type === 'operator' && (
                         <button
-                            className={`history-tab ${activeTab === 'assignments' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'assignments' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('assignments')}
                         >
                             Assignments
@@ -2452,7 +2177,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {type === 'pickup-truck' && (
                         <button
-                            className={`history-tab ${activeTab === 'mileage' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'mileage' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('mileage')}
                         >
                             Mileage Tracking
@@ -2460,7 +2185,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {type === 'equipment' && (
                         <button
-                            className={`history-tab ${activeTab === 'condition' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'condition' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('condition')}
                         >
                             Condition
@@ -2468,7 +2193,7 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                     {(type === 'mixer' || type === 'tractor' || type === 'trailer' || type === 'equipment') && (
                         <button
-                            className={`history-tab ${activeTab === 'cleanliness' ? 'active' : ''}`}
+                            className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'cleanliness' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                             onClick={() => setActiveTab('cleanliness')}
                         >
                             Cleanliness
@@ -2476,12 +2201,12 @@ function HistoryViewSection({item, type, onClose}) {
                     )}
                 </div>
 
-                <div className="history-modal-content">
+                <div className="flex-1 overflow-y-auto p-6 bg-white">
                     {renderContent()}
                 </div>
 
-                <div className="history-modal-footer">
-                    <button className="cancel-button" onClick={onClose}>Close</button>
+                <div className="px-6 py-4 border-t border-gray-200 flex justify-end bg-slate-50 rounded-b-2xl">
+                    <button className="px-6 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm font-semibold cursor-pointer hover:bg-slate-100 hover:border-slate-300" onClick={onClose}>Close</button>
                 </div>
             </div>
         </div>,

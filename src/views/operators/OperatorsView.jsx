@@ -1,6 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react'
-import './styles/Operators.css'
-import '../../styles/FilterStyles.css'
 import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
 import OperatorDetailView from './OperatorDetailView'
@@ -18,7 +16,6 @@ import GrammarUtility from '../../utils/GrammarUtility'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import ThemeUtility from '../../utils/ThemeUtility'
 import {supabase} from '../../services/DatabaseService'
 
 function OperatorsView({
@@ -463,20 +460,31 @@ function OperatorsView({
 
     const renderStars = (val) => {
         const rating = Math.round(Number(val) || 0)
-        const count = rating > 0 ? rating : 1
-        return (
-            <span>
-                {Array.from({length: count}).map((_, i) => (
-                    <i key={i} className="fas fa-star"
-                       style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>
-                ))}
-            </span>
-        )
+        if (!rating || rating <= 0) {
+            return <span style={{color: '#94a3b8', fontSize: '14px', fontStyle: 'italic'}}>Not Rated</span>
+        }
+        const stars = []
+        for (let i = 1; i <= 5; i++) {
+            stars.push(
+                <i 
+                    key={i} 
+                    className="fas fa-star" 
+                    style={{
+                        color: i <= rating ? '#f59e0b' : '#e2e8f0',
+                        fontSize: '16px',
+                        marginRight: i < 5 ? '2px' : '0'
+                    }}
+                ></i>
+            )
+        }
+        return <div style={{display: 'flex', alignItems: 'center', gap: '2px'}}>{stars}</div>
     }
 
     const renderStarsOrNA = (operator) => {
         const allowedStatuses = ['Active', 'Light Duty', 'Training']
-        if (!allowedStatuses.includes(operator.status)) return 'Not Applicable'
+        if (!allowedStatuses.includes(operator.status)) {
+            return <span style={{color: '#94a3b8', fontSize: '14px', fontStyle: 'italic'}}>N/A</span>
+        }
         return renderStars(operator.rating)
     }
 
@@ -583,54 +591,125 @@ function OperatorsView({
                                     renderRow={(operator, handleSelect) => {
                                         const duplicate = duplicateNamesSet.has((operator.name || '').trim().toLowerCase())
                                         const trainerObj = trainers.find(t => t.employeeId === operator.assignedTrainer)
+                                        const cellStyle = {
+                                            padding: '20px 24px',
+                                            fontSize: '15px',
+                                            color: '#1e293b',
+                                            fontWeight: 500,
+                                            textAlign: 'left',
+                                            verticalAlign: 'middle',
+                                            backgroundColor: 'white'
+                                        }
+                                        const cellSecondaryStyle = {
+                                            padding: '20px 24px',
+                                            fontSize: '14px',
+                                            color: '#475569',
+                                            textAlign: 'left',
+                                            verticalAlign: 'middle',
+                                            backgroundColor: 'white'
+                                        }
+                                        const cellHighlightStyle = {
+                                            padding: '20px 24px',
+                                            fontSize: '16px',
+                                            color: '#1e3a5f',
+                                            fontWeight: 700,
+                                            textAlign: 'left',
+                                            verticalAlign: 'middle',
+                                            backgroundColor: 'white'
+                                        }
+                                        const statusBadgeStyle = (status) => {
+                                            let bg = '#f1f5f9'
+                                            let textColor = '#475569'
+                                            if (status === 'Active') { bg = '#dcfce7'; textColor = '#166534' }
+                                            else if (status === 'Light Duty') { bg = '#fef3c7'; textColor = '#92400e' }
+                                            else if (status === 'Pending Start') { bg = '#dbeafe'; textColor = '#1e40af' }
+                                            else if (status === 'Training') { bg = '#e0e7ff'; textColor = '#4338ca' }
+                                            else if (status === 'Terminated') { bg = '#fecaca'; textColor = '#991b1b' }
+                                            else if (status === 'No Hire') { bg = '#fee2e2'; textColor = '#b91c1c' }
+                                            return {
+                                                display: 'inline-block',
+                                                padding: '8px 16px',
+                                                borderRadius: '24px',
+                                                fontSize: '13px',
+                                                fontWeight: 600,
+                                                backgroundColor: bg,
+                                                color: textColor
+                                            }
+                                        }
+                                        const actionBtnStyle = {
+                                            width: '42px',
+                                            height: '42px',
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: '12px',
+                                            backgroundColor: 'white',
+                                            color: '#64748b',
+                                            cursor: 'pointer',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '16px',
+                                            marginRight: '8px'
+                                        }
                                         return (
                                             <tr key={operator.employeeId} onClick={() => handleSelect(operator)}
-                                                style={{cursor: 'pointer'}}>
-                                                <td style={{width: '10%'}}>{operator.plantCode || '\u2014'}</td>
-                                                <td style={{width: '24%'}}><span
-                                                    className={`name-cell${duplicate ? ' duplicate' : ''}`}>{operator.name}</span>
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    borderBottom: '1px solid #e2e8f0'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    const cells = e.currentTarget.querySelectorAll('td')
+                                                    cells.forEach(cell => cell.style.backgroundColor = '#e0f2fe')
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    const cells = e.currentTarget.querySelectorAll('td')
+                                                    cells.forEach(cell => cell.style.backgroundColor = '')
+                                                }}>
+                                                <td style={{...cellStyle, width: '10%'}}>{operator.plantCode || '\u2014'}</td>
+                                                <td style={{...cellHighlightStyle, width: '24%'}}>
+                                                    <span className={duplicate ? 'duplicate' : ''}>{operator.name}</span>
                                                 </td>
-                                                <td style={{width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
-                                                <td style={{width: '14%'}}>{operator.status || '\u2014'}</td>
-                                                <td style={{width: '12%'}}>{renderStarsOrNA(operator)}</td>
-                                                <td style={{width: '14%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
-                                                <td style={{width: '12%'}}>
-                                                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                                                <td style={{...cellSecondaryStyle, width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
+                                                <td style={{...cellSecondaryStyle, width: '14%'}}>
+                                                    <span style={statusBadgeStyle(operator.status)}>{operator.status || '\u2014'}</span>
+                                                </td>
+                                                <td style={{...cellSecondaryStyle, width: '12%'}}>{renderStarsOrNA(operator)}</td>
+                                                <td style={{...cellSecondaryStyle, width: '14%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                                <td style={{...cellSecondaryStyle, width: '12%'}}>
+                                                    <div style={{display: 'flex', alignItems: 'center'}}>
                                                         <button onClick={(e) => {
                                                             e.stopPropagation();
                                                             setModalOperatorId(operator.employeeId);
                                                             setModalOperatorName(operator.name);
                                                             setShowCommentModal(true);
-                                                        }} title="View comments" style={{
-                                                            background: 'transparent',
-                                                            border: 'none',
-                                                            padding: 0,
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            cursor: 'pointer'
+                                                        }} type="button" title="View comments" style={actionBtnStyle}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                            e.currentTarget.style.color = 'white'
+                                                            e.currentTarget.style.borderColor = '#1e3a5f'
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'white'
+                                                            e.currentTarget.style.color = '#64748b'
+                                                            e.currentTarget.style.borderColor = '#e2e8f0'
                                                         }}>
-                                                            <i className="fas fa-comments" style={{
-                                                                color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                                                marginRight: 4
-                                                            }}></i>
-                                                            <span>{operator.commentsCount || 0}</span>
+                                                            <i className="fas fa-comments"></i>
                                                         </button>
                                                         <button onClick={(e) => {
                                                             e.stopPropagation();
                                                             setSelectedOperatorForHistory(operator);
                                                             setShowHistoryModal(true);
-                                                        }} title="View history" style={{
-                                                            background: 'transparent',
-                                                            border: 'none',
-                                                            padding: 0,
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            cursor: 'pointer'
+                                                        }} type="button" title="View history" style={actionBtnStyle}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                            e.currentTarget.style.color = 'white'
+                                                            e.currentTarget.style.borderColor = '#1e3a5f'
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'white'
+                                                            e.currentTarget.style.color = '#64748b'
+                                                            e.currentTarget.style.borderColor = '#e2e8f0'
                                                         }}>
-                                                            <i className="fas fa-history" style={{
-                                                                color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                                                marginRight: 4
-                                                            }}></i>
+                                                            <i className="fas fa-history"></i>
                                                         </button>
                                                     </div>
                                                 </td>

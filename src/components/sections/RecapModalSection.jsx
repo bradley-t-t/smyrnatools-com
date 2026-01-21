@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import {supabase} from '../../services/DatabaseService'
 import {UserService} from '../../services/UserService'
 import {OperatorService} from '../../services/OperatorService'
-import './styles/RecapModalSection.css'
 
 function RecapModalSection({
                                plantCode,
@@ -492,125 +491,133 @@ function RecapModalSection({
     const totalChanges = mixerHistory.length + operatorHistory.length
 
     const tab = (
-        <div className={`recap-tab ${isTabVisible ? 'visible' : 'hidden'}`} onClick={handleToggle}>
-            <i className="fa-solid fa-clock-rotate-left"></i>
-            <span>Recap</span>
+        <div 
+            className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 bg-[#1e3a5f] text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
+            onClick={handleToggle}
+        >
+            <i className="fa-solid fa-clock-rotate-left text-sm"></i>
+            <span className="text-sm font-medium">Recap</span>
         </div>
     )
 
     const modal = isOpen ? (
-        <div className="recap-modal-backdrop" onClick={() => setIsOpen(false)}>
-            <div className="recap-modal" onClick={e => e.stopPropagation()}>
-                <div className="recap-modal-header">
-                    <div className="recap-modal-header-content">
-                        <i className="fa-solid fa-clock-rotate-left"></i>
+        <div 
+            className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start p-4"
+            onClick={() => setIsOpen(false)}
+        >
+            <div 
+                className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden ml-0 mt-16"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between px-5 py-4 bg-[#1e3a5f] flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                        <i className="fa-solid fa-clock-rotate-left text-white text-lg"></i>
                         <div>
-                            <h2>{displayTitle}</h2>
-                            <span className="recap-modal-subtitle">{displaySubtitle}</span>
+                            <h2 className="text-lg font-semibold text-white m-0">{displayTitle}</h2>
+                            <span className="text-sm text-slate-300">{displaySubtitle}</span>
                         </div>
                     </div>
-                    <button className="recap-modal-close-button" onClick={() => setIsOpen(false)}>
+                    <button 
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
+                        onClick={() => setIsOpen(false)}
+                    >
                         <i className="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <div className="recap-modal-filters">
-                    <div className="recap-filter-group">
+                <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+                    <div className="flex gap-1">
                         <button
-                            className={`recap-filter-btn ${dateFilter === 'day' ? 'active' : ''}`}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'day' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
                             onClick={() => setDateFilter('day')}
                         >
                             24h
                         </button>
                         <button
-                            className={`recap-filter-btn ${dateFilter === 'week' ? 'active' : ''}`}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'week' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
                             onClick={() => setDateFilter('week')}
                         >
                             7 Days
                         </button>
                         <button
-                            className={`recap-filter-btn ${dateFilter === 'month' ? 'active' : ''}`}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'month' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
                             onClick={() => setDateFilter('month')}
                         >
                             30 Days
                         </button>
                         <button
-                            className={`recap-filter-btn ${dateFilter === 'all' ? 'active' : ''}`}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'all' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
                             onClick={() => setDateFilter('all')}
                         >
                             All
                         </button>
                     </div>
-                    <div className="recap-count">
+                    <div className="text-sm text-slate-500 font-medium">
                         {totalChanges} change{totalChanges !== 1 ? 's' : ''}
                     </div>
                 </div>
 
-                <div className="recap-modal-content">
-                    <div className="recap-metrics-section">
-                        <div className="recap-metric">
-                            <div className="recap-metric-icon operators">
-                                <i className="fa-solid fa-user"></i>
+                <div className="flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-4 gap-3 p-4 border-b border-slate-200">
+                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
+                            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i className="fa-solid fa-user text-blue-600 text-sm"></i>
                             </div>
-                            <div className="recap-metric-data">
-                                <span
-                                    className={`recap-metric-value ${changeMetrics.operatorsNet > 0 ? 'positive' : changeMetrics.operatorsNet < 0 ? 'negative' : ''}`}>
-                                    {changeMetrics.operatorsNet === 0 ? 'No Change' : `${changeMetrics.operatorsNet > 0 ? '+' : ''}${changeMetrics.operatorsNet}`}
+                            <div className="flex flex-col">
+                                <span className={`text-base font-bold ${changeMetrics.operatorsNet > 0 ? 'text-green-600' : changeMetrics.operatorsNet < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                    {changeMetrics.operatorsNet === 0 ? '0' : `${changeMetrics.operatorsNet > 0 ? '+' : ''}${changeMetrics.operatorsNet}`}
                                 </span>
-                                <span className="recap-metric-label">Operators</span>
+                                <span className="text-xs text-slate-500">Operators</span>
                             </div>
                         </div>
-                        <div className="recap-metric">
-                            <div className="recap-metric-icon trucks">
-                                <i className="fa-solid fa-truck"></i>
+                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
+                            <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+                                <i className="fa-solid fa-truck text-green-600 text-sm"></i>
                             </div>
-                            <div className="recap-metric-data">
-                                <span
-                                    className={`recap-metric-value ${changeMetrics.runnableNet > 0 ? 'positive' : changeMetrics.runnableNet < 0 ? 'negative' : ''}`}>
-                                    {changeMetrics.runnableNet === 0 ? 'No Change' : `${changeMetrics.runnableNet > 0 ? '+' : ''}${changeMetrics.runnableNet}`}
+                            <div className="flex flex-col">
+                                <span className={`text-base font-bold ${changeMetrics.runnableNet > 0 ? 'text-green-600' : changeMetrics.runnableNet < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                    {changeMetrics.runnableNet === 0 ? '0' : `${changeMetrics.runnableNet > 0 ? '+' : ''}${changeMetrics.runnableNet}`}
                                 </span>
-                                <span className="recap-metric-label">Runnable</span>
+                                <span className="text-xs text-slate-500">Runnable</span>
                             </div>
                         </div>
-                        <div className="recap-metric">
-                            <div className="recap-metric-icon down">
-                                <i className="fa-solid fa-wrench"></i>
+                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
+                            <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
+                                <i className="fa-solid fa-wrench text-amber-600 text-sm"></i>
                             </div>
-                            <div className="recap-metric-data">
-                                <span
-                                    className={`recap-metric-value ${changeMetrics.downNet > 0 ? 'negative' : changeMetrics.downNet < 0 ? 'positive' : ''}`}>
-                                    {changeMetrics.downNet === 0 ? 'No Change' : `${changeMetrics.downNet > 0 ? '+' : ''}${changeMetrics.downNet}`}
+                            <div className="flex flex-col">
+                                <span className={`text-base font-bold ${changeMetrics.downNet > 0 ? 'text-red-600' : changeMetrics.downNet < 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                                    {changeMetrics.downNet === 0 ? '0' : `${changeMetrics.downNet > 0 ? '+' : ''}${changeMetrics.downNet}`}
                                 </span>
-                                <span className="recap-metric-label">Down</span>
+                                <span className="text-xs text-slate-500">Down</span>
                             </div>
                         </div>
-                        <div className="recap-metric">
-                            <div className="recap-metric-icon transfers">
-                                <i className="fa-solid fa-right-left"></i>
+                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
+                            <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
+                                <i className="fa-solid fa-right-left text-purple-600 text-sm"></i>
                             </div>
-                            <div className="recap-metric-data">
-                                <span
-                                    className="recap-metric-value">{changeMetrics.transfersNet === 0 ? 'No Change' : changeMetrics.transfersNet}</span>
-                                <span className="recap-metric-label">Transfers</span>
+                            <div className="flex flex-col">
+                                <span className="text-base font-bold text-slate-600">
+                                    {changeMetrics.transfersNet === 0 ? '0' : changeMetrics.transfersNet}
+                                </span>
+                                <span className="text-xs text-slate-500">Transfers</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="recap-history-section">
+                    <div className="p-4">
                         {isLoading ? (
-                            <div className="recap-loading">
-                                <div className="recap-loading-spinner">
-                                    <i className="fa-solid fa-spinner fa-spin"></i>
-                                </div>
-                                <span>Loading history...</span>
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                                <i className="fa-solid fa-spinner fa-spin text-2xl mb-3"></i>
+                                <span className="text-sm">Loading history...</span>
                             </div>
                         ) : groupedHistory.length === 0 ? (
-                            <div className="recap-empty">
-                                <i className="fa-solid fa-inbox"></i>
-                                <p>No changes found for this time period</p>
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                                <i className="fa-solid fa-inbox text-3xl mb-3"></i>
+                                <p className="text-sm">No changes found for this time period</p>
                             </div>
                         ) : (
-                            <div className="recap-timeline">
+                            <div className="space-y-2">
                                 {groupedHistory.map((group, groupIndex) => {
                                     const assetKey = `${group.type}_${group.id}`
                                     const isExpanded = expandedAssets[assetKey] || false
@@ -618,52 +625,50 @@ function RecapModalSection({
                                     const isTerminated = group.type === 'operator' && group.status === 'Terminated'
                                     const assetIcon = isMixer ? 'fa-solid fa-truck' : 'fa-solid fa-hard-hat'
                                     return (
-                                        <div key={assetKey || groupIndex} className={`recap-asset-group ${group.type}`}>
+                                        <div key={assetKey || groupIndex} className={`border rounded-lg overflow-hidden ${isMixer ? 'border-blue-200' : 'border-amber-200'}`}>
                                             <div
-                                                className="recap-asset-header"
+                                                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isMixer ? 'bg-blue-50 hover:bg-blue-100' : 'bg-amber-50 hover:bg-amber-100'}`}
                                                 onClick={() => toggleAssetExpanded(assetKey)}
                                             >
-                                                <i className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} recap-expand-icon`}></i>
-                                                <i className={`${assetIcon} recap-asset-type-icon`}></i>
+                                                <i className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-xs text-slate-400`}></i>
+                                                <i className={`${assetIcon} ${isMixer ? 'text-blue-600' : 'text-amber-600'}`}></i>
                                                 {isTerminated ? (
-                                                    <span className="recap-asset-title operator-terminated">
-                                                        <span
-                                                            className="operator-name-strikethrough">{group.name}</span>
-                                                        <span className="terminated-badge">Terminated</span>
+                                                    <span className="flex items-center gap-2 flex-1 font-medium">
+                                                        <span className="line-through text-slate-400">{group.name}</span>
+                                                        <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-semibold rounded">Terminated</span>
                                                     </span>
                                                 ) : (
-                                                    <span className="recap-asset-title">{group.name}</span>
+                                                    <span className="flex-1 font-medium text-slate-800">{group.name}</span>
                                                 )}
-                                                <span
-                                                    className="recap-asset-count">{group.changes.length} change{group.changes.length !== 1 ? 's' : ''}</span>
+                                                <span className="text-xs text-slate-500 bg-white px-2 py-1 rounded-full">
+                                                    {group.changes.length} change{group.changes.length !== 1 ? 's' : ''}
+                                                </span>
                                             </div>
                                             {isExpanded && (
-                                                <div className="recap-asset-changes">
+                                                <div className="bg-white divide-y divide-slate-100">
                                                     {group.changes.map((entry, index) => (
-                                                        <div key={entry.id || index} className="recap-entry">
-                                                            <div className="recap-entry-icon">
-                                                                <i className={getChangeIcon(entry.field_name)}></i>
+                                                        <div key={entry.id || index} className="flex gap-3 px-4 py-3">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                                                <i className={`${getChangeIcon(entry.field_name)} text-xs text-slate-500`}></i>
                                                             </div>
-                                                            <div className="recap-entry-content">
-                                                                <div className="recap-entry-header">
-                                                                    <span
-                                                                        className="recap-entry-field-inline">{formatFieldName(entry.field_name)}</span>
-                                                                    <span
-                                                                        className="recap-timestamp">{formatDate(entry.changed_at)}</span>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                                    <span className="text-sm font-medium text-slate-700">{formatFieldName(entry.field_name)}</span>
+                                                                    <span className="text-xs text-slate-400">{formatDate(entry.changed_at)}</span>
                                                                 </div>
-                                                                <div className="recap-entry-values">
-                                                                    <span className="recap-old-value">
+                                                                <div className="flex items-center gap-2 text-sm">
+                                                                    <span className="text-red-600 bg-red-50 px-2 py-0.5 rounded truncate max-w-[120px]">
                                                                         {formatValue(entry.old_value, entry.field_name)}
                                                                     </span>
-                                                                    <i className="fa-solid fa-arrow-right"></i>
-                                                                    <span className="recap-new-value">
+                                                                    <i className="fa-solid fa-arrow-right text-xs text-slate-300"></i>
+                                                                    <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded truncate max-w-[120px]">
                                                                         {formatValue(entry.new_value, entry.field_name)}
                                                                     </span>
                                                                 </div>
                                                                 {entry.changed_by && userNames[entry.changed_by] && (
-                                                                    <div className="recap-entry-user">
+                                                                    <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-400">
                                                                         <i className="fa-solid fa-user-pen"></i>
-                                                                        {userNames[entry.changed_by]}
+                                                                        <span>{userNames[entry.changed_by]}</span>
                                                                     </div>
                                                                 )}
                                                             </div>

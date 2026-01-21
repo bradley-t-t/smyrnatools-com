@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from '../../services/UserService'
 import {RegionService} from '../../services/RegionService'
-import './styles/RegionOverlay.css'
 
 function RegionOverlay() {
     const {preferences, setSelectedRegion, setRegionOverlayMinimized} = usePreferences()
@@ -98,29 +97,118 @@ function RegionOverlay() {
 
     if (!userId || loading) return null
 
+    const overlayStyle = {
+        position: 'fixed',
+        bottom: '24px',
+        left: '24px',
+        zIndex: 1000
+    }
+
+    const minimizedPillStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '10px 16px',
+        backgroundColor: '#1e3a5f',
+        color: 'white',
+        borderRadius: '16px',
+        cursor: 'pointer',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
+    }
+
+    const panelStyle = {
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+        border: '1px solid #e5e7eb',
+        overflow: 'hidden',
+        minWidth: '260px'
+    }
+
+    const headerStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 16px',
+        backgroundColor: '#1e3a5f',
+        color: 'white',
+        borderRadius: '16px 16px 0 0'
+    }
+
+    const headerTitleStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        fontSize: '14px',
+        fontWeight: 600
+    }
+
+    const actionButtonStyle = {
+        width: '28px',
+        height: '28px',
+        border: 'none',
+        background: 'rgba(255, 255, 255, 0.2)',
+        color: 'white',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '12px'
+    }
+
+    const bodyStyle = {
+        padding: '16px',
+        backgroundColor: 'white'
+    }
+
+    const selectStyle = {
+        width: '100%',
+        padding: '12px 16px',
+        borderRadius: '10px',
+        border: '1px solid #e5e7eb',
+        fontSize: '14px',
+        color: '#374151',
+        backgroundColor: '#f8fafc',
+        cursor: canSelectRegion ? 'pointer' : 'not-allowed',
+        opacity: canSelectRegion ? 1 : 0.7,
+        appearance: 'none',
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '16px'
+    }
+
+    const noteStyle = {
+        marginTop: '10px',
+        fontSize: '12px',
+        color: '#94a3b8',
+        textAlign: 'center'
+    }
+
     return (
-        <div className={`region-overlay ${isMinimized ? 'minimized' : ''}`}>
+        <div style={overlayStyle}>
             {isMinimized ? (
-                <div className="region-minimized-pill" onClick={toggleMinimize} title={currentRegionDisplay}>
+                <div style={minimizedPillStyle} onClick={toggleMinimize} title={currentRegionDisplay}>
                     <i className="fas fa-globe"/>
-                    <span className="region-label">{currentRegionName || currentRegionCode || 'Region'}</span>
+                    <span style={{fontSize: '13px', fontWeight: 500}}>{currentRegionName || currentRegionCode || 'Region'}</span>
                 </div>
             ) : (
-                <div className="region-panel">
-                    <div className="region-header">
-                        <div className="header-title">
+                <div style={panelStyle}>
+                    <div style={headerStyle}>
+                        <div style={headerTitleStyle}>
                             <i className="fas fa-globe"/>
                             <span>Region</span>
                         </div>
-                        <div className="header-actions">
-                            <button className="action-button circle" onClick={toggleMinimize} title="Minimize">
+                        <div>
+                            <button style={actionButtonStyle} onClick={toggleMinimize} title="Minimize">
                                 <i className="fas fa-xmark"/>
                             </button>
                         </div>
                     </div>
-                    <div className="region-body">
-                        <select className="ios-select region-select" value={currentRegionCode}
-                                onChange={handleChangeRegion} disabled={!canSelectRegion}>
+                    <div style={bodyStyle}>
+                        <select style={selectStyle} value={currentRegionCode} onChange={handleChangeRegion} disabled={!canSelectRegion}>
                             <option value="">Select a region</option>
                             {allRegions.map(r => {
                                 const code = r.region_code || r.regionCode
@@ -131,7 +219,7 @@ function RegionOverlay() {
                             })}
                         </select>
                         {!canSelectRegion && (
-                            <div className="region-note">Locked to your plant region</div>
+                            <div style={noteStyle}>Locked to your plant region</div>
                         )}
                     </div>
                 </div>

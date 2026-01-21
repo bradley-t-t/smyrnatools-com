@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import '../../components/sections/styles/DetailView.css';
 
 function TractorSelectModal({
                                 isOpen,

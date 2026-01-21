@@ -1,5 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState, useTransition} from 'react'
-import './styles/Dashboard.css'
+import React, {useCallback, useEffect, useRef, useState, useTransition} from 'react'
 import {RegionService} from '../../services/RegionService'
 import {MixerService} from '../../services/MixerService'
 import {TractorService} from '../../services/TractorService'
@@ -118,7 +117,7 @@ export default function DashboardView() {
         pickups: []
     })
 
-    const slimMixer = m => ({
+    const slimMixer = useCallback(m => ({
         id: m.id,
         status: m.status,
         assignedOperator: m.assignedOperator,
@@ -129,8 +128,8 @@ export default function DashboardView() {
         plantCode: m.assignedPlant || m.plantCode,
         truckNumber: m.truckNumber || m.truck_number || '',
         vin: m.vin || ''
-    })
-    const slimTractor = t => ({
+    }), [])
+    const slimTractor = useCallback(t => ({
         id: t.id,
         status: t.status,
         assignedOperator: t.assignedOperator,
@@ -141,23 +140,23 @@ export default function DashboardView() {
         plantCode: t.assignedPlant || t.plantCode,
         truckNumber: t.truckNumber || t.truck_number || '',
         vin: t.vin || ''
-    })
-    const slimTrailer = t => ({
+    }), [])
+    const slimTrailer = useCallback(t => ({
         id: t.id,
         status: t.status,
         lastServiceDate: t.lastServiceDate,
         plantCode: t.assignedPlant || t.plantCode,
         identifyingNumber: t.trailerNumber || t.trailer_number || t.truck_number || t.asset_number || ''
-    })
-    const slimEquipment = e => ({
+    }), [])
+    const slimEquipment = useCallback(e => ({
         id: e.id,
         status: e.status,
         lastServiceDate: e.lastServiceDate,
         plantCode: e.assignedPlant || e.plantCode,
         identifyingNumber: e.identifyingNumber || e.identifying_number || e.asset_number || e.truck_number || ''
-    })
-    const slimPickup = p => ({id: p.id, status: p.status, plantCode: p.assignedPlant || p.plantCode})
-    const slimOperator = o => ({id: o.id, employeeId: o.employeeId, status: o.status, plantCode: o.plantCode})
+    }), [])
+    const slimPickup = useCallback(p => ({id: p.id, status: p.status, plantCode: p.assignedPlant || p.plantCode}), [])
+    const slimOperator = useCallback(o => ({id: o.id, employeeId: o.employeeId, status: o.status, plantCode: o.plantCode}), [])
 
     const isServiceOverdue = date => {
         if (!date) return false
@@ -170,41 +169,41 @@ export default function DashboardView() {
         let totalDays = 0
 
         const normalizeDate = (dateStr, endOfDay = false) => {
-            if (!dateStr) return null;
-            const parts = dateStr.split('-');
+            if (!dateStr) return null
+            const parts = dateStr.split('-')
             if (endOfDay) {
-                return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999));
+                return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999))
             }
-            return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0));
-        };
+            return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0))
+        }
 
         const rangeStart = filterStartDate ? normalizeDate(filterStartDate, false) : null
         const rangeEnd = filterEndDate ? normalizeDate(filterEndDate, true) : new Date()
 
         if (rangeEnd) {
-            let earliestDataDate = null;
+            let earliestDataDate = null
 
             if (historyRecords.length > 0) {
                 earliestDataDate = historyRecords
                     .filter(h => h.changed_at)
                     .map(h => new Date(h.changed_at))
-                    .sort((a, b) => a - b)[0];
+                    .sort((a, b) => a - b)[0]
             }
 
             const earliestAssetCreationDate = assets
                 .map(a => a.createdAt || a.created_at)
                 .filter(d => d)
                 .map(d => new Date(d))
-                .sort((a, b) => a - b)[0];
+                .sort((a, b) => a - b)[0]
 
             if (earliestAssetCreationDate) {
                 if (!earliestDataDate || earliestAssetCreationDate < earliestDataDate) {
-                    earliestDataDate = earliestAssetCreationDate;
+                    earliestDataDate = earliestAssetCreationDate
                 }
             }
 
             if (earliestDataDate && rangeEnd < earliestDataDate) {
-                return [];
+                return []
             }
         }
 
@@ -224,19 +223,19 @@ export default function DashboardView() {
             const assetCreationDate = createdAt ? new Date(createdAt) : null
 
             if (assetCreationDate && rangeEnd && assetCreationDate > rangeEnd) {
-                return;
+                return
             }
 
             const earliestAssetHistory = assetHistory.length > 0
                 ? new Date(assetHistory[0].changed_at)
-                : null;
+                : null
 
             if (earliestAssetHistory && rangeEnd && earliestAssetHistory > rangeEnd) {
-                return;
+                return
             }
 
             if (!earliestAssetHistory && rangeEnd && rangeEnd < new Date()) {
-                return;
+                return
             }
 
             let effectiveStart = rangeStart
@@ -244,46 +243,46 @@ export default function DashboardView() {
                 : (assetCreationDate || new Date())
 
             if (earliestAssetHistory && assetHistory.length > 0 && effectiveStart < earliestAssetHistory) {
-                effectiveStart = earliestAssetHistory;
+                effectiveStart = earliestAssetHistory
             }
 
             const effectiveEnd = rangeEnd
 
             if (effectiveStart > effectiveEnd) {
-                return;
+                return
             }
 
-            let startingStatus = currentStatus;
-            let endingStatus = currentStatus;
+            let startingStatus = currentStatus
+            let endingStatus = currentStatus
 
             if (assetHistory.length > 0) {
                 if (rangeStart) {
-                    const recordsBeforeOrAtStart = assetHistory.filter(h => new Date(h.changed_at) <= rangeStart);
+                    const recordsBeforeOrAtStart = assetHistory.filter(h => new Date(h.changed_at) <= rangeStart)
                     if (recordsBeforeOrAtStart.length > 0) {
-                        const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1];
-                        startingStatus = lastRecordBeforeStart.new_value || currentStatus;
+                        const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1]
+                        startingStatus = lastRecordBeforeStart.new_value || currentStatus
                     } else if (assetHistory.length > 0) {
-                        startingStatus = assetHistory[0].old_value || currentStatus;
+                        startingStatus = assetHistory[0].old_value || currentStatus
                     }
                 }
 
                 if (rangeEnd) {
-                    const recordsBeforeOrAtEnd = assetHistory.filter(h => new Date(h.changed_at) <= rangeEnd);
+                    const recordsBeforeOrAtEnd = assetHistory.filter(h => new Date(h.changed_at) <= rangeEnd)
                     if (recordsBeforeOrAtEnd.length > 0) {
-                        const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1];
-                        endingStatus = lastRecordBeforeEnd.new_value || currentStatus;
+                        const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1]
+                        endingStatus = lastRecordBeforeEnd.new_value || currentStatus
                     } else if (assetHistory.length > 0) {
-                        endingStatus = assetHistory[0].old_value || currentStatus;
+                        endingStatus = assetHistory[0].old_value || currentStatus
                     }
                 }
             }
 
             const recordsInRange = rangeStart && rangeEnd
                 ? assetHistory.filter(h => {
-                    const changedAt = new Date(h.changed_at);
-                    return changedAt > rangeStart && changedAt <= rangeEnd;
+                    const changedAt = new Date(h.changed_at)
+                    return changedAt > rangeStart && changedAt <= rangeEnd
                 })
-                : assetHistory;
+                : assetHistory
 
             if (recordsInRange.length === 0) {
                 const days = Math.max(1, Math.round((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)))
@@ -326,10 +325,10 @@ export default function DashboardView() {
             .sort((a, b) => b.days - a.days)
 
         if (entries.length > 0) {
-            const sum = entries.reduce((acc, item) => acc + parseFloat(item.percentage), 0);
+            const sum = entries.reduce((acc, item) => acc + parseFloat(item.percentage), 0)
             if (sum < 100) {
-                const diff = (100 - sum).toFixed(1);
-                entries[entries.length - 1].percentage = (parseFloat(entries[entries.length - 1].percentage) + parseFloat(diff)).toFixed(1);
+                const diff = (100 - sum).toFixed(1)
+                entries[entries.length - 1].percentage = (parseFloat(entries[entries.length - 1].percentage) + parseFloat(diff)).toFixed(1)
             }
         }
 
@@ -374,8 +373,7 @@ export default function DashboardView() {
         const tractorAssignedIds = new Set()
         const consider = plantCode => !filterActive || plantSet.has(String(plantCode || '').trim())
         const counts = countsRef.current
-        let mixersAvailable = 0, tractorsAvailable = 0, trailersAvailable = 0, equipmentAvailable = 0,
-            pickupsAvailable = 0
+        let mixersAvailable = 0, tractorsAvailable = 0, trailersAvailable = 0, equipmentAvailable = 0, pickupsAvailable = 0
         if (!isAggregate) {
             for (const m of allMixersRef.current) {
                 if (!consider(m.plantCode)) continue
@@ -383,13 +381,15 @@ export default function DashboardView() {
                     mixersTotals.total++
                     mixersAvailable++
                 }
-                if (m.status === 'Active') mixersTotals.active++; else if (m.status === 'Spare') mixersTotals.spare++; else if (m.status === 'In Shop') mixersTotals.shop++
+                if (m.status === 'Active') mixersTotals.active++
+                else if (m.status === 'Spare') mixersTotals.spare++
+                else if (m.status === 'In Shop') mixersTotals.shop++
                 if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
                 if (m.status !== 'Retired' && VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)) mixersTotals.verified++
                 if (m.assignedOperator) mixerAssignedIds.add(m.assignedOperator)
                 const mc = counts.mixers[m.id]
                 if (mc) {
-                    mixersTotals.issues += mc.issues || 0;
+                    mixersTotals.issues += mc.issues || 0
                     mixersTotals.comments += mc.comments || 0
                 }
             }
@@ -400,13 +400,15 @@ export default function DashboardView() {
                 tractorsTotals.total++
                 tractorsAvailable++
             }
-            if (t.status === 'Active') tractorsTotals.active++; else if (t.status === 'Spare') tractorsTotals.spare++; else if (t.status === 'In Shop') tractorsTotals.shop++
+            if (t.status === 'Active') tractorsTotals.active++
+            else if (t.status === 'Spare') tractorsTotals.spare++
+            else if (t.status === 'In Shop') tractorsTotals.shop++
             if (isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
             if (t.status !== 'Retired' && VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy)) tractorsTotals.verified++
             if (t.assignedOperator) tractorAssignedIds.add(t.assignedOperator)
             const tc = counts.tractors[t.id]
             if (tc) {
-                tractorsTotals.issues += tc.issues || 0;
+                tractorsTotals.issues += tc.issues || 0
                 tractorsTotals.comments += tc.comments || 0
             }
         }
@@ -416,11 +418,13 @@ export default function DashboardView() {
                 trailersTotals.total++
                 trailersAvailable++
             }
-            if (r.status === 'Active') trailersTotals.active++; else if (r.status === 'Spare') trailersTotals.spare++; else if (r.status === 'In Shop') trailersTotals.shop++
+            if (r.status === 'Active') trailersTotals.active++
+            else if (r.status === 'Spare') trailersTotals.spare++
+            else if (r.status === 'In Shop') trailersTotals.shop++
             if (isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
             const rc = counts.trailers[r.id]
             if (rc) {
-                trailersTotals.issues += rc.issues || 0;
+                trailersTotals.issues += rc.issues || 0
                 trailersTotals.comments += rc.comments || 0
             }
         }
@@ -430,11 +434,13 @@ export default function DashboardView() {
                 equipmentTotals.total++
                 equipmentAvailable++
             }
-            if (e.status === 'Active') equipmentTotals.active++; else if (e.status === 'Spare') equipmentTotals.spare++; else if (e.status === 'In Shop') equipmentTotals.shop++
+            if (e.status === 'Active') equipmentTotals.active++
+            else if (e.status === 'Spare') equipmentTotals.spare++
+            else if (e.status === 'In Shop') equipmentTotals.shop++
             if (isServiceOverdue(e.lastServiceDate)) equipmentTotals.overdue++
             const ec = counts.equipment[e.id]
             if (ec) {
-                equipmentTotals.issues += ec.issues || 0;
+                equipmentTotals.issues += ec.issues || 0
                 equipmentTotals.comments += ec.comments || 0
             }
         }
@@ -444,7 +450,12 @@ export default function DashboardView() {
                 pickupsTotals.total++
                 pickupsAvailable++
             }
-            if (p.status === 'Active') pickupsTotals.active++; else if (p.status === 'In Shop') pickupsTotals.shop++; else if (p.status === 'Stationary') pickupsTotals.stationary++; else if (p.status === 'Spare') pickupsTotals.spare++; else if (p.status === 'Sold') pickupsTotals.sold++; else if (p.status === 'Retired') pickupsTotals.retired++
+            if (p.status === 'Active') pickupsTotals.active++
+            else if (p.status === 'In Shop') pickupsTotals.shop++
+            else if (p.status === 'Stationary') pickupsTotals.stationary++
+            else if (p.status === 'Spare') pickupsTotals.spare++
+            else if (p.status === 'Sold') pickupsTotals.sold++
+            else if (p.status === 'Retired') pickupsTotals.retired++
         }
         for (const o of allOperatorsRef.current) {
             if (!consider(o.plantCode)) continue
@@ -488,7 +499,7 @@ export default function DashboardView() {
         if (!isAggregate) overallActiveNumerator += mixersTotals.active
         overallActiveNumerator += tractorsTotals.active + trailersTotals.active + equipmentTotals.active + pickupsTotals.active + pickupsTotals.stationary
         const overallAllocationPercent = overallAvailable ? Math.round((overallActiveNumerator / overallAvailable) * 100) : 0
-        setStats(s => ({
+        setStats({
             mixers: {
                 ...mixersTotals,
                 verifiedPercent: mixersVerifiedPercent,
@@ -508,9 +519,9 @@ export default function DashboardView() {
             overdueTotal,
             verificationAverage: verificationAvg,
             overallAllocationPercent
-        }))
+        })
         prevSnapshotRef.current = {fleet: fleetTotal}
-    }, [dashboardPlant, regionPlants, allPlants])
+    }, [dashboardPlant, regionPlants, allPlants, dashboardRegionCode])
 
     const applyFilters = useCallback(() => {
         if (loading) {
@@ -549,86 +560,85 @@ export default function DashboardView() {
             const trailersMap = new Map(allTrailersRef.current.map(a => [a.id, a]))
             const equipmentMap = new Map(allEquipmentRef.current.map(a => [a.id, a]))
             ;(mMaint.data || []).forEach(r => {
-                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || {issues: 0, comments: 0};
-                counts.mixers[r.mixer_id].issues++;
-                const a = mixersMap.get(r.mixer_id);
-                const ident = a?.truckNumber || a?.vin || '';
-                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || '';
-                const desc = GrammarUtility.cleanDescription(raw || 'Issue');
+                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || {issues: 0, comments: 0}
+                counts.mixers[r.mixer_id].issues++
+                const a = mixersMap.get(r.mixer_id)
+                const ident = a?.truckNumber || a?.vin || ''
+                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
+                const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
                     type: 'Mixer',
                     assetId: r.mixer_id,
                     identifier: ident,
                     plant: a?.plantCode || '',
                     description: desc || 'Issue'
-                });
+                })
             })
             ;(mCom.data || []).forEach(r => {
-                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || {issues: 0, comments: 0};
+                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || {issues: 0, comments: 0}
                 counts.mixers[r.mixer_id].comments++
             })
             ;(tMaint.data || []).forEach(r => {
-                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || {issues: 0, comments: 0};
-                counts.tractors[r.tractor_id].issues++;
-                const a = tractorsMap.get(r.tractor_id);
-                const ident = a?.truckNumber || a?.vin || '';
-                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || '';
-                const desc = GrammarUtility.cleanDescription(raw || 'Issue');
+                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || {issues: 0, comments: 0}
+                counts.tractors[r.tractor_id].issues++
+                const a = tractorsMap.get(r.tractor_id)
+                const ident = a?.truckNumber || a?.vin || ''
+                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
+                const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
                     type: 'Tractor',
                     assetId: r.tractor_id,
                     identifier: ident,
                     plant: a?.plantCode || '',
                     description: desc || 'Issue'
-                });
+                })
             })
             ;(tCom.data || []).forEach(r => {
-                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || {issues: 0, comments: 0};
+                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || {issues: 0, comments: 0}
                 counts.tractors[r.tractor_id].comments++
             })
             ;(trMaint.data || []).forEach(r => {
-                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || {issues: 0, comments: 0};
-                counts.trailers[r.trailer_id].issues++;
-                const a = trailersMap.get(r.trailer_id);
-                const ident = a?.identifyingNumber || '';
-                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || '';
-                const desc = GrammarUtility.cleanDescription(raw || 'Issue');
+                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || {issues: 0, comments: 0}
+                counts.trailers[r.trailer_id].issues++
+                const a = trailersMap.get(r.trailer_id)
+                const ident = a?.identifyingNumber || ''
+                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
+                const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
                     type: 'Trailer',
                     assetId: r.trailer_id,
                     identifier: ident,
                     plant: a?.plantCode || '',
                     description: desc || 'Issue'
-                });
+                })
             })
             ;(trCom.data || []).forEach(r => {
-                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || {issues: 0, comments: 0};
+                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || {issues: 0, comments: 0}
                 counts.trailers[r.trailer_id].comments++
             })
             ;(eMaint.data || []).forEach(r => {
-                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || {issues: 0, comments: 0};
-                counts.equipment[r.equipment_id].issues++;
-                const a = equipmentMap.get(r.equipment_id);
-                const ident = a?.identifyingNumber || '';
-                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || '';
-                const desc = GrammarUtility.cleanDescription(raw || 'Issue');
+                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || {issues: 0, comments: 0}
+                counts.equipment[r.equipment_id].issues++
+                const a = equipmentMap.get(r.equipment_id)
+                const ident = a?.identifyingNumber || ''
+                const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
+                const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
                     type: 'Equipment',
                     assetId: r.equipment_id,
                     identifier: ident,
                     plant: a?.plantCode || '',
                     description: desc || 'Issue'
-                });
+                })
             })
             ;(eCom.data || []).forEach(r => {
-                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || {issues: 0, comments: 0};
+                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || {issues: 0, comments: 0}
                 counts.equipment[r.equipment_id].comments++
             })
             countsRef.current = counts
             setAssetIssueDetails(issueDetails)
             computeStats()
-        } catch {
-        }
+        } catch {}
     }, [computeStats])
 
     useEffect(() => {
@@ -636,25 +646,20 @@ export default function DashboardView() {
         let intervalId
 
         async function initBase() {
-            const isInitial = initialLoadRef.current
-            if (isInitial) {
-                setLoading(true)
-            } else {
-                setRefreshing(true)
-            }
+            if (!initialLoadRef.current) return
+            setLoading(true)
             setError('')
             try {
-                const allPlants = await ReportService.fetchPlantsSorted().catch(() => [])
+                const fetchedPlants = await ReportService.fetchPlantsSorted().catch(() => [])
                 if (cancelled) return
-                setAllPlantsCount(Array.isArray(allPlants) ? allPlants.length : 0)
-                setAllPlants(allPlants)
+                setAllPlantsCount(Array.isArray(fetchedPlants) ? fetchedPlants.length : 0)
+                setAllPlants(fetchedPlants)
                 const {data: sessionData} = await supabase.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 let allPerm = false
                 try {
                     allPerm = await UserService.hasPermission(uid, 'region.select.all').catch(() => false)
-                } catch {
-                }
+                } catch {}
                 if (cancelled) return
                 setHasAllRegionsPermission(!!allPerm)
                 let allFetched
@@ -676,9 +681,9 @@ export default function DashboardView() {
                 const aggregateRegions = allFetched.filter(r => r.type === 'Aggregate')
                 const aggregatePlantsPromises = aggregateRegions.map(r => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
                 const aggregatePlantsArrays = await Promise.all(aggregatePlantsPromises)
-                const totalAggregateLocations = aggregatePlantsArrays.flat().length
-                setTotalAggregateLocations(totalAggregateLocations)
-                setTotalPlantsExcludingAggregate(allPlantsCount - totalAggregateLocations)
+                const totalAggLocs = aggregatePlantsArrays.flat().length
+                setTotalAggregateLocations(totalAggLocs)
+                setTotalPlantsExcludingAggregate(fetchedPlants.length - totalAggLocs)
                 const selectedCode = preferences.selectedRegion?.code
                 if (selectedCode) {
                     setDashboardRegionCode(selectedCode)
@@ -688,8 +693,7 @@ export default function DashboardView() {
                     setDashboardRegionCode(first.regionCode)
                     setDashboardRegionName(first.regionName)
                 }
-            } catch (error) {
-                console.error('Error loading dashboard base data:', error)
+            } catch (err) {
                 if (!cancelled) setError('Failed to load dashboard data')
             } finally {
                 if (!cancelled) {
@@ -706,16 +710,21 @@ export default function DashboardView() {
             cancelled = true
             if (intervalId) clearInterval(intervalId)
         }
-    }, [dashboardRegionCode])
+    }, [preferences.selectedRegion])
 
     useEffect(() => {
-        if (preferences.selectedRegion?.code && preferences.selectedRegion.code !== dashboardRegionCode) {
-            setDashboardRegionCode(preferences.selectedRegion.code)
-            setDashboardRegionName(preferences.selectedRegion.name || '')
-            setDashboardPlant('')
-            setDataReady(false)
+        if (preferences.selectedRegion?.code) {
+            setDashboardRegionCode(prev => {
+                if (prev !== preferences.selectedRegion.code) {
+                    setDashboardRegionName(preferences.selectedRegion.name || '')
+                    setDashboardPlant('')
+                    setDataReady(false)
+                    return preferences.selectedRegion.code
+                }
+                return prev
+            })
         }
-    }, [preferences.selectedRegion, dashboardRegionCode])
+    }, [preferences.selectedRegion])
 
     useEffect(() => {
         let cancelled = false
@@ -763,10 +772,11 @@ export default function DashboardView() {
                             allOperatorsRef.current = (parsed.operators || []).map(slimOperator)
                             computeStats()
                             setLastUpdated(parsed.lastUpdated ? new Date(parsed.lastUpdated) : new Date(parsed.savedAt || now))
+                            setDataReady(true)
+                            setLoading(false)
                         }
                     }
-                } catch {
-                }
+                } catch {}
             }
             setRefreshing(true)
             try {
@@ -830,18 +840,16 @@ export default function DashboardView() {
                         pickups: allPickupsRef.current,
                         operators: allOperatorsRef.current
                     }))
-                } catch {
-                }
-            } catch (error) {
-                console.error('Error loading dashboard assets:', error)
-                if (!cancelled && !lastUpdated) setError('Failed to load dashboard data')
+                } catch {}
+            } catch (err) {
+                if (!cancelled) setError('Failed to load dashboard data')
             } finally {
                 if (!cancelled) {
                     setLoading(false)
                     setRefreshing(false)
                     setTimeout(() => {
                         setDataReady(true)
-                    }, 2000)
+                    }, 300)
                 }
             }
         }
@@ -850,11 +858,12 @@ export default function DashboardView() {
         return () => {
             cancelled = true
         }
-    }, [refreshKey, computeStats])
+    }, [refreshKey, computeStats, slimMixer, slimTractor, slimTrailer, slimEquipment, slimPickup, slimOperator])
 
     useEffect(() => {
         applyFilters()
     }, [dashboardPlant, regionPlants, applyFilters])
+
     useEffect(() => {
         if (!loading) fetchIssueCommentCounts()
     }, [stats.fleetTotal, loading, fetchIssueCommentCounts])
@@ -964,9 +973,7 @@ export default function DashboardView() {
                 equipment: equipmentData,
                 pickups: pickupsData
             })
-        } catch (error) {
-            console.error('Error fetching status history:', error)
-        }
+        } catch (err) {}
     }, [calculateStatusDistribution, dashboardRegionCode, dashboardPlant, allPlants, regionPlants, historyStartDate, historyEndDate])
 
     useEffect(() => {
@@ -977,20 +984,20 @@ export default function DashboardView() {
 
     useEffect(() => {
         if (historyStartDate && historyEndDate) {
-            const today = new Date().toISOString().split('T')[0];
-            let validatedStartDate = historyStartDate;
-            let validatedEndDate = historyEndDate;
+            const today = new Date().toISOString().split('T')[0]
+            let validatedStartDate = historyStartDate
+            let validatedEndDate = historyEndDate
 
             if (historyEndDate > today) {
-                validatedEndDate = today;
-                setHistoryEndDate(today);
+                validatedEndDate = today
+                setHistoryEndDate(today)
             }
 
             if (historyStartDate >= validatedEndDate) {
-                const endDate = new Date(validatedEndDate);
-                endDate.setDate(endDate.getDate() - 1);
-                validatedStartDate = endDate.toISOString().split('T')[0];
-                setHistoryStartDate(validatedStartDate);
+                const endDate = new Date(validatedEndDate)
+                endDate.setDate(endDate.getDate() - 1)
+                validatedStartDate = endDate.toISOString().split('T')[0]
+                setHistoryStartDate(validatedStartDate)
             }
 
             const region = RegionService.getRegionByCode(dashboardRegionCode)
@@ -1057,35 +1064,6 @@ export default function DashboardView() {
             })
         }
     }, [historyStartDate, historyEndDate, calculateStatusDistribution, dashboardRegionCode, dashboardPlant, regionPlants, allPlants])
-
-    const regionDisplayName = (() => {
-        const region = RegionService.getRegionByCode(dashboardRegionCode)
-        const isOffice = region?.type === 'Office'
-        return isOffice ? 'Home Office' : (dashboardRegionCode ? (dashboardRegionName || dashboardRegionCode) : (hasAllRegionsPermission ? 'All Regions' : (permittedRegions[0]?.regionName || 'Region')))
-    })()
-    const heroRegionSub = (() => {
-        const region = RegionService.getRegionByCode(dashboardRegionCode)
-        const isOffice = region?.type === 'Office'
-        if (isOffice) return `${totalRegionsExcludingOffice} Region${totalRegionsExcludingOffice !== 1 ? 's' : ''}, ${totalPlantsExcludingAggregate} Concrete Plant${totalPlantsExcludingAggregate !== 1 ? 's' : ''}, ${totalAggregateLocations} Aggregate Location${totalAggregateLocations !== 1 ? 's' : ''}`
-        const plantLabel = region?.type === 'Aggregate' ? 'Aggregate Location' : 'Concrete Plant'
-        return dashboardPlant ? `${plantLabel} ${dashboardPlant}` : (dashboardRegionCode ? `${regionPlants.length} ${plantLabel}${regionPlants.length !== 1 ? 's' : ''}` : `${allPlantsCount} ${plantLabel}${allPlantsCount !== 1 ? 's' : ''}`)
-    })()
-    const diffBadge = current => {
-        const prev = prevSnapshotRef.current?.fleet
-        if (prev == null) return null
-        const diff = current - prev
-        if (!diff) return null
-        const up = diff > 0
-        return <span className={up ? 'delta-indicator up' : 'delta-indicator down'}
-                     title={`Change since last refresh: ${diff}`}>{up ? '▲' : '▼'}{Math.abs(diff)}</span>
-    }
-
-    const onRetry = () => setRefreshKey(v => v + 1)
-    const onRefresh = () => {
-        setRefreshing(true);
-        setRefreshKey(prev => prev + 1);
-        setTimeout(() => setRefreshing(false), 1000);
-    }
 
     const handleQuickDateFilter = (filter) => {
         const today = new Date()
@@ -1176,6 +1154,27 @@ export default function DashboardView() {
         }
     }
 
+    const regionDisplayName = (() => {
+        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const isOffice = region?.type === 'Office'
+        return isOffice ? 'Home Office' : (dashboardRegionCode ? (dashboardRegionName || dashboardRegionCode) : (hasAllRegionsPermission ? 'All Regions' : (permittedRegions[0]?.regionName || 'Region')))
+    })()
+
+    const heroRegionSub = (() => {
+        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const isOffice = region?.type === 'Office'
+        if (isOffice) return `${totalRegionsExcludingOffice} Region${totalRegionsExcludingOffice !== 1 ? 's' : ''}, ${totalPlantsExcludingAggregate} Concrete Plant${totalPlantsExcludingAggregate !== 1 ? 's' : ''}, ${totalAggregateLocations} Aggregate Location${totalAggregateLocations !== 1 ? 's' : ''}`
+        const plantLabel = region?.type === 'Aggregate' ? 'Aggregate Location' : 'Concrete Plant'
+        return dashboardPlant ? `${plantLabel} ${dashboardPlant}` : (dashboardRegionCode ? `${regionPlants.length} ${plantLabel}${regionPlants.length !== 1 ? 's' : ''}` : `${allPlantsCount} ${plantLabel}${allPlantsCount !== 1 ? 's' : ''}`)
+    })()
+
+    const onRetry = () => setRefreshKey(v => v + 1)
+    const onRefresh = () => {
+        setRefreshing(true)
+        setRefreshKey(prev => prev + 1)
+        setTimeout(() => setRefreshing(false), 1000)
+    }
+
     const showSkeleton = !dataReady
 
     const filteredTrainingOperators = (() => {
@@ -1184,18 +1183,21 @@ export default function DashboardView() {
         if (!active) return trainingOperators
         return trainingOperators.filter(r => plantSet.has(String(r.trainerPlant || '').trim()) || plantSet.has(String(r.operatorPlant || '').trim()))
     })()
+
     const filteredPendingStartOperators = (() => {
         const plantSet = plantSetRef.current
         const active = plantSet.size > 0
         if (!active) return pendingStartOperators
         return pendingStartOperators.filter(r => plantSet.has(String(r.trainerPlant || '').trim()) || plantSet.has(String(r.operatorPlant || '').trim()))
     })()
+
     const filteredLightDutyOperators = (() => {
         const plantSet = plantSetRef.current
         const active = plantSet.size > 0
         if (!active) return lightDutyOperators
         return lightDutyOperators.filter(r => plantSet.has(String(r.plant || '').trim()))
     })()
+
     const formatPendingDate = d => {
         if (!d) return '-'
         if (d.length === 10 && /\d{4}-\d{2}-\d{2}/.test(d)) return d
@@ -1205,811 +1207,524 @@ export default function DashboardView() {
             return d
         }
     }
-    const assetIssuesRows = useMemo(() => {
-        const plantSet = plantSetRef.current
-        const filterActive = plantSet.size > 0
-        let list = assetIssueDetails.filter(r => !filterActive || plantSet.has(String(r.plant || '').trim()))
-        const region = RegionService.getRegionByCode(dashboardRegionCode)
-        const isAggregate = region?.type === 'Aggregate'
-        if (isAggregate) {
-            list = list.filter(r => r.type !== 'Mixer')
-        }
-        list.forEach(r => {
-            if (!r.identifier) r.identifier = '-'
-        })
-        return list.sort((a, b) => a.type.localeCompare(b.type) || String(a.identifier).localeCompare(String(b.identifier)) || String(a.assetId).localeCompare(String(b.assetId)))
-    }, [assetIssueDetails, dashboardPlant, regionPlants, refreshKey, dashboardRegionCode])
 
     const selectedRegion = RegionService.getRegionByCode(dashboardRegionCode)
     const isAggregate = selectedRegion?.type === 'Aggregate'
 
+    const SkeletonCard = () => (
+        <div className="rounded-xl p-6 shadow-card animate-pulse" style={{backgroundColor: 'white'}}>
+            <div className="h-4 rounded w-2/5 mb-3" style={{backgroundColor: 'var(--bg-tertiary)'}}></div>
+            <div className="h-8 rounded w-3/5 mb-2" style={{backgroundColor: 'var(--bg-tertiary)'}}></div>
+            <div className="h-3 rounded w-1/3" style={{backgroundColor: 'var(--bg-tertiary)'}}></div>
+        </div>
+    )
+
+    const Pill = ({children}) => (
+        <span style={{
+            display: 'inline-block',
+            fontSize: '12px',
+            padding: '4px 10px',
+            borderRadius: '16px',
+            marginRight: '6px',
+            marginBottom: '6px',
+            backgroundColor: '#e5e7eb',
+            color: '#374151',
+            fontWeight: 500
+        }}>{children}</span>
+    )
+
+    const cardStyle = {
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
+        border: '1px solid #e5e7eb'
+    }
+
+    const metricCardStyle = {
+        backgroundColor: '#f8fafc',
+        borderRadius: '12px',
+        padding: '20px',
+        border: '1px solid #e2e8f0'
+    }
+
+    const sectionTitleStyle = {
+        fontSize: '18px',
+        fontWeight: 600,
+        color: '#1e3a5f',
+        marginBottom: '20px'
+    }
+
+    const metricLabelStyle = {
+        fontSize: '13px',
+        fontWeight: 500,
+        color: '#64748b',
+        marginBottom: '4px'
+    }
+
+    const metricValueStyle = {
+        fontSize: '28px',
+        fontWeight: 700,
+        color: '#1e3a5f',
+        lineHeight: 1.2
+    }
+
+    const metricSubStyle = {
+        fontSize: '12px',
+        color: '#94a3b8',
+        marginTop: '4px'
+    }
+
     return (
-        <div className="global-dashboard-container dashboard-container" data-filtering={isFiltering || undefined}>
-            <div className="dashboard-header">
-                <h1>Dashboard</h1>
-                <div className="dashboard-actions">
-                    <div className="toolbar-group">
-                        <button className="dashboard-refresh-btn" onClick={onRefresh} disabled={refreshing}
-                                aria-label="Refresh">
-                            <i className={`fas fa-sync ${refreshing ? 'spinning' : ''}`}></i> Refresh
+        <>
+            <style>{`
+                .content-area:has(.dashboard-full-width) {
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+            `}</style>
+            <div className="dashboard-full-width" style={{
+                minHeight: '100vh',
+                backgroundColor: '#f8fafc',
+                color: '#1e293b'
+            }}>
+                <div style={{
+                    backgroundColor: 'white',
+                    backgroundImage: `
+                        linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                        radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+                    `,
+                    backgroundSize: '20px 20px, 20px 20px, 40px 40px',
+                    backgroundPosition: '0 0, 0 0, 0 0',
+                    borderBottom: '1px solid #e2e8f0',
+                    padding: '16px 24px',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 10,
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                }}>
+                <div style={{maxWidth: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <h1 style={{fontSize: '24px', fontWeight: 700, color: '#1e3a5f', margin: 0}}>Dashboard</h1>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                        <button
+                            type="button"
+                            onClick={onRefresh}
+                            disabled={refreshing}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 20px',
+                                backgroundColor: '#1e3a5f',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                cursor: refreshing ? 'not-allowed' : 'pointer',
+                                opacity: refreshing ? 0.7 : 1
+                            }}
+                        >
+                            <i className="fas fa-sync-alt" style={{animation: refreshing ? 'spin 1s linear infinite' : 'none'}}></i>
+                            {refreshing ? 'Refreshing...' : 'Refresh'}
                         </button>
                         {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
-                            <button className="ios-select" onClick={() => setPlantModalOpen(true)} disabled={refreshing}
-                                    aria-label="Plant">
+                            <button
+                                type="button"
+                                onClick={() => setPlantModalOpen(true)}
+                                disabled={refreshing}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: 'white',
+                                    color: '#374151',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '10px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer'
+                                }}
+                            >
                                 {dashboardPlant ? regionPlants.find(p => (p.plantCode || p.plant_code) === dashboardPlant)?.plantName || dashboardPlant : 'All Plants'}
                             </button>
                         )}
                     </div>
-                    <div className="toolbar-group">
-                        {isFiltering && <div className="filtering-indicator">Filtering</div>}
-                    </div>
                 </div>
             </div>
 
-            <div className="dashboard-hero simple slide-in-hero">
-                <div className="hero-left">
-                    <div className="hero-region">
-                        <div className="hero-region-name">{showSkeleton ?
-                            <div className="skeleton-line w60"/> : regionDisplayName}</div>
-                        <div className="hero-region-sub">{showSkeleton ?
-                            <div className="skeleton-line w40"/> : heroRegionSub}</div>
-                    </div>
-                    <div className="hero-metrics compact">
+            <div style={{maxWidth: '100%', margin: '0 auto', padding: '24px'}}>
+                <div style={{...cardStyle, marginBottom: '24px'}}>
+                    <div style={{marginBottom: '20px'}}>
                         {showSkeleton ? (
                             <>
-                                <div className="hero-metric skeleton-card">
-                                    <div className="skeleton-line w40"/>
-                                    <div className="skeleton-line w60 tall"/>
-                                    <div className="skeleton-line w30"/>
-                                </div>
-                                <div className="hero-metric skeleton-card">
-                                    <div className="skeleton-line w40"/>
-                                    <div className="skeleton-line w60 tall"/>
-                                    <div className="skeleton-line w30"/>
-                                </div>
-                                <div className="hero-metric skeleton-card">
-                                    <div className="skeleton-line w40"/>
-                                    <div className="skeleton-line w60 tall"/>
-                                    <div className="skeleton-line w30"/>
-                                </div>
-                                <div className="hero-metric wide skeleton-card">
-                                    <div className="skeleton-line w40"/>
-                                    <div className="skeleton-line w60 tall"/>
-                                    <div className="skeleton-line w30"/>
-                                </div>
+                                <div style={{height: '24px', backgroundColor: '#e2e8f0', borderRadius: '6px', width: '200px', marginBottom: '8px'}}></div>
+                                <div style={{height: '16px', backgroundColor: '#e2e8f0', borderRadius: '6px', width: '300px'}}></div>
                             </>
                         ) : (
                             <>
-                                <div className="hero-metric">
-                                    <div className="metric-label">Fleet</div>
-                                    <div className="metric-value">{stats.fleetTotal}{diffBadge(stats.fleetTotal)}</div>
-                                    <div className="metric-sub">Total Assets</div>
+                                <h2 style={{fontSize: '22px', fontWeight: 600, color: '#1e3a5f', margin: '0 0 4px 0'}}>{regionDisplayName}</h2>
+                                <p style={{fontSize: '14px', color: '#64748b', margin: 0}}>{heroRegionSub}</p>
+                            </>
+                        )}
+                    </div>
+                    
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px'}}>
+                        {showSkeleton ? (
+                            [1,2,3,4].map(i => (
+                                <div key={i} style={metricCardStyle}>
+                                    <div style={{height: '14px', backgroundColor: '#e2e8f0', borderRadius: '4px', width: '60%', marginBottom: '12px'}}></div>
+                                    <div style={{height: '32px', backgroundColor: '#e2e8f0', borderRadius: '4px', width: '50%', marginBottom: '8px'}}></div>
+                                    <div style={{height: '12px', backgroundColor: '#e2e8f0', borderRadius: '4px', width: '40%'}}></div>
                                 </div>
-                                <div className="hero-metric">
-                                    <div className="metric-label">Asset Allocation</div>
-                                    <div className="metric-value">{stats.overallAllocationPercent}%</div>
-                                    <div className="metric-sub">Overall Asset Allocation</div>
+                            ))
+                        ) : (
+                            <>
+                                <div style={metricCardStyle}>
+                                    <div style={metricLabelStyle}>Fleet Total</div>
+                                    <div style={metricValueStyle}>{stats.fleetTotal}</div>
+                                    <div style={metricSubStyle}>Total Assets</div>
                                 </div>
-                                <div className="hero-metric">
-                                    <div className="metric-label">Overdue</div>
-                                    <div className="metric-value">{stats.overdueTotal}</div>
-                                    <div className="metric-sub">Service Overdue</div>
+                                <div style={metricCardStyle}>
+                                    <div style={metricLabelStyle}>Asset Allocation</div>
+                                    <div style={metricValueStyle}>{stats.overallAllocationPercent}%</div>
+                                    <div style={metricSubStyle}>Overall Allocation</div>
                                 </div>
-                                <div className="hero-metric wide">
-                                    <div className="metric-label">Verified</div>
-                                    <div className="metric-value">{stats.verificationAverage}%</div>
-                                    <div className="metric-sub">Overall Verification</div>
+                                <div style={metricCardStyle}>
+                                    <div style={metricLabelStyle}>Service Overdue</div>
+                                    <div style={metricValueStyle}>{stats.overdueTotal}</div>
+                                    <div style={metricSubStyle}>Need Attention</div>
+                                </div>
+                                <div style={metricCardStyle}>
+                                    <div style={metricLabelStyle}>Verification</div>
+                                    <div style={metricValueStyle}>{stats.verificationAverage}%</div>
+                                    <div style={metricSubStyle}>Overall Verified</div>
                                 </div>
                             </>
                         )}
                     </div>
                 </div>
-            </div>
-            {error && <div className="error-banner">
-                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8}}>
-                    <span>{error}</span>
-                    <button className="btn danger ghost" onClick={onRetry}>Retry</button>
-                </div>
-            </div>}
 
-            <div className="global-content-container content-container" aria-busy={showSkeleton}>
-                {showSkeleton ? (
-                    <div className="group-grid">
-                        <div className="group-section">
-                            <div className="section-title">Fleet</div>
-                            <div className="dashboard-grid inner-grid">
-                                {Array.from({length: 5}).map((_, i) => (
-                                    <div className="kpi-card skeleton-card" key={`fleet-${i}`}>
-                                        <div className="skeleton-line w40"/>
-                                        <div className="skeleton-line w60 tall"/>
-                                        <div className="skeleton-line w30"/>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="group-section">
-                            <div className="section-title">People</div>
-                            <div className="dashboard-grid inner-grid">
-                                {Array.from({length: 2}).map((_, i) => (
-                                    <div className="kpi-card skeleton-card" key={`people-${i}`}>
-                                        <div className="skeleton-line w40"/>
-                                        <div className="skeleton-line w60 tall"/>
-                                        <div className="skeleton-line w30"/>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="training-table-wrapper skeleton-card">
-                                <div className="skeleton-line w60"/>
-                                <div className="skeleton-line w40"/>
-                                <div className="skeleton-line w30"/>
-                            </div>
-                            <div className="training-table-wrapper skeleton-card">
-                                <div className="skeleton-line w60"/>
-                                <div className="skeleton-line w40"/>
-                                <div className="skeleton-line w30"/>
-                            </div>
-                            <div className="training-table-wrapper skeleton-card">
-                                <div className="skeleton-line w60"/>
-                                <div className="skeleton-line w40"/>
-                                <div className="skeleton-line w30"/>
-                            </div>
-                        </div>
-                        <div className="group-section">
-                            <div className="section-title">Maintenance & Quality</div>
-                            <div className="dashboard-grid inner-grid">
-                                {Array.from({length: 2}).map((_, i) => (
-                                    <div className="kpi-card skeleton-card" key={`maintenance-${i}`}>
-                                        <div className="skeleton-line w40"/>
-                                        <div className="skeleton-line w60 tall"/>
-                                        <div className="skeleton-line w30"/>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="training-table-wrapper skeleton-card">
-                                <div className="skeleton-line w60"/>
-                                <div className="skeleton-line w40"/>
-                                <div className="skeleton-line w30"/>
-                            </div>
-                        </div>
+                {error && (
+                    <div style={{
+                        backgroundColor: '#fef2f2',
+                        border: '1px solid #fecaca',
+                        color: '#dc2626',
+                        padding: '16px 20px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <span>{error}</span>
+                        <button onClick={onRetry} style={{color: '#dc2626', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer'}}>Retry</button>
                     </div>
-                ) : (
-                    <div className="group-grid">
-                        <div className="group-section slide-in-section">
-                            <div className="section-title">Fleet</div>
-                            <div className="dashboard-grid inner-grid">
+                )}
+
+                {!showSkeleton && (
+                    <div style={{display: 'grid', gap: '24px'}}>
+                        <div style={cardStyle}>
+                            <h3 style={sectionTitleStyle}>Fleet Overview</h3>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px'}}>
                                 {!isAggregate && (
-                                    <div
-                                        className={`kpi-card slide-in-card ${selectedRegion?.type === 'Concrete' ? 'prominent' : ''}`}>
-                                        <div className="kpi-title">Mixers</div>
-                                        <div className="kpi-value">{stats.mixers.total}</div>
-                                        <div className="kpi-row">
-                                            <div className="kpi-pill">Active {stats.mixers.active}</div>
-                                            <div className="kpi-pill">Spare {stats.mixers.spare}</div>
-                                            <div className="kpi-pill">In Shop {stats.mixers.shop}</div>
-                                            <div className="kpi-pill">Verified {stats.mixers.verifiedPercent}%</div>
-                                            <div className="kpi-pill">Asset Allocation {stats.mixers.allocationPercent}%
+                                    <div style={{...metricCardStyle, border: selectedRegion?.type === 'Concrete' ? '2px solid #1e3a5f' : '1px solid #e2e8f0'}}>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Mixers</div>
+                                                <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.mixers.total}</div>
                                             </div>
-                                            {stats.mixers.avgCleanliness !== null && (
-                                                <div className="kpi-pill">Avg
-                                                    Cleanliness {stats.mixers.avgCleanliness}</div>
-                                            )}
-                                            <div className="kpi-pill">Issues {stats.mixers.issues}</div>
-                                            <div className="kpi-pill">Comments {stats.mixers.comments}</div>
+                                            <div style={{padding: '8px', backgroundColor: '#dbeafe', borderRadius: '8px'}}>
+                                                <i className="fas fa-truck-loading" style={{color: '#2563eb', fontSize: '20px'}}></i>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                            <Pill>Active {stats.mixers.active}</Pill>
+                                            <Pill>Spare {stats.mixers.spare}</Pill>
+                                            <Pill>In Shop {stats.mixers.shop}</Pill>
+                                            <Pill>Verified {stats.mixers.verifiedPercent}%</Pill>
                                         </div>
                                     </div>
                                 )}
-                                <div
-                                    className={`kpi-card slide-in-card ${selectedRegion?.type === 'Aggregate' ? 'prominent' : ''}`}>
-                                    <div className="kpi-title">Tractors</div>
-                                    <div className="kpi-value">{stats.tractors.total}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Active {stats.tractors.active}</div>
-                                        <div className="kpi-pill">Spare {stats.tractors.spare}</div>
-                                        <div className="kpi-pill">In Shop {stats.tractors.shop}</div>
-                                        <div className="kpi-pill">Verified {stats.tractors.verifiedPercent}%</div>
-                                        <div className="kpi-pill">Asset Allocation {stats.tractors.allocationPercent}%
+                                
+                                <div style={{...metricCardStyle, border: selectedRegion?.type === 'Aggregate' ? '2px solid #1e3a5f' : '1px solid #e2e8f0'}}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Tractors</div>
+                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.tractors.total}</div>
                                         </div>
-                                        {stats.tractors.avgCleanliness !== null && (
-                                            <div className="kpi-pill">Avg
-                                                Cleanliness {stats.tractors.avgCleanliness}</div>
-                                        )}
-                                        <div className="kpi-pill">Issues {stats.tractors.issues}</div>
-                                        <div className="kpi-pill">Comments {stats.tractors.comments}</div>
+                                        <div style={{padding: '8px', backgroundColor: '#dcfce7', borderRadius: '8px'}}>
+                                            <i className="fas fa-truck" style={{color: '#16a34a', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        <Pill>Active {stats.tractors.active}</Pill>
+                                        <Pill>Spare {stats.tractors.spare}</Pill>
+                                        <Pill>In Shop {stats.tractors.shop}</Pill>
+                                        <Pill>Verified {stats.tractors.verifiedPercent}%</Pill>
                                     </div>
                                 </div>
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Trailers</div>
-                                    <div className="kpi-value">{stats.trailers.total}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Active {stats.trailers.active}</div>
-                                        <div className="kpi-pill">Spare {stats.trailers.spare}</div>
-                                        <div className="kpi-pill">In Shop {stats.trailers.shop}</div>
-                                        <div className="kpi-pill">Asset Allocation {stats.trailers.allocationPercent}%
+                                
+                                <div style={metricCardStyle}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Trailers</div>
+                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.trailers.total}</div>
                                         </div>
-                                        {stats.trailers.avgCleanliness !== null && (
-                                            <div className="kpi-pill">Avg
-                                                Cleanliness {stats.trailers.avgCleanliness}</div>
-                                        )}
-                                        <div className="kpi-pill">Issues {stats.trailers.issues}</div>
-                                        <div className="kpi-pill">Comments {stats.trailers.comments}</div>
+                                        <div style={{padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px'}}>
+                                            <i className="fas fa-trailer" style={{color: '#d97706', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        <Pill>Active {stats.trailers.active}</Pill>
+                                        <Pill>Spare {stats.trailers.spare}</Pill>
+                                        <Pill>In Shop {stats.trailers.shop}</Pill>
                                     </div>
                                 </div>
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Equipment</div>
-                                    <div className="kpi-value">{stats.equipment.total}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Active {stats.equipment.active}</div>
-                                        <div className="kpi-pill">Spare {stats.equipment.spare}</div>
-                                        <div className="kpi-pill">In Shop {stats.equipment.shop}</div>
-                                        <div className="kpi-pill">Asset
-                                            Allocation {stats.equipment.allocationPercent}%
+                                
+                                <div style={metricCardStyle}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Equipment</div>
+                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.equipment.total}</div>
                                         </div>
-                                        {stats.equipment.avgCleanliness !== null && (
-                                            <div className="kpi-pill">Avg
-                                                Cleanliness {stats.equipment.avgCleanliness}</div>
-                                        )}
-                                        <div className="kpi-pill">Issues {stats.equipment.issues}</div>
-                                        <div className="kpi-pill">Comments {stats.equipment.comments}</div>
+                                        <div style={{padding: '8px', backgroundColor: '#f3e8ff', borderRadius: '8px'}}>
+                                            <i className="fas fa-cogs" style={{color: '#9333ea', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        <Pill>Active {stats.equipment.active}</Pill>
+                                        <Pill>Spare {stats.equipment.spare}</Pill>
+                                        <Pill>In Shop {stats.equipment.shop}</Pill>
                                     </div>
                                 </div>
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Pickup Trucks</div>
-                                    <div className="kpi-value">{stats.pickups.total}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Active {stats.pickups.active}</div>
-                                        <div className="kpi-pill">In Shop {stats.pickups.shop}</div>
-                                        <div className="kpi-pill">Stationary {stats.pickups.stationary}</div>
-                                        <div className="kpi-pill">Spare {stats.pickups.spare}</div>
-                                        <div className="kpi-pill">Sold {stats.pickups.sold}</div>
-                                        <div className="kpi-pill">Retired {stats.pickups.retired}</div>
-                                        <div className="kpi-pill">Asset Allocation {stats.pickups.allocationPercent}%
+                                
+                                <div style={metricCardStyle}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Pickup Trucks</div>
+                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.pickups.total}</div>
                                         </div>
+                                        <div style={{padding: '8px', backgroundColor: '#fce7f3', borderRadius: '8px'}}>
+                                            <i className="fas fa-truck-pickup" style={{color: '#db2777', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        <Pill>Active {stats.pickups.active}</Pill>
+                                        <Pill>In Shop {stats.pickups.shop}</Pill>
+                                        <Pill>Stationary {stats.pickups.stationary}</Pill>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="group-section slide-in-section">
-                            <div className="section-title">People</div>
-                            <div className="dashboard-grid inner-grid">
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Operators</div>
-                                    <div className="kpi-value">{stats.operators.total}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Active {stats.operators.active}</div>
-                                        <div className="kpi-pill">Light Duty {stats.operators.lightDuty}</div>
-                                        <div className="kpi-pill">Assigned {stats.operators.assigned}</div>
-                                        {!isAggregate && <div className="kpi-pill">Mixers
-                                            Assigned {stats.operators.mixerAssigned}</div>}
-                                        <div className="kpi-pill">Tractors
-                                            Assigned {stats.operators.tractorAssigned}</div>
-                                        <div className="kpi-pill">Unassigned {stats.operators.unassigned}</div>
-                                        <div className="kpi-pill">Pending Start {stats.operators.pending}</div>
+
+                        <div style={cardStyle}>
+                            <h3 style={sectionTitleStyle}>People</h3>
+                            <div style={{...metricCardStyle, marginBottom: '20px'}}>
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                    <div>
+                                        <div style={metricLabelStyle}>Operators</div>
+                                        <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.operators.total}</div>
+                                    </div>
+                                    <div style={{padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '8px'}}>
+                                        <i className="fas fa-users" style={{color: '#0284c7', fontSize: '20px'}}></i>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="training-table-wrapper">
-                                <div className="training-table-header">
-                                    <div className="training-table-title">Operators In Training
-                                        ({filteredTrainingOperators.length})
-                                    </div>
-                                    <button type="button" className="training-toggle" aria-expanded={!trainingCollapsed}
-                                            onClick={() => setTrainingCollapsed(v => !v)}
-                                            disabled={!filteredTrainingOperators.length}>{trainingCollapsed ? 'Expand' : 'Collapse'}</button>
+                                <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                    <Pill>Active {stats.operators.active}</Pill>
+                                    <Pill>Light Duty {stats.operators.lightDuty}</Pill>
+                                    <Pill>Assigned {stats.operators.assigned}</Pill>
+                                    {!isAggregate && <Pill>Mixers {stats.operators.mixerAssigned}</Pill>}
+                                    <Pill>Tractors {stats.operators.tractorAssigned}</Pill>
+                                    <Pill>Unassigned {stats.operators.unassigned}</Pill>
                                 </div>
-                                {!trainingCollapsed && (
-                                    filteredTrainingOperators.length > 0 ? (
-                                        <div className="training-table-scroll">
-                                            <table className="training-table">
-                                                <thead>
-                                                <tr>
-                                                    <th>Plant (Training At)</th>
-                                                    <th>Operator</th>
-                                                    <th>Trainer</th>
-                                                    <th>Position</th>
-                                                    <th>Plant (Training For)</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {filteredTrainingOperators.map(r => <tr key={r.id}>
-                                                    <td>{r.trainerPlant || '-'}</td>
-                                                    <td>{r.operatorName || '-'}</td>
-                                                    <td>{r.trainerName || '-'}</td>
-                                                    <td>{r.operatorPosition || '-'}</td>
-                                                    <td>{r.operatorPlant || '-'}</td>
-                                                </tr>)}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="training-empty">None</div>
-                                    )
-                                )}
                             </div>
-                            <div className="training-table-wrapper">
-                                <div className="training-table-header">
-                                    <div className="training-table-title">Pending Start Operators
-                                        ({filteredPendingStartOperators.length})
-                                    </div>
-                                    <button type="button" className="training-toggle" aria-expanded={!pendingCollapsed}
-                                            onClick={() => setPendingCollapsed(v => !v)}
-                                            disabled={!filteredPendingStartOperators.length}>{pendingCollapsed ? 'Expand' : 'Collapse'}</button>
-                                </div>
-                                {!pendingCollapsed && (
-                                    filteredPendingStartOperators.length > 0 ? (
-                                        <div className="training-table-scroll">
-                                            <table className="training-table">
-                                                <thead>
-                                                <tr>
-                                                    <th>Plant (Training At)</th>
-                                                    <th>Operator</th>
-                                                    <th>Plant (Training For)</th>
-                                                    <th>Pending Start Date</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {filteredPendingStartOperators.map(r => <tr key={r.id}>
-                                                    <td>{r.trainerPlant || '-'}</td>
-                                                    <td>{r.operatorName || '-'}</td>
-                                                    <td>{r.operatorPlant || '-'}</td>
-                                                    <td>{formatPendingDate(r.pendingDate)}</td>
-                                                </tr>)}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="training-empty">None</div>
-                                    )
-                                )}
-                            </div>
-                            <div className="training-table-wrapper">
-                                <div className="training-table-header">
-                                    <div className="training-table-title">Light Duty Operators
-                                        ({filteredLightDutyOperators.length})
-                                    </div>
-                                    <button type="button" className="training-toggle"
-                                            aria-expanded={!lightDutyCollapsed}
-                                            onClick={() => setLightDutyCollapsed(v => !v)}
-                                            disabled={!filteredLightDutyOperators.length}>{lightDutyCollapsed ? 'Expand' : 'Collapse'}</button>
-                                </div>
-                                {!lightDutyCollapsed && (
-                                    filteredLightDutyOperators.length > 0 ? (
-                                        <div className="training-table-scroll">
-                                            <table className="training-table">
-                                                <thead>
-                                                <tr>
-                                                    <th>Plant</th>
-                                                    <th>Operator</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {filteredLightDutyOperators.map(r => <tr key={r.id}>
-                                                    <td>{r.plant || '-'}</td>
-                                                    <td>{r.operatorName || '-'}</td>
-                                                </tr>)}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="training-empty">None</div>
-                                    )
-                                )}
-                            </div>
+
+                            <CollapsibleTable
+                                title={`Operators In Training (${filteredTrainingOperators.length})`}
+                                collapsed={trainingCollapsed}
+                                onToggle={() => setTrainingCollapsed(v => !v)}
+                                disabled={!filteredTrainingOperators.length}
+                                headers={['Plant (Training At)', 'Operator', 'Trainer', 'Position', 'Plant (Training For)']}
+                                rows={filteredTrainingOperators}
+                                renderRow={(r) => [r.trainerPlant || '-', r.operatorName || '-', r.trainerName || '-', r.operatorPosition || '-', r.operatorPlant || '-']}
+                            />
+                            
+                            <CollapsibleTable
+                                title={`Pending Start Operators (${filteredPendingStartOperators.length})`}
+                                collapsed={pendingCollapsed}
+                                onToggle={() => setPendingCollapsed(v => !v)}
+                                disabled={!filteredPendingStartOperators.length}
+                                headers={['Plant (Training At)', 'Operator', 'Plant (Training For)', 'Pending Start Date']}
+                                rows={filteredPendingStartOperators}
+                                renderRow={(r) => [r.trainerPlant || '-', r.operatorName || '-', r.operatorPlant || '-', formatPendingDate(r.pendingDate)]}
+                            />
+                            
+                            <CollapsibleTable
+                                title={`Light Duty Operators (${filteredLightDutyOperators.length})`}
+                                collapsed={lightDutyCollapsed}
+                                onToggle={() => setLightDutyCollapsed(v => !v)}
+                                disabled={!filteredLightDutyOperators.length}
+                                headers={['Plant', 'Operator']}
+                                rows={filteredLightDutyOperators}
+                                renderRow={(r) => [r.plant || '-', r.operatorName || '-']}
+                            />
                         </div>
-                        <div className="group-section slide-in-section">
-                            <div className="section-title">Maintenance & Quality</div>
-                            <div className="dashboard-grid inner-grid">
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Service Overdue</div>
-                                    <div className="kpi-value">{stats.overdueTotal}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Mixers {stats.mixers.overdue}</div>
-                                        <div className="kpi-pill">Tractors {stats.tractors.overdue}</div>
-                                        <div className="kpi-pill">Trailers {stats.trailers.overdue}</div>
-                                        <div className="kpi-pill">Equipment {stats.equipment.overdue}</div>
+
+                        <div style={cardStyle}>
+                            <h3 style={sectionTitleStyle}>Maintenance & Quality</h3>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px'}}>
+                                <div style={metricCardStyle}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Service Overdue</div>
+                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#dc2626'}}>{stats.overdueTotal}</div>
+                                        </div>
+                                        <div style={{padding: '8px', backgroundColor: '#fee2e2', borderRadius: '8px'}}>
+                                            <i className="fas fa-exclamation-triangle" style={{color: '#dc2626', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        {!isAggregate && <Pill>Mixers {stats.mixers.overdue}</Pill>}
+                                        <Pill>Tractors {stats.tractors.overdue}</Pill>
+                                        <Pill>Trailers {stats.trailers.overdue}</Pill>
+                                        <Pill>Equipment {stats.equipment.overdue}</Pill>
                                     </div>
                                 </div>
-                                <div className="kpi-card slide-in-card">
-                                    <div className="kpi-title">Open Issues</div>
-                                    <div className="kpi-value">{stats.openIssuesTotal}</div>
-                                    <div className="kpi-row">
-                                        <div className="kpi-pill">Mixers {stats.mixers.issues}</div>
-                                        <div className="kpi-pill">Tractors {stats.tractors.issues}</div>
-                                        <div className="kpi-pill">Trailers {stats.trailers.issues}</div>
-                                        <div className="kpi-pill">Equipment {stats.equipment.issues}</div>
+                                <div style={metricCardStyle}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Open Issues</div>
+                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#f59e0b'}}>{stats.openIssuesTotal}</div>
+                                        </div>
+                                        <div style={{padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px'}}>
+                                            <i className="fas fa-wrench" style={{color: '#f59e0b', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        {!isAggregate && <Pill>Mixers {stats.mixers.issues}</Pill>}
+                                        <Pill>Tractors {stats.tractors.issues}</Pill>
+                                        <Pill>Trailers {stats.trailers.issues}</Pill>
+                                        <Pill>Equipment {stats.equipment.issues}</Pill>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="status-bars-section">
-                                <div className="status-bars-header">
-                                    <div className="section-title">Historical Status Distribution</div>
-                                    <div className="status-bars-date-range">
-                                        <div className="date-quick-filters">
+                            <div style={{borderTop: '1px solid #e2e8f0', paddingTop: '24px'}}>
+                                <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '20px'}}>
+                                    <h4 style={{fontSize: '16px', fontWeight: 600, color: '#1e3a5f', margin: 0}}>Historical Status Distribution</h4>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px'}}>
+                                        {['last-week', 'this-month', 'this-quarter', 'this-year', 'all'].map(filter => (
                                             <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('last-week')}
-                                                title="Last 7 days"
+                                                key={filter}
+                                                onClick={() => handleQuickDateFilter(filter)}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    fontSize: '12px',
+                                                    backgroundColor: '#f1f5f9',
+                                                    color: '#475569',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    fontWeight: 500
+                                                }}
                                             >
-                                                Last Week
+                                                {filter.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                                             </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('this-week')}
-                                                title="Since Sunday"
-                                            >
-                                                This Week
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('last-month')}
-                                                title="Last 30 days"
-                                            >
-                                                Last Month
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('this-month')}
-                                                title="Since 1st of this month"
-                                            >
-                                                This Month
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('this-quarter')}
-                                                title="Since start of current quarter"
-                                            >
-                                                This Quarter
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('last-quarter')}
-                                                title="Previous quarter period"
-                                            >
-                                                Last Quarter
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('this-year')}
-                                                title="Since January 1st of this year"
-                                            >
-                                                This Year
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('last-year')}
-                                                title="Entire previous year"
-                                            >
-                                                Last Year
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="date-filter-btn"
-                                                onClick={() => handleQuickDateFilter('all')}
-                                                title="All history"
-                                            >
-                                                All
-                                            </button>
-                                        </div>
-                                        <label>From:</label>
-                                        <input
-                                            type="date"
-                                            value={historyStartDate}
-                                            onChange={(e) => setHistoryStartDate(e.target.value)}
-                                            max={historyEndDate || new Date().toISOString().split('T')[0]}
-                                            className="date-range-input"
-                                        />
-                                        <label>To:</label>
-                                        <input
-                                            type="date"
-                                            value={historyEndDate}
-                                            onChange={(e) => setHistoryEndDate(e.target.value)}
-                                            min={historyStartDate}
-                                            max={new Date().toISOString().split('T')[0]}
-                                            className="date-range-input"
-                                        />
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div className="compact-metrics-container">
+                                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px'}}>
                                     {(() => {
-                                        const calculateMetrics = (data) => {
+                                        const calcMetrics = (data) => {
                                             const active = data.find(d => d.status === 'Active')?.days || 0
                                             const spare = data.find(d => d.status === 'Spare')?.days || 0
                                             const inShop = data.find(d => d.status === 'In Shop')?.days || 0
                                             const total = data.reduce((sum, d) => sum + d.days, 0)
-
                                             return {
                                                 active: total > 0 ? Math.round((active / total) * 100) : 0,
                                                 spare: total > 0 ? Math.round((spare / total) * 100) : 0,
                                                 inShop: total > 0 ? Math.round((inShop / total) * 100) : 0
                                             }
                                         }
-
-                                        const mixersMetrics = calculateMetrics(statusHistoryData.mixers)
-                                        const tractorsMetrics = calculateMetrics(statusHistoryData.tractors)
-                                        const trailersMetrics = calculateMetrics(statusHistoryData.trailers)
-                                        const equipmentMetrics = calculateMetrics(statusHistoryData.equipment)
-                                        const pickupsMetrics = calculateMetrics(statusHistoryData.pickups)
-
-                                        const metricsWithData = [
-                                            {metrics: mixersMetrics, hasData: statusHistoryData.mixers.length > 0},
-                                            {metrics: tractorsMetrics, hasData: statusHistoryData.tractors.length > 0},
-                                            {metrics: trailersMetrics, hasData: statusHistoryData.trailers.length > 0},
-                                            {
-                                                metrics: equipmentMetrics,
-                                                hasData: statusHistoryData.equipment.length > 0
-                                            },
-                                            {metrics: pickupsMetrics, hasData: statusHistoryData.pickups.length > 0}
-                                        ].filter(m => m.hasData)
-
-                                        const count = metricsWithData.length || 1
-                                        const avgActive = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.active, 0) / count)
-                                        const avgSpare = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.spare, 0) / count)
-                                        const avgInShop = Math.round(metricsWithData.reduce((sum, m) => sum + m.metrics.inShop, 0) / count)
-
-                                        const assetData = [
-                                            {
-                                                name: 'Overall', ...{
-                                                    active: avgActive,
-                                                    spare: avgSpare,
-                                                    inShop: avgInShop
-                                                }, isOverall: true
-                                            },
-                                            {name: 'Mixers', ...mixersMetrics},
-                                            {name: 'Tractors', ...tractorsMetrics},
-                                            {name: 'Trailers', ...trailersMetrics},
-                                            {name: 'Equipment', ...equipmentMetrics},
-                                            {name: 'Pickups', ...pickupsMetrics}
-                                        ]
-
-                                        return (
-                                            <div className="compact-metrics-grid">
-                                                {assetData.map((asset, idx) => (
-                                                    <div key={idx}
-                                                         className={`compact-metric-card ${asset.isOverall ? 'overall-metric' : ''}`}>
-                                                        <div className="metric-card-header">{asset.name}</div>
-                                                        <div className="metric-card-stats">
-                                                            <div className="metric-stat active-stat">
-                                                                <span className="stat-value">{asset.active}%</span>
-                                                                <span className="stat-label">Active</span>
-                                                            </div>
-                                                            <div className="metric-stat spare-stat">
-                                                                <span className="stat-value">{asset.spare}%</span>
-                                                                <span className="stat-label">Spare</span>
-                                                            </div>
-                                                            <div className="metric-stat inshop-stat">
-                                                                <span className="stat-value">{asset.inShop}%</span>
-                                                                <span className="stat-label">In Shop</span>
-                                                            </div>
-                                                        </div>
+                                        const assets = [
+                                            {name: 'Mixers', ...calcMetrics(statusHistoryData.mixers), show: !isAggregate},
+                                            {name: 'Tractors', ...calcMetrics(statusHistoryData.tractors), show: true},
+                                            {name: 'Trailers', ...calcMetrics(statusHistoryData.trailers), show: true},
+                                            {name: 'Equipment', ...calcMetrics(statusHistoryData.equipment), show: true},
+                                            {name: 'Pickups', ...calcMetrics(statusHistoryData.pickups), show: true}
+                                        ].filter(a => a.show)
+                                        
+                                        return assets.map((asset, idx) => (
+                                            <div key={idx} style={{backgroundColor: '#f8fafc', borderRadius: '10px', padding: '14px', border: '1px solid #e2e8f0'}}>
+                                                <div style={{fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '10px'}}>{asset.name}</div>
+                                                <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
+                                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
+                                                        <span style={{color: '#16a34a'}}>Active</span>
+                                                        <span style={{fontWeight: 600, color: '#1e293b'}}>{asset.active}%</span>
                                                     </div>
-                                                ))}
+                                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
+                                                        <span style={{color: '#9333ea'}}>Spare</span>
+                                                        <span style={{fontWeight: 600, color: '#1e293b'}}>{asset.spare}%</span>
+                                                    </div>
+                                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
+                                                        <span style={{color: '#2563eb'}}>In Shop</span>
+                                                        <span style={{fontWeight: 600, color: '#1e293b'}}>{asset.inShop}%</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        )
+                                        ))
                                     })()}
                                 </div>
 
-                                <div className="status-bars-wrapper">
+                                <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                                     {(() => {
-                                        const getStatusColor = (status) => {
-                                            switch (status) {
-                                                case 'Active':
-                                                    return 'var(--success)';
-                                                case 'Spare':
-                                                    return '#9333ea';
-                                                case 'In Shop':
-                                                    return '#3b82f6';
-                                                case 'Stationary':
-                                                    return '#eab308';
-                                                case 'Sold':
-                                                    return '#6b7280';
-                                                case 'Retired':
-                                                    return 'var(--error)';
-                                                default:
-                                                    return 'var(--accent)';
-                                            }
-                                        };
-
+                                        const getColor = (status) => {
+                                            const colors = {Active: '#22c55e', Spare: '#a855f7', 'In Shop': '#3b82f6', Stationary: '#eab308', Sold: '#6b7280'}
+                                            return colors[status] || '#64748b'
+                                        }
                                         const sortStatuses = (data) => {
-                                            const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold', 'Retired'];
-                                            return [...data].sort((a, b) => {
-                                                const indexA = order.indexOf(a.status);
-                                                const indexB = order.indexOf(b.status);
-                                                if (indexA === -1 && indexB === -1) return 0;
-                                                if (indexA === -1) return 1;
-                                                if (indexB === -1) return -1;
-                                                return indexA - indexB;
-                                            });
-                                        };
-
-                                        return (
-                                            <>
-                                                {!isAggregate && (
-                                                    <div className="asset-status-bar-row">
-                                                        <div className="asset-status-label">Mixers</div>
-                                                        <div className="asset-status-bar">
-                                                            {statusHistoryData.mixers.length > 0 ? (
-                                                                sortStatuses(statusHistoryData.mixers)
-                                                                    .filter(item => parseFloat(item.percentage) > 0)
-                                                                    .map((item, index) => (
-                                                                        <div
-                                                                            key={index}
-                                                                            className="status-segment"
-                                                                            style={{
-                                                                                width: `${item.percentage}%`,
-                                                                                background: getStatusColor(item.status)
-                                                                            }}
-                                                                            title={`${item.status}: ${item.percentage}%`}
-                                                                        >
-                                                                            {parseFloat(item.percentage) > 10 &&
-                                                                                <span>{item.percentage}%</span>}
-                                                                        </div>
-                                                                    ))
-                                                            ) : (
-                                                                <div className="status-segment" style={{
-                                                                    width: '100%',
-                                                                    background: 'var(--divider)',
-                                                                    justifyContent: 'center'
-                                                                }}>
-                                                                    <span style={{
-                                                                        color: 'var(--text-secondary)',
-                                                                        fontSize: '0.75rem'
-                                                                    }}>No data</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div className="asset-status-bar-row">
-                                                    <div className="asset-status-label">Tractors</div>
-                                                    <div className="asset-status-bar">
-                                                        {statusHistoryData.tractors.length > 0 ? (
-                                                            sortStatuses(statusHistoryData.tractors)
-                                                                .filter(item => parseFloat(item.percentage) > 0)
-                                                                .map((item, index) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="status-segment"
-                                                                        style={{
-                                                                            width: `${item.percentage}%`,
-                                                                            background: getStatusColor(item.status)
-                                                                        }}
-                                                                        title={`${item.status}: ${item.percentage}%`}
-                                                                    >
-                                                                        {parseFloat(item.percentage) > 10 &&
-                                                                            <span>{item.percentage}%</span>}
-                                                                    </div>
-                                                                ))
-                                                        ) : (
-                                                            <div className="status-segment" style={{
-                                                                width: '100%',
-                                                                background: 'var(--divider)',
-                                                                justifyContent: 'center'
-                                                            }}>
-                                                                <span style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    fontSize: '0.75rem'
-                                                                }}>No data</span>
+                                            const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold']
+                                            return [...data].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status))
+                                        }
+                                        const bars = [
+                                            {label: 'Mixers', data: statusHistoryData.mixers, show: !isAggregate},
+                                            {label: 'Tractors', data: statusHistoryData.tractors, show: true},
+                                            {label: 'Trailers', data: statusHistoryData.trailers, show: true},
+                                            {label: 'Equipment', data: statusHistoryData.equipment, show: true},
+                                            {label: 'Pickups', data: statusHistoryData.pickups, show: true}
+                                        ].filter(b => b.show)
+                                        
+                                        return bars.map((bar, idx) => (
+                                            <div key={idx} style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                                                <div style={{width: '80px', fontSize: '13px', fontWeight: 500, color: '#475569', flexShrink: 0}}>{bar.label}</div>
+                                                <div style={{flex: 1, height: '28px', backgroundColor: '#e2e8f0', borderRadius: '6px', overflow: 'hidden', display: 'flex'}}>
+                                                    {bar.data.length > 0 ? (
+                                                        sortStatuses(bar.data).filter(item => parseFloat(item.percentage) > 0).map((item, i) => (
+                                                            <div
+                                                                key={i}
+                                                                style={{
+                                                                    width: `${item.percentage}%`,
+                                                                    height: '100%',
+                                                                    backgroundColor: getColor(item.status),
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    color: 'white',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: 600
+                                                                }}
+                                                                title={`${item.status}: ${item.percentage}%`}
+                                                            >
+                                                                {parseFloat(item.percentage) > 12 && `${item.percentage}%`}
                                                             </div>
-                                                        )}
-                                                    </div>
+                                                        ))
+                                                    ) : (
+                                                        <div style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '12px'}}>No data</div>
+                                                    )}
                                                 </div>
-
-                                                <div className="asset-status-bar-row">
-                                                    <div className="asset-status-label">Trailers</div>
-                                                    <div className="asset-status-bar">
-                                                        {statusHistoryData.trailers.length > 0 ? (
-                                                            sortStatuses(statusHistoryData.trailers)
-                                                                .filter(item => parseFloat(item.percentage) > 0)
-                                                                .map((item, index) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="status-segment"
-                                                                        style={{
-                                                                            width: `${item.percentage}%`,
-                                                                            background: getStatusColor(item.status)
-                                                                        }}
-                                                                        title={`${item.status}: ${item.percentage}%`}
-                                                                    >
-                                                                        {parseFloat(item.percentage) > 10 &&
-                                                                            <span>{item.percentage}%</span>}
-                                                                    </div>
-                                                                ))
-                                                        ) : (
-                                                            <div className="status-segment" style={{
-                                                                width: '100%',
-                                                                background: 'var(--divider)',
-                                                                justifyContent: 'center'
-                                                            }}>
-                                                                <span style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    fontSize: '0.75rem'
-                                                                }}>No data</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="asset-status-bar-row">
-                                                    <div className="asset-status-label">Equipment</div>
-                                                    <div className="asset-status-bar">
-                                                        {statusHistoryData.equipment.length > 0 ? (
-                                                            sortStatuses(statusHistoryData.equipment)
-                                                                .filter(item => parseFloat(item.percentage) > 0)
-                                                                .map((item, index) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="status-segment"
-                                                                        style={{
-                                                                            width: `${item.percentage}%`,
-                                                                            background: getStatusColor(item.status)
-                                                                        }}
-                                                                        title={`${item.status}: ${item.percentage}%`}
-                                                                    >
-                                                                        {parseFloat(item.percentage) > 10 &&
-                                                                            <span>{item.percentage}%</span>}
-                                                                    </div>
-                                                                ))
-                                                        ) : (
-                                                            <div className="status-segment" style={{
-                                                                width: '100%',
-                                                                background: 'var(--divider)',
-                                                                justifyContent: 'center'
-                                                            }}>
-                                                                <span style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    fontSize: '0.75rem'
-                                                                }}>No data</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="asset-status-bar-row">
-                                                    <div className="asset-status-label">Pickup Trucks</div>
-                                                    <div className="asset-status-bar">
-                                                        {statusHistoryData.pickups.length > 0 ? (
-                                                            sortStatuses(statusHistoryData.pickups)
-                                                                .filter(item => parseFloat(item.percentage) > 0)
-                                                                .map((item, index) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="status-segment"
-                                                                        style={{
-                                                                            width: `${item.percentage}%`,
-                                                                            background: getStatusColor(item.status)
-                                                                        }}
-                                                                        title={`${item.status}: ${item.percentage}%`}
-                                                                    >
-                                                                        {parseFloat(item.percentage) > 10 &&
-                                                                            <span>{item.percentage}%</span>}
-                                                                    </div>
-                                                                ))
-                                                        ) : (
-                                                            <div className="status-segment" style={{
-                                                                width: '100%',
-                                                                background: 'var(--divider)',
-                                                                justifyContent: 'center'
-                                                            }}>
-                                                                <span style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    fontSize: '0.75rem'
-                                                                }}>No data</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </>
-                                        );
+                                            </div>
+                                        ))
                                     })()}
                                 </div>
                             </div>
@@ -2017,8 +1732,72 @@ export default function DashboardView() {
                     </div>
                 )}
             </div>
-            <PlantDropdownModal isOpen={plantModalOpen} onClose={() => setPlantModalOpen(false)} plants={regionPlants}
-                                onSelect={(plantCode) => setDashboardPlant(plantCode)} showAllPlants={true}/>
+
+            <PlantDropdownModal
+                isOpen={plantModalOpen}
+                onClose={() => setPlantModalOpen(false)}
+                plants={regionPlants}
+                onSelect={(plantCode) => setDashboardPlant(plantCode === 'All' ? '' : plantCode)}
+                showAllPlants={true}
+            />
         </div>
+        </>
     )
+
+    function CollapsibleTable({title, collapsed, onToggle, disabled, headers, rows, renderRow}) {
+        return (
+            <div style={{border: '1px solid #e2e8f0', borderRadius: '10px', marginBottom: '12px', overflow: 'hidden'}}>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    backgroundColor: '#f8fafc',
+                    borderBottom: collapsed ? 'none' : '1px solid #e2e8f0'
+                }}>
+                    <span style={{fontWeight: 500, color: '#374151', fontSize: '14px'}}>{title}</span>
+                    <button
+                        onClick={onToggle}
+                        disabled={disabled}
+                        style={{
+                            fontSize: '13px',
+                            color: disabled ? '#9ca3af' : '#1e3a5f',
+                            background: 'none',
+                            border: 'none',
+                            cursor: disabled ? 'default' : 'pointer',
+                            fontWeight: 500
+                        }}
+                    >
+                        {collapsed ? 'Expand' : 'Collapse'}
+                    </button>
+                </div>
+                {!collapsed && (
+                    rows.length > 0 ? (
+                        <div style={{overflowX: 'auto'}}>
+                            <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '13px'}}>
+                                <thead>
+                                    <tr style={{backgroundColor: '#f8fafc'}}>
+                                        {headers.map((h, i) => (
+                                            <th key={i} style={{textAlign: 'left', padding: '12px 16px', fontWeight: 500, color: '#64748b', borderBottom: '1px solid #e2e8f0'}}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows.map((r, i) => (
+                                        <tr key={r.id || i} style={{borderBottom: '1px solid #f1f5f9'}}>
+                                            {renderRow(r).map((cell, j) => (
+                                                <td key={j} style={{padding: '12px 16px', color: '#374151'}}>{cell}</td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div style={{padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '14px'}}>None</div>
+                    )
+                )}
+            </div>
+        )
+    }
 }

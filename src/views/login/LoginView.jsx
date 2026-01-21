@@ -3,7 +3,6 @@ import {useAuth} from '../../app/context/AuthContext';
 import {AuthUtility} from '../../utils/AuthUtility';
 import {supabase} from '../../services/DatabaseService';
 import SrmLogo from '../../assets/images/srm-logo.svg';
-import './styles/Login.css';
 import VersionPopup from '../../components/common/VersionPopup';
 import {useVersion} from '../../app/hooks/useVersion';
 import PasswordRecoveryView from './PasswordRecoveryView';
@@ -190,178 +189,185 @@ function LoginView() {
     }
 
     return (
-        <div className="auth-page">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#1e3a5f] p-4">
             <VideoBackground/>
             <VersionPopup version={version}/>
 
-            <div className="auth-container">
-                <div className="auth-card">
-                    <div className="auth-logo-section">
-                        <img src={SrmLogo} alt="SRM" className="auth-logo"/>
-                        <div className="auth-brand">
-                            <span className="auth-brand-name">Smyrna Tools</span>
-                            <span className="auth-brand-tagline">Concrete Region Management System</span>
-                        </div>
+            <div className="w-full max-w-md relative z-10">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+                    <div className="bg-[#1e3a5f] p-6 text-center">
+                        <img src={SrmLogo} alt="SRM" className="h-16 mx-auto mb-3"/>
+                        <h1 className="text-xl font-bold text-white">Smyrna Tools</h1>
+                        <p className="text-slate-300 text-sm">Concrete Region Management System</p>
                     </div>
 
-                    <div className="auth-mode-toggle">
-                        <button
-                            className={`auth-mode-btn ${!isSignUp ? 'active' : ''}`}
-                            onClick={() => setIsSignUp(false)}
-                            type="button"
-                        >
-                            Sign In
-                        </button>
-                        <button
-                            className={`auth-mode-btn ${isSignUp ? 'active' : ''}`}
-                            onClick={() => setIsSignUp(true)}
-                            type="button"
-                        >
-                            Sign Up
-                        </button>
-                        <div className={`auth-mode-slider ${isSignUp ? 'right' : 'left'}`}/>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="auth-form" noValidate>
-                        {isSignUp && (
-                            <div className="auth-name-row">
-                                <div className="auth-field">
-                                    <i className="fas fa-user auth-field-icon"/>
-                                    <input
-                                        type="text"
-                                        placeholder="First Name"
-                                        value={firstName}
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="auth-field">
-                                    <i className="fas fa-user auth-field-icon"/>
-                                    <input
-                                        type="text"
-                                        placeholder="Last Name"
-                                        value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="auth-field">
-                            <i className="fas fa-envelope auth-field-icon"/>
-                            <input
-                                type="email"
-                                placeholder="Email Address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                autoComplete="username"
-                                required
-                            />
-                        </div>
-
-                        <div className="auth-field">
-                            <i className="fas fa-lock auth-field-icon"/>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                                required
-                            />
+                    <div className="p-6">
+                        <div className="relative flex bg-slate-100 rounded-lg p-1 mb-6">
                             <button
+                                className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all z-10 ${!isSignUp ? 'text-white' : 'text-slate-600'}`}
+                                onClick={() => setIsSignUp(false)}
                                 type="button"
-                                className="auth-password-toggle"
-                                onClick={() => setShowPassword(!showPassword)}
                             >
-                                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}/>
+                                Sign In
                             </button>
+                            <button
+                                className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all z-10 ${isSignUp ? 'text-white' : 'text-slate-600'}`}
+                                onClick={() => setIsSignUp(true)}
+                                type="button"
+                            >
+                                Sign Up
+                            </button>
+                            <div 
+                                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#1e3a5f] rounded-md transition-all duration-300 ${isSignUp ? 'left-[calc(50%+2px)]' : 'left-1'}`}
+                            />
                         </div>
 
-                        {isSignUp && password && (
-                            <div className="auth-password-strength">
-                                <div className="strength-bar">
-                                    <div
-                                        className={`strength-fill ${passwordStrength.value.toLowerCase()}`}
-                                        style={{
-                                            width: passwordStrength.value === 'Weak' ? '33%' :
-                                                passwordStrength.value === 'Medium' ? '66%' :
-                                                    passwordStrength.value === 'Strong' ? '100%' : '0%'
-                                        }}
-                                    />
+                        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                            {isSignUp && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <i className="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"/>
+                                        <input
+                                            type="text"
+                                            placeholder="First Name"
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <i className="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"/>
+                                        <input
+                                            type="text"
+                                            placeholder="Last Name"
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all"
+                                            required
+                                        />
+                                    </div>
                                 </div>
-                                <span className="strength-text" style={{color: passwordStrength.color}}>
-                                    {passwordStrength.value}
-                                </span>
-                            </div>
-                        )}
+                            )}
 
-                        {isSignUp && (
-                            <div className="auth-field">
-                                <i className="fas fa-lock auth-field-icon"/>
+                            <div className="relative">
+                                <i className="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"/>
                                 <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="Confirm Password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    autoComplete="new-password"
+                                    type="email"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    autoComplete="username"
+                                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all"
                                     required
                                 />
                             </div>
-                        )}
 
-                        {!isSignUp && (
-                            <div className="auth-options">
+                            <div className="relative">
+                                <i className="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"/>
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                                    className="w-full pl-10 pr-12 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all"
+                                    required
+                                />
                                 <button
                                     type="button"
-                                    className="auth-forgot-btn"
-                                    onClick={() => setShowRecovery(true)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    Forgot Password?
+                                    <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}/>
                                 </button>
                             </div>
-                        )}
 
-                        {errorMessage && (
-                            <div className="auth-message auth-error">
-                                <i className="fas fa-exclamation-circle"/>
-                                <span>{errorMessage}</span>
-                            </div>
-                        )}
-
-                        {successMessage && (
-                            <div className="auth-message auth-success">
-                                <i className="fas fa-check-circle"/>
-                                <span>{successMessage}</span>
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="auth-submit-btn"
-                            disabled={isSubmitting || loading}
-                        >
-                            {isSubmitting || loading ? (
-                                <div className="auth-spinner"/>
-                            ) : (
-                                <>
-                                    <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-                                    <i className="fas fa-arrow-right"/>
-                                </>
+                            {isSignUp && password && (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all duration-300 ${
+                                                passwordStrength.value === 'Weak' ? 'bg-red-500 w-1/3' :
+                                                passwordStrength.value === 'Medium' ? 'bg-amber-500 w-2/3' :
+                                                passwordStrength.value === 'Strong' ? 'bg-green-500 w-full' : 'w-0'
+                                            }`}
+                                        />
+                                    </div>
+                                    <span className="text-xs font-medium" style={{color: passwordStrength.color}}>
+                                        {passwordStrength.value}
+                                    </span>
+                                </div>
                             )}
-                        </button>
-                    </form>
 
-                    <div className="auth-footer">
-                        <span>{isSignUp ? 'Already have an account?' : "Don't have an account?"}</span>
-                        <button
-                            type="button"
-                            className="auth-switch-btn"
-                            onClick={() => setIsSignUp(!isSignUp)}
-                        >
-                            {isSignUp ? 'Sign In' : 'Sign Up'}
-                        </button>
+                            {isSignUp && (
+                                <div className="relative">
+                                    <i className="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"/>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Confirm Password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        autoComplete="new-password"
+                                        className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all"
+                                        required
+                                    />
+                                </div>
+                            )}
+
+                            {!isSignUp && (
+                                <div className="text-right">
+                                    <button
+                                        type="button"
+                                        className="text-sm text-[#1e3a5f] hover:underline font-medium"
+                                        onClick={() => setShowRecovery(true)}
+                                    >
+                                        Forgot Password?
+                                    </button>
+                                </div>
+                            )}
+
+                            {errorMessage && (
+                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                    <i className="fas fa-exclamation-circle"/>
+                                    <span>{errorMessage}</span>
+                                </div>
+                            )}
+
+                            {successMessage && (
+                                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                                    <i className="fas fa-check-circle"/>
+                                    <span>{successMessage}</span>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-[#1e3a5f] hover:bg-[#15304f] text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isSubmitting || loading}
+                            >
+                                {isSubmitting || loading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                                ) : (
+                                    <>
+                                        <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                                        <i className="fas fa-arrow-right"/>
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center text-sm text-slate-600">
+                            <span>{isSignUp ? 'Already have an account?' : "Don't have an account?"}</span>
+                            {' '}
+                            <button
+                                type="button"
+                                className="text-[#1e3a5f] hover:underline font-semibold"
+                                onClick={() => setIsSignUp(!isSignUp)}
+                            >
+                                {isSignUp ? 'Sign In' : 'Sign Up'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

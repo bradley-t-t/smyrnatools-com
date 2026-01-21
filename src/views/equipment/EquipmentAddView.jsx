@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {EquipmentService} from '../../services/EquipmentService';
 import {AuthService} from '../../services/AuthService';
-import './styles/Equipment.css';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import AddViewSection from '../../components/sections/AddViewSection';
 

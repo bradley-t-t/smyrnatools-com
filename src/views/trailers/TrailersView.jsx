@@ -2,8 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {usePreferences} from '../../app/context/PreferencesContext';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import TrailerCard from './TrailerCard';
-import '../../styles/FilterStyles.css';
-import './styles/Trailers.css';
 import {TrailerService} from '../../services/TrailerService';
 import {TrailerUtility} from '../../utils/TrailerUtility';
 import {PlantService} from '../../services/PlantService';
@@ -389,72 +387,82 @@ function TrailersView({title = 'Trailer Fleet', onSelectTrailer}) {
                 renderRow={(item, handleSelect, onComment, onIssue) => {
                     const commentsCount = Number(item.commentsCount || 0);
                     const issuesCount = Number(item.openIssuesCount || 0);
+                    const cellStyle = {
+                        padding: '20px 16px',
+                        fontSize: '14px',
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb',
+                        verticalAlign: 'middle'
+                    };
+                    const cellBoldStyle = {
+                        ...cellStyle,
+                        fontWeight: 700,
+                        color: '#1e3a5f',
+                        fontSize: '15px'
+                    };
+                    const statusBadge = (status) => {
+                        let bg = '#f1f5f9', color = '#64748b';
+                        if (status === 'Active') { bg = '#dcfce7'; color = '#166534'; }
+                        else if (status === 'Spare') { bg = '#dbeafe'; color = '#1e40af'; }
+                        else if (status === 'In Shop') { bg = '#fef3c7'; color = '#92400e'; }
+                        else if (status === 'Retired') { bg = '#f1f5f9'; color = '#64748b'; }
+                        return { display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backgroundColor: bg, color: color };
+                    };
+                    const actionBtnStyle = {
+                        width: '36px',
+                        height: '36px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        backgroundColor: 'white',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        marginRight: '8px'
+                    };
                     return (
-                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td style={{width: '12%'}}>{item.assignedPlant ? item.assignedPlant : "---"}</td>
-                            <td style={{width: '14%'}}>{item.trailerNumber ? item.trailerNumber : "---"}</td>
-                            <td style={{width: '12%'}}><span className="item-status-dot" style={{
-                                display: 'inline-block',
-                                verticalAlign: 'middle',
-                                marginRight: '8px',
-                                backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
-                            }}></span>{item.status ? item.status : "---"}</td>
-                            <td style={{width: '10%'}}>{item.trailerType ? item.trailerType : "---"}</td>
-                            <td style={{width: '14%'}}>{(() => {
-                                const rating = Math.round(item.cleanlinessRating || 0);
-                                const stars = rating > 0 ? rating : 1;
-                                return Array.from({length: stars}).map((_, i) => <i key={i} className="fas fa-star"
-                                                                                    style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
-                            })()}</td>
-                            <td style={{width: '16%'}}>{LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) : "---"}{LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) &&
-                                <span className="warning-badge"><i
-                                    className="fas fa-exclamation-triangle"></i></span>}</td>
-                            <td style={{width: '12%'}}>{item.vinNumber || item.vin || "---"}</td>
-                            <td style={{width: '10%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        onComment(item.id, item.trailerNumber);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View comments"><i className="fas fa-comments" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i><span>{commentsCount}</span></button>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        onIssue(item.id, item.trailerNumber);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View issues"><i className="fas fa-tools" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i><span>{issuesCount}</span></button>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        setSelectedTrailerForHistory(item);
-                                        setShowHistoryModal(true);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View history"><i className="fas fa-history" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i></button>
+                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}
+                            onMouseEnter={(e) => { 
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe'); 
+                            }}
+                            onMouseLeave={(e) => { 
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = ''); 
+                            }}>
+                            <td style={{...cellStyle, width: '12%'}}>{item.assignedPlant || '---'}</td>
+                            <td style={{...cellBoldStyle, width: '14%'}}>{item.trailerNumber || '---'}</td>
+                            <td style={{...cellStyle, width: '12%'}}>
+                                <span style={statusBadge(item.status)}>{item.status || '---'}</span>
+                            </td>
+                            <td style={{...cellStyle, width: '10%'}}>{item.trailerType || '---'}</td>
+                            <td style={{...cellStyle, width: '14%'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                    {Array.from({length: 5}).map((_, i) => (
+                                        <i key={i} className="fas fa-star" style={{color: i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb', fontSize: '14px'}}></i>
+                                    ))}
+                                </div>
+                            </td>
+                            <td style={{...cellStyle, width: '16%'}}>
+                                {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) || '---'}
+                                {LookupUtility.isIdAssignedToMultiple(trailers, 'assignedTractor', item.assignedTractor) && (
+                                    <span style={{marginLeft: '8px', backgroundColor: '#fef3c7', color: '#92400e', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700}}>
+                                        <i className="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                )}
+                            </td>
+                            <td style={{...cellStyle, width: '12%', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#64748b'}}>{item.vinNumber || item.vin || '---'}</td>
+                            <td style={{...cellStyle, width: '10%'}}>
+                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.trailerNumber); }} style={actionBtnStyle} title="View comments">
+                                        <i className="fas fa-comments"></i>
+                                    </button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.trailerNumber); }} style={actionBtnStyle} title="View issues">
+                                        <i className="fas fa-tools"></i>
+                                    </button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); setSelectedTrailerForHistory(item); setShowHistoryModal(true); }} style={actionBtnStyle} title="View history">
+                                        <i className="fas fa-history"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>

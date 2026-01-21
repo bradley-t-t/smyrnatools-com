@@ -5,7 +5,6 @@ import './App.css'
 import {supabase} from '../services/DatabaseService'
 import MixersView from '../views/mixers/MixersView'
 import ManagersView from '../views/managers/ManagersView'
-import SettingsView from '../views/settings/SettingsView'
 import MixerDetailView from '../views/mixers/MixerDetailView'
 import OperatorsView from '../views/operators/OperatorsView'
 import LoginView from '../views/login/LoginView'
@@ -14,13 +13,10 @@ import Navigation from "../components/common/Navigation"
 import ListView from '../views/list/ListView'
 import WebOverlay from "../components/common/WebOverlay"
 import {UserService} from "../services/UserService"
-import OnlineUsersOverlay from '../components/common/OnlineUsersOverlay'
 import ReportsView from '../views/reports/ReportsView'
 import TractorsView from '../views/tractors/TractorsView'
 import TrailersView from '../views/trailers/TrailersView'
 import EquipmentsView from '../views/equipment/EquipmentsView'
-import '../styles/Theme.css'
-import '../styles/Global.css'
 import PlantsView from '../views/plants/PlantsView'
 import RegionsView from '../views/regions/RegionsView'
 import RolesView from '../views/roles/RolesView'
@@ -35,7 +31,6 @@ import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
 import CalculatorView from '../views/calculator/CalculatorView'
 import MaintenanceView from '../views/maintenance/MaintenanceView'
 import VideoBackground from '../components/common/VideoBackground'
-import PodcastPopup from '../components/common/PodcastPopup'
 import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
 
 function VersionPopup({version}) {
@@ -341,7 +336,7 @@ function AppContent() {
 
             const isViewAllowedInRegion = (v, t) => {
                 if (!v) return true
-                if (v === 'Settings' || v === 'MyAccount') return true
+                if (v === 'MyAccount') return true
                 if (t === 'Office') return OFFICE_VISIBLE_ITEMS.has(v)
                 if (t === 'Aggregate') return !AGGREGATE_HIDDEN_ITEMS.has(v)
                 return !DEFAULT_HIDDEN_ITEMS.has(v)
@@ -541,8 +536,6 @@ function AppContent() {
                 const effectiveUserId = userId || sessionStorage.getItem('userId')
                 return effectiveUserId ? <MyAccountView userId={effectiveUserId}/> : <LoginView/>
             }
-            case 'Settings':
-                return <SettingsView/>
             case 'Reports':
                 return <ReportsView/>
             case 'Tractors':
@@ -661,8 +654,6 @@ function App() {
     return (
         <>
             <AppContent/>
-            <div style={{position: 'relative', zIndex: 9999}}><OnlineUsersOverlay/></div>
-            <PodcastPopup/>
             <AppInstallPromptModal/>
         </>
     )

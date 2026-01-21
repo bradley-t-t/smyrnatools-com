@@ -1,8 +1,55 @@
 import React, {useEffect, useState} from 'react'
-import '../styles/Reports.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {usePreferences} from '../../../app/context/PreferencesContext'
 import {RegionService} from '../../../services/RegionService'
+
+const dmReportStyles = `
+.dm-daily-recap-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.dm-daily-recap-header { margin-bottom: 1.25rem; }
+.dm-daily-recap-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.dm-daily-recap-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+.dm-daily-recap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+.dm-daily-card { background: #f8fafc; border-radius: 8px; padding: 1rem; border: 1px solid #e5e7eb; }
+.dm-daily-card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.dm-daily-icon { color: #1e3a5f; font-size: 0.875rem; }
+.dm-daily-label { font-weight: 600; color: #1e293b; }
+.dm-daily-required { color: #ef4444; }
+.dm-daily-textarea { width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; resize: vertical; min-height: 100px; box-sizing: border-box; }
+.dm-daily-textarea:disabled { background: #f8fafc; color: #64748b; }
+.dm-daily-char-count { font-size: 0.75rem; color: #94a3b8; text-align: right; margin-top: 0.25rem; }
+.dm-report-plugin { }
+.dm-report-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
+.dm-report-title { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.dm-report-stats { display: flex; gap: 1rem; }
+.dm-stat-card { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; background: #f8fafc; border: 1px solid #e5e7eb; }
+.dm-stat-completed { background: #d1fae5; border-color: #a7f3d0; }
+.dm-stat-overdue { background: #fee2e2; border-color: #fecaca; }
+.dm-stat-icon { font-size: 1.25rem; }
+.dm-stat-completed .dm-stat-icon { color: #059669; }
+.dm-stat-overdue .dm-stat-icon { color: #dc2626; }
+.dm-stat-content { }
+.dm-stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.dm-stat-value { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+.dm-items-container { background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+.dm-items-table-wrapper { overflow-x: auto; }
+.dm-items-table { width: 100%; border-collapse: collapse; }
+.dm-items-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; }
+.dm-items-table td { padding: 0.75rem 1rem; font-size: 0.9375rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+.dm-items-table tr:last-child td { border-bottom: none; }
+.dm-item-row:hover { background: #f8fafc; }
+.dm-item-overdue { background: #fef2f2; }
+.dm-item-desc-wrapper { display: flex; align-items: center; gap: 0.75rem; }
+.dm-item-icon { font-size: 1rem; }
+.dm-item-icon-success { color: #059669; }
+.dm-item-icon-error { color: #dc2626; }
+.dm-item-icon-pending { color: #f59e0b; }
+.dm-item-text { color: #1e293b; }
+.dm-plant-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #eff6ff; color: #1e40af; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
+.dm-completed-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #d1fae5; color: #059669; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
+.dm-empty-state { text-align: center; padding: 3rem 2rem; color: #64748b; }
+.dm-empty-icon { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; }
+.dm-empty-text { font-size: 1rem; margin: 0; }
+`
 
 function DailyRecapSection({form, handleChange, readOnly}) {
     const days = [
@@ -16,6 +63,7 @@ function DailyRecapSection({form, handleChange, readOnly}) {
 
     return (
         <div className="dm-daily-recap-section">
+            <style>{dmReportStyles}</style>
             <div className="dm-daily-recap-header">
                 <h3 className="dm-daily-recap-title">
                     <i className="fas fa-clipboard-list"></i>

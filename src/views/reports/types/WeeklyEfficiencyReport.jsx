@@ -1,7 +1,50 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {ReportService} from '../../../services/ReportService'
 import {ReportUtility} from '../../../utils/ReportUtility'
-import '../styles/Reports.css'
+
+const effReportStyles = `
+.rpt-mt-20 { margin-top: 1.25rem; }
+.rpt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; }
+.rpt-stat-card { text-align: center; padding: 0.75rem; background: white; border-radius: 6px; border: 1px solid #e5e7eb; }
+.rpt-stat-label { font-size: 0.6875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+.rpt-stat-value { font-size: 1.125rem; font-weight: 700; color: #1e3a5f; }
+.rpt-warnings { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.rpt-warning-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.75rem; background: #fef3c7; color: #92400e; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
+.rpt-warning-icon { font-size: 0.875rem; }
+.rpt-toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; }
+.rpt-filter-input { flex: 1; min-width: 200px; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; }
+.rpt-filter-input:focus { outline: none; border-color: #1e3a5f; box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1); }
+.rpt-toolbar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.rpt-btn { padding: 0.5rem 0.875rem; background: white; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.15s; }
+.rpt-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.rpt-table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; background: white; }
+.rpt-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.rpt-col-operator { width: 25%; }
+.rpt-col-truck { width: 10%; }
+.rpt-col-start { width: 20%; }
+.rpt-col-end { width: 20%; }
+.rpt-col-lph { width: 15%; }
+.rpt-col-actions { width: 10%; }
+.rpt-th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background: #f8fafc; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+.rpt-th.right { text-align: right; }
+.rpt-row { transition: background 0.15s; }
+.rpt-row:hover { background: #f8fafc; }
+.rpt-td { padding: 0.75rem 1rem; font-size: 0.9375rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.rpt-td.emphasis { font-weight: 600; color: #1e293b; }
+.rpt-td.secondary { color: #64748b; }
+.rpt-td.warn { color: #d97706; font-weight: 500; }
+.rpt-td.right { text-align: right; }
+.rpt-icon-btn { padding: 0.375rem 0.5rem; background: transparent; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; font-size: 0.875rem; color: #64748b; transition: all 0.15s; }
+.rpt-icon-btn:hover { background: #f1f5f9; color: #1e293b; }
+.rpt-detail-row { padding: 0 !important; background: #f8fafc; }
+.rpt-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; padding: 1rem 1.5rem; }
+.rpt-detail-grid-full { grid-column: 1 / -1; }
+.rpt-field-label { font-size: 0.6875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+.rpt-field-value { font-size: 0.9375rem; color: #1e293b; }
+.rpt-field-value.emphasis { font-weight: 600; }
+.rpt-error-text { color: #dc2626; }
+.rpt-comment-text { font-size: 0.875rem; color: #475569; font-style: italic; }
+`
 
 function getRows(form) {
     return Array.isArray(form.rows) ? form.rows : []
@@ -264,28 +307,31 @@ function EfficiencyPluginBody({form, operatorOptions}) {
 
     if (!rows.length) return null
     return (
-        <div className="rpt-mt-20">
-            <WarningsBar messages={insights.avgWarnings}/>
-            <Toolbar
-                filterText={filterText}
-                setFilterText={setFilterText}
-                sortKey={sortKey}
-                sortDir={sortDir}
-                setSort={setSort}
-                onExpandAll={() => setExpandAllSeq(s => s + 1)}
-                onCollapseAll={() => setCollapseAllSeq(s => s + 1)}
-            />
-            <DetailTable
-                rows={rows}
-                operatorOptions={operatorOptions}
-                sortKey={sortKey}
-                sortDir={sortDir}
-                filterText={filterText}
-                expandAllSeq={expandAllSeq}
-                collapseAllSeq={collapseAllSeq}
-            />
-            <StatsBar insights={insights}/>
-        </div>
+        <>
+            <style>{effReportStyles}</style>
+            <div className="rpt-mt-20">
+                <WarningsBar messages={insights.avgWarnings}/>
+                <Toolbar
+                    filterText={filterText}
+                    setFilterText={setFilterText}
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    setSort={setSort}
+                    onExpandAll={() => setExpandAllSeq(s => s + 1)}
+                    onCollapseAll={() => setCollapseAllSeq(s => s + 1)}
+                />
+                <DetailTable
+                    rows={rows}
+                    operatorOptions={operatorOptions}
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    filterText={filterText}
+                    expandAllSeq={expandAllSeq}
+                    collapseAllSeq={collapseAllSeq}
+                />
+                <StatsBar insights={insights}/>
+            </div>
+        </>
     )
 }
 

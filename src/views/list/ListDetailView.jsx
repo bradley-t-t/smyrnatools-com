@@ -3,7 +3,6 @@ import {ListService} from '../../services/ListService';
 import {UserService} from '../../services/UserService';
 import {usePreferences} from '../../app/context/PreferencesContext';
 import GrammarUtility from '../../utils/GrammarUtility';
-import '../../components/sections/styles/DetailView.css';
 import {RegionService} from '../../services/RegionService';
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';
 import DetailViewSection from '../../components/sections/DetailViewSection';

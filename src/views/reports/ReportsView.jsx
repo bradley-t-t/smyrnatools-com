@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import './styles/Reports.css';
 import ReportsSubmitView from './ReportsSubmitView';
 import ReportsReviewView from './ReportsReviewView';
 import {supabase} from '../../services/DatabaseService';
@@ -42,8 +41,6 @@ function ReportsView() {
     const [regionPlantCodes, setRegionPlantCodes] = useState(null);
     const [reporterPlantMap, setReporterPlantMap] = useState({});
     const [loadingReporterPlants, setLoadingReporterPlants] = useState(false);
-    const [overdueItems, setOverdueItems] = useState([]);
-    const [isLoadingOverdue, setIsLoadingOverdue] = useState(false);
     const [hasAnyReviewPermissionPrefix, setHasAnyReviewPermissionPrefix] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -51,10 +48,283 @@ function ReportsView() {
     const [myCurrentPage, setMyCurrentPage] = useState(1);
     const [reviewPageSize, setReviewPageSize] = useState(25);
     const [reviewCurrentPage, setReviewCurrentPage] = useState(1);
-    const [overduePageSize, setOverduePageSize] = useState(25);
-    const [overdueCurrentPage, setOverdueCurrentPage] = useState(1);
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false);
     const [reviewedByCurrentUser, setReviewedByCurrentUser] = useState(new Set());
+
+    const styles = {
+        root: {
+            width: '100%',
+            minHeight: '100vh',
+            background: '#f8fafc',
+            padding: '0',
+            paddingBottom: '4rem'
+        },
+        loadError: {
+            background: '#fee2e2',
+            color: '#dc2626',
+            padding: '1rem',
+            borderRadius: '8px',
+            margin: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 500
+        },
+        toolbar: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            padding: '1rem 1.5rem',
+            background: 'white',
+            backgroundImage: `
+                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+            `,
+            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
+            borderBottom: '1px solid #e5e7eb',
+            position: 'sticky',
+            top: 0,
+            zIndex: 40,
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            flexWrap: 'wrap'
+        },
+        toolbarLeft: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+        },
+        toolbarTitle: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1e293b'
+        },
+        toolbarRight: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap'
+        },
+        refreshBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            background: '#1e3a5f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        filters: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+        },
+        selectControl: {
+            padding: '0.625rem 1rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            color: '#374151',
+            background: 'white',
+            cursor: 'pointer',
+            outline: 'none',
+            minWidth: '150px'
+        },
+        tabs: {
+            display: 'flex',
+            gap: '0.25rem',
+            background: '#f1f5f9',
+            padding: '4px',
+            borderRadius: '10px'
+        },
+        tab: (active) => ({
+            padding: '0.5rem 1rem',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: active ? 600 : 500,
+            color: active ? 'white' : '#64748b',
+            background: active ? '#1e3a5f' : 'transparent',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        }),
+        content: {
+            padding: '1.5rem'
+        },
+        list: {
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            overflow: 'hidden',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+        },
+        empty: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4rem 2rem',
+            color: '#64748b',
+            fontSize: '1rem',
+            gap: '1rem'
+        },
+        emptyIcon: {
+            fontSize: '3rem',
+            color: '#cbd5e1'
+        },
+        headerRow: {
+            display: 'grid',
+            gap: '1rem',
+            padding: '0.875rem 1.25rem',
+            background: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        headerRowMy: {
+            gridTemplateColumns: '1fr 1fr 120px 120px 100px'
+        },
+        headerRowReview: {
+            gridTemplateColumns: '1fr 1fr 1fr 120px 120px 100px'
+        },
+        tableRow: {
+            display: 'grid',
+            gap: '1rem',
+            padding: '1rem 1.25rem',
+            borderBottom: '1px solid #f1f5f9',
+            alignItems: 'center',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            transition: 'background 0.15s'
+        },
+        tableRowMy: {
+            gridTemplateColumns: '1fr 1fr 120px 120px 100px'
+        },
+        tableRowReview: {
+            gridTemplateColumns: '1fr 1fr 1fr 120px 120px 100px'
+        },
+        badge: (type) => {
+            const colors = {
+                'This Week': {bg: '#dbeafe', color: '#1e40af'},
+                'Last Week': {bg: '#fef3c7', color: '#92400e'},
+                'Older': {bg: '#f1f5f9', color: '#64748b'}
+            };
+            const c = colors[type] || colors['Older'];
+            return {
+                display: 'inline-flex',
+                padding: '0.25rem 0.5rem',
+                borderRadius: '6px',
+                fontSize: '0.6875rem',
+                fontWeight: 600,
+                background: c.bg,
+                color: c.color,
+                marginRight: '0.5rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.3px'
+            };
+        },
+        status: (type) => {
+            const colors = {
+                completed: {bg: '#d1fae5', color: '#059669'},
+                'in-progress': {bg: '#fef3c7', color: '#d97706'},
+                pending: {bg: '#fee2e2', color: '#dc2626'}
+            };
+            const c = colors[type] || colors.pending;
+            return {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                padding: '0.375rem 0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                background: c.bg,
+                color: c.color
+            };
+        },
+        actionBtn: {
+            padding: '0.5rem 1rem',
+            background: '#1e3a5f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        reviewedCheck: {
+            color: '#10b981',
+            marginRight: '0.375rem'
+        },
+        reviewedFlag: {
+            color: '#f59e0b',
+            marginRight: '0.375rem'
+        },
+        pagination: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem 1.25rem',
+            borderTop: '1px solid #e5e7eb',
+            background: '#fafafa'
+        },
+        pageSize: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            color: '#64748b'
+        },
+        pageSizeSelect: {
+            padding: '0.375rem 0.75rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            background: 'white',
+            cursor: 'pointer'
+        },
+        pageControls: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+        },
+        pageBtn: (disabled) => ({
+            padding: '0.5rem 1rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            background: disabled ? '#f1f5f9' : 'white',
+            color: disabled ? '#94a3b8' : '#374151',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s'
+        }),
+        pageInfo: {
+            fontSize: '0.875rem',
+            color: '#64748b'
+        },
+        loading: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '3rem'
+        }
+    };
 
     async function fetchProfilesFor(userIds) {
         const missing = userIds.filter(id => !userProfiles[id]);
@@ -265,8 +535,7 @@ function ReportsView() {
 
     useEffect(() => {
         const ids = Array.from(new Set([
-            ...localReports.filter(r => r.completed && r.userId && r.userId !== user?.id).map(r => r.userId),
-            ...(overdueItems || []).map(o => o.userId).filter(Boolean)
+            ...localReports.filter(r => r.completed && r.userId && r.userId !== user?.id).map(r => r.userId)
         ])).filter(id => !(id in reporterPlantMap));
         if (ids.length === 0) return;
         let cancelled = false;
@@ -296,43 +565,7 @@ function ReportsView() {
         return () => {
             cancelled = true;
         };
-    }, [localReports, user?.id, overdueItems]);
-
-    useEffect(() => {
-        if (tab !== 'overdue' || isLoadingPermissions) return;
-        let cancelled = false;
-
-        async function loadOverdue() {
-            setIsLoadingOverdue(true);
-            try {
-                const allowedReview = regionType === 'office'
-                    ? (hasReviewPermission['general_manager'] ? ['general_manager'] : [])
-                    : reportTypes.filter(rt => hasReviewPermission[rt.name] && rt.name !== 'general_manager').map(rt => rt.name);
-                const items = await ReportService.fetchOverdueAssignments(HARDCODED_TODAY, {
-                    force: false,
-                    allowedReview
-                });
-                if (!cancelled) {
-                    setOverdueItems(items || []);
-                    const ids = Array.from(new Set((items || []).map(i => i.userId).filter(Boolean)));
-                    if (ids.length > 0) await fetchProfilesFor(ids);
-                }
-            } catch {
-                if (!cancelled) setOverdueItems([]);
-            } finally {
-                if (!cancelled) setIsLoadingOverdue(false);
-            }
-        }
-
-        loadOverdue();
-        return () => {
-            cancelled = true;
-        };
-    }, [tab, isLoadingPermissions, hasReviewPermission, regionType, refreshKey]);
-
-    useEffect(() => {
-        if (tab === 'overdue' && !hasAnyReviewPermissionPrefix) setTab('all');
-    }, [tab, hasAnyReviewPermissionPrefix]);
+    }, [localReports, user?.id]);
 
     useEffect(() => {
         const interval = setInterval(() => setRefreshKey(prev => prev + 1), 5 * 60 * 1000);
@@ -345,10 +578,6 @@ function ReportsView() {
 
     useEffect(() => {
         setReviewCurrentPage(1);
-    }, [filterReportType, filterPlant]);
-
-    useEffect(() => {
-        setOverdueCurrentPage(1);
     }, [filterReportType, filterPlant]);
 
     const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY), [totalMyWeeks]);
@@ -619,55 +848,42 @@ function ReportsView() {
     const reviewTotalPages = useMemo(() => Math.ceil(visibleReviewReports.length / reviewPageSize), [visibleReviewReports.length, reviewPageSize]);
     const reviewPaginatedItems = useMemo(() => visibleReviewReports.slice((reviewCurrentPage - 1) * reviewPageSize, reviewCurrentPage * reviewPageSize), [visibleReviewReports, reviewCurrentPage, reviewPageSize]);
 
-    const filteredOverdueItems = useMemo(() => (
-        (overdueItems || [])
-            .filter(item => {
-                const matchType = (!filterReportType || item.report_name === filterReportType) && (regionType !== 'office' || item.report_name === 'general_manager');
-                const reporterPlant = reporterPlantMap[item.userId] || '';
-                const matchPlant = !filterPlant || reporterPlant === filterPlant;
-                const matchRegion = !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(reporterPlant);
-                return matchType && matchPlant && matchRegion;
-            })
-            .sort((a, b) => new Date(b.week) - new Date(a.week))
-    ), [overdueItems, filterReportType, filterPlant, preferences.selectedRegion?.code, regionPlantCodes, reporterPlantMap, regionType]);
-
-    const overdueTotalPages = useMemo(() => Math.ceil(filteredOverdueItems.length / overduePageSize), [filteredOverdueItems.length, overduePageSize]);
-    const overduePaginatedItems = useMemo(() => filteredOverdueItems.slice((overdueCurrentPage - 1) * overduePageSize, overdueCurrentPage * overduePageSize), [filteredOverdueItems, overdueCurrentPage, overduePageSize]);
-
     const regionalPlants = plants.filter(p => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code));
     const selectedPlantObj = regionalPlants.find(p => p.plant_code === filterPlant);
     const plantDisplayText = filterPlant ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}` : 'All Plants';
 
     return (
         <>
-            <div className="rpts-root">
-                {loadError && <div className="rpts-load-error">{loadError}</div>}
+            <div style={styles.root}>
+                {loadError && <div style={styles.loadError}><i className="fas fa-exclamation-circle"></i>{loadError}</div>}
                 {!showForm && !showReview && (
                     <div>
-                        <div className="rpts-toolbar rpts-toolbar-sticky">
-                            <div className="rpts-toolbar-left">
-                                <div className="rpts-toolbar-title">
+                        <div style={styles.toolbar}>
+                            <div style={styles.toolbarLeft}>
+                                <div style={styles.toolbarTitle}>
                                     <i className="fas fa-file-alt"></i>
                                     <span>Reports</span>
                                 </div>
                             </div>
-                            <div className="rpts-toolbar-right">
+                            <div style={styles.toolbarRight}>
                                 <button
-                                    className="rpts-refresh-btn"
+                                    style={styles.refreshBtn}
                                     onClick={() => {
                                         setIsRefreshing(true);
                                         setRefreshKey(prev => prev + 1);
                                         setTimeout(() => setIsRefreshing(false), 1000);
                                     }}
                                     type="button"
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#162d4a'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = '#1e3a5f'}
                                 >
-                                    <i className={`fas fa-sync ${isRefreshing ? 'spinning' : ''}`}></i> Refresh
+                                    <i className={`fas fa-sync ${isRefreshing ? 'fa-spin' : ''}`}></i> Refresh
                                 </button>
-                                <div className="rpts-filters">
+                                <div style={styles.filters}>
                                     <select
                                         value={filterReportType}
                                         onChange={e => setFilterReportType(e.target.value)}
-                                        className="rpts-select-control"
+                                        style={styles.selectControl}
                                     >
                                         <option value="">All Report Types</option>
                                         {reportTypes
@@ -680,16 +896,16 @@ function ReportsView() {
                                             ))}
                                     </select>
                                     <button
-                                        className="rpts-select-control"
+                                        style={styles.selectControl}
                                         onClick={() => setIsPlantModalOpen(true)}
                                         type="button"
                                     >
                                         {plantDisplayText}
                                     </button>
                                 </div>
-                                <div className="rpts-tabs">
+                                <div style={styles.tabs}>
                                     <button
-                                        className={tab === 'all' ? 'active' : ''}
+                                        style={styles.tab(tab === 'all')}
                                         onClick={() => setTab('all')}
                                         type="button"
                                     >
@@ -697,108 +913,84 @@ function ReportsView() {
                                     </button>
                                     {hasAnyReviewPermissionPrefix && (
                                         <button
-                                            className={tab === 'review' ? 'active' : ''}
+                                            style={styles.tab(tab === 'review')}
                                             onClick={() => setTab('review')}
                                             type="button"
                                         >
                                             Review
                                         </button>
                                     )}
-                                    {hasAnyReviewPermissionPrefix && (
-                                        <button
-                                            className={tab === 'overdue' ? 'active' : ''}
-                                            onClick={() => setTab('overdue')}
-                                            type="button"
-                                        >
-                                            Overdue
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         </div>
-                        <div className="rpts-content">
+                        <div style={styles.content}>
                             {tab === 'all' && (
-                                <div className="rpts-list">
+                                <div style={styles.list}>
                                     {weeksToShow.length === 0 && !(isLoadingUser || isLoadingMy || isLoadingPermissions) ? (
-                                        <div className="rpts-empty">
-                                            <i className="fas fa-check-circle"></i>
+                                        <div style={styles.empty}>
+                                            <i className="fas fa-check-circle" style={styles.emptyIcon}></i>
                                             <div>No reports</div>
                                         </div>
                                     ) : (
                                         <div>
-                                            <div className="rpt-sticky-header-wrapper">
-                                                <div className="rpt-list-headers header-row">
-                                                    <div className="rpt-header-col-week">Week</div>
-                                                    <div className="rpt-header-col-report-type">Report Type</div>
-                                                    <div className="rpt-header-col-status">Status</div>
-                                                    <div className="rpt-header-col-due-date">Due Date</div>
-                                                    <div className="rpt-header-col-actions">Actions</div>
-                                                </div>
+                                            <div style={{...styles.headerRow, ...styles.headerRowMy}}>
+                                                <div>Week</div>
+                                                <div>Report Type</div>
+                                                <div>Status</div>
+                                                <div>Due Date</div>
+                                                <div style={{textAlign: 'right'}}>Actions</div>
                                             </div>
-                                            <div className="rpt-table-wrapper">
+                                            <div>
                                                 {(isLoadingUser || isLoadingMy || isLoadingPermissions) ? (
-                                                    <div className="rpts-loading">
+                                                    <div style={styles.loading}>
                                                         <LoadingScreen message="Loading your reports..." inline/>
                                                     </div>
                                                 ) : (
-                                                    <table className="rpt-table rpt-table-accent rpt-table-my-reports">
-                                                        <tbody>
-                                                        {myPaginatedItems.map((item, index) => {
-                                                            const {weekIso} = item;
-                                                            const {
-                                                                monday,
-                                                                saturday
-                                                            } = ReportUtility.getWeekDatesFromIso(weekIso);
-                                                            const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                            const today = new Date();
-                                                            const hasSavedData = !!(item.report && item.report.data);
-                                                            const {
-                                                                statusText,
-                                                                statusClass,
-                                                                buttonLabel
-                                                            } = ReportUtility.computeMyReportStatus({
-                                                                completed: item.completed,
-                                                                hasSavedData,
-                                                                weekIso,
-                                                                today
-                                                            });
-                                                            const badge = ReportUtility.getWeekBadge(weekIso);
-                                                            const badgeClass = badge === 'This Week' ? 'rpts-badge-this-week' : badge === 'Last Week' ? 'rpts-badge-last-week' : badge === 'Older' ? 'rpts-badge-older' : '';
-                                                            const baseDelay = 80;
-                                                            const minDelay = baseDelay / 2;
-                                                            const delayDecrement = Math.max(0, (baseDelay - minDelay) / myPaginatedItems.length);
-                                                            const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                                                            return (
-                                                                <tr
-                                                                    key={item.name + item.weekIso}
-                                                                    className='rpt-row rpt-row-animated'
-                                                                    style={{animationDelay: `${index * delay}ms`}}
-                                                                >
-                                                                    <td className="rpt-td rpt-week-td">
-                                                                    <span
-                                                                        className={`rpts-badge ${badgeClass}`}>{badge}</span> {weekRange}
-                                                                    </td>
-                                                                    <td className="rpt-td">{item.title}</td>
-                                                                    <td className="rpt-td">
-                                                                    <span
-                                                                        className={`rpts-status ${statusClass}`}>{statusText}</span>
-                                                                    </td>
-                                                                    <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                                    <td className="rpt-td right">
-                                                                        <button className="rpts-list-action"
-                                                                                onClick={() => handleShowForm(item)}>
-                                                                            {buttonLabel}
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                        </tbody>
-                                                    </table>
+                                                    myPaginatedItems.map((item, index) => {
+                                                        const {weekIso} = item;
+                                                        const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday);
+                                                        const hasSavedData = !!(item.report && item.report.data);
+                                                        const {statusText, statusClass, buttonLabel} = ReportUtility.computeMyReportStatus({
+                                                            completed: item.completed,
+                                                            hasSavedData,
+                                                            weekIso,
+                                                            today: new Date()
+                                                        });
+                                                        const badge = ReportUtility.getWeekBadge(weekIso);
+                                                        return (
+                                                            <div
+                                                                key={item.name + item.weekIso}
+                                                                style={{...styles.tableRow, ...styles.tableRowMy}}
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                            >
+                                                                <div>
+                                                                    <span style={styles.badge(badge)}>{badge}</span>
+                                                                    {weekRange}
+                                                                </div>
+                                                                <div>{item.title}</div>
+                                                                <div>
+                                                                    <span style={styles.status(statusClass)}>{statusText}</span>
+                                                                </div>
+                                                                <div>{saturday.toLocaleDateString()}</div>
+                                                                <div style={{textAlign: 'right'}}>
+                                                                    <button
+                                                                        style={styles.actionBtn}
+                                                                        onClick={() => handleShowForm(item)}
+                                                                        onMouseEnter={(e) => e.currentTarget.style.background = '#162d4a'}
+                                                                        onMouseLeave={(e) => e.currentTarget.style.background = '#1e3a5f'}
+                                                                    >
+                                                                        {buttonLabel}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
                                                 )}
                                             </div>
-                                            <div className="rpts-pagination rpts-pagination-animated">
-                                                <div className="rpts-page-size">
+                                            <div style={styles.pagination}>
+                                                <div style={styles.pageSize}>
                                                     <label>Show:</label>
                                                     <select
                                                         value={myPageSize}
@@ -806,6 +998,7 @@ function ReportsView() {
                                                             setMyPageSize(Number(e.target.value));
                                                             setMyCurrentPage(1);
                                                         }}
+                                                        style={styles.pageSizeSelect}
                                                     >
                                                         <option value={10}>10</option>
                                                         <option value={25}>25</option>
@@ -813,15 +1006,17 @@ function ReportsView() {
                                                         <option value={9999}>All</option>
                                                     </select>
                                                 </div>
-                                                <div className="rpts-page-controls">
+                                                <div style={styles.pageControls}>
                                                     <button
+                                                        style={styles.pageBtn(myCurrentPage === 1)}
                                                         onClick={() => setMyCurrentPage(Math.max(1, myCurrentPage - 1))}
                                                         disabled={myCurrentPage === 1}
                                                     >
                                                         Previous
                                                     </button>
-                                                    <span>Page {myCurrentPage} of {myTotalPages}</span>
+                                                    <span style={styles.pageInfo}>Page {myCurrentPage} of {myTotalPages}</span>
                                                     <button
+                                                        style={styles.pageBtn(myCurrentPage === myTotalPages)}
                                                         onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))}
                                                         disabled={myCurrentPage === myTotalPages}
                                                     >
@@ -830,92 +1025,81 @@ function ReportsView() {
                                                 </div>
                                             </div>
                                         </div>
-
                                     )}
                                 </div>
                             )}
                             {tab === 'review' && (
-                                <div className="rpts-list">
+                                <div style={styles.list}>
                                     {visibleReviewReports.length === 0 && !(isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview) ? (
-                                        <div className="rpts-empty">
-                                            <i className="fas fa-user-check"></i>
+                                        <div style={styles.empty}>
+                                            <i className="fas fa-user-check" style={styles.emptyIcon}></i>
                                             <div>No reports to review</div>
                                         </div>
                                     ) : (
                                         <div>
-                                            <div className="rpt-sticky-header-wrapper">
-                                                <div className="rpt-list-headers header-row">
-                                                    <div className="rpt-header-col-week-review">Week</div>
-                                                    <div className="rpt-header-col-report-type-review">Report Type
-                                                    </div>
-                                                    <div className="rpt-header-col-submitted-by">Submitted By</div>
-                                                    <div className="rpt-header-col-submitted-date">Submitted Date
-                                                    </div>
-                                                    <div className="rpt-header-col-reviewed">Reviewed</div>
-                                                    <div className="rpt-header-col-actions-review">Actions</div>
-                                                </div>
+                                            <div style={{...styles.headerRow, ...styles.headerRowReview}}>
+                                                <div>Week</div>
+                                                <div>Report Type</div>
+                                                <div>Submitted By</div>
+                                                <div>Submitted Date</div>
+                                                <div>Reviewed</div>
+                                                <div style={{textAlign: 'right'}}>Actions</div>
                                             </div>
-                                            <div className="rpt-table-wrapper">
+                                            <div>
                                                 {(isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview) ? (
-                                                    <div className="rpts-loading">
+                                                    <div style={styles.loading}>
                                                         <LoadingScreen message="Loading reports to review..." inline/>
                                                     </div>
                                                 ) : (
-                                                    <table className="rpt-table rpt-table-accent rpt-table-review">
-                                                        <tbody>
-                                                        {reviewPaginatedItems.map((report, index) => {
-                                                            const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
-                                                            const {
-                                                                monday,
-                                                                saturday
-                                                            } = ReportUtility.getWeekDatesFromIso(weekIso);
-                                                            const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                            const baseDelay = 80;
-                                                            const minDelay = baseDelay / 2;
-                                                            const delayDecrement = Math.max(0, (baseDelay - minDelay) / reviewPaginatedItems.length);
-                                                            const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                                                            return (
-                                                                <tr
-                                                                    key={report.id}
-                                                                    className='rpt-row rpt-row-animated'
-                                                                    style={{animationDelay: `${index * delay}ms`}}
-                                                                >
-                                                                    <td className="rpt-td rpt-week-td">
-                                                                        <span
-                                                                            className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
-                                                                            {ReportUtility.getWeekBadge(weekIso)}
-                                                                        </span> {weekRange}
-                                                                    </td>
-                                                                    <td className="rpt-td">{report.title}</td>
-                                                                    <td className="rpt-td">{getUserName(report.userId)}</td>
-                                                                    <td className="rpt-td">{new Date(report.completedDate).toLocaleDateString()}</td>
-                                                                    <td className="rpt-td">
-                                                                        {reviewedByCurrentUser.has(report.id) ? (
-                                                                            <>
-                                                                                <i className="fas fa-check-circle rpts-reviewed-check"></i> Reviewed
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <i className="fas fa-flag rpts-reviewed-flag"></i> Not
-                                                                                Reviewed
-                                                                            </>
-                                                                        )}
-                                                                    </td>
-                                                                    <td className="rpt-td right">
-                                                                        <button className="rpts-list-action"
-                                                                                onClick={() => handleReview(report)}>
-                                                                            Review
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                        </tbody>
-                                                    </table>
+                                                    reviewPaginatedItems.map((report, index) => {
+                                                        const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
+                                                        const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const weekRange = ReportService.getWeekRangeString(monday, saturday);
+                                                        const badge = ReportUtility.getWeekBadge(weekIso);
+                                                        return (
+                                                            <div
+                                                                key={report.id}
+                                                                style={{...styles.tableRow, ...styles.tableRowReview}}
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                            >
+                                                                <div>
+                                                                    <span style={styles.badge(badge)}>{badge}</span>
+                                                                    {weekRange}
+                                                                </div>
+                                                                <div>{report.title}</div>
+                                                                <div>{getUserName(report.userId)}</div>
+                                                                <div>{new Date(report.completedDate).toLocaleDateString()}</div>
+                                                                <div>
+                                                                    {reviewedByCurrentUser.has(report.id) ? (
+                                                                        <span style={{color: '#10b981', fontWeight: 500}}>
+                                                                            <i className="fas fa-check-circle" style={styles.reviewedCheck}></i>
+                                                                            Reviewed
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span style={{color: '#f59e0b', fontWeight: 500}}>
+                                                                            <i className="fas fa-flag" style={styles.reviewedFlag}></i>
+                                                                            Not Reviewed
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div style={{textAlign: 'right'}}>
+                                                                    <button
+                                                                        style={styles.actionBtn}
+                                                                        onClick={() => handleReview(report)}
+                                                                        onMouseEnter={(e) => e.currentTarget.style.background = '#162d4a'}
+                                                                        onMouseLeave={(e) => e.currentTarget.style.background = '#1e3a5f'}
+                                                                    >
+                                                                        Review
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
                                                 )}
                                             </div>
-                                            <div className="rpts-pagination rpts-pagination-animated">
-                                                <div className="rpts-page-size">
+                                            <div style={styles.pagination}>
+                                                <div style={styles.pageSize}>
                                                     <label>Show:</label>
                                                     <select
                                                         value={reviewPageSize}
@@ -923,6 +1107,7 @@ function ReportsView() {
                                                             setReviewPageSize(Number(e.target.value));
                                                             setReviewCurrentPage(1);
                                                         }}
+                                                        style={styles.pageSizeSelect}
                                                     >
                                                         <option value={10}>10</option>
                                                         <option value={25}>25</option>
@@ -930,15 +1115,17 @@ function ReportsView() {
                                                         <option value={9999}>All</option>
                                                     </select>
                                                 </div>
-                                                <div className="rpts-page-controls">
+                                                <div style={styles.pageControls}>
                                                     <button
+                                                        style={styles.pageBtn(reviewCurrentPage === 1)}
                                                         onClick={() => setReviewCurrentPage(Math.max(1, reviewCurrentPage - 1))}
                                                         disabled={reviewCurrentPage === 1}
                                                     >
                                                         Previous
                                                     </button>
-                                                    <span>Page {reviewCurrentPage} of {reviewTotalPages}</span>
+                                                    <span style={styles.pageInfo}>Page {reviewCurrentPage} of {reviewTotalPages}</span>
                                                     <button
+                                                        style={styles.pageBtn(reviewCurrentPage === reviewTotalPages)}
                                                         onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))}
                                                         disabled={reviewCurrentPage === reviewTotalPages}
                                                     >
@@ -947,103 +1134,6 @@ function ReportsView() {
                                                 </div>
                                             </div>
                                         </div>
-
-                                    )}
-                                </div>
-                            )}
-                            {tab === 'overdue' && (
-                                <div className="rpts-list">
-                                    {(isLoadingUser || isLoadingPermissions || isLoadingOverdue || loadingReporterPlants) ? (
-                                        <div className="rpts-loading">
-                                            <LoadingScreen message="Loading overdue reports..." inline/>
-                                        </div>
-                                    ) : (
-                                        filteredOverdueItems.length === 0 ? (
-                                            <div className="rpts-empty">
-                                                <i className="fas fa-exclamation-circle"></i>
-                                                <div>No overdue reports</div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <div className="rpt-sticky-header-wrapper">
-                                                    <div className="rpt-list-headers header-row">
-                                                        <div className="rpt-header-col-week-overdue">Week</div>
-                                                        <div className="rpt-header-col-report-type-overdue">Report Type
-                                                        </div>
-                                                        <div className="rpt-header-col-owed-by">Owed By</div>
-                                                        <div className="rpt-header-col-due-date-overdue">Due Date</div>
-                                                    </div>
-                                                </div>
-                                                <div className="rpt-table-wrapper">
-                                                    <table className="rpt-table rpt-table-accent rpt-table-overdue">
-                                                        <tbody>
-                                                        {overduePaginatedItems.map((item, index) => {
-                                                            const {week: weekIso} = item;
-                                                            const {
-                                                                monday,
-                                                                saturday
-                                                            } = ReportUtility.getWeekDatesFromIso(weekIso);
-                                                            const weekRange = ReportService.getWeekRangeString(monday, saturday);
-                                                            const title = (reportTypeMap[item.report_name] || {}).title || item.report_name;
-                                                            const baseDelay = 80;
-                                                            const minDelay = baseDelay / 2;
-                                                            const delayDecrement = Math.max(0, (baseDelay - minDelay) / overduePaginatedItems.length);
-                                                            const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                                                            return (
-                                                                <tr
-                                                                    key={`${item.userId}-${item.report_name}-${item.week}`}
-                                                                    className='rpt-row rpt-row-animated'
-                                                                    style={{animationDelay: `${index * delay}ms`}}
-                                                                >
-                                                                    <td className="rpt-td rpt-week-td">
-                                                                        <span
-                                                                            className={`rpts-badge ${ReportUtility.getWeekBadge(weekIso) === 'This Week' ? 'rpts-badge-this-week' : ReportUtility.getWeekBadge(weekIso) === 'Last Week' ? 'rpts-badge-last-week' : ReportUtility.getWeekBadge(weekIso) === 'Older' ? 'rpts-badge-older' : ''}`}>
-                                                                            {ReportUtility.getWeekBadge(weekIso)}
-                                                                        </span> {weekRange}
-                                                                    </td>
-                                                                    <td className="rpt-td">{title}</td>
-                                                                    <td className="rpt-td">{getUserName(item.userId)}</td>
-                                                                    <td className="rpt-td">{saturday.toLocaleDateString()}</td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div className="rpts-pagination rpts-pagination-animated">
-                                                    <div className="rpts-page-size">
-                                                        <label>Show:</label>
-                                                        <select
-                                                            value={overduePageSize}
-                                                            onChange={e => {
-                                                                setOverduePageSize(Number(e.target.value));
-                                                                setOverdueCurrentPage(1);
-                                                            }}
-                                                        >
-                                                            <option value={10}>10</option>
-                                                            <option value={25}>25</option>
-                                                            <option value={50}>50</option>
-                                                            <option value={9999}>All</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="rpts-page-controls">
-                                                        <button
-                                                            onClick={() => setOverdueCurrentPage(Math.max(1, overdueCurrentPage - 1))}
-                                                            disabled={overdueCurrentPage === 1}
-                                                        >
-                                                            Previous
-                                                        </button>
-                                                        <span>Page {overdueCurrentPage} of {overdueTotalPages}</span>
-                                                        <button
-                                                            onClick={() => setOverdueCurrentPage(Math.min(overdueTotalPages, overdueCurrentPage + 1))}
-                                                            disabled={overdueCurrentPage === overdueTotalPages}
-                                                        >
-                                                            Next
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
                                     )}
                                 </div>
                             )}

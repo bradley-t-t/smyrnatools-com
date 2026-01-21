@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import SrmLogo from '../../assets/images/srm-logo.svg';
-import './styles/PasswordRecoveryView.css';
 import APIUtility from '../../utils/APIUtility';
 import VideoBackground from '../../components/common/VideoBackground';
 
@@ -35,72 +34,72 @@ function PasswordRecoveryView({onBackToLogin}) {
     }
 
     return (
-        <div className="auth-page">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#1e3a5f] p-4">
             <VideoBackground/>
-
-            <div className="auth-container">
-                <div className="auth-card">
-                    <div className="auth-logo-section">
-                        <img src={SrmLogo} alt="SRM" className="auth-logo"/>
-                        <div className="auth-brand">
-                            <span className="auth-brand-name">Password Recovery</span>
-                            <span className="auth-brand-tagline">Enter your email to receive a new password</span>
-                        </div>
+            <div className="w-full max-w-md relative z-10">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+                    <div className="bg-[#1e3a5f] p-6 text-center">
+                        <img src={SrmLogo} alt="SRM" className="h-16 mx-auto mb-3"/>
+                        <h1 className="text-xl font-bold text-white">Password Recovery</h1>
+                        <p className="text-slate-300 text-sm">Enter your email to receive a new password</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="auth-form" noValidate>
-                        <div className="auth-field">
-                            <i className="fas fa-envelope auth-field-icon"/>
-                            <input
-                                type="email"
-                                placeholder="Email Address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                autoComplete="email"
-                                autoFocus
-                                required
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="auth-message auth-error">
-                                <i className="fas fa-exclamation-circle"/>
-                                <span>{error}</span>
+                    <div className="p-6">
+                        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                            <div className="relative">
+                                <i className="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"/>
+                                <input
+                                    type="email"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    autoComplete="email"
+                                    autoFocus
+                                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 transition-all"
+                                    required
+                                />
                             </div>
-                        )}
 
-                        {message && (
-                            <div className="auth-message auth-success">
-                                <i className="fas fa-check-circle"/>
-                                <span>{message}</span>
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="auth-submit-btn"
-                            disabled={submitting}
-                        >
-                            {submitting ? (
-                                <div className="auth-spinner"/>
-                            ) : (
-                                <>
-                                    <span>Send New Password</span>
-                                    <i className="fas fa-paper-plane"/>
-                                </>
+                            {error && (
+                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                    <i className="fas fa-exclamation-circle"/>
+                                    <span>{error}</span>
+                                </div>
                             )}
-                        </button>
-                    </form>
 
-                    <div className="auth-footer">
-                        <button
-                            type="button"
-                            className="auth-switch-btn"
-                            onClick={onBackToLogin}
-                        >
-                            <i className="fas fa-arrow-left" style={{marginRight: '8px'}}/>
-                            Back to Login
-                        </button>
+                            {message && (
+                                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                                    <i className="fas fa-check-circle"/>
+                                    <span>{message}</span>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-[#1e3a5f] hover:bg-[#15304f] text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={submitting}
+                            >
+                                {submitting ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                                ) : (
+                                    <>
+                                        <span>Send New Password</span>
+                                        <i className="fas fa-paper-plane"/>
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center">
+                            <button
+                                type="button"
+                                className="text-[#1e3a5f] hover:underline font-semibold text-sm inline-flex items-center gap-2"
+                                onClick={onBackToLogin}
+                            >
+                                <i className="fas fa-arrow-left"/>
+                                Back to Login
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

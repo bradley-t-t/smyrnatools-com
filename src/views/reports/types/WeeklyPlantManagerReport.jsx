@@ -6,7 +6,142 @@ import {UserService} from '../../../services/UserService'
 import {RegionService} from '../../../services/RegionService'
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
 import OperatorSelectModal from '../../mixers/OperatorSelectModal'
-import '../styles/Reports.css'
+
+const reportStyles = `
+.pm-report-container { }
+.pm-metrics-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.pm-metrics-header { margin-bottom: 1.25rem; }
+.pm-metrics-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.pm-metrics-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+.pm-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+.pm-metric-card { background: #f8fafc; border-radius: 10px; padding: 1.25rem; border: 1px solid #e5e7eb; }
+.pm-metric-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.pm-metric-icon { color: #1e3a5f; font-size: 1rem; }
+.pm-metric-title { font-size: 0.875rem; font-weight: 600; color: #374151; }
+.pm-metric-value { font-size: 2rem; font-weight: 700; color: #1e3a5f; margin-bottom: 0.25rem; }
+.pm-yph-dual { display: flex; align-items: baseline; gap: 0.25rem; }
+.pm-yph-raw, .pm-yph-adjusted { font-size: 1.75rem; }
+.pm-yph-separator { color: #94a3b8; font-size: 1.25rem; margin: 0 0.25rem; }
+.pm-yph-labels { display: flex; gap: 2rem; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
+.pm-metric-grade { font-size: 0.875rem; font-weight: 600; color: #059669; margin-bottom: 0.5rem; }
+.pm-metric-scale { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.pm-metric-scale span { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; background: #f1f5f9; color: #64748b; }
+.pm-metric-scale span.active { background: #1e3a5f; color: white; }
+.pm-metric-scale span.active.excellent { background: #059669; }
+.pm-metric-scale span.active.good { background: #0ea5e9; }
+.pm-metric-scale span.active.average { background: #f59e0b; }
+.pm-metric-scale span.active.poor { background: #ef4444; }
+.pm-performance-text { color: #1e293b; }
+.pm-performance-text-dark { color: #f1f5f9; }
+
+.pm-trends-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.pm-trends-header { margin-bottom: 1.25rem; }
+.pm-trends-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.pm-trends-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+
+.pm-timeline-wrapper { position: relative; margin-bottom: 2rem; }
+.pm-timeline-track { position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; }
+.pm-timeline-line-full { position: absolute; left: 0; top: 20px; bottom: 20px; width: 2px; background: #e5e7eb; }
+.pm-timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+.pm-timeline-item { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 0; position: relative; }
+.pm-timeline-item.pm-timeline-current { }
+.pm-timeline-item.pm-timeline-placeholder { opacity: 0.7; }
+.pm-timeline-dot-wrapper { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+.pm-timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #1e3a5f; border: 3px solid white; box-shadow: 0 0 0 2px #1e3a5f; }
+.pm-timeline-dot.pm-timeline-dot-placeholder { background: #94a3b8; box-shadow: 0 0 0 2px #94a3b8; }
+.pm-timeline-content { flex: 1; background: #f8fafc; border-radius: 8px; padding: 1rem; border: 1px solid #e5e7eb; }
+.pm-timeline-date { font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.pm-timeline-badge { padding: 0.125rem 0.5rem; background: #1e3a5f; color: white; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+.pm-timeline-placeholder-content { display: flex; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.875rem; }
+.pm-timeline-submitter { font-size: 0.8125rem; color: #64748b; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.pm-timeline-metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.pm-timeline-metric { display: flex; flex-direction: column; gap: 0.125rem; }
+.pm-timeline-metric-value { font-size: 1.25rem; font-weight: 700; color: #1e3a5f; }
+.pm-timeline-metric-label { font-size: 0.6875rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-timeline-variance { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
+.pm-timeline-variance.positive { color: #059669; }
+.pm-timeline-variance.negative { color: #ef4444; }
+.pm-timeline-yph-dual { display: flex; align-items: baseline; gap: 0.125rem; }
+.pm-timeline-yph-raw, .pm-timeline-yph-adj { font-size: 1.125rem; }
+.pm-timeline-yph-sep { color: #94a3b8; font-size: 0.875rem; margin: 0 0.125rem; }
+
+.pm-weekly-breakdown { margin-top: 1.5rem; }
+.pm-weekly-breakdown-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; }
+.pm-weekly-breakdown-table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
+.pm-weekly-breakdown-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.pm-weekly-breakdown-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+.pm-weekly-breakdown-table td { padding: 0.75rem 1rem; font-size: 0.875rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+.pm-weekly-breakdown-table tr:last-child td { border-bottom: none; }
+.pm-weekly-breakdown-table tr:hover { background: #f8fafc; }
+.pm-weekly-breakdown-table tr.pm-week-missing { background: #fef2f2; }
+.pm-breakdown-value { font-weight: 500; }
+.pm-breakdown-yph-dual { }
+.pm-breakdown-yph-container { display: inline-flex; align-items: baseline; gap: 0.125rem; }
+.pm-breakdown-yph-raw, .pm-breakdown-yph-adj { font-size: 0.875rem; }
+.pm-breakdown-yph-sep { color: #94a3b8; margin: 0 0.125rem; }
+.pm-week-label-cell { white-space: nowrap; }
+.pm-not-submitted-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #fef3c7; color: #d97706; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.pm-missing-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #fee2e2; color: #dc2626; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+
+.pm-missing-weeks-notice { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+.pm-missing-weeks-notice.pm-not-submitted-notice { background: #fefce8; border-color: #fef08a; }
+.pm-missing-notice-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.pm-missing-notice-header i { color: #dc2626; }
+.pm-not-submitted-notice .pm-missing-notice-header i { color: #d97706; }
+.pm-missing-notice-title { font-weight: 600; color: #1e293b; }
+.pm-missing-notice-body { font-size: 0.875rem; color: #64748b; }
+.pm-missing-weeks-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.pm-missing-week-chip { padding: 0.25rem 0.75rem; background: white; border: 1px solid #e5e7eb; border-radius: 9999px; font-size: 0.8125rem; color: #1e293b; }
+
+.pm-operators-help-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.pm-operators-help-header { margin-bottom: 1.25rem; }
+.pm-operators-help-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.pm-operators-help-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+.pm-loading-container { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 2rem; color: #64748b; }
+.pm-loading-text { font-size: 0.875rem; }
+
+.pm-instructions-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.pm-instructions-header { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #1e40af; margin-bottom: 0.75rem; font-size: 0.875rem; }
+.pm-instructions-list { margin: 0; padding-left: 1.25rem; font-size: 0.8125rem; color: #1e3a8a; line-height: 1.6; }
+.pm-instructions-list li { margin-bottom: 0.25rem; }
+
+.pm-add-entry-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
+.pm-add-entry-btn:hover { background: #15304f; }
+
+.pm-operators-help-list { display: flex; flex-direction: column; gap: 1rem; }
+.pm-no-entries { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #e5e7eb; color: #64748b; font-size: 0.875rem; }
+
+.pm-help-entry { background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
+.pm-help-entry-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem; border-bottom: 1px solid #e5e7eb; }
+.pm-help-entry-main { display: flex; flex-wrap: wrap; gap: 1rem; flex: 1; }
+.pm-help-entry-field { display: flex; flex-direction: column; gap: 0.375rem; min-width: 150px; }
+.pm-help-entry-field label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-help-entry-value { font-size: 0.9375rem; font-weight: 500; color: #1e293b; }
+.pm-help-entry-input { padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; }
+.pm-help-entry-select { padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; cursor: pointer; text-align: left; min-width: 180px; }
+.pm-help-entry-remove { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.pm-help-entry-remove:hover { background: #fecaca; }
+
+.pm-help-operators-section { padding: 1rem; }
+.pm-help-operators-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.pm-help-operators-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
+.pm-add-operator-btn { display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: #e0f2fe; color: #0369a1; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+.pm-add-operator-btn:hover { background: #bae6fd; }
+
+.pm-help-operators-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.pm-help-operator-row { display: grid; grid-template-columns: 1fr 120px auto; align-items: end; gap: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; }
+.pm-help-operator-field { display: flex; flex-direction: column; gap: 0.375rem; }
+.pm-help-operator-field label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-help-operator-select { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
+.pm-help-operator-select:hover { border-color: #cbd5e1; }
+.pm-help-operator-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; box-sizing: border-box; }
+.pm-help-operator-remove { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; width: 38px; }
+.pm-help-operator-remove:hover { background: #fecaca; }
+
+.pm-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.25rem; }
+.pm-card-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; }
+.pm-empty-state { text-align: center; padding: 2rem; color: #64748b; }
+`
 
 function WeeklyTrendsSection({currentWeekIso, plantCode, user}) {
     const [historicalData, setHistoricalData] = useState([])
@@ -1314,15 +1449,17 @@ export function PlantManagerSubmitPlugin({
     }
 
     return (
-        <div className="pm-report-container">
-            <OperatorsSentToHelp
-                entries={form?.operators_sent_to_help || []}
-                onUpdate={handleOperatorsUpdate}
-                weekIso={weekIso}
-                readOnly={false}
-                user={user}
-                plantCode={plantCode}
-            />
+        <>
+            <style>{reportStyles}</style>
+            <div className="pm-report-container">
+                <OperatorsSentToHelp
+                    entries={form?.operators_sent_to_help || []}
+                    onUpdate={handleOperatorsUpdate}
+                    weekIso={weekIso}
+                    readOnly={false}
+                    user={user}
+                    plantCode={plantCode}
+                />
 
             <div className="pm-metrics-section">
                 <div className="pm-metrics-header">
@@ -1396,7 +1533,8 @@ export function PlantManagerSubmitPlugin({
                 plantCode={plantCode || userPlantCode || ''}
                 user={{...user, plant_code: userPlantCode}}
             />
-        </div>
+            </div>
+        </>
     )
 }
 
@@ -1472,16 +1610,18 @@ export function PlantManagerReviewPlugin({
     }
 
     return (
-        <div className="pm-report-container">
-            <OperatorsSentToHelp
-                entries={form?.operators_sent_to_help || []}
-                onUpdate={() => {
-                }}
-                weekIso={weekIso}
-                readOnly={true}
-                user={user}
-                plantCode={plantCode}
-            />
+        <>
+            <style>{reportStyles}</style>
+            <div className="pm-report-container">
+                <OperatorsSentToHelp
+                    entries={form?.operators_sent_to_help || []}
+                    onUpdate={() => {
+                    }}
+                    weekIso={weekIso}
+                    readOnly={true}
+                    user={user}
+                    plantCode={plantCode}
+                />
 
             <div className="pm-metrics-section">
                 <div className="pm-metrics-header">
@@ -1553,6 +1693,7 @@ export function PlantManagerReviewPlugin({
                 plantCode={timelinePlantCode || user?.plant_code || ''}
                 user={user}
             />
-        </div>
+            </div>
+        </>
     )
 }

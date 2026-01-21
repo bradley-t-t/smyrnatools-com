@@ -274,37 +274,400 @@ const SetTimeCalculator = () => {
         }
     }
 
+    const styles = {
+        container: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb'
+        },
+        section: {
+            marginBottom: '2rem'
+        },
+        sectionHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginBottom: '1.5rem',
+            paddingBottom: '1rem',
+            borderBottom: '2px solid #f1f5f9',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b'
+        },
+        toggleButton: (active) => ({
+            marginLeft: 'auto',
+            padding: '0.5rem 1rem',
+            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: active ? '#1e3a5f' : '#64748b',
+            background: active ? '#f0f7ff' : 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none'
+        }),
+        weatherDisplay: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '2rem',
+            background: '#f8fafc',
+            borderRadius: '12px',
+            minHeight: '120px'
+        },
+        weatherLoading: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            color: '#64748b',
+            fontSize: '0.9375rem'
+        },
+        weatherError: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            color: '#ef4444',
+            fontSize: '0.9375rem'
+        },
+        retryButton: {
+            padding: '0.5rem 1rem',
+            border: '1px solid #ef4444',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#ef4444',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none'
+        },
+        weatherStats: {
+            display: 'flex',
+            gap: '2rem',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+        },
+        weatherStat: (isMain) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: isMain ? '1.5rem' : '0.9375rem',
+            fontWeight: isMain ? 700 : 600,
+            color: isMain ? '#1e3a5f' : '#64748b'
+        }),
+        manualWeatherInputs: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1.5rem'
+        },
+        manualWeatherRow: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        manualWeatherInfo: {
+            gridColumn: '1 / -1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            padding: '1rem',
+            background: '#eff6ff',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e3a5f'
+        },
+        label: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        inputWrap: {
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center'
+        },
+        input: {
+            width: '100%',
+            padding: '0.75rem 4rem 0.75rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s'
+        },
+        inputUnit: {
+            position: 'absolute',
+            right: '1rem',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#94a3b8'
+        },
+        inputsGrid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1.5rem'
+        },
+        inputRow: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        wcDisplay: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            padding: '1rem',
+            background: '#f0fdf4',
+            borderRadius: '8px',
+            marginTop: '1rem',
+            flexWrap: 'wrap'
+        },
+        wcLabel: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b'
+        },
+        wcValue: {
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#16a34a'
+        },
+        wcBreakdown: {
+            fontSize: '0.875rem',
+            color: '#64748b'
+        },
+        resultContainer: (riskLevel) => ({
+            background: riskLevel === 'cold' || riskLevel === 'cool' ? '#eff6ff' :
+                       riskLevel === 'warm' ? '#fffbeb' :
+                       riskLevel === 'hot' ? '#fef2f2' : '#f0fdf4',
+            border: `2px solid ${riskLevel === 'cold' || riskLevel === 'cool' ? '#dbeafe' :
+                                 riskLevel === 'warm' ? '#fef3c7' :
+                                 riskLevel === 'hot' ? '#fee2e2' : '#dcfce7'}`,
+            borderRadius: '12px',
+            padding: '2rem',
+            marginBottom: '2rem'
+        }),
+        resultHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginBottom: '1.5rem',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b'
+        },
+        factors: {
+            display: 'flex',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+            marginBottom: '1.5rem',
+            justifyContent: 'center'
+        },
+        factorBadge: (type) => ({
+            padding: '0.5rem 1rem',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: type === 'hot' || type === 'low-cement' || type === 'high-wc' ? '#fef2f2' :
+                       type === 'cold' || type === 'low-wc' ? '#eff6ff' :
+                       type === 'sunny' || type === 'peak' ? '#fef3c7' :
+                       type === 'cloudy' || type === 'night' ? '#f1f5f9' :
+                       type === 'high-cement' ? '#f0fdf4' : 'white',
+            color: type === 'hot' || type === 'low-cement' || type === 'high-wc' ? '#ef4444' :
+                   type === 'cold' || type === 'low-wc' ? '#3b82f6' :
+                   type === 'sunny' || type === 'peak' ? '#f59e0b' :
+                   type === 'cloudy' || type === 'night' ? '#64748b' :
+                   type === 'high-cement' ? '#16a34a' : '#1e293b',
+            border: `1px solid ${type === 'hot' || type === 'low-cement' || type === 'high-wc' ? '#fee2e2' :
+                                 type === 'cold' || type === 'low-wc' ? '#dbeafe' :
+                                 type === 'sunny' || type === 'peak' ? '#fef3c7' :
+                                 type === 'cloudy' || type === 'night' ? '#e5e7eb' :
+                                 type === 'high-cement' ? '#dcfce7' : '#e5e7eb'}`
+        }),
+        settimeResults: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2rem',
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap'
+        },
+        settimeBox: (isPrimary) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '1.5rem',
+            background: isPrimary ? '#dcfce7' : 'white',
+            border: `3px solid ${isPrimary ? '#16a34a' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            minWidth: '180px'
+        }),
+        settimeLabel: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        settimeValue: {
+            fontSize: '2rem',
+            fontWeight: 700,
+            color: '#1e3a5f'
+        },
+        settimeSublabel: {
+            fontSize: '0.75rem',
+            color: '#94a3b8'
+        },
+        settimeDivider: {
+            fontSize: '1.5rem',
+            color: '#cbd5e1'
+        },
+        warning: (level) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '1rem 1.5rem',
+            background: level === 'cold' || level === 'cool' ? '#eff6ff' :
+                       level === 'warm' ? '#fffbeb' :
+                       level === 'hot' ? '#fef2f2' : 'white',
+            border: `2px solid ${level === 'cold' || level === 'cool' ? '#3b82f6' :
+                                 level === 'warm' ? '#f59e0b' :
+                                 level === 'hot' ? '#ef4444' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: level === 'cold' || level === 'cool' ? '#1e40af' :
+                   level === 'warm' ? '#92400e' :
+                   level === 'hot' ? '#991b1b' : '#1e293b'
+        }),
+        emptyState: {
+            textAlign: 'center',
+            padding: '3rem 2rem',
+            background: '#f8fafc',
+            borderRadius: '12px',
+            border: '2px dashed #e5e7eb',
+            marginBottom: '2rem'
+        },
+        emptyIcon: {
+            fontSize: '3rem',
+            color: '#cbd5e1',
+            marginBottom: '1rem'
+        },
+        emptyText: {
+            fontSize: '0.9375rem',
+            color: '#64748b',
+            marginBottom: '1rem'
+        },
+        requiredFields: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            color: '#94a3b8'
+        },
+        requiredLabel: {
+            fontWeight: 700,
+            color: '#64748b'
+        },
+        footer: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap'
+        },
+        resetButton: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#64748b',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none'
+        },
+        note: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.8125rem',
+            color: '#94a3b8',
+            fontStyle: 'italic'
+        }
+    }
+
+    const inputFocusHandlers = {
+        onFocus: (e) => {
+            e.target.style.borderColor = '#1e3a5f';
+            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+        },
+        onBlur: (e) => {
+            e.target.style.borderColor = '#e5e7eb';
+            e.target.style.boxShadow = 'none';
+        }
+    }
+
     return (
-        <div className="settime-calculator">
-            <div className="calc-section">
-                <div className="calc-section-header">
-                    <i className="fas fa-cloud-sun"></i>
+        <div style={styles.container}>
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>
+                    <i className="fas fa-cloud-sun" style={{color: '#1e3a5f'}}></i>
                     <span>Weather Conditions</span>
                     <button
-                        className={`toggle-btn ${useManual ? 'active' : ''}`}
+                        style={styles.toggleButton(useManual)}
                         onClick={() => setUseManual(!useManual)}
+                        onMouseEnter={(e) => {
+                            if (!useManual) e.currentTarget.style.background = '#f8fafc';
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!useManual) e.currentTarget.style.background = 'white';
+                        }}
                     >
                         {useManual ? 'Use Location' : 'Manual Entry'}
                     </button>
                 </div>
-                <div className="weather-content">
+                <div>
                     {useManual ? (
-                        <div className="manual-weather-inputs">
-                            <div className="manual-weather-row">
-                                <label>Temperature</label>
-                                <div className="input-wrap">
+                        <div style={styles.manualWeatherInputs}>
+                            <div style={styles.manualWeatherRow}>
+                                <label style={styles.label}>Temperature</label>
+                                <div style={styles.inputWrap}>
                                     <input
                                         type="number"
                                         value={manualWeather.temperature}
                                         onChange={(e) => handleManualWeatherChange('temperature', e.target.value)}
                                         placeholder="72"
+                                        style={styles.input}
+                                        {...inputFocusHandlers}
                                     />
-                                    <span className="input-unit">°F</span>
+                                    <span style={styles.inputUnit}>°F</span>
                                 </div>
                             </div>
-                            <div className="manual-weather-row">
-                                <label>Cloud Cover</label>
-                                <div className="input-wrap">
+                            <div style={styles.manualWeatherRow}>
+                                <label style={styles.label}>Cloud Cover</label>
+                                <div style={styles.inputWrap}>
                                     <input
                                         type="number"
                                         value={manualWeather.cloudCover}
@@ -312,13 +675,15 @@ const SetTimeCalculator = () => {
                                         placeholder="50"
                                         min="0"
                                         max="100"
+                                        style={styles.input}
+                                        {...inputFocusHandlers}
                                     />
-                                    <span className="input-unit">%</span>
+                                    <span style={styles.inputUnit}>%</span>
                                 </div>
                             </div>
-                            <div className="manual-weather-row">
-                                <label>Humidity</label>
-                                <div className="input-wrap">
+                            <div style={styles.manualWeatherRow}>
+                                <label style={styles.label}>Humidity</label>
+                                <div style={styles.inputWrap}>
                                     <input
                                         type="number"
                                         value={manualWeather.humidity}
@@ -326,11 +691,13 @@ const SetTimeCalculator = () => {
                                         placeholder="50"
                                         min="0"
                                         max="100"
+                                        style={styles.input}
+                                        {...inputFocusHandlers}
                                     />
-                                    <span className="input-unit">%</span>
+                                    <span style={styles.inputUnit}>%</span>
                                 </div>
                             </div>
-                            <div className="manual-weather-info">
+                            <div style={styles.manualWeatherInfo}>
                                 <i className={`fas ${(() => {
                                     const hour = new Date().getHours()
                                     if (hour >= 10 && hour < 16) return 'fa-sun'
@@ -348,29 +715,35 @@ const SetTimeCalculator = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="weather-display">
+                        <div style={styles.weatherDisplay}>
                             {loading && (
-                                <div className="weather-loading">
-                                    <i className="fas fa-spinner fa-spin"></i>
+                                <div style={styles.weatherLoading}>
+                                    <i className="fas fa-spinner fa-spin" style={{fontSize: '2rem'}}></i>
                                     <span>Getting weather...</span>
                                 </div>
                             )}
                             {locationError && (
-                                <div className="weather-error">
-                                    <i className="fas fa-exclamation-circle"></i>
+                                <div style={styles.weatherError}>
+                                    <i className="fas fa-exclamation-circle" style={{fontSize: '2rem'}}></i>
                                     <span>{locationError}</span>
-                                    <button onClick={getLocation} className="retry-btn">
+                                    <button onClick={getLocation} style={styles.retryButton}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = '#fef2f2';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'white';
+                                        }}>
                                         <i className="fas fa-redo"></i> Retry
                                     </button>
                                 </div>
                             )}
                             {weather && !loading && (
-                                <div className="weather-stats">
-                                    <div className="weather-stat main">
+                                <div style={styles.weatherStats}>
+                                    <div style={styles.weatherStat(true)}>
                                         <i className="fas fa-thermometer-half"></i>
-                                        <span className="stat-value">{Math.round(weather.temperature)}°F</span>
+                                        <span>{Math.round(weather.temperature)}°F</span>
                                     </div>
-                                    <div className="weather-stat">
+                                    <div style={styles.weatherStat(false)}>
                                         <i className={`fas ${(() => {
                                             const hour = new Date().getHours()
                                             if (hour >= 10 && hour < 16) return 'fa-sun'
@@ -386,15 +759,15 @@ const SetTimeCalculator = () => {
                                             return 'Night'
                                         })()}</span>
                                     </div>
-                                    <div className="weather-stat">
+                                    <div style={styles.weatherStat(false)}>
                                         <i className="fas fa-cloud"></i>
                                         <span>{weather.cloudCover}%</span>
                                     </div>
-                                    <div className="weather-stat">
+                                    <div style={styles.weatherStat(false)}>
                                         <i className="fas fa-tint"></i>
                                         <span>{weather.humidity}%</span>
                                     </div>
-                                    <div className="weather-stat">
+                                    <div style={styles.weatherStat(false)}>
                                         <i className="fas fa-wind"></i>
                                         <span>{Math.round(weather.windSpeed)} mph</span>
                                     </div>
@@ -405,93 +778,70 @@ const SetTimeCalculator = () => {
                 </div>
             </div>
 
-            <div className="calc-section">
-                <div className="calc-section-header">
-                    <i className="fas fa-flask"></i>
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>
+                    <i className="fas fa-flask" style={{color: '#1e3a5f'}}></i>
                     <span>Mix Design (per yard)</span>
                 </div>
-                <div className="calc-inputs-grid">
-                    <div className="calc-input-row">
-                        <label>Primary Powder</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.cement}
-                                onChange={(e) => handleMixChange('cement', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">lbs/yd</span>
+                <div style={styles.inputsGrid}>
+                    {[
+                        {field: 'cement', label: 'Primary Powder', unit: 'lbs/yd', placeholder: '0'},
+                        {field: 'supplemental', label: 'Supplemental', unit: 'lbs/yd', placeholder: '0'},
+                        {field: 'water', label: 'Design Water', unit: 'gal/yd', placeholder: '0'},
+                        {field: 'slump', label: 'Slump', unit: 'in', placeholder: '4', step: '0.5'}
+                    ].map(input => (
+                        <div key={input.field} style={styles.inputRow}>
+                            <label style={styles.label}>{input.label}</label>
+                            <div style={styles.inputWrap}>
+                                <input
+                                    type="number"
+                                    value={mixData[input.field]}
+                                    onChange={(e) => handleMixChange(input.field, e.target.value)}
+                                    placeholder={input.placeholder}
+                                    step={input.step}
+                                    style={styles.input}
+                                    {...inputFocusHandlers}
+                                />
+                                <span style={styles.inputUnit}>{input.unit}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div className="calc-input-row">
-                        <label>Supplemental</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.supplemental}
-                                onChange={(e) => handleMixChange('supplemental', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">lbs/yd</span>
-                        </div>
-                    </div>
-                    <div className="calc-input-row">
-                        <label>Design Water</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.water}
-                                onChange={(e) => handleMixChange('water', e.target.value)}
-                                placeholder="0"
-                            />
-                            <span className="input-unit">gal/yd</span>
-                        </div>
-                    </div>
-                    <div className="calc-input-row">
-                        <label>Slump</label>
-                        <div className="input-wrap">
-                            <input
-                                type="number"
-                                value={mixData.slump}
-                                onChange={(e) => handleMixChange('slump', e.target.value)}
-                                placeholder="4"
-                                step="0.5"
-                            />
-                            <span className="input-unit">in</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
 
-            <div className="calc-section">
-                <div className="calc-section-header">
-                    <i className="fas fa-truck"></i>
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>
+                    <i className="fas fa-truck" style={{color: '#1e3a5f'}}></i>
                     <span>Batch Info</span>
                 </div>
-                <div className="calc-inputs-grid">
-                    <div className="calc-input-row">
-                        <label>Batch Size</label>
-                        <div className="input-wrap">
+                <div style={styles.inputsGrid}>
+                    <div style={styles.inputRow}>
+                        <label style={styles.label}>Batch Size</label>
+                        <div style={styles.inputWrap}>
                             <input
                                 type="number"
                                 value={mixData.batchSize}
                                 onChange={(e) => handleMixChange('batchSize', e.target.value)}
                                 placeholder="10"
                                 step="0.5"
+                                style={styles.input}
+                                {...inputFocusHandlers}
                             />
-                            <span className="input-unit">yd</span>
+                            <span style={styles.inputUnit}>yd</span>
                         </div>
                     </div>
-                    <div className="calc-input-row">
-                        <label>Added Water</label>
-                        <div className="input-wrap">
+                    <div style={styles.inputRow}>
+                        <label style={styles.label}>Added Water</label>
+                        <div style={styles.inputWrap}>
                             <input
                                 type="number"
                                 value={mixData.addedWater}
                                 onChange={(e) => handleMixChange('addedWater', e.target.value)}
                                 placeholder="0"
+                                style={styles.input}
+                                {...inputFocusHandlers}
                             />
-                            <span className="input-unit">gal</span>
+                            <span style={styles.inputUnit}>gal</span>
                         </div>
                     </div>
                 </div>
@@ -509,11 +859,10 @@ const SetTimeCalculator = () => {
                         const totalWaterLbsPerYd = designWaterLbsPerYd + addedLbsPerYd
                         const wc = totalWaterLbsPerYd / totalCite
                         return (
-                            <div className="settime-wc-display">
-                                <span className="wc-label">W/C Ratio:</span>
-                                <span className="wc-value">{wc.toFixed(2)}</span>
-                                <span
-                                    className="wc-breakdown">({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
+                            <div style={styles.wcDisplay}>
+                                <span style={styles.wcLabel}>W/C Ratio:</span>
+                                <span style={styles.wcValue}>{wc.toFixed(2)}</span>
+                                <span style={styles.wcBreakdown}>({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
                             </div>
                         )
                     }
@@ -522,86 +871,94 @@ const SetTimeCalculator = () => {
             </div>
 
             {result ? (
-                <div className={`calc-result ${getRiskColor(result.riskLevel)}`}>
-                    <div className="result-header">
+                <div style={styles.resultContainer(result.riskLevel)}>
+                    <div style={styles.resultHeader}>
                         <i className="fas fa-clock"></i>
                         <span>Estimated Set Time</span>
                     </div>
-                    <div className="settime-factors">
-                        <div
-                            className={`factor-badge ${result.conditions.temp > 80 ? 'hot' : result.conditions.temp < 50 ? 'cold' : ''}`}>
+                    <div style={styles.factors}>
+                        <div style={styles.factorBadge(result.conditions.temp > 80 ? 'hot' : result.conditions.temp < 50 ? 'cold' : '')}>
                             <i className="fas fa-thermometer-half"></i>
                             <span>{Math.round(result.conditions.temp)}°F</span>
                         </div>
-                        <div
-                            className={`factor-badge ${result.conditions.cloudCover < 30 ? 'sunny' : result.conditions.cloudCover > 70 ? 'cloudy' : ''}`}>
+                        <div style={styles.factorBadge(result.conditions.cloudCover < 30 ? 'sunny' : result.conditions.cloudCover > 70 ? 'cloudy' : '')}>
                             <i className={`fas ${result.conditions.cloudCover < 30 ? 'fa-sun' : result.conditions.cloudCover > 70 ? 'fa-cloud' : 'fa-cloud-sun'}`}></i>
                             <span>{result.conditions.cloudCover}% clouds</span>
                         </div>
-                        <div
-                            className={`factor-badge ${result.timeOfDay === 'peak-sun' ? 'peak' : result.timeOfDay === 'night' ? 'night' : ''}`}>
+                        <div style={styles.factorBadge(result.timeOfDay === 'peak-sun' ? 'peak' : result.timeOfDay === 'night' ? 'night' : '')}>
                             <i className={`fas ${result.timeOfDay === 'peak-sun' ? 'fa-sun' : result.timeOfDay === 'night' ? 'fa-moon' : 'fa-cloud-sun'}`}></i>
                             <span>{result.timeOfDay === 'peak-sun' ? 'Peak Sun' : result.timeOfDay === 'morning' ? 'Morning' : result.timeOfDay === 'evening' ? 'Evening' : 'Night'}</span>
                         </div>
                         {result.mix && (
                             <>
-                                <div
-                                    className={`factor-badge ${result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : ''}`}>
+                                <div style={styles.factorBadge(result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : '')}>
                                     <i className="fas fa-box"></i>
                                     <span>{result.mix.cementPerYd} lbs/yd</span>
                                 </div>
-                                <div
-                                    className={`factor-badge ${result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : ''}`}>
+                                <div style={styles.factorBadge(result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : '')}>
                                     <i className="fas fa-tint"></i>
                                     <span>W/C {result.mix.wc}</span>
                                 </div>
                             </>
                         )}
                     </div>
-                    <div className="settime-results">
-                        <div className="settime-box">
-                            <span className="settime-label">Initial Set</span>
-                            <span className="settime-value">
+                    <div style={styles.settimeResults}>
+                        <div style={styles.settimeBox(false)}>
+                            <span style={styles.settimeLabel}>Initial Set</span>
+                            <span style={styles.settimeValue}>
                                 {result.initialSet.hours > 0 && `${result.initialSet.hours}h `}
                                 {result.initialSet.mins}m
                             </span>
-                            <span className="settime-sublabel">~{Math.round(result.initialSet.total)} mins</span>
+                            <span style={styles.settimeSublabel}>~{Math.round(result.initialSet.total)} mins</span>
                         </div>
-                        <div className="settime-divider">
+                        <div style={styles.settimeDivider}>
                             <i className="fas fa-arrow-right"></i>
                         </div>
-                        <div className="settime-box primary">
-                            <span className="settime-label">Final Set</span>
-                            <span className="settime-value">
+                        <div style={styles.settimeBox(true)}>
+                            <span style={styles.settimeLabel}>Final Set</span>
+                            <span style={styles.settimeValue}>
                                 {result.finalSet.hours}h {result.finalSet.mins}m
                             </span>
-                            <span className="settime-sublabel">~{Math.round(result.finalSet.total)} mins</span>
+                            <span style={styles.settimeSublabel}>~{Math.round(result.finalSet.total)} mins</span>
                         </div>
                     </div>
                     {result.riskMessage && (
-                        <div className={`settime-warning ${result.riskLevel}`}>
+                        <div style={styles.warning(result.riskLevel)}>
                             <i className="fas fa-exclamation-triangle"></i>
                             <span>{result.riskMessage}</span>
                         </div>
                     )}
                 </div>
             ) : (
-                <div className="calc-empty-state">
-                    <i className="fas fa-clock"></i>
-                    <span>Enter weather and mix design to calculate set time</span>
-                    <div className="required-fields">
-                        <span className="required-label">Required:</span>
+                <div style={styles.emptyState}>
+                    <div style={styles.emptyIcon}>
+                        <i className="fas fa-clock"></i>
+                    </div>
+                    <span style={styles.emptyText}>Enter weather and mix design to calculate set time</span>
+                    <div style={styles.requiredFields}>
+                        <span style={styles.requiredLabel}>Required:</span>
                         <span>Temperature, Batch Size, Primary Powder, Design Water, Slump</span>
                     </div>
                 </div>
             )}
 
-            <div className="calc-footer">
-                <button onClick={clearForm} className="btn-reset">
+            <div style={styles.footer}>
+                <button 
+                    onClick={clearForm} 
+                    style={styles.resetButton}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.style.borderColor = '#cbd5e1';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                    }}
+                >
                     <i className="fas fa-redo"></i>
                     <span>Reset</span>
                 </button>
-                <div className="calc-note">
+                <div style={styles.note}>
                     <i className="fas fa-info-circle"></i>
                     <span>Estimates only. Actual set times vary by mix design and conditions.</span>
                 </div>

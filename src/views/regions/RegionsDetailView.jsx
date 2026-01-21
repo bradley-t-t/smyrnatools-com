@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {RegionService} from '../../services/RegionService'
 import {PlantService} from '../../services/PlantService'
-import './styles/Regions.css'
 
 function RegionsDetailView({region, onClose, onDelete, onUpdate}) {
     const [regionName, setRegionName] = useState(region.region_name || region.regionName || '')

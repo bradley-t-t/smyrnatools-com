@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import './styles/List.css';
 import {ListService} from '../../services/ListService';
 import {UserService} from '../../services/UserService';
 import {RegionService} from '../../services/RegionService';

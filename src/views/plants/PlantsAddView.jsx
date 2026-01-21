@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import {PlantService} from '../../services/PlantService'
-import './styles/Plants.css'
 import AddViewSection from '../../components/sections/AddViewSection'
 
 function PlantsAddView({onClose, onPlantAdded}) {

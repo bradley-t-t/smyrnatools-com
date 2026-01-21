@@ -1,6 +1,5 @@
 import React from 'react'
 import CardSection from '../../components/sections/CardSection'
-import './styles/PickupTrucks.css'
 
 function PickupTrucksCard({pickup, onSelect, isDuplicateVin, isHighMileage}) {
     let statusColor = 'var(--accent)';

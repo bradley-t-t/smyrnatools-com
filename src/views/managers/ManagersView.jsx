@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import './styles/Managers.css';
 import {UserService} from '../../services/UserService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import ManagerDetailView from './ManagerDetailView';
@@ -296,16 +295,65 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                                     handleSelectItem={handleSelectManager}
                                     headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
                                     colWidths={['12%', '28%', '18%', '18%', '24%']}
-                                    renderRow={(manager, handleSelect) => (
-                                        <tr key={manager.id} onClick={() => handleSelect(manager)}
-                                            style={{cursor: 'pointer'}}>
-                                            <td style={{width: '12%'}}>{manager.plantCode ? manager.plantCode : '---'}</td>
-                                            <td style={{width: '28%'}}>{manager.email ? manager.email : '---'}</td>
-                                            <td style={{width: '18%'}}>{manager.firstName ? manager.firstName : '---'}</td>
-                                            <td style={{width: '18%'}}>{manager.lastName ? manager.lastName : '---'}</td>
-                                            <td style={{width: '24%'}}>{manager.roleName ? manager.roleName : '---'}</td>
-                                        </tr>
-                                    )}
+                                    renderRow={(manager, handleSelect) => {
+                                        const cellStyle = {
+                                            padding: '20px 24px',
+                                            fontSize: '15px',
+                                            color: '#1e293b',
+                                            fontWeight: 500,
+                                            textAlign: 'left',
+                                            verticalAlign: 'middle'
+                                        }
+                                        const cellSecondaryStyle = {
+                                            padding: '20px 24px',
+                                            fontSize: '14px',
+                                            color: '#475569',
+                                            textAlign: 'left',
+                                            verticalAlign: 'middle'
+                                        }
+                                        const cellHighlightStyle = {
+                                            padding: '20px 24px',
+                                            fontSize: '16px',
+                                            color: '#1e3a5f',
+                                            fontWeight: 700,
+                                            textAlign: 'left',
+                                            verticalAlign: 'middle'
+                                        }
+                                        const roleBadgeStyle = {
+                                            display: 'inline-block',
+                                            padding: '8px 16px',
+                                            borderRadius: '24px',
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            backgroundColor: '#e0e7ff',
+                                            color: '#4338ca'
+                                        }
+                                        return (
+                                            <tr key={manager.id} onClick={() => handleSelect(manager)}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    borderBottom: '1px solid #e2e8f0'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    const cells = e.currentTarget.querySelectorAll('td')
+                                                    cells.forEach(cell => cell.style.backgroundColor = '#e0f2fe')
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    const cells = e.currentTarget.querySelectorAll('td')
+                                                    cells.forEach(cell => cell.style.backgroundColor = '')
+                                                }}>
+                                                <td style={{...cellStyle, width: '12%'}}>{manager.plantCode || '\u2014'}</td>
+                                                <td style={{...cellHighlightStyle, width: '28%'}}>{manager.email || '\u2014'}</td>
+                                                <td style={{...cellSecondaryStyle, width: '18%'}}>{manager.firstName || '\u2014'}</td>
+                                                <td style={{...cellSecondaryStyle, width: '18%'}}>{manager.lastName || '\u2014'}</td>
+                                                <td style={{...cellSecondaryStyle, width: '24%'}}>
+                                                    {manager.roleName ? (
+                                                        <span style={roleBadgeStyle}>{manager.roleName}</span>
+                                                    ) : '\u2014'}
+                                                </td>
+                                            </tr>
+                                        )
+                                    }}
                                     containerClassName="list-table-container"
                                     tableClassName="list-table"
                                 />

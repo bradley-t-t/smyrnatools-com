@@ -19,7 +19,6 @@ import VerificationRequirementsModal from "../../components/common/VerificationR
 import DetailViewSection from "../../components/sections/DetailViewSection";
 import VerificationCardSection from "../../components/sections/VerificationCardSection";
 import {supabase} from '../../services/DatabaseService';
-import './styles/Tractors.css';
 
 function TractorDetailView({tractorId, onClose}) {
     const {preferences} = usePreferences()

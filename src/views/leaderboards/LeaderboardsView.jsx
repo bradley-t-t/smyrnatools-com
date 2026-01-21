@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react'
-import './styles/Leaderboards.css'
 import {supabase} from '../../services/DatabaseService'
 import {MixerService} from '../../services/MixerService'
 import {TractorService} from '../../services/TractorService'
@@ -20,6 +19,378 @@ export default function LeaderboardsView() {
     const [hoursAdjustmentsData, setHoursAdjustmentsData] = useState({})
 
     const selectedRegionCode = preferences.selectedRegion?.code || null
+
+    const styles = {
+        view: {
+            width: '100%',
+            height: '100%',
+            overflowY: 'auto',
+            background: '#f8fafc',
+            padding: '2rem'
+        },
+        header: {
+            maxWidth: '1400px',
+            margin: '0 auto 2rem',
+            background: 'white',
+            backgroundImage: `
+                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+            `,
+            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
+            backgroundPosition: '0 0, 0 0, 0 0',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb'
+        },
+        titleRow: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem'
+        },
+        title: {
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            margin: 0
+        },
+        yearSelector: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+        },
+        yearLabel: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        yearSelect: {
+            padding: '0.5rem 1rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e3a5f',
+            background: 'white',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+        },
+        categories: {
+            display: 'flex',
+            gap: '0.5rem',
+            flexWrap: 'wrap'
+        },
+        categoryButton: (active) => ({
+            padding: '0.625rem 1.25rem',
+            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: active ? 600 : 500,
+            color: active ? '#1e3a5f' : '#64748b',
+            background: active ? '#f0f7ff' : 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none'
+        }),
+        content: {
+            maxWidth: '1400px',
+            margin: '0 auto'
+        },
+        infoCard: {
+            background: '#eff6ff',
+            border: '1px solid #dbeafe',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            marginBottom: '2rem'
+        },
+        infoHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginBottom: '1rem',
+            color: '#1e3a5f',
+            fontSize: '1rem',
+            fontWeight: 600
+        },
+        formula: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            alignItems: 'center',
+            marginBottom: '1rem',
+            padding: '1rem',
+            background: 'white',
+            borderRadius: '8px',
+            fontSize: '0.875rem'
+        },
+        formulaPart: {
+            padding: '0.375rem 0.75rem',
+            background: '#f8fafc',
+            borderRadius: '6px',
+            color: '#475569',
+            fontWeight: 500
+        },
+        formulaOperator: {
+            color: '#1e3a5f',
+            fontWeight: 700,
+            fontSize: '1rem'
+        },
+        infoFooter: {
+            display: 'flex',
+            gap: '0.75rem',
+            fontSize: '0.8125rem',
+            color: '#64748b',
+            lineHeight: 1.6
+        },
+        list: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+        },
+        item: (rank) => ({
+            background: 'white',
+            border: rank === 1 ? '2px solid #fbbf24' : rank === 2 ? '2px solid #94a3b8' : rank === 3 ? '2px solid #f97316' : '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            display: 'grid',
+            gridTemplateColumns: '60px 1fr auto 1fr',
+            gap: '1.5rem',
+            alignItems: 'center',
+            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.08)' : '0 2px 6px rgba(0,0,0,0.04)',
+            transition: 'all 0.2s'
+        }),
+        rankBadge: (rank) => ({
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: rank <= 3 ? '1.5rem' : '1.25rem',
+            fontWeight: 700,
+            background: rank === 1 ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 
+                        rank === 2 ? 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)' :
+                        rank === 3 ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' : '#f1f5f9',
+            color: rank <= 3 ? 'white' : '#64748b',
+            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+        }),
+        plantInfo: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem'
+        },
+        plantCode: {
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b'
+        },
+        plantName: {
+            fontSize: '0.875rem',
+            color: '#64748b'
+        },
+        metricValue: {
+            fontSize: '2rem',
+            fontWeight: 700,
+            color: '#1e3a5f',
+            textAlign: 'center'
+        },
+        stats: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1rem'
+        },
+        statItem: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem'
+        },
+        statLabel: {
+            fontSize: '0.75rem',
+            color: '#64748b',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        statValue: {
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e293b'
+        },
+        empty: {
+            textAlign: 'center',
+            padding: '4rem 2rem',
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb'
+        },
+        emptyIcon: {
+            fontSize: '3rem',
+            color: '#cbd5e1',
+            marginBottom: '1rem'
+        },
+        emptyText: {
+            fontSize: '1.125rem',
+            fontWeight: 600,
+            color: '#64748b',
+            marginBottom: '0.5rem'
+        },
+        emptySubtext: {
+            fontSize: '0.875rem',
+            color: '#94a3b8'
+        },
+        modal: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+        },
+        modalContent: {
+            background: 'white',
+            borderRadius: '12px',
+            maxWidth: '800px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+        },
+        modalHeader: {
+            padding: '1.5rem 2rem',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+        },
+        modalTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            margin: 0
+        },
+        modalSummary: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '1rem',
+            padding: '1.5rem 2rem',
+            background: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb'
+        },
+        summaryItem: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            padding: '1rem',
+            background: 'white',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb'
+        },
+        summaryLabel: {
+            fontSize: '0.75rem',
+            color: '#64748b',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+        },
+        summaryValue: {
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1e3a5f'
+        },
+        modalBody: {
+            flex: 1,
+            overflowY: 'auto',
+            padding: '1.5rem 2rem'
+        },
+        helpEntry: (type) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+            padding: '1rem',
+            background: type === 'sent' ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${type === 'sent' ? '#dcfce7' : '#fee2e2'}`,
+            borderRadius: '8px',
+            marginBottom: '0.75rem'
+        }),
+        helpEntryMain: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem'
+        },
+        helpEntryIndicator: (type) => ({
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            background: type === 'sent' ? '#16a34a' : '#ef4444',
+            color: 'white'
+        }),
+        helpEntryPlant: {
+            flex: 1,
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e293b'
+        },
+        helpEntryHours: {
+            fontSize: '1rem',
+            fontWeight: 700,
+            color: '#1e3a5f'
+        },
+        helpEntryDetails: {
+            display: 'flex',
+            gap: '1.5rem',
+            fontSize: '0.8125rem',
+            color: '#64748b',
+            paddingLeft: '3rem'
+        },
+        closeButton: {
+            background: 'none',
+            border: 'none',
+            fontSize: '1.25rem',
+            color: '#94a3b8',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'all 0.2s'
+        },
+        skeleton: {
+            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 2s infinite',
+            borderRadius: '8px'
+        }
+    };
+
+    useEffect(() => {
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+        return () => document.head.removeChild(styleSheet);
+    }, []);
 
     useEffect(() => {
         let mounted = true
@@ -115,8 +486,10 @@ export default function LeaderboardsView() {
                 const safetyByPlant = LeaderboardsUtility.calculateSafetyIncidents(safetyReports || [], plantCodesInRegion)
 
                 if (!reports || reports.length === 0) {
-                    setPlantMetrics([])
-                    setLoading(false)
+                    if (mounted) {
+                        setPlantMetrics([])
+                        setLoading(false)
+                    }
                     return
                 }
 
@@ -131,8 +504,10 @@ export default function LeaderboardsView() {
                 })
 
                 if (filteredReports.length === 0) {
-                    setPlantMetrics([])
-                    setLoading(false)
+                    if (mounted) {
+                        setPlantMetrics([])
+                        setLoading(false)
+                    }
                     return
                 }
 
@@ -152,7 +527,6 @@ export default function LeaderboardsView() {
                     equipmentData,
                     operatorsData
                 )
-
 
                 const plantMetricsArray = []
 
@@ -188,15 +562,20 @@ export default function LeaderboardsView() {
                             plantCode,
                             plantName: plantNames[plantCode] || plantCode,
                             ...metrics,
-                            ...fleetData
+                            ...fleetData,
+                            helpGiven: hoursAdjustments?.hoursSubtracted || 0,
+                            helpReceived: hoursAdjustments?.hoursAdded || 0,
+                            helpDetails: hoursAdjustments || null,
+                            safetyReportsCount: safetyIncidents?.count || 0
                         })
                     }
                 })
 
-                setPlantMetrics(plantMetricsArray)
-
-            } catch (err) {
-                console.error('Error fetching leaderboard data:', err)
+                if (mounted) {
+                    setPlantMetrics(plantMetricsArray)
+                }
+            } catch (error) {
+                console.error('Error fetching leaderboard data:', error)
                 if (mounted) {
                     setPlantMetrics([])
                 }
@@ -249,435 +628,275 @@ export default function LeaderboardsView() {
 
     const renderSkeletonItems = () => {
         return Array.from({length: 8}).map((_, index) => (
-            <div key={`skeleton-${index}`} className="leaderboard-item skeleton-card">
-                <div className="rank-badge">
-                    <div className="skeleton-line" style={{width: '24px', height: '24px', borderRadius: '50%'}}/>
+            <div key={`skeleton-${index}`} style={styles.item(0)}>
+                <div style={styles.rankBadge(0)}>
+                    <div style={{...styles.skeleton, width: '24px', height: '24px', borderRadius: '50%'}}/>
                 </div>
-                <div className="plant-info">
-                    <div className="skeleton-line w40" style={{marginBottom: '6px'}}/>
-                    <div className="skeleton-line w60"/>
+                <div style={styles.plantInfo}>
+                    <div style={{...styles.skeleton, width: '40%', height: '20px', marginBottom: '6px'}}/>
+                    <div style={{...styles.skeleton, width: '60%', height: '16px'}}/>
                 </div>
-                <div className="metric-value">
-                    <div className="skeleton-line" style={{width: '80px', height: '28px'}}/>
+                <div style={styles.metricValue}>
+                    <div style={{...styles.skeleton, width: '80px', height: '28px'}}/>
                 </div>
-                <div className="plant-stats">
-                    <div className="skeleton-line w60" style={{marginBottom: '4px'}}/>
-                    <div className="skeleton-line w40"/>
+                <div style={styles.stats}>
+                    <div style={{...styles.skeleton, width: '60%', height: '16px', marginBottom: '4px'}}/>
+                    <div style={{...styles.skeleton, width: '40%', height: '16px'}}/>
                 </div>
             </div>
         ))
     }
 
     return (
-        <div className="leaderboards-view">
-            <div className="leaderboards-header">
-                <div className="leaderboards-header-inner">
-                    <div className="leaderboards-title-row">
-                        <h1 className="leaderboards-title">Performance Leaderboards</h1>
-                        <div className="leaderboards-year-selector">
-                            <span className="year-label">YTD</span>
-                            <select
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                                className="year-select"
-                            >
-                                {Array.from({length: new Date().getFullYear() - 2024}, (_, i) => 2025 + i).map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
+        <div style={styles.view}>
+            <div style={styles.header}>
+                <div style={styles.titleRow}>
+                    <h1 style={styles.title}>Performance Leaderboards</h1>
+                    <div style={styles.yearSelector}>
+                        <span style={styles.yearLabel}>YTD</span>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                            style={styles.yearSelect}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#1e3a5f';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = '#e5e7eb';
+                                e.target.style.boxShadow = 'none';
+                            }}
+                        >
+                            {Array.from({length: new Date().getFullYear() - 2024}, (_, i) => 2025 + i).map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
                     </div>
-                    <div className="leaderboards-categories">
-                        {[
-                            {id: 'efficiency', label: 'Efficiency'},
-                            {id: 'yph', label: 'YPH'},
-                            {id: 'production', label: 'Total Yards'},
-                            {id: 'monthly-yardage', label: 'Monthly Yards'},
-                            {id: 'weekly-yardage', label: 'Weekly Yards'},
-                            {id: 'daily-yardage', label: 'Daily Yards'},
-                            {id: 'monthly-hours', label: 'Monthly Hours'},
-                            {id: 'weekly-hours', label: 'Weekly Hours'},
-                            {id: 'daily-hours', label: 'Daily Hours'},
-                            {id: 'help-given', label: 'Help Given'},
-                            {id: 'help-received', label: 'Help Received'}
-                        ].map(cat => (
-                            <button
-                                key={cat.id}
-                                className={`category-btn ${selectedCategory === cat.id ? 'active' : ''}`}
-                                onClick={() => setSelectedCategory(cat.id)}
-                            >
-                                {cat.label}
-                            </button>
-                        ))}
-                    </div>
+                </div>
+                <div style={styles.categories}>
+                    {[
+                        {id: 'efficiency', label: 'Efficiency'},
+                        {id: 'yph', label: 'YPH'},
+                        {id: 'production', label: 'Total Yards'},
+                        {id: 'monthly-yardage', label: 'Monthly Yards'},
+                        {id: 'weekly-yardage', label: 'Weekly Yards'},
+                        {id: 'daily-yardage', label: 'Daily Yards'},
+                        {id: 'monthly-hours', label: 'Monthly Hours'},
+                        {id: 'weekly-hours', label: 'Weekly Hours'},
+                        {id: 'daily-hours', label: 'Daily Hours'},
+                        {id: 'help-given', label: 'Help Given'},
+                        {id: 'help-received', label: 'Help Received'}
+                    ].map(cat => (
+                        <button
+                            key={cat.id}
+                            style={styles.categoryButton(selectedCategory === cat.id)}
+                            onClick={() => setSelectedCategory(cat.id)}
+                            onMouseEnter={(e) => {
+                                if (selectedCategory !== cat.id) {
+                                    e.currentTarget.style.borderColor = '#cbd5e1';
+                                    e.currentTarget.style.background = '#f8fafc';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (selectedCategory !== cat.id) {
+                                    e.currentTarget.style.borderColor = '#e5e7eb';
+                                    e.currentTarget.style.background = 'white';
+                                }
+                            }}
+                        >
+                            {cat.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div className="leaderboards-content">
-                <div className="leaderboard-main">
-                    <div className="leaderboard-header">
-                        <h2>{loading ? <div className="skeleton-line w40"
-                                            style={{height: '24px'}}/> : LeaderboardsUtility.getCategoryTitle(selectedCategory)}</h2>
-                        <span className="results-count">{loading ? <div className="skeleton-line" style={{
-                            width: '60px',
-                            height: '14px'
-                        }}/> : `${categoryData.length} plants`}</span>
+            <div style={styles.content}>
+                {selectedCategory === 'efficiency' && (
+                    <div style={styles.infoCard}>
+                        <div style={styles.infoHeader}>
+                            <i className="fas fa-info-circle"></i>
+                            <span>How Efficiency is Calculated</span>
+                        </div>
+                        <div>
+                            <div style={styles.formula}>
+                                <span style={styles.formulaPart}>YPH Score</span>
+                                <span style={styles.formulaOperator}>×</span>
+                                <span style={styles.formulaPart}>Load Efficiency</span>
+                                <span style={styles.formulaOperator}>×</span>
+                                <span style={styles.formulaPart}>Cleanliness Score</span>
+                                <span style={styles.formulaOperator}>+</span>
+                                <span style={styles.formulaPart}>Help Impact</span>
+                                <span style={styles.formulaOperator}>-</span>
+                                <span style={styles.formulaPart}>Report Penalty</span>
+                                <span style={styles.formulaOperator}>-</span>
+                                <span style={styles.formulaPart}>Safety Penalty</span>
+                            </div>
+                        </div>
+                        <div style={styles.infoFooter}>
+                            <i className="fas fa-lightbulb"></i>
+                            <span>Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance. Help Impact: Hours sent to help other plants are subtracted from your total hours (benefiting your YPH), while hours received from other plants are added to your total hours (reducing your YPH). This ensures fair comparison across plants with different collaboration patterns.</span>
+                        </div>
                     </div>
+                )}
 
-                    {selectedCategory === 'efficiency' && !loading && (
-                        <div className="efficiency-calculation-info">
-                            <div className="info-header">
-                                <i className="fas fa-calculator"></i>
-                                <span>How Efficiency is Calculated</span>
-                            </div>
-                            <div className="info-grid">
-                                <div className="info-card info-card-primary">
-                                    <div className="info-card-header">
-                                        <i className="fas fa-tachometer-alt"></i>
-                                        <span>Yards Per Hour</span>
-                                        <span className="weight-badge">90%</span>
-                                    </div>
-                                    <p>Primary productivity metric measured against target of 3.0 YPH</p>
-                                </div>
-                                <div className="info-card">
-                                    <div className="info-card-header">
-                                        <i className="fas fa-truck-loading"></i>
-                                        <span>Loads Efficiency</span>
-                                        <span className="weight-badge">10%</span>
-                                    </div>
-                                    <p>Load volume per mixer operator against target of 3 loads/operator/day</p>
-                                </div>
-                                <div className="info-card info-card-modifiers">
-                                    <div className="info-card-header">
-                                        <i className="fas fa-broom"></i>
-                                        <span>Fleet Cleanliness</span>
-                                        <span className="weight-badge modifier">Modifier</span>
-                                    </div>
-                                    <div className="modifier-grid">
-                                        <div className="modifier-item modifier-bonus">
-                                            <span className="modifier-stars">5 stars</span>
-                                            <span className="modifier-value">+10%</span>
-                                        </div>
-                                        <div className="modifier-item modifier-bonus">
-                                            <span className="modifier-stars">4 stars</span>
-                                            <span className="modifier-value">+5%</span>
-                                        </div>
-                                        <div className="modifier-item modifier-penalty">
-                                            <span className="modifier-stars">3 stars</span>
-                                            <span className="modifier-value">-5%</span>
-                                        </div>
-                                        <div className="modifier-item modifier-penalty">
-                                            <span className="modifier-stars">&lt;3 stars</span>
-                                            <span className="modifier-value">-10%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="info-card info-card-penalty">
-                                    <div className="info-card-header">
-                                        <i className="fas fa-file-alt"></i>
-                                        <span>Report Completion</span>
-                                        <span className="weight-badge penalty">Penalty</span>
-                                    </div>
-                                    <p>-10% for each missing or incomplete report</p>
-                                </div>
-                                <div className="info-card info-card-penalty">
-                                    <div className="info-card-header">
-                                        <i className="fas fa-exclamation-triangle"></i>
-                                        <span>Safety Incidents</span>
-                                        <span className="weight-badge penalty">Penalty</span>
-                                    </div>
-                                    <p>-1% for each impactful safety incident</p>
-                                </div>
-                            </div>
-                            <div className="info-formula">
-                                <div className="formula-label">Formula</div>
-                                <div className="formula-content">
-                                    <span className="formula-part">(YPH × 90%)</span>
-                                    <span className="formula-operator">+</span>
-                                    <span className="formula-part">(Loads × 10%)</span>
-                                    <span className="formula-operator">+</span>
-                                    <span className="formula-part">Cleanliness</span>
-                                    <span className="formula-operator">+</span>
-                                    <span className="formula-part">Help Impact</span>
-                                    <span className="formula-operator">-</span>
-                                    <span className="formula-part">Report Penalty</span>
-                                    <span className="formula-operator">-</span>
-                                    <span className="formula-part">Safety Penalty</span>
-                                </div>
-                            </div>
-                            <div className="info-footer">
-                                <i className="fas fa-lightbulb"></i>
-                                <span>Higher efficiency indicates better plant performance across production, quality, fleet cleanliness, and reporting compliance. Help Impact: Hours sent to help other plants are subtracted from your total hours (benefiting your YPH), while hours received from other plants are added to your total hours (reducing your YPH). This ensures fair comparison across plants with different collaboration patterns.</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {loading ? (
-                        <div className="leaderboard-list">
-                            {renderSkeletonItems()}
-                        </div>
-                    ) : categoryData.length === 0 ? (
-                        <div className="leaderboard-empty">
+                {loading ? (
+                    <div style={styles.list}>
+                        {renderSkeletonItems()}
+                    </div>
+                ) : categoryData.length === 0 ? (
+                    <div style={styles.empty}>
+                        <div style={styles.emptyIcon}>
                             <i className="fas fa-inbox"></i>
-                            <p>No data available</p>
-                            <span>Check back later as more reports are submitted</span>
                         </div>
-                    ) : (
-                        <div className="leaderboard-list">
-                            {categoryData.map((plant, index) => {
-                                const rank = index + 1
-                                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''
+                        <p style={{...styles.emptyText, margin: 0}}>No data available</p>
+                        <span style={styles.emptySubtext}>Check back later as more reports are submitted</span>
+                    </div>
+                ) : (
+                    <div style={styles.list}>
+                        {categoryData.map((plant, index) => {
+                            const rank = index + 1
 
-                                return (
-                                    <div key={plant.plantCode} className={`leaderboard-item ${rankClass}`}>
-                                        <div className="rank-badge">
-                                            {rank <= 3 ? (
-                                                <i className={`fas ${rank === 1 ? 'fa-trophy' : rank === 2 ? 'fa-medal' : 'fa-award'}`}></i>
-                                            ) : (
-                                                <span>{rank}</span>
-                                            )}
-                                        </div>
-
-                                        <div className="plant-info">
-                                            <div className="plant-code">Plant {plant.plantCode}</div>
-                                            <div className="plant-name">{plant.plantName}</div>
-                                        </div>
-
-                                        <div className="metric-value">
-                                            {renderValue(plant, selectedCategory)}
-                                        </div>
-
-                                        <div className="plant-stats">
-                                            {selectedCategory === 'efficiency' ? (
-                                                <>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. YPH</span>
-                                                        <span className="stat-value yph-dual-value"
-                                                              title="Left: YPH before help adjustment / Right: YPH after help adjustment">
-                                                            <em>{(plant.rawYPH ?? plant.avgYPH).toFixed(2)}</em>
-                                                            <span>/</span>
-                                                            <strong>{plant.avgYPH.toFixed(2)}</strong>
-                                                        </span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Load Efficiency</span>
-                                                        <span
-                                                            className="stat-value">{plant.loadsEfficiency.toFixed(1)}%</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Weekly Yards</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.avgYardageWeekly).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Daily Yards</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.avgYardageDaily).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Monthly Yards</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.avgMonthlyYards).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Weekly Hours</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.avgWeeklyHours).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Daily Hours</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.avgHoursDaily).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Monthly Hours</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.avgMonthlyHours).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. Cleanliness</span>
-                                                        <span
-                                                            className="stat-value">{plant.avgFleetCleanliness > 0 ? plant.avgFleetCleanliness.toFixed(1) : 'N/A'}</span>
-                                                    </div>
-                                                    <div
-                                                        className="stat-item stat-item-clickable"
-                                                        onClick={() => {
-                                                            const details = hoursAdjustmentsData[plant.plantCode]
-                                                            if (details && (details.hoursAdded > 0 || details.hoursSubtracted > 0)) {
-                                                                setHelpDetailsModal({isOpen: true, plant, details})
-                                                            }
-                                                        }}
-                                                    >
-                                                        <span className="stat-label">
-                                                            Help Net Balance
-                                                            {(plant.helpGiven > 0 || plant.helpReceived > 0) &&
-                                                                <i className="fas fa-info-circle help-info-icon"></i>}
-                                                        </span>
-                                                        <span className="stat-value" style={{
-                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' :
-                                                                plant.helpGiven < plant.helpReceived ? 'var(--danger)' :
-                                                                    'inherit'
-                                                        }}>
-                                                            {plant.helpGiven > 0 || plant.helpReceived > 0
-                                                                ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
-                                                                : 'N/A'
-                                                            }
-                                                        </span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Impactful Incidents</span>
-                                                        <span className="stat-value" style={{
-                                                            color: (plant.impactfulIncidents || 0) > 0 ? 'var(--danger)' : 'var(--success)'
-                                                        }}>
-                                                            {plant.impactfulIncidents || 0}
-                                                        </span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Missing Reports</span>
-                                                        <span className="stat-value" style={{
-                                                            color: (plant.missingReports || 0) + (plant.incompleteReports || 0) > 0 ? 'var(--danger)' : 'var(--success)'
-                                                        }}>
-                                                            {(plant.missingReports || 0) + (plant.incompleteReports || 0)}
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            ) : selectedCategory === 'help-given' || selectedCategory === 'help-received' ? (
-                                                <>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Help Given</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.helpGiven)} hours</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Help Received</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.helpReceived)} hours</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Net Balance</span>
-                                                        <span className="stat-value" style={{
-                                                            color: plant.helpGiven > plant.helpReceived ? 'var(--success)' :
-                                                                plant.helpGiven < plant.helpReceived ? 'var(--danger)' :
-                                                                    'inherit'
-                                                        }}>
-                                                            {plant.helpGiven > plant.helpReceived ? '+' : ''}{Math.round(plant.helpGiven - plant.helpReceived)} hours
-                                                        </span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Avg. YPH</span>
-                                                        <span className="stat-value">{plant.avgYPH.toFixed(2)}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Total Yards</span>
-                                                        <span
-                                                            className="stat-value">{Math.round(plant.totalYardage).toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Efficiency</span>
-                                                        <span className="stat-value"
-                                                              style={{color: LeaderboardsUtility.getEfficiencyColor(plant.avgEfficiency)}}>
-                                                            {plant.avgEfficiency.toFixed(1)}%
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Mixers</span>
-                                                        <span className="stat-value">{plant.mixers || 0}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Mixer Operators</span>
-                                                        <span className="stat-value">{plant.mixerOperators || 0}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Tractors</span>
-                                                        <span className="stat-value">{plant.tractors || 0}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Tractor Operators</span>
-                                                        <span
-                                                            className="stat-value">{plant.tractorOperators || 0}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Trailers</span>
-                                                        <span className="stat-value">{plant.trailers || 0}</span>
-                                                    </div>
-                                                    <div className="stat-item">
-                                                        <span className="stat-label">Equipment</span>
-                                                        <span className="stat-value">{plant.equipment || 0}</span>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                            return (
+                                <div key={plant.plantCode} style={styles.item(rank)}>
+                                    <div style={styles.rankBadge(rank)}>
+                                        {rank <= 3 ? (
+                                            <i className={`fas ${rank === 1 ? 'fa-trophy' : rank === 2 ? 'fa-medal' : 'fa-award'}`}></i>
+                                        ) : (
+                                            <span>{rank}</span>
+                                        )}
                                     </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
+
+                                    <div style={styles.plantInfo}>
+                                        <div style={styles.plantCode}>Plant {plant.plantCode}</div>
+                                        <div style={styles.plantName}>{plant.plantName}</div>
+                                    </div>
+
+                                    <div style={styles.metricValue}>
+                                        {renderValue(plant, selectedCategory)}
+                                    </div>
+
+                                    <div style={styles.stats}>
+                                        {selectedCategory === 'efficiency' && (
+                                            <>
+                                                <div style={styles.statItem}>
+                                                    <span style={styles.statLabel}>Avg. YPH</span>
+                                                    <span style={{...styles.statValue, display: 'flex', gap: '0.25rem', alignItems: 'center'}}
+                                                          title="Left: YPH before help adjustment / Right: YPH after help adjustment">
+                                                        <em style={{fontStyle: 'italic', color: '#64748b'}}>{(plant.rawYPH ?? plant.avgYPH).toFixed(2)}</em>
+                                                        <span style={{color: '#94a3b8'}}>/</span>
+                                                        <strong>{plant.avgYPH.toFixed(2)}</strong>
+                                                    </span>
+                                                </div>
+                                                <div style={styles.statItem}>
+                                                    <span style={styles.statLabel}>Load Efficiency</span>
+                                                    <span style={styles.statValue}>{plant.loadsEfficiency.toFixed(1)}%</span>
+                                                </div>
+                                                <div style={styles.statItem}>
+                                                    <span style={{...styles.statLabel, cursor: 'pointer', color: '#1e3a5f'}} 
+                                                          onClick={() => {
+                                                              const details = hoursAdjustmentsData[plant.plantCode]
+                                                              if (details && (details.hoursAdded > 0 || details.hoursSubtracted > 0)) {
+                                                                  setHelpDetailsModal({isOpen: true, plant, details});
+                                                              }
+                                                          }}
+                                                          title="Click for details">
+                                                        Help Net Balance
+                                                        {(plant.helpGiven > 0 || plant.helpReceived > 0) && <i className="fas fa-info-circle" style={{marginLeft: '0.25rem'}}></i>}
+                                                    </span>
+                                                    <span style={{
+                                                        ...styles.statValue,
+                                                        color: plant.helpGiven > plant.helpReceived ? '#16a34a' :
+                                                               plant.helpGiven < plant.helpReceived ? '#ef4444' :
+                                                               '#1e293b'
+                                                    }}>
+                                                        {plant.helpGiven > 0 || plant.helpReceived > 0
+                                                            ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
+                                                            : 'N/A'
+                                                        }
+                                                    </span>
+                                                </div>
+                                                <div style={styles.statItem}>
+                                                    <span style={styles.statLabel}>Missing Reports</span>
+                                                    <span style={{
+                                                        ...styles.statValue,
+                                                        color: (plant.missingReports || 0) + (plant.incompleteReports || 0) > 0 ? '#ef4444' : '#16a34a'
+                                                    }}>
+                                                        {(plant.missingReports || 0) + (plant.incompleteReports || 0)}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
             </div>
 
             {helpDetailsModal.isOpen && helpDetailsModal.details && (
-                <div className="help-details-modal-overlay"
-                     onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
-                    <div className="help-details-modal" onClick={e => e.stopPropagation()}>
-                        <div className="help-details-modal-header">
-                            <h3>
+                <div style={styles.modal} onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                    <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
+                        <div style={styles.modalHeader}>
+                            <h3 style={styles.modalTitle}>
                                 <i className="fas fa-exchange-alt"></i>
                                 Help Details - Plant {helpDetailsModal.plant?.plantCode}
                             </h3>
-                            <button className="close-btn"
-                                    onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                            <button 
+                                style={styles.closeButton}
+                                onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = '#f1f5f9';
+                                    e.currentTarget.style.color = '#1e293b';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'none';
+                                    e.currentTarget.style.color = '#94a3b8';
+                                }}
+                            >
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
 
-                        <div className="help-details-modal-summary">
-                            <div className="summary-item summary-given">
-                                <span className="summary-label">Total Help Given</span>
-                                <span
-                                    className="summary-value">{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
+                        <div style={styles.modalSummary}>
+                            <div style={styles.summaryItem}>
+                                <span style={styles.summaryLabel}>Total Help Given</span>
+                                <span style={styles.summaryValue}>{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
                             </div>
-                            <div className="summary-item summary-received">
-                                <span className="summary-label">Total Help Received</span>
-                                <span
-                                    className="summary-value">{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
+                            <div style={styles.summaryItem}>
+                                <span style={styles.summaryLabel}>Total Help Received</span>
+                                <span style={styles.summaryValue}>{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
                             </div>
-                            <div
-                                className={`summary-item summary-net ${helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? 'net-positive' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? 'net-negative' : ''}`}>
-                                <span className="summary-label">Net Balance</span>
-                                <span className="summary-value">
+                            <div style={styles.summaryItem}>
+                                <span style={styles.summaryLabel}>Net Balance</span>
+                                <span style={{...styles.summaryValue, color: helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '#16a34a' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? '#ef4444' : '#1e3a5f'}}>
                                     {helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '+' : ''}
                                     {Math.round(helpDetailsModal.details.hoursSubtracted - helpDetailsModal.details.hoursAdded)} hours
                                 </span>
                             </div>
                         </div>
 
-                        <div className="help-details-modal-content">
+                        <div style={styles.modalBody}>
                             {helpDetailsModal.details.details && helpDetailsModal.details.details.filter(e => e.hours > 0 && e.operatorCount > 0).length > 0 ? (
-                                <div className="help-entries-list">
+                                <div>
                                     {helpDetailsModal.details.details
                                         .filter(entry => entry.hours > 0 && entry.operatorCount > 0)
                                         .sort((a, b) => new Date(b.week) - new Date(a.week))
                                         .map((entry, idx) => {
                                             const isSent = entry.type === 'sent'
                                             return (
-                                                <div key={`entry-${idx}`}
-                                                     className={`help-entry ${isSent ? 'help-entry-sent' : 'help-entry-received'}`}>
-                                                    <div className="help-entry-main">
-                                                        <span
-                                                            className={`help-entry-indicator ${isSent ? 'indicator-positive' : 'indicator-negative'}`}>
+                                                <div key={`entry-${idx}`} style={styles.helpEntry(isSent ? 'sent' : 'received')}>
+                                                    <div style={styles.helpEntryMain}>
+                                                        <span style={styles.helpEntryIndicator(isSent ? 'sent' : 'received')}>
                                                             {isSent ? '+' : '-'}
                                                         </span>
-                                                        <span className="help-entry-plant">
+                                                        <span style={styles.helpEntryPlant}>
                                                             {isSent ? `To Plant ${entry.to}` : `From Plant ${entry.from}`}
                                                         </span>
-                                                        <span
-                                                            className="help-entry-hours">{Math.round(entry.hours)} hours</span>
+                                                        <span style={styles.helpEntryHours}>{Math.round(entry.hours)} hours</span>
                                                     </div>
-                                                    <div className="help-entry-details">
-                                                        <span className="help-entry-date">
+                                                    <div style={styles.helpEntryDetails}>
+                                                        <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>
                                                             <i className="fas fa-calendar"></i>
                                                             {new Date(entry.week).toLocaleDateString('en-US', {
                                                                 month: 'short',
@@ -685,7 +904,7 @@ export default function LeaderboardsView() {
                                                                 year: 'numeric'
                                                             })}
                                                         </span>
-                                                        <span className="help-entry-operators">
+                                                        <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>
                                                             <i className="fas fa-users"></i>
                                                             {entry.operatorCount} operator{entry.operatorCount !== 1 ? 's' : ''}
                                                         </span>
@@ -696,9 +915,11 @@ export default function LeaderboardsView() {
                                     }
                                 </div>
                             ) : (
-                                <div className="help-details-empty">
-                                    <i className="fas fa-info-circle"></i>
-                                    <p>No detailed help records available</p>
+                                <div style={{...styles.empty, padding: '2rem'}}>
+                                    <div style={{...styles.emptyIcon, fontSize: '2rem'}}>
+                                        <i className="fas fa-info-circle"></i>
+                                    </div>
+                                    <p style={{...styles.emptyText, fontSize: '1rem', margin: 0}}>No detailed help records available</p>
                                 </div>
                             )}
                         </div>

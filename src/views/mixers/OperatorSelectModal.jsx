@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {usePreferences} from '../../app/context/PreferencesContext';
-import './styles/Mixers.css';
 
 function OperatorSelectModal({
                                  isOpen,

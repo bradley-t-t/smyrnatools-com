@@ -1,8 +1,86 @@
 import React, {useEffect, useRef, useState} from 'react'
-import '../styles/report-styles/SafetyManagerReport.css'
-import '../../../components/sections/styles/DetailView.css'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+
+const safetyReportStyles = `
+.safety-report-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.safety-section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
+.safety-section-title { display: flex; align-items: flex-start; gap: 0.75rem; }
+.safety-section-title h3 { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.safety-section-title p { font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0; }
+.safety-section-icon { width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.safety-section-icon-success { background: #d1fae5; color: #059669; }
+.safety-add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+.safety-add-btn:hover { background: #15304f; }
+.safety-issues-grid { display: flex; flex-direction: column; gap: 1rem; }
+.safety-issue-card { background: #f8fafc; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+.safety-issue-card-review { }
+.safety-issue-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; background: #f1f5f9; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
+.safety-issue-number { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #1e3a5f; color: white; border-radius: 50%; font-size: 0.8125rem; font-weight: 600; }
+.safety-issue-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; flex: 1; }
+.safety-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.625rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500; }
+.safety-badge-plant { background: #eff6ff; color: #1e40af; }
+.safety-badge-date { background: #f0fdf4; color: #166534; }
+.safety-remove-btn { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.safety-remove-btn:hover { background: #fecaca; }
+.safety-issue-content { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+.safety-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+.safety-field { display: flex; flex-direction: column; gap: 0.5rem; }
+.safety-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
+.safety-label i { color: #64748b; font-size: 0.8125rem; }
+.safety-required { color: #ef4444; margin-left: 0.25rem; }
+.safety-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; }
+.safety-input:disabled { background: #f8fafc; color: #64748b; }
+.safety-textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; min-height: 120px; resize: vertical; }
+.safety-textarea:disabled { background: #f8fafc; color: #64748b; }
+.safety-select-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
+.safety-select-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
+.safety-select-btn i { color: #64748b; font-size: 0.75rem; }
+.safety-tag-picker { position: relative; width: 100%; }
+.safety-tag-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
+.safety-tag-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
+.safety-tag-placeholder { display: flex; align-items: center; }
+.safety-tag-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); z-index: 100; overflow: hidden; }
+.safety-tag-menu-header { display: flex; gap: 0.5rem; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; background: #f8fafc; }
+.safety-tag-action { padding: 0.375rem 0.75rem; background: white; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.75rem; font-weight: 500; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 0.375rem; }
+.safety-tag-action:hover { background: #f1f5f9; }
+.safety-tag-search-wrap { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; }
+.safety-tag-search-wrap i { color: #94a3b8; font-size: 0.875rem; }
+.safety-tag-search { flex: 1; border: none; outline: none; font-size: 0.875rem; color: #1e293b; background: transparent; }
+.safety-tag-options { max-height: 240px; overflow-y: auto; padding: 0.5rem; }
+.safety-tag-option { display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.75rem; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+.safety-tag-option:hover { background: #f8fafc; }
+.safety-tag-option.selected { background: #eff6ff; }
+.safety-tag-option-checkbox { width: 18px; height: 18px; border: 2px solid #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: white; }
+.safety-tag-option.selected .safety-tag-option-checkbox { background: #1e3a5f; border-color: #1e3a5f; }
+.safety-tag-option-content { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #1e293b; }
+.safety-tag-empty { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; }
+.safety-tags-display { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.safety-tag-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.625rem; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
+.safety-chip-remove { background: none; border: none; padding: 0; margin-left: 0.25rem; cursor: pointer; opacity: 0.7; font-size: 0.6875rem; }
+.safety-chip-remove:hover { opacity: 1; }
+.safety-empty-state { text-align: center; padding: 3rem 2rem; color: #64748b; }
+.safety-empty-state h4 { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0 0 0.5rem 0; }
+.safety-empty-state p { font-size: 0.875rem; color: #94a3b8; margin: 0; }
+.safety-empty-state-success { background: #f0fdf4; border-radius: 8px; }
+.safety-empty-state-success h4 { color: #166534; }
+.safety-empty-icon { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
+.safety-empty-state-success .safety-empty-icon { color: #22c55e; }
+.safety-summary-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #fee2e2; color: #dc2626; border-radius: 8px; font-size: 0.875rem; font-weight: 600; }
+.safety-description-box { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; }
+.safety-description-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+.safety-description-text { font-size: 0.9375rem; color: #1e293b; line-height: 1.6; }
+.down-in-yard-toggle { margin-top: 0.5rem; }
+.toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+.toggle-label.disabled { opacity: 0.5; cursor: not-allowed; }
+.toggle-checkbox { display: none; }
+.toggle-switch { width: 44px; height: 24px; background: #e5e7eb; border-radius: 12px; position: relative; transition: background 0.2s; }
+.toggle-switch.active { background: #1e3a5f; }
+.toggle-switch.disabled { opacity: 0.5; }
+.toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle-switch.active .toggle-slider { transform: translateX(20px); }
+.toggle-text { font-size: 0.875rem; color: #374151; }
+`
 
 const TAG_OPTIONS = ['Accident', 'Injury', 'Non-DOT', 'DOT', 'Compliance', 'Environmental', 'Reprimand', 'Safety']
 
@@ -224,22 +302,24 @@ export function SafetyManagerSubmitPlugin({form, setForm, plants, readOnly}) {
     }
 
     return (
-        <div className="safety-report-section">
-            <div className="safety-section-header">
-                <div className="safety-section-title">
-                    <div className="safety-section-icon">
-                        <i className="fas fa-exclamation-circle"></i>
+        <>
+            <style>{safetyReportStyles}</style>
+            <div className="safety-report-section">
+                <div className="safety-section-header">
+                    <div className="safety-section-title">
+                        <div className="safety-section-icon">
+                            <i className="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div>
+                            <h3>Safety Issues & Incidents</h3>
+                            <p>Document any safety-related issues that occurred during this reporting period</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3>Safety Issues & Incidents</h3>
-                        <p>Document any safety-related issues that occurred during this reporting period</p>
-                    </div>
-                </div>
-                {!readOnly && (
-                    <button type="button" onClick={addIssue} className="safety-add-btn">
-                        <i className="fas fa-plus"></i>
-                        <span>Add Issue</span>
-                    </button>
+                    {!readOnly && (
+                        <button type="button" onClick={addIssue} className="safety-add-btn">
+                            <i className="fas fa-plus"></i>
+                            <span>Add Issue</span>
+                        </button>
                 )}
             </div>
 
@@ -406,6 +486,7 @@ export function SafetyManagerSubmitPlugin({form, setForm, plants, readOnly}) {
                 }}
             />
         </div>
+        </>
     )
 }
 
@@ -421,33 +502,38 @@ export function SafetyManagerReviewPlugin({form}) {
 
     if (issues.length === 0) {
         return (
-            <div className="safety-report-section">
-                <div className="safety-section-header">
-                    <div className="safety-section-title">
-                        <div className="safety-section-icon safety-section-icon-success">
-                            <i className="fas fa-shield-alt"></i>
-                        </div>
-                        <div>
-                            <h3>Safety Issues & Incidents</h3>
-                            <p>No safety incidents reported for this period</p>
+            <>
+                <style>{safetyReportStyles}</style>
+                <div className="safety-report-section">
+                    <div className="safety-section-header">
+                        <div className="safety-section-title">
+                            <div className="safety-section-icon safety-section-icon-success">
+                                <i className="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h3>Safety Issues & Incidents</h3>
+                                <p>No safety incidents reported for this period</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="safety-empty-state safety-empty-state-success">
-                    <div className="safety-empty-icon">
-                        <i className="fas fa-check-circle"></i>
+                    <div className="safety-empty-state safety-empty-state-success">
+                        <div className="safety-empty-icon">
+                            <i className="fas fa-check-circle"></i>
+                        </div>
+                        <h4>All Clear</h4>
+                        <p>No safety issues were reported during this reporting period</p>
                     </div>
-                    <h4>All Clear</h4>
-                    <p>No safety issues were reported during this reporting period</p>
                 </div>
-            </div>
+            </>
         )
     }
 
     return (
-        <div className="safety-report-section">
-            <div className="safety-section-header">
-                <div className="safety-section-title">
+        <>
+            <style>{safetyReportStyles}</style>
+            <div className="safety-report-section">
+                <div className="safety-section-header">
+                    <div className="safety-section-title">
                     <div className="safety-section-icon">
                         <i className="fas fa-exclamation-circle"></i>
                     </div>
@@ -536,5 +622,6 @@ export function SafetyManagerReviewPlugin({form}) {
                 })}
             </div>
         </div>
+        </>
     )
 }

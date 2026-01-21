@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
-import './styles/AIAgentPopup.css'
 import {AIInsightsService} from '../../services/AIInsightsService'
 import {RegionService} from '../../services/RegionService'
 import {MixerService} from '../../services/MixerService'
@@ -691,80 +690,244 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
 
     if (!isOpen) return null
 
+    const overlayStyle = {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-end',
+        padding: '16px',
+        zIndex: 10000
+    }
+
+    const popupStyle = {
+        width: '420px',
+        maxWidth: 'calc(100vw - 32px)',
+        height: 'calc(100vh - 32px)',
+        maxHeight: '700px',
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        overflow: 'hidden'
+    }
+
+    const headerStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        borderBottom: '1px solid #e5e7eb',
+        backgroundColor: '#f0f7ff',
+        borderRadius: '16px 16px 0 0'
+    }
+
+    const titleStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        fontWeight: 600,
+        fontSize: '16px',
+        color: '#1e3a5f'
+    }
+
+    const iconButtonStyle = {
+        width: '32px',
+        height: '32px',
+        border: 'none',
+        background: 'transparent',
+        color: '#64748b',
+        cursor: 'pointer',
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
+
+    const messagesContainerStyle = {
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        backgroundColor: 'white'
+    }
+
+    const welcomeStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        textAlign: 'center',
+        color: '#64748b',
+        gap: '16px',
+        padding: '40px 20px'
+    }
+
+    const suggestionButtonStyle = {
+        padding: '8px 14px',
+        backgroundColor: '#f0f7ff',
+        border: '1px solid #bfdbfe',
+        borderRadius: '8px',
+        color: '#1e3a5f',
+        fontSize: '12px',
+        cursor: 'pointer',
+        fontWeight: 500
+    }
+
+    const messageStyle = (isUser) => ({
+        display: 'flex',
+        gap: '12px',
+        flexDirection: isUser ? 'row-reverse' : 'row'
+    })
+
+    const messageIconStyle = (isUser) => ({
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        fontSize: '14px',
+        backgroundColor: isUser ? '#1e3a5f' : '#e2e8f0',
+        color: isUser ? 'white' : '#64748b'
+    })
+
+    const messageContentStyle = (isUser) => ({
+        flex: 1,
+        padding: '12px 16px',
+        borderRadius: '12px',
+        backgroundColor: isUser ? '#1e3a5f' : '#f1f5f9',
+        color: isUser ? 'white' : '#374151',
+        fontSize: '14px',
+        lineHeight: 1.6
+    })
+
+    const inputContainerStyle = {
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: '12px',
+        padding: '16px 20px',
+        borderTop: '1px solid #e5e7eb',
+        backgroundColor: '#f9fafb'
+    }
+
+    const textareaStyle = {
+        flex: 1,
+        padding: '12px 16px',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        fontSize: '14px',
+        resize: 'none',
+        outline: 'none',
+        fontFamily: 'inherit',
+        minHeight: '44px',
+        maxHeight: '120px'
+    }
+
+    const sendButtonStyle = {
+        width: '44px',
+        height: '44px',
+        borderRadius: '12px',
+        border: 'none',
+        backgroundColor: '#1e3a5f',
+        color: 'white',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: (!inputValue.trim() || isLoading) ? 0.5 : 1
+    }
+
     return (
-        <div className="ai-agent-overlay" onClick={onClose}>
-            <div className="ai-agent-popup" onClick={e => e.stopPropagation()}>
-                <div className="ai-agent-header">
-                    <div className="ai-agent-title">
-                        <i className="fas fa-robot"></i>
+        <div style={overlayStyle} onClick={onClose}>
+            <div style={popupStyle} onClick={e => e.stopPropagation()}>
+                <div style={headerStyle}>
+                    <div style={titleStyle}>
+                        <i className="fas fa-robot" style={{color: '#1e3a5f', fontSize: '18px'}}></i>
                         <span>AI Assistant</span>
                     </div>
-                    <div className="ai-agent-actions">
-                        <button className="ai-agent-refresh" onClick={handleRefreshContext} title="Refresh data">
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        <button style={iconButtonStyle} onClick={handleRefreshContext} title="Refresh data">
                             <i className="fas fa-sync-alt"></i>
                         </button>
-                        <button className="ai-agent-clear" onClick={handleClearChat} title="Clear chat">
+                        <button style={iconButtonStyle} onClick={handleClearChat} title="Clear chat">
                             <i className="fas fa-trash-alt"></i>
                         </button>
-                        <button className="ai-agent-close" onClick={onClose} title="Close">
+                        <button style={iconButtonStyle} onClick={onClose} title="Close">
                             <i className="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
-                <div className="ai-agent-messages">
+                <div style={messagesContainerStyle}>
                     {messages.length === 0 ? (
-                        <div className="ai-agent-welcome">
-                            <i className="fas fa-comments"></i>
-                            <p>Ask me anything about your fleet, operators, reports, or operations.</p>
-                            <div className="ai-agent-suggestions">
-                                <button onClick={() => setInputValue('What is our current fleet status?')}>
+                        <div style={welcomeStyle}>
+                            <i className="fas fa-comments" style={{fontSize: '48px', opacity: 0.4, color: '#94a3b8'}}></i>
+                            <p style={{fontSize: '14px', lineHeight: 1.6, maxWidth: '280px', color: '#64748b'}}>
+                                Ask me anything about your fleet, operators, reports, or operations.
+                            </p>
+                            <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginTop: '8px'}}>
+                                <button style={suggestionButtonStyle} onClick={() => setInputValue('What is our current fleet status?')}>
                                     Fleet status
                                 </button>
-                                <button onClick={() => setInputValue('How many spare mixer trucks do we have?')}>
+                                <button style={suggestionButtonStyle} onClick={() => setInputValue('How many spare mixer trucks do we have?')}>
                                     Spare mixers
                                 </button>
-                                <button onClick={() => setInputValue('Which trucks are currently in the shop?')}>
+                                <button style={suggestionButtonStyle} onClick={() => setInputValue('Which trucks are currently in the shop?')}>
                                     Trucks in shop
                                 </button>
-                                <button onClick={() => setInputValue('How many operators are in training?')}>
+                                <button style={suggestionButtonStyle} onClick={() => setInputValue('How many operators are in training?')}>
                                     Training operators
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        messages.map((msg, idx) => (
-                            <div key={idx} className={`ai-agent-message ${msg.role}`}>
-                                <div className="ai-agent-message-icon">
-                                    <i className={`fas ${msg.role === 'user' ? 'fa-user' : 'fa-robot'}`}></i>
+                        messages.map((msg, idx) => {
+                            const isUser = msg.role === 'user'
+                            return (
+                                <div key={idx} style={messageStyle(isUser)}>
+                                    <div style={messageIconStyle(isUser)}>
+                                        <i className={`fas ${isUser ? 'fa-user' : 'fa-robot'}`}></i>
+                                    </div>
+                                    <div style={messageContentStyle(isUser)}>
+                                        {msg.content.split('\n').filter(line => line.trim()).map((line, lineIdx) => (
+                                            <p key={lineIdx} style={{margin: lineIdx > 0 ? '8px 0 0 0' : 0, color: isUser ? 'white' : '#374151'}}>
+                                                {line.replace(/^\[!\]\s*/, '').replace(/^\[~\]\s*/, '').replace(/^\[i\]\s*/, '').replace(/^[-•]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '')}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="ai-agent-message-content">
-                                    {msg.content.split('\n').filter(line => line.trim()).map((line, lineIdx) => (
-                                        <p key={lineIdx}>{line.replace(/^\[!\]\s*/, '').replace(/^\[~\]\s*/, '').replace(/^\[i\]\s*/, '').replace(/^[-•]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '')}</p>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
+                            )
+                        })
                     )}
                     {isLoading && (
-                        <div className="ai-agent-message assistant">
-                            <div className="ai-agent-message-icon">
+                        <div style={messageStyle(false)}>
+                            <div style={messageIconStyle(false)}>
                                 <i className="fas fa-robot"></i>
                             </div>
-                            <div className="ai-agent-message-content">
-                                <div className="ai-agent-typing">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
+                            <div style={messageContentStyle(false)}>
+                                <div style={{display: 'flex', gap: '4px', alignItems: 'center'}}>
+                                    <span style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94a3b8', animation: 'bounce 1s infinite'}}></span>
+                                    <span style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94a3b8', animation: 'bounce 1s infinite 0.2s'}}></span>
+                                    <span style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94a3b8', animation: 'bounce 1s infinite 0.4s'}}></span>
                                 </div>
                             </div>
                         </div>
                     )}
                     <div ref={messagesEndRef}/>
                 </div>
-                <div className="ai-agent-input-container">
+                <div style={inputContainerStyle}>
                     <textarea
                         ref={inputRef}
-                        className="ai-agent-input"
+                        style={textareaStyle}
                         placeholder="Ask a question..."
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
@@ -773,7 +936,7 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                         disabled={isLoading}
                     />
                     <button
-                        className="ai-agent-send"
+                        style={sendButtonStyle}
                         onClick={handleSend}
                         disabled={!inputValue.trim() || isLoading}
                     >

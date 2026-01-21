@@ -7,9 +7,6 @@ import {OperatorService} from '../../services/OperatorService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import {usePreferences} from '../../app/context/PreferencesContext';
 import MixerCard from './MixerCard';
-import '../../styles/FilterStyles.css';
-import './styles/Mixers.css';
-import '../../components/sections/styles/DetailView.css';
 import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
 import MixerCommentModal from './MixerCommentModal'
@@ -620,128 +617,112 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                 renderRow={(item, handleSelect, onComment, onIssue, onVerify) => {
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
+                    const cellStyle = {
+                        padding: '20px 16px',
+                        fontSize: '14px',
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb',
+                        verticalAlign: 'middle'
+                    };
+                    const cellBoldStyle = {
+                        ...cellStyle,
+                        fontWeight: 700,
+                        color: '#1e3a5f',
+                        fontSize: '15px'
+                    };
+                    const statusBadge = (status) => {
+                        let bg = '#f1f5f9', color = '#64748b';
+                        if (status === 'Active') { bg = '#dcfce7'; color = '#166534'; }
+                        else if (status === 'Spare') { bg = '#dbeafe'; color = '#1e40af'; }
+                        else if (status === 'In Shop') { bg = '#fef3c7'; color = '#92400e'; }
+                        else if (status === 'Retired') { bg = '#f1f5f9'; color = '#64748b'; }
+                        return { display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backgroundColor: bg, color: color };
+                    };
+                    const verifyBtnStyle = (verified) => ({
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: verified ? 'default' : 'pointer',
+                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
+                        color: verified ? '#166534' : '#92400e'
+                    });
+                    const actionBtnStyle = {
+                        width: '36px',
+                        height: '36px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        backgroundColor: 'white',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        marginRight: '8px'
+                    };
                     return (
-                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}>
-                            <td style={{width: '10%'}}>{plant?.name || item.assignedPlant}</td>
-                            <td style={{width: '12%'}}>{item.truckNumber}</td>
-                            <td style={{width: '12%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                    <span className="item-status-dot" style={{
-                                        display: 'inline-block',
-                                        verticalAlign: 'middle',
-                                        backgroundColor: item.status === 'Active' ? 'var(--status-active)' : item.status === 'Spare' ? 'var(--status-spare)' : item.status === 'In Shop' ? 'var(--status-inshop)' : item.status === 'Retired' ? 'var(--status-retired)' : 'var(--accent)'
-                                    }}></span>
-                                    <span>{item.status}</span>
-                                    {item.status === 'In Shop' && item.downInYard && (
-                                        <span
-                                            className="in-yard-badge"
-                                            title="This mixer is down in the yard"
-                                        >
-                                            IN YARD
-                                        </span>
-                                    )}
-                                </div>
+                        <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}
+                            onMouseEnter={(e) => { 
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe'); 
+                            }}
+                            onMouseLeave={(e) => { 
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = ''); 
+                            }}>
+                            <td style={{...cellStyle, width: '10%'}}>{plant?.name || item.assignedPlant}</td>
+                            <td style={{...cellBoldStyle, width: '12%'}}>{item.truckNumber}</td>
+                            <td style={{...cellStyle, width: '12%'}}>
+                                <span style={statusBadge(item.status)}>{item.status}</span>
+                                {item.status === 'In Shop' && item.downInYard && (
+                                    <span style={{marginLeft: '8px', backgroundColor: '#fef2f2', color: '#991b1b', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700}}>IN YARD</span>
+                                )}
                             </td>
-                            <td style={{width: '18%'}}>{operator?.name || 'Not Assigned'}</td>
-                            <td style={{width: '12%'}}>
+                            <td style={{...cellStyle, width: '18%'}}>{operator?.name || <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Not Assigned</span>}</td>
+                            <td style={{...cellStyle, width: '12%'}}>
                                 {item.status === 'Retired' ? (
-                                    <span style={{color: 'var(--text-secondary)'}}>N/A</span>
+                                    <span style={{color: '#94a3b8'}}>N/A</span>
                                 ) : (
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        {(() => {
-                                            const rating = Math.round(item.cleanlinessRating || 0);
-                                            const stars = rating > 0 ? rating : 1;
-                                            return Array.from({length: stars}).map((_, i) => <i key={i}
-                                                                                                className="fas fa-star"
-                                                                                                style={{color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor))}}></i>)
-                                        })()}
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                        {Array.from({length: 5}).map((_, i) => (
+                                            <i key={i} className="fas fa-star" style={{color: i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb', fontSize: '14px'}}></i>
+                                        ))}
                                         {item.cleanlinessRating && item.cleanlinessRating < 3 && (
-                                            <span
-                                                className="downed-badge"
-                                                title="This truck cannot run loads until the cleanliness is 3 stars or better. Do not ignore this warning."
-                                                style={{
-                                                    backgroundColor: 'var(--error)',
-                                                    color: 'white',
-                                                    padding: '2px 6px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '11px',
-                                                    fontWeight: 'bold',
-                                                    cursor: 'help',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                DOWNED
-                                            </span>
+                                            <span style={{marginLeft: '8px', backgroundColor: '#dc2626', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700}}>DOWNED</span>
                                         )}
                                     </div>
                                 )}
                             </td>
-                            <td style={{width: '16%'}}>{item.vinNumber || item.vin}</td>
-                            <td style={{width: '10%'}}>
+                            <td style={{...cellStyle, width: '16%', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#64748b'}}>{item.vinNumber || item.vin || '-'}</td>
+                            <td style={{...cellStyle, width: '10%'}}>
                                 {item.status === 'Retired' ? (
-                                    <span className="list-verify-status list-verify-na">N/A</span>
+                                    <span style={{padding: '8px 14px', backgroundColor: '#f1f5f9', color: '#94a3b8', borderRadius: '8px', fontSize: '12px', fontWeight: 600}}>N/A</span>
                                 ) : (
                                     <button
                                         type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (onVerify) {
-                                                onVerify(item.id, item.truckNumber);
-                                            }
-                                        }}
-                                        title={item.isVerified() ? 'Verified - Click to view details' : 'Click to verify'}
-                                        className={`list-verify-btn ${item.isVerified() ? 'verified' : 'not-verified'}`}
+                                        onClick={(e) => { e.stopPropagation(); if (onVerify) onVerify(item.id, item.truckNumber); }}
+                                        title={item.isVerified() ? 'Verified' : 'Click to verify'}
+                                        style={verifyBtnStyle(item.isVerified())}
                                     >
-                                        <i className={`fas ${item.isVerified() ? 'fa-check' : 'fa-flag'}`}></i>
-                                        <span>{item.isVerified() ? 'Verified' : 'Not Verified'}</span>
+                                        <i className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`} style={{color: item.isVerified() ? '#166534' : '#92400e'}}></i>
+                                        <span style={{color: item.isVerified() ? '#166534' : '#92400e'}}>{item.isVerified() ? 'Verified' : 'Verify'}</span>
                                     </button>
                                 )}
                             </td>
-                            <td style={{width: '10%'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        onComment(item.id, item.truckNumber);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View comments"><i className="fas fa-comments" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i><span>{item.commentsCount || 0}</span></button>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        onIssue(item.id, item.truckNumber);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View issues"><i className="fas fa-tools" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i><span>{item.openIssuesCount || 0}</span></button>
-                                    <button type="button" onClick={e => {
-                                        e.stopPropagation();
-                                        setSelectedMixerForHistory(item);
-                                        setShowHistoryModal(true);
-                                    }} style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        padding: 0,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }} title="View history"><i className="fas fa-history" style={{
-                                        color: ThemeUtility.getAccentColor(ThemeUtility.getOtherAccentColor(preferences.accentColor)),
-                                        marginRight: 4
-                                    }}></i></button>
+                            <td style={{...cellStyle, width: '10%'}}>
+                                <div style={{display: 'flex', alignItems: 'center'}}>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={actionBtnStyle} title="View comments">
+                                        <i className="fas fa-comments"></i>
+                                    </button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.truckNumber); }} style={actionBtnStyle} title="View issues">
+                                        <i className="fas fa-tools"></i>
+                                    </button>
+                                    <button type="button" onClick={e => { e.stopPropagation(); setSelectedMixerForHistory(item); setShowHistoryModal(true); }} style={actionBtnStyle} title="View history">
+                                        <i className="fas fa-history"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>

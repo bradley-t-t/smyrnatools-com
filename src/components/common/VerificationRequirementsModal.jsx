@@ -6,7 +6,6 @@ import GrammarUtility from '../../utils/GrammarUtility'
 import DateUtility from '../../utils/DateUtility'
 import LoadingScreen from './LoadingScreen'
 import {supabase} from '../../services/DatabaseService'
-import './styles/VerificationRequirementsModal.css'
 
 export default function VerificationRequirementsModal({
                                                           open,
@@ -342,19 +341,6 @@ export default function VerificationRequirementsModal({
         return date.toLocaleString()
     }
 
-    const getSeverityClass = (severityLevel) => {
-        switch (severityLevel) {
-            case 'High':
-                return 'severity-high'
-            case 'Medium':
-                return 'severity-medium'
-            case 'Low':
-                return 'severity-low'
-            default:
-                return ''
-        }
-    }
-
     const ratingLabels = [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent']
 
     const toggleSection = (sectionName) => {
@@ -380,132 +366,500 @@ export default function VerificationRequirementsModal({
         return null
     }
 
+    const styles = {
+        overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+        },
+        modal: {
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden'
+        },
+        header: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 24px',
+            backgroundColor: '#1e3a5f',
+            color: 'white',
+            borderRadius: '16px 16px 0 0'
+        },
+        headerContent: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px'
+        },
+        headerIcon: {
+            fontSize: '24px'
+        },
+        headerTitle: {
+            margin: 0,
+            fontSize: '18px',
+            fontWeight: 600,
+            color: 'white'
+        },
+        headerSubtitle: {
+            margin: '4px 0 0',
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.8)'
+        },
+        closeButton: {
+            width: '36px',
+            height: '36px',
+            border: 'none',
+            background: 'rgba(255,255,255,0.2)',
+            color: 'white',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px'
+        },
+        content: {
+            flex: 1,
+            overflowY: 'auto',
+            padding: '16px',
+            backgroundColor: 'white'
+        },
+        section: {
+            marginBottom: '12px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            backgroundColor: 'white'
+        },
+        sectionHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 16px',
+            backgroundColor: '#f8fafc',
+            border: 'none',
+            width: '100%',
+            cursor: 'pointer',
+            textAlign: 'left'
+        },
+        sectionTitle: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '14px',
+            fontWeight: 600,
+            color: '#1e3a5f'
+        },
+        sectionContent: {
+            padding: '16px',
+            borderTop: '1px solid #e5e7eb',
+            backgroundColor: 'white'
+        },
+        badge: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '4px 10px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: 600
+        },
+        badgeComplete: {
+            backgroundColor: '#dcfce7',
+            color: '#166534'
+        },
+        badgeIncomplete: {
+            backgroundColor: '#fef2f2',
+            color: '#991b1b'
+        },
+        badgeWarning: {
+            backgroundColor: '#fef3c7',
+            color: '#92400e'
+        },
+        badgeInfo: {
+            backgroundColor: '#dbeafe',
+            color: '#1e40af'
+        },
+        formGroup: {
+            marginBottom: '16px'
+        },
+        label: {
+            display: 'block',
+            marginBottom: '6px',
+            fontSize: '13px',
+            fontWeight: 600,
+            color: '#374151'
+        },
+        requiredIndicator: {
+            color: '#dc2626',
+            fontSize: '11px',
+            marginLeft: '6px'
+        },
+        input: {
+            width: '100%',
+            padding: '10px 14px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '14px',
+            color: '#374151',
+            backgroundColor: 'white',
+            boxSizing: 'border-box'
+        },
+        inputError: {
+            borderColor: '#dc2626'
+        },
+        hint: {
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#64748b'
+        },
+        warningText: {
+            fontSize: '12px',
+            color: '#dc2626',
+            marginTop: '4px'
+        },
+        note: {
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '10px',
+            padding: '14px 16px',
+            backgroundColor: '#fef3c7',
+            border: '2px solid #f59e0b',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#92400e',
+            marginBottom: '12px'
+        },
+        table: {
+            width: '100%',
+            borderCollapse: 'collapse',
+            backgroundColor: 'white'
+        },
+        tableLabel: {
+            padding: '10px 12px',
+            backgroundColor: '#f8fafc',
+            fontWeight: 600,
+            fontSize: '13px',
+            color: '#1e3a5f',
+            width: '35%',
+            borderBottom: '1px solid #e5e7eb'
+        },
+        tableValue: {
+            padding: '10px 12px',
+            fontSize: '14px',
+            color: '#374151',
+            borderBottom: '1px solid #e5e7eb',
+            backgroundColor: 'white'
+        },
+        highlightRow: {
+            backgroundColor: '#fff7ed'
+        },
+        requiredBadgeInline: {
+            display: 'inline-block',
+            marginLeft: '8px',
+            padding: '2px 8px',
+            backgroundColor: '#dc2626',
+            color: 'white',
+            fontSize: '10px',
+            fontWeight: 600,
+            borderRadius: '4px'
+        },
+        ratingInline: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+        },
+        starGroup: {
+            display: 'flex',
+            gap: '4px'
+        },
+        star: {
+            fontSize: '18px',
+            color: '#e5e7eb',
+            cursor: 'pointer'
+        },
+        starFilled: {
+            color: '#f59e0b'
+        },
+        ratingText: {
+            fontSize: '13px',
+            color: '#374151'
+        },
+        phoneControl: {
+            display: 'flex',
+            gap: '8px'
+        },
+        phoneInput: {
+            flex: 1,
+            padding: '8px 12px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '14px',
+            color: '#374151',
+            backgroundColor: 'white'
+        },
+        savePhoneButton: {
+            padding: '8px 12px',
+            backgroundColor: '#1e3a5f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+        },
+        inlineValidation: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            marginTop: '6px',
+            fontSize: '12px',
+            color: '#dc2626'
+        },
+        noData: {
+            textAlign: 'center',
+            padding: '24px',
+            color: '#374151'
+        },
+        noDataIcon: {
+            fontSize: '32px',
+            marginBottom: '12px',
+            color: '#64748b'
+        },
+        issueItem: {
+            padding: '14px',
+            backgroundColor: '#f8fafc',
+            borderRadius: '10px',
+            marginBottom: '10px',
+            border: '1px solid #e5e7eb'
+        },
+        issueHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '10px',
+            flexWrap: 'wrap'
+        },
+        issueSeverity: {
+            padding: '4px 10px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 600
+        },
+        severityHigh: {
+            backgroundColor: '#fef2f2',
+            color: '#991b1b'
+        },
+        severityMedium: {
+            backgroundColor: '#fef3c7',
+            color: '#92400e'
+        },
+        severityLow: {
+            backgroundColor: '#dbeafe',
+            color: '#1e40af'
+        },
+        issueCreator: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            color: '#374151'
+        },
+        issueDate: {
+            fontSize: '12px',
+            color: '#64748b'
+        },
+        issueActions: {
+            display: 'flex',
+            gap: '6px',
+            marginLeft: 'auto'
+        },
+        completeButton: {
+            width: '28px',
+            height: '28px',
+            border: 'none',
+            backgroundColor: '#dcfce7',
+            color: '#166534',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        },
+        deleteButton: {
+            width: '28px',
+            height: '28px',
+            border: 'none',
+            backgroundColor: '#fef2f2',
+            color: '#991b1b',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        },
+        issueText: {
+            fontSize: '14px',
+            color: '#374151',
+            lineHeight: 1.5
+        },
+        actions: {
+            display: 'flex',
+            gap: '12px',
+            padding: '16px 24px',
+            borderTop: '1px solid #e5e7eb',
+            backgroundColor: '#f8fafc'
+        },
+        cancelButton: {
+            flex: 1,
+            padding: '12px 20px',
+            backgroundColor: '#f1f5f9',
+            color: '#374151',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 600,
+            cursor: 'pointer'
+        },
+        primaryButton: {
+            flex: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '12px 20px',
+            backgroundColor: '#1e3a5f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 600,
+            cursor: 'pointer'
+        },
+        primaryButtonDisabled: {
+            opacity: 0.5,
+            cursor: 'not-allowed'
+        }
+    }
+
+    const getSeverityStyle = (severityLevel) => {
+        switch (severityLevel) {
+            case 'High':
+                return styles.severityHigh
+            case 'Medium':
+                return styles.severityMedium
+            case 'Low':
+                return styles.severityLow
+            default:
+                return {}
+        }
+    }
+
     return ReactDOM.createPortal(
-        <div className="modal-overlay" role="dialog" aria-modal="true">
-            <div className="modal-content verification-modal enhanced-verification">
-                <div className="verification-modal-header">
-                    <div className="header-content">
-                        <i className="fas fa-clipboard-check"></i>
+        <div style={styles.overlay} role="dialog" aria-modal="true">
+            <div style={styles.modal}>
+                <div style={styles.header}>
+                    <div style={styles.headerContent}>
+                        <i className="fas fa-clipboard-check" style={styles.headerIcon}></i>
                         <div>
-                            <h3>Verification Checklist</h3>
-                            <p>Review all requirements before verifying this {itemType?.toLowerCase()}</p>
+                            <h3 style={styles.headerTitle}>Verification Checklist</h3>
+                            <p style={styles.headerSubtitle}>Review all requirements before verifying this {itemType?.toLowerCase()}</p>
                         </div>
                     </div>
-                    <button className="close-button" onClick={onClose} title="Close">
+                    <button style={styles.closeButton} onClick={onClose} title="Close">
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
 
-                <div className="verification-content">
+                <div style={styles.content}>
                     {sectionsReady.checklist && (
-                        <div className="verification-section">
+                        <div style={styles.section}>
                             <button
-                                className={`section-header ${isSectionExpanded('checklist') ? 'expanded' : ''}`}
+                                style={styles.sectionHeader}
                                 onClick={() => toggleSection('checklist')}
                             >
-                                <div className="section-title">
+                                <div style={styles.sectionTitle}>
                                     <i className="fas fa-tasks"></i>
-                                    <span>Required Information</span>
-                                    {serviceOverdue && <span className="status-badge warning">Service Overdue</span>}
-                                    {!serviceOverdue && !requiredFieldsOk &&
-                                        <span className="status-badge incomplete">Incomplete</span>}
-                                    {!serviceOverdue && requiredFieldsOk &&
-                                        <span className="status-badge complete">Complete</span>}
+                                    <span style={{color: '#374151'}}>Required Information</span>
+                                    {serviceOverdue && <span style={{...styles.badge, ...styles.badgeWarning}}>Service Overdue</span>}
+                                    {!serviceOverdue && !requiredFieldsOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Incomplete</span>}
+                                    {!serviceOverdue && requiredFieldsOk && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('checklist') && (
-                                <div className="section-content">
-                                    <div className="verification-fields">
+                                <div style={styles.sectionContent}>
+                                    <div>
                                         {needsVin && (
-                                            <div className="form-group">
-                                                <label htmlFor="verify-vin">VIN {!vinOk &&
-                                                    <span className="required-indicator">Required</span>}</label>
+                                            <div style={styles.formGroup}>
+                                                <label style={styles.label}>VIN {!vinOk && <span style={styles.requiredIndicator}>Required</span>}</label>
                                                 <input
-                                                    id="verify-vin"
-                                                    className={`form-control ${vin && !vinOk ? 'error' : ''}`}
+                                                    style={{...styles.input, ...(vin && !vinOk ? styles.inputError : {})}}
                                                     type="text"
                                                     placeholder="17 characters (no I, O, Q)"
                                                     value={vin}
                                                     onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
                                                 />
-                                                <div className="vin-hint">17 characters. Letters I, O, and Q are not
-                                                    used.
-                                                </div>
+                                                <div style={styles.hint}>17 characters. Letters I, O, and Q are not used.</div>
                                                 {vin && !vinOk && (
-                                                    <div className="vin-errors">
-                                                        {vinInfo.reasons.map(r => <div key={r}
-                                                                                       className="warning-text">{r}</div>)}
+                                                    <div>
+                                                        {vinInfo.reasons.map(r => <div key={r} style={styles.warningText}>{r}</div>)}
                                                     </div>
                                                 )}
                                             </div>
                                         )}
                                         {needsMake && (
-                                            <div className="form-group">
-                                                <label htmlFor="verify-make">Make {!makeOk &&
-                                                    <span className="required-indicator">Required</span>}</label>
-                                                <input
-                                                    id="verify-make"
-                                                    className="form-control"
-                                                    type="text"
-                                                    placeholder="Make"
-                                                    value={make}
-                                                    onChange={e => setMake(e.target.value)}
-                                                />
+                                            <div style={styles.formGroup}>
+                                                <label style={styles.label}>Make {!makeOk && <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <input style={styles.input} type="text" placeholder="Make" value={make} onChange={e => setMake(e.target.value)} />
                                             </div>
                                         )}
                                         {needsModel && (
-                                            <div className="form-group">
-                                                <label htmlFor="verify-model">Model {!modelOk &&
-                                                    <span className="required-indicator">Required</span>}</label>
-                                                <input
-                                                    id="verify-model"
-                                                    className="form-control"
-                                                    type="text"
-                                                    placeholder="Model"
-                                                    value={model}
-                                                    onChange={e => setModel(e.target.value)}
-                                                />
+                                            <div style={styles.formGroup}>
+                                                <label style={styles.label}>Model {!modelOk && <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <input style={styles.input} type="text" placeholder="Model" value={model} onChange={e => setModel(e.target.value)} />
                                             </div>
                                         )}
                                         {needsYear && (
-                                            <div className="form-group">
-                                                <label htmlFor="verify-year">Year {!yearOk &&
-                                                    <span className="required-indicator">Required</span>}</label>
-                                                <input
-                                                    id="verify-year"
-                                                    className="form-control"
-                                                    type="text"
-                                                    placeholder="Year"
-                                                    value={year}
-                                                    onChange={e => setYear(e.target.value)}
-                                                />
+                                            <div style={styles.formGroup}>
+                                                <label style={styles.label}>Year {!yearOk && <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <input style={styles.input} type="text" placeholder="Year" value={year} onChange={e => setYear(e.target.value)} />
                                             </div>
                                         )}
                                         {(!lastServiceDate || serviceOverdue) && (
-                                            <div className="form-group">
-                                                <label htmlFor="verify-last-service">Last Service Date</label>
+                                            <div style={styles.formGroup}>
+                                                <label style={styles.label}>Last Service Date</label>
                                                 <input
-                                                    id="verify-last-service"
-                                                    className="form-control"
+                                                    style={styles.input}
                                                     type="date"
                                                     value={lastServiceDate ? (lastServiceDate instanceof Date ? lastServiceDate.toISOString().split('T')[0] : String(lastServiceDate).split('T')[0]) : ''}
                                                     onChange={e => setLastServiceDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
                                                 />
                                                 {lastServiceDate && serviceOverdue && (
-                                                    <div className="modal-note warning">
-                                                        <i className="fas fa-exclamation-triangle"></i>
-                                                        <span>Service is overdue. You can still verify but service is recommended.</span>
+                                                    <div style={styles.note}>
+                                                        <i className="fas fa-exclamation-triangle" style={{color: '#92400e'}}></i>
+                                                        <span style={{color: '#92400e'}}>Service is overdue. You can still verify but service is recommended.</span>
                                                     </div>
                                                 )}
                                             </div>
                                         )}
                                         {typeof lastChipDate !== 'undefined' && !lastChipDate && (
-                                            <div className="form-group">
-                                                <label htmlFor="verify-last-chip">Last Chip Date</label>
+                                            <div style={styles.formGroup}>
+                                                <label style={styles.label}>Last Chip Date</label>
                                                 <input
-                                                    id="verify-last-chip"
-                                                    className="form-control"
+                                                    style={styles.input}
                                                     type="date"
                                                     value={lastChipDate ? (lastChipDate instanceof Date ? lastChipDate.toISOString().split('T')[0] : String(lastChipDate).split('T')[0]) : ''}
                                                     onChange={e => setLastChipDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)}
@@ -519,125 +873,107 @@ export default function VerificationRequirementsModal({
                     )}
 
                     {assignedOperator && sectionsReady.operator && (
-                        <div className="verification-section">
-                            <button
-                                className={`section-header ${isSectionExpanded('operator') ? 'expanded' : ''}`}
-                                onClick={() => toggleSection('operator')}
-                            >
-                                <div className="section-title">
+                        <div style={styles.section}>
+                            <button style={styles.sectionHeader} onClick={() => toggleSection('operator')}>
+                                <div style={styles.sectionTitle}>
                                     <i className="fas fa-user"></i>
-                                    <span>Operator Information</span>
-                                    {!operatorOk && !phoneOk && !ratingOk &&
-                                        <span className="status-badge incomplete">Phone & Rating Required</span>}
-                                    {!operatorOk && !phoneOk && ratingOk &&
-                                        <span className="status-badge incomplete">Phone Required</span>}
-                                    {!operatorOk && phoneOk && !ratingOk &&
-                                        <span className="status-badge incomplete">Rating Required</span>}
-                                    {operatorOk && <span className="status-badge complete">Complete</span>}
+                                    <span style={{color: '#374151'}}>Operator Information</span>
+                                    {!operatorOk && !phoneOk && !ratingOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Phone & Rating Required</span>}
+                                    {!operatorOk && !phoneOk && ratingOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Phone Required</span>}
+                                    {!operatorOk && phoneOk && !ratingOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Rating Required</span>}
+                                    {operatorOk && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('operator') && (
-                                <div className="section-content">
+                                <div style={styles.sectionContent}>
                                     {isLoadingOperator ? (
-                                        <div className="loading-container">
-                                            <LoadingScreen message="Loading operator data..." inline={true}/>
-                                        </div>
+                                        <LoadingScreen message="Loading operator data..." inline={true}/>
                                     ) : operatorData ? (
-                                        <div className="operator-info-table">
-                                            <table className="verification-table">
-                                                <tbody>
+                                        <table style={styles.table}>
+                                            <tbody>
                                                 <tr>
-                                                    <td className="table-label">Name</td>
-                                                    <td className="table-value">{operatorData.name || 'N/A'}</td>
+                                                    <td style={styles.tableLabel}>Name</td>
+                                                    <td style={styles.tableValue}>{operatorData.name || 'N/A'}</td>
                                                 </tr>
                                                 {operatorData.position && (
                                                     <tr>
-                                                        <td className="table-label">Position</td>
-                                                        <td className="table-value">{operatorData.position}</td>
+                                                        <td style={styles.tableLabel}>Position</td>
+                                                        <td style={styles.tableValue}>{operatorData.position}</td>
                                                     </tr>
                                                 )}
                                                 {operatorData.smyrna_id && (
                                                     <tr>
-                                                        <td className="table-label">Employee ID</td>
-                                                        <td className="table-value">{operatorData.smyrna_id}</td>
+                                                        <td style={styles.tableLabel}>Employee ID</td>
+                                                        <td style={styles.tableValue}>{operatorData.smyrna_id}</td>
                                                     </tr>
                                                 )}
-                                                <tr className={!ratingOk ? 'highlight-row' : ''}>
-                                                    <td className="table-label">
+                                                <tr style={!ratingOk ? styles.highlightRow : {}}>
+                                                    <td style={styles.tableLabel}>
                                                         Performance Rating
-                                                        {!ratingOk &&
-                                                            <span className="required-badge-inline">Required</span>}
+                                                        {!ratingOk && <span style={styles.requiredBadgeInline}>Required</span>}
                                                     </td>
-                                                    <td className="table-value">
-                                                        <div className="rating-inline">
-                                                            <div className="star-group-compact">
+                                                    <td style={styles.tableValue}>
+                                                        <div style={styles.ratingInline}>
+                                                            <div style={styles.starGroup}>
                                                                 {[1, 2, 3, 4, 5].map(star => (
                                                                     <i
                                                                         key={star}
-                                                                        className={`fas fa-star ${star <= operatorRating ? 'filled' : ''}`}
+                                                                        className="fas fa-star"
+                                                                        style={{...styles.star, ...(star <= operatorRating ? styles.starFilled : {})}}
                                                                         onClick={() => handleSaveOperatorRating(star)}
-                                                                        style={{cursor: 'pointer'}}
                                                                     ></i>
                                                                 ))}
                                                             </div>
-                                                            <span className="rating-text-compact">
+                                                            <span style={styles.ratingText}>
                                                                 {operatorRating > 0 ? `${operatorRating}/5 - ${ratingLabels[operatorRating]}` : 'Not Yet Rated'}
                                                             </span>
                                                         </div>
                                                         {!ratingOk && (
-                                                            <div className="inline-validation error">
+                                                            <div style={styles.inlineValidation}>
                                                                 <i className="fas fa-exclamation-circle"></i>
                                                                 Rating required for verification
                                                             </div>
                                                         )}
                                                     </td>
                                                 </tr>
-                                                <tr className={!phoneOk ? 'highlight-row' : ''}>
-                                                    <td className="table-label">
+                                                <tr style={!phoneOk ? styles.highlightRow : {}}>
+                                                    <td style={styles.tableLabel}>
                                                         Phone Number
-                                                        {!phoneOk &&
-                                                            <span className="required-badge-inline">Required</span>}
+                                                        {!phoneOk && <span style={styles.requiredBadgeInline}>Required</span>}
                                                     </td>
-                                                    <td className="table-value">
-                                                        <div className="phone-control-compact">
+                                                    <td style={styles.tableValue}>
+                                                        <div style={styles.phoneControl}>
                                                             <input
                                                                 type="tel"
-                                                                className={`phone-input-compact ${!phoneOk ? 'error' : ''}`}
+                                                                style={{...styles.phoneInput, ...(!phoneOk ? styles.inputError : {})}}
                                                                 placeholder="(555) 555-5555"
                                                                 value={operatorPhone}
                                                                 onChange={e => setOperatorPhone(e.target.value)}
                                                             />
                                                             <button
-                                                                className="save-phone-button-compact"
+                                                                style={{...styles.savePhoneButton, opacity: isSavingPhone || !operatorPhone.trim() ? 0.5 : 1}}
                                                                 onClick={handleSaveOperatorPhone}
                                                                 disabled={isSavingPhone || !operatorPhone.trim()}
-                                                                title="Save Phone"
                                                             >
-                                                                {isSavingPhone ? (
-                                                                    <i className="fas fa-spinner fa-spin"></i>
-                                                                ) : (
-                                                                    <i className="fas fa-save"></i>
-                                                                )}
+                                                                {isSavingPhone ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
                                                             </button>
                                                         </div>
                                                         {!phoneOk && (
-                                                            <div className="inline-validation error">
+                                                            <div style={styles.inlineValidation}>
                                                                 <i className="fas fa-exclamation-circle"></i>
                                                                 Phone required for verification
                                                             </div>
                                                         )}
                                                     </td>
                                                 </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                            </tbody>
+                                        </table>
                                     ) : (
-                                        <div className="no-data">
-                                            <i className="fas fa-exclamation-triangle"></i>
-                                            <p>Unable to load operator information</p>
-                                            <p className="no-data-hint">The operator may have been removed or there was
-                                                a connection issue</p>
+                                        <div style={styles.noData}>
+                                            <i className="fas fa-exclamation-triangle" style={styles.noDataIcon}></i>
+                                            <p style={{margin: '0 0 8px', color: '#374151'}}>Unable to load operator information</p>
+                                            <p style={{margin: 0, fontSize: '13px'}}>The operator may have been removed or there was a connection issue</p>
                                         </div>
                                     )}
                                 </div>
@@ -646,76 +982,60 @@ export default function VerificationRequirementsModal({
                     )}
 
                     {itemId && service && sectionsReady.issues && (
-                        <div className="verification-section">
-                            <button
-                                className={`section-header ${isSectionExpanded('issues') ? 'expanded' : ''}`}
-                                onClick={() => toggleSection('issues')}
-                            >
-                                <div className="section-title">
+                        <div style={styles.section}>
+                            <button style={styles.sectionHeader} onClick={() => toggleSection('issues')}>
+                                <div style={styles.sectionTitle}>
                                     <i className="fas fa-wrench"></i>
-                                    <span>Maintenance Issues</span>
-                                    {openIssues.length === 0 && <span className="status-badge complete">Complete</span>}
-                                    {openIssues.length > 0 &&
-                                        <span className="status-badge info">{openIssues.length} Open</span>}
+                                    <span style={{color: '#374151'}}>Maintenance Issues</span>
+                                    {openIssues.length === 0 && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
+                                    {openIssues.length > 0 && <span style={{...styles.badge, ...styles.badgeInfo}}>{openIssues.length} Open</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('issues') && (
-                                <div className="section-content">
-                                    <div className="modal-note warning">
-                                        <i className="fas fa-comments"></i>
-                                        <span>Issues are shown for awareness only. You can mark them as resolved if completed, but this is not required to verify the asset.</span>
+                                <div style={styles.sectionContent}>
+                                    <div style={styles.note}>
+                                        <i className="fas fa-info-circle" style={{color: '#92400e'}}></i>
+                                        <span style={{color: '#92400e'}}>Issues are shown for awareness only. You can mark them as resolved if completed, but this is not required to verify the asset.</span>
                                     </div>
                                     {isLoadingIssues ? (
-                                        <div className="loading-container">
-                                            <LoadingScreen message="Loading issues..." inline={true}/>
-                                        </div>
+                                        <LoadingScreen message="Loading issues..." inline={true}/>
                                     ) : openIssues.length === 0 ? (
-                                        <div className="no-issues">
-                                            <i className="fas fa-check-circle"></i>
-                                            <p>No open maintenance issues</p>
+                                        <div style={{...styles.noData, color: '#166534'}}>
+                                            <i className="fas fa-check-circle" style={{...styles.noDataIcon, color: '#22c55e'}}></i>
+                                            <p style={{margin: 0}}>No open maintenance issues</p>
                                         </div>
                                     ) : (
                                         <>
                                             {hasHighSeverityIssues && (
-                                                <div className="modal-note warning high-severity-warning">
-                                                    <i className="fas fa-exclamation-triangle"></i>
-                                                    <span>High severity issues detected. Consider resolving before verification, but not required.</span>
+                                                <div style={{...styles.note, backgroundColor: '#fef2f2', borderColor: '#dc2626'}}>
+                                                    <i className="fas fa-exclamation-triangle" style={{color: '#991b1b'}}></i>
+                                                    <span style={{color: '#991b1b'}}>High severity issues detected. Consider resolving before verification, but not required.</span>
                                                 </div>
                                             )}
-                                            <div className="issues-list">
+                                            <div>
                                                 {openIssues.map(issue => (
-                                                    <div key={issue.id} className="issue-item">
-                                                        <div className="issue-header">
-                                                            <span
-                                                                className={`issue-severity ${getSeverityClass(issue.severity)}`}>
+                                                    <div key={issue.id} style={styles.issueItem}>
+                                                        <div style={styles.issueHeader}>
+                                                            <span style={{...styles.issueSeverity, ...getSeverityStyle(issue.severity)}}>
                                                                 {issue.severity}
                                                             </span>
-                                                            <span className="issue-creator">
+                                                            <span style={styles.issueCreator}>
                                                                 <i className="fas fa-user"></i> {userNames[issue.created_by] || 'Unknown'}
                                                             </span>
-                                                            <span
-                                                                className="issue-date">{formatDate(issue.time_created)}</span>
-                                                            <div className="issue-actions">
-                                                                <button
-                                                                    className="complete-button"
-                                                                    onClick={() => handleCompleteIssue(issue.id)}
-                                                                    title="Mark as resolved"
-                                                                >
+                                                            <span style={styles.issueDate}>{formatDate(issue.time_created)}</span>
+                                                            <div style={styles.issueActions}>
+                                                                <button style={styles.completeButton} onClick={() => handleCompleteIssue(issue.id)} title="Mark as resolved">
                                                                     <i className="fas fa-check"></i>
                                                                 </button>
                                                                 {canDelete && (
-                                                                    <button
-                                                                        className="delete-button"
-                                                                        onClick={() => handleDeleteIssue(issue.id)}
-                                                                        title="Delete issue"
-                                                                    >
+                                                                    <button style={styles.deleteButton} onClick={() => handleDeleteIssue(issue.id)} title="Delete issue">
                                                                         <i className="fas fa-trash"></i>
                                                                     </button>
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div className="issue-text">{issue.issue}</div>
+                                                        <div style={styles.issueText}>{issue.issue}</div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -727,53 +1047,42 @@ export default function VerificationRequirementsModal({
                     )}
 
                     {itemId && service && sectionsReady.comments && (
-                        <div className="verification-section">
-                            <button
-                                className={`section-header ${isSectionExpanded('comments') ? 'expanded' : ''}`}
-                                onClick={() => toggleSection('comments')}
-                            >
-                                <div className="section-title">
+                        <div style={styles.section}>
+                            <button style={styles.sectionHeader} onClick={() => toggleSection('comments')}>
+                                <div style={styles.sectionTitle}>
                                     <i className="fas fa-comments"></i>
-                                    <span>Comments</span>
-                                    {comments.length === 0 && <span className="status-badge complete">Complete</span>}
-                                    {comments.length > 0 && <span
-                                        className="status-badge info">{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
+                                    <span style={{color: '#374151'}}>Comments</span>
+                                    {comments.length === 0 && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
+                                    {comments.length > 0 && <span style={{...styles.badge, ...styles.badgeInfo}}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('comments') && (
-                                <div className="section-content">
-                                    <div className="modal-note warning">
-                                        <i className="fas fa-comments"></i>
-                                        <span>Comments are shown for awareness only. You can delete them if no longer applicable, but this is not required to verify the asset.</span>
+                                <div style={styles.sectionContent}>
+                                    <div style={styles.note}>
+                                        <i className="fas fa-info-circle" style={{color: '#92400e'}}></i>
+                                        <span style={{color: '#92400e'}}>Comments are shown for awareness only. You can delete them if no longer applicable, but this is not required to verify the asset.</span>
                                     </div>
                                     {isLoadingComments ? (
-                                        <div className="loading-container">
-                                            <LoadingScreen message="Loading comments..." inline={true}/>
-                                        </div>
+                                        <LoadingScreen message="Loading comments..." inline={true}/>
                                     ) : comments.length === 0 ? (
-                                        <div className="no-issues">
-                                            <i className="fas fa-info-circle"></i>
-                                            <p>No comments</p>
+                                        <div style={styles.noData}>
+                                            <i className="fas fa-info-circle" style={styles.noDataIcon}></i>
+                                            <p style={{margin: 0}}>No comments</p>
                                         </div>
                                     ) : (
-                                        <div className="issues-list">
+                                        <div>
                                             {comments.map(comment => (
-                                                <div key={comment.id} className="issue-item comment-item">
-                                                    <div className="comment-header">
-                                                        <span
-                                                            className="issue-date">{formatDate(comment.createdAt)}</span>
-                                                        <button
-                                                            className="delete-button"
-                                                            onClick={() => handleDeleteComment(comment.id)}
-                                                            title="Delete comment"
-                                                        >
+                                                <div key={comment.id} style={styles.issueItem}>
+                                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                                                        <span style={styles.issueDate}>{formatDate(comment.createdAt)}</span>
+                                                        <button style={styles.deleteButton} onClick={() => handleDeleteComment(comment.id)} title="Delete comment">
                                                             <i className="fas fa-trash"></i>
                                                         </button>
                                                     </div>
-                                                    <div className="issue-text">{comment.text}</div>
+                                                    <div style={styles.issueText}>{comment.text}</div>
                                                     {comment.author && userNames[comment.author] && (
-                                                        <div className="issue-creator">
+                                                        <div style={{...styles.issueCreator, marginTop: '8px'}}>
                                                             <i className="fas fa-user"></i>
                                                             {userNames[comment.author]}
                                                         </div>
@@ -789,19 +1098,18 @@ export default function VerificationRequirementsModal({
                 </div>
 
                 {isMixerInShopWithoutIssues && (
-                    <div className="modal-note warning" style={{margin: '1rem 1.5rem 0'}}>
-                        <i className="fas fa-exclamation-triangle"></i>
-                        <span>Mixers in &quot;In Shop&quot; status must have at least one active issue before they can be verified. Please add an issue describing why this mixer is in the shop.</span>
+                    <div style={{...styles.note, margin: '0 16px 16px', backgroundColor: '#fef2f2', borderColor: '#dc2626'}}>
+                        <i className="fas fa-exclamation-triangle" style={{color: '#991b1b'}}></i>
+                        <span style={{color: '#991b1b'}}>Mixers in &quot;In Shop&quot; status must have at least one active issue before they can be verified. Please add an issue describing why this mixer is in the shop.</span>
                     </div>
                 )}
 
-                <div className="modal-actions">
-                    <button type="button" className="cancel-button" onClick={onClose}>
+                <div style={styles.actions}>
+                    <button style={styles.cancelButton} onClick={onClose}>
                         Cancel
                     </button>
                     <button
-                        type="button"
-                        className="primary-button"
+                        style={{...styles.primaryButton, ...(!canVerify ? styles.primaryButtonDisabled : {})}}
                         disabled={!canVerify}
                         onClick={handleSaveAndVerify}
                     >

@@ -1,199 +1,122 @@
 import React, {useEffect, useRef, useState} from 'react'
-import './styles/Navigation.css'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {UserService} from "../../services/UserService"
-import VideoBackground from './VideoBackground'
 import NotificationsModal from './NotificationsModal'
 import AIAgentPopup from './AIAgentPopup'
 import {useNotifications} from '../../hooks/useNotifications'
-
-const ANIMATION_TIMING = {
-    ITEM_ENTER_DELAY: 750,
-    ITEM_EXIT_DELAY: 300,
-    BASE_EXIT_DURATION: 750
-}
 
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
 const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards', 'Calculators', 'Maintenance']
 const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
 const OFFICE_ONLY_ITEMS = ['Roles']
 
-const getIconForMenuItem = (id) => {
-    switch (id) {
-        case 'Dashboard':
-            return <i className="fas fa-tachometer-alt"></i>
-        case 'Mixers':
-            return <i className="fas fa-truck"></i>
-        case 'Tractors':
-            return <i className="fas fa-tractor"></i>
-        case 'Trailers':
-            return <i className="fas fa-trailer"></i>
-        case 'Pickup Trucks':
-            return <i className="fas fa-truck-pickup"></i>
-        case 'Heavy Equipment':
-            return <i className="fas fa-snowplow"></i>
-        case 'Operators':
-            return <i className="fas fa-users"></i>
-        case 'Managers':
-            return <i className="fas fa-user-tie"></i>
-        case 'People':
-            return <i className="fas fa-users"></i>
-        case 'Plants':
-            return <i className="fas fa-industry"></i>
-        case 'Regions':
-            return <i className="fas fa-map-marker-alt"></i>
-        case 'List':
-            return <i className="fas fa-list"></i>
-        case 'Leaderboards':
-            return <i className="fas fa-trophy"></i>
-        case 'Archive':
-            return <i className="fas fa-archive"></i>
-        case 'Settings':
-            return <i className="fas fa-cog"></i>
-        case 'MyAccount':
-            return <i className="fas fa-user"></i>
-        case 'Logout':
-            return <i className="fas fa-sign-out-alt"></i>
-        case 'Reports':
-            return <i className="fas fa-file-alt"></i>
-        case 'Roles':
-            return <i className="fas fa-lock"></i>
-        case 'Calculators':
-            return <i className="fas fa-calculator"></i>
-        case 'Maintenance':
-            return <i className="fas fa-wrench"></i>
-        default:
-            return <i className="fas fa-clipboard-list"></i>
-    }
+const ICONS = {
+    Dashboard: 'fa-tachometer-alt',
+    Mixers: 'fa-truck',
+    Tractors: 'fa-tractor',
+    Trailers: 'fa-trailer',
+    'Pickup Trucks': 'fa-truck-pickup',
+    'Heavy Equipment': 'fa-snowplow',
+    Operators: 'fa-users',
+    Managers: 'fa-user-tie',
+    People: 'fa-users',
+    Plants: 'fa-industry',
+    Regions: 'fa-map-marker-alt',
+    List: 'fa-list',
+    Leaderboards: 'fa-trophy',
+    Archive: 'fa-archive',
+    MyAccount: 'fa-user',
+    Logout: 'fa-sign-out-alt',
+    Reports: 'fa-file-alt',
+    Roles: 'fa-lock',
+    Calculators: 'fa-calculator',
+    Maintenance: 'fa-wrench',
+    Assets: 'fa-truck',
+    Productivity: 'fa-chart-line'
 }
 
 const menuItems = [
-    {text: 'Dashboard', id: 'Dashboard', permission: 'dashboard.view', alwaysVisible: false},
-    {text: 'Mixers', id: 'Mixers', permission: 'mixers.view', alwaysVisible: false},
-    {text: 'Tractors', id: 'Tractors', permission: 'tractors.view', alwaysVisible: false},
-    {text: 'Trailers', id: 'Trailers', permission: 'trailers.view', alwaysVisible: false},
-    {text: 'Heavy Equipment', id: 'Heavy Equipment', permission: 'equipment.view', alwaysVisible: false},
-    {text: 'Pickup Trucks', id: 'Pickup Trucks', permission: 'pickup_trucks.view', alwaysVisible: false},
-    {text: 'Operators', id: 'Operators', permission: 'operators.view', alwaysVisible: false},
-    {text: 'Managers', id: 'Managers', permission: 'managers.view', alwaysVisible: false},
-    {text: 'List', id: 'List', permission: 'list.view', alwaysVisible: false},
-    {text: 'Reports', id: 'Reports', permission: 'reports.view', alwaysVisible: false},
-    {text: 'Plants', id: 'Plants', permission: 'plants.view', alwaysVisible: false},
-    {text: 'Regions', id: 'Regions', permission: 'regions.view', alwaysVisible: false},
-    {text: 'Roles', id: 'Roles', permission: 'roles.view', alwaysVisible: false},
-    {text: 'Calculators', id: 'Calculators', permission: 'calculator.view', alwaysVisible: false},
-    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view', alwaysVisible: false},
-    {text: 'Maintenance', id: 'Maintenance', permission: 'maintenance.view', alwaysVisible: false}
+    {text: 'Dashboard', id: 'Dashboard', permission: 'dashboard.view'},
+    {text: 'Mixers', id: 'Mixers', permission: 'mixers.view'},
+    {text: 'Tractors', id: 'Tractors', permission: 'tractors.view'},
+    {text: 'Trailers', id: 'Trailers', permission: 'trailers.view'},
+    {text: 'Heavy Equipment', id: 'Heavy Equipment', permission: 'equipment.view'},
+    {text: 'Pickup Trucks', id: 'Pickup Trucks', permission: 'pickup_trucks.view'},
+    {text: 'Operators', id: 'Operators', permission: 'operators.view'},
+    {text: 'Managers', id: 'Managers', permission: 'managers.view'},
+    {text: 'List', id: 'List', permission: 'list.view'},
+    {text: 'Reports', id: 'Reports', permission: 'reports.view'},
+    {text: 'Plants', id: 'Plants', permission: 'plants.view'},
+    {text: 'Regions', id: 'Regions', permission: 'regions.view'},
+    {text: 'Roles', id: 'Roles', permission: 'roles.view'},
+    {text: 'Calculators', id: 'Calculators', permission: 'calculator.view'},
+    {text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view'}
 ]
 
-export default function Navigation({
-                                       selectedView,
-                                       onSelectView,
-                                       children,
-                                       userName = '',
-                                       userId = null,
-                                       listStatusFilter = ''
-                                   }) {
+const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
+const PEOPLE_ITEMS = ['Operators', 'Managers']
+const PRODUCTIVITY_ITEMS = ['List', 'Reports']
+
+export default function Navigation({selectedView, onSelectView, children, userName = '', userId = null, ..._rest}) {
     const {preferences, updatePreferences} = usePreferences()
     const [visibleMenuItems, setVisibleMenuItems] = useState([])
-    const [exitingItems, setExitingItems] = useState([])
-    const [enteringItemIds, setEnteringItemIds] = useState(new Set())
-    const [isMenuReady, setIsMenuReady] = useState(false)
-    const [showAssetsDropdown, setShowAssetsDropdown] = useState(false)
-    const [showPeopleDropdown, setShowPeopleDropdown] = useState(false)
-    const [showProductivityDropdown, setShowProductivityDropdown] = useState(false)
     const [permittedRegions, setPermittedRegions] = useState([])
-    const regionType = preferences.selectedRegion?.type
-    const regionCode = preferences.selectedRegion?.code
-    const lastMenuItemsRef = useRef([])
-    const exitAnimationTimeoutRef = useRef(null)
-    const enterAnimationTimeoutRef = useRef(null)
-    const enterTimeoutsRef = useRef([])
-    const exitTimeoutsRef = useRef([])
-    const assetsDropdownRef = useRef(null)
-    const peopleDropdownRef = useRef(null)
-    const productivityDropdownRef = useRef(null)
+    const [openDropdown, setOpenDropdown] = useState(null)
     const [showNotifications, setShowNotifications] = useState(false)
     const [notificationsAnchor, setNotificationsAnchor] = useState(null)
     const [showAIAgent, setShowAIAgent] = useState(false)
-
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    
+    const dropdownRef = useRef(null)
+    const regionType = preferences.selectedRegion?.type
+    const regionCode = preferences.selectedRegion?.code
     const {count: notificationsCount} = useNotifications(userId, preferences?.selectedRegion)
 
     useEffect(() => {
-        const handleStatusFilterChange = (event) => {
-            const {statusFilter} = event.detail
-            if (statusFilter === 'completed' || listStatusFilter === 'completed') {
-                setVisibleMenuItems(prev => [...prev])
-            }
-        }
-        window.addEventListener('list-status-filter-change', handleStatusFilterChange)
-        return () => {
-            window.removeEventListener('list-status-filter-change', handleStatusFilterChange)
-        }
-    }, [listStatusFilter])
+        const handleResize = () => setIsMobile(window.innerWidth < 768)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (assetsDropdownRef.current && !assetsDropdownRef.current.contains(event.target)) {
-                setShowAssetsDropdown(false)
-            }
-            if (peopleDropdownRef.current && !peopleDropdownRef.current.contains(event.target)) {
-                setShowPeopleDropdown(false)
-            }
-            if (productivityDropdownRef.current && !productivityDropdownRef.current.contains(event.target)) {
-                setShowProductivityDropdown(false)
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setOpenDropdown(null)
             }
         }
-        if (showAssetsDropdown || showPeopleDropdown || showProductivityDropdown) {
-            setTimeout(() => {
-                document.addEventListener('mousedown', handleClickOutside)
-            }, 0)
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-        }
-    }, [showAssetsDropdown, showPeopleDropdown, showProductivityDropdown])
+        if (openDropdown) document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [openDropdown])
 
     useEffect(() => {
-        async function fetchPermittedRegions() {
-            if (!userId) {
-                setPermittedRegions([])
-                return
-            }
+        async function fetchRegions() {
+            if (!userId) return setPermittedRegions([])
             try {
-                const regionsList = await UserService.getPermittedRegions(userId).catch(() => [])
-                setPermittedRegions(regionsList)
-
-                if (!regionCode && regionsList.length) {
-                    const first = regionsList[0]
+                const regions = await UserService.getPermittedRegions(userId).catch(() => [])
+                setPermittedRegions(regions)
+                if (!regionCode && regions.length) {
+                    const first = regions[0]
                     updatePreferences('selectedRegion', {
                         code: first.regionCode || first.region_code,
                         name: first.regionName || first.region_name || '',
                         type: first.type || first.region_type || ''
                     })
                 }
-            } catch (error) {
+            } catch {
                 setPermittedRegions([])
             }
         }
-
-        fetchPermittedRegions()
+        fetchRegions()
     }, [userId, regionCode, updatePreferences])
 
     useEffect(() => {
-        async function filterMenuItems() {
-            if (!userId) {
-                setVisibleMenuItems([])
-                return
-            }
-
+        async function filterItems() {
+            if (!userId) return setVisibleMenuItems([])
             try {
                 const permissions = await UserService.getUserPermissions(userId)
-                let filtered = menuItems.filter(item =>
-                    item.permission && permissions.includes(item.permission)
-                )
-
+                let filtered = menuItems.filter(item => permissions.includes(item.permission))
                 if (regionType === 'Office') {
                     filtered = filtered.filter(item => OFFICE_VISIBLE_ITEMS.includes(item.id) || OFFICE_ONLY_ITEMS.includes(item.id))
                 } else if (regionType === 'Aggregate') {
@@ -201,244 +124,22 @@ export default function Navigation({
                 } else {
                     filtered = filtered.filter(item => !DEFAULT_HIDDEN_ITEMS.includes(item.id) && !OFFICE_ONLY_ITEMS.includes(item.id))
                 }
-
-                const hasOperators = filtered.some(item => item.id === 'Operators')
-                const hasManagers = filtered.some(item => item.id === 'Managers')
-                const shouldCombinePeople = hasOperators && hasManagers
-
-                const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-                const peopleItems = ['Operators', 'Managers']
-                const productivityItems = ['List', 'Reports']
-
-                const shouldCombineProductivity = filtered.filter(item => productivityItems.includes(item.id)).length > 1
-
-                const assetItemsToAdd = filtered.filter(item => assetItems.includes(item.id))
-                const peopleItemsToAdd = shouldCombinePeople ? filtered.filter(item => peopleItems.includes(item.id)) : []
-                const productivityItemsToAdd = shouldCombineProductivity ? filtered.filter(item => productivityItems.includes(item.id)) : []
-                const dashboardItem = filtered.find(item => item.id === 'Dashboard')
-                const standaloneOperatorsItem = !shouldCombinePeople && hasOperators ? filtered.find(item => item.id === 'Operators') : null
-                const otherItemsForAnimation = filtered.filter(item =>
-                    item.id !== 'Dashboard' &&
-                    !assetItems.includes(item.id) &&
-                    !(shouldCombinePeople && peopleItems.includes(item.id)) &&
-                    !(shouldCombineProductivity && productivityItems.includes(item.id)) &&
-                    !(item.id === 'Operators' && !shouldCombinePeople)
-                )
-
-                const isInitialLoad = lastMenuItemsRef.current.length === 0 && filtered.length > 0
-
-                if (isInitialLoad) {
-                    setVisibleMenuItems([])
-                    setIsMenuReady(true)
-
-                    let animationIndex = 0
-
-                    if (dashboardItem) {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, dashboardItem])
-                            setEnteringItemIds(prev => new Set([...prev, dashboardItem.id]))
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete(dashboardItem.id)
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                        animationIndex++
-                    }
-
-                    if (assetItemsToAdd.length > 0) {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, ...assetItemsToAdd])
-                            setEnteringItemIds(prev => new Set([...prev, 'assets-dropdown']))
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete('assets-dropdown')
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                        animationIndex++
-                    }
-
-                    if (peopleItemsToAdd.length > 0) {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, ...peopleItemsToAdd])
-                            setEnteringItemIds(prev => new Set([...prev, 'people-dropdown']))
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete('people-dropdown')
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                        animationIndex++
-                    }
-
-                    if (standaloneOperatorsItem) {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, standaloneOperatorsItem])
-                            setEnteringItemIds(prev => new Set([...prev, 'Operators']))
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete('Operators')
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                        animationIndex++
-                    }
-
-                    if (productivityItemsToAdd.length > 0) {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, ...productivityItemsToAdd])
-                            setEnteringItemIds(prev => new Set([...prev, 'productivity-dropdown']))
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete('productivity-dropdown')
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, animationIndex * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                        animationIndex++
-                    }
-
-                    otherItemsForAnimation.forEach((item, index) => {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, item])
-                            setEnteringItemIds(prev => new Set([...prev, item.id]))
-
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete(item.id)
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, (animationIndex + index) * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                    })
-
-                    lastMenuItemsRef.current = filtered
-                    return
-                }
-
-                const currentIds = new Set(lastMenuItemsRef.current.map(item => item.id))
-                const newIds = new Set(filtered.map(item => item.id))
-                const itemsToRemove = lastMenuItemsRef.current.filter(item => !newIds.has(item.id) && !assetItems.includes(item.id))
-                const itemsToAdd = filtered.filter(item => !currentIds.has(item.id) && !assetItems.includes(item.id))
-                const newAssetItems = filtered.filter(item => assetItems.includes(item.id) && !currentIds.has(item.id))
-                const assetItemsToRemove = lastMenuItemsRef.current.filter(item => !newIds.has(item.id) && assetItems.includes(item.id))
-
-                if (assetItemsToRemove.length > 0) {
-                    const assetIdsToRemove = new Set(assetItemsToRemove.map(a => a.id))
-                    setVisibleMenuItems(prev => prev.filter(item => !assetIdsToRemove.has(item.id)))
-                }
-
-                if (newAssetItems.length > 0) {
-                    setVisibleMenuItems(prev => [...prev, ...newAssetItems])
-                }
-
-                if (itemsToRemove.length === 0 && itemsToAdd.length === 0) {
-                    lastMenuItemsRef.current = filtered
-                    return
-                }
-
-                enterTimeoutsRef.current.forEach(t => clearTimeout(t))
-                enterTimeoutsRef.current = []
-                if (exitAnimationTimeoutRef.current) clearTimeout(exitAnimationTimeoutRef.current)
-                if (enterAnimationTimeoutRef.current) clearTimeout(enterAnimationTimeoutRef.current)
-
-                if (itemsToRemove.length > 0) {
-                    exitTimeoutsRef.current.forEach(t => clearTimeout(t))
-                    exitTimeoutsRef.current = []
-
-                    itemsToRemove.forEach((item, index) => {
-                        const startDelay = index * ANIMATION_TIMING.ITEM_ENTER_DELAY
-                        const addExitTimeout = setTimeout(() => {
-                            setExitingItems(prev => [...prev, item])
-                            const removeTimeout = setTimeout(() => {
-                                setVisibleMenuItems(prev => prev.filter(x => x.id !== item.id))
-                                setExitingItems(prev => prev.filter(x => x.id !== item.id))
-
-                                if (index === itemsToRemove.length - 1 && itemsToAdd.length > 0) {
-                                    itemsToAdd.forEach((toAdd, addIdx) => {
-                                        const timeout = setTimeout(() => {
-                                            setVisibleMenuItems(prev => [...prev, toAdd])
-                                            setEnteringItemIds(prev => new Set([...prev, toAdd.id]))
-                                            setTimeout(() => {
-                                                setEnteringItemIds(prev => {
-                                                    const newSet = new Set(prev)
-                                                    newSet.delete(toAdd.id)
-                                                    return newSet
-                                                })
-                                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                                        }, addIdx * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                                        enterTimeoutsRef.current.push(timeout)
-                                    })
-                                }
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                            exitTimeoutsRef.current.push(removeTimeout)
-                        }, startDelay)
-                        exitTimeoutsRef.current.push(addExitTimeout)
-                    })
-                } else if (itemsToAdd.length > 0) {
-                    itemsToAdd.forEach((item, index) => {
-                        const timeout = setTimeout(() => {
-                            setVisibleMenuItems(prev => [...prev, item])
-                            setEnteringItemIds(prev => new Set([...prev, item.id]))
-
-                            setTimeout(() => {
-                                setEnteringItemIds(prev => {
-                                    const newSet = new Set(prev)
-                                    newSet.delete(item.id)
-                                    return newSet
-                                })
-                            }, ANIMATION_TIMING.BASE_EXIT_DURATION)
-                        }, index * ANIMATION_TIMING.ITEM_ENTER_DELAY)
-                        enterTimeoutsRef.current.push(timeout)
-                    })
-                }
-
-                lastMenuItemsRef.current = filtered
-            } catch (error) {
+                setVisibleMenuItems(filtered)
+            } catch {
                 setVisibleMenuItems([])
-                lastMenuItemsRef.current = []
             }
         }
-
-        filterMenuItems()
+        filterItems()
     }, [userId, regionType, regionCode])
 
-    useEffect(() => {
-        return () => {
-            if (exitAnimationTimeoutRef.current) {
-                clearTimeout(exitAnimationTimeoutRef.current)
-            }
-            if (enterAnimationTimeoutRef.current) {
-                clearTimeout(enterAnimationTimeoutRef.current)
-            }
-            enterTimeoutsRef.current.forEach(t => clearTimeout(t))
-            exitTimeoutsRef.current.forEach(t => clearTimeout(t))
-        }
-    }, [])
-
-    const handleMenuItemClick = (itemId) => {
-        if (window.appSwitchView && (itemId === 'List' || itemId === 'Archive')) {
-            window.appSwitchView(itemId)
+    const handleMenuClick = (id) => {
+        if (window.appSwitchView && (id === 'List' || id === 'Archive')) {
+            window.appSwitchView(id)
         } else {
-            onSelectView(itemId)
+            onSelectView(id)
         }
+        setMobileMenuOpen(false)
+        setOpenDropdown(null)
     }
 
     const handleRegionChange = (e) => {
@@ -452,607 +153,435 @@ export default function Navigation({
                 type: r.type || r.region_type || ''
             }
             updatePreferences('selectedRegion', newRegion)
-
-            window.dispatchEvent(new CustomEvent('region-changed', {
-                detail: newRegion
-            }))
+            window.dispatchEvent(new CustomEvent('region-changed', {detail: newRegion}))
         }
     }
 
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const hasAssets = visibleMenuItems.some(i => ASSET_ITEMS.includes(i.id))
+    const hasPeople = visibleMenuItems.filter(i => PEOPLE_ITEMS.includes(i.id)).length > 1
+    const hasProductivity = visibleMenuItems.filter(i => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
+    const standaloneItems = visibleMenuItems.filter(i => 
+        !ASSET_ITEMS.includes(i.id) && 
+        !(hasPeople && PEOPLE_ITEMS.includes(i.id)) && 
+        !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id))
+    )
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768)
-        }
+    const navItemStyle = (isActive) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '10px 16px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+        color: 'white',
+        fontWeight: 500,
+        fontSize: '14px',
+        whiteSpace: 'nowrap'
+    })
 
-        window.addEventListener('resize', handleResize)
-        return () => {
-            window.removeEventListener('resize', handleResize)
-        }
-    }, [])
+    const dropdownStyle = {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        marginTop: '4px',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+        border: '1px solid #e5e7eb',
+        padding: '8px',
+        minWidth: '200px',
+        zIndex: 1000
+    }
+
+    const renderDropdown = (label, icon, items, dropdownId, activeCheck) => {
+        const isOpen = openDropdown === dropdownId
+        const isActive = activeCheck()
+        return (
+            <div style={{position: 'relative'}} ref={isOpen ? dropdownRef : null}>
+                <div
+                    style={{...navItemStyle(isActive), gap: '6px'}}
+                    onClick={() => setOpenDropdown(isOpen ? null : dropdownId)}
+                >
+                    <i className={`fas ${icon}`} style={{fontSize: '14px'}}></i>
+                    <span>{label}</span>
+                    <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'}`} style={{fontSize: '10px', marginLeft: '2px'}}></i>
+                </div>
+                {isOpen && (
+                    <div style={dropdownStyle}>
+                        {items.map(itemId => {
+                            const item = visibleMenuItems.find(i => i.id === itemId)
+                            if (!item) return null
+                            const isItemActive = selectedView === item.id
+                            return (
+                                <div
+                                    key={item.id}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        padding: '10px 14px',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s',
+                                        backgroundColor: isItemActive ? '#f0f7ff' : 'transparent',
+                                        color: isItemActive ? '#1e3a5f' : '#374151',
+                                        fontWeight: isItemActive ? 600 : 400
+                                    }}
+                                    onClick={() => handleMenuClick(item.id)}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isItemActive ? '#f0f7ff' : '#f9fafb'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isItemActive ? '#f0f7ff' : 'transparent'}
+                                >
+                                    <i className={`fas ${ICONS[item.id]}`} style={{fontSize: '14px', width: '18px', color: '#64748b'}}></i>
+                                    <span style={{color: isItemActive ? '#1e3a5f' : '#374151'}}>{item.text}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+    const renderIconButton = (icon, title, onClick, isActive = false, badge = null) => (
+        <div
+            style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                color: 'white',
+                transition: 'all 0.2s'
+            }}
+            onClick={onClick}
+            title={title}
+            onMouseEnter={(e) => {if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}}
+            onMouseLeave={(e) => {if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'}}
+        >
+            <i className={`fas ${icon}`} style={{fontSize: '16px'}}></i>
+            {badge > 0 && (
+                <span style={{
+                    position: 'absolute',
+                    top: '2px',
+                    right: '2px',
+                    minWidth: '18px',
+                    height: '18px',
+                    borderRadius: '9px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 5px'
+                }}>{badge}</span>
+            )}
+        </div>
+    )
+
+    if (isMobile) {
+        return (
+            <>
+                <div style={{display: 'flex', flexDirection: 'column', height: '100vh', width: '100%'}}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 16px',
+                        backgroundColor: '#1e3a5f',
+                        borderBottom: '1px solid #163352',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 100
+                    }}>
+                        <img src={SrmLogo} alt="Logo" style={{height: '32px', filter: 'brightness(0) invert(1)'}} draggable={false}/>
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            style={{
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '10px',
+                                border: 'none',
+                                backgroundColor: mobileMenuOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                                color: 'white',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <i className={`fas fa-${mobileMenuOpen ? 'times' : 'bars'}`}></i>
+                        </button>
+                    </div>
+
+                    {mobileMenuOpen && (
+                        <div
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                zIndex: 200
+                            }}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 0,
+                                    width: '280px',
+                                    height: '100%',
+                                    backgroundColor: 'white',
+                                    boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
+                                    overflowY: 'auto',
+                                    padding: '20px'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div style={{marginBottom: '20px'}}>
+                                    <select
+                                        value={regionCode || ''}
+                                        onChange={handleRegionChange}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e5e7eb',
+                                            fontSize: '14px',
+                                            fontWeight: 500,
+                                            backgroundColor: '#f8fafc'
+                                        }}
+                                    >
+                                        {permittedRegions.length === 0 ? (
+                                            <option value="">Loading...</option>
+                                        ) : (
+                                            permittedRegions.map(r => (
+                                                <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                                    {r.regionName || r.region_name}
+                                                </option>
+                                            ))
+                                        )}
+                                    </select>
+                                </div>
+
+                                {standaloneItems.filter(i => i.id !== 'Dashboard').length > 0 && standaloneItems.find(i => i.id === 'Dashboard') && (
+                                    <MobileMenuItem
+                                        item={standaloneItems.find(i => i.id === 'Dashboard')}
+                                        isActive={selectedView === 'Dashboard'}
+                                        onClick={() => handleMenuClick('Dashboard')}
+                                    />
+                                )}
+
+                                {hasAssets && (
+                                    <MobileSection title="Assets">
+                                        {ASSET_ITEMS.map(id => {
+                                            const item = visibleMenuItems.find(i => i.id === id)
+                                            if (!item) return null
+                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id} onClick={() => handleMenuClick(id)}/>
+                                        })}
+                                    </MobileSection>
+                                )}
+
+                                {hasPeople && (
+                                    <MobileSection title="People">
+                                        {PEOPLE_ITEMS.map(id => {
+                                            const item = visibleMenuItems.find(i => i.id === id)
+                                            if (!item) return null
+                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id} onClick={() => handleMenuClick(id)}/>
+                                        })}
+                                    </MobileSection>
+                                )}
+
+                                {hasProductivity && (
+                                    <MobileSection title="Productivity">
+                                        {PRODUCTIVITY_ITEMS.map(id => {
+                                            const item = visibleMenuItems.find(i => i.id === id)
+                                            if (!item) return null
+                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id} onClick={() => handleMenuClick(id)}/>
+                                        })}
+                                    </MobileSection>
+                                )}
+
+                                {standaloneItems.filter(i => i.id !== 'Dashboard').map(item => (
+                                    <MobileMenuItem key={item.id} item={item} isActive={selectedView === item.id} onClick={() => handleMenuClick(item.id)}/>
+                                ))}
+
+                                <MobileSection title="Account">
+                                    <MobileMenuItem item={{id: 'MyAccount', text: 'My Account'}} isActive={selectedView === 'MyAccount'} onClick={() => handleMenuClick('MyAccount')}/>
+                                </MobileSection>
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{flex: 1, overflowY: 'auto', overflowX: 'hidden'}}>{children}</div>
+                </div>
+            </>
+        )
+    }
 
     return (
         <>
-            <VideoBackground/>
-            <div className="app-container">
-                {isMobile ? (
-                    <>
-                        <div className="mobile-navbar">
-                            <div className="mobile-navbar-left">
-                                <img
-                                    src={SrmLogo}
-                                    alt="Smyrna Logo"
-                                    className="mobile-logo"
-                                    draggable={false}
-                                />
-                            </div>
-                            <div className="mobile-navbar-right">
-                                <button
-                                    className="mobile-menu-toggle"
-                                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                    aria-label="Toggle Menu"
+            <div style={{display: 'flex', flexDirection: 'column', height: '100vh', width: '100%'}}>
+                <header style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 24px',
+                    height: '64px',
+                    backgroundColor: '#1e3a5f',
+                    borderBottom: '1px solid #163352',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 100
+                }}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '32px'}}>
+                        <img src={SrmLogo} alt="Smyrna Ready Mix" style={{height: '36px'}} draggable={false}/>
+                        
+                        <nav style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                            {standaloneItems.find(i => i.id === 'Dashboard') && (
+                                <div
+                                    style={navItemStyle(selectedView === 'Dashboard')}
+                                    onClick={() => handleMenuClick('Dashboard')}
+                                    onMouseEnter={(e) => {if (selectedView !== 'Dashboard') e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}}
+                                    onMouseLeave={(e) => {if (selectedView !== 'Dashboard') e.currentTarget.style.backgroundColor = 'transparent'}}
                                 >
-                                    <i className={`fas fa-${isMobileMenuOpen ? 'times' : 'bars'}`}></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        {isMobileMenuOpen && (
-                            <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
-                                <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
-                                    <div className="mobile-menu-header">
-                                        <select
-                                            className="mobile-region-selector"
-                                            value={regionCode || ''}
-                                            onChange={handleRegionChange}
-                                            aria-label="Region"
-                                        >
-                                            {permittedRegions.length === 0 ? (
-                                                <option value="">Loading regions...</option>
-                                            ) : (
-                                                permittedRegions.map(r => (
-                                                    <option key={r.regionCode || r.region_code}
-                                                            value={r.regionCode || r.region_code}>
-                                                        {r.regionName || r.region_name}
-                                                    </option>
-                                                ))
-                                            )}
-                                        </select>
-                                        <button
-                                            className="mobile-menu-close"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            aria-label="Close Menu"
-                                        >
-                                            <i className="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                    <div className="mobile-menu-content">
-                                        {visibleMenuItems.map((item) => {
-                                            const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-                                            const peopleItems = ['Operators', 'Managers']
-                                            const productivityItems = ['List', 'Reports']
-                                            const mobileHiddenItems = ['Calculators', 'Leaderboards', 'Reports']
-
-                                            if (assetItems.includes(item.id)) return null
-                                            if (peopleItems.includes(item.id)) return null
-                                            if (productivityItems.includes(item.id)) return null
-                                            if (mobileHiddenItems.includes(item.id)) return null
-
-                                            return (
-                                                <div
-                                                    key={item.id}
-                                                    className={`mobile-menu-item ${selectedView === item.id ? 'active' : ''}`}
-                                                    onClick={() => {
-                                                        handleMenuItemClick(item.id)
-                                                        setIsMobileMenuOpen(false)
-                                                    }}
-                                                >
-                                                    <span className="mobile-menu-icon">
-                                                        {getIconForMenuItem(item.id)}
-                                                    </span>
-                                                    <span className="mobile-menu-text">{item.text}</span>
-                                                </div>
-                                            )
-                                        })}
-
-                                        {visibleMenuItems.some(item => ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks'].includes(item.id)) && (
-                                            <>
-                                                <div className="mobile-menu-divider">Assets</div>
-                                                {['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks'].map(assetId => {
-                                                    const item = visibleMenuItems.find(i => i.id === assetId)
-                                                    if (!item) return null
-                                                    return (
-                                                        <div
-                                                            key={item.id}
-                                                            className={`mobile-menu-item ${selectedView === item.id ? 'active' : ''}`}
-                                                            onClick={() => {
-                                                                handleMenuItemClick(item.id)
-                                                                setIsMobileMenuOpen(false)
-                                                            }}
-                                                        >
-                                                            <span className="mobile-menu-icon">
-                                                                {getIconForMenuItem(item.id)}
-                                                            </span>
-                                                            <span className="mobile-menu-text">{item.text}</span>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </>
-                                        )}
-
-                                        {visibleMenuItems.some(item => ['Operators', 'Managers'].includes(item.id)) && (
-                                            <>
-                                                <div className="mobile-menu-divider">People</div>
-                                                {['Operators', 'Managers'].map(personId => {
-                                                    const item = visibleMenuItems.find(i => i.id === personId)
-                                                    if (!item) return null
-                                                    return (
-                                                        <div
-                                                            key={item.id}
-                                                            className={`mobile-menu-item ${selectedView === item.id ? 'active' : ''}`}
-                                                            onClick={() => {
-                                                                handleMenuItemClick(item.id)
-                                                                setIsMobileMenuOpen(false)
-                                                            }}
-                                                        >
-                                                            <span className="mobile-menu-icon">
-                                                                {getIconForMenuItem(item.id)}
-                                                            </span>
-                                                            <span className="mobile-menu-text">{item.text}</span>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </>
-                                        )}
-
-                                        {visibleMenuItems.some(item => ['List'].includes(item.id)) && (
-                                            <>
-                                                <div className="mobile-menu-divider">Productivity</div>
-                                                {['List'].map(prodId => {
-                                                    const item = visibleMenuItems.find(i => i.id === prodId)
-                                                    if (!item) return null
-                                                    return (
-                                                        <div
-                                                            key={item.id}
-                                                            className={`mobile-menu-item ${selectedView === item.id ? 'active' : ''}`}
-                                                            onClick={() => {
-                                                                handleMenuItemClick(item.id)
-                                                                setIsMobileMenuOpen(false)
-                                                            }}
-                                                        >
-                                                            <span className="mobile-menu-icon">
-                                                                {getIconForMenuItem(item.id)}
-                                                            </span>
-                                                            <span className="mobile-menu-text">{item.text}</span>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </>
-                                        )}
-
-                                        <div className="mobile-menu-divider">Account</div>
-                                        <div
-                                            className={`mobile-menu-item ${selectedView === 'Settings' ? 'active' : ''}`}
-                                            onClick={() => {
-                                                handleMenuItemClick('Settings')
-                                                setIsMobileMenuOpen(false)
-                                            }}
-                                        >
-                                            <span className="mobile-menu-icon">
-                                                {getIconForMenuItem('Settings')}
-                                            </span>
-                                            <span className="mobile-menu-text">Settings</span>
-                                        </div>
-                                        <div
-                                            className={`mobile-menu-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
-                                            onClick={() => {
-                                                handleMenuItemClick('MyAccount')
-                                                setIsMobileMenuOpen(false)
-                                            }}
-                                        >
-                                            <span className="mobile-menu-icon">
-                                                {getIconForMenuItem('MyAccount')}
-                                            </span>
-                                            <span className="mobile-menu-text">My Account</span>
-                                        </div>
-                                    </div>
+                                    <i className={`fas ${ICONS.Dashboard}`} style={{fontSize: '14px'}}></i>
+                                    <span>Dashboard</span>
                                 </div>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <div className="horizontal-navbar">
-                        <div className="navbar-left">
-                            <div className="logo-container">
-                                <img
-                                    src={SrmLogo}
-                                    alt="Smyrna Logo"
-                                    className="navbar-logo"
-                                    title="Smyrna Ready Mix"
-                                    draggable={false}
-                                    decoding="async"
-                                    loading="eager"
-                                />
-                            </div>
-                        </div>
-                        <nav className="navbar-menu">
-                            <ul>
-                                {isMenuReady && (() => {
-                                    const exitingIds = new Set(exitingItems.map(item => item.id))
-                                    const visibleIds = new Set(visibleMenuItems.map(item => item.id))
-                                    const exitingMap = new Map(exitingItems.map(item => [item.id, item]))
+                            )}
 
-                                    const assetItems = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-                                    const hasAssets = visibleMenuItems.some(item => assetItems.includes(item.id))
-                                    const isAssetsActive = assetItems.includes(selectedView)
+                            {hasAssets && renderDropdown('Assets', ICONS.Assets, ASSET_ITEMS, 'assets', () => ASSET_ITEMS.includes(selectedView))}
+                            {hasPeople && renderDropdown('People', ICONS.People, PEOPLE_ITEMS, 'people', () => PEOPLE_ITEMS.includes(selectedView))}
+                            {hasProductivity && renderDropdown('Productivity', ICONS.Productivity, PRODUCTIVITY_ITEMS, 'productivity', () => PRODUCTIVITY_ITEMS.includes(selectedView))}
 
-                                    const peopleItems = ['Operators', 'Managers']
-                                    const hasOperators = visibleIds.has('Operators') || exitingIds.has('Operators')
-                                    const hasManagers = visibleIds.has('Managers') || exitingIds.has('Managers')
-                                    const shouldShowPeople = hasOperators && hasManagers
-                                    const isPeopleActive = peopleItems.includes(selectedView)
-
-                                    const productivityItems = ['List', 'Reports']
-                                    const productivityCount = productivityItems.filter(id => visibleIds.has(id) || exitingIds.has(id)).length
-                                    const shouldShowProductivity = productivityCount > 1
-                                    const isProductivityActive = productivityItems.includes(selectedView)
-
-                                    const dashboardItem = menuItems.find(item => item.id === 'Dashboard' && (visibleIds.has(item.id) || exitingIds.has(item.id)))
-                                    const dashboardData = dashboardItem && exitingIds.has(dashboardItem.id) ? exitingMap.get(dashboardItem.id) : dashboardItem
-
-                                    const standaloneOperators = !shouldShowPeople && (visibleIds.has('Operators') || exitingIds.has('Operators'))
-                                        ? menuItems.find(item => item.id === 'Operators')
-                                        : null
-
-                                    const otherItems = menuItems.filter(item =>
-                                        (visibleIds.has(item.id) || exitingIds.has(item.id)) &&
-                                        item.id !== 'Dashboard' &&
-                                        !assetItems.includes(item.id) &&
-                                        !(shouldShowPeople && peopleItems.includes(item.id)) &&
-                                        !(shouldShowProductivity && productivityItems.includes(item.id)) &&
-                                        !(item.id === 'Operators' && !shouldShowPeople)
-                                    ).map(item =>
-                                        exitingIds.has(item.id) ? exitingMap.get(item.id) : item
-                                    )
-
-                                    const result = []
-
-                                    if (dashboardData) {
-                                        const isExiting = exitingIds.has(dashboardData.id)
-                                        const isEntering = enteringItemIds.has(dashboardData.id)
-                                        const isActive = selectedView === dashboardData.id
-
-                                        result.push(
-                                            <li
-                                                key={dashboardData.id}
-                                                className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
-                                                onClick={() => {
-                                                    if (isExiting) return
-                                                    handleMenuItemClick(dashboardData.id)
-                                                }}
-                                                title={dashboardData.text}
-                                            >
-                                            <span className="menu-icon">
-                                                {getIconForMenuItem(dashboardData.id)}
-                                            </span>
-                                                <span className="menu-text">
-                                                {dashboardData.text}
-                                            </span>
-                                            </li>
-                                        )
-                                    }
-
-                                    if (hasAssets) {
-                                        const isAssetsEntering = enteringItemIds.has('assets-dropdown')
-                                        result.push(
-                                            <li
-                                                key="assets-dropdown"
-                                                className={`menu-item assets-dropdown-toggle ${isAssetsActive ? 'active' : ''} ${isAssetsEntering ? 'animating-in' : ''}`}
-                                                ref={assetsDropdownRef}
-                                                onClick={() => {
-                                                    setShowAssetsDropdown(prev => !prev)
-                                                }}
-                                                title="Assets"
-                                                style={{position: 'relative', overflow: 'visible'}}
-                                            >
-                                            <span className="menu-icon">
-                                                <i className="fas fa-truck"></i>
-                                            </span>
-                                                <span className="menu-text">
-                                                Assets
-                                            </span>
-                                                <span className="menu-icon"
-                                                      style={{fontSize: '12px', marginLeft: '4px'}}>
-                                                <i className={`fas fa-chevron-${showAssetsDropdown ? 'up' : 'down'}`}></i>
-                                            </span>
-                                                {showAssetsDropdown && (
-                                                    <div className="assets-dropdown"
-                                                         onClick={(e) => e.stopPropagation()}>
-                                                        {assetItems.map(assetId => {
-                                                            const item = visibleMenuItems.find(i => i.id === assetId)
-                                                            if (!item) return null
-                                                            return (
-                                                                <div
-                                                                    key={item.id}
-                                                                    className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        handleMenuItemClick(item.id)
-                                                                        setShowAssetsDropdown(false)
-                                                                    }}
-                                                                >
-                                                                <span className="menu-icon">
-                                                                    {getIconForMenuItem(item.id)}
-                                                                </span>
-                                                                    <span className="menu-text">
-                                                                    {item.text}
-                                                                </span>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        )
-                                    }
-
-                                    if (shouldShowPeople) {
-                                        const isPeopleEntering = enteringItemIds.has('people-dropdown')
-                                        result.push(
-                                            <li
-                                                key="people-dropdown"
-                                                className={`menu-item people-dropdown-toggle ${isPeopleActive ? 'active' : ''} ${isPeopleEntering ? 'animating-in' : ''}`}
-                                                ref={peopleDropdownRef}
-                                                onClick={() => {
-                                                    setShowPeopleDropdown(prev => !prev)
-                                                }}
-                                                title="People"
-                                                style={{position: 'relative', overflow: 'visible'}}
-                                            >
-                                            <span className="menu-icon">
-                                                <i className="fas fa-users"></i>
-                                            </span>
-                                                <span className="menu-text">
-                                                People
-                                            </span>
-                                                <span className="menu-icon"
-                                                      style={{fontSize: '12px', marginLeft: '4px'}}>
-                                                <i className={`fas fa-chevron-${showPeopleDropdown ? 'up' : 'down'}`}></i>
-                                            </span>
-                                                {showPeopleDropdown && (
-                                                    <div className="assets-dropdown"
-                                                         onClick={(e) => e.stopPropagation()}>
-                                                        {peopleItems.map(personId => {
-                                                            const item = menuItems.find(i => i.id === personId)
-                                                            if (!item) return null
-                                                            return (
-                                                                <div
-                                                                    key={item.id}
-                                                                    className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        handleMenuItemClick(item.id)
-                                                                        setShowPeopleDropdown(false)
-                                                                    }}
-                                                                >
-                                                                <span className="menu-icon">
-                                                                    {getIconForMenuItem(item.id)}
-                                                                </span>
-                                                                    <span className="menu-text">
-                                                                    {item.text}
-                                                                </span>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        )
-                                    }
-
-                                    if (standaloneOperators) {
-                                        const isExiting = exitingIds.has('Operators')
-                                        const isEntering = enteringItemIds.has('Operators')
-                                        const isActive = selectedView === 'Operators'
-
-                                        result.push(
-                                            <li
-                                                key="Operators"
-                                                className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
-                                                onClick={() => {
-                                                    if (isExiting) return
-                                                    handleMenuItemClick('Operators')
-                                                }}
-                                                title="Operators"
-                                            >
-                                            <span className="menu-icon">
-                                                {getIconForMenuItem('Operators')}
-                                            </span>
-                                                <span className="menu-text">
-                                                Operators
-                                            </span>
-                                            </li>
-                                        )
-                                    }
-
-                                    if (shouldShowProductivity) {
-                                        const isProductivityEntering = enteringItemIds.has('productivity-dropdown')
-                                        result.push(
-                                            <li
-                                                key="productivity-dropdown"
-                                                className={`menu-item productivity-dropdown-toggle ${isProductivityActive ? 'active' : ''} ${isProductivityEntering ? 'animating-in' : ''}`}
-                                                ref={productivityDropdownRef}
-                                                onClick={() => {
-                                                    setShowProductivityDropdown(prev => !prev)
-                                                }}
-                                                title="Productivity"
-                                                style={{position: 'relative', overflow: 'visible'}}
-                                            >
-                                            <span className="menu-icon">
-                                                <i className="fas fa-chart-line"></i>
-                                            </span>
-                                                <span className="menu-text">
-                                                Productivity
-                                            </span>
-                                                <span className="menu-icon"
-                                                      style={{fontSize: '12px', marginLeft: '4px'}}>
-                                                <i className={`fas fa-chevron-${showProductivityDropdown ? 'up' : 'down'}`}></i>
-                                            </span>
-                                                {showProductivityDropdown && (
-                                                    <div className="assets-dropdown"
-                                                         onClick={(e) => e.stopPropagation()}>
-                                                        {productivityItems.map(prodId => {
-                                                            const item = menuItems.find(i => i.id === prodId)
-                                                            if (!item) return null
-                                                            if (!visibleIds.has(item.id) && !exitingIds.has(item.id)) return null
-                                                            return (
-                                                                <div
-                                                                    key={item.id}
-                                                                    className={`dropdown-item ${selectedView === item.id ? 'active' : ''}`}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        handleMenuItemClick(item.id)
-                                                                        setShowProductivityDropdown(false)
-                                                                    }}
-                                                                >
-                                                                <span className="menu-icon">
-                                                                    {getIconForMenuItem(item.id)}
-                                                                </span>
-                                                                    <span className="menu-text">
-                                                                    {item.text}
-                                                                </span>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        )
-                                    }
-
-                                    result.push(...otherItems.map((item) => {
-                                        const isExiting = exitingIds.has(item.id)
-                                        const isEntering = enteringItemIds.has(item.id)
-                                        const isActive = selectedView === item.id
-
-                                        return (
-                                            <li
-                                                key={item.id}
-                                                className={`menu-item ${isActive ? 'active' : ''} ${isExiting ? 'animating-out' : ''} ${isEntering ? 'animating-in' : ''}`}
-                                                onClick={() => {
-                                                    if (isExiting) return
-                                                    handleMenuItemClick(item.id)
-                                                }}
-                                                title={item.text}
-                                            >
-                                            <span className="menu-icon">
-                                                {getIconForMenuItem(item.id)}
-                                            </span>
-                                                <span className="menu-text">
-                                                {item.text}
-                                            </span>
-                                            </li>
-                                        )
-                                    }))
-
-                                    return result
-                                })()}
-                            </ul>
+                            {standaloneItems.filter(i => i.id !== 'Dashboard').map(item => (
+                                <div
+                                    key={item.id}
+                                    style={navItemStyle(selectedView === item.id)}
+                                    onClick={() => handleMenuClick(item.id)}
+                                    onMouseEnter={(e) => {if (selectedView !== item.id) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}}
+                                    onMouseLeave={(e) => {if (selectedView !== item.id) e.currentTarget.style.backgroundColor = 'transparent'}}
+                                >
+                                    <i className={`fas ${ICONS[item.id]}`} style={{fontSize: '14px'}}></i>
+                                    <span>{item.text}</span>
+                                </div>
+                            ))}
                         </nav>
-                        <div className="navbar-right">
-                            <select
-                                className="region-selector"
-                                value={regionCode || ''}
-                                onChange={handleRegionChange}
-                                aria-label="Region"
-                            >
-                                {permittedRegions.length === 0 ? (
-                                    <option value="">Loading regions...</option>
-                                ) : (
-                                    permittedRegions.map(r => (
-                                        <option key={r.regionCode || r.region_code}
-                                                value={r.regionCode || r.region_code}>
-                                            {r.regionName || r.region_name}
-                                        </option>
-                                    ))
-                                )}
-                            </select>
-                            <div
-                                className={`menu-item settings-item ${selectedView === 'Settings' ? 'active' : ''}`}
-                                onClick={() => handleMenuItemClick('Settings')}
-                                title="Settings"
-                            >
-                            <span className="menu-icon">
-                                {getIconForMenuItem('Settings')}
-                            </span>
-                            </div>
-                            <div
-                                className={`menu-item account-item ${selectedView === 'MyAccount' ? 'active' : ''}`}
-                                onClick={() => handleMenuItemClick('MyAccount')}
-                                title={userName ? `My Account - ${userName}` : 'My Account'}
-                            >
-                            <span className="menu-icon">
-                                {getIconForMenuItem('MyAccount')}
-                            </span>
-                            </div>
-                            <div
-                                className={`menu-item notifications-item ${notificationsCount > 0 ? 'has-notifications' : ''}`}
-                                title="Notifications"
-                                aria-label="Notifications"
-                                onClick={(e) => {
-                                    const rect = e.currentTarget.getBoundingClientRect()
-                                    setNotificationsAnchor(rect)
-                                    if (typeof window !== 'undefined') {
-                                        try {
-                                            window.dispatchEvent(new CustomEvent('notifications-refresh'))
-                                        } catch {
-                                        }
-                                    }
-                                    setShowNotifications(true)
-                                }}
-                            >
-                            <span className="menu-icon">
-                                <i className="fas fa-bell"></i>
-                            </span>
-                                {notificationsCount > 0 && (
-                                    <span className="notification-badge">{notificationsCount}</span>
-                                )}
-                            </div>
-                            <div
-                                className="menu-item ai-agent-item"
-                                title="AI Assistant"
-                                aria-label="AI Assistant"
-                                onClick={() => setShowAIAgent(true)}
-                            >
-                            <span className="menu-icon">
-                                <i className="fas fa-robot"></i>
-                            </span>
-                            </div>
-                        </div>
                     </div>
-                )}
-                <div className="content-area">{children}</div>
+
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                        <select
+                            value={regionCode || ''}
+                            onChange={handleRegionChange}
+                            style={{
+                                padding: '8px 32px 8px 14px',
+                                borderRadius: '10px',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                appearance: 'none',
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 10px center',
+                                backgroundSize: '16px'
+                            }}
+                        >
+                            {permittedRegions.length === 0 ? (
+                                <option value="">Loading...</option>
+                            ) : (
+                                permittedRegions.map(r => (
+                                    <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                        {r.regionName || r.region_name}
+                                    </option>
+                                ))
+                            )}
+                        </select>
+
+                        {renderIconButton(ICONS.MyAccount, userName ? `My Account - ${userName}` : 'My Account', () => handleMenuClick('MyAccount'), selectedView === 'MyAccount')}
+                        {renderIconButton('fa-bell', 'Notifications', (e) => {
+                            setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
+                            window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                            setShowNotifications(true)
+                        }, false, notificationsCount)}
+                        {renderIconButton('fa-robot', 'AI Assistant', () => setShowAIAgent(true))}
+                    </div>
+                </header>
+
+                <main style={{flex: 1, overflowY: 'auto', overflowX: 'hidden'}}>{children}</main>
+
                 {showNotifications && (
-                    <NotificationsModal isOpen={showNotifications} onClose={() => {
-                        setShowNotifications(false)
-                        if (typeof window !== 'undefined') {
-                            try {
-                                window.dispatchEvent(new CustomEvent('notifications-refresh'))
-                            } catch {
-                            }
-                        }
-                    }} anchorRect={notificationsAnchor}/>
+                    <NotificationsModal
+                        isOpen={showNotifications}
+                        onClose={() => {
+                            setShowNotifications(false)
+                            window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                        }}
+                        anchorRect={notificationsAnchor}
+                    />
                 )}
+
                 <AIAgentPopup
                     isOpen={showAIAgent}
                     onClose={() => setShowAIAgent(false)}
                     regionName={preferences?.selectedRegion?.name || ''}
-                    regionCode={preferences?.selectedRegion?.code || preferences?.selectedRegion?.regionCode || preferences?.selectedRegion?.region_code || ''}
+                    regionCode={preferences?.selectedRegion?.code || ''}
                     selectedPlant={null}
                 />
             </div>
         </>
+    )
+}
+
+function MobileSection({title, children}) {
+    return (
+        <div style={{marginBottom: '16px'}}>
+            <div style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#94a3b8',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                padding: '8px 12px',
+                marginBottom: '4px'
+            }}>{title}</div>
+            {children}
+        </div>
+    )
+}
+
+function MobileMenuItem({item, isActive, onClick}) {
+    return (
+        <div
+            onClick={onClick}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                backgroundColor: isActive ? '#f0f7ff' : 'transparent',
+                color: isActive ? '#1e3a5f' : '#374151',
+                fontWeight: isActive ? 600 : 400,
+                marginBottom: '4px',
+                transition: 'all 0.15s'
+            }}
+        >
+            <i className={`fas ${ICONS[item.id] || 'fa-circle'}`} style={{fontSize: '16px', width: '20px', color: isActive ? '#1e3a5f' : '#64748b'}}></i>
+            <span style={{fontSize: '15px'}}>{item.text}</span>
+        </div>
     )
 }

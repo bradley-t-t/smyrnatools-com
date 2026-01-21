@@ -1,8 +1,26 @@
 import React from 'react'
-import '../styles/Reports.css'
 import {supabase} from '../../../services/DatabaseService'
 import {ReportUtility} from '../../../utils/ReportUtility'
 import {reportTypeMap} from '../../../types/ReportTypes'
+
+const aggReportStyles = `
+.agg-report-container { }
+.agg-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.agg-section-header { margin-bottom: 1.25rem; }
+.agg-section-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.agg-section-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+.agg-fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+.agg-field { display: flex; flex-direction: column; gap: 0.5rem; }
+.agg-field label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+.agg-field input { padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; }
+.agg-field input:disabled { background: #f8fafc; color: #64748b; }
+.agg-comparison { margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; }
+.agg-comparison-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
+.agg-comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+.agg-comparison-item { text-align: center; }
+.agg-comparison-value { font-size: 1.25rem; font-weight: 700; color: #1e3a5f; }
+.agg-comparison-label { font-size: 0.75rem; color: #64748b; }
+`
 
 export function AggregateProductionSubmitPlugin({form, setForm, readOnly, weekIso, userId}) {
     const [lastWeekAgg, setLastWeekAgg] = React.useState(null)

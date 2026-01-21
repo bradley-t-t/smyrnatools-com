@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
@@ -744,25 +743,55 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 return (
                     <input
                         type="text"
-                        className={`step-input ${errors[field.id] ? 'error' : ''}`}
+                        style={{
+                            ...styles.input,
+                            ...(errors[field.id] ? {borderColor: '#ef4444'} : {})
+                        }}
                         value={responses[field.id] || ''}
                         onChange={(e) => handleResponseChange(field.id, e.target.value)}
                         placeholder="Type your answer..."
                         disabled={isDisabled}
                         autoFocus
+                        onFocus={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#1e3a5f';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                            }
+                        }}
+                        onBlur={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#e5e7eb';
+                                e.target.style.boxShadow = 'none';
+                            }
+                        }}
                     />
                 )
 
             case 'long_answer':
                 return (
                     <textarea
-                        className={`step-textarea ${errors[field.id] ? 'error' : ''}`}
+                        style={{
+                            ...styles.textarea,
+                            ...(errors[field.id] ? {borderColor: '#ef4444'} : {})
+                        }}
                         value={responses[field.id] || ''}
                         onChange={(e) => handleResponseChange(field.id, e.target.value)}
                         placeholder="Type your answer..."
                         rows={5}
                         disabled={isDisabled}
                         autoFocus
+                        onFocus={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#1e3a5f';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                            }
+                        }}
+                        onBlur={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#e5e7eb';
+                                e.target.style.boxShadow = 'none';
+                            }
+                        }}
                     />
                 )
 
@@ -770,7 +799,7 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 const checkItems = field.options?.items || []
                 const comments = checklistComments[field.id] || {}
                 return (
-                    <div className="step-checklist">
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
                         {checkItems.map((checkItem, idx) => {
                             const isChecked = checklistStates[field.id]?.[checkItem] || false
                             const hasComment = comments[checkItem] && comments[checkItem].trim() !== ''
@@ -781,91 +810,139 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                             const imageError = errors[`${field.id}_${checkItem.trim()}_image`]
 
                             return (
-                                <div key={idx} className="step-check-wrapper">
+                                <div key={idx} style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
                                     <label
-                                        className={`step-check-item ${isChecked ? 'checked' : ''} ${hasComment && !isChecked ? 'has-comment' : ''}`}>
+                                        style={{
+                                            ...styles.checklistItem,
+                                            ...(isChecked ? {background: '#f0f7ff', borderColor: '#1e3a5f'} : {}),
+                                            cursor: isDisabled ? 'default' : 'pointer'
+                                        }}
+                                    >
                                         <input
                                             type="checkbox"
+                                            style={styles.checkbox}
                                             checked={isChecked}
                                             onChange={(e) => handleChecklistChange(field.id, checkItem, e.target.checked)}
                                             disabled={isDisabled}
                                         />
-                                        <span className="step-checkmark">
-                                            <i className="fas fa-check"></i>
-                                        </span>
-                                        <span className="step-check-label">{checkItem}</span>
+                                        <div style={styles.checklistContent}>
+                                            <span style={styles.checklistLabel}>{checkItem}</span>
+                                        </div>
                                     </label>
                                     {!isChecked && field.is_required && (
-                                        <div className="step-check-comment">
-                                            <input
-                                                type="text"
-                                                className="step-check-comment-input"
-                                                value={comments[checkItem] || ''}
-                                                onChange={(e) => handleChecklistComment(field.id, checkItem, e.target.value)}
-                                                placeholder="Why is this incomplete?"
-                                                disabled={isDisabled}
-                                            />
-                                        </div>
+                                        <input
+                                            type="text"
+                                            style={styles.checklistComment}
+                                            value={comments[checkItem] || ''}
+                                            onChange={(e) => handleChecklistComment(field.id, checkItem, e.target.value)}
+                                            placeholder="Why is this incomplete?"
+                                            disabled={isDisabled}
+                                            onFocus={(e) => {
+                                                e.target.style.borderColor = '#1e3a5f';
+                                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                            }}
+                                            onBlur={(e) => {
+                                                e.target.style.borderColor = '#e5e7eb';
+                                                e.target.style.boxShadow = 'none';
+                                            }}
+                                        />
                                     )}
                                     {(isChecked && field.image_required) || imageUrl ? (
-                                        <div className="checklist-item-image">
+                                        <div style={{marginTop: '0.5rem'}}>
                                             {imageUrl ? (
-                                                <div className="checklist-image-preview">
+                                                <div style={styles.imagePreview}>
                                                     <img
                                                         src={imageData?.previewUrl || getImageDisplayUrl(imageUrl)}
                                                         alt="Attached"
+                                                        style={styles.previewImage}
                                                         onClick={() => openImagePreview(imageData?.previewUrl || getImageDisplayUrl(imageUrl))}
                                                     />
                                                     {!isDisabled && (
                                                         <button
-                                                            className="remove-image-btn small"
-                                                            onClick={() => handleRemoveImage(field.id, checkItem)}
+                                                            style={styles.removeImageBtn}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleRemoveImage(field.id, checkItem);
+                                                            }}
                                                             type="button"
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
                                                         >
                                                             <i className="fas fa-times"></i>
                                                         </button>
                                                     )}
                                                     {isUploadingThis && (
-                                                        <div className="upload-overlay">
-                                                            <i className="fas fa-spinner fa-spin"></i>
-                                                        </div>
-                                                    )}
-                                                    {imageData?.uploaded && (
-                                                        <div className="upload-success small">
-                                                            <i className="fas fa-check"></i>
+                                                        <div style={styles.uploadingOverlay}>
+                                                            <i className="fas fa-spinner fa-spin" style={{color: 'white', fontSize: '1.5rem'}}></i>
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : isChecked && field.image_required ? (
-                                                <div className={`checklist-image-options ${imageError ? 'error' : ''}`}>
+                                                <div style={styles.imageButtons}>
                                                     {isUploadingThis ? (
-                                                        <div className="checklist-image-uploading">
+                                                        <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', color: '#64748b'}}>
                                                             <i className="fas fa-spinner fa-spin"></i>
+                                                            <span>Uploading...</span>
                                                         </div>
                                                     ) : (
                                                         <>
                                                             <button
-                                                                className="checklist-image-btn camera"
-                                                                onClick={() => !isDisabled && triggerCameraCapture(field.id, checkItem)}
+                                                                style={styles.imageBtn}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    !isDisabled && triggerCameraCapture(field.id, checkItem);
+                                                                }}
                                                                 type="button"
                                                                 disabled={isDisabled}
+                                                                onMouseEnter={(e) => {
+                                                                    if (!isDisabled) {
+                                                                        e.currentTarget.style.borderColor = '#1e3a5f';
+                                                                        e.currentTarget.style.background = '#f0f7ff';
+                                                                    }
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    if (!isDisabled) {
+                                                                        e.currentTarget.style.borderColor = '#e5e7eb';
+                                                                        e.currentTarget.style.background = 'white';
+                                                                    }
+                                                                }}
                                                             >
                                                                 <i className="fas fa-camera"></i>
+                                                                <span>Take Photo</span>
                                                             </button>
                                                             <button
-                                                                className="checklist-image-btn gallery"
-                                                                onClick={() => !isDisabled && triggerImageUpload(field.id, checkItem)}
+                                                                style={styles.imageBtn}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    !isDisabled && triggerImageUpload(field.id, checkItem);
+                                                                }}
                                                                 type="button"
                                                                 disabled={isDisabled}
+                                                                onMouseEnter={(e) => {
+                                                                    if (!isDisabled) {
+                                                                        e.currentTarget.style.borderColor = '#1e3a5f';
+                                                                        e.currentTarget.style.background = '#f0f7ff';
+                                                                    }
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    if (!isDisabled) {
+                                                                        e.currentTarget.style.borderColor = '#e5e7eb';
+                                                                        e.currentTarget.style.background = 'white';
+                                                                    }
+                                                                }}
                                                             >
                                                                 <i className="fas fa-images"></i>
+                                                                <span>Upload</span>
                                                             </button>
                                                         </>
                                                     )}
                                                 </div>
                                             ) : null}
                                             {imageError && (
-                                                <span className="checklist-image-error">{imageError}</span>
+                                                <div style={styles.error}>
+                                                    <i className="fas fa-exclamation-circle"></i>
+                                                    {' '}{imageError}
+                                                </div>
                                             )}
                                         </div>
                                     ) : null}
@@ -879,13 +956,28 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             case 'notes':
                 return (
                     <textarea
-                        className={`step-textarea notes ${errors[field.id] ? 'error' : ''}`}
+                        style={{
+                            ...styles.textarea,
+                            ...(errors[field.id] ? {borderColor: '#ef4444'} : {})
+                        }}
                         value={responses[field.id] || ''}
                         onChange={(e) => handleResponseChange(field.id, e.target.value)}
                         placeholder="Add any notes..."
                         rows={4}
                         disabled={isDisabled}
                         autoFocus
+                        onFocus={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#1e3a5f';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                            }
+                        }}
+                        onBlur={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#e5e7eb';
+                                e.target.style.boxShadow = 'none';
+                            }
+                        }}
                     />
                 )
 
@@ -893,11 +985,26 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 return (
                     <input
                         type="text"
-                        className={`step-input ${errors[field.id] ? 'error' : ''}`}
+                        style={{
+                            ...styles.input,
+                            ...(errors[field.id] ? {borderColor: '#ef4444'} : {})
+                        }}
                         value={responses[field.id] || ''}
                         onChange={(e) => handleResponseChange(field.id, e.target.value)}
                         disabled={isDisabled}
                         autoFocus
+                        onFocus={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#1e3a5f';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                            }
+                        }}
+                        onBlur={(e) => {
+                            if (!errors[field.id]) {
+                                e.target.style.borderColor = '#e5e7eb';
+                                e.target.style.boxShadow = 'none';
+                            }
+                        }}
                     />
                 )
         }
@@ -913,43 +1020,41 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         const hasError = errors[`${field.id}_image`]
 
         return (
-            <div className="field-image-attachment">
-                <div className="image-attachment-header">
+            <div style={styles.imageSection}>
+                <label style={styles.imageLabel}>
                     <i className="fas fa-camera"></i>
-                    <span>Photo Attachment {field.image_required && <span className="required">*</span>}</span>
-                </div>
+                    {' '}Photo Attachment {field.image_required && <span style={styles.required}>*</span>}
+                </label>
 
                 {displayUrl ? (
-                    <div className="image-preview-container compact">
+                    <div style={styles.imagePreview}>
                         <img
                             src={imageData?.previewUrl || getImageDisplayUrl(displayUrl)}
                             alt="Attached"
+                            style={styles.previewImage}
                             onClick={() => openImagePreview(imageData?.previewUrl || getImageDisplayUrl(displayUrl))}
                         />
                         {!isDisabled && (
                             <button
-                                className="remove-image-btn"
+                                style={styles.removeImageBtn}
                                 onClick={() => handleRemoveImage(field.id)}
                                 type="button"
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
                             >
                                 <i className="fas fa-times"></i>
                             </button>
                         )}
                         {isUploading && (
-                            <div className="upload-overlay">
-                                <i className="fas fa-spinner fa-spin"></i>
-                            </div>
-                        )}
-                        {imageData?.uploaded && (
-                            <div className="upload-success">
-                                <i className="fas fa-check-circle"></i>
+                            <div style={styles.uploadingOverlay}>
+                                <i className="fas fa-spinner fa-spin" style={{color: 'white', fontSize: '1.5rem'}}></i>
                             </div>
                         )}
                     </div>
                 ) : (
-                    <div className={`image-upload-options ${hasError ? 'error' : ''}`}>
+                    <div style={styles.imageButtons}>
                         {isUploading ? (
-                            <div className="image-uploading">
+                            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', color: '#64748b'}}>
                                 <i className="fas fa-spinner fa-spin"></i>
                                 <span>Uploading...</span>
                             </div>
@@ -957,18 +1062,42 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                             <>
                                 <button
                                     type="button"
-                                    className="image-option-btn camera"
+                                    style={styles.imageBtn}
                                     onClick={() => !isDisabled && triggerCameraCapture(field.id)}
                                     disabled={isDisabled}
+                                    onMouseEnter={(e) => {
+                                        if (!isDisabled) {
+                                            e.currentTarget.style.borderColor = '#1e3a5f';
+                                            e.currentTarget.style.background = '#f0f7ff';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isDisabled) {
+                                            e.currentTarget.style.borderColor = '#e5e7eb';
+                                            e.currentTarget.style.background = 'white';
+                                        }
+                                    }}
                                 >
                                     <i className="fas fa-camera"></i>
                                     <span>Take Photo</span>
                                 </button>
                                 <button
                                     type="button"
-                                    className="image-option-btn gallery"
+                                    style={styles.imageBtn}
                                     onClick={() => !isDisabled && triggerImageUpload(field.id)}
                                     disabled={isDisabled}
+                                    onMouseEnter={(e) => {
+                                        if (!isDisabled) {
+                                            e.currentTarget.style.borderColor = '#1e3a5f';
+                                            e.currentTarget.style.background = '#f0f7ff';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isDisabled) {
+                                            e.currentTarget.style.borderColor = '#e5e7eb';
+                                            e.currentTarget.style.background = 'white';
+                                        }
+                                    }}
                                 >
                                     <i className="fas fa-images"></i>
                                     <span>Upload</span>
@@ -979,9 +1108,9 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 )}
 
                 {hasError && (
-                    <div className="step-error image-error">
+                    <div style={styles.error}>
                         <i className="fas fa-exclamation-circle"></i>
-                        {hasError}
+                        {' '}{hasError}
                     </div>
                 )}
             </div>
@@ -1260,55 +1389,456 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
         )
     }
 
+    const styles = {
+        container: {
+            width: '100%',
+            minHeight: '100vh',
+            background: '#f8fafc',
+            display: 'flex',
+            flexDirection: 'column'
+        },
+        header: {
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem 2rem',
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        },
+        closeBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40px',
+            height: '40px',
+            border: 'none',
+            borderRadius: '8px',
+            background: '#f1f5f9',
+            color: '#64748b',
+            fontSize: '1.125rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        headerInfo: {
+            flex: 1,
+            marginLeft: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem'
+        },
+        formTitle: {
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b'
+        },
+        dueDate: {
+            fontSize: '0.875rem',
+            color: '#64748b'
+        },
+        progressContainer: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            minWidth: '150px',
+            marginRight: '1rem'
+        },
+        progressBar: {
+            width: '100%',
+            height: '6px',
+            background: '#e5e7eb',
+            borderRadius: '3px',
+            overflow: 'hidden'
+        },
+        progressFill: {
+            height: '100%',
+            background: '#1e3a5f',
+            transition: 'width 0.3s ease'
+        },
+        progressText: {
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#64748b',
+            textAlign: 'center'
+        },
+        navButtons: {
+            display: 'flex',
+            gap: '0.5rem',
+            flexShrink: 0
+        },
+        navBtn: (disabled) => ({
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.375rem',
+            padding: '0.625rem 1rem',
+            border: 'none',
+            borderRadius: '8px',
+            background: disabled ? '#f1f5f9' : '#1e3a5f',
+            color: disabled ? '#cbd5e1' : 'white',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s',
+            opacity: disabled ? 0.5 : 1,
+            whiteSpace: 'nowrap'
+        }),
+        content: {
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '2rem',
+            maxWidth: '800px',
+            margin: '0 auto',
+            width: '100%'
+        },
+        fieldCard: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginBottom: '1.5rem'
+        },
+        fieldHeader: {
+            marginBottom: '1.5rem'
+        },
+        fieldLabel: {
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            marginBottom: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+        },
+        required: {
+            color: '#ef4444',
+            fontSize: '0.875rem'
+        },
+        fieldDescription: {
+            fontSize: '0.875rem',
+            color: '#64748b',
+            marginTop: '0.5rem'
+        },
+        fieldType: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            padding: '0.25rem 0.625rem',
+            background: '#eff6ff',
+            border: '1px solid #3b82f6',
+            borderRadius: '6px',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#1e3a5f',
+            marginTop: '0.5rem'
+        },
+        input: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s'
+        },
+        textarea: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s',
+            minHeight: '120px',
+            resize: 'vertical'
+        },
+        checklistItem: {
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem',
+            padding: '1rem',
+            background: '#f8fafc',
+            borderRadius: '8px',
+            marginBottom: '0.75rem',
+            border: '1px solid #e5e7eb'
+        },
+        checkbox: {
+            width: '20px',
+            height: '20px',
+            cursor: 'pointer',
+            marginTop: '0.125rem',
+            flexShrink: 0
+        },
+        checklistContent: {
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        checklistLabel: {
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e293b'
+        },
+        checklistComment: {
+            width: '100%',
+            padding: '0.5rem 0.75rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s'
+        },
+        imageSection: {
+            marginTop: '1rem'
+        },
+        imageLabel: {
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#374151',
+            marginBottom: '0.75rem'
+        },
+        imageButtons: {
+            display: 'flex',
+            gap: '0.75rem',
+            marginBottom: '1rem'
+        },
+        imageBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#1e3a5f',
+            background: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        imagePreview: {
+            position: 'relative',
+            width: '100%',
+            maxWidth: '400px',
+            marginTop: '1rem'
+        },
+        previewImage: {
+            width: '100%',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb',
+            cursor: 'pointer'
+        },
+        removeImageBtn: {
+            position: 'absolute',
+            top: '0.5rem',
+            right: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            border: 'none',
+            borderRadius: '6px',
+            background: '#ef4444',
+            color: 'white',
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            transition: 'all 0.2s'
+        },
+        uploadingOverlay: {
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.5)',
+            borderRadius: '8px'
+        },
+        uploadingText: {
+            color: 'white',
+            fontSize: '0.875rem',
+            fontWeight: 600
+        },
+        actionButtons: {
+            display: 'flex',
+            gap: '1rem',
+            justifyContent: 'flex-end',
+            marginTop: '2rem',
+            paddingTop: '2rem',
+            borderTop: '1px solid #e5e7eb'
+        },
+        submitBtn: (disabled) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: 'white',
+            background: disabled ? '#cbd5e1' : '#10b981',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s'
+        }),
+        reviewSection: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginTop: '2rem'
+        },
+        reviewTitle: {
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            marginBottom: '1rem'
+        },
+        reviewNotes: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            outline: 'none',
+            transition: 'all 0.2s',
+            minHeight: '100px',
+            resize: 'vertical',
+            marginBottom: '1rem'
+        },
+        reviewButtons: {
+            display: 'flex',
+            gap: '1rem'
+        },
+        approveBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: 'white',
+            background: '#10b981',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        rejectBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: 'white',
+            background: '#ef4444',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        error: {
+            display: 'block',
+            marginTop: '0.5rem',
+            padding: '0.75rem 1rem',
+            background: '#fee2e2',
+            border: '1px solid #ef4444',
+            borderRadius: '8px',
+            color: '#dc2626',
+            fontSize: '0.875rem',
+            fontWeight: 500
+        },
+        viewOnlyBadge: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            padding: '0.375rem 0.75rem',
+            background: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: '6px',
+            color: '#d97706',
+            fontSize: '0.8125rem',
+            fontWeight: 600
+        }
+    }
+
     return (
-        <div className="maintenance-form-view step-mode">
-            <div className="step-header">
-                <button className="step-close" onClick={onBack}>
+        <div style={styles.container}>
+            <div style={styles.header}>
+                <button 
+                    style={styles.closeBtn} 
+                    onClick={onBack}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                >
                     <i className="fas fa-times"></i>
                 </button>
-                <div className="step-info">
-                    <span className="step-title">{formObj?.title}</span>
-                    <span className="step-due">Due {formatMaintenanceDateShort(item?.due_date)}</span>
+                <div style={styles.headerInfo}>
+                    <span style={styles.formTitle}>{formObj?.title}</span>
+                    <span style={styles.dueDate}>Due {formatMaintenanceDateShort(item?.due_date)}</span>
                 </div>
-                <div className="step-progress">
-                    <div className="step-progress-bar">
-                        <div className="step-progress-fill"
-                             style={{width: `${((currentStep + 1) / totalSteps) * 100}%`}}></div>
+                <div style={styles.progressContainer}>
+                    <div style={styles.progressBar}>
+                        <div style={{...styles.progressFill, width: `${((currentStep + 1) / totalSteps) * 100}%`}}></div>
                     </div>
-                    <span className="step-count">{currentStep + 1} of {totalSteps}</span>
+                    <span style={styles.progressText}>{currentStep + 1} of {totalSteps}</span>
                 </div>
-                <div className="step-nav-buttons">
+                <div style={styles.navButtons}>
                     <button
-                        className="step-nav-btn prev"
+                        style={styles.navBtn(isFirstStep)}
                         onClick={handlePrevious}
                         disabled={isFirstStep}
+                        onMouseEnter={(e) => {
+                            if (!isFirstStep) e.currentTarget.style.background = '#162d4a';
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!isFirstStep) e.currentTarget.style.background = '#1e3a5f';
+                        }}
                     >
                         <i className="fas fa-arrow-left"></i>
-                        Prev
+                        <span>Prev</span>
                     </button>
                     {isLastStep ? (
                         <button
-                            className="step-nav-btn submit"
+                            style={{...styles.submitBtn(submitting), padding: '0.625rem 1.25rem'}}
                             onClick={handleSubmit}
                             disabled={submitting}
+                            onMouseEnter={(e) => {
+                                if (!submitting) e.currentTarget.style.background = '#059669';
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!submitting) e.currentTarget.style.background = '#10b981';
+                            }}
                         >
                             {submitting ? (
-                                <>
-                                    <i className="fas fa-spinner fa-spin"></i>
-                                </>
+                                <i className="fas fa-spinner fa-spin"></i>
                             ) : (
                                 <>
-                                    {isEditing ? 'Update' : 'Submit'}
+                                    <span>{isEditing ? 'Update' : 'Submit'}</span>
                                     <i className="fas fa-check"></i>
                                 </>
                             )}
                         </button>
                     ) : (
                         <button
-                            className="step-nav-btn next"
+                            style={styles.navBtn(false)}
                             onClick={handleNext}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#162d4a'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = '#1e3a5f'}
                         >
-                            Next
+                            <span>Next</span>
                             <i className="fas fa-arrow-right"></i>
                         </button>
                     )}
@@ -1316,27 +1846,35 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             </div>
 
             {currentField && (
-                <div className="step-content">
-                    <div className="step-field-container">
-                        <div className="step-question">
-                            <div className="step-question-icon">
-                                <i className={`fas ${getFieldTypeIcon(currentField.field_type)}`}></i>
+                <div style={styles.content}>
+                    <div style={styles.fieldCard}>
+                        <div style={styles.fieldHeader}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem'}}>
+                                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#1e3a5f', fontSize: '1.25rem'}}>
+                                    <i className={`fas ${getFieldTypeIcon(currentField.field_type)}`}></i>
+                                </div>
+                                <div style={{flex: 1}}>
+                                    <h2 style={styles.fieldLabel}>
+                                        {currentField.label}
+                                        {currentField.is_required && <span style={styles.required}>*</span>}
+                                    </h2>
+                                    <div style={styles.fieldType}>
+                                        <i className={`fas ${getFieldTypeIcon(currentField.field_type)}`}></i>
+                                        {currentField.field_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                    </div>
+                                </div>
                             </div>
-                            <h2 className="step-question-text">
-                                {currentField.label}
-                                {currentField.is_required && <span className="required">*</span>}
-                            </h2>
                             {currentField.description && (
-                                <p className="step-question-desc">{currentField.description}</p>
+                                <p style={styles.fieldDescription}>{currentField.description}</p>
                             )}
                         </div>
 
-                        <div className="step-answer">
+                        <div>
                             {renderField(currentField)}
                             {errors[currentField.id] && (
-                                <div className="step-error">
+                                <div style={styles.error}>
                                     <i className="fas fa-exclamation-circle"></i>
-                                    {errors[currentField.id]}
+                                    {' '}{errors[currentField.id]}
                                 </div>
                             )}
                             {currentField.image_required && renderImageAttachment(currentField)}
@@ -1344,9 +1882,9 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                     </div>
 
                     {errors.submit && (
-                        <div className="step-submit-error">
+                        <div style={styles.error}>
                             <i className="fas fa-exclamation-triangle"></i>
-                            {errors.submit}
+                            {' '}{errors.submit}
                         </div>
                     )}
                 </div>
@@ -1370,12 +1908,23 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             />
 
             {imagePreview && (
-                <div className="image-preview-modal" onClick={closeImagePreview}>
-                    <div className="image-preview-modal-content" onClick={e => e.stopPropagation()}>
-                        <button className="close-preview-btn" onClick={closeImagePreview}>
+                <div 
+                    style={{position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.9)', zIndex: 9999, padding: '1rem'}}
+                    onClick={closeImagePreview}
+                >
+                    <div 
+                        style={{position: 'relative', maxWidth: '90vw', maxHeight: '90vh'}}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button 
+                            style={{position: 'absolute', top: '-3rem', right: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', borderRadius: '8px', background: 'white', color: '#1e293b', fontSize: '1.125rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', transition: 'all 0.2s'}}
+                            onClick={closeImagePreview}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                        >
                             <i className="fas fa-times"></i>
                         </button>
-                        <img src={imagePreview} alt="Full preview"/>
+                        <img src={imagePreview} alt="Full preview" style={{maxWidth: '100%', maxHeight: '90vh', borderRadius: '8px'}} />
                     </div>
                 </div>
             )}

@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react'
-import './styles/Maintenance.css'
 import {MaintenanceService} from '../../services/MaintenanceService'
 import {UserService} from '../../services/UserService'
 import LoadingScreen from '../../components/common/LoadingScreen'
@@ -11,7 +10,6 @@ import {formatFrequency, formatMaintenanceDate, getStatusBadgeClass} from '../..
 export default function MaintenanceView() {
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('due')
-    const [reviewSubTab, setReviewSubTab] = useState('pending')
     const [dueItems, setDueItems] = useState([])
     const [pendingReviews, setPendingReviews] = useState([])
     const [allPlants, setAllPlants] = useState([])
@@ -149,6 +147,311 @@ export default function MaintenanceView() {
         setShowCreateForm(true)
     }
 
+    const styles = {
+        container: {
+            width: '100%',
+            minHeight: '100%',
+            background: '#f8fafc'
+        },
+        header: {
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '1.5rem 2rem'
+        },
+        headerInner: {
+            maxWidth: '1400px',
+            margin: '0 auto'
+        },
+        titleRow: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1.5rem'
+        },
+        title: {
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            margin: 0
+        },
+        createBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1.25rem',
+            background: '#1e3a5f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        tabs: {
+            display: 'flex',
+            gap: '0.5rem',
+            borderBottom: '2px solid #e5e7eb'
+        },
+        tab: (active) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.25rem',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: active ? '2px solid #1e3a5f' : '2px solid transparent',
+            color: active ? '#1e3a5f' : '#64748b',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            marginBottom: '-2px'
+        }),
+        tabBadge: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '20px',
+            height: '20px',
+            padding: '0 0.375rem',
+            background: '#ef4444',
+            color: 'white',
+            borderRadius: '10px',
+            fontSize: '0.6875rem',
+            fontWeight: 700
+        },
+        content: {
+            padding: '2rem',
+            maxWidth: '1400px',
+            margin: '0 auto'
+        },
+        section: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        },
+        filters: {
+            display: 'flex',
+            alignItems: 'flex-end',
+            gap: '1rem',
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap'
+        },
+        filterGroup: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        filterLabel: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b'
+        },
+        filterButton: (active) => ({
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            background: 'white',
+            border: active ? '2px solid #1e3a5f' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: active ? '#1e3a5f' : '#1e293b',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            minWidth: '180px'
+        }),
+        filterSelect: {
+            padding: '0.625rem 1rem',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            background: 'white',
+            cursor: 'pointer',
+            minWidth: '180px'
+        },
+        filterClearBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            background: '#f1f5f9',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        empty: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4rem 2rem',
+            textAlign: 'center'
+        },
+        emptyIcon: {
+            fontSize: '4rem',
+            color: '#cbd5e1',
+            marginBottom: '1rem'
+        },
+        emptyTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            marginBottom: '0.5rem'
+        },
+        emptyText: {
+            fontSize: '0.9375rem',
+            color: '#64748b',
+            marginBottom: '1.5rem'
+        },
+        list: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+        },
+        item: (status) => ({
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '1rem',
+            padding: '1.25rem',
+            background: status === 'completed' ? '#f8fafc' : 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            opacity: status === 'completed' ? 0.7 : 1
+        }),
+        itemIcon: (status) => {
+            const colors = {
+                completed: '#10b981',
+                overdue: '#ef4444',
+                default: '#3b82f6'
+            }
+            return {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                background: status === 'completed' ? '#d1fae5' : status === 'overdue' ? '#fee2e2' : '#dbeafe',
+                color: colors[status] || colors.default,
+                fontSize: '1.25rem',
+                flexShrink: 0
+            }
+        },
+        itemContent: {
+            flex: 1,
+            minWidth: 0
+        },
+        itemTitle: {
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            marginBottom: '0.25rem'
+        },
+        itemDesc: {
+            fontSize: '0.875rem',
+            color: '#64748b',
+            marginBottom: '0.75rem'
+        },
+        itemMeta: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap'
+        },
+        metaItem: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            fontSize: '0.8125rem',
+            color: '#64748b'
+        },
+        plantTag: {
+            padding: '0.25rem 0.625rem',
+            background: '#eff6ff',
+            border: '1px solid #3b82f6',
+            borderRadius: '6px',
+            color: '#3b82f6',
+            fontWeight: 600
+        },
+        itemStatus: {
+            flexShrink: 0
+        },
+        statusBadge: (status) => {
+            const colors = {
+                completed: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
+                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
+                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706' },
+                approved: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
+                rejected: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
+                submitted: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' },
+                default: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' }
+            }
+            const color = colors[status] || colors.default
+            return {
+                display: 'inline-block',
+                padding: '0.375rem 0.75rem',
+                background: color.bg,
+                border: `1px solid ${color.border}`,
+                borderRadius: '6px',
+                color: color.text,
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+            }
+        },
+        reviewSubTabs: {
+            display: 'flex',
+            gap: '0.5rem',
+            marginBottom: '1.5rem',
+            borderBottom: '1px solid #e5e7eb',
+            paddingBottom: '0.5rem'
+        },
+        reviewSubTab: (active) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            background: active ? '#f0f7ff' : 'transparent',
+            border: active ? '1px solid #1e3a5f' : '1px solid transparent',
+            borderRadius: '8px',
+            color: active ? '#1e3a5f' : '#64748b',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        }),
+        subTabBadge: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '20px',
+            height: '20px',
+            padding: '0 0.375rem',
+            background: '#1e3a5f',
+            color: 'white',
+            borderRadius: '10px',
+            fontSize: '0.6875rem',
+            fontWeight: 700
+        }
+    }
+
     if (selectedItem) {
         return (
             <MaintenanceFormView
@@ -173,49 +476,68 @@ export default function MaintenanceView() {
     }
 
     return (
-        <div className="maintenance-view">
-            <div className="maintenance-header">
-                <div className="maintenance-header-inner">
-                    <div className="maintenance-title-row">
-                        <h1 className="maintenance-title">Maintenance</h1>
+        <div style={styles.container}>
+            <div style={styles.header}>
+                <div style={styles.headerInner}>
+                    <div style={styles.titleRow}>
+                        <h1 style={styles.title}>Maintenance</h1>
                         {permissions.canCreate && (
                             <button
-                                className="maintenance-create-btn"
+                                style={styles.createBtn}
                                 onClick={() => setShowCreateForm(true)}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#162d4a'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#1e3a5f'}
                             >
                                 <i className="fas fa-plus"></i>
                                 <span>Create Form</span>
                             </button>
                         )}
                     </div>
-                    <div className="maintenance-tabs">
+                    <div style={styles.tabs}>
                         <button
-                            className={`maintenance-tab ${activeTab === 'due' ? 'active' : ''}`}
+                            style={styles.tab(activeTab === 'due')}
                             onClick={() => setActiveTab('due')}
+                            onMouseEnter={(e) => {
+                                if (activeTab !== 'due') e.currentTarget.style.color = '#1e3a5f';
+                            }}
+                            onMouseLeave={(e) => {
+                                if (activeTab !== 'due') e.currentTarget.style.color = '#64748b';
+                            }}
                         >
                             <i className="fas fa-clipboard-list"></i>
                             <span>My Tasks</span>
                             {dueItems.filter(i => i.status !== 'completed').length > 0 && (
-                                <span
-                                    className="tab-badge">{dueItems.filter(i => i.status !== 'completed').length}</span>
+                                <span style={styles.tabBadge}>{dueItems.filter(i => i.status !== 'completed').length}</span>
                             )}
                         </button>
                         {permissions.canReview && (
                             <button
-                                className={`maintenance-tab ${activeTab === 'review' ? 'active' : ''}`}
+                                style={styles.tab(activeTab === 'review')}
                                 onClick={() => setActiveTab('review')}
+                                onMouseEnter={(e) => {
+                                    if (activeTab !== 'review') e.currentTarget.style.color = '#1e3a5f';
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (activeTab !== 'review') e.currentTarget.style.color = '#64748b';
+                                }}
                             >
                                 <i className="fas fa-clipboard-check"></i>
                                 <span>Review</span>
                                 {pendingReviews.length > 0 && (
-                                    <span className="tab-badge">{pendingReviews.length}</span>
+                                    <span style={styles.tabBadge}>{pendingReviews.length}</span>
                                 )}
                             </button>
                         )}
                         {permissions.canCreate && (
                             <button
-                                className={`maintenance-tab ${activeTab === 'manage' ? 'active' : ''}`}
+                                style={styles.tab(activeTab === 'manage')}
                                 onClick={() => setActiveTab('manage')}
+                                onMouseEnter={(e) => {
+                                    if (activeTab !== 'manage') e.currentTarget.style.color = '#1e3a5f';
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (activeTab !== 'manage') e.currentTarget.style.color = '#64748b';
+                                }}
                             >
                                 <i className="fas fa-cog"></i>
                                 <span>Manage Forms</span>
@@ -225,35 +547,35 @@ export default function MaintenanceView() {
                 </div>
             </div>
 
-            <div className="maintenance-content">
+            <div style={styles.content}>
                 {loading ? (
                     <LoadingScreen inline message="Loading maintenance data..."/>
                 ) : (
                     <>
                         {activeTab === 'due' && (
-                            <div className="maintenance-section">
+                            <div style={styles.section}>
                                 {dueItems.length > 0 && (
-                                    <div className="maintenance-filters">
-                                        <div className="filter-group">
-                                            <label className="filter-label">
+                                    <div style={styles.filters}>
+                                        <div style={styles.filterGroup}>
+                                            <label style={styles.filterLabel}>
                                                 <i className="fas fa-building"></i>
                                                 Plant
                                             </label>
                                             <button
-                                                className={`filter-button ${plantFilter ? 'active' : ''}`}
+                                                style={styles.filterButton(!!plantFilter)}
                                                 onClick={() => setShowPlantModal(true)}
                                             >
                                                 <span>{plantFilter || 'All Plants'}</span>
                                                 <i className="fas fa-chevron-down"></i>
                                             </button>
                                         </div>
-                                        <div className="filter-group">
-                                            <label className="filter-label">
+                                        <div style={styles.filterGroup}>
+                                            <label style={styles.filterLabel}>
                                                 <i className="fas fa-file-alt"></i>
                                                 Form
                                             </label>
                                             <select
-                                                className="filter-select"
+                                                style={styles.filterSelect}
                                                 value={formTypeFilter}
                                                 onChange={(e) => setFormTypeFilter(e.target.value)}
                                             >
@@ -265,11 +587,13 @@ export default function MaintenanceView() {
                                         </div>
                                         {(plantFilter || formTypeFilter) && (
                                             <button
-                                                className="filter-clear-btn"
+                                                style={styles.filterClearBtn}
                                                 onClick={() => {
                                                     setPlantFilter('');
                                                     setFormTypeFilter('');
                                                 }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = '#f1f5f9'}
                                             >
                                                 <i className="fas fa-times"></i>
                                                 <span>Clear Filters</span>
@@ -288,20 +612,28 @@ export default function MaintenanceView() {
                                     }}
                                 />
                                 {filteredDueItems.length === 0 ? (
-                                    <div className="maintenance-empty">
-                                        <i className="fas fa-check-circle"></i>
-                                        <h3>{dueItems.length === 0 ? 'All caught up!' : 'No matching tasks'}</h3>
-                                        <p>{dueItems.length === 0 ? 'You have no maintenance tasks due at this time.' : 'Try adjusting your filters.'}</p>
+                                    <div style={styles.empty}>
+                                        <div style={styles.emptyIcon}>
+                                            <i className="fas fa-check-circle"></i>
+                                        </div>
+                                        <h3 style={styles.emptyTitle}>{dueItems.length === 0 ? 'All caught up!' : 'No matching tasks'}</h3>
+                                        <p style={styles.emptyText}>{dueItems.length === 0 ? 'You have no maintenance tasks due at this time.' : 'Try adjusting your filters.'}</p>
                                     </div>
                                 ) : (
-                                    <div className="maintenance-list">
+                                    <div style={styles.list}>
                                         {filteredDueItems.map(item => (
                                             <div
                                                 key={item.id}
-                                                className={`maintenance-item ${item.status === 'completed' ? 'completed' : ''}`}
+                                                style={styles.item(item.status)}
                                                 onClick={() => handleItemClick(item)}
+                                                onMouseEnter={(e) => {
+                                                    if (item.status !== 'completed') e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.boxShadow = 'none';
+                                                }}
                                             >
-                                                <div className="maintenance-item-icon">
+                                                <div style={styles.itemIcon(item.status)}>
                                                     {item.status === 'completed' ? (
                                                         <i className="fas fa-check-circle"></i>
                                                     ) : item.status === 'overdue' ? (
@@ -310,29 +642,28 @@ export default function MaintenanceView() {
                                                         <i className="fas fa-clipboard-list"></i>
                                                     )}
                                                 </div>
-                                                <div className="maintenance-item-content">
-                                                    <h4>{item.form?.title}</h4>
-                                                    <p>{item.form?.description}</p>
-                                                    <div className="maintenance-item-meta">
-                                                        <span className="meta-item">
+                                                <div style={styles.itemContent}>
+                                                    <h4 style={styles.itemTitle}>{item.form?.title}</h4>
+                                                    <p style={styles.itemDesc}>{item.form?.description}</p>
+                                                    <div style={styles.itemMeta}>
+                                                        <span style={styles.metaItem}>
                                                             <i className="fas fa-calendar"></i>
                                                             Due: {formatMaintenanceDate(item.due_date)}
                                                         </span>
-                                                        <span className="meta-item">
+                                                        <span style={styles.metaItem}>
                                                             <i className="fas fa-sync-alt"></i>
                                                             {formatFrequency(item.form?.frequency, item.form?.frequency_value)}
                                                         </span>
                                                         {item.plant_code && (
-                                                            <span className="meta-item plant-tag">
+                                                            <span style={{...styles.metaItem, ...styles.plantTag}}>
                                                                 <i className="fas fa-building"></i>
                                                                 {item.plant_code}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="maintenance-item-status">
-                                                    <span
-                                                        className={`status-badge ${getStatusBadgeClass(item.status)}`}>
+                                                <div style={styles.itemStatus}>
+                                                    <span style={styles.statusBadge(item.status)}>
                                                         {item.status}
                                                     </span>
                                                 </div>
@@ -344,123 +675,84 @@ export default function MaintenanceView() {
                         )}
 
                         {activeTab === 'review' && permissions.canReview && (
-                            <div className="maintenance-section">
-                                <div className="review-sub-tabs">
-                                    <button
-                                        className={`review-sub-tab ${reviewSubTab === 'pending' ? 'active' : ''}`}
-                                        onClick={() => setReviewSubTab('pending')}
-                                    >
-                                        Pending
-                                        {pendingReviews.length > 0 && (
-                                            <span className="sub-tab-badge">{pendingReviews.length}</span>
-                                        )}
-                                    </button>
-                                    <button
-                                        className={`review-sub-tab ${reviewSubTab === 'reviewed' ? 'active' : ''}`}
-                                        onClick={() => setReviewSubTab('reviewed')}
-                                    >
-                                        Reviewed
-                                    </button>
-                                </div>
-
-                                {reviewSubTab === 'pending' && (
-                                    <>
-                                        {filteredPendingReviews.length === 0 ? (
-                                            <div className="maintenance-empty">
-                                                <i className="fas fa-inbox"></i>
-                                                <h3>{pendingReviews.length === 0 ? 'No pending reviews' : 'No matching reviews'}</h3>
-                                                <p>{pendingReviews.length === 0 ? 'All submissions have been reviewed.' : 'Try adjusting your filters.'}</p>
-                                            </div>
-                                        ) : (
-                                            <div className="maintenance-list">
-                                                {filteredPendingReviews.map(submission => (
+                            <div style={styles.sectionWithBg}>
+                                {[...pendingReviews, ...reviewedSubmissions].length === 0 ? (
+                                    <div style={styles.empty}>
+                                        <div style={styles.emptyIcon}>
+                                            <i className="fas fa-clipboard-check"></i>
+                                        </div>
+                                        <h3 style={styles.emptyTitle}>No submissions to review</h3>
+                                        <p style={styles.emptyText}>Submissions requiring review will appear here.</p>
+                                    </div>
+                                ) : (
+                                    <div style={styles.list}>
+                                        {[...pendingReviews, ...reviewedSubmissions]
+                                            .sort((a, b) => {
+                                                if (a.status === 'submitted' && b.status !== 'submitted') return -1;
+                                                if (a.status !== 'submitted' && b.status === 'submitted') return 1;
+                                                const dateA = new Date(a.submitted_at || a.reviewed_at);
+                                                const dateB = new Date(b.submitted_at || b.reviewed_at);
+                                                return dateB - dateA;
+                                            })
+                                            .map(submission => {
+                                                const isPending = submission.status === 'submitted';
+                                                return (
                                                     <div
                                                         key={submission.id}
-                                                        className="maintenance-item"
-                                                        onClick={() => handleItemClick({
+                                                        style={styles.item(submission.status)}
+                                                        onClick={() => isPending ? handleItemClick({
                                                             ...submission,
                                                             form: submission.maintenance_forms,
                                                             isReview: true
-                                                        })}
+                                                        }) : handleViewSubmission(submission)}
+                                                        onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
                                                     >
-                                                        <div className="maintenance-item-icon">
-                                                            <i className="fas fa-file-alt"></i>
-                                                        </div>
-                                                        <div className="maintenance-item-content">
-                                                            <h4>{submission.maintenance_forms?.title}</h4>
-                                                            <p>Submitted for review</p>
-                                                            <div className="maintenance-item-meta">
-                                                                <span className="meta-item">
-                                                                    <i className="fas fa-clock"></i>
-                                                                    Submitted: {formatMaintenanceDate(submission.submitted_at)}
-                                                                </span>
-                                                                <span className="meta-item">
-                                                                    <i className="fas fa-building"></i>
-                                                                    {submission.plant_code || 'N/A'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="maintenance-item-status">
-                                                            <span
-                                                                className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
-                                                                {submission.status}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {reviewSubTab === 'reviewed' && (
-                                    <>
-                                        {filteredReviewedSubmissions.length === 0 ? (
-                                            <div className="maintenance-empty">
-                                                <i className="fas fa-clipboard-check"></i>
-                                                <h3>{reviewedSubmissions.length === 0 ? 'No reviewed submissions' : 'No matching submissions'}</h3>
-                                                <p>{reviewedSubmissions.length === 0 ? 'Submissions you have reviewed will appear here.' : 'Try adjusting your filters.'}</p>
-                                            </div>
-                                        ) : (
-                                            <div className="maintenance-list">
-                                                {filteredReviewedSubmissions.map(submission => (
-                                                    <div
-                                                        key={submission.id}
-                                                        className="maintenance-item"
-                                                        onClick={() => handleViewSubmission(submission)}
-                                                    >
-                                                        <div className="maintenance-item-icon">
-                                                            {submission.status === 'approved' ? (
+                                                        <div style={styles.itemIcon(submission.status)}>
+                                                            {submission.status === 'submitted' ? (
+                                                                <i className="fas fa-clock"></i>
+                                                            ) : submission.status === 'approved' ? (
                                                                 <i className="fas fa-check-circle"></i>
                                                             ) : (
                                                                 <i className="fas fa-times-circle"></i>
                                                             )}
                                                         </div>
-                                                        <div className="maintenance-item-content">
-                                                            <h4>{submission.maintenance_forms?.title}</h4>
-                                                            <p>{submission.status === 'approved' ? 'Approved' : 'Rejected'}</p>
-                                                            <div className="maintenance-item-meta">
-                                                                <span className="meta-item">
-                                                                    <i className="fas fa-calendar-check"></i>
-                                                                    Reviewed: {formatMaintenanceDate(submission.reviewed_at)}
+                                                        <div style={styles.itemContent}>
+                                                            <h4 style={styles.itemTitle}>{submission.maintenance_forms?.title}</h4>
+                                                            <p style={styles.itemDesc}>
+                                                                {submission.status === 'submitted' && 'Pending review'}
+                                                                {submission.status === 'approved' && 'Approved'}
+                                                                {submission.status === 'rejected' && 'Rejected'}
+                                                            </p>
+                                                            <div style={styles.itemMeta}>
+                                                                <span style={styles.metaItem}>
+                                                                    <i className="fas fa-calendar"></i>
+                                                                    {submission.status === 'submitted' 
+                                                                        ? `Submitted: ${formatMaintenanceDate(submission.submitted_at)}`
+                                                                        : `Reviewed: ${formatMaintenanceDate(submission.reviewed_at)}`
+                                                                    }
                                                                 </span>
-                                                                <span className="meta-item">
+                                                                <span style={styles.metaItem}>
                                                                     <i className="fas fa-building"></i>
                                                                     {submission.plant_code || 'N/A'}
                                                                 </span>
+                                                                {submission.submitted_by_name && (
+                                                                    <span style={styles.metaItem}>
+                                                                        <i className="fas fa-user"></i>
+                                                                        {submission.submitted_by_name}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        <div className="maintenance-item-status">
-                                                            <span
-                                                                className={`status-badge ${getStatusBadgeClass(submission.status)}`}>
+                                                        <div style={styles.itemStatus}>
+                                                            <span style={styles.statusBadge(submission.status)}>
                                                                 {submission.status}
                                                             </span>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </>
+                                                )
+                                            })}
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -525,7 +817,7 @@ export default function MaintenanceView() {
                         )}
 
                         {activeTab === 'manage' && permissions.canCreate && (
-                            <div className="maintenance-section">
+                            <div style={myForms.length === 0 ? styles.section : styles.sectionWithBg}>
                                 {myForms.length === 0 ? (
                                     <div className="maintenance-empty">
                                         <i className="fas fa-folder-open"></i>

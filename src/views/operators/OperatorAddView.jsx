@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {OperatorService} from '../../services/OperatorService';
 import {UserService} from '../../services/UserService';
 import UserUtility from '../../utils/UserUtility';
-import './styles/Operators.css';
 import {usePreferences} from '../../app/context/PreferencesContext'
 import {RegionService} from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal';

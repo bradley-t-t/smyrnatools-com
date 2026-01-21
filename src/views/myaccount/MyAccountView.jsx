@@ -3,7 +3,6 @@ import {supabase} from '../../services/DatabaseService';
 import {AuthService} from '../../services/AuthService';
 import {UserService} from "../../services/UserService";
 import {usePreferences} from '../../app/context/PreferencesContext';
-import './styles/MyAccount.css';
 
 function MyAccountView({userId}) {
     const {preferences, updatePreferences} = usePreferences();
@@ -375,74 +374,6 @@ function MyAccountView({userId}) {
         }
     }
 
-
-    useEffect(() => {
-        document.documentElement.style.setProperty('--myaccount-accent', `var(--accent)`)
-    }, [preferences.accentColor])
-
-    const renderSkeletonContent = () => (
-        <div className="my-account-container account-fade-in">
-            <div className="account-hero account-slide-in">
-                <div className="account-avatar skeleton-avatar">
-                    <div className="skeleton-circle"></div>
-                </div>
-                <div className="account-hero-content">
-                    <div className="skeleton-line w60 tall" style={{marginBottom: '0.5rem'}}></div>
-                    <div className="skeleton-line w40" style={{marginBottom: '1rem'}}></div>
-                    <div className="account-badges-row">
-                        <div className="skeleton-badge"></div>
-                        <div className="skeleton-badge"></div>
-                    </div>
-                </div>
-            </div>
-            <div className="account-tab-content account-slide-in" style={{animationDelay: '0.2s'}}>
-                <div className="account-section">
-                    <div className="section-header">
-                        <div className="skeleton-line w40 tall"></div>
-                        <div className="skeleton-line w60" style={{marginTop: '0.5rem'}}></div>
-                    </div>
-                    <div className="account-card elevated skeleton-card">
-                        <div className="skeleton-form">
-                            <div className="skeleton-form-row">
-                                <div className="skeleton-form-group">
-                                    <div className="skeleton-line w30"></div>
-                                    <div className="skeleton-input"></div>
-                                </div>
-                                <div className="skeleton-form-group">
-                                    <div className="skeleton-line w30"></div>
-                                    <div className="skeleton-input"></div>
-                                </div>
-                            </div>
-                            <div className="skeleton-button"></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="account-section">
-                    <div className="section-header">
-                        <div className="skeleton-line w40 tall"></div>
-                        <div className="skeleton-line w50" style={{marginTop: '0.5rem'}}></div>
-                    </div>
-                    <div className="account-card elevated skeleton-card">
-                        <div className="info-grid">
-                            <div className="skeleton-info-item">
-                                <div className="skeleton-line w20"></div>
-                                <div className="skeleton-line w60"></div>
-                            </div>
-                            <div className="skeleton-info-item">
-                                <div className="skeleton-line w20"></div>
-                                <div className="skeleton-line w40"></div>
-                            </div>
-                            <div className="skeleton-info-item">
-                                <div className="skeleton-line w20"></div>
-                                <div className="skeleton-line w50"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
     const handleChangeRegion = (e) => {
         const code = e.target.value
         if (!code) {
@@ -458,311 +389,853 @@ function MyAccountView({userId}) {
         setRegionName(name)
     }
 
-    return (
-        <div className="my-account-wrapper">
-            {loading ? renderSkeletonContent() : (
-                <div className="my-account-container account-fade-in">
-                    <div className="account-hero account-slide-in">
-                        <div className="account-avatar" style={{borderColor: 'var(--myaccount-accent)'}}>
-                            {firstName && lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() :
-                                <i className="fas fa-user"></i>}
-                        </div>
-                        <div className="account-hero-content">
-                            <h1>{(firstName || lastName) ? `${firstName || ''} ${lastName || ''}`.trim() : 'My Account'}</h1>
-                            <p className="account-subtitle">{email || 'No email available'}</p>
-                            <div className="account-badges-row">
-                                {userRole && <div className="account-badge"
-                                                  style={{backgroundColor: 'var(--myaccount-accent)'}}>{userRole}</div>}
-                                {(preferences.selectedRegion?.name || regionName) && <div className="account-badge"
-                                                                                          style={{backgroundColor: 'var(--myaccount-accent)'}}>{preferences.selectedRegion?.name || regionName}</div>}
-                                {plantCode && <div className="account-badge plant-badge">{plantCode}</div>}
+    const styles = {
+        wrapper: {
+            width: '100%',
+            height: '100%',
+            overflowY: 'auto',
+            background: '#f8fafc',
+            padding: '0'
+        },
+        container: {
+            maxWidth: '1400px',
+            margin: '0 auto',
+            padding: '2rem'
+        },
+        grid: {
+            display: 'grid',
+            gridTemplateColumns: '350px 1fr',
+            gap: '2rem',
+            alignItems: 'start'
+        },
+        sidebar: {
+            position: 'sticky',
+            top: '2rem'
+        },
+        profileCard: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb',
+            marginBottom: '1.5rem'
+        },
+        avatar: {
+            width: '100px',
+            height: '100px',
+            borderRadius: '50%',
+            background: '#1e3a5f',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2.5rem',
+            fontWeight: 700,
+            color: 'white',
+            margin: '0 auto 1.5rem',
+            border: '4px solid #f1f5f9'
+        },
+        name: {
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            textAlign: 'center',
+            marginBottom: '0.5rem'
+        },
+        email: {
+            fontSize: '0.875rem',
+            color: '#64748b',
+            textAlign: 'center',
+            marginBottom: '1.5rem'
+        },
+        statsGrid: {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '0.75rem',
+            marginBottom: '1.5rem'
+        },
+        statItem: {
+            padding: '1rem',
+            background: '#f8fafc',
+            borderRadius: '8px',
+            textAlign: 'center'
+        },
+        statLabel: {
+            fontSize: '0.75rem',
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            marginBottom: '0.25rem',
+            fontWeight: 600
+        },
+        statValue: {
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#1e3a5f'
+        },
+        navCard: {
+            background: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb',
+            overflow: 'hidden'
+        },
+        navItem: (active) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            padding: '1rem 1.5rem',
+            cursor: 'pointer',
+            background: active ? '#f0f7ff' : 'white',
+            borderLeft: active ? '4px solid #1e3a5f' : '4px solid transparent',
+            transition: 'all 0.2s ease',
+            color: active ? '#1e3a5f' : '#64748b',
+            fontWeight: active ? 600 : 500,
+            fontSize: '0.9375rem'
+        }),
+        navIcon: {
+            fontSize: '1.125rem',
+            width: '24px',
+            textAlign: 'center'
+        },
+        mainContent: {
+            minHeight: '600px'
+        },
+        contentCard: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb',
+            marginBottom: '1.5rem'
+        },
+        sectionTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            marginBottom: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+        },
+        sectionDescription: {
+            fontSize: '0.875rem',
+            color: '#64748b',
+            marginBottom: '2rem'
+        },
+        formRow: {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1.5rem',
+            marginBottom: '1.5rem'
+        },
+        formGroup: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        label: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#374151'
+        },
+        input: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            color: '#1e293b',
+            transition: 'all 0.2s ease',
+            outline: 'none',
+            background: 'white'
+        },
+        button: (variant = 'primary', disabled = false) => ({
+            padding: '0.75rem 1.5rem',
+            borderRadius: '8px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            border: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s ease',
+            background: variant === 'primary' ? '#1e3a5f' : 
+                        variant === 'danger' ? '#ef4444' : '#f1f5f9',
+            color: variant === 'primary' || variant === 'danger' ? 'white' : '#64748b',
+            opacity: disabled ? 0.6 : 1
+        }),
+        infoList: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem'
+        },
+        infoRow: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: '1.25rem',
+            borderBottom: '1px solid #f1f5f9'
+        },
+        infoLabel: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#64748b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+        },
+        infoValue: {
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e293b'
+        },
+        sessionsList: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+        },
+        sessionItem: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '1.25rem',
+            background: '#f8fafc',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb'
+        },
+        sessionInfo: {
+            flex: 1
+        },
+        sessionBrowser: {
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            marginBottom: '0.25rem'
+        },
+        sessionDetails: {
+            fontSize: '0.8125rem',
+            color: '#64748b'
+        },
+        currentBadge: {
+            padding: '0.375rem 0.75rem',
+            borderRadius: '6px',
+            background: '#dcfce7',
+            color: '#16a34a',
+            fontSize: '0.75rem',
+            fontWeight: 600
+        },
+        revokeButton: {
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            border: 'none',
+            background: '#fef2f2',
+            color: '#ef4444',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+        },
+        actionCard: {
+            padding: '1.5rem',
+            background: '#fef2f2',
+            borderRadius: '8px',
+            border: '1px solid #fee2e2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+        },
+        actionContent: {
+            flex: 1
+        },
+        actionTitle: {
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: '#1e293b',
+            marginBottom: '0.25rem'
+        },
+        actionDescription: {
+            fontSize: '0.875rem',
+            color: '#64748b'
+        },
+        modal: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+        },
+        modalContent: {
+            background: 'white',
+            borderRadius: '12px',
+            maxWidth: '500px',
+            width: '100%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+        },
+        modalHeader: {
+            padding: '1.5rem 2rem',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+        },
+        modalTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+        },
+        modalBody: {
+            padding: '2rem'
+        },
+        message: (type) => ({
+            padding: '1rem 1.25rem',
+            borderRadius: '8px',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: type === 'error' ? '#fef2f2' : '#f0fdf4',
+            border: `1px solid ${type === 'error' ? '#fee2e2' : '#dcfce7'}`,
+            color: type === 'error' ? '#dc2626' : '#16a34a',
+            fontSize: '0.875rem'
+        }),
+        skeleton: {
+            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 2s infinite',
+            borderRadius: '8px'
+        }
+    };
+
+    useEffect(() => {
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+        return () => document.head.removeChild(styleSheet);
+    }, []);
+
+    const renderSkeleton = () => (
+        <div style={styles.wrapper}>
+            <div style={styles.container}>
+                <div style={styles.grid}>
+                    <div style={styles.sidebar}>
+                        <div style={styles.profileCard}>
+                            <div style={{...styles.avatar, ...styles.skeleton}}></div>
+                            <div style={{...styles.skeleton, height: '24px', marginBottom: '0.5rem'}}></div>
+                            <div style={{...styles.skeleton, height: '16px', marginBottom: '1.5rem', maxWidth: '200px', margin: '0 auto 1.5rem'}}></div>
+                            <div style={styles.statsGrid}>
+                                <div style={{...styles.skeleton, height: '60px'}}></div>
+                                <div style={{...styles.skeleton, height: '60px'}}></div>
                             </div>
                         </div>
+                        <div style={styles.navCard}>
+                            <div style={{...styles.skeleton, height: '48px', marginBottom: '0.5rem'}}></div>
+                            <div style={{...styles.skeleton, height: '48px'}}></div>
+                        </div>
                     </div>
+                    <div style={styles.mainContent}>
+                        <div style={styles.contentCard}>
+                            <div style={{...styles.skeleton, height: '300px'}}></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    return (
+        <div style={styles.wrapper}>
+            {loading ? renderSkeleton() : (
+                <div style={styles.container}>
                     {message && (
-                        <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                            <div className="message-icon">{message.includes('Error') ?
-                                <i className="fas fa-exclamation-circle"></i> :
-                                <i className="fas fa-check-circle"></i>}</div>
-                            <p>{message}</p>
-                            <button className="message-close" onClick={() => setMessage('')}
-                                    aria-label="Dismiss message"><i
-                                className="fas fa-times"></i></button>
+                        <div style={styles.message(message.includes('Error') ? 'error' : 'success')}>
+                            <i className={`fas fa-${message.includes('Error') ? 'exclamation-circle' : 'check-circle'}`}></i>
+                            <span style={{flex: 1}}>{message}</span>
+                            <button 
+                                onClick={() => setMessage('')}
+                                style={{background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '0.25rem'}}
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
                         </div>
                     )}
-                    <div className="account-tabs account-slide-in" style={{animationDelay: '0.1s'}}>
-                        <button className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('profile')}
-                                style={activeTab === 'profile' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}><i
-                            className="fas fa-user"></i> Profile
-                        </button>
-                        <button className={`tab ${activeTab === 'security' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('security')}
-                                style={activeTab === 'security' ? {borderBottomColor: 'var(--myaccount-accent)'} : {}}>
-                            <i
-                                className="fas fa-shield-alt"></i> Security
-                        </button>
-                    </div>
-                    <div className="account-tab-content account-slide-in"
-                         style={{display: activeTab === 'profile' ? 'block' : 'none', animationDelay: '0.2s'}}>
-                        <div className="account-section">
-                            <div className="section-header">
-                                <h2><i className="fas fa-id-card"
-                                       style={{color: 'var(--myaccount-accent)'}}></i> Personal
-                                    Information</h2>
-                                <p>Update your personal details</p>
+
+                    <div style={styles.grid}>
+                        <div style={styles.sidebar}>
+                            <div style={styles.profileCard}>
+                                <div style={styles.avatar}>
+                                    {firstName && lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() :
+                                        <i className="fas fa-user"></i>}
+                                </div>
+                                <h1 style={styles.name}>
+                                    {(firstName || lastName) ? `${firstName || ''} ${lastName || ''}`.trim() : 'My Account'}
+                                </h1>
+                                <p style={styles.email}>{email || 'No email available'}</p>
+                                <div style={styles.statsGrid}>
+                                    <div style={styles.statItem}>
+                                        <div style={styles.statLabel}>Role</div>
+                                        <div style={styles.statValue}>{userRole || 'N/A'}</div>
+                                    </div>
+                                    <div style={styles.statItem}>
+                                        <div style={styles.statLabel}>Sessions</div>
+                                        <div style={styles.statValue}>{sessions.length}</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="account-card elevated">
-                                <form onSubmit={updateProfile} className="account-form">
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label htmlFor="first_name">First Name</label>
-                                            <div className="input-with-icon">
-                                                <i className="fas fa-user"
-                                                   style={{color: 'var(--myaccount-accent)'}}></i>
-                                                <input type="text" id="first_name" value={firstName}
-                                                       onChange={(e) => setFirstName(e.target.value)}
-                                                       placeholder="Enter your first name" required/>
-                                            </div>
-                                        </div>
-                                        <div className="form-group">
-                                            <label htmlFor="last_name">Last Name</label>
-                                            <div className="input-with-icon">
-                                                <i className="fas fa-user"
-                                                   style={{color: 'var(--myaccount-accent)'}}></i>
-                                                <input type="text" id="last_name" value={lastName}
-                                                       onChange={(e) => setLastName(e.target.value)}
-                                                       placeholder="Enter your last name" required/>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="form-actions">
-                                        <button type="submit" className="btn primary" disabled={loading}
-                                                style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                            className="fas fa-save"></i> Save Changes
-                                        </button>
-                                    </div>
-                                </form>
+
+                            <div style={styles.navCard}>
+                                <div 
+                                    style={styles.navItem(activeTab === 'profile')}
+                                    onClick={() => setActiveTab('profile')}
+                                    onMouseEnter={(e) => {
+                                        if (activeTab !== 'profile') e.currentTarget.style.background = '#f8fafc';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (activeTab !== 'profile') e.currentTarget.style.background = 'white';
+                                    }}
+                                >
+                                    <i className="fas fa-user" style={styles.navIcon}></i>
+                                    Profile Settings
+                                </div>
+                                <div 
+                                    style={styles.navItem(activeTab === 'security')}
+                                    onClick={() => setActiveTab('security')}
+                                    onMouseEnter={(e) => {
+                                        if (activeTab !== 'security') e.currentTarget.style.background = '#f8fafc';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (activeTab !== 'security') e.currentTarget.style.background = 'white';
+                                    }}
+                                >
+                                    <i className="fas fa-shield-alt" style={styles.navIcon}></i>
+                                    Security
+                                </div>
                             </div>
                         </div>
-                        <div className="account-section">
-                            <div className="section-header">
-                                <h2><i className="fas fa-info-circle"
-                                       style={{color: 'var(--myaccount-accent)'}}></i> Account
-                                    Details</h2>
-                                <p>Your account information</p>
-                            </div>
-                            <div className="account-card elevated">
-                                <div className="info-grid">
-                                    <div className="info-item">
-                                        <div className="info-label"><i className="fas fa-envelope"
-                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Email
-                                        </div>
-                                        <div className="info-value">{email || 'Not available'}</div>
+
+                        <div style={styles.mainContent}>
+                            {activeTab === 'profile' && (
+                                <>
+                                    <div style={styles.contentCard}>
+                                        <h2 style={styles.sectionTitle}>
+                                            <i className="fas fa-id-card" style={{color: '#1e3a5f'}}></i>
+                                            Personal Information
+                                        </h2>
+                                        <p style={styles.sectionDescription}>
+                                            Update your personal details and contact information
+                                        </p>
+                                        <form onSubmit={updateProfile}>
+                                            <div style={styles.formRow}>
+                                                <div style={styles.formGroup}>
+                                                    <label style={styles.label} htmlFor="first_name">First Name</label>
+                                                    <input
+                                                        type="text"
+                                                        id="first_name"
+                                                        value={firstName}
+                                                        onChange={(e) => setFirstName(e.target.value)}
+                                                        placeholder="Enter first name"
+                                                        required
+                                                        style={styles.input}
+                                                        onFocus={(e) => {
+                                                            e.target.style.borderColor = '#1e3a5f';
+                                                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            e.target.style.borderColor = '#e5e7eb';
+                                                            e.target.style.boxShadow = 'none';
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div style={styles.formGroup}>
+                                                    <label style={styles.label} htmlFor="last_name">Last Name</label>
+                                                    <input
+                                                        type="text"
+                                                        id="last_name"
+                                                        value={lastName}
+                                                        onChange={(e) => setLastName(e.target.value)}
+                                                        placeholder="Enter last name"
+                                                        required
+                                                        style={styles.input}
+                                                        onFocus={(e) => {
+                                                            e.target.style.borderColor = '#1e3a5f';
+                                                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            e.target.style.borderColor = '#e5e7eb';
+                                                            e.target.style.boxShadow = 'none';
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="submit" 
+                                                style={styles.button('primary', loading)}
+                                                disabled={loading}
+                                                onMouseEnter={(e) => {
+                                                    if (!loading) {
+                                                        e.currentTarget.style.background = '#163352';
+                                                        e.currentTarget.style.transform = 'translateY(-1px)';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (!loading) {
+                                                        e.currentTarget.style.background = '#1e3a5f';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                    }
+                                                }}
+                                            >
+                                                <i className="fas fa-save"></i>
+                                                Save Changes
+                                            </button>
+                                        </form>
                                     </div>
-                                    {userRole && <div className="info-item">
-                                        <div className="info-label"><i className="fas fa-user-tag"
-                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Role
-                                        </div>
-                                        <div className="info-value">{userRole}</div>
-                                    </div>}
-                                    <div className="info-item">
-                                        <div className="info-label"><i className="fas fa-globe"
-                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Region
-                                        </div>
-                                        <div className="info-value" style={{width: '100%'}}>
-                                            <select className="region-select"
+
+                                    <div style={styles.contentCard}>
+                                        <h2 style={styles.sectionTitle}>
+                                            <i className="fas fa-info-circle" style={{color: '#1e3a5f'}}></i>
+                                            Account Information
+                                        </h2>
+                                        <p style={styles.sectionDescription}>
+                                            View your account details and preferences
+                                        </p>
+                                        <div style={styles.infoList}>
+                                            <div style={styles.infoRow}>
+                                                <div style={styles.infoLabel}>
+                                                    <i className="fas fa-envelope"></i>
+                                                    Email Address
+                                                </div>
+                                                <div style={styles.infoValue}>{email || 'Not available'}</div>
+                                            </div>
+                                            {userRole && (
+                                                <div style={styles.infoRow}>
+                                                    <div style={styles.infoLabel}>
+                                                        <i className="fas fa-user-tag"></i>
+                                                        Role
+                                                    </div>
+                                                    <div style={styles.infoValue}>{userRole}</div>
+                                                </div>
+                                            )}
+                                            <div style={styles.infoRow}>
+                                                <div style={styles.infoLabel}>
+                                                    <i className="fas fa-globe"></i>
+                                                    Region
+                                                </div>
+                                                <select
                                                     value={preferences.selectedRegion?.code || ''}
-                                                    onChange={handleChangeRegion} disabled={!regionsLoaded} style={{
-                                                width: '100%',
-                                                padding: '6px 12px',
-                                                borderRadius: '6px',
-                                                border: '1px solid var(--border-light)',
-                                                background: 'var(--bg-secondary)',
-                                                color: 'var(--text-primary)'
-                                            }}>
-                                                {permittedRegions.map(r => <option key={r.regionCode || r.region_code}
-                                                                                   value={r.regionCode || r.region_code}>{r.regionName || r.region_name || ''}</option>)}
-                                            </select>
+                                                    onChange={handleChangeRegion}
+                                                    disabled={!regionsLoaded}
+                                                    style={{
+                                                        ...styles.input,
+                                                        padding: '0.5rem 1rem',
+                                                        cursor: 'pointer',
+                                                        maxWidth: '300px'
+                                                    }}
+                                                >
+                                                    {permittedRegions.map(r => (
+                                                        <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                                            {r.regionName || r.region_name || ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {plantCode && (
+                                                <div style={styles.infoRow}>
+                                                    <div style={styles.infoLabel}>
+                                                        <i className="fas fa-building"></i>
+                                                        Plant Code
+                                                    </div>
+                                                    <div style={styles.infoValue}>{plantCode}</div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    {plantCode && <div className="info-item">
-                                        <div className="info-label"><i className="fas fa-building"
-                                                                       style={{color: 'var(--myaccount-accent)'}}></i>Plant
-                                            Code
-                                        </div>
-                                        <div className="info-value">{plantCode}</div>
-                                    </div>}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="account-tab-content account-slide-in"
-                         style={{display: activeTab === 'security' ? 'block' : 'none', animationDelay: '0.2s'}}>
-                        <div className="account-section">
-                            <div className="section-header">
-                                <h2><i className="fas fa-shield-alt"
-                                       style={{color: 'var(--myaccount-accent)'}}></i> Account
-                                    Security</h2>
-                                <p>Manage your password and protect your account</p>
-                            </div>
-                            <div className="security-actions-grid">
-                                <div className="security-action-card">
-                                    <div className="action-card-content">
-                                        <div className="action-icon"
-                                             style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                            className="fas fa-key"></i></div>
-                                        <h3>Password Management</h3>
-                                        <p>Change your password regularly to keep your account secure</p>
-                                        <button className="btn ma-change-password-btn"
-                                                onClick={() => setShowPasswordModal(true)}
-                                                style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                            className="fas fa-lock"></i> Change Password
+                                </>
+                            )}
+
+                            {activeTab === 'security' && (
+                                <>
+                                    <div style={styles.contentCard}>
+                                        <h2 style={styles.sectionTitle}>
+                                            <i className="fas fa-key" style={{color: '#1e3a5f'}}></i>
+                                            Password Security
+                                        </h2>
+                                        <p style={styles.sectionDescription}>
+                                            Keep your account secure by changing your password regularly
+                                        </p>
+                                        <button
+                                            onClick={() => setShowPasswordModal(true)}
+                                            style={styles.button('primary')}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = '#163352';
+                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = '#1e3a5f';
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                            }}
+                                        >
+                                            <i className="fas fa-lock"></i>
+                                            Change Password
                                         </button>
                                     </div>
-                                </div>
-                                <div className="security-action-card">
-                                    <div className="action-card-content">
-                                        <div className="action-icon"
-                                             style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                            className="fas fa-laptop"></i></div>
-                                        <h3>Active Sessions</h3>
-                                        <p>Manage your active sessions across devices</p>
-                                        {sessions.length > 0 ? (
-                                            <div className="sessions-list">
-                                                {sessions.map(session => (
-                                                    <div key={session.id} className="session-item">
-                                                        <div className="session-main">
-                                                            <div className="session-device-info">
-                                                                <div className="session-browser">{session.browser}</div>
-                                                                <div
-                                                                    className="session-platform">{session.os} • {session.device}</div>
-                                                            </div>
-                                                            <div
-                                                                className="session-time">{formatSessionTime(session.lastActive)}</div>
+
+                                    <div style={styles.contentCard}>
+                                        <h2 style={styles.sectionTitle}>
+                                            <i className="fas fa-laptop" style={{color: '#1e3a5f'}}></i>
+                                            Active Sessions
+                                        </h2>
+                                        <p style={styles.sectionDescription}>
+                                            Manage your active login sessions across all devices
+                                        </p>
+                                        <div style={styles.sessionsList}>
+                                            {sessions.length > 0 ? sessions.map(session => (
+                                                <div key={session.id} style={styles.sessionItem}>
+                                                    <div style={styles.sessionInfo}>
+                                                        <div style={styles.sessionBrowser}>
+                                                            <i className={`fas fa-${session.device === 'Mobile' ? 'mobile-alt' : session.device === 'Tablet' ? 'tablet-alt' : 'desktop'}`} 
+                                                               style={{marginRight: '0.5rem', color: '#1e3a5f'}}></i>
+                                                            {session.browser}
                                                         </div>
-                                                        <div className="session-actions">
-                                                            {session.isCurrent ? (
-                                                                <span
-                                                                    className="session-badge current-badge">Current Session</span>
-                                                            ) : (
-                                                                <button
-                                                                    className="session-revoke-btn"
-                                                                    onClick={() => handleRevokeSession(session.id)}
-                                                                    title="Revoke this session"
-                                                                >
-                                                                    Revoke
-                                                                </button>
-                                                            )}
+                                                        <div style={styles.sessionDetails}>
+                                                            {session.os} • {session.device} • {formatSessionTime(session.lastActive)}
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="sessions-empty">
-                                                <p>No active sessions found</p>
-                                            </div>
-                                        )}
+                                                    {session.isCurrent ? (
+                                                        <div style={styles.currentBadge}>
+                                                            <i className="fas fa-check-circle" style={{marginRight: '0.25rem'}}></i>
+                                                            Current
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleRevokeSession(session.id)}
+                                                            style={styles.revokeButton}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#fee2e2';
+                                                                e.currentTarget.style.transform = 'scale(1.05)';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = '#fef2f2';
+                                                                e.currentTarget.style.transform = 'scale(1)';
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-times" style={{marginRight: '0.25rem'}}></i>
+                                                            Revoke
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )) : (
+                                                <p style={{textAlign: 'center', color: '#94a3b8', padding: '2rem'}}>
+                                                    No active sessions found
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="account-section">
-                            <div className="section-header">
-                                <h2><i className="fas fa-cogs" style={{color: 'var(--myaccount-accent)'}}></i> Account
-                                    Actions
-                                </h2>
-                                <p>Manage your account settings and sessions</p>
-                            </div>
-                            <div className="account-actions">
-                                <div className="myaccount-logout-container">
-                                    <button className="myaccount-logout-button" onClick={handleSignOut}>
-                                        <div className="myaccount-logout-icon"><i className="fas fa-sign-out-alt"></i>
+
+                                    <div style={styles.contentCard}>
+                                        <h2 style={styles.sectionTitle}>
+                                            <i className="fas fa-sign-out-alt" style={{color: '#ef4444'}}></i>
+                                            Sign Out
+                                        </h2>
+                                        <p style={styles.sectionDescription}>
+                                            Sign out from your account and end your current session
+                                        </p>
+                                        <div style={styles.actionCard}>
+                                            <div style={styles.actionContent}>
+                                                <div style={styles.actionTitle}>Sign out of your account</div>
+                                                <div style={styles.actionDescription}>
+                                                    This will end your current session and require you to sign in again
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={handleSignOut}
+                                                style={styles.button('danger')}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#dc2626';
+                                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = '#ef4444';
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                }}
+                                            >
+                                                <i className="fas fa-sign-out-alt"></i>
+                                                Sign Out
+                                            </button>
                                         </div>
-                                        <div className="myaccount-logout-content">
-                                            <span className="myaccount-logout-title">Sign Out</span>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
-            {!loading && showPasswordModal && (
-                <div className="modal-overlay" onClick={() => !loading && setShowPasswordModal(false)}
-                     style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{margin: '0 auto'}}>
-                        <div className="modal-header">
-                            <h3><i className="fas fa-key" style={{color: 'var(--myaccount-accent)'}}></i> Change
-                                Password</h3>
-                            <button className="modal-close" onClick={() => !loading && setShowPasswordModal(false)}
-                                    disabled={loading} aria-label="Close modal"><i className="fas fa-times"></i>
+
+            {showPasswordModal && !loading && (
+                <div style={styles.modal} onClick={() => setShowPasswordModal(false)}>
+                    <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <div style={styles.modalHeader}>
+                            <h3 style={styles.modalTitle}>
+                                <i className="fas fa-key" style={{color: '#1e3a5f'}}></i>
+                                Change Password
+                            </h3>
+                            <button
+                                onClick={() => setShowPasswordModal(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '1.25rem',
+                                    color: '#94a3b8',
+                                    cursor: 'pointer',
+                                    padding: '0.5rem',
+                                    borderRadius: '6px',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = '#f1f5f9';
+                                    e.currentTarget.style.color = '#1e293b';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'none';
+                                    e.currentTarget.style.color = '#94a3b8';
+                                }}
+                            >
+                                <i className="fas fa-times"></i>
                             </button>
                         </div>
-                        {passwordError && (
-                            <div className="message error" style={{
-                                margin: '1rem 1.5rem 0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.75rem',
-                                backgroundColor: 'var(--error-bg)',
-                                borderRadius: '8px',
-                                color: 'var(--danger)'
-                            }}>
-                                <i className="fas fa-exclamation-circle"></i>
-                                <p style={{margin: 0}}>{passwordError}</p>
-                            </div>
-                        )}
-                        <form onSubmit={updatePassword} className="password-form">
-                            <div className="form-group">
-                                <label htmlFor="current_password">Current Password</label>
-                                <div className="input-with-icon">
-                                    <i className="fas fa-lock"
-                                       style={{color: 'var(--myaccount-accent)'}}></i>
-                                    <input type="password" id="current_password" value={currentPassword}
-                                           onChange={(e) => setCurrentPassword(e.target.value)}
-                                           placeholder="Enter your current password" required/>
+                        <div style={styles.modalBody}>
+                            {passwordError && (
+                                <div style={styles.message('error')}>
+                                    <i className="fas fa-exclamation-circle"></i>
+                                    <span>{passwordError}</span>
                                 </div>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="new_password">New Password</label>
-                                <div className="input-with-icon">
-                                    <i className="fas fa-lock"
-                                       style={{color: 'var(--myaccount-accent)'}}></i>
-                                    <input type="password" id="new_password" value={newPassword}
-                                           onChange={(e) => setNewPassword(e.target.value)}
-                                           placeholder="Enter new password" required/>
+                            )}
+                            <form onSubmit={updatePassword}>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label} htmlFor="current_password">Current Password</label>
+                                    <input
+                                        type="password"
+                                        id="current_password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        placeholder="Enter current password"
+                                        required
+                                        style={styles.input}
+                                        onFocus={(e) => {
+                                            e.target.style.borderColor = '#1e3a5f';
+                                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = '#e5e7eb';
+                                            e.target.style.boxShadow = 'none';
+                                        }}
+                                    />
                                 </div>
-                                <small>Password must be at least 8 characters</small>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="confirm_password">Confirm New Password</label>
-                                <div className="input-with-icon">
-                                    <i className="fas fa-lock"
-                                       style={{color: 'var(--myaccount-accent)'}}></i>
-                                    <input type="password" id="confirm_password" value={confirmPassword}
-                                           onChange={(e) => setConfirmPassword(e.target.value)}
-                                           placeholder="Confirm new password" required/>
+                                <div style={{...styles.formGroup, marginTop: '1rem'}}>
+                                    <label style={styles.label} htmlFor="new_password">New Password</label>
+                                    <input
+                                        type="password"
+                                        id="new_password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="Enter new password"
+                                        required
+                                        style={styles.input}
+                                        onFocus={(e) => {
+                                            e.target.style.borderColor = '#1e3a5f';
+                                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = '#e5e7eb';
+                                            e.target.style.boxShadow = 'none';
+                                        }}
+                                    />
+                                    <small style={{fontSize: '0.75rem', color: '#64748b'}}>
+                                        Must be at least 8 characters long
+                                    </small>
                                 </div>
-                            </div>
-                            <div className="modal-actions">
-                                <button type="button" className="btn secondary"
-                                        onClick={() => setShowPasswordModal(false)} disabled={loading}>Cancel
-                                </button>
-                                <button type="submit" className="btn primary"
+                                <div style={{...styles.formGroup, marginTop: '1rem'}}>
+                                    <label style={styles.label} htmlFor="confirm_password">Confirm Password</label>
+                                    <input
+                                        type="password"
+                                        id="confirm_password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="Confirm new password"
+                                        required
+                                        style={styles.input}
+                                        onFocus={(e) => {
+                                            e.target.style.borderColor = '#1e3a5f';
+                                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)';
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = '#e5e7eb';
+                                            e.target.style.boxShadow = 'none';
+                                        }}
+                                    />
+                                </div>
+                                <div style={{display: 'flex', gap: '1rem', marginTop: '2rem'}}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswordModal(false)}
+                                        style={{
+                                            ...styles.button('secondary'),
+                                            flex: 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = '#e2e8f0';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = '#f1f5f9';
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
                                         disabled={loading || !currentPassword || !newPassword || newPassword !== confirmPassword || newPassword.length < 8}
-                                        style={{backgroundColor: 'var(--myaccount-accent)'}}><i
-                                    className="fas fa-check"></i> Update Password
-                                </button>
-                            </div>
-                        </form>
+                                        style={{
+                                            ...styles.button('primary', loading || !currentPassword || !newPassword || newPassword !== confirmPassword || newPassword.length < 8),
+                                            flex: 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!loading && currentPassword && newPassword === confirmPassword && newPassword.length >= 8) {
+                                                e.currentTarget.style.background = '#163352';
+                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!loading && currentPassword && newPassword === confirmPassword && newPassword.length >= 8) {
+                                                e.currentTarget.style.background = '#1e3a5f';
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                            }
+                                        }}
+                                    >
+                                        <i className="fas fa-check"></i>
+                                        Update Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
         </div>
-    )
+    );
 }
 
 export default MyAccountView

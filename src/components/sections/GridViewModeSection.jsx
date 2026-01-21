@@ -1,5 +1,4 @@
 import React from 'react';
-import './styles/GridViewMode.css';
 
 function GridViewModeSection({
                                  filteredItems,
@@ -11,14 +10,57 @@ function GridViewModeSection({
                                  cardComponent,
                                  itemPropName,
                                  onShowCommentModal,
-                                 onShowIssueModal
+                                 onShowIssueModal,
+                                 getCardProps
                              }) {
     operators = operators || [];
     plants = plants || [];
     tractors = tractors || [];
+
+    const styles = {
+        container: {
+            width: '100%',
+            maxWidth: '100vw',
+            margin: 0,
+            marginBottom: '24px',
+            padding: 0,
+            overflow: 'auto',
+            overflowX: 'hidden',
+            background: 'transparent',
+            display: 'block',
+            overscrollBehavior: 'none',
+            maxHeight: 'calc(100vh - 250px)'
+        },
+        grid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '1rem',
+            padding: '1rem'
+        },
+        cardWrapper: {
+            animationFillMode: 'both'
+        }
+    };
+
     return (
-        <div className="grid-container">
-            <div className={gridClassName || 'grid'}>
+        <div style={styles.container}>
+            <style>{`
+                @keyframes slideInFromLeft {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                .grid-card-animated {
+                    animation: slideInFromLeft 0.4s ease-out;
+                    animation-fill-mode: both;
+                }
+            `}</style>
+            <div style={styles.grid} className={gridClassName}>
                 {filteredItems && Array.isArray(filteredItems) && filteredItems.map((item, index) => {
                     const operator = operators.find(op => op.employeeId === item.assignedOperator);
                     const plant = plants.find(p => p.code === item.assignedPlant);
@@ -29,6 +71,9 @@ function GridViewModeSection({
                     const minDelay = baseDelay / 2;
                     const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length);
                     const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
+                    
+                    const additionalProps = getCardProps ? getCardProps(item) : {};
+
                     const cardElement = (
                         <Card
                             key={item.id}
@@ -39,8 +84,9 @@ function GridViewModeSection({
                             showOperatorWarning={false}
                             showTractorWarning={false}
                             onSelect={handleSelectItem}
-                            onShowCommentModal={() => onShowCommentModal(item.id, number)}
-                            onShowIssueModal={() => onShowIssueModal(item.id, number)}
+                            onShowCommentModal={() => onShowCommentModal && onShowCommentModal(item.id, number)}
+                            onShowIssueModal={() => onShowIssueModal && onShowIssueModal(item.id, number)}
+                            {...additionalProps}
                         />
                     );
 
@@ -48,7 +94,7 @@ function GridViewModeSection({
                         <div
                             key={item.id}
                             className="grid-card-animated"
-                            style={{animationDelay: `${index * delay}ms`}}
+                            style={{...styles.cardWrapper, animationDelay: `${index * delay}ms`}}
                         >
                             {cardElement}
                         </div>
