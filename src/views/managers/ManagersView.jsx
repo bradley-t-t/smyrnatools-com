@@ -342,10 +342,22 @@ function ManagersView({title = 'Managers', onSelectManager}) {
                                                     const cells = e.currentTarget.querySelectorAll('td')
                                                     cells.forEach(cell => cell.style.backgroundColor = '')
                                                 }}>
-                                                <td style={{...cellStyle, width: '12%'}}>{manager.plantCode || '\u2014'}</td>
-                                                <td style={{...cellHighlightStyle, width: '28%'}}>{manager.email || '\u2014'}</td>
-                                                <td style={{...cellSecondaryStyle, width: '18%'}}>{manager.firstName || '\u2014'}</td>
-                                                <td style={{...cellSecondaryStyle, width: '18%'}}>{manager.lastName || '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellStyle,
+                                                    width: '12%'
+                                                }}>{manager.plantCode || '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellHighlightStyle,
+                                                    width: '28%'
+                                                }}>{manager.email || '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellSecondaryStyle,
+                                                    width: '18%'
+                                                }}>{manager.firstName || '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellSecondaryStyle,
+                                                    width: '18%'
+                                                }}>{manager.lastName || '\u2014'}</td>
                                                 <td style={{...cellSecondaryStyle, width: '24%'}}>
                                                     {manager.roleName ? (
                                                         <span style={roleBadgeStyle}>{manager.roleName}</span>

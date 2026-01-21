@@ -297,7 +297,8 @@ function AppInstallPromptModal() {
                             <div style={stepStyle}>
                                 <div style={stepNumberStyle}>2</div>
                                 <div style={stepContentStyle}>
-                                    <span>Scroll down and tap <strong>Add to Home Screen</strong> <i className="fas fa-plus-square"></i></span>
+                                    <span>Scroll down and tap <strong>Add to Home Screen</strong> <i
+                                        className="fas fa-plus-square"></i></span>
                                 </div>
                             </div>
                             <div style={{...stepStyle, borderBottom: 'none'}}>

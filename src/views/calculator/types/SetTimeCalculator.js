@@ -451,11 +451,11 @@ const SetTimeCalculator = () => {
         },
         resultContainer: (riskLevel) => ({
             background: riskLevel === 'cold' || riskLevel === 'cool' ? '#eff6ff' :
-                       riskLevel === 'warm' ? '#fffbeb' :
-                       riskLevel === 'hot' ? '#fef2f2' : '#f0fdf4',
+                riskLevel === 'warm' ? '#fffbeb' :
+                    riskLevel === 'hot' ? '#fef2f2' : '#f0fdf4',
             border: `2px solid ${riskLevel === 'cold' || riskLevel === 'cool' ? '#dbeafe' :
-                                 riskLevel === 'warm' ? '#fef3c7' :
-                                 riskLevel === 'hot' ? '#fee2e2' : '#dcfce7'}`,
+                riskLevel === 'warm' ? '#fef3c7' :
+                    riskLevel === 'hot' ? '#fee2e2' : '#dcfce7'}`,
             borderRadius: '12px',
             padding: '2rem',
             marginBottom: '2rem'
@@ -485,20 +485,20 @@ const SetTimeCalculator = () => {
             alignItems: 'center',
             gap: '0.5rem',
             background: type === 'hot' || type === 'low-cement' || type === 'high-wc' ? '#fef2f2' :
-                       type === 'cold' || type === 'low-wc' ? '#eff6ff' :
-                       type === 'sunny' || type === 'peak' ? '#fef3c7' :
-                       type === 'cloudy' || type === 'night' ? '#f1f5f9' :
-                       type === 'high-cement' ? '#f0fdf4' : 'white',
+                type === 'cold' || type === 'low-wc' ? '#eff6ff' :
+                    type === 'sunny' || type === 'peak' ? '#fef3c7' :
+                        type === 'cloudy' || type === 'night' ? '#f1f5f9' :
+                            type === 'high-cement' ? '#f0fdf4' : 'white',
             color: type === 'hot' || type === 'low-cement' || type === 'high-wc' ? '#ef4444' :
-                   type === 'cold' || type === 'low-wc' ? '#3b82f6' :
-                   type === 'sunny' || type === 'peak' ? '#f59e0b' :
-                   type === 'cloudy' || type === 'night' ? '#64748b' :
-                   type === 'high-cement' ? '#16a34a' : '#1e293b',
+                type === 'cold' || type === 'low-wc' ? '#3b82f6' :
+                    type === 'sunny' || type === 'peak' ? '#f59e0b' :
+                        type === 'cloudy' || type === 'night' ? '#64748b' :
+                            type === 'high-cement' ? '#16a34a' : '#1e293b',
             border: `1px solid ${type === 'hot' || type === 'low-cement' || type === 'high-wc' ? '#fee2e2' :
-                                 type === 'cold' || type === 'low-wc' ? '#dbeafe' :
-                                 type === 'sunny' || type === 'peak' ? '#fef3c7' :
-                                 type === 'cloudy' || type === 'night' ? '#e5e7eb' :
-                                 type === 'high-cement' ? '#dcfce7' : '#e5e7eb'}`
+                type === 'cold' || type === 'low-wc' ? '#dbeafe' :
+                    type === 'sunny' || type === 'peak' ? '#fef3c7' :
+                        type === 'cloudy' || type === 'night' ? '#e5e7eb' :
+                            type === 'high-cement' ? '#dcfce7' : '#e5e7eb'}`
         }),
         settimeResults: {
             display: 'flex',
@@ -545,17 +545,17 @@ const SetTimeCalculator = () => {
             gap: '0.75rem',
             padding: '1rem 1.5rem',
             background: level === 'cold' || level === 'cool' ? '#eff6ff' :
-                       level === 'warm' ? '#fffbeb' :
-                       level === 'hot' ? '#fef2f2' : 'white',
+                level === 'warm' ? '#fffbeb' :
+                    level === 'hot' ? '#fef2f2' : 'white',
             border: `2px solid ${level === 'cold' || level === 'cool' ? '#3b82f6' :
-                                 level === 'warm' ? '#f59e0b' :
-                                 level === 'hot' ? '#ef4444' : '#e5e7eb'}`,
+                level === 'warm' ? '#f59e0b' :
+                    level === 'hot' ? '#ef4444' : '#e5e7eb'}`,
             borderRadius: '12px',
             fontSize: '0.9375rem',
             fontWeight: 600,
             color: level === 'cold' || level === 'cool' ? '#1e40af' :
-                   level === 'warm' ? '#92400e' :
-                   level === 'hot' ? '#991b1b' : '#1e293b'
+                level === 'warm' ? '#92400e' :
+                    level === 'hot' ? '#991b1b' : '#1e293b'
         }),
         emptyState: {
             textAlign: 'center',
@@ -727,12 +727,12 @@ const SetTimeCalculator = () => {
                                     <i className="fas fa-exclamation-circle" style={{fontSize: '2rem'}}></i>
                                     <span>{locationError}</span>
                                     <button onClick={getLocation} style={styles.retryButton}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.background = '#fef2f2';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = 'white';
-                                        }}>
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = '#fef2f2';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'white';
+                                            }}>
                                         <i className="fas fa-redo"></i> Retry
                                     </button>
                                 </div>
@@ -862,7 +862,8 @@ const SetTimeCalculator = () => {
                             <div style={styles.wcDisplay}>
                                 <span style={styles.wcLabel}>W/C Ratio:</span>
                                 <span style={styles.wcValue}>{wc.toFixed(2)}</span>
-                                <span style={styles.wcBreakdown}>({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
+                                <span
+                                    style={styles.wcBreakdown}>({Math.round(totalWaterLbsPerYd)} lbs/yd ÷ {Math.round(totalCite)} lbs/yd)</span>
                             </div>
                         )
                     }
@@ -877,25 +878,30 @@ const SetTimeCalculator = () => {
                         <span>Estimated Set Time</span>
                     </div>
                     <div style={styles.factors}>
-                        <div style={styles.factorBadge(result.conditions.temp > 80 ? 'hot' : result.conditions.temp < 50 ? 'cold' : '')}>
+                        <div
+                            style={styles.factorBadge(result.conditions.temp > 80 ? 'hot' : result.conditions.temp < 50 ? 'cold' : '')}>
                             <i className="fas fa-thermometer-half"></i>
                             <span>{Math.round(result.conditions.temp)}°F</span>
                         </div>
-                        <div style={styles.factorBadge(result.conditions.cloudCover < 30 ? 'sunny' : result.conditions.cloudCover > 70 ? 'cloudy' : '')}>
+                        <div
+                            style={styles.factorBadge(result.conditions.cloudCover < 30 ? 'sunny' : result.conditions.cloudCover > 70 ? 'cloudy' : '')}>
                             <i className={`fas ${result.conditions.cloudCover < 30 ? 'fa-sun' : result.conditions.cloudCover > 70 ? 'fa-cloud' : 'fa-cloud-sun'}`}></i>
                             <span>{result.conditions.cloudCover}% clouds</span>
                         </div>
-                        <div style={styles.factorBadge(result.timeOfDay === 'peak-sun' ? 'peak' : result.timeOfDay === 'night' ? 'night' : '')}>
+                        <div
+                            style={styles.factorBadge(result.timeOfDay === 'peak-sun' ? 'peak' : result.timeOfDay === 'night' ? 'night' : '')}>
                             <i className={`fas ${result.timeOfDay === 'peak-sun' ? 'fa-sun' : result.timeOfDay === 'night' ? 'fa-moon' : 'fa-cloud-sun'}`}></i>
                             <span>{result.timeOfDay === 'peak-sun' ? 'Peak Sun' : result.timeOfDay === 'morning' ? 'Morning' : result.timeOfDay === 'evening' ? 'Evening' : 'Night'}</span>
                         </div>
                         {result.mix && (
                             <>
-                                <div style={styles.factorBadge(result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : '')}>
+                                <div
+                                    style={styles.factorBadge(result.mix.cementPerYd > 600 ? 'high-cement' : result.mix.cementPerYd < 400 ? 'low-cement' : '')}>
                                     <i className="fas fa-box"></i>
                                     <span>{result.mix.cementPerYd} lbs/yd</span>
                                 </div>
-                                <div style={styles.factorBadge(result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : '')}>
+                                <div
+                                    style={styles.factorBadge(result.mix.wc > 0.5 ? 'high-wc' : result.mix.wc < 0.4 ? 'low-wc' : '')}>
                                     <i className="fas fa-tint"></i>
                                     <span>W/C {result.mix.wc}</span>
                                 </div>
@@ -943,8 +949,8 @@ const SetTimeCalculator = () => {
             )}
 
             <div style={styles.footer}>
-                <button 
-                    onClick={clearForm} 
+                <button
+                    onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8fafc';

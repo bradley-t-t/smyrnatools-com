@@ -560,8 +560,8 @@ function MyAccountView({userId}) {
             alignItems: 'center',
             gap: '0.5rem',
             transition: 'all 0.2s ease',
-            background: variant === 'primary' ? '#1e3a5f' : 
-                        variant === 'danger' ? '#ef4444' : '#f1f5f9',
+            background: variant === 'primary' ? '#1e3a5f' :
+                variant === 'danger' ? '#ef4444' : '#f1f5f9',
             color: variant === 'primary' || variant === 'danger' ? 'white' : '#64748b',
             opacity: disabled ? 0.6 : 1
         }),
@@ -737,7 +737,13 @@ function MyAccountView({userId}) {
                         <div style={styles.profileCard}>
                             <div style={{...styles.avatar, ...styles.skeleton}}></div>
                             <div style={{...styles.skeleton, height: '24px', marginBottom: '0.5rem'}}></div>
-                            <div style={{...styles.skeleton, height: '16px', marginBottom: '1.5rem', maxWidth: '200px', margin: '0 auto 1.5rem'}}></div>
+                            <div style={{
+                                ...styles.skeleton,
+                                height: '16px',
+                                marginBottom: '1.5rem',
+                                maxWidth: '200px',
+                                margin: '0 auto 1.5rem'
+                            }}></div>
                             <div style={styles.statsGrid}>
                                 <div style={{...styles.skeleton, height: '60px'}}></div>
                                 <div style={{...styles.skeleton, height: '60px'}}></div>
@@ -766,9 +772,15 @@ function MyAccountView({userId}) {
                         <div style={styles.message(message.includes('Error') ? 'error' : 'success')}>
                             <i className={`fas fa-${message.includes('Error') ? 'exclamation-circle' : 'check-circle'}`}></i>
                             <span style={{flex: 1}}>{message}</span>
-                            <button 
+                            <button
                                 onClick={() => setMessage('')}
-                                style={{background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '0.25rem'}}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: 'inherit',
+                                    padding: '0.25rem'
+                                }}
                             >
                                 <i className="fas fa-times"></i>
                             </button>
@@ -799,7 +811,7 @@ function MyAccountView({userId}) {
                             </div>
 
                             <div style={styles.navCard}>
-                                <div 
+                                <div
                                     style={styles.navItem(activeTab === 'profile')}
                                     onClick={() => setActiveTab('profile')}
                                     onMouseEnter={(e) => {
@@ -812,7 +824,7 @@ function MyAccountView({userId}) {
                                     <i className="fas fa-user" style={styles.navIcon}></i>
                                     Profile Settings
                                 </div>
-                                <div 
+                                <div
                                     style={styles.navItem(activeTab === 'security')}
                                     onClick={() => setActiveTab('security')}
                                     onMouseEnter={(e) => {
@@ -882,8 +894,8 @@ function MyAccountView({userId}) {
                                                     />
                                                 </div>
                                             </div>
-                                            <button 
-                                                type="submit" 
+                                            <button
+                                                type="submit"
                                                 style={styles.button('primary', loading)}
                                                 disabled={loading}
                                                 onMouseEnter={(e) => {
@@ -947,7 +959,8 @@ function MyAccountView({userId}) {
                                                     }}
                                                 >
                                                     {permittedRegions.map(r => (
-                                                        <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                                        <option key={r.regionCode || r.region_code}
+                                                                value={r.regionCode || r.region_code}>
                                                             {r.regionName || r.region_name || ''}
                                                         </option>
                                                     ))}
@@ -1007,7 +1020,7 @@ function MyAccountView({userId}) {
                                                 <div key={session.id} style={styles.sessionItem}>
                                                     <div style={styles.sessionInfo}>
                                                         <div style={styles.sessionBrowser}>
-                                                            <i className={`fas fa-${session.device === 'Mobile' ? 'mobile-alt' : session.device === 'Tablet' ? 'tablet-alt' : 'desktop'}`} 
+                                                            <i className={`fas fa-${session.device === 'Mobile' ? 'mobile-alt' : session.device === 'Tablet' ? 'tablet-alt' : 'desktop'}`}
                                                                style={{marginRight: '0.5rem', color: '#1e3a5f'}}></i>
                                                             {session.browser}
                                                         </div>
@@ -1017,7 +1030,8 @@ function MyAccountView({userId}) {
                                                     </div>
                                                     {session.isCurrent ? (
                                                         <div style={styles.currentBadge}>
-                                                            <i className="fas fa-check-circle" style={{marginRight: '0.25rem'}}></i>
+                                                            <i className="fas fa-check-circle"
+                                                               style={{marginRight: '0.25rem'}}></i>
                                                             Current
                                                         </div>
                                                     ) : (
@@ -1033,7 +1047,8 @@ function MyAccountView({userId}) {
                                                                 e.currentTarget.style.transform = 'scale(1)';
                                                             }}
                                                         >
-                                                            <i className="fas fa-times" style={{marginRight: '0.25rem'}}></i>
+                                                            <i className="fas fa-times"
+                                                               style={{marginRight: '0.25rem'}}></i>
                                                             Revoke
                                                         </button>
                                                     )}

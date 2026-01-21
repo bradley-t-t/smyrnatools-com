@@ -71,7 +71,7 @@ function GridViewModeSection({
                     const minDelay = baseDelay / 2;
                     const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length);
                     const delay = Math.max(minDelay, baseDelay - (delayDecrement * index));
-                    
+
                     const additionalProps = getCardProps ? getCardProps(item) : {};
 
                     const cardElement = (

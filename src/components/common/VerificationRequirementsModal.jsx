@@ -775,7 +775,8 @@ export default function VerificationRequirementsModal({
                         <i className="fas fa-clipboard-check" style={styles.headerIcon}></i>
                         <div>
                             <h3 style={styles.headerTitle}>Verification Checklist</h3>
-                            <p style={styles.headerSubtitle}>Review all requirements before verifying this {itemType?.toLowerCase()}</p>
+                            <p style={styles.headerSubtitle}>Review all requirements before verifying
+                                this {itemType?.toLowerCase()}</p>
                         </div>
                     </div>
                     <button style={styles.closeButton} onClick={onClose} title="Close">
@@ -793,18 +794,23 @@ export default function VerificationRequirementsModal({
                                 <div style={styles.sectionTitle}>
                                     <i className="fas fa-tasks"></i>
                                     <span style={{color: '#374151'}}>Required Information</span>
-                                    {serviceOverdue && <span style={{...styles.badge, ...styles.badgeWarning}}>Service Overdue</span>}
-                                    {!serviceOverdue && !requiredFieldsOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Incomplete</span>}
-                                    {!serviceOverdue && requiredFieldsOk && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
+                                    {serviceOverdue &&
+                                        <span style={{...styles.badge, ...styles.badgeWarning}}>Service Overdue</span>}
+                                    {!serviceOverdue && !requiredFieldsOk &&
+                                        <span style={{...styles.badge, ...styles.badgeIncomplete}}>Incomplete</span>}
+                                    {!serviceOverdue && requiredFieldsOk &&
+                                        <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`}
+                                   style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('checklist') && (
                                 <div style={styles.sectionContent}>
                                     <div>
                                         {needsVin && (
                                             <div style={styles.formGroup}>
-                                                <label style={styles.label}>VIN {!vinOk && <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <label style={styles.label}>VIN {!vinOk &&
+                                                    <span style={styles.requiredIndicator}>Required</span>}</label>
                                                 <input
                                                     style={{...styles.input, ...(vin && !vinOk ? styles.inputError : {})}}
                                                     type="text"
@@ -812,30 +818,39 @@ export default function VerificationRequirementsModal({
                                                     value={vin}
                                                     onChange={e => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
                                                 />
-                                                <div style={styles.hint}>17 characters. Letters I, O, and Q are not used.</div>
+                                                <div style={styles.hint}>17 characters. Letters I, O, and Q are not
+                                                    used.
+                                                </div>
                                                 {vin && !vinOk && (
                                                     <div>
-                                                        {vinInfo.reasons.map(r => <div key={r} style={styles.warningText}>{r}</div>)}
+                                                        {vinInfo.reasons.map(r => <div key={r}
+                                                                                       style={styles.warningText}>{r}</div>)}
                                                     </div>
                                                 )}
                                             </div>
                                         )}
                                         {needsMake && (
                                             <div style={styles.formGroup}>
-                                                <label style={styles.label}>Make {!makeOk && <span style={styles.requiredIndicator}>Required</span>}</label>
-                                                <input style={styles.input} type="text" placeholder="Make" value={make} onChange={e => setMake(e.target.value)} />
+                                                <label style={styles.label}>Make {!makeOk &&
+                                                    <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <input style={styles.input} type="text" placeholder="Make" value={make}
+                                                       onChange={e => setMake(e.target.value)}/>
                                             </div>
                                         )}
                                         {needsModel && (
                                             <div style={styles.formGroup}>
-                                                <label style={styles.label}>Model {!modelOk && <span style={styles.requiredIndicator}>Required</span>}</label>
-                                                <input style={styles.input} type="text" placeholder="Model" value={model} onChange={e => setModel(e.target.value)} />
+                                                <label style={styles.label}>Model {!modelOk &&
+                                                    <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <input style={styles.input} type="text" placeholder="Model"
+                                                       value={model} onChange={e => setModel(e.target.value)}/>
                                             </div>
                                         )}
                                         {needsYear && (
                                             <div style={styles.formGroup}>
-                                                <label style={styles.label}>Year {!yearOk && <span style={styles.requiredIndicator}>Required</span>}</label>
-                                                <input style={styles.input} type="text" placeholder="Year" value={year} onChange={e => setYear(e.target.value)} />
+                                                <label style={styles.label}>Year {!yearOk &&
+                                                    <span style={styles.requiredIndicator}>Required</span>}</label>
+                                                <input style={styles.input} type="text" placeholder="Year" value={year}
+                                                       onChange={e => setYear(e.target.value)}/>
                                             </div>
                                         )}
                                         {(!lastServiceDate || serviceOverdue) && (
@@ -849,7 +864,8 @@ export default function VerificationRequirementsModal({
                                                 />
                                                 {lastServiceDate && serviceOverdue && (
                                                     <div style={styles.note}>
-                                                        <i className="fas fa-exclamation-triangle" style={{color: '#92400e'}}></i>
+                                                        <i className="fas fa-exclamation-triangle"
+                                                           style={{color: '#92400e'}}></i>
                                                         <span style={{color: '#92400e'}}>Service is overdue. You can still verify but service is recommended.</span>
                                                     </div>
                                                 )}
@@ -878,12 +894,17 @@ export default function VerificationRequirementsModal({
                                 <div style={styles.sectionTitle}>
                                     <i className="fas fa-user"></i>
                                     <span style={{color: '#374151'}}>Operator Information</span>
-                                    {!operatorOk && !phoneOk && !ratingOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Phone & Rating Required</span>}
-                                    {!operatorOk && !phoneOk && ratingOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Phone Required</span>}
-                                    {!operatorOk && phoneOk && !ratingOk && <span style={{...styles.badge, ...styles.badgeIncomplete}}>Rating Required</span>}
-                                    {operatorOk && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
+                                    {!operatorOk && !phoneOk && !ratingOk &&
+                                        <span style={{...styles.badge, ...styles.badgeIncomplete}}>Phone & Rating Required</span>}
+                                    {!operatorOk && !phoneOk && ratingOk && <span
+                                        style={{...styles.badge, ...styles.badgeIncomplete}}>Phone Required</span>}
+                                    {!operatorOk && phoneOk && !ratingOk && <span
+                                        style={{...styles.badge, ...styles.badgeIncomplete}}>Rating Required</span>}
+                                    {operatorOk &&
+                                        <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`}
+                                   style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('operator') && (
                                 <div style={styles.sectionContent}>
@@ -892,88 +913,97 @@ export default function VerificationRequirementsModal({
                                     ) : operatorData ? (
                                         <table style={styles.table}>
                                             <tbody>
+                                            <tr>
+                                                <td style={styles.tableLabel}>Name</td>
+                                                <td style={styles.tableValue}>{operatorData.name || 'N/A'}</td>
+                                            </tr>
+                                            {operatorData.position && (
                                                 <tr>
-                                                    <td style={styles.tableLabel}>Name</td>
-                                                    <td style={styles.tableValue}>{operatorData.name || 'N/A'}</td>
+                                                    <td style={styles.tableLabel}>Position</td>
+                                                    <td style={styles.tableValue}>{operatorData.position}</td>
                                                 </tr>
-                                                {operatorData.position && (
-                                                    <tr>
-                                                        <td style={styles.tableLabel}>Position</td>
-                                                        <td style={styles.tableValue}>{operatorData.position}</td>
-                                                    </tr>
-                                                )}
-                                                {operatorData.smyrna_id && (
-                                                    <tr>
-                                                        <td style={styles.tableLabel}>Employee ID</td>
-                                                        <td style={styles.tableValue}>{operatorData.smyrna_id}</td>
-                                                    </tr>
-                                                )}
-                                                <tr style={!ratingOk ? styles.highlightRow : {}}>
-                                                    <td style={styles.tableLabel}>
-                                                        Performance Rating
-                                                        {!ratingOk && <span style={styles.requiredBadgeInline}>Required</span>}
-                                                    </td>
-                                                    <td style={styles.tableValue}>
-                                                        <div style={styles.ratingInline}>
-                                                            <div style={styles.starGroup}>
-                                                                {[1, 2, 3, 4, 5].map(star => (
-                                                                    <i
-                                                                        key={star}
-                                                                        className="fas fa-star"
-                                                                        style={{...styles.star, ...(star <= operatorRating ? styles.starFilled : {})}}
-                                                                        onClick={() => handleSaveOperatorRating(star)}
-                                                                    ></i>
-                                                                ))}
-                                                            </div>
-                                                            <span style={styles.ratingText}>
+                                            )}
+                                            {operatorData.smyrna_id && (
+                                                <tr>
+                                                    <td style={styles.tableLabel}>Employee ID</td>
+                                                    <td style={styles.tableValue}>{operatorData.smyrna_id}</td>
+                                                </tr>
+                                            )}
+                                            <tr style={!ratingOk ? styles.highlightRow : {}}>
+                                                <td style={styles.tableLabel}>
+                                                    Performance Rating
+                                                    {!ratingOk &&
+                                                        <span style={styles.requiredBadgeInline}>Required</span>}
+                                                </td>
+                                                <td style={styles.tableValue}>
+                                                    <div style={styles.ratingInline}>
+                                                        <div style={styles.starGroup}>
+                                                            {[1, 2, 3, 4, 5].map(star => (
+                                                                <i
+                                                                    key={star}
+                                                                    className="fas fa-star"
+                                                                    style={{...styles.star, ...(star <= operatorRating ? styles.starFilled : {})}}
+                                                                    onClick={() => handleSaveOperatorRating(star)}
+                                                                ></i>
+                                                            ))}
+                                                        </div>
+                                                        <span style={styles.ratingText}>
                                                                 {operatorRating > 0 ? `${operatorRating}/5 - ${ratingLabels[operatorRating]}` : 'Not Yet Rated'}
                                                             </span>
+                                                    </div>
+                                                    {!ratingOk && (
+                                                        <div style={styles.inlineValidation}>
+                                                            <i className="fas fa-exclamation-circle"></i>
+                                                            Rating required for verification
                                                         </div>
-                                                        {!ratingOk && (
-                                                            <div style={styles.inlineValidation}>
-                                                                <i className="fas fa-exclamation-circle"></i>
-                                                                Rating required for verification
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                                <tr style={!phoneOk ? styles.highlightRow : {}}>
-                                                    <td style={styles.tableLabel}>
-                                                        Phone Number
-                                                        {!phoneOk && <span style={styles.requiredBadgeInline}>Required</span>}
-                                                    </td>
-                                                    <td style={styles.tableValue}>
-                                                        <div style={styles.phoneControl}>
-                                                            <input
-                                                                type="tel"
-                                                                style={{...styles.phoneInput, ...(!phoneOk ? styles.inputError : {})}}
-                                                                placeholder="(555) 555-5555"
-                                                                value={operatorPhone}
-                                                                onChange={e => setOperatorPhone(e.target.value)}
-                                                            />
-                                                            <button
-                                                                style={{...styles.savePhoneButton, opacity: isSavingPhone || !operatorPhone.trim() ? 0.5 : 1}}
-                                                                onClick={handleSaveOperatorPhone}
-                                                                disabled={isSavingPhone || !operatorPhone.trim()}
-                                                            >
-                                                                {isSavingPhone ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
-                                                            </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            <tr style={!phoneOk ? styles.highlightRow : {}}>
+                                                <td style={styles.tableLabel}>
+                                                    Phone Number
+                                                    {!phoneOk &&
+                                                        <span style={styles.requiredBadgeInline}>Required</span>}
+                                                </td>
+                                                <td style={styles.tableValue}>
+                                                    <div style={styles.phoneControl}>
+                                                        <input
+                                                            type="tel"
+                                                            style={{...styles.phoneInput, ...(!phoneOk ? styles.inputError : {})}}
+                                                            placeholder="(555) 555-5555"
+                                                            value={operatorPhone}
+                                                            onChange={e => setOperatorPhone(e.target.value)}
+                                                        />
+                                                        <button
+                                                            style={{
+                                                                ...styles.savePhoneButton,
+                                                                opacity: isSavingPhone || !operatorPhone.trim() ? 0.5 : 1
+                                                            }}
+                                                            onClick={handleSaveOperatorPhone}
+                                                            disabled={isSavingPhone || !operatorPhone.trim()}
+                                                        >
+                                                            {isSavingPhone ?
+                                                                <i className="fas fa-spinner fa-spin"></i> :
+                                                                <i className="fas fa-save"></i>}
+                                                        </button>
+                                                    </div>
+                                                    {!phoneOk && (
+                                                        <div style={styles.inlineValidation}>
+                                                            <i className="fas fa-exclamation-circle"></i>
+                                                            Phone required for verification
                                                         </div>
-                                                        {!phoneOk && (
-                                                            <div style={styles.inlineValidation}>
-                                                                <i className="fas fa-exclamation-circle"></i>
-                                                                Phone required for verification
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
+                                                    )}
+                                                </td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     ) : (
                                         <div style={styles.noData}>
                                             <i className="fas fa-exclamation-triangle" style={styles.noDataIcon}></i>
-                                            <p style={{margin: '0 0 8px', color: '#374151'}}>Unable to load operator information</p>
-                                            <p style={{margin: 0, fontSize: '13px'}}>The operator may have been removed or there was a connection issue</p>
+                                            <p style={{margin: '0 0 8px', color: '#374151'}}>Unable to load operator
+                                                information</p>
+                                            <p style={{margin: 0, fontSize: '13px'}}>The operator may have been removed
+                                                or there was a connection issue</p>
                                         </div>
                                     )}
                                 </div>
@@ -987,10 +1017,13 @@ export default function VerificationRequirementsModal({
                                 <div style={styles.sectionTitle}>
                                     <i className="fas fa-wrench"></i>
                                     <span style={{color: '#374151'}}>Maintenance Issues</span>
-                                    {openIssues.length === 0 && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
-                                    {openIssues.length > 0 && <span style={{...styles.badge, ...styles.badgeInfo}}>{openIssues.length} Open</span>}
+                                    {openIssues.length === 0 &&
+                                        <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
+                                    {openIssues.length > 0 && <span
+                                        style={{...styles.badge, ...styles.badgeInfo}}>{openIssues.length} Open</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`}
+                                   style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('issues') && (
                                 <div style={styles.sectionContent}>
@@ -1002,14 +1035,20 @@ export default function VerificationRequirementsModal({
                                         <LoadingScreen message="Loading issues..." inline={true}/>
                                     ) : openIssues.length === 0 ? (
                                         <div style={{...styles.noData, color: '#166534'}}>
-                                            <i className="fas fa-check-circle" style={{...styles.noDataIcon, color: '#22c55e'}}></i>
+                                            <i className="fas fa-check-circle"
+                                               style={{...styles.noDataIcon, color: '#22c55e'}}></i>
                                             <p style={{margin: 0}}>No open maintenance issues</p>
                                         </div>
                                     ) : (
                                         <>
                                             {hasHighSeverityIssues && (
-                                                <div style={{...styles.note, backgroundColor: '#fef2f2', borderColor: '#dc2626'}}>
-                                                    <i className="fas fa-exclamation-triangle" style={{color: '#991b1b'}}></i>
+                                                <div style={{
+                                                    ...styles.note,
+                                                    backgroundColor: '#fef2f2',
+                                                    borderColor: '#dc2626'
+                                                }}>
+                                                    <i className="fas fa-exclamation-triangle"
+                                                       style={{color: '#991b1b'}}></i>
                                                     <span style={{color: '#991b1b'}}>High severity issues detected. Consider resolving before verification, but not required.</span>
                                                 </div>
                                             )}
@@ -1017,19 +1056,25 @@ export default function VerificationRequirementsModal({
                                                 {openIssues.map(issue => (
                                                     <div key={issue.id} style={styles.issueItem}>
                                                         <div style={styles.issueHeader}>
-                                                            <span style={{...styles.issueSeverity, ...getSeverityStyle(issue.severity)}}>
+                                                            <span
+                                                                style={{...styles.issueSeverity, ...getSeverityStyle(issue.severity)}}>
                                                                 {issue.severity}
                                                             </span>
                                                             <span style={styles.issueCreator}>
                                                                 <i className="fas fa-user"></i> {userNames[issue.created_by] || 'Unknown'}
                                                             </span>
-                                                            <span style={styles.issueDate}>{formatDate(issue.time_created)}</span>
+                                                            <span
+                                                                style={styles.issueDate}>{formatDate(issue.time_created)}</span>
                                                             <div style={styles.issueActions}>
-                                                                <button style={styles.completeButton} onClick={() => handleCompleteIssue(issue.id)} title="Mark as resolved">
+                                                                <button style={styles.completeButton}
+                                                                        onClick={() => handleCompleteIssue(issue.id)}
+                                                                        title="Mark as resolved">
                                                                     <i className="fas fa-check"></i>
                                                                 </button>
                                                                 {canDelete && (
-                                                                    <button style={styles.deleteButton} onClick={() => handleDeleteIssue(issue.id)} title="Delete issue">
+                                                                    <button style={styles.deleteButton}
+                                                                            onClick={() => handleDeleteIssue(issue.id)}
+                                                                            title="Delete issue">
                                                                         <i className="fas fa-trash"></i>
                                                                     </button>
                                                                 )}
@@ -1052,10 +1097,13 @@ export default function VerificationRequirementsModal({
                                 <div style={styles.sectionTitle}>
                                     <i className="fas fa-comments"></i>
                                     <span style={{color: '#374151'}}>Comments</span>
-                                    {comments.length === 0 && <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
-                                    {comments.length > 0 && <span style={{...styles.badge, ...styles.badgeInfo}}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
+                                    {comments.length === 0 &&
+                                        <span style={{...styles.badge, ...styles.badgeComplete}}>Complete</span>}
+                                    {comments.length > 0 && <span
+                                        style={{...styles.badge, ...styles.badgeInfo}}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>}
                                 </div>
-                                <i className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`} style={{color: '#64748b'}}></i>
+                                <i className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`}
+                                   style={{color: '#64748b'}}></i>
                             </button>
                             {isSectionExpanded('comments') && (
                                 <div style={styles.sectionContent}>
@@ -1074,9 +1122,17 @@ export default function VerificationRequirementsModal({
                                         <div>
                                             {comments.map(comment => (
                                                 <div key={comment.id} style={styles.issueItem}>
-                                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
-                                                        <span style={styles.issueDate}>{formatDate(comment.createdAt)}</span>
-                                                        <button style={styles.deleteButton} onClick={() => handleDeleteComment(comment.id)} title="Delete comment">
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        marginBottom: '8px'
+                                                    }}>
+                                                        <span
+                                                            style={styles.issueDate}>{formatDate(comment.createdAt)}</span>
+                                                        <button style={styles.deleteButton}
+                                                                onClick={() => handleDeleteComment(comment.id)}
+                                                                title="Delete comment">
                                                             <i className="fas fa-trash"></i>
                                                         </button>
                                                     </div>
@@ -1098,7 +1154,12 @@ export default function VerificationRequirementsModal({
                 </div>
 
                 {isMixerInShopWithoutIssues && (
-                    <div style={{...styles.note, margin: '0 16px 16px', backgroundColor: '#fef2f2', borderColor: '#dc2626'}}>
+                    <div style={{
+                        ...styles.note,
+                        margin: '0 16px 16px',
+                        backgroundColor: '#fef2f2',
+                        borderColor: '#dc2626'
+                    }}>
                         <i className="fas fa-exclamation-triangle" style={{color: '#991b1b'}}></i>
                         <span style={{color: '#991b1b'}}>Mixers in &quot;In Shop&quot; status must have at least one active issue before they can be verified. Please add an issue describing why this mixer is in the shop.</span>
                     </div>

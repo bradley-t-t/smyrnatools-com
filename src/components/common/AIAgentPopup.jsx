@@ -870,21 +870,32 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                 <div style={messagesContainerStyle}>
                     {messages.length === 0 ? (
                         <div style={welcomeStyle}>
-                            <i className="fas fa-comments" style={{fontSize: '48px', opacity: 0.4, color: '#94a3b8'}}></i>
+                            <i className="fas fa-comments"
+                               style={{fontSize: '48px', opacity: 0.4, color: '#94a3b8'}}></i>
                             <p style={{fontSize: '14px', lineHeight: 1.6, maxWidth: '280px', color: '#64748b'}}>
                                 Ask me anything about your fleet, operators, reports, or operations.
                             </p>
-                            <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginTop: '8px'}}>
-                                <button style={suggestionButtonStyle} onClick={() => setInputValue('What is our current fleet status?')}>
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '8px',
+                                justifyContent: 'center',
+                                marginTop: '8px'
+                            }}>
+                                <button style={suggestionButtonStyle}
+                                        onClick={() => setInputValue('What is our current fleet status?')}>
                                     Fleet status
                                 </button>
-                                <button style={suggestionButtonStyle} onClick={() => setInputValue('How many spare mixer trucks do we have?')}>
+                                <button style={suggestionButtonStyle}
+                                        onClick={() => setInputValue('How many spare mixer trucks do we have?')}>
                                     Spare mixers
                                 </button>
-                                <button style={suggestionButtonStyle} onClick={() => setInputValue('Which trucks are currently in the shop?')}>
+                                <button style={suggestionButtonStyle}
+                                        onClick={() => setInputValue('Which trucks are currently in the shop?')}>
                                     Trucks in shop
                                 </button>
-                                <button style={suggestionButtonStyle} onClick={() => setInputValue('How many operators are in training?')}>
+                                <button style={suggestionButtonStyle}
+                                        onClick={() => setInputValue('How many operators are in training?')}>
                                     Training operators
                                 </button>
                             </div>
@@ -899,7 +910,10 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                                     </div>
                                     <div style={messageContentStyle(isUser)}>
                                         {msg.content.split('\n').filter(line => line.trim()).map((line, lineIdx) => (
-                                            <p key={lineIdx} style={{margin: lineIdx > 0 ? '8px 0 0 0' : 0, color: isUser ? 'white' : '#374151'}}>
+                                            <p key={lineIdx} style={{
+                                                margin: lineIdx > 0 ? '8px 0 0 0' : 0,
+                                                color: isUser ? 'white' : '#374151'
+                                            }}>
                                                 {line.replace(/^\[!\]\s*/, '').replace(/^\[~\]\s*/, '').replace(/^\[i\]\s*/, '').replace(/^[-•]\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '')}
                                             </p>
                                         ))}
@@ -915,9 +929,27 @@ export default function AIAgentPopup({isOpen, onClose, regionName, regionCode, s
                             </div>
                             <div style={messageContentStyle(false)}>
                                 <div style={{display: 'flex', gap: '4px', alignItems: 'center'}}>
-                                    <span style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94a3b8', animation: 'bounce 1s infinite'}}></span>
-                                    <span style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94a3b8', animation: 'bounce 1s infinite 0.2s'}}></span>
-                                    <span style={{width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94a3b8', animation: 'bounce 1s infinite 0.4s'}}></span>
+                                    <span style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#94a3b8',
+                                        animation: 'bounce 1s infinite'
+                                    }}></span>
+                                    <span style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#94a3b8',
+                                        animation: 'bounce 1s infinite 0.2s'
+                                    }}></span>
+                                    <span style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#94a3b8',
+                                        animation: 'bounce 1s infinite 0.4s'
+                                    }}></span>
                                 </div>
                             </div>
                         </div>

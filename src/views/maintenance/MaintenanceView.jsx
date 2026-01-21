@@ -394,13 +394,13 @@ export default function MaintenanceView() {
         },
         statusBadge: (status) => {
             const colors = {
-                completed: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
-                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
-                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706' },
-                approved: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
-                rejected: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
-                submitted: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' },
-                default: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' }
+                completed: {bg: '#d1fae5', border: '#10b981', text: '#059669'},
+                overdue: {bg: '#fee2e2', border: '#ef4444', text: '#dc2626'},
+                pending: {bg: '#fef3c7', border: '#f59e0b', text: '#d97706'},
+                approved: {bg: '#d1fae5', border: '#10b981', text: '#059669'},
+                rejected: {bg: '#fee2e2', border: '#ef4444', text: '#dc2626'},
+                submitted: {bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5'},
+                default: {bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5'}
             }
             const color = colors[status] || colors.default
             return {
@@ -507,7 +507,8 @@ export default function MaintenanceView() {
                             <i className="fas fa-clipboard-list"></i>
                             <span>My Tasks</span>
                             {dueItems.filter(i => i.status !== 'completed').length > 0 && (
-                                <span style={styles.tabBadge}>{dueItems.filter(i => i.status !== 'completed').length}</span>
+                                <span
+                                    style={styles.tabBadge}>{dueItems.filter(i => i.status !== 'completed').length}</span>
                             )}
                         </button>
                         {permissions.canReview && (
@@ -727,7 +728,7 @@ export default function MaintenanceView() {
                                                             <div style={styles.itemMeta}>
                                                                 <span style={styles.metaItem}>
                                                                     <i className="fas fa-calendar"></i>
-                                                                    {submission.status === 'submitted' 
+                                                                    {submission.status === 'submitted'
                                                                         ? `Submitted: ${formatMaintenanceDate(submission.submitted_at)}`
                                                                         : `Reviewed: ${formatMaintenanceDate(submission.reviewed_at)}`
                                                                     }

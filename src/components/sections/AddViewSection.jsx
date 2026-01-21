@@ -207,9 +207,9 @@ function AddViewSection({title, onClose, children, error, isListItem = false}) {
                                     <span style={styles.subtitle}>Access Restricted</span>
                                 </div>
                             </div>
-                            <button 
-                                style={styles.closeButton} 
-                                onClick={onClose} 
+                            <button
+                                style={styles.closeButton}
+                                onClick={onClose}
                                 aria-label="Close"
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = '#e5e7eb';
@@ -227,8 +227,10 @@ function AddViewSection({title, onClose, children, error, isListItem = false}) {
                             <div style={styles.content}>
                                 <div style={styles.permissionDenied}>
                                     <i className="fas fa-ban" style={styles.permissionIcon}></i>
-                                    <p style={styles.permissionText}>You are not permitted to create assets or items.</p>
-                                    <span style={styles.permissionSubtext}>Please contact your RMI or District Manager.</span>
+                                    <p style={styles.permissionText}>You are not permitted to create assets or
+                                        items.</p>
+                                    <span
+                                        style={styles.permissionSubtext}>Please contact your RMI or District Manager.</span>
                                 </div>
                             </div>
                         </div>
@@ -261,9 +263,9 @@ function AddViewSection({title, onClose, children, error, isListItem = false}) {
                                 <span style={styles.subtitle}>Create New</span>
                             </div>
                         </div>
-                        <button 
-                            style={styles.closeButton} 
-                            onClick={onClose} 
+                        <button
+                            style={styles.closeButton}
+                            onClick={onClose}
                             aria-label="Close"
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = '#e5e7eb';

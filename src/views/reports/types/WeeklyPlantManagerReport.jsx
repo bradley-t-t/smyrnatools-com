@@ -1461,78 +1461,78 @@ export function PlantManagerSubmitPlugin({
                     plantCode={plantCode}
                 />
 
-            <div className="pm-metrics-section">
-                <div className="pm-metrics-header">
-                    <h3 className="pm-metrics-title">
-                        <i className="fas fa-chart-bar"></i>
-                        Weekly Performance Metrics
-                    </h3>
-                    <p className="pm-metrics-subtitle">
-                        Key performance indicators for this reporting period
-                    </p>
-                </div>
+                <div className="pm-metrics-section">
+                    <div className="pm-metrics-header">
+                        <h3 className="pm-metrics-title">
+                            <i className="fas fa-chart-bar"></i>
+                            Weekly Performance Metrics
+                        </h3>
+                        <p className="pm-metrics-subtitle">
+                            Key performance indicators for this reporting period
+                        </p>
+                    </div>
 
-                <div className="pm-metrics-grid">
-                    <div className="pm-metric-card">
-                        <div className="pm-metric-header">
-                            <i className="fas fa-tachometer-alt pm-metric-icon"></i>
-                            <span className="pm-metric-title">Yards per Man-Hour</span>
-                        </div>
-                        <div
-                            className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            title="Left: Raw YPH / Right: Adjusted for help sent">
-                            <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
-                            <span className="pm-yph-separator">/</span>
-                            <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
-                        </div>
-                        <div className="pm-yph-labels">
-                            <span className="pm-yph-label-item">Raw</span>
-                            <span className="pm-yph-label-item">Adjusted</span>
-                        </div>
-                        <div
-                            className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {yphLabel?.adjusted ?? yphLabel}
-                        </div>
-                        <div className="pm-metric-scale">
+                    <div className="pm-metrics-grid">
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yards per Man-Hour</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                                title="Left: Raw YPH / Right: Adjusted for help sent">
+                                <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
+                                <span className="pm-yph-separator">/</span>
+                                <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
+                            </div>
+                            <div className="pm-yph-labels">
+                                <span className="pm-yph-label-item">Raw</span>
+                                <span className="pm-yph-label-item">Adjusted</span>
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
+                                {yphLabel?.adjusted ?? yphLabel}
+                            </div>
+                            <div className="pm-metric-scale">
                             <span
                                 className={(yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span
-                                className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
-                            <span
-                                className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
-                            <span
-                                className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
+                                <span
+                                    className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>Good</span>
+                                <span
+                                    className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}>Average</span>
+                                <span
+                                    className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="pm-metric-card">
-                        <div className="pm-metric-header">
-                            <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
-                            <span className="pm-metric-title">Yardage Lost</span>
-                        </div>
-                        <div
-                            className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {lost !== null ? lost : '--'}
-                        </div>
-                        <div
-                            className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {lostLabel}
-                        </div>
-                        <div className="pm-metric-scale">
-                            <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yardage Lost</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
+                                {lost !== null ? lost : '--'}
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
+                                {lostLabel}
+                            </div>
+                            <div className="pm-metric-scale">
+                                <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                                <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
+                                <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
+                                <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <WeeklyTrendsSection
-                currentWeekIso={weekIso}
-                plantCode={plantCode || userPlantCode || ''}
-                user={{...user, plant_code: userPlantCode}}
-            />
+                <WeeklyTrendsSection
+                    currentWeekIso={weekIso}
+                    plantCode={plantCode || userPlantCode || ''}
+                    user={{...user, plant_code: userPlantCode}}
+                />
             </div>
         </>
     )
@@ -1623,76 +1623,76 @@ export function PlantManagerReviewPlugin({
                     plantCode={plantCode}
                 />
 
-            <div className="pm-metrics-section">
-                <div className="pm-metrics-header">
-                    <h3 className="pm-metrics-title">
-                        <i className="fas fa-chart-bar"></i>
-                        Weekly Performance Metrics
-                    </h3>
-                    <p className="pm-metrics-subtitle">
-                        Key performance indicators for this reporting period
-                    </p>
-                </div>
+                <div className="pm-metrics-section">
+                    <div className="pm-metrics-header">
+                        <h3 className="pm-metrics-title">
+                            <i className="fas fa-chart-bar"></i>
+                            Weekly Performance Metrics
+                        </h3>
+                        <p className="pm-metrics-subtitle">
+                            Key performance indicators for this reporting period
+                        </p>
+                    </div>
 
-                <div className="pm-metrics-grid">
-                    <div className="pm-metric-card">
-                        <div className="pm-metric-header">
-                            <i className="fas fa-tachometer-alt pm-metric-icon"></i>
-                            <span className="pm-metric-title">Yards per Man-Hour</span>
-                        </div>
-                        <div
-                            className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            title="Left: Raw YPH / Right: Adjusted for help sent">
-                            <span className="pm-yph-raw">{formatYph(calculatedYph.raw)}</span>
-                            <span className="pm-yph-separator">/</span>
-                            <span className="pm-yph-adjusted">{formatYph(calculatedYph.adjusted)}</span>
-                        </div>
-                        <div className="pm-yph-labels">
-                            <span className="pm-yph-label-item">Raw</span>
-                            <span className="pm-yph-label-item">Adjusted</span>
-                        </div>
-                        <div
-                            className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {calculatedLabel.adjusted}
-                        </div>
-                        <div className="pm-metric-scale">
+                    <div className="pm-metrics-grid">
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yards per Man-Hour</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                                title="Left: Raw YPH / Right: Adjusted for help sent">
+                                <span className="pm-yph-raw">{formatYph(calculatedYph.raw)}</span>
+                                <span className="pm-yph-separator">/</span>
+                                <span className="pm-yph-adjusted">{formatYph(calculatedYph.adjusted)}</span>
+                            </div>
+                            <div className="pm-yph-labels">
+                                <span className="pm-yph-label-item">Raw</span>
+                                <span className="pm-yph-label-item">Adjusted</span>
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
+                                {calculatedLabel.adjusted}
+                            </div>
+                            <div className="pm-metric-scale">
                             <span
                                 className={calculatedGrade.adjusted === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={calculatedGrade.adjusted === 'good' ? 'active good' : ''}>Good</span>
-                            <span
-                                className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={calculatedGrade.adjusted === 'poor' ? 'active poor' : ''}>Poor</span>
+                                <span className={calculatedGrade.adjusted === 'good' ? 'active good' : ''}>Good</span>
+                                <span
+                                    className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>Average</span>
+                                <span className={calculatedGrade.adjusted === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="pm-metric-card">
-                        <div className="pm-metric-header">
-                            <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
-                            <span className="pm-metric-title">Yardage Lost</span>
-                        </div>
-                        <div
-                            className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {lost !== null ? lost : '--'}
-                        </div>
-                        <div
-                            className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
-                            {lostLabel}
-                        </div>
-                        <div className="pm-metric-scale">
-                            <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                            <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
-                            <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
-                            <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yardage Lost</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
+                                {lost !== null ? lost : '--'}
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}>
+                                {lostLabel}
+                            </div>
+                            <div className="pm-metric-scale">
+                                <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                                <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
+                                <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
+                                <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <WeeklyTrendsSection
-                currentWeekIso={weekIso}
-                plantCode={timelinePlantCode || user?.plant_code || ''}
-                user={user}
-            />
+                <WeeklyTrendsSection
+                    currentWeekIso={weekIso}
+                    plantCode={timelinePlantCode || user?.plant_code || ''}
+                    user={user}
+                />
             </div>
         </>
     )

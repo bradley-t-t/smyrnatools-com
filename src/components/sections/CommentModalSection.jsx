@@ -373,8 +373,8 @@ function CommentModalSection({
                                 <span style={styles.subtitle}>Comments</span>
                             </div>
                         </div>
-                        <button 
-                            style={styles.closeButton} 
+                        <button
+                            style={styles.closeButton}
                             onClick={onClose}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = '#e5e7eb';
@@ -449,8 +449,8 @@ function CommentModalSection({
                                         <span style={styles.count}>{comments.length}</span>
                                     </div>
                                     {sortedComments.map(comment => (
-                                        <div 
-                                            key={comment.id} 
+                                        <div
+                                            key={comment.id}
                                             style={styles.item}
                                             onMouseEnter={(e) => {
                                                 e.currentTarget.style.borderColor = '#93c5fd';

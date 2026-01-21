@@ -34,10 +34,12 @@ function PasswordRecoveryView({onBackToLogin}) {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#1e3a5f] p-4">
+        <div
+            className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#1e3a5f] p-4">
             <VideoBackground/>
             <div className="w-full max-w-md relative z-10">
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+                <div
+                    className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-white/20">
                     <div className="bg-[#1e3a5f] p-6 text-center">
                         <img src={SrmLogo} alt="SRM" className="h-16 mx-auto mb-3"/>
                         <h1 className="text-xl font-bold text-white">Password Recovery</h1>
@@ -61,14 +63,16 @@ function PasswordRecoveryView({onBackToLogin}) {
                             </div>
 
                             {error && (
-                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                <div
+                                    className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                                     <i className="fas fa-exclamation-circle"/>
                                     <span>{error}</span>
                                 </div>
                             )}
 
                             {message && (
-                                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                                <div
+                                    className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                                     <i className="fas fa-check-circle"/>
                                     <span>{message}</span>
                                 </div>
@@ -80,7 +84,8 @@ function PasswordRecoveryView({onBackToLogin}) {
                                 disabled={submitting}
                             >
                                 {submitting ? (
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                                    <div
+                                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
                                 ) : (
                                     <>
                                         <span>Send New Password</span>

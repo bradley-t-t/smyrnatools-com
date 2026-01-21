@@ -62,10 +62,19 @@ function ListViewModeSection({
         statusBadge: (status) => {
             let bg = '#f1f5f9'
             let textColor = '#475569'
-            if (status === 'Active') { bg = '#dcfce7'; textColor = '#166534' }
-            else if (status === 'Spare') { bg = '#dbeafe'; textColor = '#1e40af' }
-            else if (status === 'In Shop') { bg = '#fef3c7'; textColor = '#92400e' }
-            else if (status === 'Retired') { bg = '#f1f5f9'; textColor = '#64748b' }
+            if (status === 'Active') {
+                bg = '#dcfce7';
+                textColor = '#166534'
+            } else if (status === 'Spare') {
+                bg = '#dbeafe';
+                textColor = '#1e40af'
+            } else if (status === 'In Shop') {
+                bg = '#fef3c7';
+                textColor = '#92400e'
+            } else if (status === 'Retired') {
+                bg = '#f1f5f9';
+                textColor = '#64748b'
+            }
             return {
                 display: 'inline-block',
                 padding: '8px 16px',
@@ -199,9 +208,9 @@ function ListViewModeSection({
         const stars = []
         for (let i = 1; i <= 5; i++) {
             stars.push(
-                <i 
-                    key={i} 
-                    className="fas fa-star" 
+                <i
+                    key={i}
+                    className="fas fa-star"
                     style={i <= rating ? styles.starFilled : styles.starEmpty}
                 ></i>
             )
@@ -220,111 +229,114 @@ function ListViewModeSection({
                         const number = item.identifyingNumber || item.truckNumber || item.trailerNumber || ''
                         const isVerified = typeof item.isVerified === 'function' ? item.isVerified() : item.verified
                         const alternatingBg = index % 2 === 0 ? 'white' : '#f8fafc'
-                        
+
                         return (
                             <tr
                                 key={item.id}
                                 style={{...styles.row, backgroundColor: alternatingBg}}
-                            onClick={() => handleSelectItem(item.id)}
-                            onMouseEnter={(e) => {
-                                const cells = e.currentTarget.querySelectorAll('td')
-                                cells.forEach(cell => cell.style.backgroundColor = '#e0f2fe')
-                            }}
-                            onMouseLeave={(e) => {
-                                const cells = e.currentTarget.querySelectorAll('td')
-                                cells.forEach(cell => cell.style.backgroundColor = '')
-                            }}
-                        >
-                            <td style={styles.cell}>
-                                {plant?.name || item.assignedPlant || '-'}
-                            </td>
-                            <td style={styles.cellHighlight}>
-                                {item.truckNumber || item.trailerNumber || '-'}
-                            </td>
-                            <td style={styles.cellSecondary}>
-                                <span style={styles.statusBadge(item.status)}>{item.status}</span>
-                            </td>
-                            <td style={styles.cellSecondary}>
-                                {operator?.name || <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Not Assigned</span>}
-                            </td>
-                            <td style={styles.cellSecondary}>
-                                {renderStars(item.cleanlinessRating)}
-                            </td>
-                            <td style={styles.cellSecondary}>
-                                {item.vinNumber || item.vin ? (
-                                    <span style={styles.vinText}>{item.vinNumber || item.vin}</span>
-                                ) : (
-                                    <span style={{color: '#94a3b8'}}>-</span>
-                                )}
-                            </td>
-                            <td style={styles.cellSecondary}>
-                                {item.status === 'Retired' ? (
-                                    <span style={styles.verifyNA}>N/A</span>
-                                ) : (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            if (!isVerified && onVerify) {
-                                                onVerify(item.id, number)
-                                            }
-                                        }}
-                                        title={isVerified ? 'Verified' : 'Click to verify'}
-                                        style={styles.verifyBtn(isVerified)}
-                                        disabled={isVerified}
-                                    >
-                                        <i className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`} style={{color: isVerified ? '#166534' : '#92400e'}}></i>
-                                        <span style={{color: isVerified ? '#166534' : '#92400e'}}>{isVerified ? 'Verified' : 'Verify'}</span>
-                                    </button>
-                                )}
-                            </td>
-                            <td style={styles.cellSecondary}>
-                                <div style={styles.actionsContainer}>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onShowCommentModal && onShowCommentModal(item.id, number)
-                                        }}
-                                        title="Comments"
-                                        style={styles.actionBtn}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#1e3a5f'
-                                            e.currentTarget.style.color = 'white'
-                                            e.currentTarget.style.borderColor = '#1e3a5f'
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'white'
-                                            e.currentTarget.style.color = '#64748b'
-                                            e.currentTarget.style.borderColor = '#e2e8f0'
-                                        }}
-                                    >
-                                        <i className="fas fa-comment"></i>
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onShowIssueModal && onShowIssueModal(item.id, number)
-                                        }}
-                                        title="Issues"
-                                        style={styles.actionBtn}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#1e3a5f'
-                                            e.currentTarget.style.color = 'white'
-                                            e.currentTarget.style.borderColor = '#1e3a5f'
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'white'
-                                            e.currentTarget.style.color = '#64748b'
-                                            e.currentTarget.style.borderColor = '#e2e8f0'
-                                        }}
-                                    >
-                                        <i className="fas fa-wrench"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    )
-                })}
-                </tbody>
+                                onClick={() => handleSelectItem(item.id)}
+                                onMouseEnter={(e) => {
+                                    const cells = e.currentTarget.querySelectorAll('td')
+                                    cells.forEach(cell => cell.style.backgroundColor = '#e0f2fe')
+                                }}
+                                onMouseLeave={(e) => {
+                                    const cells = e.currentTarget.querySelectorAll('td')
+                                    cells.forEach(cell => cell.style.backgroundColor = '')
+                                }}
+                            >
+                                <td style={styles.cell}>
+                                    {plant?.name || item.assignedPlant || '-'}
+                                </td>
+                                <td style={styles.cellHighlight}>
+                                    {item.truckNumber || item.trailerNumber || '-'}
+                                </td>
+                                <td style={styles.cellSecondary}>
+                                    <span style={styles.statusBadge(item.status)}>{item.status}</span>
+                                </td>
+                                <td style={styles.cellSecondary}>
+                                    {operator?.name ||
+                                        <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Not Assigned</span>}
+                                </td>
+                                <td style={styles.cellSecondary}>
+                                    {renderStars(item.cleanlinessRating)}
+                                </td>
+                                <td style={styles.cellSecondary}>
+                                    {item.vinNumber || item.vin ? (
+                                        <span style={styles.vinText}>{item.vinNumber || item.vin}</span>
+                                    ) : (
+                                        <span style={{color: '#94a3b8'}}>-</span>
+                                    )}
+                                </td>
+                                <td style={styles.cellSecondary}>
+                                    {item.status === 'Retired' ? (
+                                        <span style={styles.verifyNA}>N/A</span>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                if (!isVerified && onVerify) {
+                                                    onVerify(item.id, number)
+                                                }
+                                            }}
+                                            title={isVerified ? 'Verified' : 'Click to verify'}
+                                            style={styles.verifyBtn(isVerified)}
+                                            disabled={isVerified}
+                                        >
+                                            <i className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
+                                               style={{color: isVerified ? '#166534' : '#92400e'}}></i>
+                                            <span
+                                                style={{color: isVerified ? '#166534' : '#92400e'}}>{isVerified ? 'Verified' : 'Verify'}</span>
+                                        </button>
+                                    )}
+                                </td>
+                                <td style={styles.cellSecondary}>
+                                    <div style={styles.actionsContainer}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                onShowCommentModal && onShowCommentModal(item.id, number)
+                                            }}
+                                            title="Comments"
+                                            style={styles.actionBtn}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                e.currentTarget.style.color = 'white'
+                                                e.currentTarget.style.borderColor = '#1e3a5f'
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'white'
+                                                e.currentTarget.style.color = '#64748b'
+                                                e.currentTarget.style.borderColor = '#e2e8f0'
+                                            }}
+                                        >
+                                            <i className="fas fa-comment"></i>
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                onShowIssueModal && onShowIssueModal(item.id, number)
+                                            }}
+                                            title="Issues"
+                                            style={styles.actionBtn}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                e.currentTarget.style.color = 'white'
+                                                e.currentTarget.style.borderColor = '#1e3a5f'
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'white'
+                                                e.currentTarget.style.color = '#64748b'
+                                                e.currentTarget.style.borderColor = '#e2e8f0'
+                                            }}
+                                        >
+                                            <i className="fas fa-wrench"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        )
+                    })}
+                    </tbody>
                 </table>
             </div>
         </div>

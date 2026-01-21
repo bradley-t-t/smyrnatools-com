@@ -165,12 +165,14 @@ function IssueModalSection({
     }
 
     return ReactDOM.createPortal(
-        <div 
+        <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000] p-4"
             onClick={handleBackdropClick}
         >
-            <div className="bg-white rounded-2xl shadow-2xl max-w-[600px] w-full max-h-[85vh] flex flex-col border border-gray-200">
-                <div className="bg-slate-50 flex justify-between items-center px-6 py-5 border-b border-gray-200 rounded-t-2xl">
+            <div
+                className="bg-white rounded-2xl shadow-2xl max-w-[600px] w-full max-h-[85vh] flex flex-col border border-gray-200">
+                <div
+                    className="bg-slate-50 flex justify-between items-center px-6 py-5 border-b border-gray-200 rounded-t-2xl">
                     <div className="flex items-center gap-3">
                         <i className="fas fa-exclamation-triangle text-xl text-amber-500"></i>
                         <div>
@@ -178,17 +180,17 @@ function IssueModalSection({
                             <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Issue Management</span>
                         </div>
                     </div>
-                    <button 
-                        className="bg-transparent border-none text-xl text-slate-500 cursor-pointer p-2 flex items-center justify-center rounded-md hover:bg-gray-200 hover:text-slate-800 w-8 h-8" 
+                    <button
+                        className="bg-transparent border-none text-xl text-slate-500 cursor-pointer p-2 flex items-center justify-center rounded-md hover:bg-gray-200 hover:text-slate-800 w-8 h-8"
                         onClick={onClose}
                     >
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-                
+
                 <div className="flex-1 overflow-y-auto p-6 bg-white">
                     <ErrorMessage message={error} onDismiss={() => setError(null)}/>
-                    
+
                     <form onSubmit={handleAddIssue} className="mb-6 p-4 bg-slate-50 rounded-lg border border-gray-200">
                         <div className="flex flex-col gap-3">
                             <textarea
@@ -221,7 +223,7 @@ function IssueModalSection({
                             </div>
                         </div>
                     </form>
-                    
+
                     <div className="flex flex-col gap-4">
                         {isLoading ? (
                             <div className="flex items-center justify-center py-12">
@@ -238,12 +240,15 @@ function IssueModalSection({
                                     <div className="flex flex-col gap-3">
                                         <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                                             <h4 className="m-0 text-sm font-bold text-slate-800 uppercase tracking-wide">Open</h4>
-                                            <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{openIssues.length}</span>
+                                            <span
+                                                className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{openIssues.length}</span>
                                         </div>
                                         {openIssues.map(issue => (
-                                            <div key={issue.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                            <div key={issue.id}
+                                                 className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                                 <div className="flex items-start justify-between gap-3 mb-2">
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded border ${getSeverityStyles(issue.severity)}`}>
+                                                    <span
+                                                        className={`text-xs font-bold px-2 py-1 rounded border ${getSeverityStyles(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     <div className="flex items-center gap-3 text-xs text-slate-500">
@@ -272,7 +277,8 @@ function IssueModalSection({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="text-sm text-slate-700 leading-relaxed">{issue.issue}</div>
+                                                <div
+                                                    className="text-sm text-slate-700 leading-relaxed">{issue.issue}</div>
                                             </div>
                                         ))}
                                     </div>
@@ -281,12 +287,15 @@ function IssueModalSection({
                                     <div className="flex flex-col gap-3 mt-4">
                                         <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                                             <h4 className="m-0 text-sm font-bold text-slate-800 uppercase tracking-wide">Resolved</h4>
-                                            <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{resolvedIssues.length}</span>
+                                            <span
+                                                className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{resolvedIssues.length}</span>
                                         </div>
                                         {resolvedIssues.map(issue => (
-                                            <div key={issue.id} className="bg-slate-50 border border-gray-200 rounded-lg p-4 opacity-75">
+                                            <div key={issue.id}
+                                                 className="bg-slate-50 border border-gray-200 rounded-lg p-4 opacity-75">
                                                 <div className="flex items-start justify-between gap-3 mb-2">
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded border ${getSeverityStyles(issue.severity)}`}>
+                                                    <span
+                                                        className={`text-xs font-bold px-2 py-1 rounded border ${getSeverityStyles(issue.severity)}`}>
                                                         {issue.severity}
                                                     </span>
                                                     <div className="flex items-center gap-3 text-xs text-slate-500">
@@ -308,7 +317,8 @@ function IssueModalSection({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="text-sm text-slate-700 leading-relaxed">{issue.issue}</div>
+                                                <div
+                                                    className="text-sm text-slate-700 leading-relaxed">{issue.issue}</div>
                                                 <div className="flex items-center gap-1.5 mt-2 text-xs text-green-600">
                                                     <i className="fas fa-check-circle"></i>
                                                     {formatDate(issue.time_completed)}

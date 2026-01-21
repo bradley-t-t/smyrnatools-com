@@ -22,20 +22,76 @@ const plugins = {
 
 function ReportsReviewView({report, initialData, onBack, user, completedByUser, onManagerEdit}) {
     const styles = {
-        container: { width: '100%', minHeight: '100vh', background: '#f8fafc', padding: '0' },
-        header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: 'white', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 40, flexWrap: 'wrap', gap: '1rem' },
-        headerLeft: { display: 'flex', alignItems: 'center', gap: '1rem' },
-        backBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', borderRadius: '10px', background: '#f1f5f9', color: '#475569', fontSize: '1rem', cursor: 'pointer' },
-        titleSection: { display: 'flex', flexDirection: 'column', gap: '0.25rem' },
-        title: { fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-        subtitle: { fontSize: '0.875rem', color: '#64748b', margin: 0 },
-        headerRight: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
-        metaBar: { display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e5e7eb', flexWrap: 'wrap' },
-        metaItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#64748b' },
-        metaIcon: { color: '#94a3b8' },
-        metaStrong: { fontWeight: 600, color: '#1e293b' },
-        exportBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' },
-        editBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: '#1e3a5f', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }
+        container: {width: '100%', minHeight: '100vh', background: '#f8fafc', padding: '0'},
+        header: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem 1.5rem',
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            position: 'sticky',
+            top: 0,
+            zIndex: 40,
+            flexWrap: 'wrap',
+            gap: '1rem'
+        },
+        headerLeft: {display: 'flex', alignItems: 'center', gap: '1rem'},
+        backBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40px',
+            height: '40px',
+            border: 'none',
+            borderRadius: '10px',
+            background: '#f1f5f9',
+            color: '#475569',
+            fontSize: '1rem',
+            cursor: 'pointer'
+        },
+        titleSection: {display: 'flex', flexDirection: 'column', gap: '0.25rem'},
+        title: {fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0},
+        subtitle: {fontSize: '0.875rem', color: '#64748b', margin: 0},
+        headerRight: {display: 'flex', alignItems: 'center', gap: '0.75rem'},
+        metaBar: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.5rem',
+            padding: '1rem 1.5rem',
+            background: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            flexWrap: 'wrap'
+        },
+        metaItem: {display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#64748b'},
+        metaIcon: {color: '#94a3b8'},
+        metaStrong: {fontWeight: 600, color: '#1e293b'},
+        exportBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            background: '#10b981',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer'
+        },
+        editBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            background: '#1e3a5f',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer'
+        }
     }
 
     const [form, setForm] = useState(initialData?.data || initialData || {})

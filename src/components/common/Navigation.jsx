@@ -68,7 +68,7 @@ export default function Navigation({selectedView, onSelectView, children, userNa
     const [showAIAgent, setShowAIAgent] = useState(false)
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    
+
     const dropdownRef = useRef(null)
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
@@ -108,6 +108,7 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                 setPermittedRegions([])
             }
         }
+
         fetchRegions()
     }, [userId, regionCode, updatePreferences])
 
@@ -129,6 +130,7 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                 setVisibleMenuItems([])
             }
         }
+
         filterItems()
     }, [userId, regionType, regionCode])
 
@@ -160,9 +162,9 @@ export default function Navigation({selectedView, onSelectView, children, userNa
     const hasAssets = visibleMenuItems.some(i => ASSET_ITEMS.includes(i.id))
     const hasPeople = visibleMenuItems.filter(i => PEOPLE_ITEMS.includes(i.id)).length > 1
     const hasProductivity = visibleMenuItems.filter(i => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
-    const standaloneItems = visibleMenuItems.filter(i => 
-        !ASSET_ITEMS.includes(i.id) && 
-        !(hasPeople && PEOPLE_ITEMS.includes(i.id)) && 
+    const standaloneItems = visibleMenuItems.filter(i =>
+        !ASSET_ITEMS.includes(i.id) &&
+        !(hasPeople && PEOPLE_ITEMS.includes(i.id)) &&
         !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id))
     )
 
@@ -206,7 +208,8 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                 >
                     <i className={`fas ${icon}`} style={{fontSize: '14px'}}></i>
                     <span>{label}</span>
-                    <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'}`} style={{fontSize: '10px', marginLeft: '2px'}}></i>
+                    <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'}`}
+                       style={{fontSize: '10px', marginLeft: '2px'}}></i>
                 </div>
                 {isOpen && (
                     <div style={dropdownStyle}>
@@ -233,7 +236,8 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isItemActive ? '#f0f7ff' : '#f9fafb'}
                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isItemActive ? '#f0f7ff' : 'transparent'}
                                 >
-                                    <i className={`fas ${ICONS[item.id]}`} style={{fontSize: '14px', width: '18px', color: '#64748b'}}></i>
+                                    <i className={`fas ${ICONS[item.id]}`}
+                                       style={{fontSize: '14px', width: '18px', color: '#64748b'}}></i>
                                     <span style={{color: isItemActive ? '#1e3a5f' : '#374151'}}>{item.text}</span>
                                 </div>
                             )
@@ -261,8 +265,12 @@ export default function Navigation({selectedView, onSelectView, children, userNa
             }}
             onClick={onClick}
             title={title}
-            onMouseEnter={(e) => {if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}}
-            onMouseLeave={(e) => {if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'}}
+            onMouseEnter={(e) => {
+                if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
+            }}
+            onMouseLeave={(e) => {
+                if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
+            }}
         >
             <i className={`fas ${icon}`} style={{fontSize: '16px'}}></i>
             {badge > 0 && (
@@ -301,7 +309,8 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                         top: 0,
                         zIndex: 100
                     }}>
-                        <img src={SrmLogo} alt="Logo" style={{height: '32px', filter: 'brightness(0) invert(1)'}} draggable={false}/>
+                        <img src={SrmLogo} alt="Logo" style={{height: '32px', filter: 'brightness(0) invert(1)'}}
+                             draggable={false}/>
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             style={{
@@ -366,7 +375,8 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                                             <option value="">Loading...</option>
                                         ) : (
                                             permittedRegions.map(r => (
-                                                <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                                <option key={r.regionCode || r.region_code}
+                                                        value={r.regionCode || r.region_code}>
                                                     {r.regionName || r.region_name}
                                                 </option>
                                             ))
@@ -387,7 +397,8 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                                         {ASSET_ITEMS.map(id => {
                                             const item = visibleMenuItems.find(i => i.id === id)
                                             if (!item) return null
-                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id} onClick={() => handleMenuClick(id)}/>
+                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id}
+                                                                   onClick={() => handleMenuClick(id)}/>
                                         })}
                                     </MobileSection>
                                 )}
@@ -397,7 +408,8 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                                         {PEOPLE_ITEMS.map(id => {
                                             const item = visibleMenuItems.find(i => i.id === id)
                                             if (!item) return null
-                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id} onClick={() => handleMenuClick(id)}/>
+                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id}
+                                                                   onClick={() => handleMenuClick(id)}/>
                                         })}
                                     </MobileSection>
                                 )}
@@ -407,17 +419,21 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                                         {PRODUCTIVITY_ITEMS.map(id => {
                                             const item = visibleMenuItems.find(i => i.id === id)
                                             if (!item) return null
-                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id} onClick={() => handleMenuClick(id)}/>
+                                            return <MobileMenuItem key={id} item={item} isActive={selectedView === id}
+                                                                   onClick={() => handleMenuClick(id)}/>
                                         })}
                                     </MobileSection>
                                 )}
 
                                 {standaloneItems.filter(i => i.id !== 'Dashboard').map(item => (
-                                    <MobileMenuItem key={item.id} item={item} isActive={selectedView === item.id} onClick={() => handleMenuClick(item.id)}/>
+                                    <MobileMenuItem key={item.id} item={item} isActive={selectedView === item.id}
+                                                    onClick={() => handleMenuClick(item.id)}/>
                                 ))}
 
                                 <MobileSection title="Account">
-                                    <MobileMenuItem item={{id: 'MyAccount', text: 'My Account'}} isActive={selectedView === 'MyAccount'} onClick={() => handleMenuClick('MyAccount')}/>
+                                    <MobileMenuItem item={{id: 'MyAccount', text: 'My Account'}}
+                                                    isActive={selectedView === 'MyAccount'}
+                                                    onClick={() => handleMenuClick('MyAccount')}/>
                                 </MobileSection>
                             </div>
                         </div>
@@ -446,14 +462,18 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                 }}>
                     <div style={{display: 'flex', alignItems: 'center', gap: '32px'}}>
                         <img src={SrmLogo} alt="Smyrna Ready Mix" style={{height: '36px'}} draggable={false}/>
-                        
+
                         <nav style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                             {standaloneItems.find(i => i.id === 'Dashboard') && (
                                 <div
                                     style={navItemStyle(selectedView === 'Dashboard')}
                                     onClick={() => handleMenuClick('Dashboard')}
-                                    onMouseEnter={(e) => {if (selectedView !== 'Dashboard') e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}}
-                                    onMouseLeave={(e) => {if (selectedView !== 'Dashboard') e.currentTarget.style.backgroundColor = 'transparent'}}
+                                    onMouseEnter={(e) => {
+                                        if (selectedView !== 'Dashboard') e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (selectedView !== 'Dashboard') e.currentTarget.style.backgroundColor = 'transparent'
+                                    }}
                                 >
                                     <i className={`fas ${ICONS.Dashboard}`} style={{fontSize: '14px'}}></i>
                                     <span>Dashboard</span>
@@ -469,8 +489,12 @@ export default function Navigation({selectedView, onSelectView, children, userNa
                                     key={item.id}
                                     style={navItemStyle(selectedView === item.id)}
                                     onClick={() => handleMenuClick(item.id)}
-                                    onMouseEnter={(e) => {if (selectedView !== item.id) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}}
-                                    onMouseLeave={(e) => {if (selectedView !== item.id) e.currentTarget.style.backgroundColor = 'transparent'}}
+                                    onMouseEnter={(e) => {
+                                        if (selectedView !== item.id) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (selectedView !== item.id) e.currentTarget.style.backgroundColor = 'transparent'
+                                    }}
                                 >
                                     <i className={`fas ${ICONS[item.id]}`} style={{fontSize: '14px'}}></i>
                                     <span>{item.text}</span>
@@ -580,7 +604,8 @@ function MobileMenuItem({item, isActive, onClick}) {
                 transition: 'all 0.15s'
             }}
         >
-            <i className={`fas ${ICONS[item.id] || 'fa-circle'}`} style={{fontSize: '16px', width: '20px', color: isActive ? '#1e3a5f' : '#64748b'}}></i>
+            <i className={`fas ${ICONS[item.id] || 'fa-circle'}`}
+               style={{fontSize: '16px', width: '20px', color: isActive ? '#1e3a5f' : '#64748b'}}></i>
             <span style={{fontSize: '15px'}}>{item.text}</span>
         </div>
     )

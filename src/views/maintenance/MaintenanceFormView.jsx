@@ -873,14 +873,21 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                                                     )}
                                                     {isUploadingThis && (
                                                         <div style={styles.uploadingOverlay}>
-                                                            <i className="fas fa-spinner fa-spin" style={{color: 'white', fontSize: '1.5rem'}}></i>
+                                                            <i className="fas fa-spinner fa-spin"
+                                                               style={{color: 'white', fontSize: '1.5rem'}}></i>
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : isChecked && field.image_required ? (
                                                 <div style={styles.imageButtons}>
                                                     {isUploadingThis ? (
-                                                        <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', color: '#64748b'}}>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.5rem',
+                                                            padding: '0.75rem',
+                                                            color: '#64748b'
+                                                        }}>
                                                             <i className="fas fa-spinner fa-spin"></i>
                                                             <span>Uploading...</span>
                                                         </div>
@@ -1054,7 +1061,13 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 ) : (
                     <div style={styles.imageButtons}>
                         {isUploading ? (
-                            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', color: '#64748b'}}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem',
+                                color: '#64748b'
+                            }}>
                                 <i className="fas fa-spinner fa-spin"></i>
                                 <span>Uploading...</span>
                             </div>
@@ -1777,8 +1790,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
     return (
         <div style={styles.container}>
             <div style={styles.header}>
-                <button 
-                    style={styles.closeBtn} 
+                <button
+                    style={styles.closeBtn}
                     onClick={onBack}
                     onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
                     onMouseLeave={(e) => e.currentTarget.style.background = '#f1f5f9'}
@@ -1791,7 +1804,8 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 </div>
                 <div style={styles.progressContainer}>
                     <div style={styles.progressBar}>
-                        <div style={{...styles.progressFill, width: `${((currentStep + 1) / totalSteps) * 100}%`}}></div>
+                        <div
+                            style={{...styles.progressFill, width: `${((currentStep + 1) / totalSteps) * 100}%`}}></div>
                     </div>
                     <span style={styles.progressText}>{currentStep + 1} of {totalSteps}</span>
                 </div>
@@ -1849,8 +1863,23 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
                 <div style={styles.content}>
                     <div style={styles.fieldCard}>
                         <div style={styles.fieldHeader}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem'}}>
-                                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#1e3a5f', fontSize: '1.25rem'}}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                marginBottom: '0.75rem'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '48px',
+                                    height: '48px',
+                                    borderRadius: '12px',
+                                    background: '#eff6ff',
+                                    color: '#1e3a5f',
+                                    fontSize: '1.25rem'
+                                }}>
                                     <i className={`fas ${getFieldTypeIcon(currentField.field_type)}`}></i>
                                 </div>
                                 <div style={{flex: 1}}>
@@ -1908,23 +1937,50 @@ export default function MaintenanceFormView({item, onBack, onSubmitted}) {
             />
 
             {imagePreview && (
-                <div 
-                    style={{position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.9)', zIndex: 9999, padding: '1rem'}}
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'rgba(0,0,0,0.9)',
+                        zIndex: 9999,
+                        padding: '1rem'
+                    }}
                     onClick={closeImagePreview}
                 >
-                    <div 
+                    <div
                         style={{position: 'relative', maxWidth: '90vw', maxHeight: '90vh'}}
                         onClick={e => e.stopPropagation()}
                     >
-                        <button 
-                            style={{position: 'absolute', top: '-3rem', right: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', borderRadius: '8px', background: 'white', color: '#1e293b', fontSize: '1.125rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', transition: 'all 0.2s'}}
+                        <button
+                            style={{
+                                position: 'absolute',
+                                top: '-3rem',
+                                right: '0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '40px',
+                                height: '40px',
+                                border: 'none',
+                                borderRadius: '8px',
+                                background: 'white',
+                                color: '#1e293b',
+                                fontSize: '1.125rem',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                transition: 'all 0.2s'
+                            }}
                             onClick={closeImagePreview}
                             onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                         >
                             <i className="fas fa-times"></i>
                         </button>
-                        <img src={imagePreview} alt="Full preview" style={{maxWidth: '100%', maxHeight: '90vh', borderRadius: '8px'}} />
+                        <img src={imagePreview} alt="Full preview"
+                             style={{maxWidth: '100%', maxHeight: '90vh', borderRadius: '8px'}}/>
                     </div>
                 </div>
             )}

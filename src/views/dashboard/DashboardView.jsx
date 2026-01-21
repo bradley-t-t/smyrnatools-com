@@ -156,7 +156,12 @@ export default function DashboardView() {
         identifyingNumber: e.identifyingNumber || e.identifying_number || e.asset_number || e.truck_number || ''
     }), [])
     const slimPickup = useCallback(p => ({id: p.id, status: p.status, plantCode: p.assignedPlant || p.plantCode}), [])
-    const slimOperator = useCallback(o => ({id: o.id, employeeId: o.employeeId, status: o.status, plantCode: o.plantCode}), [])
+    const slimOperator = useCallback(o => ({
+        id: o.id,
+        employeeId: o.employeeId,
+        status: o.status,
+        plantCode: o.plantCode
+    }), [])
 
     const isServiceOverdue = date => {
         if (!date) return false
@@ -373,7 +378,8 @@ export default function DashboardView() {
         const tractorAssignedIds = new Set()
         const consider = plantCode => !filterActive || plantSet.has(String(plantCode || '').trim())
         const counts = countsRef.current
-        let mixersAvailable = 0, tractorsAvailable = 0, trailersAvailable = 0, equipmentAvailable = 0, pickupsAvailable = 0
+        let mixersAvailable = 0, tractorsAvailable = 0, trailersAvailable = 0, equipmentAvailable = 0,
+            pickupsAvailable = 0
         if (!isAggregate) {
             for (const m of allMixersRef.current) {
                 if (!consider(m.plantCode)) continue
@@ -638,7 +644,8 @@ export default function DashboardView() {
             countsRef.current = counts
             setAssetIssueDetails(issueDetails)
             computeStats()
-        } catch {}
+        } catch {
+        }
     }, [computeStats])
 
     useEffect(() => {
@@ -659,7 +666,8 @@ export default function DashboardView() {
                 let allPerm = false
                 try {
                     allPerm = await UserService.hasPermission(uid, 'region.select.all').catch(() => false)
-                } catch {}
+                } catch {
+                }
                 if (cancelled) return
                 setHasAllRegionsPermission(!!allPerm)
                 let allFetched
@@ -776,7 +784,8 @@ export default function DashboardView() {
                             setLoading(false)
                         }
                     }
-                } catch {}
+                } catch {
+                }
             }
             setRefreshing(true)
             try {
@@ -840,7 +849,8 @@ export default function DashboardView() {
                         pickups: allPickupsRef.current,
                         operators: allOperatorsRef.current
                     }))
-                } catch {}
+                } catch {
+                }
             } catch (err) {
                 if (!cancelled) setError('Failed to load dashboard data')
             } finally {
@@ -973,7 +983,8 @@ export default function DashboardView() {
                 equipment: equipmentData,
                 pickups: pickupsData
             })
-        } catch (err) {}
+        } catch (err) {
+        }
     }, [calculateStatusDistribution, dashboardRegionCode, dashboardPlant, allPlants, regionPlants, historyStartDate, historyEndDate])
 
     useEffect(() => {
@@ -1304,443 +1315,709 @@ export default function DashboardView() {
                     zIndex: 10,
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                 }}>
-                <div style={{maxWidth: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                    <h1 style={{fontSize: '24px', fontWeight: 700, color: '#1e3a5f', margin: 0}}>Dashboard</h1>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                        <button
-                            type="button"
-                            onClick={onRefresh}
-                            disabled={refreshing}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '10px 20px',
-                                backgroundColor: '#1e3a5f',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                cursor: refreshing ? 'not-allowed' : 'pointer',
-                                opacity: refreshing ? 0.7 : 1
-                            }}
-                        >
-                            <i className="fas fa-sync-alt" style={{animation: refreshing ? 'spin 1s linear infinite' : 'none'}}></i>
-                            {refreshing ? 'Refreshing...' : 'Refresh'}
-                        </button>
-                        {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
-                            <button
-                                type="button"
-                                onClick={() => setPlantModalOpen(true)}
-                                disabled={refreshing}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: 'white',
-                                    color: '#374151',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '10px',
-                                    fontSize: '14px',
-                                    fontWeight: 500,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {dashboardPlant ? regionPlants.find(p => (p.plantCode || p.plant_code) === dashboardPlant)?.plantName || dashboardPlant : 'All Plants'}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div style={{maxWidth: '100%', margin: '0 auto', padding: '24px'}}>
-                <div style={{...cardStyle, marginBottom: '24px'}}>
-                    <div style={{marginBottom: '20px'}}>
-                        {showSkeleton ? (
-                            <>
-                                <div style={{height: '24px', backgroundColor: '#e2e8f0', borderRadius: '6px', width: '200px', marginBottom: '8px'}}></div>
-                                <div style={{height: '16px', backgroundColor: '#e2e8f0', borderRadius: '6px', width: '300px'}}></div>
-                            </>
-                        ) : (
-                            <>
-                                <h2 style={{fontSize: '22px', fontWeight: 600, color: '#1e3a5f', margin: '0 0 4px 0'}}>{regionDisplayName}</h2>
-                                <p style={{fontSize: '14px', color: '#64748b', margin: 0}}>{heroRegionSub}</p>
-                            </>
-                        )}
-                    </div>
-                    
-                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px'}}>
-                        {showSkeleton ? (
-                            [1,2,3,4].map(i => (
-                                <div key={i} style={metricCardStyle}>
-                                    <div style={{height: '14px', backgroundColor: '#e2e8f0', borderRadius: '4px', width: '60%', marginBottom: '12px'}}></div>
-                                    <div style={{height: '32px', backgroundColor: '#e2e8f0', borderRadius: '4px', width: '50%', marginBottom: '8px'}}></div>
-                                    <div style={{height: '12px', backgroundColor: '#e2e8f0', borderRadius: '4px', width: '40%'}}></div>
-                                </div>
-                            ))
-                        ) : (
-                            <>
-                                <div style={metricCardStyle}>
-                                    <div style={metricLabelStyle}>Fleet Total</div>
-                                    <div style={metricValueStyle}>{stats.fleetTotal}</div>
-                                    <div style={metricSubStyle}>Total Assets</div>
-                                </div>
-                                <div style={metricCardStyle}>
-                                    <div style={metricLabelStyle}>Asset Allocation</div>
-                                    <div style={metricValueStyle}>{stats.overallAllocationPercent}%</div>
-                                    <div style={metricSubStyle}>Overall Allocation</div>
-                                </div>
-                                <div style={metricCardStyle}>
-                                    <div style={metricLabelStyle}>Service Overdue</div>
-                                    <div style={metricValueStyle}>{stats.overdueTotal}</div>
-                                    <div style={metricSubStyle}>Need Attention</div>
-                                </div>
-                                <div style={metricCardStyle}>
-                                    <div style={metricLabelStyle}>Verification</div>
-                                    <div style={metricValueStyle}>{stats.verificationAverage}%</div>
-                                    <div style={metricSubStyle}>Overall Verified</div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {error && (
                     <div style={{
-                        backgroundColor: '#fef2f2',
-                        border: '1px solid #fecaca',
-                        color: '#dc2626',
-                        padding: '16px 20px',
-                        borderRadius: '12px',
-                        marginBottom: '24px',
+                        maxWidth: '100%',
+                        margin: '0 auto',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between'
                     }}>
-                        <span>{error}</span>
-                        <button onClick={onRetry} style={{color: '#dc2626', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer'}}>Retry</button>
+                        <h1 style={{fontSize: '24px', fontWeight: 700, color: '#1e3a5f', margin: 0}}>Dashboard</h1>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                            <button
+                                type="button"
+                                onClick={onRefresh}
+                                disabled={refreshing}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 20px',
+                                    backgroundColor: '#1e3a5f',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    cursor: refreshing ? 'not-allowed' : 'pointer',
+                                    opacity: refreshing ? 0.7 : 1
+                                }}
+                            >
+                                <i className="fas fa-sync-alt"
+                                   style={{animation: refreshing ? 'spin 1s linear infinite' : 'none'}}></i>
+                                {refreshing ? 'Refreshing...' : 'Refresh'}
+                            </button>
+                            {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
+                                <button
+                                    type="button"
+                                    onClick={() => setPlantModalOpen(true)}
+                                    disabled={refreshing}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: 'white',
+                                        color: '#374151',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '10px',
+                                        fontSize: '14px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {dashboardPlant ? regionPlants.find(p => (p.plantCode || p.plant_code) === dashboardPlant)?.plantName || dashboardPlant : 'All Plants'}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                )}
+                </div>
 
-                {!showSkeleton && (
-                    <div style={{display: 'grid', gap: '24px'}}>
-                        <div style={cardStyle}>
-                            <h3 style={sectionTitleStyle}>Fleet Overview</h3>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px'}}>
-                                {!isAggregate && (
-                                    <div style={{...metricCardStyle, border: selectedRegion?.type === 'Concrete' ? '2px solid #1e3a5f' : '1px solid #e2e8f0'}}>
-                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                            <div>
-                                                <div style={metricLabelStyle}>Mixers</div>
-                                                <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.mixers.total}</div>
+                <div style={{maxWidth: '100%', margin: '0 auto', padding: '24px'}}>
+                    <div style={{...cardStyle, marginBottom: '24px'}}>
+                        <div style={{marginBottom: '20px'}}>
+                            {showSkeleton ? (
+                                <>
+                                    <div style={{
+                                        height: '24px',
+                                        backgroundColor: '#e2e8f0',
+                                        borderRadius: '6px',
+                                        width: '200px',
+                                        marginBottom: '8px'
+                                    }}></div>
+                                    <div style={{
+                                        height: '16px',
+                                        backgroundColor: '#e2e8f0',
+                                        borderRadius: '6px',
+                                        width: '300px'
+                                    }}></div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2 style={{
+                                        fontSize: '22px',
+                                        fontWeight: 600,
+                                        color: '#1e3a5f',
+                                        margin: '0 0 4px 0'
+                                    }}>{regionDisplayName}</h2>
+                                    <p style={{fontSize: '14px', color: '#64748b', margin: 0}}>{heroRegionSub}</p>
+                                </>
+                            )}
+                        </div>
+
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                            gap: '16px'
+                        }}>
+                            {showSkeleton ? (
+                                [1, 2, 3, 4].map(i => (
+                                    <div key={i} style={metricCardStyle}>
+                                        <div style={{
+                                            height: '14px',
+                                            backgroundColor: '#e2e8f0',
+                                            borderRadius: '4px',
+                                            width: '60%',
+                                            marginBottom: '12px'
+                                        }}></div>
+                                        <div style={{
+                                            height: '32px',
+                                            backgroundColor: '#e2e8f0',
+                                            borderRadius: '4px',
+                                            width: '50%',
+                                            marginBottom: '8px'
+                                        }}></div>
+                                        <div style={{
+                                            height: '12px',
+                                            backgroundColor: '#e2e8f0',
+                                            borderRadius: '4px',
+                                            width: '40%'
+                                        }}></div>
+                                    </div>
+                                ))
+                            ) : (
+                                <>
+                                    <div style={metricCardStyle}>
+                                        <div style={metricLabelStyle}>Fleet Total</div>
+                                        <div style={metricValueStyle}>{stats.fleetTotal}</div>
+                                        <div style={metricSubStyle}>Total Assets</div>
+                                    </div>
+                                    <div style={metricCardStyle}>
+                                        <div style={metricLabelStyle}>Asset Allocation</div>
+                                        <div style={metricValueStyle}>{stats.overallAllocationPercent}%</div>
+                                        <div style={metricSubStyle}>Overall Allocation</div>
+                                    </div>
+                                    <div style={metricCardStyle}>
+                                        <div style={metricLabelStyle}>Service Overdue</div>
+                                        <div style={metricValueStyle}>{stats.overdueTotal}</div>
+                                        <div style={metricSubStyle}>Need Attention</div>
+                                    </div>
+                                    <div style={metricCardStyle}>
+                                        <div style={metricLabelStyle}>Verification</div>
+                                        <div style={metricValueStyle}>{stats.verificationAverage}%</div>
+                                        <div style={metricSubStyle}>Overall Verified</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div style={{
+                            backgroundColor: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            padding: '16px 20px',
+                            borderRadius: '12px',
+                            marginBottom: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <span>{error}</span>
+                            <button onClick={onRetry} style={{
+                                color: '#dc2626',
+                                fontWeight: 600,
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}>Retry
+                            </button>
+                        </div>
+                    )}
+
+                    {!showSkeleton && (
+                        <div style={{display: 'grid', gap: '24px'}}>
+                            <div style={cardStyle}>
+                                <h3 style={sectionTitleStyle}>Fleet Overview</h3>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                    gap: '16px'
+                                }}>
+                                    {!isAggregate && (
+                                        <div style={{
+                                            ...metricCardStyle,
+                                            border: selectedRegion?.type === 'Concrete' ? '2px solid #1e3a5f' : '1px solid #e2e8f0'
+                                        }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'flex-start',
+                                                marginBottom: '12px'
+                                            }}>
+                                                <div>
+                                                    <div style={metricLabelStyle}>Mixers</div>
+                                                    <div style={{
+                                                        fontSize: '32px',
+                                                        fontWeight: 700,
+                                                        color: '#1e3a5f'
+                                                    }}>{stats.mixers.total}</div>
+                                                </div>
+                                                <div style={{
+                                                    padding: '8px',
+                                                    backgroundColor: '#dbeafe',
+                                                    borderRadius: '8px'
+                                                }}>
+                                                    <i className="fas fa-truck-loading"
+                                                       style={{color: '#2563eb', fontSize: '20px'}}></i>
+                                                </div>
                                             </div>
-                                            <div style={{padding: '8px', backgroundColor: '#dbeafe', borderRadius: '8px'}}>
-                                                <i className="fas fa-truck-loading" style={{color: '#2563eb', fontSize: '20px'}}></i>
+                                            <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                                <Pill>Active {stats.mixers.active}</Pill>
+                                                <Pill>Spare {stats.mixers.spare}</Pill>
+                                                <Pill>In Shop {stats.mixers.shop}</Pill>
+                                                <Pill>Verified {stats.mixers.verifiedPercent}%</Pill>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div style={{
+                                        ...metricCardStyle,
+                                        border: selectedRegion?.type === 'Aggregate' ? '2px solid #1e3a5f' : '1px solid #e2e8f0'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Tractors</div>
+                                                <div style={{
+                                                    fontSize: '32px',
+                                                    fontWeight: 700,
+                                                    color: '#1e3a5f'
+                                                }}>{stats.tractors.total}</div>
+                                            </div>
+                                            <div style={{
+                                                padding: '8px',
+                                                backgroundColor: '#dcfce7',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <i className="fas fa-truck"
+                                                   style={{color: '#16a34a', fontSize: '20px'}}></i>
                                             </div>
                                         </div>
                                         <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                            <Pill>Active {stats.mixers.active}</Pill>
-                                            <Pill>Spare {stats.mixers.spare}</Pill>
-                                            <Pill>In Shop {stats.mixers.shop}</Pill>
-                                            <Pill>Verified {stats.mixers.verifiedPercent}%</Pill>
+                                            <Pill>Active {stats.tractors.active}</Pill>
+                                            <Pill>Spare {stats.tractors.spare}</Pill>
+                                            <Pill>In Shop {stats.tractors.shop}</Pill>
+                                            <Pill>Verified {stats.tractors.verifiedPercent}%</Pill>
                                         </div>
                                     </div>
-                                )}
-                                
-                                <div style={{...metricCardStyle, border: selectedRegion?.type === 'Aggregate' ? '2px solid #1e3a5f' : '1px solid #e2e8f0'}}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                        <div>
-                                            <div style={metricLabelStyle}>Tractors</div>
-                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.tractors.total}</div>
-                                        </div>
-                                        <div style={{padding: '8px', backgroundColor: '#dcfce7', borderRadius: '8px'}}>
-                                            <i className="fas fa-truck" style={{color: '#16a34a', fontSize: '20px'}}></i>
-                                        </div>
-                                    </div>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                        <Pill>Active {stats.tractors.active}</Pill>
-                                        <Pill>Spare {stats.tractors.spare}</Pill>
-                                        <Pill>In Shop {stats.tractors.shop}</Pill>
-                                        <Pill>Verified {stats.tractors.verifiedPercent}%</Pill>
-                                    </div>
-                                </div>
-                                
-                                <div style={metricCardStyle}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                        <div>
-                                            <div style={metricLabelStyle}>Trailers</div>
-                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.trailers.total}</div>
-                                        </div>
-                                        <div style={{padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px'}}>
-                                            <i className="fas fa-trailer" style={{color: '#d97706', fontSize: '20px'}}></i>
-                                        </div>
-                                    </div>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                        <Pill>Active {stats.trailers.active}</Pill>
-                                        <Pill>Spare {stats.trailers.spare}</Pill>
-                                        <Pill>In Shop {stats.trailers.shop}</Pill>
-                                    </div>
-                                </div>
-                                
-                                <div style={metricCardStyle}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                        <div>
-                                            <div style={metricLabelStyle}>Equipment</div>
-                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.equipment.total}</div>
-                                        </div>
-                                        <div style={{padding: '8px', backgroundColor: '#f3e8ff', borderRadius: '8px'}}>
-                                            <i className="fas fa-cogs" style={{color: '#9333ea', fontSize: '20px'}}></i>
-                                        </div>
-                                    </div>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                        <Pill>Active {stats.equipment.active}</Pill>
-                                        <Pill>Spare {stats.equipment.spare}</Pill>
-                                        <Pill>In Shop {stats.equipment.shop}</Pill>
-                                    </div>
-                                </div>
-                                
-                                <div style={metricCardStyle}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                        <div>
-                                            <div style={metricLabelStyle}>Pickup Trucks</div>
-                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.pickups.total}</div>
-                                        </div>
-                                        <div style={{padding: '8px', backgroundColor: '#fce7f3', borderRadius: '8px'}}>
-                                            <i className="fas fa-truck-pickup" style={{color: '#db2777', fontSize: '20px'}}></i>
-                                        </div>
-                                    </div>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                        <Pill>Active {stats.pickups.active}</Pill>
-                                        <Pill>In Shop {stats.pickups.shop}</Pill>
-                                        <Pill>Stationary {stats.pickups.stationary}</Pill>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div style={cardStyle}>
-                            <h3 style={sectionTitleStyle}>People</h3>
-                            <div style={{...metricCardStyle, marginBottom: '20px'}}>
-                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                    <div>
-                                        <div style={metricLabelStyle}>Operators</div>
-                                        <div style={{fontSize: '32px', fontWeight: 700, color: '#1e3a5f'}}>{stats.operators.total}</div>
+                                    <div style={metricCardStyle}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Trailers</div>
+                                                <div style={{
+                                                    fontSize: '32px',
+                                                    fontWeight: 700,
+                                                    color: '#1e3a5f'
+                                                }}>{stats.trailers.total}</div>
+                                            </div>
+                                            <div style={{
+                                                padding: '8px',
+                                                backgroundColor: '#fef3c7',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <i className="fas fa-trailer"
+                                                   style={{color: '#d97706', fontSize: '20px'}}></i>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                            <Pill>Active {stats.trailers.active}</Pill>
+                                            <Pill>Spare {stats.trailers.spare}</Pill>
+                                            <Pill>In Shop {stats.trailers.shop}</Pill>
+                                        </div>
                                     </div>
-                                    <div style={{padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '8px'}}>
-                                        <i className="fas fa-users" style={{color: '#0284c7', fontSize: '20px'}}></i>
-                                    </div>
-                                </div>
-                                <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                    <Pill>Active {stats.operators.active}</Pill>
-                                    <Pill>Light Duty {stats.operators.lightDuty}</Pill>
-                                    <Pill>Assigned {stats.operators.assigned}</Pill>
-                                    {!isAggregate && <Pill>Mixers {stats.operators.mixerAssigned}</Pill>}
-                                    <Pill>Tractors {stats.operators.tractorAssigned}</Pill>
-                                    <Pill>Unassigned {stats.operators.unassigned}</Pill>
-                                </div>
-                            </div>
 
-                            <CollapsibleTable
-                                title={`Operators In Training (${filteredTrainingOperators.length})`}
-                                collapsed={trainingCollapsed}
-                                onToggle={() => setTrainingCollapsed(v => !v)}
-                                disabled={!filteredTrainingOperators.length}
-                                headers={['Plant (Training At)', 'Operator', 'Trainer', 'Position', 'Plant (Training For)']}
-                                rows={filteredTrainingOperators}
-                                renderRow={(r) => [r.trainerPlant || '-', r.operatorName || '-', r.trainerName || '-', r.operatorPosition || '-', r.operatorPlant || '-']}
-                            />
-                            
-                            <CollapsibleTable
-                                title={`Pending Start Operators (${filteredPendingStartOperators.length})`}
-                                collapsed={pendingCollapsed}
-                                onToggle={() => setPendingCollapsed(v => !v)}
-                                disabled={!filteredPendingStartOperators.length}
-                                headers={['Plant (Training At)', 'Operator', 'Plant (Training For)', 'Pending Start Date']}
-                                rows={filteredPendingStartOperators}
-                                renderRow={(r) => [r.trainerPlant || '-', r.operatorName || '-', r.operatorPlant || '-', formatPendingDate(r.pendingDate)]}
-                            />
-                            
-                            <CollapsibleTable
-                                title={`Light Duty Operators (${filteredLightDutyOperators.length})`}
-                                collapsed={lightDutyCollapsed}
-                                onToggle={() => setLightDutyCollapsed(v => !v)}
-                                disabled={!filteredLightDutyOperators.length}
-                                headers={['Plant', 'Operator']}
-                                rows={filteredLightDutyOperators}
-                                renderRow={(r) => [r.plant || '-', r.operatorName || '-']}
-                            />
-                        </div>
+                                    <div style={metricCardStyle}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Equipment</div>
+                                                <div style={{
+                                                    fontSize: '32px',
+                                                    fontWeight: 700,
+                                                    color: '#1e3a5f'
+                                                }}>{stats.equipment.total}</div>
+                                            </div>
+                                            <div style={{
+                                                padding: '8px',
+                                                backgroundColor: '#f3e8ff',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <i className="fas fa-cogs"
+                                                   style={{color: '#9333ea', fontSize: '20px'}}></i>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                            <Pill>Active {stats.equipment.active}</Pill>
+                                            <Pill>Spare {stats.equipment.spare}</Pill>
+                                            <Pill>In Shop {stats.equipment.shop}</Pill>
+                                        </div>
+                                    </div>
 
-                        <div style={cardStyle}>
-                            <h3 style={sectionTitleStyle}>Maintenance & Quality</h3>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px'}}>
-                                <div style={metricCardStyle}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                        <div>
-                                            <div style={metricLabelStyle}>Service Overdue</div>
-                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#dc2626'}}>{stats.overdueTotal}</div>
+                                    <div style={metricCardStyle}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Pickup Trucks</div>
+                                                <div style={{
+                                                    fontSize: '32px',
+                                                    fontWeight: 700,
+                                                    color: '#1e3a5f'
+                                                }}>{stats.pickups.total}</div>
+                                            </div>
+                                            <div style={{
+                                                padding: '8px',
+                                                backgroundColor: '#fce7f3',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <i className="fas fa-truck-pickup"
+                                                   style={{color: '#db2777', fontSize: '20px'}}></i>
+                                            </div>
                                         </div>
-                                        <div style={{padding: '8px', backgroundColor: '#fee2e2', borderRadius: '8px'}}>
-                                            <i className="fas fa-exclamation-triangle" style={{color: '#dc2626', fontSize: '20px'}}></i>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                            <Pill>Active {stats.pickups.active}</Pill>
+                                            <Pill>In Shop {stats.pickups.shop}</Pill>
+                                            <Pill>Stationary {stats.pickups.stationary}</Pill>
                                         </div>
-                                    </div>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                        {!isAggregate && <Pill>Mixers {stats.mixers.overdue}</Pill>}
-                                        <Pill>Tractors {stats.tractors.overdue}</Pill>
-                                        <Pill>Trailers {stats.trailers.overdue}</Pill>
-                                        <Pill>Equipment {stats.equipment.overdue}</Pill>
-                                    </div>
-                                </div>
-                                <div style={metricCardStyle}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px'}}>
-                                        <div>
-                                            <div style={metricLabelStyle}>Open Issues</div>
-                                            <div style={{fontSize: '32px', fontWeight: 700, color: '#f59e0b'}}>{stats.openIssuesTotal}</div>
-                                        </div>
-                                        <div style={{padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px'}}>
-                                            <i className="fas fa-wrench" style={{color: '#f59e0b', fontSize: '20px'}}></i>
-                                        </div>
-                                    </div>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
-                                        {!isAggregate && <Pill>Mixers {stats.mixers.issues}</Pill>}
-                                        <Pill>Tractors {stats.tractors.issues}</Pill>
-                                        <Pill>Trailers {stats.trailers.issues}</Pill>
-                                        <Pill>Equipment {stats.equipment.issues}</Pill>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style={{borderTop: '1px solid #e2e8f0', paddingTop: '24px'}}>
-                                <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '20px'}}>
-                                    <h4 style={{fontSize: '16px', fontWeight: 600, color: '#1e3a5f', margin: 0}}>Historical Status Distribution</h4>
-                                    <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px'}}>
-                                        {['last-week', 'this-month', 'this-quarter', 'this-year', 'all'].map(filter => (
-                                            <button
-                                                key={filter}
-                                                onClick={() => handleQuickDateFilter(filter)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    fontSize: '12px',
-                                                    backgroundColor: '#f1f5f9',
-                                                    color: '#475569',
-                                                    border: 'none',
-                                                    borderRadius: '6px',
-                                                    cursor: 'pointer',
-                                                    fontWeight: 500
-                                                }}
-                                            >
-                                                {filter.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                            </button>
-                                        ))}
+                            <div style={cardStyle}>
+                                <h3 style={sectionTitleStyle}>People</h3>
+                                <div style={{...metricCardStyle, marginBottom: '20px'}}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                        marginBottom: '12px'
+                                    }}>
+                                        <div>
+                                            <div style={metricLabelStyle}>Operators</div>
+                                            <div style={{
+                                                fontSize: '32px',
+                                                fontWeight: 700,
+                                                color: '#1e3a5f'
+                                            }}>{stats.operators.total}</div>
+                                        </div>
+                                        <div style={{padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '8px'}}>
+                                            <i className="fas fa-users"
+                                               style={{color: '#0284c7', fontSize: '20px'}}></i>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                        <Pill>Active {stats.operators.active}</Pill>
+                                        <Pill>Light Duty {stats.operators.lightDuty}</Pill>
+                                        <Pill>Assigned {stats.operators.assigned}</Pill>
+                                        {!isAggregate && <Pill>Mixers {stats.operators.mixerAssigned}</Pill>}
+                                        <Pill>Tractors {stats.operators.tractorAssigned}</Pill>
+                                        <Pill>Unassigned {stats.operators.unassigned}</Pill>
                                     </div>
                                 </div>
 
-                                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px'}}>
-                                    {(() => {
-                                        const calcMetrics = (data) => {
-                                            const active = data.find(d => d.status === 'Active')?.days || 0
-                                            const spare = data.find(d => d.status === 'Spare')?.days || 0
-                                            const inShop = data.find(d => d.status === 'In Shop')?.days || 0
-                                            const total = data.reduce((sum, d) => sum + d.days, 0)
-                                            return {
-                                                active: total > 0 ? Math.round((active / total) * 100) : 0,
-                                                spare: total > 0 ? Math.round((spare / total) * 100) : 0,
-                                                inShop: total > 0 ? Math.round((inShop / total) * 100) : 0
+                                <CollapsibleTable
+                                    title={`Operators In Training (${filteredTrainingOperators.length})`}
+                                    collapsed={trainingCollapsed}
+                                    onToggle={() => setTrainingCollapsed(v => !v)}
+                                    disabled={!filteredTrainingOperators.length}
+                                    headers={['Plant (Training At)', 'Operator', 'Trainer', 'Position', 'Plant (Training For)']}
+                                    rows={filteredTrainingOperators}
+                                    renderRow={(r) => [r.trainerPlant || '-', r.operatorName || '-', r.trainerName || '-', r.operatorPosition || '-', r.operatorPlant || '-']}
+                                />
+
+                                <CollapsibleTable
+                                    title={`Pending Start Operators (${filteredPendingStartOperators.length})`}
+                                    collapsed={pendingCollapsed}
+                                    onToggle={() => setPendingCollapsed(v => !v)}
+                                    disabled={!filteredPendingStartOperators.length}
+                                    headers={['Plant (Training At)', 'Operator', 'Plant (Training For)', 'Pending Start Date']}
+                                    rows={filteredPendingStartOperators}
+                                    renderRow={(r) => [r.trainerPlant || '-', r.operatorName || '-', r.operatorPlant || '-', formatPendingDate(r.pendingDate)]}
+                                />
+
+                                <CollapsibleTable
+                                    title={`Light Duty Operators (${filteredLightDutyOperators.length})`}
+                                    collapsed={lightDutyCollapsed}
+                                    onToggle={() => setLightDutyCollapsed(v => !v)}
+                                    disabled={!filteredLightDutyOperators.length}
+                                    headers={['Plant', 'Operator']}
+                                    rows={filteredLightDutyOperators}
+                                    renderRow={(r) => [r.plant || '-', r.operatorName || '-']}
+                                />
+                            </div>
+
+                            <div style={cardStyle}>
+                                <h3 style={sectionTitleStyle}>Maintenance & Quality</h3>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                                    gap: '16px',
+                                    marginBottom: '24px'
+                                }}>
+                                    <div style={metricCardStyle}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Service Overdue</div>
+                                                <div style={{
+                                                    fontSize: '32px',
+                                                    fontWeight: 700,
+                                                    color: '#dc2626'
+                                                }}>{stats.overdueTotal}</div>
+                                            </div>
+                                            <div style={{
+                                                padding: '8px',
+                                                backgroundColor: '#fee2e2',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <i className="fas fa-exclamation-triangle"
+                                                   style={{color: '#dc2626', fontSize: '20px'}}></i>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                            {!isAggregate && <Pill>Mixers {stats.mixers.overdue}</Pill>}
+                                            <Pill>Tractors {stats.tractors.overdue}</Pill>
+                                            <Pill>Trailers {stats.trailers.overdue}</Pill>
+                                            <Pill>Equipment {stats.equipment.overdue}</Pill>
+                                        </div>
+                                    </div>
+                                    <div style={metricCardStyle}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={metricLabelStyle}>Open Issues</div>
+                                                <div style={{
+                                                    fontSize: '32px',
+                                                    fontWeight: 700,
+                                                    color: '#f59e0b'
+                                                }}>{stats.openIssuesTotal}</div>
+                                            </div>
+                                            <div style={{
+                                                padding: '8px',
+                                                backgroundColor: '#fef3c7',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <i className="fas fa-wrench"
+                                                   style={{color: '#f59e0b', fontSize: '20px'}}></i>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px'}}>
+                                            {!isAggregate && <Pill>Mixers {stats.mixers.issues}</Pill>}
+                                            <Pill>Tractors {stats.tractors.issues}</Pill>
+                                            <Pill>Trailers {stats.trailers.issues}</Pill>
+                                            <Pill>Equipment {stats.equipment.issues}</Pill>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{borderTop: '1px solid #e2e8f0', paddingTop: '24px'}}>
+                                    <div style={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: '16px',
+                                        marginBottom: '20px'
+                                    }}>
+                                        <h4 style={{
+                                            fontSize: '16px',
+                                            fontWeight: 600,
+                                            color: '#1e3a5f',
+                                            margin: 0
+                                        }}>Historical Status Distribution</h4>
+                                        <div style={{
+                                            display: 'flex',
+                                            flexWrap: 'wrap',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            {['last-week', 'this-month', 'this-quarter', 'this-year', 'all'].map(filter => (
+                                                <button
+                                                    key={filter}
+                                                    onClick={() => handleQuickDateFilter(filter)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        fontSize: '12px',
+                                                        backgroundColor: '#f1f5f9',
+                                                        color: '#475569',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        fontWeight: 500
+                                                    }}
+                                                >
+                                                    {filter.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                                        gap: '12px',
+                                        marginBottom: '24px'
+                                    }}>
+                                        {(() => {
+                                            const calcMetrics = (data) => {
+                                                const active = data.find(d => d.status === 'Active')?.days || 0
+                                                const spare = data.find(d => d.status === 'Spare')?.days || 0
+                                                const inShop = data.find(d => d.status === 'In Shop')?.days || 0
+                                                const total = data.reduce((sum, d) => sum + d.days, 0)
+                                                return {
+                                                    active: total > 0 ? Math.round((active / total) * 100) : 0,
+                                                    spare: total > 0 ? Math.round((spare / total) * 100) : 0,
+                                                    inShop: total > 0 ? Math.round((inShop / total) * 100) : 0
+                                                }
                                             }
-                                        }
-                                        const assets = [
-                                            {name: 'Mixers', ...calcMetrics(statusHistoryData.mixers), show: !isAggregate},
-                                            {name: 'Tractors', ...calcMetrics(statusHistoryData.tractors), show: true},
-                                            {name: 'Trailers', ...calcMetrics(statusHistoryData.trailers), show: true},
-                                            {name: 'Equipment', ...calcMetrics(statusHistoryData.equipment), show: true},
-                                            {name: 'Pickups', ...calcMetrics(statusHistoryData.pickups), show: true}
-                                        ].filter(a => a.show)
-                                        
-                                        return assets.map((asset, idx) => (
-                                            <div key={idx} style={{backgroundColor: '#f8fafc', borderRadius: '10px', padding: '14px', border: '1px solid #e2e8f0'}}>
-                                                <div style={{fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '10px'}}>{asset.name}</div>
-                                                <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
-                                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
-                                                        <span style={{color: '#16a34a'}}>Active</span>
-                                                        <span style={{fontWeight: 600, color: '#1e293b'}}>{asset.active}%</span>
-                                                    </div>
-                                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
-                                                        <span style={{color: '#9333ea'}}>Spare</span>
-                                                        <span style={{fontWeight: 600, color: '#1e293b'}}>{asset.spare}%</span>
-                                                    </div>
-                                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
-                                                        <span style={{color: '#2563eb'}}>In Shop</span>
-                                                        <span style={{fontWeight: 600, color: '#1e293b'}}>{asset.inShop}%</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    })()}
-                                </div>
+                                            const assets = [
+                                                {
+                                                    name: 'Mixers', ...calcMetrics(statusHistoryData.mixers),
+                                                    show: !isAggregate
+                                                },
+                                                {
+                                                    name: 'Tractors', ...calcMetrics(statusHistoryData.tractors),
+                                                    show: true
+                                                },
+                                                {
+                                                    name: 'Trailers', ...calcMetrics(statusHistoryData.trailers),
+                                                    show: true
+                                                },
+                                                {
+                                                    name: 'Equipment', ...calcMetrics(statusHistoryData.equipment),
+                                                    show: true
+                                                },
+                                                {name: 'Pickups', ...calcMetrics(statusHistoryData.pickups), show: true}
+                                            ].filter(a => a.show)
 
-                                <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                                    {(() => {
-                                        const getColor = (status) => {
-                                            const colors = {Active: '#22c55e', Spare: '#a855f7', 'In Shop': '#3b82f6', Stationary: '#eab308', Sold: '#6b7280'}
-                                            return colors[status] || '#64748b'
-                                        }
-                                        const sortStatuses = (data) => {
-                                            const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold']
-                                            return [...data].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status))
-                                        }
-                                        const bars = [
-                                            {label: 'Mixers', data: statusHistoryData.mixers, show: !isAggregate},
-                                            {label: 'Tractors', data: statusHistoryData.tractors, show: true},
-                                            {label: 'Trailers', data: statusHistoryData.trailers, show: true},
-                                            {label: 'Equipment', data: statusHistoryData.equipment, show: true},
-                                            {label: 'Pickups', data: statusHistoryData.pickups, show: true}
-                                        ].filter(b => b.show)
-                                        
-                                        return bars.map((bar, idx) => (
-                                            <div key={idx} style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                                                <div style={{width: '80px', fontSize: '13px', fontWeight: 500, color: '#475569', flexShrink: 0}}>{bar.label}</div>
-                                                <div style={{flex: 1, height: '28px', backgroundColor: '#e2e8f0', borderRadius: '6px', overflow: 'hidden', display: 'flex'}}>
-                                                    {bar.data.length > 0 ? (
-                                                        sortStatuses(bar.data).filter(item => parseFloat(item.percentage) > 0).map((item, i) => (
-                                                            <div
-                                                                key={i}
-                                                                style={{
-                                                                    width: `${item.percentage}%`,
-                                                                    height: '100%',
-                                                                    backgroundColor: getColor(item.status),
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    color: 'white',
-                                                                    fontSize: '11px',
-                                                                    fontWeight: 600
-                                                                }}
-                                                                title={`${item.status}: ${item.percentage}%`}
-                                                            >
-                                                                {parseFloat(item.percentage) > 12 && `${item.percentage}%`}
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <div style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '12px'}}>No data</div>
-                                                    )}
+                                            return assets.map((asset, idx) => (
+                                                <div key={idx} style={{
+                                                    backgroundColor: '#f8fafc',
+                                                    borderRadius: '10px',
+                                                    padding: '14px',
+                                                    border: '1px solid #e2e8f0'
+                                                }}>
+                                                    <div style={{
+                                                        fontSize: '13px',
+                                                        fontWeight: 600,
+                                                        color: '#475569',
+                                                        marginBottom: '10px'
+                                                    }}>{asset.name}</div>
+                                                    <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            fontSize: '12px'
+                                                        }}>
+                                                            <span style={{color: '#16a34a'}}>Active</span>
+                                                            <span style={{
+                                                                fontWeight: 600,
+                                                                color: '#1e293b'
+                                                            }}>{asset.active}%</span>
+                                                        </div>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            fontSize: '12px'
+                                                        }}>
+                                                            <span style={{color: '#9333ea'}}>Spare</span>
+                                                            <span style={{
+                                                                fontWeight: 600,
+                                                                color: '#1e293b'
+                                                            }}>{asset.spare}%</span>
+                                                        </div>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            fontSize: '12px'
+                                                        }}>
+                                                            <span style={{color: '#2563eb'}}>In Shop</span>
+                                                            <span style={{
+                                                                fontWeight: 600,
+                                                                color: '#1e293b'
+                                                            }}>{asset.inShop}%</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
-                                    })()}
+                                            ))
+                                        })()}
+                                    </div>
+
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                                        {(() => {
+                                            const getColor = (status) => {
+                                                const colors = {
+                                                    Active: '#22c55e',
+                                                    Spare: '#a855f7',
+                                                    'In Shop': '#3b82f6',
+                                                    Stationary: '#eab308',
+                                                    Sold: '#6b7280'
+                                                }
+                                                return colors[status] || '#64748b'
+                                            }
+                                            const sortStatuses = (data) => {
+                                                const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold']
+                                                return [...data].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status))
+                                            }
+                                            const bars = [
+                                                {label: 'Mixers', data: statusHistoryData.mixers, show: !isAggregate},
+                                                {label: 'Tractors', data: statusHistoryData.tractors, show: true},
+                                                {label: 'Trailers', data: statusHistoryData.trailers, show: true},
+                                                {label: 'Equipment', data: statusHistoryData.equipment, show: true},
+                                                {label: 'Pickups', data: statusHistoryData.pickups, show: true}
+                                            ].filter(b => b.show)
+
+                                            return bars.map((bar, idx) => (
+                                                <div key={idx}
+                                                     style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                                                    <div style={{
+                                                        width: '80px',
+                                                        fontSize: '13px',
+                                                        fontWeight: 500,
+                                                        color: '#475569',
+                                                        flexShrink: 0
+                                                    }}>{bar.label}</div>
+                                                    <div style={{
+                                                        flex: 1,
+                                                        height: '28px',
+                                                        backgroundColor: '#e2e8f0',
+                                                        borderRadius: '6px',
+                                                        overflow: 'hidden',
+                                                        display: 'flex'
+                                                    }}>
+                                                        {bar.data.length > 0 ? (
+                                                            sortStatuses(bar.data).filter(item => parseFloat(item.percentage) > 0).map((item, i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    style={{
+                                                                        width: `${item.percentage}%`,
+                                                                        height: '100%',
+                                                                        backgroundColor: getColor(item.status),
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        color: 'white',
+                                                                        fontSize: '11px',
+                                                                        fontWeight: 600
+                                                                    }}
+                                                                    title={`${item.status}: ${item.percentage}%`}
+                                                                >
+                                                                    {parseFloat(item.percentage) > 12 && `${item.percentage}%`}
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div style={{
+                                                                width: '100%',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: '#94a3b8',
+                                                                fontSize: '12px'
+                                                            }}>No data</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        })()}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            <PlantDropdownModal
-                isOpen={plantModalOpen}
-                onClose={() => setPlantModalOpen(false)}
-                plants={regionPlants}
-                onSelect={(plantCode) => setDashboardPlant(plantCode === 'All' ? '' : plantCode)}
-                showAllPlants={true}
-            />
-        </div>
+                <PlantDropdownModal
+                    isOpen={plantModalOpen}
+                    onClose={() => setPlantModalOpen(false)}
+                    plants={regionPlants}
+                    onSelect={(plantCode) => setDashboardPlant(plantCode === 'All' ? '' : plantCode)}
+                    showAllPlants={true}
+                />
+            </div>
         </>
     )
 
@@ -1776,25 +2053,36 @@ export default function DashboardView() {
                         <div style={{overflowX: 'auto'}}>
                             <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '13px'}}>
                                 <thead>
-                                    <tr style={{backgroundColor: '#f8fafc'}}>
-                                        {headers.map((h, i) => (
-                                            <th key={i} style={{textAlign: 'left', padding: '12px 16px', fontWeight: 500, color: '#64748b', borderBottom: '1px solid #e2e8f0'}}>{h}</th>
-                                        ))}
-                                    </tr>
+                                <tr style={{backgroundColor: '#f8fafc'}}>
+                                    {headers.map((h, i) => (
+                                        <th key={i} style={{
+                                            textAlign: 'left',
+                                            padding: '12px 16px',
+                                            fontWeight: 500,
+                                            color: '#64748b',
+                                            borderBottom: '1px solid #e2e8f0'
+                                        }}>{h}</th>
+                                    ))}
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {rows.map((r, i) => (
-                                        <tr key={r.id || i} style={{borderBottom: '1px solid #f1f5f9'}}>
-                                            {renderRow(r).map((cell, j) => (
-                                                <td key={j} style={{padding: '12px 16px', color: '#374151'}}>{cell}</td>
-                                            ))}
-                                        </tr>
-                                    ))}
+                                {rows.map((r, i) => (
+                                    <tr key={r.id || i} style={{borderBottom: '1px solid #f1f5f9'}}>
+                                        {renderRow(r).map((cell, j) => (
+                                            <td key={j} style={{padding: '12px 16px', color: '#374151'}}>{cell}</td>
+                                        ))}
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
                         </div>
                     ) : (
-                        <div style={{padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '14px'}}>None</div>
+                        <div style={{
+                            padding: '20px',
+                            textAlign: 'center',
+                            color: '#94a3b8',
+                            fontSize: '14px'
+                        }}>None</div>
                     )
                 )}
             </div>

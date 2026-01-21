@@ -247,15 +247,15 @@ const YardagePerHourCalculator = () => {
             border: '3px solid',
             borderColor: hasResult ? (
                 statusColor === 'success' ? '#16a34a' :
-                statusColor === 'info' ? '#3b82f6' :
-                statusColor === 'warning' ? '#f59e0b' :
-                statusColor === 'error' ? '#ef4444' : '#e5e7eb'
+                    statusColor === 'info' ? '#3b82f6' :
+                        statusColor === 'warning' ? '#f59e0b' :
+                            statusColor === 'error' ? '#ef4444' : '#e5e7eb'
             ) : '#e5e7eb',
             background: hasResult ? (
                 statusColor === 'success' ? '#f0fdf4' :
-                statusColor === 'info' ? '#eff6ff' :
-                statusColor === 'warning' ? '#fffbeb' :
-                statusColor === 'error' ? '#fef2f2' : 'white'
+                    statusColor === 'info' ? '#eff6ff' :
+                        statusColor === 'warning' ? '#fffbeb' :
+                            statusColor === 'error' ? '#fef2f2' : 'white'
             ) : 'white',
             display: 'flex',
             flexDirection: 'column',
@@ -320,13 +320,13 @@ const YardagePerHourCalculator = () => {
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
             background: color === 'success' ? '#dcfce7' :
-                       color === 'info' ? '#dbeafe' :
-                       color === 'warning' ? '#fef3c7' :
-                       color === 'error' ? '#fee2e2' : '#f1f5f9',
+                color === 'info' ? '#dbeafe' :
+                    color === 'warning' ? '#fef3c7' :
+                        color === 'error' ? '#fee2e2' : '#f1f5f9',
             color: color === 'success' ? '#16a34a' :
-                   color === 'info' ? '#3b82f6' :
-                   color === 'warning' ? '#f59e0b' :
-                   color === 'error' ? '#ef4444' : '#64748b'
+                color === 'info' ? '#3b82f6' :
+                    color === 'warning' ? '#f59e0b' :
+                        color === 'error' ? '#ef4444' : '#64748b'
         }),
         emptyState: {
             textAlign: 'center',
@@ -541,8 +541,8 @@ const YardagePerHourCalculator = () => {
             )}
 
             <div style={styles.footer}>
-                <button 
-                    onClick={clearForm} 
+                <button
+                    onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8fafc';

@@ -632,11 +632,28 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     };
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9', color = '#64748b';
-                        if (status === 'Active') { bg = '#dcfce7'; color = '#166534'; }
-                        else if (status === 'Spare') { bg = '#dbeafe'; color = '#1e40af'; }
-                        else if (status === 'In Shop') { bg = '#fef3c7'; color = '#92400e'; }
-                        else if (status === 'Retired') { bg = '#f1f5f9'; color = '#64748b'; }
-                        return { display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backgroundColor: bg, color: color };
+                        if (status === 'Active') {
+                            bg = '#dcfce7';
+                            color = '#166534';
+                        } else if (status === 'Spare') {
+                            bg = '#dbeafe';
+                            color = '#1e40af';
+                        } else if (status === 'In Shop') {
+                            bg = '#fef3c7';
+                            color = '#92400e';
+                        } else if (status === 'Retired') {
+                            bg = '#f1f5f9';
+                            color = '#64748b';
+                        }
+                        return {
+                            display: 'inline-block',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: bg,
+                            color: color
+                        };
                     };
                     const verifyBtnStyle = (verified) => ({
                         display: 'inline-flex',
@@ -667,60 +684,108 @@ function MixersView({title = 'Mixer Fleet', onSelectMixer, setSelectedView}) {
                     };
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}
-                            onMouseEnter={(e) => { 
-                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe'); 
+                            onMouseEnter={(e) => {
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe');
                             }}
-                            onMouseLeave={(e) => { 
-                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = ''); 
+                            onMouseLeave={(e) => {
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '');
                             }}>
                             <td style={{...cellStyle, width: '10%'}}>{plant?.name || item.assignedPlant}</td>
                             <td style={{...cellBoldStyle, width: '12%'}}>{item.truckNumber}</td>
                             <td style={{...cellStyle, width: '12%'}}>
                                 <span style={statusBadge(item.status)}>{item.status}</span>
                                 {item.status === 'In Shop' && item.downInYard && (
-                                    <span style={{marginLeft: '8px', backgroundColor: '#fef2f2', color: '#991b1b', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700}}>IN YARD</span>
+                                    <span style={{
+                                        marginLeft: '8px',
+                                        backgroundColor: '#fef2f2',
+                                        color: '#991b1b',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        fontSize: '10px',
+                                        fontWeight: 700
+                                    }}>IN YARD</span>
                                 )}
                             </td>
-                            <td style={{...cellStyle, width: '18%'}}>{operator?.name || <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Not Assigned</span>}</td>
+                            <td style={{...cellStyle, width: '18%'}}>{operator?.name ||
+                                <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Not Assigned</span>}</td>
                             <td style={{...cellStyle, width: '12%'}}>
                                 {item.status === 'Retired' ? (
                                     <span style={{color: '#94a3b8'}}>N/A</span>
                                 ) : (
                                     <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                                         {Array.from({length: 5}).map((_, i) => (
-                                            <i key={i} className="fas fa-star" style={{color: i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb', fontSize: '14px'}}></i>
+                                            <i key={i} className="fas fa-star" style={{
+                                                color: i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb',
+                                                fontSize: '14px'
+                                            }}></i>
                                         ))}
                                         {item.cleanlinessRating && item.cleanlinessRating < 3 && (
-                                            <span style={{marginLeft: '8px', backgroundColor: '#dc2626', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700}}>DOWNED</span>
+                                            <span style={{
+                                                marginLeft: '8px',
+                                                backgroundColor: '#dc2626',
+                                                color: 'white',
+                                                padding: '3px 8px',
+                                                borderRadius: '4px',
+                                                fontSize: '10px',
+                                                fontWeight: 700
+                                            }}>DOWNED</span>
                                         )}
                                     </div>
                                 )}
                             </td>
-                            <td style={{...cellStyle, width: '16%', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#64748b'}}>{item.vinNumber || item.vin || '-'}</td>
+                            <td style={{
+                                ...cellStyle,
+                                width: '16%',
+                                fontFamily: 'ui-monospace, monospace',
+                                fontSize: '12px',
+                                color: '#64748b'
+                            }}>{item.vinNumber || item.vin || '-'}</td>
                             <td style={{...cellStyle, width: '10%'}}>
                                 {item.status === 'Retired' ? (
-                                    <span style={{padding: '8px 14px', backgroundColor: '#f1f5f9', color: '#94a3b8', borderRadius: '8px', fontSize: '12px', fontWeight: 600}}>N/A</span>
+                                    <span style={{
+                                        padding: '8px 14px',
+                                        backgroundColor: '#f1f5f9',
+                                        color: '#94a3b8',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: 600
+                                    }}>N/A</span>
                                 ) : (
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); if (onVerify) onVerify(item.id, item.truckNumber); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onVerify) onVerify(item.id, item.truckNumber);
+                                        }}
                                         title={item.isVerified() ? 'Verified' : 'Click to verify'}
                                         style={verifyBtnStyle(item.isVerified())}
                                     >
-                                        <i className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`} style={{color: item.isVerified() ? '#166534' : '#92400e'}}></i>
-                                        <span style={{color: item.isVerified() ? '#166534' : '#92400e'}}>{item.isVerified() ? 'Verified' : 'Verify'}</span>
+                                        <i className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
+                                           style={{color: item.isVerified() ? '#166534' : '#92400e'}}></i>
+                                        <span
+                                            style={{color: item.isVerified() ? '#166534' : '#92400e'}}>{item.isVerified() ? 'Verified' : 'Verify'}</span>
                                     </button>
                                 )}
                             </td>
                             <td style={{...cellStyle, width: '10%'}}>
                                 <div style={{display: 'flex', alignItems: 'center'}}>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.truckNumber); }} style={actionBtnStyle} title="View comments">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.truckNumber);
+                                    }} style={actionBtnStyle} title="View comments">
                                         <i className="fas fa-comments"></i>
                                     </button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.truckNumber); }} style={actionBtnStyle} title="View issues">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.truckNumber);
+                                    }} style={actionBtnStyle} title="View issues">
                                         <i className="fas fa-tools"></i>
                                     </button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); setSelectedMixerForHistory(item); setShowHistoryModal(true); }} style={actionBtnStyle} title="View history">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedMixerForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={actionBtnStyle} title="View history">
                                         <i className="fas fa-history"></i>
                                     </button>
                                 </div>

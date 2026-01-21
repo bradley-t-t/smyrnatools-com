@@ -458,12 +458,14 @@ function TopSection({
                                 {badge && (
                                     onBadgeClick ? (
                                         <button style={styles.badge} onClick={onBadgeClick}>
-                                            <i className="fas fa-user-clock" style={{color: '#1e3a5f'}} aria-hidden="true"></i>
+                                            <i className="fas fa-user-clock" style={{color: '#1e3a5f'}}
+                                               aria-hidden="true"></i>
                                             <span style={{color: '#1e3a5f'}}>{badge}</span>
                                         </button>
                                     ) : (
                                         <span style={styles.badge}>
-                                            <i className="fas fa-user-clock" style={{color: '#1e3a5f'}} aria-hidden="true"></i>
+                                            <i className="fas fa-user-clock" style={{color: '#1e3a5f'}}
+                                               aria-hidden="true"></i>
                                             <span style={{color: '#1e3a5f'}}>{badge}</span>
                                         </span>
                                     )
@@ -471,12 +473,14 @@ function TopSection({
                             </div>
                             <div style={styles.mobileActionButtons}>
                                 {onAddClick && (
-                                    <button style={{...styles.mobileActionBtn, ...styles.mobileAddBtn}} onClick={onAddClick} type="button" aria-label={addButtonLabel}>
+                                    <button style={{...styles.mobileActionBtn, ...styles.mobileAddBtn}}
+                                            onClick={onAddClick} type="button" aria-label={addButtonLabel}>
                                         <i className="fas fa-plus" style={{color: 'white'}} aria-hidden="true"></i>
                                     </button>
                                 )}
                                 {onToggleSidebar && (
-                                    <button style={{...styles.mobileActionBtn, ...styles.mobileMenuBtn}} onClick={onToggleSidebar} type="button" aria-label="Toggle menu">
+                                    <button style={{...styles.mobileActionBtn, ...styles.mobileMenuBtn}}
+                                            onClick={onToggleSidebar} type="button" aria-label="Toggle menu">
                                         <i className="fas fa-bars" aria-hidden="true"></i>
                                     </button>
                                 )}
@@ -496,7 +500,8 @@ function TopSection({
                                     aria-label="Search"
                                 />
                                 {searchInput && onClearSearch && (
-                                    <button style={styles.clearButton} onClick={onClearSearch} type="button" aria-label="Clear search">
+                                    <button style={styles.clearButton} onClick={onClearSearch} type="button"
+                                            aria-label="Clear search">
                                         <i className="fas fa-times" aria-hidden="true"></i>
                                     </button>
                                 )}
@@ -548,7 +553,11 @@ function TopSection({
                                                 onClick={() => setIsPlantModalOpen(true)}
                                                 aria-label="Filter by plant"
                                             >
-                                                <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{plantDisplayText}</span>
+                                                <span style={{
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}>{plantDisplayText}</span>
                                                 <i className="fas fa-chevron-down" style={{color: '#64748b'}}></i>
                                             </button>
                                         </div>
@@ -582,7 +591,8 @@ function TopSection({
                                                 aria-label="Position filter"
                                             >
                                                 {safePositionOptions.map(opt => (
-                                                    <option key={opt} value={opt === 'All Positions' ? '' : opt}>{opt}</option>
+                                                    <option key={opt}
+                                                            value={opt === 'All Positions' ? '' : opt}>{opt}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -599,7 +609,8 @@ function TopSection({
                                                 aria-label="Freight filter"
                                             >
                                                 {freightOptions.map(opt => (
-                                                    <option key={opt} value={opt === 'All Freight' ? '' : opt}>{opt}</option>
+                                                    <option key={opt}
+                                                            value={opt === 'All Freight' ? '' : opt}>{opt}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -654,12 +665,14 @@ function TopSection({
                             <div style={styles.badgeContainer}>
                                 {onBadgeClick ? (
                                     <button style={styles.badge} onClick={onBadgeClick}>
-                                        <i className="fas fa-user-clock" style={{color: '#1e3a5f'}} aria-hidden="true"></i>
+                                        <i className="fas fa-user-clock" style={{color: '#1e3a5f'}}
+                                           aria-hidden="true"></i>
                                         <span style={{color: '#1e3a5f'}}>{badge}</span>
                                     </button>
                                 ) : (
                                     <span style={styles.badge}>
-                                        <i className="fas fa-user-clock" style={{color: '#1e3a5f'}} aria-hidden="true"></i>
+                                        <i className="fas fa-user-clock" style={{color: '#1e3a5f'}}
+                                           aria-hidden="true"></i>
                                         <span style={{color: '#1e3a5f'}}>{badge}</span>
                                     </span>
                                 )}
@@ -667,13 +680,15 @@ function TopSection({
                         )}
                         <div style={styles.actionCluster} role="group" aria-label="Primary actions">
                             {onToggleSidebar && (
-                                <button style={{...styles.actionButton, ...styles.actionButtonSubtle}} onClick={onToggleSidebar} type="button" aria-label="Toggle menu">
+                                <button style={{...styles.actionButton, ...styles.actionButtonSubtle}}
+                                        onClick={onToggleSidebar} type="button" aria-label="Toggle menu">
                                     <i className="fas fa-bars" aria-hidden="true"></i>
                                     <span>Menu</span>
                                 </button>
                             )}
                             {onAddClick && (
-                                <button style={{...styles.actionButton, ...styles.actionButtonPrimary}} onClick={onAddClick} type="button">
+                                <button style={{...styles.actionButton, ...styles.actionButtonPrimary}}
+                                        onClick={onAddClick} type="button">
                                     <i className="fas fa-plus" style={{color: 'white'}} aria-hidden="true"></i>
                                     <span style={{color: 'white'}}>{addButtonLabel}</span>
                                 </button>
@@ -693,7 +708,8 @@ function TopSection({
                                 aria-label="Search"
                             />
                             {searchInput && onClearSearch && (
-                                <button style={styles.clearButton} onClick={onClearSearch} type="button" aria-label="Clear search">
+                                <button style={styles.clearButton} onClick={onClearSearch} type="button"
+                                        aria-label="Clear search">
                                     <i className="fas fa-times" aria-hidden="true"></i>
                                 </button>
                             )}
@@ -771,7 +787,8 @@ function TopSection({
                             )}
                             {customFilters}
                             {showReset && onReset && (
-                                <button style={styles.resetButton} onClick={onReset} type="button" aria-label="Reset filters">
+                                <button style={styles.resetButton} onClick={onReset} type="button"
+                                        aria-label="Reset filters">
                                     <i className="fas fa-undo" aria-hidden="true"></i>
                                 </button>
                             )}

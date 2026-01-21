@@ -538,7 +538,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
                     <p className="m-0 text-[15px] font-medium text-gray-700">No cleanliness rating history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Cleanliness ratings will be charted here once they are recorded.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Cleanliness ratings will be charted here once they
+                        are recorded.</p>
                 </div>
             );
         }
@@ -563,7 +564,8 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                     <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
                         <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Current Rating:</span>
-                        <span className="text-[15px] font-bold text-slate-800">{cleanlinessData[cleanlinessData.length - 1].rating}★</span>
+                        <span
+                            className="text-[15px] font-bold text-slate-800">{cleanlinessData[cleanlinessData.length - 1].rating}★</span>
                     </div>
                 </div>
                 <div className="overflow-x-auto my-3 bg-slate-50 rounded-md p-3 border border-gray-200">
@@ -642,7 +644,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
                     <p className="m-0 text-[15px] font-medium text-gray-700">No condition rating history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Condition ratings will be charted here once they are recorded.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Condition ratings will be charted here once they are
+                        recorded.</p>
                 </div>
             );
         }
@@ -667,7 +670,8 @@ function HistoryViewSection({item, type, onClose}) {
                     </div>
                     <div className="flex flex-col gap-0.5 bg-slate-50 px-2.5 py-1.5 rounded-md border border-gray-200">
                         <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Current Rating:</span>
-                        <span className="text-[15px] font-bold text-slate-800">{conditionData[conditionData.length - 1].rating}★</span>
+                        <span
+                            className="text-[15px] font-bold text-slate-800">{conditionData[conditionData.length - 1].rating}★</span>
                     </div>
                 </div>
                 <div className="overflow-x-auto my-3 bg-slate-50 rounded-md p-3 border border-gray-200">
@@ -745,8 +749,10 @@ function HistoryViewSection({item, type, onClose}) {
         if (operatorData.length === 0) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
-                    <p className="m-0 text-[15px] font-medium text-gray-700">No operator assignment history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Operator assignments will be charted here once they are recorded.</p>
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No operator assignment history
+                        available</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Operator assignments will be charted here once they
+                        are recorded.</p>
                 </div>
             );
         }
@@ -860,50 +866,70 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="flex flex-col gap-2.5">
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Operator</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current
+                            Operator
+                        </div>
                         <div className="text-base font-bold text-slate-800">{currentOperator || 'Not Assigned'}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Assignments</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total
+                            Assignments
+                        </div>
                         <div className="text-base font-bold text-slate-800">{totalAssignments}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique Operators</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique
+                            Operators
+                        </div>
                         <div className="text-base font-bold text-slate-800">{uniqueOperators}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most Frequent</div>
-                        <div className="text-base font-bold text-slate-800">{mostFrequentOperator || 'Not Assigned'}</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most
+                            Frequent
+                        </div>
+                        <div
+                            className="text-base font-bold text-slate-800">{mostFrequentOperator || 'Not Assigned'}</div>
                     </div>
                 </div>
 
-                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Assignment Timeline</h3>
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Assignment
+                    Timeline</h3>
                 <div className="flex flex-col gap-0">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index} className="flex gap-3 py-2">
                             <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
-                                {index < consolidatedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                <div
+                                    className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < consolidatedTimeline.length - 1 &&
+                                    <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
                             <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
                                     <span className="text-sm font-semibold text-slate-800">{entry.operator}</span>
-                                    {entry.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                    {entry.isCurrent && <span
+                                        className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                     {entry.isEmpty && !entry.isCurrent &&
-                                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded uppercase">No Operator</span>}
+                                        <span
+                                            className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded uppercase">No Operator</span>}
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
+                                    <span
+                                        className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                                 {entry.isEmpty && entry.statusPeriods && entry.statusPeriods.length > 0 && (
                                     <div className="mt-2 pt-2 border-t border-gray-100">
-                                        <div className="text-[10px] text-slate-500 font-semibold mb-1">Status during period:</div>
+                                        <div className="text-[10px] text-slate-500 font-semibold mb-1">Status during
+                                            period:
+                                        </div>
                                         <div className="flex flex-wrap gap-1">
                                             {entry.statusPeriods.map((statusPeriod, spIndex) => (
-                                                <div key={spIndex} className="text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                <div key={spIndex}
+                                                     className="text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
                                                     <span className="font-medium">{statusPeriod.status}</span>
-                                                    <span className="text-slate-400 ml-1">({statusPeriod.days} {statusPeriod.days === 1 ? 'day' : 'days'})</span>
+                                                    <span
+                                                        className="text-slate-400 ml-1">({statusPeriod.days} {statusPeriod.days === 1 ? 'day' : 'days'})</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -1002,7 +1028,8 @@ function HistoryViewSection({item, type, onClose}) {
                                 ></div>
                                 <div className="flex flex-col">
                                     <div className="text-xs font-semibold text-slate-800">{item.status}</div>
-                                    <div className="text-[11px] text-slate-500">{item.days} days ({item.percentage}%)</div>
+                                    <div className="text-[11px] text-slate-500">{item.days} days ({item.percentage}%)
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -1011,24 +1038,33 @@ function HistoryViewSection({item, type, onClose}) {
 
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Status</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current
+                            Status
+                        </div>
                         <div className="text-base font-bold text-slate-800">{currentStatus}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Status Changes</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total
+                            Status Changes
+                        </div>
                         <div className="text-base font-bold text-slate-800">{allStatusPeriodsData.length}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Shop Days</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Shop
+                            Days
+                        </div>
                         <div className="text-base font-bold text-slate-800">{totalShopDays}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Days Since Creation</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Days Since
+                            Creation
+                        </div>
                         <div className="text-base font-bold text-slate-800">{totalDaysSinceCreation}</div>
                     </div>
                 </div>
 
-                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Status Timeline</h3>
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Status
+                    Timeline</h3>
                 <div className="flex flex-col gap-0">
                     {allStatusPeriodsData.length === 0 ? (
                         <div className="flex gap-3 py-2">
@@ -1041,7 +1077,8 @@ function HistoryViewSection({item, type, onClose}) {
                             <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
                                     <span className="text-sm font-semibold text-slate-800">{currentStatus}</span>
-                                    <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>
+                                    <span
+                                        className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <span className="text-xs text-slate-500">Since Creation</span>
@@ -1064,12 +1101,14 @@ function HistoryViewSection({item, type, onClose}) {
                                         className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"
                                         style={{background: getStatusColor(period.status)}}
                                     ></div>
-                                    {index < allStatusPeriodsData.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                    {index < allStatusPeriodsData.length - 1 &&
+                                        <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                 </div>
                                 <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                     <div className="flex items-center gap-2 mb-1.5">
                                         <span className="text-sm font-semibold text-slate-800">{period.status}</span>
-                                        {period.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                        {period.isCurrent && <span
+                                            className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                     </div>
                                     <div className="flex items-center gap-3 flex-wrap">
                                         <span className="text-xs text-slate-500">
@@ -1077,7 +1116,8 @@ function HistoryViewSection({item, type, onClose}) {
                                             {period.endTimestamp && ` - ${FormatUtility.formatDate(period.endTimestamp)}`}
                                             {!period.endTimestamp && ' - Present'}
                                         </span>
-                                        <span className="text-xs text-[#1e3a5f] font-semibold">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
+                                        <span
+                                            className="text-xs text-[#1e3a5f] font-semibold">{period.days} {period.days === 1 ? 'day' : 'days'}</span>
                                     </div>
                                     <div className="flex items-center gap-3 flex-wrap mt-1">
                                         <span className="text-xs text-slate-500">
@@ -1175,7 +1215,10 @@ function HistoryViewSection({item, type, onClose}) {
                             <i className="fas fa-wrench text-[#1e3a5f]"></i>
                             <div>
                                 <div className="text-xs text-slate-500">Last Service</div>
-                                <div className="text-sm font-semibold text-slate-800">{FormatUtility.formatDate(lastService.serviceDate)} ({daysSinceLastService} days ago)</div>
+                                <div
+                                    className="text-sm font-semibold text-slate-800">{FormatUtility.formatDate(lastService.serviceDate)} ({daysSinceLastService} days
+                                    ago)
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1204,8 +1247,10 @@ function HistoryViewSection({item, type, onClose}) {
                             return (
                                 <div key={`service-${index}`} className="flex gap-3 py-2">
                                     <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                        <div className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1] bg-green-600"></div>
-                                        {index < combinedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                        <div
+                                            className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1] bg-green-600"></div>
+                                        {index < combinedTimeline.length - 1 &&
+                                            <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                     </div>
                                     <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                         <div className="flex items-center gap-2 mb-1.5">
@@ -1214,7 +1259,8 @@ function HistoryViewSection({item, type, onClose}) {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 flex-wrap">
-                                            <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.date)}</span>
+                                            <span
+                                                className="text-xs text-slate-500">{FormatUtility.formatDate(entry.date)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1225,19 +1271,25 @@ function HistoryViewSection({item, type, onClose}) {
                             return (
                                 <div key={`issue-${issue.id}`} className="flex gap-3 py-2">
                                     <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                        <div className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]" style={{background: severityColor}}></div>
-                                        {index < combinedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                        <div
+                                            className="w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"
+                                            style={{background: severityColor}}></div>
+                                        {index < combinedTimeline.length - 1 &&
+                                            <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                     </div>
-                                    <div className={`flex-1 bg-white border rounded-lg p-3 ${entry.isCompleted ? 'border-green-200' : 'border-gray-200'}`}>
+                                    <div
+                                        className={`flex-1 bg-white border rounded-lg p-3 ${entry.isCompleted ? 'border-green-200' : 'border-gray-200'}`}>
                                         <div className="flex justify-between items-start">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <i className={`${entry.isCompleted ? "fas fa-check-circle text-green-600" : "fas fa-exclamation-circle text-amber-500"}`}></i>
-                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${issue.severity === 'High' ? 'bg-red-100 text-red-800' : issue.severity === 'Medium' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                    <span
+                                                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${issue.severity === 'High' ? 'bg-red-100 text-red-800' : issue.severity === 'Medium' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
                                                         {issue.severity}
                                                     </span>
                                                     {entry.isCompleted && (
-                                                        <span className="text-[10px] font-bold bg-green-100 text-green-800 px-1.5 py-0.5 rounded uppercase">RESOLVED</span>
+                                                        <span
+                                                            className="text-[10px] font-bold bg-green-100 text-green-800 px-1.5 py-0.5 rounded uppercase">RESOLVED</span>
                                                     )}
                                                 </div>
                                                 <div className="text-sm text-slate-700">{issue.issue}</div>
@@ -1250,10 +1302,13 @@ function HistoryViewSection({item, type, onClose}) {
                                                 <i className="fas fa-trash text-xs"></i>
                                             </button>
                                         </div>
-                                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 flex-wrap gap-2">
+                                        <div
+                                            className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 flex-wrap gap-2">
                                             <div className="flex items-center gap-3 text-xs text-slate-500">
-                                                <span><i className="fas fa-user mr-1"></i> {getCreatorName(issue)}</span>
-                                                <span><i className="fas fa-calendar-plus mr-1"></i> {formatDate(issue.time_created)}</span>
+                                                <span><i
+                                                    className="fas fa-user mr-1"></i> {getCreatorName(issue)}</span>
+                                                <span><i
+                                                    className="fas fa-calendar-plus mr-1"></i> {formatDate(issue.time_created)}</span>
                                             </div>
                                             {entry.isCompleted && entry.completedDate && (
                                                 <span className="text-xs text-green-600">
@@ -1330,39 +1385,53 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Plant</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current
+                            Plant
+                        </div>
                         <div className="text-base font-bold text-slate-800">{currentPlant}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Transfers</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total
+                            Transfers
+                        </div>
                         <div className="text-base font-bold text-slate-800">{totalAssignments}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique Plants</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique
+                            Plants
+                        </div>
                         <div className="text-base font-bold text-slate-800">{uniquePlants}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most Frequent</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most
+                            Frequent
+                        </div>
                         <div className="text-[13px] font-bold text-slate-800">{mostFrequentPlant}</div>
                     </div>
                 </div>
 
-                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Assignment Timeline</h3>
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Assignment
+                    Timeline</h3>
                 <div className="flex flex-col gap-0">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index} className="flex gap-3 py-2">
                             <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
-                                {index < consolidatedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                <div
+                                    className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < consolidatedTimeline.length - 1 &&
+                                    <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
                             <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
                                     <span className="text-sm font-semibold text-slate-800">{entry.plant}</span>
-                                    {entry.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                    {entry.isCurrent && <span
+                                        className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
+                                    <span
+                                        className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1377,7 +1446,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
                     <p className="m-0 text-[15px] font-medium text-gray-700">No status history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Status changes will appear here once they are recorded.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Status changes will appear here once they are
+                        recorded.</p>
                 </div>
             );
         }
@@ -1422,39 +1492,53 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="flex flex-col gap-2.5">
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Status</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current
+                            Status
+                        </div>
                         <div className="text-base font-bold text-slate-800">{currentStatus}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Changes</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total
+                            Changes
+                        </div>
                         <div className="text-base font-bold text-slate-800">{totalChanges}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique Statuses</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Unique
+                            Statuses
+                        </div>
                         <div className="text-base font-bold text-slate-800">{uniqueStatuses}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most Frequent</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Most
+                            Frequent
+                        </div>
                         <div className="text-base font-bold text-slate-800">{mostFrequentStatus}</div>
                     </div>
                 </div>
 
-                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Status Timeline</h3>
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Status
+                    Timeline</h3>
                 <div className="flex flex-col gap-0">
                     {consolidatedTimeline.slice().reverse().map((entry, index) => (
                         <div key={index} className="flex gap-3 py-2">
                             <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
-                                {index < consolidatedTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                <div
+                                    className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < consolidatedTimeline.length - 1 &&
+                                    <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
                             <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
                                     <span className="text-sm font-semibold text-slate-800">{entry.status}</span>
-                                    {entry.isCurrent && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                    {entry.isCurrent && <span
+                                        className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
-                                    <span className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
+                                    <span
+                                        className="text-xs text-slate-500">{FormatUtility.formatDate(entry.startDate)}</span>
+                                    <span
+                                        className="text-xs text-[#1e3a5f] font-semibold">{entry.days} {entry.days === 1 ? 'day' : 'days'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1469,7 +1553,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
                     <p className="m-0 text-[15px] font-medium text-gray-700">No position history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Position changes will appear here once they are recorded.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Position changes will appear here once they are
+                        recorded.</p>
                 </div>
             );
         }
@@ -1592,7 +1677,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
                     <p className="m-0 text-[15px] font-medium text-gray-700">No rating history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Rating changes will be charted here once they are recorded.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Rating changes will be charted here once they are
+                        recorded.</p>
                 </div>
             );
         }
@@ -1606,41 +1692,56 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Rating</div>
-                        <div className="text-base font-bold text-slate-800">{currentRating > 0 ? `${currentRating}★` : 'None'}</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current
+                            Rating
+                        </div>
+                        <div
+                            className="text-base font-bold text-slate-800">{currentRating > 0 ? `${currentRating}★` : 'None'}</div>
                         {currentRating > 0 && (
                             <div className="text-[10px] text-slate-500">{ratingLabels[currentRating]}</div>
                         )}
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Average Rating</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Average
+                            Rating
+                        </div>
                         <div className="text-base font-bold text-slate-800">{avgRating.toFixed(1)}★</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Highest Rating</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Highest
+                            Rating
+                        </div>
                         <div className="text-base font-bold text-slate-800">{highestRating}★</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Changes</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total
+                            Changes
+                        </div>
                         <div className="text-base font-bold text-slate-800">{ratingsData.length}</div>
                     </div>
                 </div>
 
-                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Rating Timeline</h3>
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Rating
+                    Timeline</h3>
                 <div className="flex flex-col gap-0">
                     {ratingsData.slice().reverse().map((entry, index) => (
                         <div key={index} className="flex gap-3 py-2">
                             <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
-                                {index < ratingsData.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                <div
+                                    className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                {index < ratingsData.length - 1 &&
+                                    <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                             </div>
                             <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                    <span className="text-sm font-semibold text-slate-800">{entry.rating}★ - {ratingLabels[entry.rating]}</span>
-                                    {index === 0 && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                    <span
+                                        className="text-sm font-semibold text-slate-800">{entry.rating}★ - {ratingLabels[entry.rating]}</span>
+                                    {index === 0 && <span
+                                        className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.timestamp)}</span>
+                                    <span
+                                        className="text-xs text-slate-500">{FormatUtility.formatDate(entry.timestamp)}</span>
                                     <UserLabel userId={entry.changedBy} showIcon={true}/>
                                 </div>
                             </div>
@@ -1656,7 +1757,8 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
                     <p className="m-0 text-[15px] font-medium text-gray-700">No mileage history available</p>
-                    <p className="text-[13px] text-slate-400 mt-2">Mileage updates will be tracked here once they are recorded.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Mileage updates will be tracked here once they are
+                        recorded.</p>
                 </div>
             );
         }
@@ -1678,28 +1780,37 @@ function HistoryViewSection({item, type, onClose}) {
             <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2 mb-3">
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current Mileage</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Current
+                            Mileage
+                        </div>
                         <div className="text-base font-bold text-slate-800">{currentMileage.toLocaleString()}</div>
                         <div className="text-[10px] text-slate-500">{milestone.label}</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Change</div>
-                        <div className="text-base font-bold text-slate-800">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Total
+                            Change
+                        </div>
+                        <div
+                            className="text-base font-bold text-slate-800">{totalMileageChange > 0 ? '+' : ''}{totalMileageChange.toLocaleString()}</div>
                         <div className="text-[10px] text-slate-500">miles tracked</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Average</div>
-                        <div className="text-base font-bold text-slate-800">{Math.round(avgMileage).toLocaleString()}</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Average
+                        </div>
+                        <div
+                            className="text-base font-bold text-slate-800">{Math.round(avgMileage).toLocaleString()}</div>
                         <div className="text-[10px] text-slate-500">miles</div>
                     </div>
                     <div className="bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center">
-                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Updates</div>
+                        <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide mb-1">Updates
+                        </div>
                         <div className="text-base font-bold text-slate-800">{mileageData.length}</div>
                         <div className="text-[10px] text-slate-500">recorded</div>
                     </div>
                 </div>
 
-                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Mileage Timeline</h3>
+                <h3 className="m-0 mb-2.5 text-xs font-bold text-slate-800 uppercase tracking-wide pb-1.5 border-b border-gray-200">Mileage
+                    Timeline</h3>
                 <div className="flex flex-col gap-0">
                     {mileageData.slice().reverse().map((entry, index) => {
                         const reversedIndex = mileageData.length - 1 - index;
@@ -1709,16 +1820,21 @@ function HistoryViewSection({item, type, onClose}) {
                         return (
                             <div key={index} className="flex gap-3 py-2">
                                 <div className="flex flex-col items-center w-5 flex-shrink-0">
-                                    <div className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
-                                    {index < mileageData.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
+                                    <div
+                                        className="w-3 h-3 rounded-full bg-[#1e3a5f] border-2 border-white shadow-[0_0_0_2px_#e5e7eb] z-[1]"></div>
+                                    {index < mileageData.length - 1 &&
+                                        <div className="w-0.5 flex-1 bg-gray-200 -mt-0.5"></div>}
                                 </div>
                                 <div className="flex-1 bg-white border border-gray-200 rounded-lg p-3">
                                     <div className="flex items-center gap-2 mb-1.5">
-                                        <span className="text-sm font-semibold text-slate-800">{entry.mileage.toLocaleString()} miles</span>
-                                        {index === 0 && <span className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                        <span
+                                            className="text-sm font-semibold text-slate-800">{entry.mileage.toLocaleString()} miles</span>
+                                        {index === 0 && <span
+                                            className="text-[10px] font-bold text-white bg-green-600 px-1.5 py-0.5 rounded uppercase">Current</span>}
                                     </div>
                                     <div className="flex items-center gap-3 flex-wrap">
-                                        <span className="text-xs text-slate-500">{FormatUtility.formatDate(entry.timestamp)}</span>
+                                        <span
+                                            className="text-xs text-slate-500">{FormatUtility.formatDate(entry.timestamp)}</span>
                                         {milesDriven > 0 && daysSince > 0 && (
                                             <span className="text-xs text-[#1e3a5f] font-semibold">
                                                 +{milesDriven.toLocaleString()} miles in {daysSince} {daysSince === 1 ? 'day' : 'days'}
@@ -1895,7 +2011,10 @@ function HistoryViewSection({item, type, onClose}) {
             return (
                 <div className="text-center py-8 text-red-600">
                     <p>{error}</p>
-                    <button className="bg-red-600 text-white border-none rounded-lg px-5 py-2.5 mt-4 text-sm font-semibold cursor-pointer hover:bg-red-700" onClick={fetchHistory}>Retry</button>
+                    <button
+                        className="bg-red-600 text-white border-none rounded-lg px-5 py-2.5 mt-4 text-sm font-semibold cursor-pointer hover:bg-red-700"
+                        onClick={fetchHistory}>Retry
+                    </button>
                 </div>
             );
         }
@@ -1903,8 +2022,10 @@ function HistoryViewSection({item, type, onClose}) {
         if (history.length === 0) {
             return (
                 <div className="text-center py-12 px-6 text-slate-500">
-                    <p className="m-0 text-[15px] font-medium text-gray-700">No history records found for this {type}.</p>
-                    <p className="text-[13px] text-slate-400 mt-2">History entries will appear here when changes are made to
+                    <p className="m-0 text-[15px] font-medium text-gray-700">No history records found for
+                        this {type}.</p>
+                    <p className="text-[13px] text-slate-400 mt-2">History entries will appear here when changes are
+                        made to
                         this {type}.</p>
                 </div>
             );
@@ -1919,7 +2040,8 @@ function HistoryViewSection({item, type, onClose}) {
                             const isCreatedEntry = fieldName === 'created';
 
                             return (
-                                <div key={entry.id || index} className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-slate-400 hover:shadow-md transition-all">
+                                <div key={entry.id || index}
+                                     className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-slate-400 hover:shadow-md transition-all">
                                     <div className="flex justify-between items-center mb-2.5">
                                         <div className="text-sm font-bold text-slate-800 capitalize">
                                             {formatFieldName(fieldName)}
@@ -1937,11 +2059,13 @@ function HistoryViewSection({item, type, onClose}) {
                                     ) : (
                                         <div className="flex items-center gap-3 mb-2 flex-wrap">
                                             <div className="text-[13px] text-slate-500">
-                                                <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
+                                                <span
+                                                    className="text-[11px] uppercase font-bold tracking-wide opacity-70">From:</span> {formatValue(fieldName, entry.oldValue || entry.old_value)}
                                             </div>
                                             <div className="text-[#1e3a5f] text-sm">→</div>
                                             <div className="text-[13px] text-slate-800 font-semibold">
-                                                <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
+                                                <span
+                                                    className="text-[11px] uppercase font-bold tracking-wide opacity-70">To:</span> {formatValue(fieldName, entry.newValue || entry.new_value)}
                                             </div>
                                         </div>
                                     )}
@@ -2090,21 +2214,27 @@ function HistoryViewSection({item, type, onClose}) {
 
     return ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-[900px] w-full max-h-[85vh] flex flex-col border border-gray-200">
-                <div className="bg-slate-50 flex justify-between items-center px-6 py-5 border-b border-gray-200 rounded-t-2xl">
+            <div
+                className="bg-white rounded-2xl shadow-2xl max-w-[900px] w-full max-h-[85vh] flex flex-col border border-gray-200">
+                <div
+                    className="bg-slate-50 flex justify-between items-center px-6 py-5 border-b border-gray-200 rounded-t-2xl">
                     <div className="flex items-center gap-3">
                         <i className="fas fa-history text-xl text-[#1e3a5f]"></i>
                         <div>
                             <h2 className="text-lg font-bold text-slate-800 m-0">{itemName}</h2>
-                            <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Change History</span>
+                            <span
+                                className="text-xs text-slate-500 font-medium uppercase tracking-wide">Change History</span>
                         </div>
                     </div>
-                    <button className="bg-transparent border-none text-xl text-slate-500 cursor-pointer p-2 flex items-center justify-center rounded-md hover:bg-gray-200 hover:text-slate-800 w-8 h-8" onClick={onClose}>
+                    <button
+                        className="bg-transparent border-none text-xl text-slate-500 cursor-pointer p-2 flex items-center justify-center rounded-md hover:bg-gray-200 hover:text-slate-800 w-8 h-8"
+                        onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
 
-                <div className="flex gap-2 px-6 py-4 overflow-x-auto border-b border-gray-200 bg-slate-50 flex-shrink-0">
+                <div
+                    className="flex gap-2 px-6 py-4 overflow-x-auto border-b border-gray-200 bg-slate-50 flex-shrink-0">
                     <button
                         className={`px-4 py-2.5 border-none text-sm font-semibold cursor-pointer whitespace-nowrap rounded-md flex-shrink-0 transition-all ${activeTab === 'timeline' ? 'bg-white text-[#1e3a5f] shadow-sm' : 'bg-transparent text-slate-500 hover:bg-gray-200 hover:text-slate-800'}`}
                         onClick={() => setActiveTab('timeline')}
@@ -2206,7 +2336,10 @@ function HistoryViewSection({item, type, onClose}) {
                 </div>
 
                 <div className="px-6 py-4 border-t border-gray-200 flex justify-end bg-slate-50 rounded-b-2xl">
-                    <button className="px-6 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm font-semibold cursor-pointer hover:bg-slate-100 hover:border-slate-300" onClick={onClose}>Close</button>
+                    <button
+                        className="px-6 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm font-semibold cursor-pointer hover:bg-slate-100 hover:border-slate-300"
+                        onClick={onClose}>Close
+                    </button>
                 </div>
             </div>
         </div>,

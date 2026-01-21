@@ -491,7 +491,7 @@ function RecapModalSection({
     const totalChanges = mixerHistory.length + operatorHistory.length
 
     const tab = (
-        <div 
+        <div
             className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 bg-[#1e3a5f] text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
             onClick={handleToggle}
         >
@@ -501,11 +501,11 @@ function RecapModalSection({
     )
 
     const modal = isOpen ? (
-        <div 
+        <div
             className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start p-4"
             onClick={() => setIsOpen(false)}
         >
-            <div 
+            <div
                 className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden ml-0 mt-16"
                 onClick={e => e.stopPropagation()}
             >
@@ -517,7 +517,7 @@ function RecapModalSection({
                             <span className="text-sm text-slate-300">{displaySubtitle}</span>
                         </div>
                     </div>
-                    <button 
+                    <button
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
@@ -525,7 +525,8 @@ function RecapModalSection({
                     </button>
                 </div>
 
-                <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+                <div
+                    className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
                     <div className="flex gap-1">
                         <button
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'day' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
@@ -564,7 +565,8 @@ function RecapModalSection({
                                 <i className="fa-solid fa-user text-blue-600 text-sm"></i>
                             </div>
                             <div className="flex flex-col">
-                                <span className={`text-base font-bold ${changeMetrics.operatorsNet > 0 ? 'text-green-600' : changeMetrics.operatorsNet < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                <span
+                                    className={`text-base font-bold ${changeMetrics.operatorsNet > 0 ? 'text-green-600' : changeMetrics.operatorsNet < 0 ? 'text-red-600' : 'text-slate-600'}`}>
                                     {changeMetrics.operatorsNet === 0 ? '0' : `${changeMetrics.operatorsNet > 0 ? '+' : ''}${changeMetrics.operatorsNet}`}
                                 </span>
                                 <span className="text-xs text-slate-500">Operators</span>
@@ -575,7 +577,8 @@ function RecapModalSection({
                                 <i className="fa-solid fa-truck text-green-600 text-sm"></i>
                             </div>
                             <div className="flex flex-col">
-                                <span className={`text-base font-bold ${changeMetrics.runnableNet > 0 ? 'text-green-600' : changeMetrics.runnableNet < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                <span
+                                    className={`text-base font-bold ${changeMetrics.runnableNet > 0 ? 'text-green-600' : changeMetrics.runnableNet < 0 ? 'text-red-600' : 'text-slate-600'}`}>
                                     {changeMetrics.runnableNet === 0 ? '0' : `${changeMetrics.runnableNet > 0 ? '+' : ''}${changeMetrics.runnableNet}`}
                                 </span>
                                 <span className="text-xs text-slate-500">Runnable</span>
@@ -586,7 +589,8 @@ function RecapModalSection({
                                 <i className="fa-solid fa-wrench text-amber-600 text-sm"></i>
                             </div>
                             <div className="flex flex-col">
-                                <span className={`text-base font-bold ${changeMetrics.downNet > 0 ? 'text-red-600' : changeMetrics.downNet < 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                                <span
+                                    className={`text-base font-bold ${changeMetrics.downNet > 0 ? 'text-red-600' : changeMetrics.downNet < 0 ? 'text-green-600' : 'text-slate-600'}`}>
                                     {changeMetrics.downNet === 0 ? '0' : `${changeMetrics.downNet > 0 ? '+' : ''}${changeMetrics.downNet}`}
                                 </span>
                                 <span className="text-xs text-slate-500">Down</span>
@@ -625,7 +629,8 @@ function RecapModalSection({
                                     const isTerminated = group.type === 'operator' && group.status === 'Terminated'
                                     const assetIcon = isMixer ? 'fa-solid fa-truck' : 'fa-solid fa-hard-hat'
                                     return (
-                                        <div key={assetKey || groupIndex} className={`border rounded-lg overflow-hidden ${isMixer ? 'border-blue-200' : 'border-amber-200'}`}>
+                                        <div key={assetKey || groupIndex}
+                                             className={`border rounded-lg overflow-hidden ${isMixer ? 'border-blue-200' : 'border-amber-200'}`}>
                                             <div
                                                 className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isMixer ? 'bg-blue-50 hover:bg-blue-100' : 'bg-amber-50 hover:bg-amber-100'}`}
                                                 onClick={() => toggleAssetExpanded(assetKey)}
@@ -634,13 +639,17 @@ function RecapModalSection({
                                                 <i className={`${assetIcon} ${isMixer ? 'text-blue-600' : 'text-amber-600'}`}></i>
                                                 {isTerminated ? (
                                                     <span className="flex items-center gap-2 flex-1 font-medium">
-                                                        <span className="line-through text-slate-400">{group.name}</span>
-                                                        <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-semibold rounded">Terminated</span>
+                                                        <span
+                                                            className="line-through text-slate-400">{group.name}</span>
+                                                        <span
+                                                            className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-semibold rounded">Terminated</span>
                                                     </span>
                                                 ) : (
-                                                    <span className="flex-1 font-medium text-slate-800">{group.name}</span>
+                                                    <span
+                                                        className="flex-1 font-medium text-slate-800">{group.name}</span>
                                                 )}
-                                                <span className="text-xs text-slate-500 bg-white px-2 py-1 rounded-full">
+                                                <span
+                                                    className="text-xs text-slate-500 bg-white px-2 py-1 rounded-full">
                                                     {group.changes.length} change{group.changes.length !== 1 ? 's' : ''}
                                                 </span>
                                             </div>
@@ -648,25 +657,32 @@ function RecapModalSection({
                                                 <div className="bg-white divide-y divide-slate-100">
                                                     {group.changes.map((entry, index) => (
                                                         <div key={entry.id || index} className="flex gap-3 px-4 py-3">
-                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                                            <div
+                                                                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
                                                                 <i className={`${getChangeIcon(entry.field_name)} text-xs text-slate-500`}></i>
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center justify-between gap-2 mb-1">
-                                                                    <span className="text-sm font-medium text-slate-700">{formatFieldName(entry.field_name)}</span>
-                                                                    <span className="text-xs text-slate-400">{formatDate(entry.changed_at)}</span>
+                                                                <div
+                                                                    className="flex items-center justify-between gap-2 mb-1">
+                                                                    <span
+                                                                        className="text-sm font-medium text-slate-700">{formatFieldName(entry.field_name)}</span>
+                                                                    <span
+                                                                        className="text-xs text-slate-400">{formatDate(entry.changed_at)}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2 text-sm">
-                                                                    <span className="text-red-600 bg-red-50 px-2 py-0.5 rounded truncate max-w-[120px]">
+                                                                    <span
+                                                                        className="text-red-600 bg-red-50 px-2 py-0.5 rounded truncate max-w-[120px]">
                                                                         {formatValue(entry.old_value, entry.field_name)}
                                                                     </span>
                                                                     <i className="fa-solid fa-arrow-right text-xs text-slate-300"></i>
-                                                                    <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded truncate max-w-[120px]">
+                                                                    <span
+                                                                        className="text-green-600 bg-green-50 px-2 py-0.5 rounded truncate max-w-[120px]">
                                                                         {formatValue(entry.new_value, entry.field_name)}
                                                                     </span>
                                                                 </div>
                                                                 {entry.changed_by && userNames[entry.changed_by] && (
-                                                                    <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-400">
+                                                                    <div
+                                                                        className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-400">
                                                                         <i className="fa-solid fa-user-pen"></i>
                                                                         <span>{userNames[entry.changed_by]}</span>
                                                                     </div>

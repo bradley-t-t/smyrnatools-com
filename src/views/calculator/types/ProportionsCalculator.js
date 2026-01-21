@@ -647,13 +647,14 @@ const ProportionsCalculator = () => {
                     <div style={styles.emptyIcon}>
                         <i className="fas fa-balance-scale"></i>
                     </div>
-                    <span style={styles.emptyText}>Enter target mix design and actual weights to calculate adjustments</span>
+                    <span
+                        style={styles.emptyText}>Enter target mix design and actual weights to calculate adjustments</span>
                 </div>
             )}
 
             <div style={styles.footer}>
-                <button 
-                    onClick={clearForm} 
+                <button
+                    onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8fafc';

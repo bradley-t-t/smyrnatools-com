@@ -16,7 +16,6 @@ import TopSection from '../../components/sections/TopSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import ThemeUtility from '../../utils/ThemeUtility'
 import {supabase} from '../../services/DatabaseService'
 
 function PickupTrucksView({title = 'Pickup Trucks'}) {
@@ -326,12 +325,31 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                     };
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9', color = '#64748b';
-                        if (status === 'Active') { bg = '#dcfce7'; color = '#166534'; }
-                        else if (status === 'Spare') { bg = '#dbeafe'; color = '#1e40af'; }
-                        else if (status === 'In Shop') { bg = '#fef3c7'; color = '#92400e'; }
-                        else if (status === 'Stationary') { bg = '#e0e7ff'; color = '#3730a3'; }
-                        else if (status === 'Sold' || status === 'Retired') { bg = '#f1f5f9'; color = '#64748b'; }
-                        return { display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backgroundColor: bg, color: color };
+                        if (status === 'Active') {
+                            bg = '#dcfce7';
+                            color = '#166534';
+                        } else if (status === 'Spare') {
+                            bg = '#dbeafe';
+                            color = '#1e40af';
+                        } else if (status === 'In Shop') {
+                            bg = '#fef3c7';
+                            color = '#92400e';
+                        } else if (status === 'Stationary') {
+                            bg = '#e0e7ff';
+                            color = '#3730a3';
+                        } else if (status === 'Sold' || status === 'Retired') {
+                            bg = '#f1f5f9';
+                            color = '#64748b';
+                        }
+                        return {
+                            display: 'inline-block',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: bg,
+                            color: color
+                        };
                     };
                     const actionBtnStyle = {
                         width: '36px',
@@ -358,11 +376,11 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                     };
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}
-                            onMouseEnter={(e) => { 
-                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe'); 
+                            onMouseEnter={(e) => {
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe');
                             }}
-                            onMouseLeave={(e) => { 
-                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = ''); 
+                            onMouseLeave={(e) => {
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '');
                             }}>
                             <td style={{...cellStyle, width: '12%'}}>{item.assignedPlant || '---'}</td>
                             <td style={{...cellStyle, width: '12%'}}>
@@ -370,31 +388,55 @@ function PickupTrucksView({title = 'Pickup Trucks'}) {
                             </td>
                             <td style={{...cellStyle, width: '12%'}}>
                                 {item.assigned || '---'}
-                                {duplicateAssigned.has(assignedKey) && <span style={warningBadge} title="Assigned to multiple pickups"><i className="fas fa-exclamation-triangle"></i></span>}
+                                {duplicateAssigned.has(assignedKey) &&
+                                    <span style={warningBadge} title="Assigned to multiple pickups"><i
+                                        className="fas fa-exclamation-triangle"></i></span>}
                             </td>
                             <td style={{...cellStyle, width: '8%'}}>{item.year || '---'}</td>
-                            <td style={{...cellBoldStyle, width: '18%'}}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
-                            <td style={{...cellStyle, width: '15%', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#64748b'}}>
+                            <td style={{
+                                ...cellBoldStyle,
+                                width: '18%'
+                            }}>{`${item.make || ''} ${item.model || ''}`.trim() || '---'}</td>
+                            <td style={{
+                                ...cellStyle,
+                                width: '15%',
+                                fontFamily: 'ui-monospace, monospace',
+                                fontSize: '12px',
+                                color: '#64748b'
+                            }}>
                                 {item.vin || '---'}
-                                {duplicateVINs.has(vinKey) && <span style={warningBadge} title="Duplicate VIN"><i className="fas fa-exclamation-triangle"></i></span>}
+                                {duplicateVINs.has(vinKey) && <span style={warningBadge} title="Duplicate VIN"><i
+                                    className="fas fa-exclamation-triangle"></i></span>}
                             </td>
                             <td style={{...cellStyle, width: '10%'}}>
                                 {typeof item.mileage === 'number' ? (
                                     <>
                                         {item.mileage.toLocaleString()}
-                                        {item.mileage > 300000 && <span style={{...warningBadge, backgroundColor: '#fef2f2', color: '#991b1b'}} title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}
+                                        {item.mileage > 300000 && <span
+                                            style={{...warningBadge, backgroundColor: '#fef2f2', color: '#991b1b'}}
+                                            title="High mileage"><i className="fas fa-exclamation-triangle"></i></span>}
                                     </>
                                 ) : '---'}
                             </td>
                             <td style={{...cellStyle, width: '13%'}}>
                                 <div style={{display: 'flex', alignItems: 'center'}}>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.assigned || item.vin || 'Unknown'); }} style={actionBtnStyle} title="View comments">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.assigned || item.vin || 'Unknown');
+                                    }} style={actionBtnStyle} title="View comments">
                                         <i className="fas fa-comments"></i>
                                     </button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.assigned || item.vin || 'Unknown'); }} style={actionBtnStyle} title="View issues">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.assigned || item.vin || 'Unknown');
+                                    }} style={actionBtnStyle} title="View issues">
                                         <i className="fas fa-tools"></i>
                                     </button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); setSelectedPickupForHistory(item); setShowHistoryModal(true); }} style={actionBtnStyle} title="View history">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedPickupForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={actionBtnStyle} title="View history">
                                         <i className="fas fa-history"></i>
                                     </button>
                                 </div>

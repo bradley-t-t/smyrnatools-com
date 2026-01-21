@@ -116,7 +116,8 @@ const CalculatorView = () => {
                             <i className="fas fa-hard-hat"></i>
                         </div>
                         <h3 style={{...styles.comingSoonTitle, margin: 0}}>Coming Soon</h3>
-                        <p style={{...styles.comingSoonText, margin: '0.5rem 0 0'}}>This calculator is under development</p>
+                        <p style={{...styles.comingSoonText, margin: '0.5rem 0 0'}}>This calculator is under
+                            development</p>
                     </div>
                 )
         }

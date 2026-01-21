@@ -855,7 +855,8 @@ function ReportsView() {
     return (
         <>
             <div style={styles.root}>
-                {loadError && <div style={styles.loadError}><i className="fas fa-exclamation-circle"></i>{loadError}</div>}
+                {loadError &&
+                    <div style={styles.loadError}><i className="fas fa-exclamation-circle"></i>{loadError}</div>}
                 {!showForm && !showReview && (
                     <div>
                         <div style={styles.toolbar}>
@@ -948,10 +949,17 @@ function ReportsView() {
                                                 ) : (
                                                     myPaginatedItems.map((item, index) => {
                                                         const {weekIso} = item;
-                                                        const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const {
+                                                            monday,
+                                                            saturday
+                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
                                                         const hasSavedData = !!(item.report && item.report.data);
-                                                        const {statusText, statusClass, buttonLabel} = ReportUtility.computeMyReportStatus({
+                                                        const {
+                                                            statusText,
+                                                            statusClass,
+                                                            buttonLabel
+                                                        } = ReportUtility.computeMyReportStatus({
                                                             completed: item.completed,
                                                             hasSavedData,
                                                             weekIso,
@@ -971,7 +979,8 @@ function ReportsView() {
                                                                 </div>
                                                                 <div>{item.title}</div>
                                                                 <div>
-                                                                    <span style={styles.status(statusClass)}>{statusText}</span>
+                                                                    <span
+                                                                        style={styles.status(statusClass)}>{statusText}</span>
                                                                 </div>
                                                                 <div>{saturday.toLocaleDateString()}</div>
                                                                 <div style={{textAlign: 'right'}}>
@@ -1014,7 +1023,8 @@ function ReportsView() {
                                                     >
                                                         Previous
                                                     </button>
-                                                    <span style={styles.pageInfo}>Page {myCurrentPage} of {myTotalPages}</span>
+                                                    <span
+                                                        style={styles.pageInfo}>Page {myCurrentPage} of {myTotalPages}</span>
                                                     <button
                                                         style={styles.pageBtn(myCurrentPage === myTotalPages)}
                                                         onClick={() => setMyCurrentPage(Math.min(myTotalPages, myCurrentPage + 1))}
@@ -1053,7 +1063,10 @@ function ReportsView() {
                                                 ) : (
                                                     reviewPaginatedItems.map((report, index) => {
                                                         const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : '';
-                                                        const {monday, saturday} = ReportUtility.getWeekDatesFromIso(weekIso);
+                                                        const {
+                                                            monday,
+                                                            saturday
+                                                        } = ReportUtility.getWeekDatesFromIso(weekIso);
                                                         const weekRange = ReportService.getWeekRangeString(monday, saturday);
                                                         const badge = ReportUtility.getWeekBadge(weekIso);
                                                         return (
@@ -1072,13 +1085,17 @@ function ReportsView() {
                                                                 <div>{new Date(report.completedDate).toLocaleDateString()}</div>
                                                                 <div>
                                                                     {reviewedByCurrentUser.has(report.id) ? (
-                                                                        <span style={{color: '#10b981', fontWeight: 500}}>
-                                                                            <i className="fas fa-check-circle" style={styles.reviewedCheck}></i>
+                                                                        <span
+                                                                            style={{color: '#10b981', fontWeight: 500}}>
+                                                                            <i className="fas fa-check-circle"
+                                                                               style={styles.reviewedCheck}></i>
                                                                             Reviewed
                                                                         </span>
                                                                     ) : (
-                                                                        <span style={{color: '#f59e0b', fontWeight: 500}}>
-                                                                            <i className="fas fa-flag" style={styles.reviewedFlag}></i>
+                                                                        <span
+                                                                            style={{color: '#f59e0b', fontWeight: 500}}>
+                                                                            <i className="fas fa-flag"
+                                                                               style={styles.reviewedFlag}></i>
                                                                             Not Reviewed
                                                                         </span>
                                                                     )}
@@ -1123,7 +1140,8 @@ function ReportsView() {
                                                     >
                                                         Previous
                                                     </button>
-                                                    <span style={styles.pageInfo}>Page {reviewCurrentPage} of {reviewTotalPages}</span>
+                                                    <span
+                                                        style={styles.pageInfo}>Page {reviewCurrentPage} of {reviewTotalPages}</span>
                                                     <button
                                                         style={styles.pageBtn(reviewCurrentPage === reviewTotalPages)}
                                                         onClick={() => setReviewCurrentPage(Math.min(reviewTotalPages, reviewCurrentPage + 1))}

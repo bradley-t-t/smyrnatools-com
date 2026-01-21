@@ -316,34 +316,36 @@ function DetailViewSection({
         return (
             <>
                 <style>{detailViewStyles}</style>
-                <div className={`fixed left-0 right-0 bottom-0 bg-white z-40 flex flex-col ${className}`} style={{top: '64px'}}>
+                <div className={`fixed left-0 right-0 bottom-0 bg-white z-40 flex flex-col ${className}`}
+                     style={{top: '64px'}}>
                     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
                         <div className="flex items-center gap-3">
                             <button
                                 className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                            onClick={onBack || onClose}
-                            aria-label="Back"
-                        >
-                            <i className="fas fa-arrow-left"></i>
-                        </button>
-                    </div>
-                    <h1 className="text-lg font-semibold text-slate-800">{notFoundMessage}</h1>
-                    <div className="w-10"></div>
-                </div>
-                <div className="flex-1 flex items-center justify-center p-6">
-                    <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-                            <i className="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+                                onClick={onBack || onClose}
+                                aria-label="Back"
+                            >
+                                <i className="fas fa-arrow-left"></i>
+                            </button>
                         </div>
-                        <p className="text-slate-600 mb-4">{notFoundDescription}</p>
-                        <button 
-                            className="px-6 py-2.5 bg-[#1e3a5f] text-white font-semibold rounded-lg hover:bg-[#15304f] transition-colors"
-                            onClick={onClose || onBack}
-                        >
-                            Go Back
-                        </button>
+                        <h1 className="text-lg font-semibold text-slate-800">{notFoundMessage}</h1>
+                        <div className="w-10"></div>
                     </div>
-                </div>
+                    <div className="flex-1 flex items-center justify-center p-6">
+                        <div className="text-center">
+                            <div
+                                className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                                <i className="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+                            </div>
+                            <p className="text-slate-600 mb-4">{notFoundDescription}</p>
+                            <button
+                                className="px-6 py-2.5 bg-[#1e3a5f] text-white font-semibold rounded-lg hover:bg-[#15304f] transition-colors"
+                                onClick={onClose || onBack}
+                            >
+                                Go Back
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </>
         )
@@ -352,16 +354,39 @@ function DetailViewSection({
     return (
         <>
             <style>{detailViewStyles}</style>
-            <div className={`fixed left-0 right-0 bottom-0 bg-slate-50 z-40 ${className}`} style={{top: '64px', display: 'flex', flexDirection: 'column'}}>
+            <div className={`fixed left-0 right-0 bottom-0 bg-slate-50 z-40 ${className}`}
+                 style={{top: '64px', display: 'flex', flexDirection: 'column'}}>
                 {isSaving && (
                     <div className="absolute inset-0 bg-white/80 z-[100] flex items-center justify-center">
-                        <div className="w-8 h-8 border-3 border-slate-200 border-t-[#1e3a5f] rounded-full animate-spin"></div>
+                        <div
+                            className="w-8 h-8 border-3 border-slate-200 border-t-[#1e3a5f] rounded-full animate-spin"></div>
                     </div>
                 )}
-                <header style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: 'white', flexShrink: 0, minHeight: '68px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
+                <header style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '16px 24px',
+                    borderBottom: '1px solid #e2e8f0',
+                    backgroundColor: 'white',
+                    flexShrink: 0,
+                    minHeight: '68px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}>
                     <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
                         <button
-                            style={{width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer', color: '#475569'}}
+                            style={{
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '8px',
+                                backgroundColor: '#f1f5f9',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: '#475569'
+                            }}
                             onClick={onBack || onClose}
                             aria-label="Back"
                         >
@@ -381,7 +406,8 @@ function DetailViewSection({
                             {(verificationCard || footerActions) && (
                                 <div className="hidden lg:block w-80 flex-shrink-0 order-last lg:order-first">
                                     <div className="sticky top-6 z-0">
-                                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                        <div
+                                            className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                                             <div className="p-4">
                                                 {verificationCard}
                                             </div>
@@ -433,12 +459,13 @@ function DetailViewSection({
                 )}
             </div>
             {(message || internalRestrictionWarning) && ReactDOM.createPortal(
-                <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-[60] text-white font-medium ${
-                    ((message || internalRestrictionWarning) || '').toLowerCase().includes('error') || 
-                    ((message || internalRestrictionWarning) || '').toLowerCase().includes('cannot') 
-                        ? 'bg-red-500' 
-                        : 'bg-green-500'
-                }`}>
+                <div
+                    className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-[60] text-white font-medium ${
+                        ((message || internalRestrictionWarning) || '').toLowerCase().includes('error') ||
+                        ((message || internalRestrictionWarning) || '').toLowerCase().includes('cannot')
+                            ? 'bg-red-500'
+                            : 'bg-green-500'
+                    }`}>
                     {message || internalRestrictionWarning}
                 </div>,
                 document.body
@@ -449,13 +476,13 @@ function DetailViewSection({
                         <h2 className="text-xl font-semibold text-slate-800 mb-2">{deleteTitle}</h2>
                         <p className="text-slate-600 mb-6">{deleteMessage}</p>
                         <div className="flex gap-3 justify-end">
-                            <button 
+                            <button
                                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
                                 onClick={onDeleteCancel}
                             >
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
                                 onClick={onDeleteConfirm}
                             >
@@ -466,7 +493,7 @@ function DetailViewSection({
                 </div>
             )}
             {showRegionTransferModal && ReactDOM.createPortal(
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
@@ -474,8 +501,10 @@ function DetailViewSection({
                         }
                     }}
                 >
-                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]">
+                    <div
+                        className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <div
+                            className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]">
                             <div className="flex items-center gap-3">
                                 <i className="fas fa-exchange-alt text-white"></i>
                                 <div>
@@ -483,7 +512,7 @@ function DetailViewSection({
                                     <span className="text-sm text-slate-300">Region Transfer</span>
                                 </div>
                             </div>
-                            <button 
+                            <button
                                 className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
                                 onClick={handleCloseRegionTransfer}
                                 aria-label="Close"
@@ -494,11 +523,13 @@ function DetailViewSection({
                         <div className="flex-1 overflow-y-auto p-6">
                             <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 mb-4">
                                 <div className="text-sm text-slate-500 mb-1">Current Region</div>
-                                <div className="text-base font-semibold text-slate-800">{currentRegion || 'Unknown'}</div>
+                                <div
+                                    className="text-base font-semibold text-slate-800">{currentRegion || 'Unknown'}</div>
                             </div>
 
                             <div className="mb-4">
-                                <label htmlFor="region-select" className="block text-sm font-medium text-slate-700 mb-1.5">Target Region</label>
+                                <label htmlFor="region-select"
+                                       className="block text-sm font-medium text-slate-700 mb-1.5">Target Region</label>
                                 <select
                                     id="region-select"
                                     className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20"
@@ -521,7 +552,9 @@ function DetailViewSection({
 
                             {selectedRegion && (
                                 <div className="mb-4">
-                                    <label htmlFor="plant-select" className="block text-sm font-medium text-slate-700 mb-1.5">Target Plant</label>
+                                    <label htmlFor="plant-select"
+                                           className="block text-sm font-medium text-slate-700 mb-1.5">Target
+                                        Plant</label>
                                     <select
                                         id="plant-select"
                                         className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 disabled:bg-slate-50 disabled:text-slate-400"
@@ -531,19 +564,22 @@ function DetailViewSection({
                                     >
                                         <option value="">Choose a plant...</option>
                                         {availablePlants.map(plant => (
-                                            <option key={plant.plantCode || plant.plant_code} value={plant.plantCode || plant.plant_code}>
+                                            <option key={plant.plantCode || plant.plant_code}
+                                                    value={plant.plantCode || plant.plant_code}>
                                                 {plant.plantName || plant.plant_name} ({plant.plantCode || plant.plant_code})
                                             </option>
                                         ))}
                                     </select>
                                     {availablePlants.length === 0 && (
-                                        <p className="mt-1.5 text-sm text-red-500">No plants available in this region</p>
+                                        <p className="mt-1.5 text-sm text-red-500">No plants available in this
+                                            region</p>
                                     )}
                                 </div>
                             )}
 
                             {transferError && (
-                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                                <div
+                                    className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
                                     <i className="fas fa-exclamation-circle"></i>
                                     {transferError}
                                 </div>

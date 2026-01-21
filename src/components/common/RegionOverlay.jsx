@@ -192,7 +192,10 @@ function RegionOverlay() {
             {isMinimized ? (
                 <div style={minimizedPillStyle} onClick={toggleMinimize} title={currentRegionDisplay}>
                     <i className="fas fa-globe"/>
-                    <span style={{fontSize: '13px', fontWeight: 500}}>{currentRegionName || currentRegionCode || 'Region'}</span>
+                    <span style={{
+                        fontSize: '13px',
+                        fontWeight: 500
+                    }}>{currentRegionName || currentRegionCode || 'Region'}</span>
                 </div>
             ) : (
                 <div style={panelStyle}>
@@ -208,7 +211,8 @@ function RegionOverlay() {
                         </div>
                     </div>
                     <div style={bodyStyle}>
-                        <select style={selectStyle} value={currentRegionCode} onChange={handleChangeRegion} disabled={!canSelectRegion}>
+                        <select style={selectStyle} value={currentRegionCode} onChange={handleChangeRegion}
+                                disabled={!canSelectRegion}>
                             <option value="">Select a region</option>
                             {allRegions.map(r => {
                                 const code = r.region_code || r.regionCode

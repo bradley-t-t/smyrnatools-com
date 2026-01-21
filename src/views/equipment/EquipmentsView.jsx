@@ -18,7 +18,6 @@ import TopSection from '../../components/sections/TopSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import ThemeUtility from '../../utils/ThemeUtility'
 import CleanupUtility from '../../utils/CleanupUtility'
 import {supabase} from '../../services/DatabaseService'
 
@@ -519,11 +518,28 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                     };
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9', color = '#64748b';
-                        if (status === 'Active') { bg = '#dcfce7'; color = '#166534'; }
-                        else if (status === 'Spare') { bg = '#dbeafe'; color = '#1e40af'; }
-                        else if (status === 'In Shop') { bg = '#fef3c7'; color = '#92400e'; }
-                        else if (status === 'Retired') { bg = '#f1f5f9'; color = '#64748b'; }
-                        return { display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, backgroundColor: bg, color: color };
+                        if (status === 'Active') {
+                            bg = '#dcfce7';
+                            color = '#166534';
+                        } else if (status === 'Spare') {
+                            bg = '#dbeafe';
+                            color = '#1e40af';
+                        } else if (status === 'In Shop') {
+                            bg = '#fef3c7';
+                            color = '#92400e';
+                        } else if (status === 'Retired') {
+                            bg = '#f1f5f9';
+                            color = '#64748b';
+                        }
+                        return {
+                            display: 'inline-block',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: bg,
+                            color: color
+                        };
                     };
                     const verifyBtnStyle = (verified) => ({
                         display: 'inline-flex',
@@ -554,57 +570,88 @@ function EquipmentsView({title = 'Equipment Fleet', onSelectEquipment}) {
                     };
                     return (
                         <tr key={item.id} onClick={() => handleSelect(item.id)} style={{cursor: 'pointer'}}
-                            onMouseEnter={(e) => { 
-                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe'); 
+                            onMouseEnter={(e) => {
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e0f2fe');
                             }}
-                            onMouseLeave={(e) => { 
-                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = ''); 
+                            onMouseLeave={(e) => {
+                                e.currentTarget.querySelectorAll('td').forEach(td => td.style.backgroundColor = '');
                             }}>
                             <td style={{...cellStyle, width: '10%'}}>{item.assignedPlant || '---'}</td>
                             <td style={{...cellStyle, width: '15%'}}>{item.equipmentType || '---'}</td>
                             <td style={{...cellBoldStyle, width: '10%'}}>{item.identifyingNumber || '---'}</td>
-                            <td style={{...cellStyle, width: '15%'}}>{item.yearMade || item.equipmentMake || item.equipmentModel ? `${item.yearMade ? item.yearMade + ' ' : ''}${item.equipmentMake || ''} ${item.equipmentModel || ''}`.trim() : '---'}</td>
+                            <td style={{
+                                ...cellStyle,
+                                width: '15%'
+                            }}>{item.yearMade || item.equipmentMake || item.equipmentModel ? `${item.yearMade ? item.yearMade + ' ' : ''}${item.equipmentMake || ''} ${item.equipmentModel || ''}`.trim() : '---'}</td>
                             <td style={{...cellStyle, width: '8%'}}>
                                 <span style={statusBadge(item.status)}>{item.status || '---'}</span>
                             </td>
                             <td style={{...cellStyle, width: '10%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                                     {Array.from({length: 5}).map((_, i) => (
-                                        <i key={i} className="fas fa-star" style={{color: i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb', fontSize: '14px'}}></i>
+                                        <i key={i} className="fas fa-star" style={{
+                                            color: i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb',
+                                            fontSize: '14px'
+                                        }}></i>
                                     ))}
                                 </div>
                             </td>
                             <td style={{...cellStyle, width: '10%'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                                     {Array.from({length: 5}).map((_, i) => (
-                                        <i key={i} className="fas fa-star" style={{color: i < Math.round(item.conditionRating || 0) ? '#f59e0b' : '#e5e7eb', fontSize: '14px'}}></i>
+                                        <i key={i} className="fas fa-star" style={{
+                                            color: i < Math.round(item.conditionRating || 0) ? '#f59e0b' : '#e5e7eb',
+                                            fontSize: '14px'
+                                        }}></i>
                                     ))}
                                 </div>
                             </td>
                             <td style={{...cellStyle, width: '10%'}}>
                                 {item.status === 'Retired' ? (
-                                    <span style={{padding: '8px 14px', backgroundColor: '#f1f5f9', color: '#94a3b8', borderRadius: '8px', fontSize: '12px', fontWeight: 600}}>N/A</span>
+                                    <span style={{
+                                        padding: '8px 14px',
+                                        backgroundColor: '#f1f5f9',
+                                        color: '#94a3b8',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: 600
+                                    }}>N/A</span>
                                 ) : (
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); if (onVerify) onVerify(item.id, item.identifyingNumber); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onVerify) onVerify(item.id, item.identifyingNumber);
+                                        }}
                                         title={isVerified ? 'Verified' : 'Click to verify'}
                                         style={verifyBtnStyle(isVerified)}
                                     >
-                                        <i className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`} style={{color: isVerified ? '#166534' : '#92400e'}}></i>
-                                        <span style={{color: isVerified ? '#166534' : '#92400e'}}>{isVerified ? 'Verified' : 'Verify'}</span>
+                                        <i className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
+                                           style={{color: isVerified ? '#166534' : '#92400e'}}></i>
+                                        <span
+                                            style={{color: isVerified ? '#166534' : '#92400e'}}>{isVerified ? 'Verified' : 'Verify'}</span>
                                     </button>
                                 )}
                             </td>
                             <td style={{...cellStyle, width: '12%'}}>
                                 <div style={{display: 'flex', alignItems: 'center'}}>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onIssue(item.id, item.identifyingNumber); }} style={actionBtnStyle} title="View issues">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onIssue(item.id, item.identifyingNumber);
+                                    }} style={actionBtnStyle} title="View issues">
                                         <i className="fas fa-tools"></i>
                                     </button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); onComment(item.id, item.identifyingNumber); }} style={actionBtnStyle} title="View comments">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        onComment(item.id, item.identifyingNumber);
+                                    }} style={actionBtnStyle} title="View comments">
                                         <i className="fas fa-comments"></i>
                                     </button>
-                                    <button type="button" onClick={e => { e.stopPropagation(); setSelectedEquipmentForHistory(item); setShowHistoryModal(true); }} style={actionBtnStyle} title="View history">
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        setSelectedEquipmentForHistory(item);
+                                        setShowHistoryModal(true);
+                                    }} style={actionBtnStyle} title="View history">
                                         <i className="fas fa-history"></i>
                                     </button>
                                 </div>

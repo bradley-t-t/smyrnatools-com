@@ -107,8 +107,8 @@ function CardSection({
     };
 
     return (
-        <div 
-            style={styles.card} 
+        <div
+            style={styles.card}
             {...cardProps}
             onMouseEnter={(e) => {
                 if (onSelect) {
@@ -128,14 +128,14 @@ function CardSection({
                 }
             }}
         >
-            <div style={styles.statusBar} />
+            <div style={styles.statusBar}/>
 
             {isVerified !== undefined && (
                 <div
                     style={styles.verificationFlag(isVerified)}
                     title={isVerified ? 'Verified' : (verificationTooltip || 'Not verified')}
                 >
-                    <i 
+                    <i
                         className={`fas ${isVerified ? 'fa-check-circle' : 'fa-flag'}`}
                         style={{color: isVerified ? '#16a34a' : '#dc2626'}}
                     ></i>

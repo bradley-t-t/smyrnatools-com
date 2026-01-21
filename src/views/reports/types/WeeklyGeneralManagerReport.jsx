@@ -501,119 +501,122 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                                 training: `new_operators_training_${code}`,
                                 yardage: `total_yardage_${code}`,
                                 hours: `total_hours_${code}`,
-                            notes: `notes_${code}`
-                        }
-                        return (
-                            <div key={code} className="rpt-card rpt-p-16 rpt-mb-16">
-                                <div className="rpt-card-header">
-                                    <div className="rpt-card-title">{p.plant_name} ({code})</div>
-                                </div>
-                                <table className="rpt-plant-summary-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Metric</th>
-                                        <th>Last Week</th>
-                                        <th>This Week</th>
-                                        <th>Variance</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td># of Operators</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.ops))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.ops] ?? ''}
-                                                   onChange={e => setForm(prev => ({...prev, [f.ops]: e.target.value}))}
-                                                   disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.ops)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td># of Runnable Trucks</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.runnable))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.runnable] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.runnable]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.runnable)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Down Trucks</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.down))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.down] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.down]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.down)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Operators Starting</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.starting))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.starting] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.starting]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.starting)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Operators Leaving</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.leaving))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.leaving] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.leaving]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.leaving)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>New Operators Training</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.training))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.training] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.training]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.training)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Total Yardage</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.yardage))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.yardage] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.yardage]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.yardage)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Total Hours</td>
-                                        <td><input type="text" value={String(getLastWeekValue(f.hours))} disabled
-                                                   className="rpt-input"/></td>
-                                        <td><input type="number" value={form[f.hours] ?? ''}
-                                                   onChange={e => setForm(prev => ({
-                                                       ...prev,
-                                                       [f.hours]: e.target.value
-                                                   }))} disabled={readOnly} className="rpt-input"/></td>
-                                        <td>{renderVariance(f.hours)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Notes</td>
-                                        <td>
+                                notes: `notes_${code}`
+                            }
+                            return (
+                                <div key={code} className="rpt-card rpt-p-16 rpt-mb-16">
+                                    <div className="rpt-card-header">
+                                        <div className="rpt-card-title">{p.plant_name} ({code})</div>
+                                    </div>
+                                    <table className="rpt-plant-summary-table">
+                                        <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Last Week</th>
+                                            <th>This Week</th>
+                                            <th>Variance</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td># of Operators</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.ops))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.ops] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.ops]: e.target.value
+                                                       }))}
+                                                       disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.ops)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td># of Runnable Trucks</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.runnable))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.runnable] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.runnable]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.runnable)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Down Trucks</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.down))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.down] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.down]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.down)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Operators Starting</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.starting))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.starting] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.starting]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.starting)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Operators Leaving</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.leaving))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.leaving] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.leaving]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.leaving)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>New Operators Training</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.training))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.training] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.training]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.training)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Yardage</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.yardage))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.yardage] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.yardage]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.yardage)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Hours</td>
+                                            <td><input type="text" value={String(getLastWeekValue(f.hours))} disabled
+                                                       className="rpt-input"/></td>
+                                            <td><input type="number" value={form[f.hours] ?? ''}
+                                                       onChange={e => setForm(prev => ({
+                                                           ...prev,
+                                                           [f.hours]: e.target.value
+                                                       }))} disabled={readOnly} className="rpt-input"/></td>
+                                            <td>{renderVariance(f.hours)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Notes</td>
+                                            <td>
                                             <textarea
                                                 value={String(getLastWeekValue(f.notes))}
                                                 disabled
                                                 className="rpt-input rpt-textarea-notes"
                                             />
-                                        </td>
-                                        <td colSpan={2}>
+                                            </td>
+                                            <td colSpan={2}>
                                             <textarea
                                                 value={form[f.notes] ?? ''}
                                                 onChange={e => setForm(prev => ({
@@ -623,131 +626,131 @@ export function GeneralManagerSubmitPlugin({form, setForm, plants = [], readOnly
                                                 disabled={readOnly}
                                                 className="rpt-input rpt-textarea-notes"
                                             />
-                                        </td>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
+                <div className="rpt-card-header rpt-mt-16">
+                    <div className="rpt-card-title">Plant Efficiency Reports</div>
+                    {effReports.length > 0 && (<div className="rpt-badge">{effIdx + 1} of {effReports.length}</div>)}
+                </div>
+                {effReports.length === 0 ? (
+                    <div className="rpt-empty">No plant efficiency reports found for this week.</div>
+                ) : (
+                    <div className="rpt-form-row rpt-flex-col">
+                        <div className="rpt-dots-bar">
+                            {effReports.map((r, i) => (
+                                <div key={r.id} onClick={() => setEffIdx(i)}
+                                     className={`rpt-dot ${i === effIdx ? 'active' : ''}`}
+                                     aria-label={`Efficiency Report ${i + 1}`}></div>
+                            ))}
+                        </div>
+                        {(() => {
+                            const r = effReports[effIdx]
+                            const insights = ReportService.getPlantProductionInsights(r.rows || [])
+                            return (
+                                <div className="rpt-card rpt-p-16">
+                                    <div className="rpt-card-header">
+                                        <div
+                                            className="rpt-card-title">{r.plant_name} ({r.plant_code}){r.report_date ? ` - ${r.report_date}` : ''}</div>
+                                        <div className="rpt-card-actions">
+                                            <button type="button" className="rpt-secondary-btn"
+                                                    onClick={() => setEffIdx(i => Math.max(i - 1, 0))}
+                                                    disabled={effIdx === 0}>← Prev Report
+                                            </button>
+                                            <button type="button" className="rpt-primary-btn"
+                                                    onClick={() => setEffIdx(i => Math.min(i + 1, effReports.length - 1))}
+                                                    disabled={effIdx === effReports.length - 1}>Next Report →
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="rpt-stats">
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Total Loads</div>
+                                            <div className="rpt-stat-value">{insights.totalLoads || 0}</div>
+                                        </div>
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Total Hours</div>
+                                            <div
+                                                className="rpt-stat-value">{insights.totalHours !== null ? insights.totalHours.toFixed(2) : '--'}</div>
+                                        </div>
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Avg Loads</div>
+                                            <div
+                                                className="rpt-stat-value">{insights.avgLoads !== null ? insights.avgLoads.toFixed(2) : '--'}</div>
+                                        </div>
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Avg Hours</div>
+                                            <div
+                                                className="rpt-stat-value">{insights.avgHours !== null ? insights.avgHours.toFixed(2) : '--'}</div>
+                                        </div>
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Avg L/H</div>
+                                            <div
+                                                className="rpt-stat-value">{insights.avgLoadsPerHour !== null ? insights.avgLoadsPerHour.toFixed(2) : '--'}</div>
+                                        </div>
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Punch In → 1st</div>
+                                            <div
+                                                className="rpt-stat-value">{insights.avgElapsedStart !== null ? `${insights.avgElapsedStart.toFixed(1)} min` : '--'}</div>
+                                        </div>
+                                        <div className="rpt-stat-card">
+                                            <div className="rpt-stat-label">Washout → Punch</div>
+                                            <div
+                                                className="rpt-stat-value">{insights.avgElapsedEnd !== null ? `${insights.avgElapsedEnd.toFixed(1)} min` : '--'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })()}
+                        <div className="rpt-section-title">Aggregate Production</div>
+                        <div className="rpt-card rpt-p-16">
+                            {aggReport ? (
+                                <table className="rpt-plant-summary-table rpt-agg-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Last Week</th>
+                                        <th>This Week</th>
+                                        <th>Variance</th>
                                     </tr>
+                                    </thead>
+                                    <tbody>
+                                    {reportTypeMap.aggregate_production.fields.map(f => (
+                                        <tr key={f.name}>
+                                            <td>{f.label}</td>
+                                            <td>{getAggLastWeekValue(f.name) || '—'}</td>
+                                            <td>{aggReport.data?.[f.name] ?? '—'}</td>
+                                            <td>{renderAggVariance(f.name)}</td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
-            <div className="rpt-card-header rpt-mt-16">
-                <div className="rpt-card-title">Plant Efficiency Reports</div>
-                {effReports.length > 0 && (<div className="rpt-badge">{effIdx + 1} of {effReports.length}</div>)}
-            </div>
-            {effReports.length === 0 ? (
-                <div className="rpt-empty">No plant efficiency reports found for this week.</div>
-            ) : (
-                <div className="rpt-form-row rpt-flex-col">
-                    <div className="rpt-dots-bar">
-                        {effReports.map((r, i) => (
-                            <div key={r.id} onClick={() => setEffIdx(i)}
-                                 className={`rpt-dot ${i === effIdx ? 'active' : ''}`}
-                                 aria-label={`Efficiency Report ${i + 1}`}></div>
-                        ))}
+                            ) : (
+                                <div className="rpt-empty">No aggregate production report found.</div>
+                            )}
+                        </div>
                     </div>
-                    {(() => {
-                        const r = effReports[effIdx]
-                        const insights = ReportService.getPlantProductionInsights(r.rows || [])
-                        return (
-                            <div className="rpt-card rpt-p-16">
-                                <div className="rpt-card-header">
-                                    <div
-                                        className="rpt-card-title">{r.plant_name} ({r.plant_code}){r.report_date ? ` - ${r.report_date}` : ''}</div>
-                                    <div className="rpt-card-actions">
-                                        <button type="button" className="rpt-secondary-btn"
-                                                onClick={() => setEffIdx(i => Math.max(i - 1, 0))}
-                                                disabled={effIdx === 0}>← Prev Report
-                                        </button>
-                                        <button type="button" className="rpt-primary-btn"
-                                                onClick={() => setEffIdx(i => Math.min(i + 1, effReports.length - 1))}
-                                                disabled={effIdx === effReports.length - 1}>Next Report →
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="rpt-stats">
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Total Loads</div>
-                                        <div className="rpt-stat-value">{insights.totalLoads || 0}</div>
-                                    </div>
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Total Hours</div>
-                                        <div
-                                            className="rpt-stat-value">{insights.totalHours !== null ? insights.totalHours.toFixed(2) : '--'}</div>
-                                    </div>
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Avg Loads</div>
-                                        <div
-                                            className="rpt-stat-value">{insights.avgLoads !== null ? insights.avgLoads.toFixed(2) : '--'}</div>
-                                    </div>
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Avg Hours</div>
-                                        <div
-                                            className="rpt-stat-value">{insights.avgHours !== null ? insights.avgHours.toFixed(2) : '--'}</div>
-                                    </div>
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Avg L/H</div>
-                                        <div
-                                            className="rpt-stat-value">{insights.avgLoadsPerHour !== null ? insights.avgLoadsPerHour.toFixed(2) : '--'}</div>
-                                    </div>
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Punch In → 1st</div>
-                                        <div
-                                            className="rpt-stat-value">{insights.avgElapsedStart !== null ? `${insights.avgElapsedStart.toFixed(1)} min` : '--'}</div>
-                                    </div>
-                                    <div className="rpt-stat-card">
-                                        <div className="rpt-stat-label">Washout → Punch</div>
-                                        <div
-                                            className="rpt-stat-value">{insights.avgElapsedEnd !== null ? `${insights.avgElapsedEnd.toFixed(1)} min` : '--'}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })()}
-                    <div className="rpt-section-title">Aggregate Production</div>
-                    <div className="rpt-card rpt-p-16">
-                        {aggReport ? (
-                            <table className="rpt-plant-summary-table rpt-agg-table">
-                                <thead>
-                                <tr>
-                                    <th>Material</th>
-                                    <th>Last Week</th>
-                                    <th>This Week</th>
-                                    <th>Variance</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {reportTypeMap.aggregate_production.fields.map(f => (
-                                    <tr key={f.name}>
-                                        <td>{f.label}</td>
-                                        <td>{getAggLastWeekValue(f.name) || '—'}</td>
-                                        <td>{aggReport.data?.[f.name] ?? '—'}</td>
-                                        <td>{renderAggVariance(f.name)}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <div className="rpt-empty">No aggregate production report found.</div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <div className="rpt-section-spacing">
-                <div className="rpt-card-header">
-                    <div className="rpt-card-title">Ready Mix Instructor Report</div>
-                </div>
-                {rmiLoading ? (
-                    <div className="rpt-empty">Loading RMI report data...</div>
-                ) : rmiReport ? (
-                    <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants}/>
-                ) : (
-                    <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
                 )}
+
+                <div className="rpt-section-spacing">
+                    <div className="rpt-card-header">
+                        <div className="rpt-card-title">Ready Mix Instructor Report</div>
+                    </div>
+                    {rmiLoading ? (
+                        <div className="rpt-empty">Loading RMI report data...</div>
+                    ) : rmiReport ? (
+                        <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants}/>
+                    ) : (
+                        <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
+                    )}
+                </div>
             </div>
-        </div>
         </>
     )
 }

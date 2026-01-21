@@ -173,9 +173,9 @@ export default function LeaderboardsView() {
             justifyContent: 'center',
             fontSize: rank <= 3 ? '1.5rem' : '1.25rem',
             fontWeight: 700,
-            background: rank === 1 ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 
-                        rank === 2 ? 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)' :
-                        rank === 3 ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' : '#f1f5f9',
+            background: rank === 1 ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' :
+                rank === 2 ? 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)' :
+                    rank === 3 ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' : '#f1f5f9',
             color: rank <= 3 ? 'white' : '#64748b',
             boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
         }),
@@ -780,19 +780,32 @@ export default function LeaderboardsView() {
                                             <>
                                                 <div style={styles.statItem}>
                                                     <span style={styles.statLabel}>Avg. YPH</span>
-                                                    <span style={{...styles.statValue, display: 'flex', gap: '0.25rem', alignItems: 'center'}}
+                                                    <span style={{
+                                                        ...styles.statValue,
+                                                        display: 'flex',
+                                                        gap: '0.25rem',
+                                                        alignItems: 'center'
+                                                    }}
                                                           title="Left: YPH before help adjustment / Right: YPH after help adjustment">
-                                                        <em style={{fontStyle: 'italic', color: '#64748b'}}>{(plant.rawYPH ?? plant.avgYPH).toFixed(2)}</em>
+                                                        <em style={{
+                                                            fontStyle: 'italic',
+                                                            color: '#64748b'
+                                                        }}>{(plant.rawYPH ?? plant.avgYPH).toFixed(2)}</em>
                                                         <span style={{color: '#94a3b8'}}>/</span>
                                                         <strong>{plant.avgYPH.toFixed(2)}</strong>
                                                     </span>
                                                 </div>
                                                 <div style={styles.statItem}>
                                                     <span style={styles.statLabel}>Load Efficiency</span>
-                                                    <span style={styles.statValue}>{plant.loadsEfficiency.toFixed(1)}%</span>
+                                                    <span
+                                                        style={styles.statValue}>{plant.loadsEfficiency.toFixed(1)}%</span>
                                                 </div>
                                                 <div style={styles.statItem}>
-                                                    <span style={{...styles.statLabel, cursor: 'pointer', color: '#1e3a5f'}} 
+                                                    <span style={{
+                                                        ...styles.statLabel,
+                                                        cursor: 'pointer',
+                                                        color: '#1e3a5f'
+                                                    }}
                                                           onClick={() => {
                                                               const details = hoursAdjustmentsData[plant.plantCode]
                                                               if (details && (details.hoursAdded > 0 || details.hoursSubtracted > 0)) {
@@ -801,13 +814,15 @@ export default function LeaderboardsView() {
                                                           }}
                                                           title="Click for details">
                                                         Help Net Balance
-                                                        {(plant.helpGiven > 0 || plant.helpReceived > 0) && <i className="fas fa-info-circle" style={{marginLeft: '0.25rem'}}></i>}
+                                                        {(plant.helpGiven > 0 || plant.helpReceived > 0) &&
+                                                            <i className="fas fa-info-circle"
+                                                               style={{marginLeft: '0.25rem'}}></i>}
                                                     </span>
                                                     <span style={{
                                                         ...styles.statValue,
                                                         color: plant.helpGiven > plant.helpReceived ? '#16a34a' :
-                                                               plant.helpGiven < plant.helpReceived ? '#ef4444' :
-                                                               '#1e293b'
+                                                            plant.helpGiven < plant.helpReceived ? '#ef4444' :
+                                                                '#1e293b'
                                                     }}>
                                                         {plant.helpGiven > 0 || plant.helpReceived > 0
                                                             ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
@@ -835,14 +850,15 @@ export default function LeaderboardsView() {
             </div>
 
             {helpDetailsModal.isOpen && helpDetailsModal.details && (
-                <div style={styles.modal} onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
+                <div style={styles.modal}
+                     onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}>
                     <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
                         <div style={styles.modalHeader}>
                             <h3 style={styles.modalTitle}>
                                 <i className="fas fa-exchange-alt"></i>
                                 Help Details - Plant {helpDetailsModal.plant?.plantCode}
                             </h3>
-                            <button 
+                            <button
                                 style={styles.closeButton}
                                 onClick={() => setHelpDetailsModal({isOpen: false, plant: null, details: null})}
                                 onMouseEnter={(e) => {
@@ -861,15 +877,20 @@ export default function LeaderboardsView() {
                         <div style={styles.modalSummary}>
                             <div style={styles.summaryItem}>
                                 <span style={styles.summaryLabel}>Total Help Given</span>
-                                <span style={styles.summaryValue}>{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
+                                <span
+                                    style={styles.summaryValue}>{Math.round(helpDetailsModal.details.hoursSubtracted)} hours</span>
                             </div>
                             <div style={styles.summaryItem}>
                                 <span style={styles.summaryLabel}>Total Help Received</span>
-                                <span style={styles.summaryValue}>{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
+                                <span
+                                    style={styles.summaryValue}>{Math.round(helpDetailsModal.details.hoursAdded)} hours</span>
                             </div>
                             <div style={styles.summaryItem}>
                                 <span style={styles.summaryLabel}>Net Balance</span>
-                                <span style={{...styles.summaryValue, color: helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '#16a34a' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? '#ef4444' : '#1e3a5f'}}>
+                                <span style={{
+                                    ...styles.summaryValue,
+                                    color: helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '#16a34a' : helpDetailsModal.details.hoursSubtracted < helpDetailsModal.details.hoursAdded ? '#ef4444' : '#1e3a5f'
+                                }}>
                                     {helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded ? '+' : ''}
                                     {Math.round(helpDetailsModal.details.hoursSubtracted - helpDetailsModal.details.hoursAdded)} hours
                                 </span>
@@ -885,18 +906,25 @@ export default function LeaderboardsView() {
                                         .map((entry, idx) => {
                                             const isSent = entry.type === 'sent'
                                             return (
-                                                <div key={`entry-${idx}`} style={styles.helpEntry(isSent ? 'sent' : 'received')}>
+                                                <div key={`entry-${idx}`}
+                                                     style={styles.helpEntry(isSent ? 'sent' : 'received')}>
                                                     <div style={styles.helpEntryMain}>
-                                                        <span style={styles.helpEntryIndicator(isSent ? 'sent' : 'received')}>
+                                                        <span
+                                                            style={styles.helpEntryIndicator(isSent ? 'sent' : 'received')}>
                                                             {isSent ? '+' : '-'}
                                                         </span>
                                                         <span style={styles.helpEntryPlant}>
                                                             {isSent ? `To Plant ${entry.to}` : `From Plant ${entry.from}`}
                                                         </span>
-                                                        <span style={styles.helpEntryHours}>{Math.round(entry.hours)} hours</span>
+                                                        <span
+                                                            style={styles.helpEntryHours}>{Math.round(entry.hours)} hours</span>
                                                     </div>
                                                     <div style={styles.helpEntryDetails}>
-                                                        <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>
+                                                        <span style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.375rem'
+                                                        }}>
                                                             <i className="fas fa-calendar"></i>
                                                             {new Date(entry.week).toLocaleDateString('en-US', {
                                                                 month: 'short',
@@ -904,7 +932,11 @@ export default function LeaderboardsView() {
                                                                 year: 'numeric'
                                                             })}
                                                         </span>
-                                                        <span style={{display: 'flex', alignItems: 'center', gap: '0.375rem'}}>
+                                                        <span style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.375rem'
+                                                        }}>
                                                             <i className="fas fa-users"></i>
                                                             {entry.operatorCount} operator{entry.operatorCount !== 1 ? 's' : ''}
                                                         </span>
@@ -919,7 +951,8 @@ export default function LeaderboardsView() {
                                     <div style={{...styles.emptyIcon, fontSize: '2rem'}}>
                                         <i className="fas fa-info-circle"></i>
                                     </div>
-                                    <p style={{...styles.emptyText, fontSize: '1rem', margin: 0}}>No detailed help records available</p>
+                                    <p style={{...styles.emptyText, fontSize: '1rem', margin: 0}}>No detailed help
+                                        records available</p>
                                 </div>
                             )}
                         </div>

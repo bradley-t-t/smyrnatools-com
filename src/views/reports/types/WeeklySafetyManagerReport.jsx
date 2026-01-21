@@ -320,172 +320,177 @@ export function SafetyManagerSubmitPlugin({form, setForm, plants, readOnly}) {
                             <i className="fas fa-plus"></i>
                             <span>Add Issue</span>
                         </button>
-                )}
-            </div>
-
-            {issues.length === 0 ? (
-                <div className="safety-empty-state">
-                    <div className="safety-empty-icon">
-                        <i className="fas fa-shield-alt"></i>
-                    </div>
-                    <h4>No Issues Reported</h4>
-                    <p>Click Add Issue to document any safety incidents</p>
+                    )}
                 </div>
-            ) : (
-                <div className="safety-issues-grid">
-                    {issues.map((issue, idx) => {
-                        const tagColors = (issue.tags || []).map(t => TAG_COLORS[t]).filter(Boolean)
-                        const primaryColor = tagColors[0]?.color || 'var(--accent)'
 
-                        return (
-                            <div key={issue.id} className="safety-issue-card" style={{'--issue-accent': primaryColor}}>
-                                <div className="safety-issue-header">
-                                    <div className="safety-issue-number">
-                                        <span>{idx + 1}</span>
-                                    </div>
-                                    <div className="safety-issue-badges">
-                                        {issue.plant && (
-                                            <span className="safety-badge safety-badge-plant">
+                {issues.length === 0 ? (
+                    <div className="safety-empty-state">
+                        <div className="safety-empty-icon">
+                            <i className="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>No Issues Reported</h4>
+                        <p>Click Add Issue to document any safety incidents</p>
+                    </div>
+                ) : (
+                    <div className="safety-issues-grid">
+                        {issues.map((issue, idx) => {
+                            const tagColors = (issue.tags || []).map(t => TAG_COLORS[t]).filter(Boolean)
+                            const primaryColor = tagColors[0]?.color || 'var(--accent)'
+
+                            return (
+                                <div key={issue.id} className="safety-issue-card"
+                                     style={{'--issue-accent': primaryColor}}>
+                                    <div className="safety-issue-header">
+                                        <div className="safety-issue-number">
+                                            <span>{idx + 1}</span>
+                                        </div>
+                                        <div className="safety-issue-badges">
+                                            {issue.plant && (
+                                                <span className="safety-badge safety-badge-plant">
                                                 <i className="fas fa-industry"></i>
-                                                {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
+                                                    {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
                                             </span>
-                                        )}
-                                        {issue.date && (
-                                            <span className="safety-badge safety-badge-date">
+                                            )}
+                                            {issue.date && (
+                                                <span className="safety-badge safety-badge-date">
                                                 <i className="fas fa-calendar"></i>
-                                                {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric'
-                                                })}
+                                                    {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
                                             </span>
-                                        )}
-                                    </div>
-                                    {!readOnly && (
-                                        <button type="button" onClick={() => removeIssue(issue.id)}
-                                                className="safety-remove-btn" title="Remove Issue">
-                                            <i className="fas fa-trash-alt"></i>
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="safety-issue-content">
-                                    <div className="safety-form-row">
-                                        <div className="safety-field">
-                                            <label className="safety-label">
-                                                <i className="fas fa-industry"></i>
-                                                Plant Location<span className="safety-required">*</span>
-                                            </label>
-                                            <button
-                                                type="button"
-                                                disabled={readOnly}
-                                                onClick={() => {
-                                                    setSelectedIssueIdForPlant(issue.id)
-                                                    setShowPlantModal(true)
-                                                }}
-                                                className="safety-select-btn"
-                                            >
-                                                <span>{issue.plant ? (issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`) : 'Select Plant...'}</span>
-                                                <i className="fas fa-chevron-down"></i>
+                                            )}
+                                        </div>
+                                        {!readOnly && (
+                                            <button type="button" onClick={() => removeIssue(issue.id)}
+                                                    className="safety-remove-btn" title="Remove Issue">
+                                                <i className="fas fa-trash-alt"></i>
                                             </button>
-                                        </div>
-                                        <div className="safety-field">
-                                            <label className="safety-label">
-                                                <i className="fas fa-calendar-alt"></i>
-                                                Date of Incident
-                                            </label>
-                                            <input type="date" disabled={readOnly} value={issue.date || ''}
-                                                   onChange={e => updateIssue(issue.id, {date: e.target.value})}
-                                                   className="safety-input"/>
-                                        </div>
-                                    </div>
-
-                                    <div className="safety-field">
-                                        <label className="safety-label">
-                                            <i className="fas fa-tags"></i>
-                                            Issue Categories<span className="safety-required">*</span>
-                                        </label>
-                                        <TagPicker value={issue.tags || []} options={TAG_OPTIONS} disabled={readOnly}
-                                                   placeholder="Select categories"
-                                                   onChange={vals => updateIssueTagsArray(issue.id, vals)}/>
-                                        {(issue.tags && issue.tags.length > 0) && (
-                                            <div className="safety-tags-display">
-                                                {issue.tags.map(t => {
-                                                    const tagStyle = TAG_COLORS[t] || {
-                                                        bg: 'var(--background)',
-                                                        color: 'var(--text-primary)',
-                                                        icon: 'fas fa-tag'
-                                                    }
-                                                    return (
-                                                        <span key={t} className="safety-tag-chip"
-                                                              style={{background: tagStyle.bg, color: tagStyle.color}}>
-                                                            <i className={tagStyle.icon}></i>
-                                                            {t}
-                                                            {!readOnly && (
-                                                                <button type="button" className="safety-chip-remove"
-                                                                        onClick={() => removeIssueTag(issue.id, t)}>
-                                                                    <i className="fas fa-times"></i>
-                                                                </button>
-                                                            )}
-                                                        </span>
-                                                    )
-                                                })}
-                                            </div>
                                         )}
                                     </div>
 
-                                    <div className="safety-field">
-                                        <label className="safety-label">
-                                            <i className="fas fa-align-left"></i>
-                                            Issue Description<span className="safety-required">*</span>
-                                        </label>
-                                        <textarea disabled={readOnly} value={issue.description}
-                                                  onChange={e => updateIssue(issue.id, {description: e.target.value})}
-                                                  className="safety-textarea"
-                                                  placeholder="Describe the incident in detail including what happened, who was involved, and any actions taken..."/>
-                                    </div>
+                                    <div className="safety-issue-content">
+                                        <div className="safety-form-row">
+                                            <div className="safety-field">
+                                                <label className="safety-label">
+                                                    <i className="fas fa-industry"></i>
+                                                    Plant Location<span className="safety-required">*</span>
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    disabled={readOnly}
+                                                    onClick={() => {
+                                                        setSelectedIssueIdForPlant(issue.id)
+                                                        setShowPlantModal(true)
+                                                    }}
+                                                    className="safety-select-btn"
+                                                >
+                                                    <span>{issue.plant ? (issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`) : 'Select Plant...'}</span>
+                                                    <i className="fas fa-chevron-down"></i>
+                                                </button>
+                                            </div>
+                                            <div className="safety-field">
+                                                <label className="safety-label">
+                                                    <i className="fas fa-calendar-alt"></i>
+                                                    Date of Incident
+                                                </label>
+                                                <input type="date" disabled={readOnly} value={issue.date || ''}
+                                                       onChange={e => updateIssue(issue.id, {date: e.target.value})}
+                                                       className="safety-input"/>
+                                            </div>
+                                        </div>
 
-                                    <div className="down-in-yard-toggle">
-                                        <label
-                                            className={`toggle-label ${readOnly || !issue.plant || issue.plant === 'All' ? 'disabled' : ''}`}>
-                                            <input
-                                                type="checkbox"
-                                                className="toggle-checkbox"
-                                                checked={issue.affectsEfficiency || false}
-                                                disabled={readOnly || !issue.plant || issue.plant === 'All'}
-                                                onChange={e => updateIssue(issue.id, {affectsEfficiency: e.target.checked})}
-                                            />
-                                            <span
-                                                className={`toggle-switch ${issue.affectsEfficiency ? 'active' : ''} ${readOnly || !issue.plant || issue.plant === 'All' ? 'disabled' : ''}`}>
+                                        <div className="safety-field">
+                                            <label className="safety-label">
+                                                <i className="fas fa-tags"></i>
+                                                Issue Categories<span className="safety-required">*</span>
+                                            </label>
+                                            <TagPicker value={issue.tags || []} options={TAG_OPTIONS}
+                                                       disabled={readOnly}
+                                                       placeholder="Select categories"
+                                                       onChange={vals => updateIssueTagsArray(issue.id, vals)}/>
+                                            {(issue.tags && issue.tags.length > 0) && (
+                                                <div className="safety-tags-display">
+                                                    {issue.tags.map(t => {
+                                                        const tagStyle = TAG_COLORS[t] || {
+                                                            bg: 'var(--background)',
+                                                            color: 'var(--text-primary)',
+                                                            icon: 'fas fa-tag'
+                                                        }
+                                                        return (
+                                                            <span key={t} className="safety-tag-chip"
+                                                                  style={{
+                                                                      background: tagStyle.bg,
+                                                                      color: tagStyle.color
+                                                                  }}>
+                                                            <i className={tagStyle.icon}></i>
+                                                                {t}
+                                                                {!readOnly && (
+                                                                    <button type="button" className="safety-chip-remove"
+                                                                            onClick={() => removeIssueTag(issue.id, t)}>
+                                                                        <i className="fas fa-times"></i>
+                                                                    </button>
+                                                                )}
+                                                        </span>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="safety-field">
+                                            <label className="safety-label">
+                                                <i className="fas fa-align-left"></i>
+                                                Issue Description<span className="safety-required">*</span>
+                                            </label>
+                                            <textarea disabled={readOnly} value={issue.description}
+                                                      onChange={e => updateIssue(issue.id, {description: e.target.value})}
+                                                      className="safety-textarea"
+                                                      placeholder="Describe the incident in detail including what happened, who was involved, and any actions taken..."/>
+                                        </div>
+
+                                        <div className="down-in-yard-toggle">
+                                            <label
+                                                className={`toggle-label ${readOnly || !issue.plant || issue.plant === 'All' ? 'disabled' : ''}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="toggle-checkbox"
+                                                    checked={issue.affectsEfficiency || false}
+                                                    disabled={readOnly || !issue.plant || issue.plant === 'All'}
+                                                    onChange={e => updateIssue(issue.id, {affectsEfficiency: e.target.checked})}
+                                                />
+                                                <span
+                                                    className={`toggle-switch ${issue.affectsEfficiency ? 'active' : ''} ${readOnly || !issue.plant || issue.plant === 'All' ? 'disabled' : ''}`}>
                                                 <span className="toggle-slider"></span>
                                             </span>
-                                            <span
-                                                className="toggle-text">Should Affect Plant&apos;s Efficiency{(!issue.plant || issue.plant === 'All') && ' (Select specific plant first)'}</span>
-                                        </label>
+                                                <span
+                                                    className="toggle-text">Should Affect Plant&apos;s Efficiency{(!issue.plant || issue.plant === 'All') && ' (Select specific plant first)'}</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
+                            )
+                        })}
+                    </div>
+                )}
 
-            <PlantDropdownModal
-                isOpen={showPlantModal}
-                onClose={() => {
-                    setShowPlantModal(false)
-                    setSelectedIssueIdForPlant(null)
-                }}
-                plants={plants}
-                showAllPlants={true}
-                onSelect={(plantCode) => {
-                    if (selectedIssueIdForPlant !== null) {
-                        updateIssue(selectedIssueIdForPlant, {plant: plantCode})
-                    }
-                    setShowPlantModal(false)
-                    setSelectedIssueIdForPlant(null)
-                }}
-            />
-        </div>
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => {
+                        setShowPlantModal(false)
+                        setSelectedIssueIdForPlant(null)
+                    }}
+                    plants={plants}
+                    showAllPlants={true}
+                    onSelect={(plantCode) => {
+                        if (selectedIssueIdForPlant !== null) {
+                            updateIssue(selectedIssueIdForPlant, {plant: plantCode})
+                        }
+                        setShowPlantModal(false)
+                        setSelectedIssueIdForPlant(null)
+                    }}
+                />
+            </div>
         </>
     )
 }
@@ -534,94 +539,94 @@ export function SafetyManagerReviewPlugin({form}) {
             <div className="safety-report-section">
                 <div className="safety-section-header">
                     <div className="safety-section-title">
-                    <div className="safety-section-icon">
-                        <i className="fas fa-exclamation-circle"></i>
+                        <div className="safety-section-icon">
+                            <i className="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div>
+                            <h3>Safety Issues & Incidents</h3>
+                            <p>{issues.length} issue{issues.length > 1 ? 's' : ''} reported for this period</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3>Safety Issues & Incidents</h3>
-                        <p>{issues.length} issue{issues.length > 1 ? 's' : ''} reported for this period</p>
+                    <div className="safety-summary-badge">
+                        <i className="fas fa-clipboard-list"></i>
+                        {issues.length} Incident{issues.length > 1 ? 's' : ''}
                     </div>
                 </div>
-                <div className="safety-summary-badge">
-                    <i className="fas fa-clipboard-list"></i>
-                    {issues.length} Incident{issues.length > 1 ? 's' : ''}
-                </div>
-            </div>
 
-            <div className="safety-issues-grid">
-                {issues.map((issue, idx) => {
-                    const tags = Array.isArray(issue.tags) ? issue.tags : (issue.tag ? [issue.tag] : [])
-                    const tagColors = tags.map(t => TAG_COLORS[t]).filter(Boolean)
-                    const primaryColor = tagColors[0]?.color || 'var(--accent)'
+                <div className="safety-issues-grid">
+                    {issues.map((issue, idx) => {
+                        const tags = Array.isArray(issue.tags) ? issue.tags : (issue.tag ? [issue.tag] : [])
+                        const tagColors = tags.map(t => TAG_COLORS[t]).filter(Boolean)
+                        const primaryColor = tagColors[0]?.color || 'var(--accent)'
 
-                    return (
-                        <div key={issue.id || idx} className="safety-issue-card safety-issue-card-review"
-                             style={{'--issue-accent': primaryColor}}>
-                            <div className="safety-issue-header">
-                                <div className="safety-issue-number">
-                                    <span>{idx + 1}</span>
-                                </div>
-                                <div className="safety-issue-badges">
-                                    {issue.plant && (
-                                        <span className="safety-badge safety-badge-plant">
+                        return (
+                            <div key={issue.id || idx} className="safety-issue-card safety-issue-card-review"
+                                 style={{'--issue-accent': primaryColor}}>
+                                <div className="safety-issue-header">
+                                    <div className="safety-issue-number">
+                                        <span>{idx + 1}</span>
+                                    </div>
+                                    <div className="safety-issue-badges">
+                                        {issue.plant && (
+                                            <span className="safety-badge safety-badge-plant">
                                             <i className="fas fa-industry"></i>
-                                            {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
+                                                {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
                                         </span>
-                                    )}
-                                    {issue.date && (
-                                        <span className="safety-badge safety-badge-date">
+                                        )}
+                                        {issue.date && (
+                                            <span className="safety-badge safety-badge-date">
                                             <i className="fas fa-calendar"></i>
-                                            {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                                weekday: 'short',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
+                                                {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
+                                                    weekday: 'short',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                })}
                                         </span>
-                                    )}
-                                    {issue.affectsEfficiency && (
-                                        <span className="safety-badge"
-                                              style={{background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444'}}>
+                                        )}
+                                        {issue.affectsEfficiency && (
+                                            <span className="safety-badge"
+                                                  style={{background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444'}}>
                                             <i className="fas fa-chart-line"></i>
                                             Affects Efficiency
                                         </span>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="safety-issue-content">
-                                {tags.length > 0 && (
-                                    <div className="safety-tags-display">
-                                        {tags.map(t => {
-                                            const tagStyle = TAG_COLORS[t] || {
-                                                bg: 'var(--background)',
-                                                color: 'var(--text-primary)',
-                                                icon: 'fas fa-tag'
-                                            }
-                                            return (
-                                                <span key={t} className="safety-tag-chip"
-                                                      style={{background: tagStyle.bg, color: tagStyle.color}}>
+                                <div className="safety-issue-content">
+                                    {tags.length > 0 && (
+                                        <div className="safety-tags-display">
+                                            {tags.map(t => {
+                                                const tagStyle = TAG_COLORS[t] || {
+                                                    bg: 'var(--background)',
+                                                    color: 'var(--text-primary)',
+                                                    icon: 'fas fa-tag'
+                                                }
+                                                return (
+                                                    <span key={t} className="safety-tag-chip"
+                                                          style={{background: tagStyle.bg, color: tagStyle.color}}>
                                                     <i className={tagStyle.icon}></i>
-                                                    {t}
+                                                        {t}
                                                 </span>
-                                            )
-                                        })}
-                                    </div>
-                                )}
+                                                )
+                                            })}
+                                        </div>
+                                    )}
 
-                                <div className="safety-description-box">
-                                    <div className="safety-description-label">
-                                        <i className="fas fa-file-alt"></i>
-                                        Description
+                                    <div className="safety-description-box">
+                                        <div className="safety-description-label">
+                                            <i className="fas fa-file-alt"></i>
+                                            Description
+                                        </div>
+                                        <div
+                                            className="safety-description-text">{issue.description || 'No description provided'}</div>
                                     </div>
-                                    <div
-                                        className="safety-description-text">{issue.description || 'No description provided'}</div>
                                 </div>
                             </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })}
+                </div>
             </div>
-        </div>
         </>
     )
 }

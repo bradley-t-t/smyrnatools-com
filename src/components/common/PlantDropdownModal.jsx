@@ -213,18 +213,24 @@ function PlantDropdownModal({
                                     key={code}
                                     style={optionStyle(isSelected)}
                                     onClick={() => handlePlantClick(code)}
-                                    onMouseEnter={e => {if (!isSelected) e.currentTarget.style.backgroundColor = '#f1f5f9'}}
-                                    onMouseLeave={e => {if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'}}
+                                    onMouseEnter={e => {
+                                        if (!isSelected) e.currentTarget.style.backgroundColor = '#f1f5f9'
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'
+                                    }}
                                 >
                                     {allowMultiple && (
                                         <input
                                             type="checkbox"
                                             checked={isSelected}
-                                            onChange={() => {}}
+                                            onChange={() => {
+                                            }}
                                             style={checkboxStyle}
                                         />
                                     )}
-                                    <span style={{color: '#374151'}}>({code}) {plant.plantName || plant.plant_name}</span>
+                                    <span
+                                        style={{color: '#374151'}}>({code}) {plant.plantName || plant.plant_name}</span>
                                 </div>
                             );
                         })}

@@ -481,10 +481,10 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         },
         statCard: (color) => {
             const colors = {
-                total: { bg: '#eff6ff', text: '#1e3a5f' },
-                overdue: { bg: '#fee2e2', text: '#ef4444' },
-                today: { bg: '#fef3c7', text: '#f59e0b' },
-                progress: { bg: '#dbeafe', text: '#3b82f6' }
+                total: {bg: '#eff6ff', text: '#1e3a5f'},
+                overdue: {bg: '#fee2e2', text: '#ef4444'},
+                today: {bg: '#fef3c7', text: '#f59e0b'},
+                progress: {bg: '#dbeafe', text: '#3b82f6'}
             }
             const colorSet = colors[color] || colors.total
             return {
@@ -632,13 +632,13 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         },
         itemStatus: (statusType) => {
             const colors = {
-                completed: { bg: '#dcfce7', border: '#16a34a', text: '#16a34a' },
-                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
-                in_progress: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
-                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' },
-                blocked: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
-                waiting: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' },
-                ordered_materials: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' }
+                completed: {bg: '#dcfce7', border: '#16a34a', text: '#16a34a'},
+                overdue: {bg: '#fee2e2', border: '#ef4444', text: '#ef4444'},
+                in_progress: {bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6'},
+                pending: {bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b'},
+                blocked: {bg: '#fee2e2', border: '#ef4444', text: '#ef4444'},
+                waiting: {bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b'},
+                ordered_materials: {bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6'}
             }
             const color = colors[statusType] || colors.pending
             return {
@@ -673,7 +673,7 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                 color: '#64748b'
             }
             if (type === 'overdue') {
-                return { ...baseStyle, color: '#ef4444', fontWeight: 700 }
+                return {...baseStyle, color: '#ef4444', fontWeight: 700}
             }
             return baseStyle
         },
@@ -710,9 +710,9 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
         },
         bulkActionButton: (type) => {
             const colors = {
-                complete: { bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a' },
-                delete: { bg: '#fee2e2', hover: '#fecaca', text: '#ef4444' },
-                cancel: { bg: '#f1f5f9', hover: '#e2e8f0', text: '#64748b' }
+                complete: {bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a'},
+                delete: {bg: '#fee2e2', hover: '#fecaca', text: '#ef4444'},
+                cancel: {bg: '#f1f5f9', hover: '#e2e8f0', text: '#64748b'}
             }
             const color = colors[type] || colors.cancel
             return {
@@ -1036,13 +1036,13 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                 {statusFilter === 'completed' ? 'No Completed Items Found' : 'No List Items Found'}
                             </h3>
                             <p style={styles.emptyText}>
-                                {searchText || selectedPlant 
-                                    ? 'No items match your search criteria.' 
-                                    : statusFilter === 'completed' 
-                                        ? 'There are no completed items to show.' 
+                                {searchText || selectedPlant
+                                    ? 'No items match your search criteria.'
+                                    : statusFilter === 'completed'
+                                        ? 'There are no completed items to show.'
                                         : 'There are no items in the list yet.'}
                             </p>
-                            <button 
+                            <button
                                 style={styles.addButton}
                                 onClick={() => setShowAddSheet(true)}
                                 onMouseEnter={(e) => e.currentTarget.style.background = '#162d4a'}
@@ -1093,7 +1093,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedIds.has(item.id)}
-                                                            onChange={() => {}}
+                                                            onChange={() => {
+                                                            }}
                                                         />
                                                     </div>
                                                     <div style={styles.itemContent}>
@@ -1104,7 +1105,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                                     <p style={styles.itemComments}>{truncateText(item.comments, 60)}</p>
                                                                 )}
                                                             </div>
-                                                            <span style={styles.itemStatus(item.completed ? 'completed' : item.status || 'pending')}>
+                                                            <span
+                                                                style={styles.itemStatus(item.completed ? 'completed' : item.status || 'pending')}>
                                                                 <i className={`fas ${ListService.getStatusIcon(item.completed ? 'completed' : item.status || 'pending')}`}></i>
                                                                 {ListService.getStatusLabel(item.completed ? 'completed' : item.status || 'pending')}
                                                             </span>
@@ -1114,7 +1116,8 @@ function ListView({title = 'Tasks List', onSelectItem, onStatusFilterChange}) {
                                                                 <i className="fas fa-building"></i>
                                                                 {getPlantName(item.plant_code)}
                                                             </span>
-                                                            <span style={styles.metaTag((ListService.isOverdue(item) || item.status === 'overdue') && !item.completed ? 'overdue' : '')}>
+                                                            <span
+                                                                style={styles.metaTag((ListService.isOverdue(item) || item.status === 'overdue') && !item.completed ? 'overdue' : '')}>
                                                                 <i className="fas fa-calendar"></i>
                                                                 {new Date(item.deadline).toLocaleDateString('en-US', {
                                                                     month: 'short',

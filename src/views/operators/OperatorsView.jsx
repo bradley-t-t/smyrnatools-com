@@ -466,9 +466,9 @@ function OperatorsView({
         const stars = []
         for (let i = 1; i <= 5; i++) {
             stars.push(
-                <i 
-                    key={i} 
-                    className="fas fa-star" 
+                <i
+                    key={i}
+                    className="fas fa-star"
                     style={{
                         color: i <= rating ? '#f59e0b' : '#e2e8f0',
                         fontSize: '16px',
@@ -620,12 +620,25 @@ function OperatorsView({
                                         const statusBadgeStyle = (status) => {
                                             let bg = '#f1f5f9'
                                             let textColor = '#475569'
-                                            if (status === 'Active') { bg = '#dcfce7'; textColor = '#166534' }
-                                            else if (status === 'Light Duty') { bg = '#fef3c7'; textColor = '#92400e' }
-                                            else if (status === 'Pending Start') { bg = '#dbeafe'; textColor = '#1e40af' }
-                                            else if (status === 'Training') { bg = '#e0e7ff'; textColor = '#4338ca' }
-                                            else if (status === 'Terminated') { bg = '#fecaca'; textColor = '#991b1b' }
-                                            else if (status === 'No Hire') { bg = '#fee2e2'; textColor = '#b91c1c' }
+                                            if (status === 'Active') {
+                                                bg = '#dcfce7';
+                                                textColor = '#166534'
+                                            } else if (status === 'Light Duty') {
+                                                bg = '#fef3c7';
+                                                textColor = '#92400e'
+                                            } else if (status === 'Pending Start') {
+                                                bg = '#dbeafe';
+                                                textColor = '#1e40af'
+                                            } else if (status === 'Training') {
+                                                bg = '#e0e7ff';
+                                                textColor = '#4338ca'
+                                            } else if (status === 'Terminated') {
+                                                bg = '#fecaca';
+                                                textColor = '#991b1b'
+                                            } else if (status === 'No Hire') {
+                                                bg = '#fee2e2';
+                                                textColor = '#b91c1c'
+                                            }
                                             return {
                                                 display: 'inline-block',
                                                 padding: '8px 16px',
@@ -664,16 +677,30 @@ function OperatorsView({
                                                     const cells = e.currentTarget.querySelectorAll('td')
                                                     cells.forEach(cell => cell.style.backgroundColor = '')
                                                 }}>
-                                                <td style={{...cellStyle, width: '10%'}}>{operator.plantCode || '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellStyle,
+                                                    width: '10%'
+                                                }}>{operator.plantCode || '\u2014'}</td>
                                                 <td style={{...cellHighlightStyle, width: '24%'}}>
-                                                    <span className={duplicate ? 'duplicate' : ''}>{operator.name}</span>
+                                                    <span
+                                                        className={duplicate ? 'duplicate' : ''}>{operator.name}</span>
                                                 </td>
-                                                <td style={{...cellSecondaryStyle, width: '14%'}}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellSecondaryStyle,
+                                                    width: '14%'
+                                                }}>{operator.phone ? GrammarUtility.formatPhone(operator.phone) : '\u2014'}</td>
                                                 <td style={{...cellSecondaryStyle, width: '14%'}}>
-                                                    <span style={statusBadgeStyle(operator.status)}>{operator.status || '\u2014'}</span>
+                                                    <span
+                                                        style={statusBadgeStyle(operator.status)}>{operator.status || '\u2014'}</span>
                                                 </td>
-                                                <td style={{...cellSecondaryStyle, width: '12%'}}>{renderStarsOrNA(operator)}</td>
-                                                <td style={{...cellSecondaryStyle, width: '14%'}}>{trainerObj ? trainerObj.name : '\u2014'}</td>
+                                                <td style={{
+                                                    ...cellSecondaryStyle,
+                                                    width: '12%'
+                                                }}>{renderStarsOrNA(operator)}</td>
+                                                <td style={{
+                                                    ...cellSecondaryStyle,
+                                                    width: '14%'
+                                                }}>{trainerObj ? trainerObj.name : '\u2014'}</td>
                                                 <td style={{...cellSecondaryStyle, width: '12%'}}>
                                                     <div style={{display: 'flex', alignItems: 'center'}}>
                                                         <button onClick={(e) => {
@@ -682,16 +709,16 @@ function OperatorsView({
                                                             setModalOperatorName(operator.name);
                                                             setShowCommentModal(true);
                                                         }} type="button" title="View comments" style={actionBtnStyle}
-                                                        onMouseEnter={(e) => {
-                                                            e.currentTarget.style.backgroundColor = '#1e3a5f'
-                                                            e.currentTarget.style.color = 'white'
-                                                            e.currentTarget.style.borderColor = '#1e3a5f'
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.currentTarget.style.backgroundColor = 'white'
-                                                            e.currentTarget.style.color = '#64748b'
-                                                            e.currentTarget.style.borderColor = '#e2e8f0'
-                                                        }}>
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                                    e.currentTarget.style.color = 'white'
+                                                                    e.currentTarget.style.borderColor = '#1e3a5f'
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = 'white'
+                                                                    e.currentTarget.style.color = '#64748b'
+                                                                    e.currentTarget.style.borderColor = '#e2e8f0'
+                                                                }}>
                                                             <i className="fas fa-comments"></i>
                                                         </button>
                                                         <button onClick={(e) => {
@@ -699,16 +726,16 @@ function OperatorsView({
                                                             setSelectedOperatorForHistory(operator);
                                                             setShowHistoryModal(true);
                                                         }} type="button" title="View history" style={actionBtnStyle}
-                                                        onMouseEnter={(e) => {
-                                                            e.currentTarget.style.backgroundColor = '#1e3a5f'
-                                                            e.currentTarget.style.color = 'white'
-                                                            e.currentTarget.style.borderColor = '#1e3a5f'
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.currentTarget.style.backgroundColor = 'white'
-                                                            e.currentTarget.style.color = '#64748b'
-                                                            e.currentTarget.style.borderColor = '#e2e8f0'
-                                                        }}>
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                                    e.currentTarget.style.color = 'white'
+                                                                    e.currentTarget.style.borderColor = '#1e3a5f'
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = 'white'
+                                                                    e.currentTarget.style.color = '#64748b'
+                                                                    e.currentTarget.style.borderColor = '#e2e8f0'
+                                                                }}>
                                                             <i className="fas fa-history"></i>
                                                         </button>
                                                     </div>

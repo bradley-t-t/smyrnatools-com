@@ -383,7 +383,8 @@ const SlumpAdjustmentCalculator = () => {
 
                     <span style={styles.eqOp}>=</span>
 
-                    <div style={styles.result(hasResult ? (slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none') : '')}>
+                    <div
+                        style={styles.result(hasResult ? (slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none') : '')}>
                         {hasResult ? (
                             <>
                                 <span style={styles.resAction(slumpDiff > 0 ? 'add' : 'reduce')}>
@@ -465,8 +466,8 @@ const SlumpAdjustmentCalculator = () => {
             )}
 
             <div style={styles.footer}>
-                <button 
-                    onClick={clearForm} 
+                <button
+                    onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8fafc';

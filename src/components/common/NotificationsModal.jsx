@@ -339,7 +339,8 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                         </div>
                     ) : items.length === 0 ? (
                         <div style={emptyStyle}>
-                            <i className="fas fa-bell-slash" style={{fontSize: '32px', opacity: 0.5, marginBottom: '4px'}}></i>
+                            <i className="fas fa-bell-slash"
+                               style={{fontSize: '32px', opacity: 0.5, marginBottom: '4px'}}></i>
                             <span style={{fontSize: '14px'}}>No notifications</span>
                         </div>
                     ) : (
@@ -348,12 +349,20 @@ function NotificationsModal({isOpen, onClose, anchorRect}) {
                                 const isCollapsed = collapsedCategories.has(category.key)
                                 return (
                                     <div key={category.key} style={categoryStyle}>
-                                        <div style={categoryHeaderStyle(isCollapsed)} onClick={() => toggleCategory(category.key)}>
-                                            <i className={category.icon} style={{fontSize: '14px', color: '#1e3a5f', width: '20px', textAlign: 'center'}}></i>
+                                        <div style={categoryHeaderStyle(isCollapsed)}
+                                             onClick={() => toggleCategory(category.key)}>
+                                            <i className={category.icon} style={{
+                                                fontSize: '14px',
+                                                color: '#1e3a5f',
+                                                width: '20px',
+                                                textAlign: 'center'
+                                            }}></i>
                                             <span style={categoryTitleStyle}>{category.label}</span>
                                             <span style={badgeStyle}>{category.items.length}</span>
-                                            <button style={toggleButtonStyle} aria-label={isCollapsed ? 'Expand' : 'Collapse'}>
-                                                <i className={`fas fa-chevron-${isCollapsed ? 'down' : 'up'}`} style={{fontSize: '12px'}}></i>
+                                            <button style={toggleButtonStyle}
+                                                    aria-label={isCollapsed ? 'Expand' : 'Collapse'}>
+                                                <i className={`fas fa-chevron-${isCollapsed ? 'down' : 'up'}`}
+                                                   style={{fontSize: '12px'}}></i>
                                             </button>
                                         </div>
                                         {!isCollapsed && (

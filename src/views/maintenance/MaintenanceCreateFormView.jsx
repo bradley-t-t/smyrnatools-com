@@ -473,8 +473,8 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
     return (
         <div style={styles.container}>
             <div style={styles.header}>
-                <button 
-                    style={styles.backBtn} 
+                <button
+                    style={styles.backBtn}
                     onClick={onBack}
                     onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
                     onMouseLeave={(e) => e.currentTarget.style.background = '#f1f5f9'}
@@ -535,7 +535,7 @@ export default function MaintenanceCreateFormView({editingForm, onBack, onSaved}
                                         return (
                                             <span key={code} style={styles.plantChip}>
                                                 {name}
-                                                <button 
+                                                <button
                                                     type="button"
                                                     style={styles.chipRemoveBtn}
                                                     onClick={() => setSelectedPlants(selectedPlants.filter(c => c !== code))}
