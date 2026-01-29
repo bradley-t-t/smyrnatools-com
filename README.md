@@ -5,7 +5,7 @@
 <h1 align="center">SRM Tools</h1>
 
 <p align="center">
-  <img src="https://github.com/bradley-t-t/smyrnatools.com/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+  <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/ci.yml/badge.svg?branch=core" alt="CI Status" />
 </p>
 
 <p align="center">
@@ -143,5 +143,5 @@ Requires Supabase project configuration with:
 ---
 
 <p align="center">
-  <sub>Built for SRM Concrete operations</sub>
+  <sub>Built for SRM Concrete by Trenton Taylor</sub>
 </p>

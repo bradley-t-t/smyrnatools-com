@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ core ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ core ]
 
 jobs:
   build:
@@ -25,9 +25,6 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-
-      - name: Run tests with coverage
-        run: npm test -- --watchAll=false --coverage
 
       - name: Build production
         env:

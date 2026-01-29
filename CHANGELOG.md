@@ -11,6 +11,13 @@ All notable changes to SmyrnaTools will be documented in this file.
 
 
 
+
+## [1.4] - 2026-01-29
+
+- Updated CI workflow to trigger on the 'core' branch instead of 'main' and 'master' for both push and pull request events
+- Removed the test coverage step from the CI workflow
+- Updated the CI status badge in README.md to point to the 'core' branch
+- Updated the footer in README.md to credit Trenton Taylor for building the project for SRM Concrete
 ## [1.3] - 2026-01-29
 
 - Added new AI module with initial configuration files and service implementations
