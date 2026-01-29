@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [1.7] - 2026-01-29
+
+- Code formatting and cleanup
+
 ## [1.6] - 2026-01-29
 
 - Version update
