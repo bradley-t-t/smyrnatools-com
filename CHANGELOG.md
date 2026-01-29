@@ -9,6 +9,10 @@ All notable changes to SmyrnaTools will be documented in this file.
 
 
 
+
+## [1.2] - 2026-01-29
+
+- Renamed AIInsightsService.js to AIService.js for consistency in naming conventions
 ## [1.1] - 2026-01-29
 
 - Updated commit message prefix from "Release" to "SmyrnaTools Release" in release.js

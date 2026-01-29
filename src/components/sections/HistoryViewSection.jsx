@@ -8,7 +8,7 @@ import { UserService } from '../../services/UserService'
 import { FormatUtility } from '../../utils/FormatUtility'
 import { HistoryUtility } from '../../utils/HistoryUtility'
 import { supabase } from '../../services/DatabaseService'
-import { AIInsightsService } from '../../services/AIInsightsService'
+import { AIService } from '../../services/AIService'
 
 function HistoryViewSection({ item, type, onClose }) {
     const [history, setHistory] = useState([])
@@ -801,7 +801,7 @@ function HistoryViewSection({ item, type, onClose }) {
                     }))
                 }
 
-                const summary = await AIInsightsService.generateHistorySummary(historyContext)
+                const summary = await AIService.generateHistorySummary(historyContext)
 
                 if (summary) {
                     setAiSummary(summary)

@@ -6,7 +6,7 @@ import GrammarUtility from '../../utils/GrammarUtility'
 import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
-import { AIInsightsService } from '../../services/AIInsightsService'
+import { AIService } from '../../services/AIService'
 
 function ListDetailView({ itemId, onClose }) {
     const { preferences } = usePreferences()
@@ -227,7 +227,7 @@ function ListDetailView({ itemId, onClose }) {
         if (!formData.description.trim()) return
         setIsImprovingDescription(true)
         try {
-            const improved = await AIInsightsService.improveListItem(formData.description, formData.comments)
+            const improved = await AIService.improveListItem(formData.description, formData.comments)
             if (improved) {
                 if (typeof improved === 'object') {
                     const newDescription = improved.description || formData.description

@@ -7,7 +7,7 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import GrammarUtility from '../../utils/GrammarUtility'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
-import { AIInsightsService } from '../../services/AIInsightsService'
+import { AIService } from '../../services/AIService'
 
 function ListAddView({ onClose, onItemAdded, item = null }) {
     const { preferences } = usePreferences()
@@ -89,7 +89,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     const fetchSuggestions = useCallback(async (partial = '') => {
         setIsLoadingSuggestions(true)
         try {
-            const suggestions = await AIInsightsService.suggestListItems(partial)
+            const suggestions = await AIService.suggestListItems(partial)
             setAiSuggestions(suggestions)
             setShowSuggestions(suggestions.length > 0)
         } catch {
@@ -103,7 +103,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         if (!description.trim()) return
         setIsImprovingDescription(true)
         try {
-            const improved = await AIInsightsService.improveListItem(description, comments)
+            const improved = await AIService.improveListItem(description, comments)
             if (improved) {
                 if (typeof improved === 'object') {
                     setDescription(improved.description || description)

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { AIInsightsService } from '../../services/AIInsightsService'
+import { AIService } from '../../services/AIService'
 import { RegionService } from '../../services/RegionService'
 import { MixerService } from '../../services/MixerService'
 import { TractorService } from '../../services/TractorService'
@@ -711,7 +711,7 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
 
         try {
             const conversationHistory = [...messages, { role: 'user', content: userMessage }]
-            const response = await AIInsightsService.askFollowUp(userMessage, conversationHistory, contextData || {})
+            const response = await AIService.askFollowUp(userMessage, conversationHistory, contextData || {})
             setMessages((prev) => [...prev, { role: 'assistant', content: response }])
         } catch (err) {
             setMessages((prev) => [

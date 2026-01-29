@@ -1596,4 +1596,4 @@ Just 5 short task descriptions.`
     }
 }
 
-export const AIInsightsService = new AIInsightsServiceClass()
+export const AIService = new AIInsightsServiceClass()

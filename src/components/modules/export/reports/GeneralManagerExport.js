@@ -4,7 +4,7 @@ import { TractorService } from '../../../../services/TractorService'
 import { TrailerService } from '../../../../services/TrailerService'
 import { EquipmentService } from '../../../../services/EquipmentService'
 import { PickupTruckService } from '../../../../services/PickupTruckService'
-import { AIInsightsService } from '../../../../services/AIInsightsService'
+import { AIService } from '../../../../services/AIService'
 import { createSheet, exportWorkbook, finalizeSheet, generateFilename, initExport } from '../ExportModule'
 import {
     addChangePct,
@@ -57,7 +57,7 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
         if (down >= 2) plantIssuesEarly.push(`${p.plant_code}: ${down} down`)
     })
 
-    const aiSummaryPromise = AIInsightsService.generateGMReportExportSummary({
+    const aiSummaryPromise = AIService.generateGMReportExportSummary({
         weekIso,
         plantCount: sortedPlantsEarly.length,
         totalYardage: totalYardageEarly,

@@ -14,7 +14,7 @@ import GrammarUtility from '../../utils/GrammarUtility'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
-import { AIInsightsService } from '../../services/AIInsightsService'
+import { AIService } from '../../services/AIService'
 import MixersView from '../mixers/MixersView'
 import TractorsView from '../tractors/TractorsView'
 import TrailersView from '../trailers/TrailersView'
@@ -1548,7 +1548,7 @@ export default function DashboardView() {
                     unrated: activeMixers.filter((m) => !m.cleanlinessRating || m.cleanlinessRating === 0).length
                 }
 
-                const summary = await AIInsightsService.generatePlantSummary({
+                const summary = await AIService.generatePlantSummary({
                     plantCode: dashboardPlant,
                     leaderboardMetrics: plantNotifications.leaderboardMetrics,
                     overdueService: plantNotifications.overdueService,

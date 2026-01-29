@@ -4,7 +4,7 @@ import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { reportTypeMap } from '../../../types/ReportTypes'
 import { ReadyMixInstructorReviewPlugin } from './WeeklyReadyMixInstructorReport'
-import { AIInsightsService } from '../../../services/AIInsightsService'
+import { AIService } from '../../../services/AIService'
 
 const gmReportStyles = `
 .rpt-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
@@ -468,7 +468,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     rmiReport: rmiReport
                 }
 
-                const analysis = await AIInsightsService.generateGMReportAnalysis(reportContext)
+                const analysis = await AIService.generateGMReportAnalysis(reportContext)
 
                 if (!cancelled) {
                     if (analysis) {
@@ -542,7 +542,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 rmiReport: rmiReport
             }
 
-            const analysis = await AIInsightsService.generateGMReportAnalysis(reportContext)
+            const analysis = await AIService.generateGMReportAnalysis(reportContext)
             if (analysis) {
                 setAiAnalysis(analysis)
             } else {
@@ -1263,7 +1263,7 @@ export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
                     rmiReport: rmiReport
                 }
 
-                const analysis = await AIInsightsService.generateGMReportAnalysis(reportContext)
+                const analysis = await AIService.generateGMReportAnalysis(reportContext)
 
                 if (!cancelled) {
                     if (analysis) {
@@ -1319,7 +1319,7 @@ export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
                 rmiReport: rmiReport
             }
 
-            const analysis = await AIInsightsService.generateGMReportAnalysis(reportContext)
+            const analysis = await AIService.generateGMReportAnalysis(reportContext)
             if (analysis) {
                 setAiAnalysis(analysis)
             } else {
