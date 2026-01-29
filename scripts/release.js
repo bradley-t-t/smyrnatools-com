@@ -167,7 +167,7 @@ async function generateCommitMessage(changedFiles, codeDiff, detailedChanges, ol
 
     if (!apiKey) {
         console.log('No REACT_APP_GROK_API_KEY found in .env, using default commit message');
-        return `Release: v${newVersion}`;
+        return `SmyrnaTools Release: v${newVersion}`;
     }
 
     const prompt = `Analyze this git diff and generate a commit message. Version bump from ${oldVersion} to ${newVersion}.
@@ -182,7 +182,7 @@ Statistics:
 ${detailedChanges}
 
 IMPORTANT RULES:
-- First line MUST be exactly: "Release: v${newVersion}"
+- First line MUST be exactly: "SmyrnaTools Release: v${newVersion}"
 - Add blank line after first line
 - ONLY list changes that are ACTUALLY visible in the diff above
 - If the diff only shows formatting/whitespace changes, say "- Code formatting and cleanup"
@@ -218,7 +218,7 @@ IMPORTANT RULES:
         console.log('AI generation failed, using default message');
     }
 
-    return `Release: v${newVersion}\n\n- Version bump`;
+    return `SmyrnaTools Release: v${newVersion}\n\n- Version bump`;
 }
 
 async function main() {
@@ -283,7 +283,7 @@ async function main() {
         fs.unlinkSync(commitMsgPath);
         console.log('\nCommitted successfully');
 
-        execSync('git push', {stdio: 'inherit'});
+        execSync('git push origin core', {stdio: 'inherit'});
         console.log('Pushed to GitHub');
     } catch (error) {
         try { fs.unlinkSync(commitMsgPath); } catch {}
@@ -291,7 +291,7 @@ async function main() {
         process.exit(1);
     }
 
-    console.log(`\nRelease ${newVersion} complete!`);
+    console.log(`\nSmyrnaTools Release ${newVersion} complete!`);
 }
 
 main();

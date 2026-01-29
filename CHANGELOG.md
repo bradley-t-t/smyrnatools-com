@@ -8,6 +8,12 @@ All notable changes to SmyrnaTools will be documented in this file.
 
 
 
+
+## [1.1] - 2026-01-29
+
+- Updated commit message prefix from "Release" to "SmyrnaTools Release" in release.js
+- Modified git push command to specify "origin core" branch
+- Changed release completion message to include "SmyrnaTools" prefix
 ## [7.5] - 2026-01-29
 
 - Updated commit message format to capitalize "Release" in the message string.
