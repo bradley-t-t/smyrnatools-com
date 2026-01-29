@@ -1,0 +1,104 @@
+{
+  "name": "smyrnatools",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
+    "@jridgewell/set-array": "^1.2.1",
+    "@supabase/supabase-js": "^2.39.7",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "autoprefixer": "^10.4.23",
+    "bcryptjs": "^2.4.3",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "postcss": "^8.5.6",
+    "prop-types": "^15.8.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-player": "^3.4.0",
+    "react-router-dom": "^7.9.4",
+    "react-scripts": "5.0.1",
+    "react-tsparticles": "^2.12.0",
+    "tailwindcss": "^3.4.19",
+    "tsparticles": "^2.12.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "CI=false react-app-rewired build",
+    "test": "react-app-rewired test",
+    "lint": "eslint src/",
+    "cleanup": "node scripts/cleanup.js",
+    "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
+    "release": "node scripts/release.js",
+    "eject": "react-scripts eject",
+    "mail:send": "node scripts/send-mailersend.js",
+    "password-reset:server": "node scripts/password-reset-server.js",
+    "supabase": "node scripts/supabase.js",
+    "supabase:version": "node scripts/supabase.js --version",
+    "supabase:login": "node scripts/supabase.js login",
+    "supabase:init": "node scripts/supabase.js init",
+    "supabase:start": "node scripts/supabase.js start",
+    "supabase:status": "node scripts/supabase.js status",
+    "supabase:stop": "node scripts/supabase.js stop",
+    "supabase:db:reset": "node scripts/supabase.js db reset",
+    "supabase:functions:list": "node scripts/supabase.js functions list",
+    "supabase:functions:new": "node scripts/supabase.js functions new",
+    "supabase:functions:serve": "node scripts/supabase.js functions serve",
+    "supabase:functions:deploy": "node scripts/supabase.js functions deploy",
+    "supabase:functions:invoke": "node scripts/supabase.js functions invoke",
+    "supabase:functions:download": "node scripts/supabase.js functions download",
+    "supabase:functions:delete": "node scripts/supabase.js functions delete",
+    "supabase:functions:delete:local": "node scripts/rm-function.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ],
+    "rules": {
+      "react/prop-types": "off",
+      "no-empty": [
+        "error",
+        {
+          "allowEmptyCatch": true
+        }
+      ],
+      "no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_"
+        }
+      ],
+      "no-useless-catch": "off"
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "fast-glob": "^3.3.2",
+    "globals": "^16.3.0",
+    "path-browserify": "^1.0.1",
+    "prettier": "^3.2.5",
+    "react-app-rewired": "^2.2.1",
+    "sharp": "^0.33.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

@@ -1,0 +1,1167 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import MixerAddView from './MixerAddView'
+import MixerUtility from '../../utils/MixerUtility'
+import { MixerService } from '../../services/MixerService'
+import { PlantService } from '../../services/PlantService'
+import { OperatorService } from '../../services/OperatorService'
+import LoadingScreen from '../../components/common/LoadingScreen'
+import { usePreferences } from '../../app/context/PreferencesContext'
+import MixerCard from './MixerCard'
+import MixerDetailView from './MixerDetailView'
+import MixerIssueModal from './MixerIssueModal'
+import MixerCommentModal from './MixerCommentModal'
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
+import { RegionService } from '../../services/RegionService'
+import AsyncUtility from '../../utils/AsyncUtility'
+import FleetUtility from '../../utils/FleetUtility'
+import FormatUtility from '../../utils/FormatUtility'
+import TopSection from '../../components/sections/TopSection'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import GridViewModeSection from '../../components/sections/GridViewModeSection'
+import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import { ValidationUtility } from '../../utils/ValidationUtility'
+import CleanupUtility from '../../utils/CleanupUtility'
+import RecapModalSection from '../../components/sections/RecapModalSection'
+import { supabase } from '../../services/DatabaseService'
+
+function MixersView({
+    title = 'Mixer Fleet',
+    onSelectMixer,
+    setSelectedView,
+    embedded = false,
+    initialSearch = '',
+    exactMatch = false
+}) {
+    const { preferences, updateMixerFilter, resetMixerFilters, saveLastViewedFilters, updateOperatorFilter } =
+        usePreferences()
+    const headerRef = useRef(null)
+    const [mixers, setMixers] = useState([])
+    const [allMixers, setAllMixers] = useState([])
+    const [operators, setOperators] = useState([])
+    const [plants, setPlants] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [isRegionLoading, setIsRegionLoading] = useState(false)
+    const [searchText, setSearchText] = useState(
+        initialSearch ? initialSearch : embedded ? '' : preferences.mixerFilters?.searchText || ''
+    )
+    const [searchInput, setSearchInput] = useState(
+        initialSearch ? initialSearch : embedded ? '' : preferences.mixerFilters?.searchText || ''
+    )
+    const [selectedPlant, setSelectedPlant] = useState(embedded ? '' : preferences.mixerFilters?.selectedPlant || '')
+    const [statusFilter, setStatusFilter] = useState(embedded ? '' : preferences.mixerFilters?.statusFilter || '')
+    const [showAddSheet, setShowAddSheet] = useState(false)
+    const [selectedMixer, setSelectedMixer] = useState(null)
+    const [viewMode, setViewMode] = useState(() => {
+        if (embedded) return 'list'
+        if (preferences.mixerFilters?.viewMode !== undefined && preferences.mixerFilters?.viewMode !== null)
+            return preferences.mixerFilters.viewMode
+        if (preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null)
+            return preferences.defaultViewMode
+        const lastUsed = localStorage.getItem('mixers_last_view_mode')
+        return lastUsed || 'grid'
+    })
+    const [showIssueModal, setShowIssueModal] = useState(false)
+    const [showCommentModal, setShowCommentModal] = useState(false)
+    const [modalMixerId, setModalMixerId] = useState(null)
+    const [modalMixerNumber, setModalMixerNumber] = useState('')
+    const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [mixersLoaded, setMixersLoaded] = useState(false)
+    const [operatorsLoaded, setOperatorsLoaded] = useState(false)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState('asc')
+    const [showHistoryModal, setShowHistoryModal] = useState(false)
+    const [selectedMixerForHistory, setSelectedMixerForHistory] = useState(null)
+    const [showVerifyModal, setShowVerifyModal] = useState(false)
+    const [verifyMixer, setVerifyMixer] = useState(null)
+    const [verifyVin, setVerifyVin] = useState('')
+    const [verifyMake, setVerifyMake] = useState('')
+    const [verifyModel, setVerifyModel] = useState('')
+    const [verifyYear, setVerifyYear] = useState('')
+    const [verifyLastServiceDate, setVerifyLastServiceDate] = useState(null)
+    const [verifyLastChipDate, setVerifyLastChipDate] = useState(null)
+    const filterOptions = [
+        'All Statuses',
+        'Active',
+        'Spare',
+        'In Shop',
+        'Retired',
+        'Past Due Service',
+        'Verified',
+        'Not Verified',
+        'Open Issues'
+    ]
+    const sortMappings = {
+        Plant: 'assignedPlant',
+        'Truck #': 'status',
+        Status: 'status',
+        Operator: 'assignedOperator',
+        Cleanliness: 'cleanlinessRating',
+        VIN: 'vinNumber',
+        Verified: null,
+        More: null
+    }
+
+    useEffect(() => {
+        if (initialSearch) {
+            const timer = setTimeout(() => {
+                setSearchText(initialSearch)
+                setSearchInput(initialSearch)
+            }, 100)
+            return () => clearTimeout(timer)
+        }
+    }, [initialSearch])
+
+    const unassignedActiveOperatorsCount = useMemo(
+        () =>
+            FleetUtility.countUnassignedActiveOperators(mixers, operators, searchText, {
+                position: 'Mixer Operator',
+                selectedPlant,
+                regionPlantCodes,
+                operatorIdField: 'employeeId',
+                assignedOperatorField: 'assignedOperator',
+                assignedPlantField: 'assignedPlant'
+            }),
+        [operators, mixers, selectedPlant, searchText, regionPlantCodes]
+    )
+
+    const attachIsVerified = useCallback((obj) => {
+        if (!obj) return obj
+        obj.isVerified = function (latestHistoryDate) {
+            return MixerUtility.isVerified(
+                this.updatedLast,
+                this.updatedAt,
+                this.updatedBy,
+                latestHistoryDate ?? this.latestHistoryDate
+            )
+        }
+        return obj
+    }, [])
+
+    const handleRealtimeUpdate = useCallback(
+        (eventType, data) => {
+            if (eventType === 'UPDATE' && data.new) {
+                const updatedData = data.new
+                setMixers((prev) =>
+                    prev.map((mixer) => {
+                        if (mixer.id === updatedData.id) {
+                            const updated = {
+                                ...mixer,
+                                truckNumber: updatedData.truck_number ?? mixer.truckNumber,
+                                assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
+                                assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
+                                lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
+                                lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                                cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
+                                status: updatedData.status ?? mixer.status,
+                                updatedAt: updatedData.updated_at ?? mixer.updatedAt,
+                                updatedLast: updatedData.updated_last ?? mixer.updatedLast,
+                                updatedBy: updatedData.updated_by ?? mixer.updatedBy,
+                                vin: updatedData.vin ?? mixer.vin,
+                                make: updatedData.make ?? mixer.make,
+                                model: updatedData.model ?? mixer.model,
+                                year: updatedData.year ?? mixer.year,
+                                downInYard: updatedData.down_in_yard ?? mixer.downInYard
+                            }
+                            return attachIsVerified(updated)
+                        }
+                        return mixer
+                    })
+                )
+                setAllMixers((prev) =>
+                    prev.map((mixer) => {
+                        if (mixer.id === updatedData.id) {
+                            const updated = {
+                                ...mixer,
+                                truckNumber: updatedData.truck_number ?? mixer.truckNumber,
+                                assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
+                                assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
+                                lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
+                                lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                                cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
+                                status: updatedData.status ?? mixer.status,
+                                updatedAt: updatedData.updated_at ?? mixer.updatedAt,
+                                updatedLast: updatedData.updated_last ?? mixer.updatedLast,
+                                updatedBy: updatedData.updated_by ?? mixer.updatedBy,
+                                vin: updatedData.vin ?? mixer.vin,
+                                make: updatedData.make ?? mixer.make,
+                                model: updatedData.model ?? mixer.model,
+                                year: updatedData.year ?? mixer.year,
+                                downInYard: updatedData.down_in_yard ?? mixer.downInYard
+                            }
+                            return attachIsVerified(updated)
+                        }
+                        return mixer
+                    })
+                )
+            } else if (eventType === 'INSERT' && data.new) {
+                const newData = data.new
+                if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
+                const newMixer = attachIsVerified({
+                    id: newData.id,
+                    truckNumber: newData.truck_number ?? '',
+                    assignedPlant: newData.assigned_plant ?? '',
+                    assignedOperator: newData.assigned_operator ?? '',
+                    lastServiceDate: newData.last_service_date ?? null,
+                    lastChipDate: newData.last_chip_date ?? null,
+                    cleanlinessRating: newData.cleanliness_rating ?? 0,
+                    status: newData.status ?? 'Active',
+                    createdAt: newData.created_at ?? new Date().toISOString(),
+                    updatedAt: newData.updated_at ?? new Date().toISOString(),
+                    updatedLast: newData.updated_last ?? new Date().toISOString(),
+                    updatedBy: newData.updated_by ?? null,
+                    vin: newData.vin ?? '',
+                    make: newData.make ?? '',
+                    model: newData.model ?? '',
+                    year: newData.year ?? '',
+                    downInYard: newData.down_in_yard ?? false
+                })
+                setMixers((prev) => {
+                    if (prev.some((m) => m.id === newData.id)) return prev
+                    return [...prev, newMixer]
+                })
+                setAllMixers((prev) => {
+                    if (prev.some((m) => m.id === newData.id)) return prev
+                    return [...prev, newMixer]
+                })
+            } else if (eventType === 'DELETE' && data.old) {
+                setMixers((prev) => prev.filter((mixer) => mixer.id !== data.old.id))
+                setAllMixers((prev) => prev.filter((mixer) => mixer.id !== data.old.id))
+            }
+        },
+        [regionPlantCodes, attachIsVerified]
+    )
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('mixers-realtime-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'mixers' }, (payload) => {
+                const eventType = payload.eventType
+                const data = { new: payload.new, old: payload.old }
+                handleRealtimeUpdate(eventType, data)
+            })
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Realtime subscription error')
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [handleRealtimeUpdate])
+
+    useEffect(() => {
+        async function fetchAllData() {
+            setIsLoading(true)
+            try {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                setRegionPlantCodes(codes)
+                await Promise.all([fetchMixersWithDetails(codes), fetchOperators(), fetchPlants(codes)])
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchAllData()
+        if (preferences?.mixerFilters) {
+            setSearchText(preferences.mixerFilters.searchText || '')
+            setSearchInput(preferences.mixerFilters.searchText || '')
+            setSelectedPlant(preferences.mixerFilters.selectedPlant || '')
+            setStatusFilter(preferences.mixerFilters.statusFilter || '')
+        }
+        if (preferences.mixerFilters?.viewMode !== undefined && preferences.mixerFilters?.viewMode !== null) {
+            setViewMode(preferences.mixerFilters.viewMode)
+        } else if (preferences.defaultViewMode !== undefined && preferences.defaultViewMode !== null) {
+            setViewMode(preferences.defaultViewMode)
+        } else {
+            const lastUsed = localStorage.getItem('mixers_last_view_mode')
+            if (lastUsed) setViewMode(lastUsed)
+        }
+    }, [preferences])
+
+    useEffect(() => {
+        let cancelled = false
+
+        async function loadAllowedPlants() {
+            setIsRegionLoading(!!preferences.selectedRegion?.code)
+            try {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                if (cancelled) return
+                setRegionPlantCodes(codes)
+                const sel = String(selectedPlant || '')
+                    .trim()
+                    .toUpperCase()
+                if (sel && codes && !codes.has(sel)) {
+                    setSelectedPlant('')
+                    updateMixerFilter('selectedPlant', '')
+                }
+            } catch {
+                if (!cancelled) setRegionPlantCodes(null)
+            } finally {
+                if (!cancelled) setIsRegionLoading(false)
+            }
+        }
+
+        loadAllowedPlants()
+        return () => {
+            cancelled = true
+        }
+    }, [preferences.selectedRegion?.code])
+
+    async function fetchOperators() {
+        try {
+            const data = await OperatorService.fetchOperators()
+            setOperators(Array.isArray(data) ? data : [])
+            setOperatorsLoaded(true)
+        } catch (error) {
+            setOperators([])
+        }
+    }
+
+    async function fetchPlants(codes) {
+        try {
+            const data = await PlantService.fetchPlants(codes)
+            setPlants(data)
+        } catch (error) {}
+    }
+
+    const loadDetailsForMixers = async (mixers) => {
+        const items = mixers.slice()
+        let index = 0
+        const concurrency = 20
+
+        async function worker() {
+            while (index < items.length) {
+                const current = index++
+                const m = items[current]
+                try {
+                    const [comments, issues] = await Promise.all([
+                        MixerService.fetchComments(m.id).catch(() => []),
+                        MixerService.fetchIssues(m.id).catch(() => [])
+                    ])
+                    const openIssuesCount = Array.isArray(issues) ? issues.filter((i) => !i.time_completed).length : 0
+                    const commentsCount = Array.isArray(comments) ? comments.length : 0
+                    m.comments = comments
+                    m.issues = issues
+                    m.openIssuesCount = openIssuesCount
+                    m.commentsCount = commentsCount
+                } catch (e) {}
+            }
+        }
+
+        await Promise.all(Array.from({ length: concurrency }, () => worker()))
+        setMixers([...mixers])
+        setAllMixers([...mixers])
+    }
+
+    async function fetchMixersWithDetails(codes) {
+        try {
+            const processedBase = await MixerService.fetchMixersWithDetails(codes)
+
+            const cleanupResult = await MixerService.cleanupNullOperators(processedBase)
+
+            if (cleanupResult.fixed > 0) {
+                const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
+                setMixers(refreshedMixers)
+                setAllMixers(refreshedMixers)
+                setMixersLoaded(true)
+                loadDetailsForMixers(refreshedMixers)
+
+                setTimeout(() => {
+                    runVerificationCheck(refreshedMixers)
+                }, 1000)
+            } else {
+                setMixers(processedBase)
+                setAllMixers(processedBase)
+                setMixersLoaded(true)
+                loadDetailsForMixers(processedBase)
+
+                setTimeout(() => {
+                    runVerificationCheck(processedBase)
+                }, 1000)
+            }
+        } catch (error) {
+            console.error('[MIXERS VIEW] Error fetching mixers:', error)
+        }
+    }
+
+    async function runVerificationCheck(mixersToCheck) {
+        if (!mixersToCheck || mixersToCheck.length === 0) return
+
+        try {
+            const verificationResult = await CleanupUtility.verificationCheck(
+                mixersToCheck,
+                MixerService.updateMixer,
+                'mixer',
+                operators
+            )
+
+            if (verificationResult.fixed > 0) {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
+                setMixers(refreshedMixers)
+                setAllMixers(refreshedMixers)
+                loadDetailsForMixers(refreshedMixers)
+            }
+        } catch (error) {}
+    }
+
+    function handleSelectMixer(mixerId) {
+        const mixer = mixers.find((m) => m.id === mixerId)
+        if (mixer) {
+            saveLastViewedFilters()
+            setSelectedMixer(mixer)
+            onSelectMixer?.(mixerId)
+        }
+    }
+
+    function handleViewModeChange(mode) {
+        if (viewMode === mode) {
+            setViewMode(null)
+            updateMixerFilter('viewMode', null)
+            localStorage.removeItem('mixers_last_view_mode')
+        } else {
+            setViewMode(mode)
+            updateMixerFilter('viewMode', mode)
+            localStorage.setItem('mixers_last_view_mode', mode)
+        }
+    }
+
+    function handleHeaderClick(label) {
+        if (sortKey === label) {
+            setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+        } else {
+            setSortKey(label)
+            setSortDirection('asc')
+        }
+    }
+
+    const handleVerifyMixer = useCallback(
+        async (mixerId) => {
+            const mixer = mixers.find((m) => m.id === mixerId)
+            if (mixer) {
+                if (mixer.status === 'Retired') {
+                    return
+                }
+                setVerifyMixer(mixer)
+                setVerifyVin(mixer.vin || mixer.vinNumber || '')
+                setVerifyMake(mixer.make || '')
+                setVerifyModel(mixer.model || '')
+                setVerifyYear(mixer.year || '')
+                setVerifyLastServiceDate(mixer.lastServiceDate || null)
+                setVerifyLastChipDate(mixer.lastChipDate || null)
+                setShowVerifyModal(true)
+            }
+        },
+        [mixers]
+    )
+
+    const handleSaveAndVerify = useCallback(async () => {
+        if (!verifyMixer) return
+
+        try {
+            const updates = {}
+            if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyMixer.vin || '')) {
+                updates.vin = verifyVin
+            }
+            if (verifyMake && verifyMake.trim() !== '' && verifyMake !== (verifyMixer.make || '')) {
+                updates.make = verifyMake
+            }
+            if (verifyModel && verifyModel.trim() !== '' && verifyModel !== (verifyMixer.model || '')) {
+                updates.model = verifyModel
+            }
+            if (verifyYear && String(verifyYear).trim() !== '' && verifyYear !== (verifyMixer.year || '')) {
+                updates.year = verifyYear
+            }
+            if (verifyLastServiceDate && verifyLastServiceDate !== verifyMixer.lastServiceDate) {
+                updates.lastServiceDate = verifyLastServiceDate
+            }
+            if (verifyLastChipDate && verifyLastChipDate !== verifyMixer.lastChipDate) {
+                updates.lastChipDate = verifyLastChipDate
+            }
+
+            if (Object.keys(updates).length > 0) {
+                await MixerService.updateMixer(verifyMixer.id, updates)
+            }
+
+            const verified = await MixerService.verifyMixer(verifyMixer.id)
+
+            setMixers((prevMixers) => prevMixers.map((m) => (m.id === verifyMixer.id ? verified : m)))
+            setAllMixers((prevMixers) => prevMixers.map((m) => (m.id === verifyMixer.id ? verified : m)))
+
+            setShowVerifyModal(false)
+            setVerifyMixer(null)
+        } catch (error) {
+            console.error('Failed to verify mixer:', error)
+            alert('Failed to verify mixer. Please try again.')
+        }
+    }, [verifyMixer, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate, verifyLastChipDate])
+
+    useEffect(() => {
+        async function searchByVin() {
+            const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
+            if (normalizedSearch.length >= 17 && /^[a-z0-9]+$/i.test(normalizedSearch)) {
+                setIsLoading(true)
+                try {
+                    const vinMixers = await MixerService.searchMixersByVinProcessed(normalizedSearch)
+                    const filteredVinMixers = regionPlantCodes
+                        ? vinMixers.filter((m) =>
+                              regionPlantCodes.has(
+                                  String(m.assignedPlant || '')
+                                      .trim()
+                                      .toUpperCase()
+                              )
+                          )
+                        : vinMixers
+                    setMixers(filteredVinMixers)
+                    setMixersLoaded(true)
+                } catch {}
+                setIsLoading(false)
+            } else {
+                setMixers(allMixers)
+            }
+        }
+
+        if (searchText.trim().length >= 1) {
+            searchByVin()
+        } else {
+            setMixers(allMixers)
+        }
+    }, [searchText, allMixers, regionPlantCodes])
+
+    const filteredOperatorsForRecap = useMemo(() => {
+        return operators.filter((op) => {
+            if (op.position !== 'Mixer Operator') return false
+            const opPlant = op.plantCode || op.assignedPlant || ''
+            if (!selectedPlant)
+                return (
+                    !regionPlantCodes ||
+                    regionPlantCodes.size === 0 ||
+                    regionPlantCodes.has(String(opPlant).trim().toUpperCase())
+                )
+            return String(opPlant) === String(selectedPlant)
+        })
+    }, [operators, selectedPlant, regionPlantCodes])
+
+    const filteredMixers = useMemo(() => {
+        const filtered = mixers.filter((mixer) => {
+            const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
+            let matchesSearch = true
+            if (normalizedSearch) {
+                if (exactMatch) {
+                    const truckMatch = (mixer.truckNumber || '').toLowerCase() === normalizedSearch
+                    matchesSearch = truckMatch
+                } else {
+                    const truckMatch = (mixer.truckNumber || '').toLowerCase().includes(normalizedSearch)
+                    const operatorMatch =
+                        mixer.assignedOperator &&
+                        operators
+                            .find((op) => op.employeeId === mixer.assignedOperator)
+                            ?.name.toLowerCase()
+                            .includes(normalizedSearch)
+                    const vinRaw = (mixer.vinNumber || mixer.vin || '').toLowerCase()
+                    const vinNoSpaces = vinRaw.replace(/\s+/g, '')
+                    const vinMatch =
+                        vinRaw.includes(searchText.trim().toLowerCase()) || vinNoSpaces.includes(normalizedSearch)
+                    matchesSearch = truckMatch || operatorMatch || vinMatch
+                }
+            }
+            const matchesPlant = !selectedPlant || mixer.assignedPlant === selectedPlant
+            const matchesRegion =
+                !regionPlantCodes ||
+                regionPlantCodes.size === 0 ||
+                regionPlantCodes.has(
+                    String(mixer.assignedPlant || '')
+                        .trim()
+                        .toUpperCase()
+                )
+            let matchesStatus = true
+            if (statusFilter && statusFilter !== 'All Statuses') {
+                matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter)
+                    ? mixer.status === statusFilter
+                    : statusFilter === 'Past Due Service'
+                      ? MixerUtility.isServiceOverdue(mixer.lastServiceDate)
+                      : statusFilter === 'Verified'
+                        ? mixer.isVerified()
+                        : statusFilter === 'Not Verified'
+                          ? !mixer.isVerified() && mixer.status !== 'Retired'
+                          : statusFilter === 'Open Issues'
+                            ? Number(mixer.openIssuesCount || 0) > 0
+                            : false
+            }
+            return matchesSearch && matchesPlant && matchesRegion && matchesStatus
+        })
+
+        return FleetUtility.sortWithRetiredLast(
+            filtered,
+            (a, b) => {
+                if (!sortKey) {
+                    return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
+                }
+                const prop = sortMappings[sortKey]
+                let aVal, bVal
+                if (sortKey === 'Verified') {
+                    aVal = a.status === 'Retired' ? 0 : a.isVerified() ? 2 : 1
+                    bVal = b.status === 'Retired' ? 0 : b.isVerified() ? 2 : 1
+                } else if (sortKey === 'Operator') {
+                    aVal = operators.find((op) => op.employeeId === a.assignedOperator)?.name || ''
+                    bVal = operators.find((op) => op.employeeId === b.assignedOperator)?.name || ''
+                } else if (sortKey === 'Plant') {
+                    aVal = plants.find((p) => p.code === a.assignedPlant)?.name || a.assignedPlant
+                    bVal = plants.find((p) => p.code === b.assignedPlant)?.name || b.assignedPlant
+                } else if (sortKey === 'Truck #') {
+                    aVal = parseFloat(a.truckNumber) || 0
+                    bVal = parseFloat(b.truckNumber) || 0
+                } else if (sortKey === 'VIN') {
+                    const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+                    return sortDirection === 'asc' ? comparison : -comparison
+                } else if (prop) {
+                    aVal = a[prop]
+                    bVal = b[prop]
+                } else {
+                    return 0
+                }
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+                } else {
+                    aVal = String(aVal || '').toLowerCase()
+                    bVal = String(bVal || '').toLowerCase()
+                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                    return 0
+                }
+            },
+            'status'
+        )
+    }, [
+        mixers,
+        operators,
+        selectedPlant,
+        searchText,
+        statusFilter,
+        regionPlantCodes,
+        sortKey,
+        sortDirection,
+        plants,
+        exactMatch
+    ])
+
+    const debouncedSetSearchText = useCallback(
+        AsyncUtility.debounce((value) => {
+            setSearchText(value)
+            updateMixerFilter('searchText', value)
+        }, 300),
+        []
+    )
+
+    const canShowUnassignedOverlay = mixersLoaded && operatorsLoaded && !isLoading && unassignedActiveOperatorsCount > 0
+
+    const content = useMemo(() => {
+        if (isLoading || isRegionLoading) {
+            return (
+                <div className="global-loading-container loading-container">
+                    <LoadingScreen message="Loading mixers..." inline={true} />
+                </div>
+            )
+        }
+        if (filteredMixers.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                        <i className="fas fa-truck text-3xl text-slate-400"></i>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">No Mixers Found</h3>
+                    <p className="text-slate-500 mb-6 max-w-md">
+                        {searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses')
+                            ? 'No mixers match your search criteria.'
+                            : 'There are no mixers in the system yet.'}
+                    </p>
+                    <button
+                        className="px-5 py-2.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-lg transition-colors"
+                        onClick={() => setShowAddSheet(true)}
+                    >
+                        Add Mixer
+                    </button>
+                </div>
+            )
+        }
+        if (viewMode === 'grid') {
+            return (
+                <GridViewModeSection
+                    filteredItems={filteredMixers}
+                    operators={operators}
+                    plants={plants}
+                    handleSelectItem={handleSelectMixer}
+                    cardComponent={MixerCard}
+                    itemPropName="mixer"
+                    onShowCommentModal={(id, number) => {
+                        setModalMixerId(id)
+                        setModalMixerNumber(number)
+                        setShowCommentModal(true)
+                    }}
+                    onShowIssueModal={(id, number) => {
+                        setModalMixerId(id)
+                        setModalMixerNumber(number)
+                        setShowIssueModal(true)
+                    }}
+                    gridClassName="grid"
+                />
+            )
+        }
+        return (
+            <ListViewModeSection
+                filteredItems={filteredMixers}
+                handleSelectItem={handleSelectMixer}
+                headerLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
+                colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
+                renderRow={(item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
+                    const operator = operators.find((op) => op.employeeId === item.assignedOperator)
+                    const plant = plants.find((p) => p.code === item.assignedPlant)
+                    const cellStyle = {
+                        padding: '20px 16px',
+                        fontSize: '14px',
+                        color: '#374151',
+                        backgroundColor: alternatingBg,
+                        borderBottom: '1px solid #e5e7eb',
+                        verticalAlign: 'middle'
+                    }
+                    const cellBoldStyle = {
+                        ...cellStyle,
+                        fontWeight: 700,
+                        color: '#1e3a5f',
+                        fontSize: '15px'
+                    }
+                    const statusBadge = (status) => {
+                        let bg = '#f1f5f9',
+                            color = '#64748b'
+                        if (status === 'Active') {
+                            bg = '#dcfce7'
+                            color = '#166534'
+                        } else if (status === 'Spare') {
+                            bg = '#dbeafe'
+                            color = '#1e40af'
+                        } else if (status === 'In Shop') {
+                            bg = '#fef3c7'
+                            color = '#92400e'
+                        } else if (status === 'Retired') {
+                            bg = '#f1f5f9'
+                            color = '#64748b'
+                        }
+                        return {
+                            display: 'inline-block',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: bg,
+                            color: color
+                        }
+                    }
+                    const verifyBtnStyle = (verified) => ({
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: verified ? 'default' : 'pointer',
+                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
+                        color: verified ? '#166534' : '#92400e'
+                    })
+                    const actionBtnStyle = {
+                        width: '36px',
+                        height: '36px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        backgroundColor: 'white',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        marginRight: '8px'
+                    }
+                    return (
+                        <tr
+                            key={item.id}
+                            onClick={() => handleSelect(item.id)}
+                            style={{ cursor: 'pointer' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget
+                                    .querySelectorAll('td')
+                                    .forEach((td) => (td.style.backgroundColor = '#e0f2fe'))
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget
+                                    .querySelectorAll('td')
+                                    .forEach((td) => (td.style.backgroundColor = alternatingBg))
+                            }}
+                        >
+                            <td style={{ ...cellStyle, width: '10%' }}>{plant?.name || item.assignedPlant}</td>
+                            <td style={{ ...cellBoldStyle, width: '12%' }}>{item.truckNumber}</td>
+                            <td style={{ ...cellStyle, width: '12%' }}>
+                                <span style={statusBadge(item.status)}>{item.status}</span>
+                                {item.status === 'In Shop' && item.downInYard && (
+                                    <span
+                                        style={{
+                                            marginLeft: '8px',
+                                            backgroundColor: '#fef2f2',
+                                            color: '#991b1b',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '10px',
+                                            fontWeight: 700
+                                        }}
+                                    >
+                                        IN YARD
+                                    </span>
+                                )}
+                            </td>
+                            <td style={{ ...cellStyle, width: '18%' }}>
+                                {operator?.name || (
+                                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Assigned</span>
+                                )}
+                            </td>
+                            <td style={{ ...cellStyle, width: '12%' }}>
+                                {item.status === 'Retired' ? (
+                                    <span style={{ color: '#94a3b8' }}>N/A</span>
+                                ) : (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                            <i
+                                                key={i}
+                                                className="fas fa-star"
+                                                style={{
+                                                    color:
+                                                        i < Math.round(item.cleanlinessRating || 0)
+                                                            ? '#f59e0b'
+                                                            : '#e5e7eb',
+                                                    fontSize: '14px'
+                                                }}
+                                            ></i>
+                                        ))}
+                                        {item.cleanlinessRating && item.cleanlinessRating < 3 && (
+                                            <span
+                                                style={{
+                                                    marginLeft: '8px',
+                                                    backgroundColor: '#dc2626',
+                                                    color: 'white',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700
+                                                }}
+                                            >
+                                                DOWNED
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </td>
+                            <td
+                                style={{
+                                    ...cellStyle,
+                                    width: '16%',
+                                    fontFamily: 'ui-monospace, monospace',
+                                    fontSize: '12px',
+                                    color: '#64748b'
+                                }}
+                            >
+                                {item.vinNumber || item.vin || '-'}
+                            </td>
+                            <td style={{ ...cellStyle, width: '10%' }}>
+                                {item.status === 'Retired' ? (
+                                    <span
+                                        style={{
+                                            padding: '8px 14px',
+                                            backgroundColor: '#f1f5f9',
+                                            color: '#94a3b8',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        N/A
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            if (onVerify) onVerify(item.id, item.truckNumber)
+                                        }}
+                                        title={item.isVerified() ? 'Verified' : 'Click to verify'}
+                                        style={verifyBtnStyle(item.isVerified())}
+                                    >
+                                        <i
+                                            className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
+                                            style={{ color: item.isVerified() ? '#166534' : '#92400e' }}
+                                        ></i>
+                                        <span style={{ color: item.isVerified() ? '#166534' : '#92400e' }}>
+                                            {item.isVerified() ? 'Verified' : 'Verify'}
+                                        </span>
+                                    </button>
+                                )}
+                            </td>
+                            <td style={{ ...cellStyle, width: '10%' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onComment(item.id, item.truckNumber)
+                                        }}
+                                        style={actionBtnStyle}
+                                        title="View comments"
+                                    >
+                                        <i className="fas fa-comments"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onIssue(item.id, item.truckNumber)
+                                        }}
+                                        style={actionBtnStyle}
+                                        title="View issues"
+                                    >
+                                        <i className="fas fa-tools"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setSelectedMixerForHistory(item)
+                                            setShowHistoryModal(true)
+                                        }}
+                                        style={actionBtnStyle}
+                                        title="View history"
+                                    >
+                                        <i className="fas fa-history"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    )
+                }}
+                onShowCommentModal={(id, number) => {
+                    setModalMixerId(id)
+                    setModalMixerNumber(number)
+                    setShowCommentModal(true)
+                }}
+                onShowIssueModal={(id, number) => {
+                    setModalMixerId(id)
+                    setModalMixerNumber(number)
+                    setShowIssueModal(true)
+                }}
+                onVerify={handleVerifyMixer}
+                containerClassName="list-table-container"
+                tableClassName="list-table"
+            />
+        )
+    }, [
+        isLoading,
+        isRegionLoading,
+        filteredMixers,
+        viewMode,
+        searchText,
+        selectedPlant,
+        statusFilter,
+        operators,
+        plants,
+        mixers,
+        handleVerifyMixer
+    ])
+
+    useEffect(() => {
+        function updateStickyCoverHeight() {
+            const el = headerRef.current
+            const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0
+            const root = document.querySelector('.global-dashboard-container.mixers-view')
+            if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
+        }
+
+        updateStickyCoverHeight()
+        window.addEventListener('resize', updateStickyCoverHeight)
+        return () => window.removeEventListener('resize', updateStickyCoverHeight)
+    }, [viewMode, searchInput, selectedPlant, statusFilter])
+
+    const showReset = searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses')
+
+    useEffect(() => {
+        document.documentElement.style.setProperty('--star-color', '#f59e0b')
+    }, [])
+
+    return (
+        <>
+            <div
+                className={`global-dashboard-container dashboard-container global-flush-top flush-top mixers-view${selectedMixer ? ' detail-open' : ''}`}
+            >
+                {selectedMixer ? (
+                    <MixerDetailView mixerId={selectedMixer} onClose={() => setSelectedMixer(null)} />
+                ) : (
+                    <>
+                        <TopSection
+                            title={title}
+                            badge={
+                                canShowUnassignedOverlay
+                                    ? `${unassignedActiveOperatorsCount} Unassigned Active Operator${unassignedActiveOperatorsCount !== 1 ? 's' : ''}`
+                                    : null
+                            }
+                            onBadgeClick={
+                                canShowUnassignedOverlay
+                                    ? () => {
+                                          setSelectedView('Operators', 'Unassigned Active', selectedPlant, 'Mixer')
+                                          updateOperatorFilter('selectedPlant', selectedPlant)
+                                          updateOperatorFilter('positionFilter', 'Mixer')
+                                          updateOperatorFilter('statusFilter', 'Unassigned Active')
+                                      }
+                                    : null
+                            }
+                            addButtonLabel="Add Mixer"
+                            onAddClick={() => setShowAddSheet(true)}
+                            searchInput={searchInput}
+                            onSearchInputChange={(v) => {
+                                setSearchInput(v)
+                                debouncedSetSearchText(v)
+                            }}
+                            onClearSearch={() => {
+                                setSearchInput('')
+                                debouncedSetSearchText('')
+                            }}
+                            searchPlaceholder="Search by truck or operator..."
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            plants={plants}
+                            regionPlantCodes={regionPlantCodes}
+                            selectedPlant={selectedPlant}
+                            onSelectedPlantChange={(v) => {
+                                setSelectedPlant(v)
+                                updateMixerFilter('selectedPlant', v)
+                            }}
+                            statusFilter={statusFilter}
+                            statusOptions={filterOptions}
+                            onStatusFilterChange={(v) => {
+                                setStatusFilter(v)
+                                updateMixerFilter('statusFilter', v)
+                            }}
+                            showReset={showReset}
+                            onReset={() => {
+                                setSearchText('')
+                                setSearchInput('')
+                                setSelectedPlant('')
+                                setStatusFilter('')
+                                resetMixerFilters({ keepViewMode: true, currentViewMode: viewMode })
+                            }}
+                            listLabels={[
+                                'Plant',
+                                'Truck #',
+                                'Status',
+                                'Operator',
+                                'Cleanliness',
+                                'VIN',
+                                'Verified',
+                                'More'
+                            ]}
+                            colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
+                            forwardedRef={headerRef}
+                            onHeaderClick={handleHeaderClick}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
+                        />
+                        <div className="global-content-container content-container">{content}</div>
+                        {showAddSheet && (
+                            <MixerAddView
+                                plants={plants}
+                                operators={operators}
+                                onClose={() => setShowAddSheet(false)}
+                                onMixerAdded={(newMixer) => setMixers([...mixers, newMixer])}
+                            />
+                        )}
+                        {showCommentModal && (
+                            <MixerCommentModal
+                                mixerId={modalMixerId}
+                                mixerNumber={modalMixerNumber}
+                                onClose={() => setShowCommentModal(false)}
+                            />
+                        )}
+                        {showIssueModal && (
+                            <MixerIssueModal
+                                mixerId={modalMixerId}
+                                mixerNumber={modalMixerNumber}
+                                onClose={() => setShowIssueModal(false)}
+                            />
+                        )}
+                        {showHistoryModal && selectedMixerForHistory && (
+                            <HistoryViewSection
+                                item={selectedMixerForHistory}
+                                type="mixer"
+                                onClose={() => setShowHistoryModal(false)}
+                            />
+                        )}
+                        {showVerifyModal && verifyMixer && (
+                            <VerificationRequirementsModal
+                                open={showVerifyModal}
+                                onClose={() => {
+                                    setShowVerifyModal(false)
+                                    setVerifyMixer(null)
+                                }}
+                                onSaveAndVerify={handleSaveAndVerify}
+                                missingFields={[
+                                    ...(!verifyMixer.vin || !ValidationUtility.isVIN(verifyMixer.vin) ? ['VIN'] : []),
+                                    ...(!verifyMixer.make ? ['Make'] : []),
+                                    ...(!verifyMixer.model ? ['Model'] : []),
+                                    ...(!verifyMixer.year ? ['Year'] : [])
+                                ]}
+                                vin={verifyVin}
+                                make={verifyMake}
+                                model={verifyModel}
+                                year={verifyYear}
+                                lastServiceDate={verifyLastServiceDate}
+                                lastChipDate={verifyLastChipDate}
+                                setVin={setVerifyVin}
+                                setMake={setVerifyMake}
+                                setModel={setVerifyModel}
+                                setYear={setVerifyYear}
+                                setLastServiceDate={setVerifyLastServiceDate}
+                                setLastChipDate={setVerifyLastChipDate}
+                                isServiceOverdue={MixerUtility.isServiceOverdue}
+                                assignedOperator={verifyMixer.assignedOperator}
+                                itemType="mixer"
+                                itemId={verifyMixer.id}
+                                service={MixerService}
+                                status={verifyMixer.status}
+                            />
+                        )}
+                        {selectedPlant && (
+                            <RecapModalSection
+                                plantCode={selectedPlant}
+                                plantName={plants.find((p) => String(p.plantCode) === String(selectedPlant))?.plantName}
+                                mixers={filteredMixers}
+                                operators={filteredOperatorsForRecap}
+                                mixersLoaded={mixersLoaded}
+                                isLoading={isLoading}
+                            />
+                        )}
+                        {!selectedPlant && (
+                            <RecapModalSection
+                                plantCode=""
+                                plantName=""
+                                mixers={filteredMixers}
+                                operators={filteredOperatorsForRecap}
+                                isAllPlants={true}
+                                mixersLoaded={mixersLoaded}
+                                isLoading={isLoading}
+                            />
+                        )}
+                    </>
+                )}
+            </div>
+        </>
+    )
+}
+
+export default MixersView

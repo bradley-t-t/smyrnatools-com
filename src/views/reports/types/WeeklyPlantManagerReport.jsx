@@ -1,0 +1,1767 @@
+import React, { useEffect, useState } from 'react'
+import { usePreferences } from '../../../app/context/PreferencesContext'
+import { supabase } from '../../../services/DatabaseService'
+import { ReportUtility } from '../../../utils/ReportUtility'
+import { UserService } from '../../../services/UserService'
+import { RegionService } from '../../../services/RegionService'
+import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import OperatorSelectModal from '../../mixers/OperatorSelectModal'
+
+const reportStyles = `
+.pm-report-container { }
+.pm-metrics-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.pm-metrics-header { margin-bottom: 1.25rem; }
+.pm-metrics-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.pm-metrics-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+.pm-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+.pm-metric-card { background: #f8fafc; border-radius: 10px; padding: 1.25rem; border: 1px solid #e5e7eb; }
+.pm-metric-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.pm-metric-icon { color: #1e3a5f; font-size: 1rem; }
+.pm-metric-title { font-size: 0.875rem; font-weight: 600; color: #374151; }
+.pm-metric-value { font-size: 2rem; font-weight: 700; color: #1e3a5f; margin-bottom: 0.25rem; }
+.pm-yph-dual { display: flex; align-items: baseline; gap: 0.25rem; }
+.pm-yph-raw, .pm-yph-adjusted { font-size: 1.75rem; }
+.pm-yph-separator { color: #94a3b8; font-size: 1.25rem; margin: 0 0.25rem; }
+.pm-yph-labels { display: flex; gap: 2rem; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
+.pm-metric-grade { font-size: 0.875rem; font-weight: 600; color: #059669; margin-bottom: 0.5rem; }
+.pm-metric-scale { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.pm-metric-scale span { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; background: #f1f5f9; color: #64748b; }
+.pm-metric-scale span.active { background: #1e3a5f; color: white; }
+.pm-metric-scale span.active.excellent { background: #059669; }
+.pm-metric-scale span.active.good { background: #0ea5e9; }
+.pm-metric-scale span.active.average { background: #f59e0b; }
+.pm-metric-scale span.active.poor { background: #ef4444; }
+.pm-performance-text { color: #1e293b; }
+.pm-performance-text-dark { color: #f1f5f9; }
+
+.pm-trends-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.pm-trends-header { margin-bottom: 1.25rem; }
+.pm-trends-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.pm-trends-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+
+.pm-timeline-wrapper { position: relative; margin-bottom: 2rem; }
+.pm-timeline-track { position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; }
+.pm-timeline-line-full { position: absolute; left: 0; top: 20px; bottom: 20px; width: 2px; background: #e5e7eb; }
+.pm-timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+.pm-timeline-item { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 0; position: relative; }
+.pm-timeline-item.pm-timeline-current { }
+.pm-timeline-item.pm-timeline-placeholder { opacity: 0.7; }
+.pm-timeline-dot-wrapper { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+.pm-timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #1e3a5f; border: 3px solid white; box-shadow: 0 0 0 2px #1e3a5f; }
+.pm-timeline-dot.pm-timeline-dot-placeholder { background: #94a3b8; box-shadow: 0 0 0 2px #94a3b8; }
+.pm-timeline-content { flex: 1; background: #f8fafc; border-radius: 8px; padding: 1rem; border: 1px solid #e5e7eb; }
+.pm-timeline-date { font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.pm-timeline-badge { padding: 0.125rem 0.5rem; background: #1e3a5f; color: white; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+.pm-timeline-placeholder-content { display: flex; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.875rem; }
+.pm-timeline-submitter { font-size: 0.8125rem; color: #64748b; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.pm-timeline-metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.pm-timeline-metric { display: flex; flex-direction: column; gap: 0.125rem; }
+.pm-timeline-metric-value { font-size: 1.25rem; font-weight: 700; color: #1e3a5f; }
+.pm-timeline-metric-label { font-size: 0.6875rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-timeline-variance { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
+.pm-timeline-variance.positive { color: #059669; }
+.pm-timeline-variance.negative { color: #ef4444; }
+.pm-timeline-yph-dual { display: flex; align-items: baseline; gap: 0.125rem; }
+.pm-timeline-yph-raw, .pm-timeline-yph-adj { font-size: 1.125rem; }
+.pm-timeline-yph-sep { color: #94a3b8; font-size: 0.875rem; margin: 0 0.125rem; }
+
+.pm-weekly-breakdown { margin-top: 1.5rem; }
+.pm-weekly-breakdown-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; }
+.pm-weekly-breakdown-table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
+.pm-weekly-breakdown-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.pm-weekly-breakdown-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+.pm-weekly-breakdown-table td { padding: 0.75rem 1rem; font-size: 0.875rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+.pm-weekly-breakdown-table tr:last-child td { border-bottom: none; }
+.pm-weekly-breakdown-table tr:hover { background: #f8fafc; }
+.pm-weekly-breakdown-table tr.pm-week-missing { background: #fef2f2; }
+.pm-breakdown-value { font-weight: 500; }
+.pm-breakdown-yph-dual { }
+.pm-breakdown-yph-container { display: inline-flex; align-items: baseline; gap: 0.125rem; }
+.pm-breakdown-yph-raw, .pm-breakdown-yph-adj { font-size: 0.875rem; }
+.pm-breakdown-yph-sep { color: #94a3b8; margin: 0 0.125rem; }
+.pm-week-label-cell { white-space: nowrap; }
+.pm-not-submitted-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #fef3c7; color: #d97706; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.pm-missing-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #fee2e2; color: #dc2626; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+
+.pm-missing-weeks-notice { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+.pm-missing-weeks-notice.pm-not-submitted-notice { background: #fefce8; border-color: #fef08a; }
+.pm-missing-notice-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.pm-missing-notice-header i { color: #dc2626; }
+.pm-not-submitted-notice .pm-missing-notice-header i { color: #d97706; }
+.pm-missing-notice-title { font-weight: 600; color: #1e293b; }
+.pm-missing-notice-body { font-size: 0.875rem; color: #64748b; }
+.pm-missing-weeks-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.pm-missing-week-chip { padding: 0.25rem 0.75rem; background: white; border: 1px solid #e5e7eb; border-radius: 9999px; font-size: 0.8125rem; color: #1e293b; }
+
+.pm-operators-help-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+.pm-operators-help-header { margin-bottom: 1.25rem; }
+.pm-operators-help-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+.pm-operators-help-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
+.pm-loading-container { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 2rem; color: #64748b; }
+.pm-loading-text { font-size: 0.875rem; }
+
+.pm-instructions-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.pm-instructions-header { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #1e40af; margin-bottom: 0.75rem; font-size: 0.875rem; }
+.pm-instructions-list { margin: 0; padding-left: 1.25rem; font-size: 0.8125rem; color: #1e3a8a; line-height: 1.6; }
+.pm-instructions-list li { margin-bottom: 0.25rem; }
+
+.pm-add-entry-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
+.pm-add-entry-btn:hover { background: #15304f; }
+
+.pm-operators-help-list { display: flex; flex-direction: column; gap: 1rem; }
+.pm-no-entries { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #e5e7eb; color: #64748b; font-size: 0.875rem; }
+
+.pm-help-entry { background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
+.pm-help-entry-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem; border-bottom: 1px solid #e5e7eb; }
+.pm-help-entry-main { display: flex; flex-wrap: wrap; gap: 1rem; flex: 1; }
+.pm-help-entry-field { display: flex; flex-direction: column; gap: 0.375rem; min-width: 150px; }
+.pm-help-entry-field label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-help-entry-value { font-size: 0.9375rem; font-weight: 500; color: #1e293b; }
+.pm-help-entry-input { padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; }
+.pm-help-entry-select { padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; cursor: pointer; text-align: left; min-width: 180px; }
+.pm-help-entry-remove { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.pm-help-entry-remove:hover { background: #fecaca; }
+
+.pm-help-operators-section { padding: 1rem; }
+.pm-help-operators-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.pm-help-operators-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
+.pm-add-operator-btn { display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: #e0f2fe; color: #0369a1; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+.pm-add-operator-btn:hover { background: #bae6fd; }
+
+.pm-help-operators-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.pm-help-operator-row { display: grid; grid-template-columns: 1fr 120px auto; align-items: end; gap: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; }
+.pm-help-operator-field { display: flex; flex-direction: column; gap: 0.375rem; }
+.pm-help-operator-field label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-help-operator-select { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
+.pm-help-operator-select:hover { border-color: #cbd5e1; }
+.pm-help-operator-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; box-sizing: border-box; }
+.pm-help-operator-remove { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; width: 38px; }
+.pm-help-operator-remove:hover { background: #fecaca; }
+
+.pm-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.25rem; }
+.pm-card-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; }
+.pm-empty-state { text-align: center; padding: 2rem; color: #64748b; }
+`
+
+function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
+    const [historicalData, setHistoricalData] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [yearlyTotals, setYearlyTotals] = useState(null)
+    const [yearlyLoading, setYearlyLoading] = useState(true)
+    const [userNames, setUserNames] = useState({})
+    const [timelineUserNames, setTimelineUserNames] = useState({})
+
+    const effectivePlantCode = plantCode || user?.plant_code || ''
+
+    useEffect(() => {
+        let mounted = true
+
+        async function fetchTimelineUserNames() {
+            if (!historicalData || historicalData.length === 0) return
+
+            const userIds = new Set()
+            historicalData.forEach((report) => {
+                if (report.userId) {
+                    userIds.add(report.userId)
+                }
+            })
+
+            if (userIds.size === 0) return
+
+            try {
+                const namesMap = {}
+                await Promise.all(
+                    Array.from(userIds).map(async (id) => {
+                        const firstName = await UserService.getUserFirstName(id)
+                        const lastName = await UserService.getUserLastName(id)
+                        const fullName = `${firstName} ${lastName}`.trim()
+                        namesMap[id] = fullName || 'Unknown User'
+                    })
+                )
+                if (mounted) {
+                    setTimelineUserNames(namesMap)
+                }
+            } catch (err) {
+                console.error('Error fetching timeline user names:', err)
+            }
+        }
+
+        fetchTimelineUserNames()
+
+        return () => {
+            mounted = false
+        }
+    }, [historicalData])
+
+    useEffect(() => {
+        let mounted = true
+
+        async function fetchHistoricalReports() {
+            if (!currentWeekIso || !effectivePlantCode) {
+                setLoading(false)
+                return
+            }
+
+            try {
+                const weekDateStr = currentWeekIso.split('T')[0]
+                const [year, month, day] = weekDateStr.split('-').map(Number)
+                const currentDate = new Date(year, month - 1, day)
+                const currentMonth = currentDate.getMonth()
+                const currentYear = currentDate.getFullYear()
+
+                const startOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`
+                const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate()
+                const endOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+
+                const startOfYear = new Date(currentYear, 0, 1)
+                const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
+
+                const [{ data, error }, { data: yearData, error: yearError }] = await Promise.all([
+                    supabase
+                        .from('reports')
+                        .select('*')
+                        .eq('report_name', 'plant_manager')
+                        .eq('completed', true)
+                        .gte('week', startOfMonthStr)
+                        .lte('week', endOfMonthStr + 'T23:59:59.999Z')
+                        .order('week', { ascending: true }),
+                    supabase
+                        .from('reports')
+                        .select('*')
+                        .eq('report_name', 'plant_manager')
+                        .eq('completed', true)
+                        .gte('week', startOfYear.toISOString())
+                        .lte('week', endOfYear.toISOString())
+                ])
+
+                if (error) throw error
+                if (yearError) throw yearError
+
+                if (!mounted) {
+                    setLoading(false)
+                    return
+                }
+
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(yearData, effectivePlantCode)
+
+                const userIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))]
+                const usersMap = {}
+
+                if (userIds.length > 0) {
+                    const { data: usersData } = await supabase
+                        .from('users_profiles')
+                        .select('id, plant_code')
+                        .in('id', userIds)
+
+                    if (usersData) {
+                        usersData.forEach((u) => {
+                            usersMap[u.id] = u.plant_code
+                        })
+                    }
+                }
+
+                const filteredByPlant = data.filter((report) => {
+                    const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
+                    const matches =
+                        reportPlant === effectivePlantCode ||
+                        (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
+                    return matches
+                })
+
+                if (mounted && filteredByPlant) {
+                    const currentWeekDateOnly = currentWeekIso.split('T')[0]
+
+                    const reportsByWeek = new Map()
+
+                    filteredByPlant.forEach((r) => {
+                        const weekStr = r.week.split('T')[0]
+                        reportsByWeek.set(weekStr, r)
+                    })
+
+                    const allMonthWeeks = []
+                    const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
+                    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
+
+                    let weekStart = new Date(firstDayOfMonth)
+                    const dayOfWeek = weekStart.getDay()
+                    if (dayOfWeek !== 0) {
+                        weekStart.setDate(weekStart.getDate() - dayOfWeek)
+                    }
+
+                    while (weekStart <= lastDayOfMonth) {
+                        const weekStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`
+                        allMonthWeeks.push(weekStr)
+                        weekStart.setDate(weekStart.getDate() + 7)
+                    }
+
+                    const reports = allMonthWeeks
+                        .map((weekStr) => {
+                            let report = reportsByWeek.get(weekStr)
+
+                            if (!report) {
+                                for (const [dbWeekStr, dbReport] of reportsByWeek.entries()) {
+                                    const dbDate = new Date(dbWeekStr + 'T12:00:00')
+                                    const weekDate = new Date(weekStr + 'T12:00:00')
+                                    const diffDays = Math.abs((dbDate - weekDate) / (1000 * 60 * 60 * 24))
+                                    if (diffDays <= 1) {
+                                        report = dbReport
+                                        break
+                                    }
+                                }
+                            }
+                            if (report) {
+                                const reportWeekStr = ReportUtility.normalizeWeekStr(report.week)
+                                const hoursReceived =
+                                    hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
+                                const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
+
+                                return {
+                                    weekIso: weekStr,
+                                    yph: metrics.rawYph,
+                                    rawYph: metrics.rawYph,
+                                    adjustedYph: metrics.adjustedYph,
+                                    hoursSent: metrics.hoursSent,
+                                    hoursReceived: metrics.hoursReceived,
+                                    lost: parseFloat(report.data?.total_yards_lost || 0),
+                                    yards: parseFloat(report.data?.yardage || 0),
+                                    hours: parseFloat(report.data?.total_hours || 0),
+                                    data: report.data,
+                                    isCurrentWeek: weekStr === currentWeekDateOnly,
+                                    userId: report.user_id,
+                                    isPlaceholder: false
+                                }
+                            } else {
+                                return {
+                                    weekIso: weekStr,
+                                    yph: 0,
+                                    rawYph: 0,
+                                    adjustedYph: 0,
+                                    hoursSent: 0,
+                                    hoursReceived: 0,
+                                    lost: 0,
+                                    yards: 0,
+                                    hours: 0,
+                                    data: null,
+                                    isCurrentWeek: weekStr === currentWeekDateOnly,
+                                    userId: null,
+                                    isPlaceholder: true
+                                }
+                            }
+                        })
+                        .sort((a, b) => new Date(a.weekIso) - new Date(b.weekIso))
+
+                    setHistoricalData(reports)
+                }
+            } catch (err) {
+                console.error('Error fetching historical reports:', err)
+            } finally {
+                if (mounted) setLoading(false)
+            }
+        }
+
+        fetchHistoricalReports()
+
+        return () => {
+            mounted = false
+        }
+    }, [currentWeekIso, effectivePlantCode])
+
+    useEffect(() => {
+        let mounted = true
+
+        async function fetchYearlyTotals() {
+            if (!effectivePlantCode || !currentWeekIso) {
+                setYearlyLoading(false)
+                return
+            }
+
+            try {
+                const weekDateStr = currentWeekIso.split('T')[0]
+                const [yearNum] = weekDateStr.split('-').map(Number)
+                const currentYear = yearNum
+                const startOfYear = new Date(currentYear, 0, 1)
+                const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
+
+                const { data: allData, error } = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+                    .order('week', { ascending: false })
+
+                if (error) throw error
+
+                if (!mounted) {
+                    setYearlyLoading(false)
+                    return
+                }
+
+                const userIds = [...new Set(allData.map((r) => r.user_id).filter(Boolean))]
+                const usersMap = {}
+
+                if (userIds.length > 0) {
+                    const { data: usersData } = await supabase
+                        .from('users_profiles')
+                        .select('id, plant_code')
+                        .in('id', userIds)
+
+                    if (usersData) {
+                        usersData.forEach((u) => {
+                            usersMap[u.id] = u.plant_code
+                        })
+                    }
+                }
+
+                const hoursReceivedByWeek = {}
+                const effectivePlantCodeStr = String(effectivePlantCode || '')
+                allData.forEach((report) => {
+                    const rawWeekStr = report.week.split('T')[0]
+                    const [y, m, d] = rawWeekStr.split('-').map(Number)
+                    const weekStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                    const helpEntries = report.data?.operators_sent_to_help || []
+                    if (Array.isArray(helpEntries)) {
+                        helpEntries.forEach((entry) => {
+                            const destPlant = String(entry.destination_plant || '')
+                            if (
+                                destPlant === effectivePlantCodeStr &&
+                                entry.operators &&
+                                Array.isArray(entry.operators)
+                            ) {
+                                if (!hoursReceivedByWeek[weekStr]) {
+                                    hoursReceivedByWeek[weekStr] = 0
+                                }
+                                entry.operators.forEach((op) => {
+                                    hoursReceivedByWeek[weekStr] += parseFloat(op.hours) || 0
+                                })
+                            }
+                        })
+                    }
+                })
+
+                const filteredData = allData.filter((report) => {
+                    const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
+                    return (
+                        reportPlant === effectivePlantCode ||
+                        (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
+                    )
+                })
+
+                if (mounted && filteredData) {
+                    if (filteredData.length === 0) {
+                        setYearlyTotals({
+                            totalYards: 0,
+                            totalHours: 0,
+                            totalLost: 0,
+                            reportCount: 0,
+                            year: currentYear,
+                            weeklyBreakdown: [],
+                            notSubmittedWeeks: [],
+                            missingWeeks: [],
+                            avgYph: 0
+                        })
+                        return
+                    }
+
+                    const reportsByWeek = new Map()
+                    const allReportDates = []
+
+                    const today = new Date()
+                    const currentSunday = new Date(today)
+                    currentSunday.setDate(today.getDate() - today.getDay())
+                    currentSunday.setHours(0, 0, 0, 0)
+
+                    filteredData.forEach((report) => {
+                        const weekStr = report.week.split('T')[0]
+                        const weekDate = new Date(weekStr + 'T12:00:00')
+
+                        if (weekDate >= currentSunday) {
+                            return
+                        }
+
+                        if (reportsByWeek.has(weekStr)) {
+                            const existing = reportsByWeek.get(weekStr)
+                            if (report.completed && !existing.completed) {
+                                reportsByWeek.set(weekStr, report)
+                            } else if (report.completed === existing.completed) {
+                                const existingDate = new Date(existing.submitted_at || existing.updated_at || 0)
+                                const reportDate = new Date(report.submitted_at || report.updated_at || 0)
+                                if (reportDate > existingDate) {
+                                    reportsByWeek.set(weekStr, report)
+                                }
+                            }
+                        } else {
+                            reportsByWeek.set(weekStr, report)
+                            allReportDates.push(weekStr)
+                        }
+                    })
+
+                    allReportDates.sort()
+                    const firstDate = allReportDates[0]
+                    const lastDate = allReportDates[allReportDates.length - 1]
+
+                    const allWeeks = []
+                    let currentDate = new Date(firstDate + 'T12:00:00')
+                    const endDate = new Date(lastDate + 'T12:00:00')
+
+                    const lastSunday = new Date(currentSunday)
+                    lastSunday.setDate(currentSunday.getDate() - 7)
+
+                    while (currentDate <= endDate || currentDate <= lastSunday) {
+                        const year = currentDate.getFullYear()
+                        const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+                        const day = String(currentDate.getDate()).padStart(2, '0')
+                        const weekStr = `${year}-${month}-${day}`
+
+                        const report = reportsByWeek.get(weekStr)
+
+                        if (report) {
+                            const reportWeekStr = ReportUtility.normalizeWeekStr(report.week)
+                            const hoursReceived =
+                                hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
+                            const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
+
+                            allWeeks.push({
+                                week: weekStr,
+                                yardage: parseFloat(report.data?.yardage || 0),
+                                hours: parseFloat(report.data?.total_hours || 0),
+                                yph: metrics.rawYph,
+                                rawYph: metrics.rawYph,
+                                adjustedYph: metrics.adjustedYph,
+                                hoursSent: metrics.hoursSent,
+                                hoursReceived: metrics.hoursReceived,
+                                lost: parseFloat(report.data?.total_yards_lost || 0),
+                                isMissing: false,
+                                isNotSubmitted: !report.completed,
+                                userId: report.user_id
+                            })
+                        } else if (currentDate >= new Date(firstDate + 'T12:00:00') && currentDate < currentSunday) {
+                            allWeeks.push({
+                                week: weekStr,
+                                yardage: 0,
+                                hours: 0,
+                                yph: 0,
+                                rawYph: 0,
+                                adjustedYph: 0,
+                                hoursSent: 0,
+                                hoursReceived: 0,
+                                lost: 0,
+                                isMissing: true,
+                                isNotSubmitted: false,
+                                userId: null
+                            })
+                        }
+
+                        currentDate.setDate(currentDate.getDate() + 7)
+                    }
+
+                    allWeeks.reverse()
+
+                    const submittedWeeks = allWeeks.filter((w) => !w.isMissing && !w.isNotSubmitted)
+                    const notSubmittedWeeks = allWeeks.filter((w) => w.isNotSubmitted)
+                    const missingWeeks = allWeeks.filter((w) => w.isMissing)
+
+                    const totals = submittedWeeks.reduce(
+                        (acc, week) => {
+                            return {
+                                totalYards: acc.totalYards + week.yardage,
+                                totalHours: acc.totalHours + week.hours,
+                                totalLost: acc.totalLost + week.lost,
+                                reportCount: acc.reportCount + 1,
+                                year: currentYear,
+                                weeklyBreakdown: allWeeks,
+                                notSubmittedWeeks,
+                                missingWeeks
+                            }
+                        },
+                        {
+                            totalYards: 0,
+                            totalHours: 0,
+                            totalLost: 0,
+                            reportCount: 0,
+                            year: currentYear,
+                            weeklyBreakdown: allWeeks,
+                            notSubmittedWeeks,
+                            missingWeeks
+                        }
+                    )
+
+                    const weeksWithHours = submittedWeeks.filter((w) => w.hours > 0)
+                    const yardsWithHours = weeksWithHours.reduce((sum, w) => sum + w.yardage, 0)
+                    const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
+                    totals.avgYph = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
+
+                    const targetYPH = 3.0
+                    const yardageEfficiency =
+                        totals.totalYards > 0 ? ((totals.totalYards - totals.totalLost) / totals.totalYards) * 100 : 0
+                    const yphEfficiency = totals.avgYph > 0 ? Math.min((totals.avgYph / targetYPH) * 100, 100) : 0
+                    const baseEfficiency = yphEfficiency * 0.9 + yardageEfficiency * 0.1
+                    const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
+                    totals.avgEfficiency = totals.avgYph > 0 ? Math.max(baseEfficiency - avgYardageLost, 0) : 0
+
+                    setYearlyTotals(totals)
+                }
+            } catch (err) {
+                console.error('Error fetching yearly totals:', err)
+            } finally {
+                if (mounted) setYearlyLoading(false)
+            }
+        }
+
+        fetchYearlyTotals()
+
+        return () => {
+            mounted = false
+        }
+    }, [effectivePlantCode, currentWeekIso])
+
+    useEffect(() => {
+        let mounted = true
+
+        async function fetchUserNames() {
+            if (!yearlyTotals || !yearlyTotals.weeklyBreakdown) return
+
+            const userIds = new Set()
+            yearlyTotals.weeklyBreakdown.forEach((week) => {
+                if (week.userId) {
+                    userIds.add(week.userId)
+                }
+            })
+
+            if (userIds.size === 0) return
+
+            try {
+                const namesMap = {}
+                await Promise.all(
+                    Array.from(userIds).map(async (id) => {
+                        const firstName = await UserService.getUserFirstName(id)
+                        const lastName = await UserService.getUserLastName(id)
+                        const fullName = `${firstName} ${lastName}`.trim()
+                        namesMap[id] = fullName || 'Unknown User'
+                    })
+                )
+                if (mounted) {
+                    setUserNames(namesMap)
+                }
+            } catch (err) {
+                console.error('Error fetching user names:', err)
+            }
+        }
+
+        fetchUserNames()
+
+        return () => {
+            mounted = false
+        }
+    }, [yearlyTotals])
+
+    if (loading) {
+        return (
+            <div className="pm-trends-section">
+                <div className="pm-trends-header">
+                    <h3 className="pm-trends-title">
+                        <i className="fas fa-chart-line"></i>
+                        Monthly Performance Trends
+                    </h3>
+                </div>
+                <div className="pm-trends-loading">
+                    <i className="fas fa-circle-notch fa-spin"></i>
+                    <span>Loading historical data...</span>
+                </div>
+            </div>
+        )
+    }
+
+    const weekDateStrForMonth = currentWeekIso.split('T')[0]
+    const [yearForMonth, monthForMonth] = weekDateStrForMonth.split('-').map(Number)
+    const monthName = new Date(yearForMonth, monthForMonth - 1, 15).toLocaleString('default', {
+        month: 'long',
+        year: 'numeric'
+    })
+
+    if (historicalData.length === 0) {
+        return (
+            <div className="pm-trends-section">
+                <div className="pm-trends-header">
+                    <h3 className="pm-trends-title">
+                        <i className="fas fa-calendar-alt"></i>
+                        {monthName} - Weekly Performance
+                    </h3>
+                    <p className="pm-trends-subtitle">No reports found for this month</p>
+                </div>
+            </div>
+        )
+    }
+
+    const calculateVariance = (current, previous) => {
+        if (!previous || previous.isPlaceholder) return null
+        return ((current - previous) / previous) * 100
+    }
+
+    const weeksWithData = historicalData.filter((r) => !r.isPlaceholder).length
+
+    return (
+        <div className="pm-trends-section">
+            <div className="pm-trends-header">
+                <h3 className="pm-trends-title">
+                    <i className="fas fa-chart-line"></i>
+                    {monthName} Performance Timeline
+                </h3>
+                <p className="pm-trends-subtitle">
+                    {weeksWithData} of {historicalData.length} {historicalData.length === 1 ? 'week' : 'weeks'} with
+                    data
+                </p>
+            </div>
+
+            <div className="pm-timeline-wrapper">
+                <div className="pm-timeline-track">
+                    <div className="pm-timeline-line-full"></div>
+                </div>
+                <div className="pm-timeline">
+                    {historicalData.map((report, idx) => {
+                        const [year, month, day] = report.weekIso.split('-').map(Number)
+                        const weekDate = new Date(year, month - 1, day)
+                        weekDate.setDate(weekDate.getDate() + 1)
+                        const weekLabel = weekDate.toLocaleDateString()
+                        const previousReportWithData = historicalData
+                            .slice(0, idx)
+                            .filter((r) => !r.isPlaceholder)
+                            .pop()
+                        const yphVariance = !report.isPlaceholder
+                            ? calculateVariance(report.yph, previousReportWithData?.yph)
+                            : null
+                        const lostVariance = !report.isPlaceholder
+                            ? calculateVariance(report.lost, previousReportWithData?.lost)
+                            : null
+                        const userName = report.userId ? timelineUserNames[report.userId] || 'Loading...' : null
+
+                        return (
+                            <div
+                                key={idx}
+                                className={`pm-timeline-item ${report.isCurrentWeek ? 'pm-timeline-current' : ''} ${report.isPlaceholder ? 'pm-timeline-placeholder' : ''}`}
+                            >
+                                <div className="pm-timeline-dot-wrapper">
+                                    <div
+                                        className={`pm-timeline-dot ${report.isPlaceholder ? 'pm-timeline-dot-placeholder' : ''}`}
+                                    ></div>
+                                </div>
+                                <div className="pm-timeline-content">
+                                    <div className="pm-timeline-date">
+                                        {weekLabel}
+                                        {report.isCurrentWeek && <span className="pm-timeline-badge">Current</span>}
+                                    </div>
+                                    {report.isPlaceholder ? (
+                                        <div className="pm-timeline-placeholder-content">
+                                            <i className="fas fa-clock"></i>
+                                            <span>Pending</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="pm-timeline-submitter">
+                                                <i className="fas fa-user"></i> {userName || 'Unknown'}
+                                            </div>
+                                            <div className="pm-timeline-metrics">
+                                                <div className="pm-timeline-metric">
+                                                    <span
+                                                        className="pm-timeline-metric-value pm-timeline-yph-dual"
+                                                        title="Raw / Adjusted YPH"
+                                                    >
+                                                        <span className="pm-timeline-yph-raw">
+                                                            {(report.rawYph ?? report.yph).toFixed(2)}
+                                                        </span>
+                                                        <span className="pm-timeline-yph-sep">/</span>
+                                                        <span className="pm-timeline-yph-adj">
+                                                            {(report.adjustedYph ?? report.yph).toFixed(2)}
+                                                        </span>
+                                                    </span>
+                                                    <span className="pm-timeline-metric-label">YPH</span>
+                                                    {yphVariance !== null && (
+                                                        <span
+                                                            className={`pm-timeline-variance ${yphVariance >= 0 ? 'positive' : 'negative'}`}
+                                                        >
+                                                            <i
+                                                                className={`fas fa-arrow-${yphVariance >= 0 ? 'up' : 'down'}`}
+                                                            ></i>
+                                                            {Math.abs(yphVariance).toFixed(1)}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="pm-timeline-metric">
+                                                    <span className="pm-timeline-metric-value">
+                                                        {report.lost.toFixed(0)}
+                                                    </span>
+                                                    <span className="pm-timeline-metric-label">Lost</span>
+                                                    {lostVariance !== null && (
+                                                        <span
+                                                            className={`pm-timeline-variance ${lostVariance <= 0 ? 'positive' : 'negative'}`}
+                                                        >
+                                                            <i
+                                                                className={`fas fa-arrow-${lostVariance <= 0 ? 'down' : 'up'}`}
+                                                            ></i>
+                                                            {Math.abs(lostVariance).toFixed(1)}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {yearlyTotals && yearlyTotals.weeklyBreakdown && yearlyTotals.weeklyBreakdown.length > 0 && (
+                <div className="pm-weekly-breakdown">
+                    <h5 className="pm-weekly-breakdown-title">Weekly Breakdown</h5>
+                    <div className="pm-weekly-breakdown-table-wrapper">
+                        <table className="pm-weekly-breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Submitted By</th>
+                                    <th>Week Starting</th>
+                                    <th>Yardage</th>
+                                    <th>Hours</th>
+                                    <th>YPH</th>
+                                    <th>Daily Avg</th>
+                                    <th>Lost</th>
+                                    <th>Efficiency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {yearlyTotals.weeklyBreakdown.map((week, idx) => {
+                                    const weekDate = new Date(week.week + 'T12:00:00')
+                                    const weekLabel = ReportUtility.formatDate(weekDate)
+                                    const userName = week.userId ? userNames[week.userId] || 'Loading...' : null
+                                    const dailyAvg = Math.round(week.yardage / 6)
+                                    const yardageEfficiency =
+                                        week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage) * 100 : 0
+                                    const targetYPH = 3.0
+                                    const yphEfficiency =
+                                        week.hours > 0 ? Math.min((week.yph / targetYPH) * 100, 100) : 0
+                                    const baseEfficiency = yphEfficiency * 0.9 + yardageEfficiency * 0.1
+                                    const overallEfficiency =
+                                        week.hours > 0 ? Math.max(baseEfficiency - week.lost, 0) : 0
+                                    return (
+                                        <tr
+                                            key={idx}
+                                            className={week.isMissing || week.isNotSubmitted ? 'pm-week-missing' : ''}
+                                        >
+                                            <td className="pm-breakdown-value">
+                                                {week.isNotSubmitted && (
+                                                    <span className="pm-not-submitted-badge">Not Submitted</span>
+                                                )}
+                                                {week.isMissing && <span className="pm-missing-badge">Missing</span>}
+                                                {!week.isMissing && !week.isNotSubmitted && userName}
+                                            </td>
+                                            <td className="pm-week-label-cell">{weekLabel}</td>
+                                            <td className="pm-breakdown-value">
+                                                {week.isMissing || week.isNotSubmitted
+                                                    ? '--'
+                                                    : week.yardage.toLocaleString()}
+                                            </td>
+                                            <td className="pm-breakdown-value">
+                                                {week.isMissing || week.isNotSubmitted
+                                                    ? '--'
+                                                    : week.hours.toLocaleString()}
+                                            </td>
+                                            <td className="pm-breakdown-value pm-breakdown-yph-dual">
+                                                {week.isMissing || week.isNotSubmitted ? (
+                                                    '--'
+                                                ) : (
+                                                    <span
+                                                        className="pm-breakdown-yph-container"
+                                                        title="Raw / Adjusted YPH"
+                                                    >
+                                                        <span className="pm-breakdown-yph-raw">
+                                                            {(week.rawYph ?? week.yph).toFixed(2)}
+                                                        </span>
+                                                        <span className="pm-breakdown-yph-sep">/</span>
+                                                        <span className="pm-breakdown-yph-adj">
+                                                            {(week.adjustedYph ?? week.yph).toFixed(2)}
+                                                        </span>
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="pm-breakdown-value">
+                                                {week.isMissing || week.isNotSubmitted
+                                                    ? '--'
+                                                    : dailyAvg.toLocaleString()}
+                                            </td>
+                                            <td className="pm-breakdown-value">
+                                                {week.isMissing || week.isNotSubmitted
+                                                    ? '--'
+                                                    : week.lost.toLocaleString()}
+                                            </td>
+                                            <td className="pm-breakdown-value">
+                                                {week.isMissing || week.isNotSubmitted
+                                                    ? '--'
+                                                    : `${overallEfficiency.toFixed(1)}%`}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {yearlyTotals.notSubmittedWeeks && yearlyTotals.notSubmittedWeeks.length > 0 && (
+                        <div className="pm-missing-weeks-notice pm-not-submitted-notice">
+                            <div className="pm-missing-notice-header">
+                                <i className="fas fa-exclamation-circle"></i>
+                                <span className="pm-missing-notice-title">
+                                    {yearlyTotals.notSubmittedWeeks.length} Draft{' '}
+                                    {yearlyTotals.notSubmittedWeeks.length === 1 ? 'Report' : 'Reports'}
+                                </span>
+                            </div>
+                            <div className="pm-missing-notice-body">
+                                The following weeks have saved drafts that need to be submitted:
+                                <div className="pm-missing-weeks-list">
+                                    {yearlyTotals.notSubmittedWeeks.map((week, idx) => {
+                                        const weekDate = new Date(week.week + 'T12:00:00')
+                                        const weekLabel = ReportUtility.formatDate(weekDate)
+                                        return (
+                                            <span key={idx} className="pm-missing-week-chip">
+                                                {weekLabel}
+                                            </span>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {yearlyTotals.missingWeeks && yearlyTotals.missingWeeks.length > 0 && (
+                        <div className="pm-missing-weeks-notice">
+                            <div className="pm-missing-notice-header">
+                                <i className="fas fa-exclamation-triangle"></i>
+                                <span className="pm-missing-notice-title">
+                                    {yearlyTotals.missingWeeks.length} Missing{' '}
+                                    {yearlyTotals.missingWeeks.length === 1 ? 'Report' : 'Reports'}
+                                </span>
+                            </div>
+                            <div className="pm-missing-notice-body">
+                                The following weeks need reports to be created and submitted:
+                                <div className="pm-missing-weeks-list">
+                                    {yearlyTotals.missingWeeks.map((week, idx) => {
+                                        const weekDate = new Date(week.week + 'T12:00:00')
+                                        const weekLabel = ReportUtility.formatDate(weekDate)
+                                        return (
+                                            <span key={idx} className="pm-missing-week-chip">
+                                                {weekLabel}
+                                            </span>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
+
+function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plantCode }) {
+    const [plants, setPlants] = useState([])
+    const [operators, setOperators] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [showPlantModal, setShowPlantModal] = useState(false)
+    const [selectedEntryIdForPlant, setSelectedEntryIdForPlant] = useState(null)
+    const [showOperatorModal, setShowOperatorModal] = useState(false)
+    const [selectedEntryIdForOperator, setSelectedEntryIdForOperator] = useState(null)
+    const [selectedOperatorIndex, setSelectedOperatorIndex] = useState(null)
+
+    const getValidDate = (iso) => {
+        if (!iso) return new Date()
+        const d = new Date(iso + 'T00:00:00')
+        return isNaN(d.getTime()) ? new Date() : d
+    }
+
+    const weekStartDate = getValidDate(weekIso)
+    const weekEndDate = new Date(weekStartDate)
+    weekEndDate.setDate(weekEndDate.getDate() + 5)
+
+    const minDate = weekStartDate.toISOString().split('T')[0]
+    const maxDate = weekEndDate.toISOString().split('T')[0]
+
+    const currentPlantCode = plantCode || user?.plant_code
+
+    useEffect(() => {
+        async function fetchData() {
+            if (!currentPlantCode) {
+                setLoading(false)
+                return
+            }
+
+            try {
+                const regions = await RegionService.fetchRegionsByPlantCode(currentPlantCode)
+                if (regions && regions.length > 0) {
+                    const regionCode = regions[0].regionCode || regions[0].region_code
+                    const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                    setPlants(regionPlants || [])
+                }
+
+                const { data: operatorsData } = await supabase
+                    .from('operators')
+                    .select('employee_id, name, status, plant_code, smyrna_id, position')
+                    .eq('status', 'Active')
+                    .eq('plant_code', currentPlantCode)
+                    .eq('position', 'Mixer Operator')
+                    .order('name')
+
+                const transformedOperators = (operatorsData || []).map((op) => ({
+                    employeeId: op.employee_id,
+                    name: op.name,
+                    plantCode: op.plant_code,
+                    status: op.status,
+                    smyrnaId: op.smyrna_id,
+                    position: op.position
+                }))
+
+                setOperators(transformedOperators)
+            } catch (err) {
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchData()
+    }, [currentPlantCode])
+
+    const addEntry = () => {
+        const defaultDate = minDate || new Date().toISOString().split('T')[0]
+
+        const newEntry = {
+            id: Date.now(),
+            date: defaultDate,
+            destination_plant: '',
+            operators: [{ operator_id: '', hours: '' }]
+        }
+
+        onUpdate([...(entries || []), newEntry])
+    }
+
+    const removeEntry = (entryId) => {
+        onUpdate((entries || []).filter((e) => e.id !== entryId))
+    }
+
+    const updateEntry = (entryId, field, value) => {
+        onUpdate((entries || []).map((e) => (e.id === entryId ? { ...e, [field]: value } : e)))
+    }
+
+    const addOperator = (entryId) => {
+        onUpdate(
+            (entries || []).map((e) =>
+                e.id === entryId ? { ...e, operators: [...e.operators, { operator_id: '', hours: '' }] } : e
+            )
+        )
+    }
+
+    const removeOperator = (entryId, operatorIndex) => {
+        onUpdate(
+            (entries || []).map((e) =>
+                e.id === entryId ? { ...e, operators: e.operators.filter((_, i) => i !== operatorIndex) } : e
+            )
+        )
+    }
+
+    const updateOperator = (entryId, operatorIndex, field, value) => {
+        let processedValue = value
+        if (field === 'hours') {
+            const numValue = parseFloat(value)
+            if (!isNaN(numValue) && numValue > 80) {
+                processedValue = '80'
+            }
+        }
+        onUpdate(
+            (entries || []).map((e) =>
+                e.id === entryId
+                    ? {
+                          ...e,
+                          operators: e.operators.map((op, i) =>
+                              i === operatorIndex ? { ...op, [field]: processedValue } : op
+                          )
+                      }
+                    : e
+            )
+        )
+    }
+
+    const getDayName = (dateString) => {
+        const date = new Date(dateString + 'T12:00:00')
+        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+    }
+
+    if (loading) {
+        return (
+            <div className="pm-operators-help-section">
+                <div className="pm-operators-help-header">
+                    <h4 className="pm-operators-help-title">
+                        <i className="fas fa-hands-helping"></i>
+                        Operators Sent to Other Plants
+                    </h4>
+                </div>
+                <div className="pm-loading-container">
+                    <i className="fas fa-circle-notch fa-spin"></i>
+                    <span className="pm-loading-text">Loading...</span>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="pm-operators-help-section">
+            <div className="pm-operators-help-header">
+                <h4 className="pm-operators-help-title">
+                    <i className="fas fa-hands-helping"></i>
+                    Operators Sent to Other Plants
+                </h4>
+                <p className="pm-operators-help-subtitle">Track operators sent to help other plants during this week</p>
+            </div>
+
+            <div className="pm-instructions-box">
+                <div className="pm-instructions-header">
+                    <i className="fas fa-info-circle"></i>
+                    Instructions for Tracking Operator Assistance
+                </div>
+                <ul className="pm-instructions-list">
+                    <li>
+                        Record each operator who assisted another plant, including total hours worked (including travel
+                        time)
+                    </li>
+                    <li>Create a separate entry for each day an operator helped a different plant</li>
+                    <li>For partial days, enter the actual hours worked (e.g., 4 hours for a half-day)</li>
+                    <li>If an operator helped multiple plants in one day, add individual entries for each plant</li>
+                    <li>This data contributes to plant efficiency calculations and leaderboard rankings</li>
+                </ul>
+            </div>
+
+            {!readOnly && (
+                <button type="button" className="pm-add-entry-btn" onClick={addEntry}>
+                    <i className="fas fa-plus"></i>
+                    Add Entry
+                </button>
+            )}
+
+            <div className="pm-operators-help-list">
+                {(!entries || entries.length === 0) && (
+                    <div className="pm-no-entries">
+                        <i className="fas fa-info-circle"></i>
+                        <span>No operators were sent to other plants this week</span>
+                    </div>
+                )}
+
+                {(entries || []).map((entry) => (
+                    <div key={entry.id} className="pm-help-entry">
+                        <div className="pm-help-entry-header">
+                            <div className="pm-help-entry-main">
+                                <div className="pm-help-entry-field">
+                                    <label>Date</label>
+                                    {readOnly ? (
+                                        <div className="pm-help-entry-value">{getDayName(entry.date)}</div>
+                                    ) : (
+                                        <input
+                                            type="date"
+                                            value={entry.date || ''}
+                                            onChange={(e) => updateEntry(entry.id, 'date', e.target.value)}
+                                            className="pm-help-entry-input"
+                                            min={minDate}
+                                            max={maxDate}
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="pm-help-entry-field">
+                                    <label>Destination Plant</label>
+                                    {readOnly ? (
+                                        <div className="pm-help-entry-value">
+                                            {entry.destination_plant
+                                                ? (() => {
+                                                      if (entry.destination_plant === 'OTHER_REGION')
+                                                          return 'Other Region'
+                                                      const plant = plants.find(
+                                                          (p) => p.plant_code === entry.destination_plant
+                                                      )
+                                                      return plant
+                                                          ? `${plant.plant_code} - ${plant.plant_name}`
+                                                          : entry.destination_plant
+                                                  })()
+                                                : 'No plant selected'}
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="pm-help-entry-select"
+                                            onClick={() => {
+                                                setSelectedEntryIdForPlant(entry.id)
+                                                setShowPlantModal(true)
+                                            }}
+                                        >
+                                            {entry.destination_plant
+                                                ? (() => {
+                                                      if (entry.destination_plant === 'OTHER_REGION')
+                                                          return 'Other Region'
+                                                      const plant = plants.find(
+                                                          (p) => p.plant_code === entry.destination_plant
+                                                      )
+                                                      return plant
+                                                          ? `${plant.plant_code} - ${plant.plant_name}`
+                                                          : entry.destination_plant
+                                                  })()
+                                                : 'Select Plant'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {!readOnly && (
+                                <button
+                                    type="button"
+                                    className="pm-help-entry-remove"
+                                    onClick={() => removeEntry(entry.id)}
+                                    title="Remove entry"
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="pm-help-operators-section">
+                            <div className="pm-help-operators-header">
+                                <span className="pm-help-operators-label">
+                                    <i className="fas fa-users"></i>
+                                    Operators
+                                </span>
+                                {!readOnly && (
+                                    <button
+                                        type="button"
+                                        className="pm-add-operator-btn"
+                                        onClick={() => addOperator(entry.id)}
+                                    >
+                                        <i className="fas fa-plus"></i>
+                                        Add Operator
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="pm-help-operators-list">
+                                {entry.operators.map((op, opIdx) => {
+                                    const selectedOperator = operators.find((o) => o.employeeId === op.operator_id)
+
+                                    return (
+                                        <div key={opIdx} className="pm-help-operator-row">
+                                            <div className="pm-help-operator-field">
+                                                <label>Operator</label>
+                                                {readOnly ? (
+                                                    <div className="pm-help-entry-value">
+                                                        {selectedOperator ? selectedOperator.name : 'Unknown'}
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className="pm-help-operator-select"
+                                                        onClick={() => {
+                                                            setSelectedEntryIdForOperator(entry.id)
+                                                            setSelectedOperatorIndex(opIdx)
+                                                            setShowOperatorModal(true)
+                                                        }}
+                                                    >
+                                                        {selectedOperator ? selectedOperator.name : 'Select Operator'}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="pm-help-operator-field">
+                                                <label>Hours</label>
+                                                {readOnly ? (
+                                                    <div className="pm-help-entry-value">{op.hours || '0'} hrs</div>
+                                                ) : (
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="80"
+                                                        step="0.5"
+                                                        value={op.hours || ''}
+                                                        onChange={(e) =>
+                                                            updateOperator(entry.id, opIdx, 'hours', e.target.value)
+                                                        }
+                                                        className="pm-help-operator-input"
+                                                        placeholder="0"
+                                                    />
+                                                )}
+                                            </div>
+
+                                            {!readOnly && (
+                                                <button
+                                                    type="button"
+                                                    className="pm-help-operator-remove"
+                                                    onClick={() => removeOperator(entry.id, opIdx)}
+                                                    title="Remove operator"
+                                                >
+                                                    <i className="fas fa-times"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {showPlantModal && !loading && (
+                <PlantDropdownModal
+                    isOpen={showPlantModal}
+                    onClose={() => {
+                        setShowPlantModal(false)
+                        setSelectedEntryIdForPlant(null)
+                    }}
+                    onSelect={(plantCode) => {
+                        if (selectedEntryIdForPlant) {
+                            updateEntry(selectedEntryIdForPlant, 'destination_plant', plantCode)
+                        }
+                        setShowPlantModal(false)
+                        setSelectedEntryIdForPlant(null)
+                    }}
+                    plants={[
+                        ...plants.filter((p) => p.plant_code !== currentPlantCode),
+                        { plant_code: 'OTHER_REGION', plant_name: 'Other Region' }
+                    ]}
+                    currentValue={
+                        selectedEntryIdForPlant
+                            ? entries.find((e) => e.id === selectedEntryIdForPlant)?.destination_plant
+                            : ''
+                    }
+                />
+            )}
+
+            {showOperatorModal && !loading && (
+                <OperatorSelectModal
+                    isOpen={showOperatorModal}
+                    onClose={() => {
+                        setShowOperatorModal(false)
+                        setSelectedEntryIdForOperator(null)
+                        setSelectedOperatorIndex(null)
+                    }}
+                    onSelect={(operatorId) => {
+                        if (selectedEntryIdForOperator !== null && selectedOperatorIndex !== null) {
+                            updateOperator(selectedEntryIdForOperator, selectedOperatorIndex, 'operator_id', operatorId)
+                        }
+                        setShowOperatorModal(false)
+                        setSelectedEntryIdForOperator(null)
+                        setSelectedOperatorIndex(null)
+                    }}
+                    currentValue={
+                        selectedEntryIdForOperator !== null && selectedOperatorIndex !== null
+                            ? entries.find((e) => e.id === selectedEntryIdForOperator)?.operators[selectedOperatorIndex]
+                                  ?.operator_id
+                            : ''
+                    }
+                    operators={operators.filter((op) => {
+                        if (!selectedEntryIdForOperator) return true
+                        const currentEntry = entries.find((e) => e.id === selectedEntryIdForOperator)
+                        if (!currentEntry) return true
+                        const alreadySelected = currentEntry.operators
+                            .filter((_, idx) => idx !== selectedOperatorIndex)
+                            .map((o) => o.operator_id)
+                        return !alreadySelected.includes(op.employeeId)
+                    })}
+                    assignedPlant={currentPlantCode}
+                    mixers={[]}
+                    onRefresh={async () => {
+                        setLoading(true)
+                        try {
+                            const { data: operatorsData } = await supabase
+                                .from('operators')
+                                .select('employee_id, name, status, plant_code, smyrna_id, position')
+                                .eq('status', 'Active')
+                                .eq('plant_code', currentPlantCode)
+                                .eq('position', 'Mixer Operator')
+                                .order('name')
+
+                            const transformedOperators = (operatorsData || []).map((op) => ({
+                                employeeId: op.employee_id,
+                                name: op.name,
+                                plantCode: op.plant_code,
+                                status: op.status,
+                                smyrnaId: op.smyrna_id,
+                                position: op.position
+                            }))
+
+                            setOperators(transformedOperators)
+                        } catch (err) {
+                            console.error('Error refreshing operators:', err)
+                        } finally {
+                            setLoading(false)
+                        }
+                    }}
+                />
+            )}
+        </div>
+    )
+}
+
+export function PlantManagerSubmitPlugin({
+    yph,
+    yphGrade,
+    yphLabel,
+    lost,
+    lostGrade,
+    lostLabel,
+    form,
+    weekIso,
+    user,
+    setForm
+}) {
+    const { preferences: _preferences } = usePreferences()
+    const isDark = false
+    const [userPlantCode, setUserPlantCode] = useState(user?.plant_code || '')
+    const [calculatedYph, setCalculatedYph] = useState({ raw: 0, adjusted: 0 })
+    const [calculatedGrade, setCalculatedGrade] = useState({ raw: '', adjusted: '' })
+    const [calculatedLabel, setCalculatedLabel] = useState({ raw: '', adjusted: '' })
+
+    useEffect(() => {
+        async function fetchUserPlant() {
+            if (!user?.id || user?.plant_code) return
+
+            try {
+                const { data, error } = await supabase
+                    .from('users_profiles')
+                    .select('plant_code')
+                    .eq('id', user.id)
+                    .single()
+
+                if (error) throw error
+                if (data?.plant_code) {
+                    setUserPlantCode(data.plant_code)
+                }
+            } catch (err) {
+                console.error('Error fetching user plant:', err)
+            }
+        }
+
+        fetchUserPlant()
+    }, [user?.id, user?.plant_code])
+
+    const plantCode = form?.plant || userPlantCode || ''
+
+    useEffect(() => {
+        async function calculateYph() {
+            if (!weekIso || !plantCode) {
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
+                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
+                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                return
+            }
+
+            try {
+                const weekStart = weekIso.split('T')[0]
+                const [year] = weekStart.split('-').map(Number)
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
+
+                const { data: allReports } = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .eq('completed', true)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
+                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
+                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
+
+                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
+                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
+                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
+                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+            } catch (err) {
+                console.error('Error calculating YPH:', err)
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
+                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
+                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+            }
+        }
+
+        calculateYph()
+    }, [weekIso, plantCode, form])
+
+    const formatYph = (v) => {
+        const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
+        return Number.isFinite(n) ? n.toFixed(2) : '--'
+    }
+
+    const handleOperatorsUpdate = (entries) => {
+        setForm({ ...form, operators_sent_to_help: entries })
+    }
+
+    return (
+        <>
+            <style>{reportStyles}</style>
+            <div className="pm-report-container">
+                <OperatorsSentToHelp
+                    entries={form?.operators_sent_to_help || []}
+                    onUpdate={handleOperatorsUpdate}
+                    weekIso={weekIso}
+                    readOnly={false}
+                    user={user}
+                    plantCode={plantCode}
+                />
+
+                <div className="pm-metrics-section">
+                    <div className="pm-metrics-header">
+                        <h3 className="pm-metrics-title">
+                            <i className="fas fa-chart-bar"></i>
+                            Weekly Performance Metrics
+                        </h3>
+                        <p className="pm-metrics-subtitle">Key performance indicators for this reporting period</p>
+                    </div>
+
+                    <div className="pm-metrics-grid">
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yards per Man-Hour</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                                title="Left: Raw YPH / Right: Adjusted for help sent"
+                            >
+                                <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
+                                <span className="pm-yph-separator">/</span>
+                                <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
+                            </div>
+                            <div className="pm-yph-labels">
+                                <span className="pm-yph-label-item">Raw</span>
+                                <span className="pm-yph-label-item">Adjusted</span>
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            >
+                                {yphLabel?.adjusted ?? yphLabel}
+                            </div>
+                            <div className="pm-metric-scale">
+                                <span
+                                    className={
+                                        (yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''
+                                    }
+                                >
+                                    Excellent
+                                </span>
+                                <span className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>
+                                    Good
+                                </span>
+                                <span
+                                    className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}
+                                >
+                                    Average
+                                </span>
+                                <span className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>
+                                    Poor
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yardage Lost</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            >
+                                {lost !== null ? lost : '--'}
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            >
+                                {lostLabel}
+                            </div>
+                            <div className="pm-metric-scale">
+                                <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                                <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
+                                <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
+                                <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <WeeklyTrendsSection
+                    currentWeekIso={weekIso}
+                    plantCode={plantCode || userPlantCode || ''}
+                    user={{ ...user, plant_code: userPlantCode }}
+                />
+            </div>
+        </>
+    )
+}
+
+export function PlantManagerReviewPlugin({
+    yph,
+    yphGrade,
+    yphLabel,
+    lost,
+    lostGrade,
+    lostLabel,
+    form,
+    weekIso,
+    user,
+    assignedPlant,
+    reportUserId
+}) {
+    const { preferences: _preferences } = usePreferences()
+    const isDark = false
+    const [calculatedYph, setCalculatedYph] = useState({ raw: 0, adjusted: 0 })
+    const [calculatedGrade, setCalculatedGrade] = useState({ raw: '', adjusted: '' })
+    const [calculatedLabel, setCalculatedLabel] = useState({ raw: '', adjusted: '' })
+
+    const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
+    const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
+
+    useEffect(() => {
+        async function calculateYph() {
+            if (!weekIso || !plantCode) {
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
+                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
+                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                return
+            }
+
+            try {
+                const weekStart = weekIso.split('T')[0]
+                const [year] = weekStart.split('-').map(Number)
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
+
+                const { data: allReports } = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .eq('completed', true)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
+                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
+                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
+
+                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
+                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
+                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
+                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+            } catch (err) {
+                console.error('Error calculating YPH:', err)
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
+                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
+                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+            }
+        }
+
+        calculateYph()
+    }, [weekIso, plantCode, form])
+
+    const formatYph = (v) => {
+        const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
+        return Number.isFinite(n) ? n.toFixed(2) : '--'
+    }
+
+    return (
+        <>
+            <style>{reportStyles}</style>
+            <div className="pm-report-container">
+                <OperatorsSentToHelp
+                    entries={form?.operators_sent_to_help || []}
+                    onUpdate={() => {}}
+                    weekIso={weekIso}
+                    readOnly={true}
+                    user={user}
+                    plantCode={plantCode}
+                />
+
+                <div className="pm-metrics-section">
+                    <div className="pm-metrics-header">
+                        <h3 className="pm-metrics-title">
+                            <i className="fas fa-chart-bar"></i>
+                            Weekly Performance Metrics
+                        </h3>
+                        <p className="pm-metrics-subtitle">Key performance indicators for this reporting period</p>
+                    </div>
+
+                    <div className="pm-metrics-grid">
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yards per Man-Hour</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                                title="Left: Raw YPH / Right: Adjusted for help sent"
+                            >
+                                <span className="pm-yph-raw">{formatYph(calculatedYph.raw)}</span>
+                                <span className="pm-yph-separator">/</span>
+                                <span className="pm-yph-adjusted">{formatYph(calculatedYph.adjusted)}</span>
+                            </div>
+                            <div className="pm-yph-labels">
+                                <span className="pm-yph-label-item">Raw</span>
+                                <span className="pm-yph-label-item">Adjusted</span>
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            >
+                                {calculatedLabel.adjusted}
+                            </div>
+                            <div className="pm-metric-scale">
+                                <span className={calculatedGrade.adjusted === 'excellent' ? 'active excellent' : ''}>
+                                    Excellent
+                                </span>
+                                <span className={calculatedGrade.adjusted === 'good' ? 'active good' : ''}>Good</span>
+                                <span className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>
+                                    Average
+                                </span>
+                                <span className={calculatedGrade.adjusted === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
+                        </div>
+
+                        <div className="pm-metric-card">
+                            <div className="pm-metric-header">
+                                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
+                                <span className="pm-metric-title">Yardage Lost</span>
+                            </div>
+                            <div
+                                className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            >
+                                {lost !== null ? lost : '--'}
+                            </div>
+                            <div
+                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
+                            >
+                                {lostLabel}
+                            </div>
+                            <div className="pm-metric-scale">
+                                <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
+                                <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
+                                <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
+                                <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <WeeklyTrendsSection
+                    currentWeekIso={weekIso}
+                    plantCode={timelinePlantCode || user?.plant_code || ''}
+                    user={user}
+                />
+            </div>
+        </>
+    )
+}

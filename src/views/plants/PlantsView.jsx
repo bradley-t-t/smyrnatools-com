@@ -1,0 +1,253 @@
+import React, { useEffect, useRef, useState } from 'react'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import LoadingScreen from '../../components/common/LoadingScreen'
+import PlantsDetailView from './PlantsDetailView'
+import PlantsAddView from './PlantsAddView'
+import TopSection from '../../components/sections/TopSection'
+
+function PlantsView({ title = 'Plants' }) {
+    const [plants, setPlants] = useState([])
+    const [regions, setRegions] = useState([])
+    const [plantRegionMap, setPlantRegionMap] = useState({})
+    const [isLoading, setIsLoading] = useState(true)
+    const [searchText, setSearchText] = useState('')
+    const [showAddSheet, setShowAddSheet] = useState(false)
+    const [selectedPlant, setSelectedPlant] = useState(null)
+    const [selectedRegion, setSelectedRegion] = useState('')
+    const [selectedPlantType, setSelectedPlantType] = useState('')
+    const headerRef = useRef(null)
+
+    useEffect(() => {
+        async function fetchData() {
+            setIsLoading(true)
+            try {
+                const [plantsData, regionsData] = await Promise.all([
+                    PlantService.fetchPlants(),
+                    RegionService.fetchRegions()
+                ])
+                setPlants(plantsData)
+                setRegions(regionsData)
+
+                const regionPlantsPromises = regionsData.map((r) =>
+                    RegionService.fetchRegionPlants(r.regionCode).catch(() => [])
+                )
+                const regionPlantsResults = await Promise.all(regionPlantsPromises)
+                const map = {}
+                regionsData.forEach((region, index) => {
+                    const plantsForRegion = regionPlantsResults[index] || []
+                    plantsForRegion.forEach((p) => {
+                        map[p.plantCode] = region
+                    })
+                })
+                setPlantRegionMap(map)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchData()
+    }, [])
+
+    function handleSelectPlant(plantCode) {
+        const plant = plants.find((p) => (p.plant_code || p.plantCode) === plantCode)
+        setSelectedPlant(plant)
+    }
+
+    function handlePlantAdded(newPlant) {
+        setPlants((prev) => [...prev, newPlant])
+    }
+
+    async function handlePlantDeleted(plantCode) {
+        setPlants((prev) => prev.filter((p) => (p.plant_code || p.plantCode) !== plantCode))
+        setSelectedPlant(null)
+    }
+
+    async function handlePlantUpdated(plantCode) {
+        const updatedPlants = await PlantService.fetchPlants()
+        setPlants(updatedPlants)
+        setSelectedPlant(updatedPlants.find((p) => (p.plant_code || p.plantCode) === plantCode) || null)
+    }
+
+    const filteredPlants = plants.filter((plant) => {
+        const normalizedSearch = searchText.trim().toLowerCase()
+        const searchMatch =
+            !normalizedSearch ||
+            (plant.plant_name || plant.plantName || '').toLowerCase().includes(normalizedSearch) ||
+            (plant.plant_code || plant.plantCode || '').toLowerCase().includes(normalizedSearch)
+        const region = plantRegionMap[plant.plant_code || plant.plantCode]
+        const regionMatch = !selectedRegion || selectedRegion === 'All Regions' || region?.regionCode === selectedRegion
+        const plantType =
+            region?.type === 'Concrete'
+                ? 'Concrete Plant'
+                : region?.type === 'Aggregate'
+                  ? 'Aggregate Location'
+                  : region?.type === 'Office'
+                    ? 'Office Location'
+                    : 'N/A'
+        const plantTypeMatch =
+            !selectedPlantType || selectedPlantType === 'All Types' || plantType === selectedPlantType
+        return searchMatch && regionMatch && plantTypeMatch
+    })
+
+    const selectStyle = {
+        padding: '12px 40px 12px 16px',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        fontSize: '14px',
+        color: '#1e293b',
+        backgroundColor: '#f8fafc',
+        cursor: 'pointer',
+        appearance: 'none',
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '18px',
+        minWidth: '140px'
+    }
+
+    const customFilters = (
+        <>
+            <select style={selectStyle} value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)}>
+                <option value="">All Regions</option>
+                {regions.map((r) => (
+                    <option key={r.regionCode} value={r.regionCode}>
+                        {r.regionName}
+                    </option>
+                ))}
+            </select>
+            <select
+                style={selectStyle}
+                value={selectedPlantType}
+                onChange={(e) => setSelectedPlantType(e.target.value)}
+            >
+                <option value="">All Location Types</option>
+                <option value="Concrete Plant">Concrete Plant</option>
+                <option value="Aggregate Location">Aggregate Location</option>
+                <option value="Office Location">Office Location</option>
+            </select>
+        </>
+    )
+
+    const showReset = !!(searchText || selectedRegion || selectedPlantType)
+    const onReset = () => {
+        setSearchText('')
+        setSelectedRegion('')
+        setSelectedPlantType('')
+    }
+
+    return (
+        <div className="min-h-screen bg-slate-50">
+            {selectedPlant ? (
+                <PlantsDetailView
+                    plant={selectedPlant}
+                    onClose={() => setSelectedPlant(null)}
+                    onDelete={handlePlantDeleted}
+                    onUpdate={handlePlantUpdated}
+                />
+            ) : (
+                <>
+                    <TopSection
+                        title={title}
+                        addButtonLabel="Add Plant"
+                        onAddClick={() => setShowAddSheet(true)}
+                        searchInput={searchText}
+                        onSearchInputChange={setSearchText}
+                        onClearSearch={() => setSearchText('')}
+                        searchPlaceholder="Search by plant name or code..."
+                        forwardedRef={headerRef}
+                        hideViewModeToggle={true}
+                        viewMode="list"
+                        listLabels={['Plant Code', 'Name', 'Region', 'Type']}
+                        colWidths={['20%', '30%', '25%', '25%']}
+                        customFilters={customFilters}
+                        showReset={showReset}
+                        onReset={onReset}
+                        hidePlantFilter={true}
+                    />
+                    <div className="px-6 py-6">
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-16">
+                                <LoadingScreen message="Loading plants..." inline={true} />
+                            </div>
+                        ) : filteredPlants.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                                    <i className="fas fa-industry text-3xl text-slate-400"></i>
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">No Plants Found</h3>
+                                <p className="text-slate-500 mb-6 max-w-md">
+                                    {searchText
+                                        ? 'No plants match your search criteria.'
+                                        : 'There are no plants in the system yet.'}
+                                </p>
+                                <button
+                                    className="px-5 py-2.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-lg transition-colors"
+                                    onClick={() => setShowAddSheet(true)}
+                                >
+                                    Add Plant
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-white border border-slate-200 overflow-hidden">
+                                <table className="w-full">
+                                    <tbody className="divide-y divide-slate-100">
+                                        {filteredPlants.map((plant, index) => {
+                                            const region = plantRegionMap[plant.plant_code || plant.plantCode]
+                                            const regionName = region?.regionName || 'N/A'
+                                            const plantType =
+                                                region?.type === 'Concrete'
+                                                    ? 'Concrete Plant'
+                                                    : region?.type === 'Aggregate'
+                                                      ? 'Aggregate Location'
+                                                      : region?.type === 'Office'
+                                                        ? 'Office Location'
+                                                        : 'N/A'
+                                            return (
+                                                <tr
+                                                    key={plant.plant_code || plant.plantCode}
+                                                    className={`cursor-pointer hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}
+                                                    onClick={() =>
+                                                        handleSelectPlant(plant.plant_code || plant.plantCode)
+                                                    }
+                                                >
+                                                    <td className="px-5 py-4 text-sm font-bold text-[#1e3a5f]">
+                                                        {plant.plant_code || plant.plantCode}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-sm font-medium text-slate-800">
+                                                        {plant.plant_name || plant.plantName}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-sm text-slate-600">{regionName}</td>
+                                                    <td className="px-5 py-4">
+                                                        <span
+                                                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                                                plantType === 'Concrete Plant'
+                                                                    ? 'bg-blue-100 text-blue-700'
+                                                                    : plantType === 'Aggregate Location'
+                                                                      ? 'bg-amber-100 text-amber-700'
+                                                                      : plantType === 'Office Location'
+                                                                        ? 'bg-purple-100 text-purple-700'
+                                                                        : 'bg-slate-100 text-slate-600'
+                                                            }`}
+                                                        >
+                                                            {plantType}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                    {showAddSheet && (
+                        <PlantsAddView onClose={() => setShowAddSheet(false)} onPlantAdded={handlePlantAdded} />
+                    )}
+                </>
+            )}
+        </div>
+    )
+}
+
+export default PlantsView

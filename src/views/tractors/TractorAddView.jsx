@@ -1,0 +1,232 @@
+import React, { useEffect, useMemo, useState } from 'react'
+import { TractorService } from '../../services/TractorService'
+import { Tractor } from '../../models/tractors/Tractor'
+import { AuthService } from '../../services/AuthService'
+import { usePreferences } from '../../app/context/PreferencesContext'
+import { RegionService } from '../../services/RegionService'
+import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import AddViewSection from '../../components/sections/AddViewSection'
+
+function TractorAddView({ plants, onClose, onTractorAdded }) {
+    const { preferences } = usePreferences()
+    const [truckNumber, setTruckNumber] = useState('')
+    const [assignedPlant, setAssignedPlant] = useState('')
+    const [status, setStatus] = useState('')
+    const [hasBlower, setHasBlower] = useState(false)
+    const [freight, setFreight] = useState('')
+    const [isSaving, setIsSaving] = useState(false)
+    const [error, setError] = useState('')
+    const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
+
+    useEffect(() => {
+        async function loadTractors() {
+            try {
+                await TractorService.fetchTractors()
+            } catch (error) {}
+        }
+
+        loadTractors()
+    }, [])
+
+    useEffect(() => {
+        const code = preferences.selectedRegion?.code || ''
+        let cancelled = false
+
+        async function loadRegionPlants() {
+            if (!code) {
+                setRegionPlantCodes(null)
+                return
+            }
+            try {
+                const regionPlants = await RegionService.fetchRegionPlants(code)
+                if (cancelled) return
+                const codes = new Set(regionPlants.map((p) => p.plantCode))
+                setRegionPlantCodes(codes)
+                if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
+            } catch {
+                setRegionPlantCodes(new Set())
+            }
+        }
+
+        loadRegionPlants()
+        return () => {
+            cancelled = true
+        }
+    }, [preferences.selectedRegion?.code, assignedPlant])
+
+    const visiblePlants = useMemo(() => {
+        const list = Array.isArray(plants) ? plants : []
+        const filtered =
+            !preferences.selectedRegion?.code || !regionPlantCodes
+                ? list
+                : list.filter((p) => regionPlantCodes.has(p.plantCode))
+        return filtered
+            .slice()
+            .sort(
+                (a, b) =>
+                    parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0')
+            )
+    }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
+
+    const selectedPlantObj = visiblePlants.find((p) => p.plantCode === assignedPlant)
+    const plantDisplayText = assignedPlant
+        ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}`
+        : 'Select Plant'
+
+    async function handleSubmit(e) {
+        e.preventDefault()
+        setError('')
+        if (!truckNumber) return setError('Truck number is required')
+        if (!assignedPlant) return setError('Plant is required')
+        if (!freight) return setError('Freight is required')
+
+        setIsSaving(true)
+        try {
+            const userId = AuthService.currentUser?.id || sessionStorage.getItem('userId')
+            if (!userId) throw new Error('User ID not available. Please log in again.')
+
+            const formatDateForDb = (date) => {
+                if (!date) return null
+                const d = new Date(date)
+                if (isNaN(d.getTime())) return null
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}+00`
+            }
+
+            const now = formatDateForDb(new Date())
+            const newTractor = new Tractor({
+                truck_number: truckNumber,
+                assigned_plant: assignedPlant,
+                assigned_operator: '0',
+                cleanliness_rating: 1,
+                status,
+                has_blower: hasBlower,
+                freight,
+                created_at: now,
+                updated_at: now,
+                updated_by: userId,
+                updated_last: now
+            })
+
+            const savedTractor = await TractorService.createTractor(newTractor, userId)
+            if (!savedTractor) throw new Error('Failed to add tractor - no data returned from server')
+
+            onTractorAdded(savedTractor)
+            onClose()
+        } catch (error) {
+            setError(`Failed to add tractor: ${error.message || 'Unknown error'}`)
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    return (
+        <>
+            <AddViewSection title="Add New Tractor" onClose={onClose} error={error}>
+                <form onSubmit={handleSubmit} autoComplete="off">
+                    <div className="form-section">
+                        <div className="form-section-title">
+                            <i className="fas fa-truck-moving"></i>
+                            <span>Basic Information</span>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="truckNumber">Truck Number*</label>
+                                <input
+                                    id="truckNumber"
+                                    type="text"
+                                    value={truckNumber}
+                                    onChange={(e) => setTruckNumber(e.target.value)}
+                                    placeholder="Enter truck number"
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-section">
+                        <div className="form-section-title">
+                            <i className="fas fa-building"></i>
+                            <span>Assignment & Status</span>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="assignedPlant">Assigned Plant*</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPlantModalOpen(true)}
+                                    aria-label="Select assigned plant"
+                                >
+                                    {plantDisplayText}
+                                </button>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="status">Status</label>
+                                <select id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
+                                    <option value="">Select Status</option>
+                                    <option value="Spare">Spare</option>
+                                    <option value="In Shop">In Shop</option>
+                                    <option value="Retired">Retired</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-section">
+                        <div className="form-section-title">
+                            <i className="fas fa-cogs"></i>
+                            <span>Equipment Details</span>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="hasBlower">Has Blower</label>
+                                <select
+                                    id="hasBlower"
+                                    value={hasBlower ? 'Yes' : 'No'}
+                                    onChange={(e) => setHasBlower(e.target.value === 'Yes')}
+                                >
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="freight">Freight*</label>
+                                <select
+                                    id="freight"
+                                    value={freight}
+                                    onChange={(e) => setFreight(e.target.value)}
+                                    required
+                                >
+                                    <option value="">Select Freight</option>
+                                    <option value="Cement">Cement</option>
+                                    <option value="Aggregate">Aggregate</option>
+                                    <option value="Dump Truck">Dump Truck</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-actions">
+                        <button type="submit" disabled={isSaving}>
+                            {isSaving ? 'Adding...' : 'Add Tractor'}
+                        </button>
+                    </div>
+                </form>
+            </AddViewSection>
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
+                    onClose={() => setIsPlantModalOpen(false)}
+                    onSelect={(code) => {
+                        setAssignedPlant(code)
+                        setIsPlantModalOpen(false)
+                    }}
+                    plants={visiblePlants}
+                />
+            )}
+        </>
+    )
+}
+
+export default TractorAddView
