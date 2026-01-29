@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [1.8] - 2026-01-29
+
+- Updated the 'plantSummary' prompt in context.json to improve formatting and clarity of the analysis output.
+- Changed the structure of the 'plantSummary' response to use plain text formatting with specific separators and line breaks.
+- Added explicit instructions in 'plantSummary' to avoid markdown, hashtags, asterisks, or bold formatting in the output.
+
 ## [1.7] - 2026-01-29
 
 - Code formatting and cleanup
