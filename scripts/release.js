@@ -144,6 +144,48 @@ IMPORTANT RULES:
     return `## [${newVersion}] - ${date}\n\n- Version update\n`;
 }
 
+function formatChangelog(content) {
+    const lines = content.split('\n');
+    const formatted = [];
+    let prevWasEmpty = false;
+    let prevWasHeader = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        const isEmpty = trimmed === '';
+        const isVersionHeader = trimmed.startsWith('## [');
+        const isBullet = trimmed.startsWith('- ');
+
+        if (isEmpty) {
+            if (!prevWasEmpty && formatted.length > 0) {
+                formatted.push('');
+            }
+            prevWasEmpty = true;
+            prevWasHeader = false;
+            continue;
+        }
+
+        if (isVersionHeader && !prevWasEmpty && formatted.length > 0) {
+            formatted.push('');
+        }
+
+        if (prevWasHeader && isBullet && prevWasEmpty) {
+            formatted.pop();
+        }
+
+        formatted.push(trimmed);
+        prevWasEmpty = false;
+        prevWasHeader = isVersionHeader;
+    }
+
+    while (formatted.length > 0 && formatted[formatted.length - 1] === '') {
+        formatted.pop();
+    }
+
+    return formatted.join('\n') + '\n';
+}
+
 function updateChangelog(newEntry) {
     let changelog = '';
     try {
@@ -159,6 +201,7 @@ function updateChangelog(newEntry) {
         changelog = changelog.slice(0, headerEnd) + '\n\n' + newEntry + '\n' + changelog.slice(headerEnd + 1);
     }
 
+    changelog = formatChangelog(changelog);
     fs.writeFileSync(changelogPath, changelog);
 }
 
