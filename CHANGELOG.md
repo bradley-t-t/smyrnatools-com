@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [1.9] - 2026-01-29
+
+- Simplified README.md by removing detailed sections on Getting Started, Environment, and Scripts.
+- Retained only the essential footer credit line in README.md.
+
 ## [1.8] - 2026-01-29
 
 - Updated the 'plantSummary' prompt in context.json to improve formatting and clarity of the analysis output.
