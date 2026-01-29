@@ -1,22 +1,14 @@
-<p align="center">
-  <img src="public/srm-logo.png" alt="SRM Concrete Logo" width="120" />
-</p>
+<img src="public/srm-logo.png" alt="SRM Concrete Logo" width="120" />
 
-<h1 align="center">SRM Tools</h1>
+# SRM Tools
 
-<p align="center">
-  <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/ci.yml/badge.svg?branch=core" alt="CI Status" />
-</p>
+![CI Status](https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/ci.yml/badge.svg?branch=core)
 
-<p align="center">
-  <strong>Fleet Management & Operations Platform for SRM Concrete</strong>
-</p>
+**Fleet Management & Operations Platform for SRM Concrete**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/React-19.1-61DAFB?logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase" alt="Supabase" />
-  <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss" alt="Tailwind" />
-</p>
+![React](https://img.shields.io/badge/React-19.1-61DAFB?logo=react)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss)
 
 ---
 
