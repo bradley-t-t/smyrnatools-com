@@ -10,6 +10,16 @@ All notable changes to SmyrnaTools will be documented in this file.
 
 
 
+
+## [1.3] - 2026-01-29
+
+- Added new AI module with initial configuration files and service implementations
+- Introduced context.json for AI context management
+- Added index.js as the entry point for AI functionalities
+- Included plantSummaryConfig.json for plant summary configurations
+- Created prompts.json for storing AI prompts
+- Implemented AIPrompts.js for handling AI prompt logic
+- Developed AIServiceNew.js for new AI service operations
 ## [1.2] - 2026-01-29
 
 - Renamed AIInsightsService.js to AIService.js for consistency in naming conventions
