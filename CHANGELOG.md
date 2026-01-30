@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.5] - 2026-01-30
+
+- Updated the styling of the AI validation warning message in the Weekly Efficiency Report.
+- Changed the warning message background to a gradient yellow color with a solid border and a thicker left border.
+- Adjusted the text color and font properties for better readability of the warning message.
+- Added an icon (fa-robot) to the AI validation warning message for visual emphasis.
+- Revised the warning text to explicitly state that the explanation will be checked for specific reasons regarding timing issues before submission.
+- Improved the layout of the warning message with flexbox for better alignment and spacing.
+
 ## [2.4] - 2026-01-30
 
 - Added AI-powered validation for weekly plant efficiency report comments in AIService.js to ensure meaningful explanations for performance issues.

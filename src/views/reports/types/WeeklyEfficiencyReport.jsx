@@ -332,13 +332,31 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                                         (!r.comments || !r.comments.trim()) && (
                                                             <div
                                                                 style={{
-                                                                    color: '#dc2626',
+                                                                    alignItems: 'center',
+                                                                    background:
+                                                                        'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                                                                    border: '1px solid #f59e0b',
+                                                                    borderLeft: '4px solid #f59e0b',
+                                                                    borderRadius: '6px',
+                                                                    color: '#92400e',
+                                                                    display: 'flex',
                                                                     fontSize: '0.8125rem',
-                                                                    fontStyle: 'italic',
-                                                                    marginTop: '4px'
+                                                                    fontWeight: 500,
+                                                                    gap: '8px',
+                                                                    marginTop: '8px',
+                                                                    padding: '10px 12px'
                                                                 }}
                                                             >
-                                                                ⚠ AI will validate your explanation before submission
+                                                                <i
+                                                                    className="fas fa-robot"
+                                                                    style={{ color: '#f59e0b', fontSize: '1rem' }}
+                                                                ></i>
+                                                                <span>
+                                                                    <strong>AI Validation Required:</strong> Your
+                                                                    explanation will be checked to ensure it provides
+                                                                    specific reasons for the timing issues before
+                                                                    submission.
+                                                                </span>
                                                             </div>
                                                         )}
                                                 </div>
