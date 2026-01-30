@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.3] - 2026-01-29
+
+- Updated eslint-plugin-react-hooks from version 7.0.1 to 5.0.0
+- Downgraded TypeScript from version 5.9.3 to 4.9.5
+- Removed eslint-plugin-sonarjs dependency
+- Removed ts-api-utils dependency
+- Turned off security/detect-object-injection rule in ESLint configuration
+- Removed react-hooks/set-state-in-effect rule from ESLint configuration
+- Removed react-hooks/immutability rule from ESLint configuration
+
 ## [2.2] - 2026-01-29
 
 - Removed SonarJS plugin and its associated rules from ESLint configuration

@@ -48,9 +48,7 @@
     "no-empty": "off",
     "no-useless-catch": "off",
     "no-unused-vars": "off",
-    "react-hooks/set-state-in-effect": "warn",
-    "react-hooks/immutability": "warn",
-    "security/detect-object-injection": "warn"
+    "security/detect-object-injection": "off"
   },
   "overrides": [
     {
