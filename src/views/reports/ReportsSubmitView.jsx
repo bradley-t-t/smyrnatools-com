@@ -1662,8 +1662,9 @@ function ReportsSubmitView({
                                     style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}
                                 ></i>
                                 <div>
-                                    AI is ensuring all comments provide specific explanations for delayed starts,
-                                    delayed washouts, low loads, or excessive hours.
+                                    {report.name === 'plant_manager'
+                                        ? 'AI is checking if your hours, yardage, lost yardage, and resold yardage values make sense together. This helps catch data entry errors.'
+                                        : 'AI is ensuring all comments provide specific explanations for delayed starts, delayed washouts, low loads, or excessive hours.'}
                                 </div>
                             </div>
                         </div>

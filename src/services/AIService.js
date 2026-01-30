@@ -670,6 +670,76 @@ Respond with ONLY "VALID" or "INVALID: [brief guidance]" where guidance helps th
 
         return { guidance: 'Please provide a detailed explanation for the timing issues.', valid: false }
     }
+
+    async validatePlantManagerMetrics(form) {
+        const yardage = Number(form.yardage) || 0
+        const hours = Number(form.total_hours) || 0
+        const lostYardage = Number(form.total_yards_lost) || 0
+        const resoldYardage = Number(form.yards_resold) || 0
+
+        if (yardage === 0 || hours === 0) {
+            return { needsReview: false }
+        }
+
+        const yph = yardage / hours
+        const netYardage = yardage - lostYardage + resoldYardage
+
+        const systemPrompt = `You are a validation assistant for weekly plant manager reports in a concrete manufacturing operation. Your job is to identify OBVIOUS data entry errors, not unusual but valid scenarios.
+
+You should ONLY flag issues when data is clearly wrong:
+- YPH > 25 (impossible in concrete production - likely mixed up yards and hours, entered hours as minutes, or forgot to include all operators' hours)
+- YPH < 0.5 (nearly impossible - likely entered weeks of hours, entered minutes instead of hours, or forgot to convert)
+- Hours are suspiciously round numbers like 4, 5, 8 combined with normal yardage (forgot to multiply operators by hours, or entered shifts instead of total hours)
+- Lost yardage > 50% of total (data entry error unless plant had major disaster)
+- Resold yardage > 2x lost yardage (unusual pattern suggesting possible typo)
+- Total hours < 20 for a full week with normal yardage (forgot to add up all operators)
+- Total hours > 5000 for a single plant (likely entered minutes or double-counted)
+
+DO NOT flag:
+- Low YPH (2-10 range) - this happens with weather, difficult pours, small residential loads, equipment issues
+- Normal YPH (10-25 range) - typical concrete production operations
+- Lost yardage up to 20% - can happen with weather, returns, plant issues
+
+IMPORTANT: In concrete production, YPH above 25 is physically impossible due to:
+- Load time constraints (10-15 minutes minimum per load)
+- Travel time to job sites
+- Pour time at customer location
+- Return and washout time
+- Equipment limitations
+
+If you see YPH > 25, this is ALWAYS a data entry error.
+
+Respond with JSON ONLY in this format:
+{
+  "needsReview": true/false,
+  "concerns": ["concern 1", "concern 2"],
+  "suggestion": "Brief suggestion to double-check specific values"
+}
+
+If everything looks reasonable or could be explained by normal operations, respond: {"needsReview": false}`
+
+        const userPrompt = `Plant Manager Report Metrics:
+- Total Yardage: ${yardage} yards
+- Total Hours: ${hours} hours
+- Yards Per Hour: ${yph.toFixed(2)}
+- Lost Yardage: ${lostYardage} yards (${yardage > 0 ? ((lostYardage / yardage) * 100).toFixed(1) : 0}% of total)
+- Resold Yardage: ${resoldYardage} yards
+- Net Yardage: ${netYardage} yards
+
+Does this data make sense or should the plant manager double-check their entries?`
+
+        const result = await this.callAPI(systemPrompt, userPrompt, { temperature: 0.2 })
+
+        if (result?.error) {
+            return { error: true }
+        }
+
+        try {
+            return JSON.parse(result?.content?.trim() || '{"needsReview": false}')
+        } catch {
+            return { needsReview: false }
+        }
+    }
 }
 
 export const AIService = new AIInsightsServiceClass()
