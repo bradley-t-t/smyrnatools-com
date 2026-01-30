@@ -396,6 +396,8 @@ function ReportsSubmitView({
     })
     const [submitting, setSubmitting] = useState(false)
     const [savingDraft, setSavingDraft] = useState(false)
+    const [aiValidating, setAiValidating] = useState(false)
+    const [aiValidationProgress, setAiValidationProgress] = useState({ current: 0, total: 0 })
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
     const [maintenanceItems, setMaintenanceItems] = useState([])
@@ -502,7 +504,28 @@ function ReportsSubmitView({
             }
         }
         if (report.name === 'plant_production') {
-            const v = ReportUtility.validatePlantProduction(form, operatorOptions)
+            setAiValidating(true)
+            const rows = Array.isArray(form.rows) ? form.rows : []
+            const rowsWithIssues = rows.filter((r) => {
+                const start = ReportUtility.parseTimeToMinutes(r.start_time)
+                const first = ReportUtility.parseTimeToMinutes(r.first_load)
+                const eod = ReportUtility.parseTimeToMinutes(r.eod_in_yard)
+                const punch = ReportUtility.parseTimeToMinutes(r.punch_out)
+                const dStart = start !== null && first !== null ? first - start : null
+                const dEnd = eod !== null && punch !== null ? punch - eod : null
+                const hours = start !== null && punch !== null ? (punch - start) / 60 : null
+                const loadsNum = Number(r.loads)
+                return (
+                    (dStart !== null && dStart > 15) ||
+                    (dEnd !== null && dEnd > 20) ||
+                    loadsNum < 3 ||
+                    (hours !== null && hours > 14)
+                )
+            })
+            setAiValidationProgress({ current: 0, total: rowsWithIssues.length })
+
+            const v = await ReportUtility.validatePlantProduction(form, operatorOptions)
+            setAiValidating(false)
             if (v) {
                 setError(v)
                 return
@@ -1531,6 +1554,126 @@ function ReportsSubmitView({
                                 Confirm & Submit
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {aiValidating && (
+                <div className="rpts-sbmt-modal-backdrop" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="rpts-sbmt-modal-content" style={{ maxWidth: '500px' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                            <div
+                                style={{
+                                    alignItems: 'center',
+                                    animation: 'spin 2s linear infinite',
+                                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                                    border: '3px solid #f59e0b',
+                                    borderRadius: '50%',
+                                    color: '#f59e0b',
+                                    display: 'flex',
+                                    fontSize: '24px',
+                                    height: '60px',
+                                    justifyContent: 'center',
+                                    width: '60px'
+                                }}
+                            >
+                                <i className="fas fa-robot"></i>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <h2
+                                    style={{
+                                        color: '#1e3a5f',
+                                        fontSize: '20px',
+                                        fontWeight: 700,
+                                        margin: 0,
+                                        marginBottom: '4px'
+                                    }}
+                                >
+                                    AI Validation in Progress
+                                </h2>
+                                <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+                                    Analyzing efficiency report comments...
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            style={{
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '8px',
+                                marginBottom: '16px',
+                                padding: '16px'
+                            }}
+                        >
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                                <i
+                                    className="fas fa-clipboard-check"
+                                    style={{ color: '#f59e0b', fontSize: '18px' }}
+                                ></i>
+                                <span style={{ color: '#374151', fontSize: '14px', fontWeight: 600 }}>
+                                    Validating operator explanations for timing issues
+                                </span>
+                            </div>
+                            {aiValidationProgress.total > 0 && (
+                                <div>
+                                    <div style={{ color: '#64748b', fontSize: '13px', marginBottom: '8px' }}>
+                                        Checking {aiValidationProgress.total} operator
+                                        {aiValidationProgress.total !== 1 ? 's' : ''} with performance issues
+                                    </div>
+                                    <div
+                                        style={{
+                                            background: '#e2e8f0',
+                                            borderRadius: '8px',
+                                            height: '8px',
+                                            overflow: 'hidden',
+                                            width: '100%'
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+                                                height: '100%',
+                                                transition: 'width 0.3s ease',
+                                                width:
+                                                    aiValidationProgress.total > 0
+                                                        ? `${(aiValidationProgress.current / aiValidationProgress.total) * 100}%`
+                                                        : '0%'
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div
+                            style={{
+                                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                                border: '1px solid #fbbf24',
+                                borderLeft: '4px solid #f59e0b',
+                                borderRadius: '6px',
+                                color: '#92400e',
+                                fontSize: '13px',
+                                padding: '12px'
+                            }}
+                        >
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <i
+                                    className="fas fa-info-circle"
+                                    style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}
+                                ></i>
+                                <div>
+                                    AI is ensuring all comments provide specific explanations for delayed starts,
+                                    delayed washouts, low loads, or excessive hours.
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>{`
+                            @keyframes spin {
+                                from { transform: rotate(0deg); }
+                                to { transform: rotate(360deg); }
+                            }
+                        `}</style>
                     </div>
                 </div>
             )}

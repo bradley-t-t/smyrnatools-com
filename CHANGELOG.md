@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.6] - 2026-01-30
+
+- Added AI validation feature for plant production reports to analyze efficiency and operator performance.
+- Implemented new state variables for tracking AI validation status and progress.
+- Introduced logic to identify rows with potential issues in timing and performance metrics before validation.
+- Added a modal UI for displaying AI validation progress with a progress bar and relevant messaging.
+- Enhanced validation process to include checks for operator explanations related to timing discrepancies.
+
 ## [2.5] - 2026-01-30
 
 - Updated the styling of the AI validation warning message in the Weekly Efficiency Report.
