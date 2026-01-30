@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [3.0] - 2026-01-30
+
+- Replaced the browser's native confirm dialog for AI validation warnings with a custom modal dialog in the report submission view.
+- Added state management for displaying AI warning modal with concerns and suggestions when potential issues are detected in reports.
+- Fixed a minor CSS style formatting issue in the submit button by changing 'font-weight' to 'fontWeight' for consistency.
+
 ## [2.9] - 2026-01-30
 
 - Added AI validation for Plant Manager reports during submission

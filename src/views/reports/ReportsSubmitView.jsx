@@ -398,6 +398,7 @@ function ReportsSubmitView({
     const [savingDraft, setSavingDraft] = useState(false)
     const [aiValidating, setAiValidating] = useState(false)
     const [aiValidationProgress, setAiValidationProgress] = useState({ current: 0, total: 0 })
+    const [aiWarningModal, setAiWarningModal] = useState(null)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
     const [maintenanceItems, setMaintenanceItems] = useState([])
@@ -467,14 +468,11 @@ function ReportsSubmitView({
             setAiValidating(false)
 
             if (!validation.error && validation.needsReview) {
-                const concerns = validation.concerns || []
-                const suggestion = validation.suggestion || 'Please review your entries for accuracy.'
-
-                const confirmMessage = `⚠️ AI detected potential issues with your report:\n\n${concerns.map((c) => `• ${c}`).join('\n')}\n\n${suggestion}\n\nDo you want to go back and review, or continue to submit?`
-
-                if (!window.confirm(confirmMessage)) {
-                    return
-                }
+                setAiWarningModal({
+                    concerns: validation.concerns || [],
+                    suggestion: validation.suggestion || 'Please review your entries for accuracy.'
+                })
+                return
             }
 
             setShowConfirmationModal(true)
@@ -890,7 +888,7 @@ function ReportsSubmitView({
                 .rpts-sbmt-actions, .rpts-sbmt-actions-wide { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; margin-top: 1.5rem; }
                 .rpts-sbmt-cancel { padding: 0.75rem 1.5rem; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
                 .rpts-sbmt-save { padding: 0.75rem 1.5rem; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
-                .rpts-sbmt-submit { padding: 0.75rem 1.5rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+                .rpts-sbmt-submit { padding: 0.75rem 1.5rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; fontWeight: 600; cursor: pointer; }
                 .rpts-sbmt-modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
                 .rpts-sbmt-modal-content { background: white; border-radius: 16px; padding: 2rem; max-width: 500px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
                 .rpts-sbmt-modal-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
