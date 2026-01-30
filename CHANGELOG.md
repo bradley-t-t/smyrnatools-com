@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.4] - 2026-01-30
+
+- Added AI-powered validation for weekly plant efficiency report comments in AIService.js to ensure meaningful explanations for performance issues.
+- Implemented detailed criteria for valid and invalid comments, with specific guidance provided for improvement.
+- Updated ReportUtility.js to integrate AI comment validation in the validatePlantProduction method, now asynchronous to handle API calls.
+- Enhanced validation logic to identify performance issues like delayed starts, low loads, and excessive hours, requiring detailed comments when issues are detected.
+- Added specific feedback messages in validation results to guide users on improving their comments based on identified issues.
+- Modified the submit button text in ReportsSubmitView.jsx to display "Validating comments..." during submission of plant production reports.
+- Updated WeeklyEfficiencyReport.jsx to visually indicate the need for comments when performance issues are present in the detail table view.
+
 ## [2.3] - 2026-01-29
 
 - Updated eslint-plugin-react-hooks from version 7.0.1 to 5.0.0

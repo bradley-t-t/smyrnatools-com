@@ -259,7 +259,7 @@ const ReportUtility = {
         return h * 60 + m
     },
 
-    validatePlantProduction(form, operatorOptions) {
+    async validatePlantProduction(form, operatorOptions) {
         if (!form || typeof form !== 'object') return 'Invalid form'
         if (!form.plant) return 'Please select a plant before submitting.'
         if (!form.report_date) return 'Please select a report date before submitting.'
@@ -291,13 +291,40 @@ const ReportUtility = {
             const dStart = start !== null && first !== null ? first - start : null
             const dEnd = eod !== null && punch !== null ? punch - eod : null
             const hours = start !== null && punch !== null ? (punch - start) / 60 : null
-            const hasRedValue =
-                (dStart !== null && dStart > 15) ||
-                (dEnd !== null && dEnd > 20) ||
-                loadsNum < 3 ||
-                (hours !== null && hours > 14)
-            if (hasRedValue && (!r.comments || String(r.comments).trim() === '')) {
+            const startDelayed = dStart !== null && dStart > 15
+            const endDelayed = dEnd !== null && dEnd > 20
+            const lowLoads = loadsNum < 3
+            const excessiveHours = hours !== null && hours > 14
+            const hasIssues = startDelayed || endDelayed || lowLoads || excessiveHours
+
+            if (hasIssues && (!r.comments || String(r.comments).trim() === '')) {
                 return `${label}: Comments are required when there are performance issues (e.g., delayed start/load, low loads, or excessive hours).`
+            }
+
+            if (hasIssues && r.comments && String(r.comments).trim()) {
+                const { AIService } = await import('../services/AIService')
+                const issues = {
+                    endDelayed,
+                    endMinutes: dEnd,
+                    excessiveHours,
+                    hours,
+                    loads: loadsNum,
+                    lowLoads,
+                    startDelayed,
+                    startMinutes: dStart
+                }
+
+                const validation = await AIService.validateEfficiencyComment(r.comments, issues)
+
+                if (validation.error) {
+                    return `${label}: Unable to validate comment. Please ensure your explanation is detailed and specific.`
+                }
+
+                if (!validation.valid) {
+                    const guidance =
+                        validation.guidance || 'Please provide a detailed explanation for the timing issues.'
+                    return `${label}: Comment needs improvement. ${guidance}\n\nProvide specific reasons why the operator was:\n${startDelayed ? `• Delayed from punch-in to 1st load (${dStart} min, expected ≤15)\n` : ''}${endDelayed ? `• Delayed from washout to punch-out (${dEnd} min, expected ≤20)\n` : ''}${lowLoads ? `• Below minimum loads (${loadsNum} loads, expected ≥3)\n` : ''}${excessiveHours ? `• Over maximum hours (${hours.toFixed(1)} hrs, expected ≤14)\n` : ''}`
+                }
             }
         }
         return ''

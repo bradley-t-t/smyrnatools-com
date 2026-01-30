@@ -1477,7 +1477,11 @@ function ReportsSubmitView({
                             </button>
                             {!managerEditUser && (
                                 <button type="submit" className="rpts-sbmt-submit" disabled={submitting || savingDraft}>
-                                    {submitting ? 'Submitting...' : 'Submit'}
+                                    {submitting
+                                        ? report.name === 'plant_production'
+                                            ? 'Validating comments...'
+                                            : 'Submitting...'
+                                        : 'Submit'}
                                 </button>
                             )}
                         </div>

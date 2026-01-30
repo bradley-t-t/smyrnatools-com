@@ -303,8 +303,44 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                                     </div>
                                                 </div>
                                                 <div className="rpt-detail-grid-full">
-                                                    <div className="rpt-field-label">Comments</div>
+                                                    <div className="rpt-field-label">
+                                                        Comments
+                                                        {(warnStart ||
+                                                            warnEnd ||
+                                                            (r.loads !== undefined &&
+                                                                r.loads !== '' &&
+                                                                Number(r.loads) < 3) ||
+                                                            (hours !== null && hours > 14)) && (
+                                                            <span
+                                                                style={{
+                                                                    color: '#dc2626',
+                                                                    fontWeight: 600,
+                                                                    marginLeft: '8px'
+                                                                }}
+                                                            >
+                                                                * Required - Explain timing/performance issues
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <div className="rpt-comment-text">{r.comments || ''}</div>
+                                                    {(warnStart ||
+                                                        warnEnd ||
+                                                        (r.loads !== undefined &&
+                                                            r.loads !== '' &&
+                                                            Number(r.loads) < 3) ||
+                                                        (hours !== null && hours > 14)) &&
+                                                        (!r.comments || !r.comments.trim()) && (
+                                                            <div
+                                                                style={{
+                                                                    color: '#dc2626',
+                                                                    fontSize: '0.8125rem',
+                                                                    fontStyle: 'italic',
+                                                                    marginTop: '4px'
+                                                                }}
+                                                            >
+                                                                ⚠ AI will validate your explanation before submission
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </div>
                                         </td>

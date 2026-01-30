@@ -626,6 +626,50 @@ class AIInsightsServiceClass {
 
         return parts.join('\n')
     }
+
+    async validateEfficiencyComment(comment, issues) {
+        const systemPrompt = `You are a validation assistant for weekly plant efficiency reports. Your job is to determine if a comment provides a meaningful explanation for performance issues.
+
+A VALID comment must:
+- Specifically explain WHY timing issues occurred
+- Provide concrete reasons (equipment issues, scheduling problems, delays, etc.)
+- Be more than just a statement of fact or placeholder
+
+INVALID comments include:
+- Single words like "N/A", "na", "mixers", "trucks", "none"
+- Just listing what happened without explaining why
+- Generic statements without specific reasons
+- Empty or placeholder text
+
+Respond with ONLY "VALID" or "INVALID: [brief guidance]" where guidance helps the user understand what to add.`
+
+        const issuesText = []
+        if (issues.startDelayed) issuesText.push(`Punch in to 1st load: ${issues.startMinutes} minutes (expected: ≤15)`)
+        if (issues.endDelayed) issuesText.push(`Washout to punch out: ${issues.endMinutes} minutes (expected: ≤20)`)
+        if (issues.lowLoads) issuesText.push(`Total loads: ${issues.loads} (expected: ≥3)`)
+        if (issues.excessiveHours) issuesText.push(`Total hours: ${issues.hours.toFixed(1)} (expected: ≤14)`)
+
+        const userPrompt = `Performance Issues:\n${issuesText.join('\n')}\n\nOperator Comment: "${comment}"\n\nIs this a valid explanation?`
+
+        const result = await this.callAPI(systemPrompt, userPrompt, { temperature: 0.1 })
+
+        if (result?.error) {
+            return { error: true }
+        }
+
+        const response = result?.content?.trim() || ''
+
+        if (response.startsWith('VALID')) {
+            return { valid: true }
+        }
+
+        const invalidMatch = response.match(/^INVALID:\s*(.+)$/i)
+        if (invalidMatch) {
+            return { guidance: invalidMatch[1].trim(), valid: false }
+        }
+
+        return { guidance: 'Please provide a detailed explanation for the timing issues.', valid: false }
+    }
 }
 
 export const AIService = new AIInsightsServiceClass()
