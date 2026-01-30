@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.2] - 2026-01-29
+
+- Removed SonarJS plugin and its associated rules from ESLint configuration
+- Removed "plugin:sonarjs/recommended-legacy" from the extends section
+- Removed multiple SonarJS-specific rules including cognitive-complexity, no-duplicate-string, and others
+
 ## [2.1] - 2026-01-29
 
 - Updated ESLint configuration with new plugins for React hooks, SonarJS, and security checks.
