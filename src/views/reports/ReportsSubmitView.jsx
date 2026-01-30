@@ -458,6 +458,25 @@ function ReportsSubmitView({
         setError('')
         setSuccess(false)
         if (report.name === 'plant_manager') {
+            setAiValidating(true)
+            setAiValidationProgress({ current: 0, total: 1 })
+
+            const { AIService } = await import('../../services/AIService')
+            const validation = await AIService.validatePlantManagerMetrics(form)
+
+            setAiValidating(false)
+
+            if (!validation.error && validation.needsReview) {
+                const concerns = validation.concerns || []
+                const suggestion = validation.suggestion || 'Please review your entries for accuracy.'
+
+                const confirmMessage = `⚠️ AI detected potential issues with your report:\n\n${concerns.map((c) => `• ${c}`).join('\n')}\n\n${suggestion}\n\nDo you want to go back and review, or continue to submit?`
+
+                if (!window.confirm(confirmMessage)) {
+                    return
+                }
+            }
+
             setShowConfirmationModal(true)
             return
         }

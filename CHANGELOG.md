@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.9] - 2026-01-30
+
+- Added AI validation for Plant Manager reports during submission
+- Implemented progress tracking for AI validation process
+- Integrated dynamic import of AIService for validation of report metrics
+- Display AI-detected issues and suggestions in a confirmation dialog
+- Allow users to review or proceed with submission after AI validation feedback
+
 ## [2.8] - 2026-01-30
 
 - Code formatting and cleanup
