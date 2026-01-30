@@ -1,7 +1,7 @@
-import MixerVerificationProvider from '../notifications/MixerVerificationNotifications'
 import EquipmentVerificationProvider from '../notifications/EquipmentVerificationNotifications'
-import TractorVerificationProvider from '../notifications/TractorVerificationNotifications'
+import MixerVerificationProvider from '../notifications/MixerVerificationNotifications'
 import OverdueListProvider from '../notifications/OverdueListNotifications'
+import TractorVerificationProvider from '../notifications/TractorVerificationNotifications'
 
 const providers = [
     MixerVerificationProvider,
@@ -13,7 +13,7 @@ const providers = [
 const NotificationsService = {
     async getNotifications(userId, selectedRegion) {
         if (!userId) return []
-        const ctx = { userId, selectedRegion }
+        const ctx = { selectedRegion, userId }
         const results = await Promise.all(providers.map((p) => p.getNotifications(ctx).catch(() => [])))
         const flat = results.flat().filter(Boolean)
         const withPlant = flat.filter((n) => n && typeof n.plantCode === 'string')

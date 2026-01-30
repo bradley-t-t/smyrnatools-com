@@ -17,11 +17,11 @@ export class EquipmentComment {
 
     toRow() {
         return {
-            id: this.id,
-            equipment_id: this.equipmentId,
-            text: this.text,
             author: this.author,
-            created_at: this.createdAt
+            created_at: this.createdAt,
+            equipment_id: this.equipmentId,
+            id: this.id,
+            text: this.text
         }
     }
 }

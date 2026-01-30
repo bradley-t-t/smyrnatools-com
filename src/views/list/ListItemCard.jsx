@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { ListService } from '../../services/ListService'
 
 function ListItemCard({ item, plantName, creatorName, onSelect, truncateText }) {

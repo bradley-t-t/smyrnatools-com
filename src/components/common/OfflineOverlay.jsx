@@ -18,57 +18,57 @@ function OfflineOverlay({ onRetry }) {
     }
 
     const backdropStyle = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
         alignItems: 'center',
+        backdropFilter: 'blur(4px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        bottom: 0,
+        display: 'flex',
         justifyContent: 'center',
-        zIndex: 9999,
-        backdropFilter: 'blur(4px)'
+        left: 0,
+        position: 'fixed',
+        right: 0,
+        top: 0,
+        zIndex: 9999
     }
 
     const modalStyle = {
         backgroundColor: 'white',
         borderRadius: '16px',
-        padding: '40px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         maxWidth: '400px',
-        width: '90%',
+        padding: '40px',
         textAlign: 'center',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+        width: '90%'
     }
 
     const titleStyle = {
+        color: '#1e3a5f',
         fontSize: '24px',
         fontWeight: 700,
-        color: '#1e3a5f',
         margin: '0 0 16px 0'
     }
 
     const messageStyle = {
-        fontSize: '15px',
         color: '#64748b',
+        fontSize: '15px',
         lineHeight: 1.6,
         margin: '0 0 24px 0'
     }
 
     const buttonStyle = {
-        display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        padding: '14px 28px',
         backgroundColor: '#1e3a5f',
-        color: 'white',
         border: 'none',
         borderRadius: '10px',
+        color: 'white',
+        cursor: isRetrying ? 'not-allowed' : 'pointer',
+        display: 'inline-flex',
         fontSize: '15px',
         fontWeight: 600,
-        cursor: isRetrying ? 'not-allowed' : 'pointer',
+        gap: '10px',
+        justifyContent: 'center',
         opacity: isRetrying ? 0.7 : 1,
+        padding: '14px 28px',
         transition: 'all 0.2s'
     }
 

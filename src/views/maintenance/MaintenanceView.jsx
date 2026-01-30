@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
+
+import LoadingScreen from '../../components/common/LoadingScreen'
+import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { UserService } from '../../services/UserService'
-import LoadingScreen from '../../components/common/LoadingScreen'
-import MaintenanceFormView from './MaintenanceFormView'
-import MaintenanceCreateFormView from './MaintenanceCreateFormView'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import { formatFrequency, formatMaintenanceDate, getStatusBadgeClass } from '../../utils/MaintenanceUtility'
+import MaintenanceCreateFormView from './MaintenanceCreateFormView'
+import MaintenanceFormView from './MaintenanceFormView'
 
 export default function MaintenanceView() {
     const [loading, setLoading] = useState(true)
@@ -153,95 +154,82 @@ export default function MaintenanceView() {
 
     const styles = {
         container: {
-            width: '100%',
+            background: '#f8fafc',
             minHeight: '100%',
-            background: '#f8fafc'
-        },
-        header: {
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            padding: '1.5rem 2rem'
-        },
-        headerInner: {
-            maxWidth: '1400px',
-            margin: '0 auto'
-        },
-        titleRow: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1.5rem'
-        },
-        title: {
-            fontSize: '1.75rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            margin: 0
-        },
-        createBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.625rem 1.25rem',
-            background: '#1e3a5f',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        },
-        tabs: {
-            display: 'flex',
-            gap: '0.5rem',
-            borderBottom: '2px solid #e5e7eb'
-        },
-        tab: (active) => ({
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.25rem',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: active ? '2px solid #1e3a5f' : '2px solid transparent',
-            color: active ? '#1e3a5f' : '#64748b',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            marginBottom: '-2px'
-        }),
-        tabBadge: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '20px',
-            height: '20px',
-            padding: '0 0.375rem',
-            background: '#ef4444',
-            color: 'white',
-            borderRadius: '10px',
-            fontSize: '0.6875rem',
-            fontWeight: 700
+            width: '100%'
         },
         content: {
-            padding: '2rem',
+            margin: '0 auto',
             maxWidth: '1400px',
-            margin: '0 auto'
+            padding: '2rem'
         },
-        section: {
-            background: 'white',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        },
-        filters: {
+        createBtn: {
+            alignItems: 'center',
+            background: '#1e3a5f',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
             display: 'flex',
-            alignItems: 'flex-end',
-            gap: '1rem',
-            marginBottom: '1.5rem',
-            flexWrap: 'wrap'
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.625rem 1.25rem',
+            transition: 'all 0.2s'
+        },
+        empty: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '4rem 2rem',
+            textAlign: 'center'
+        },
+        emptyIcon: {
+            color: '#cbd5e1',
+            fontSize: '4rem',
+            marginBottom: '1rem'
+        },
+        emptyText: {
+            color: '#64748b',
+            fontSize: '0.9375rem',
+            marginBottom: '1.5rem'
+        },
+        emptyTitle: {
+            color: '#1e293b',
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            marginBottom: '0.5rem'
+        },
+        filterButton: (active) => ({
+            alignItems: 'center',
+            background: 'white',
+            border: active ? '2px solid #1e3a5f' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: active ? '#1e3a5f' : '#1e293b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            justifyContent: 'space-between',
+            minWidth: '180px',
+            padding: '0.625rem 1rem',
+            transition: 'all 0.2s'
+        }),
+        filterClearBtn: {
+            alignItems: 'center',
+            background: '#f1f5f9',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            transition: 'all 0.2s'
         },
         filterGroup: {
             display: 'flex',
@@ -249,210 +237,223 @@ export default function MaintenanceView() {
             gap: '0.5rem'
         },
         filterLabel: {
-            display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            color: '#64748b',
+            display: 'flex',
             fontSize: '0.875rem',
             fontWeight: 600,
-            color: '#64748b'
+            gap: '0.5rem'
         },
-        filterButton: (active) => ({
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '0.5rem',
-            padding: '0.625rem 1rem',
-            background: 'white',
-            border: active ? '2px solid #1e3a5f' : '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: active ? '#1e3a5f' : '#1e293b',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            minWidth: '180px'
-        }),
         filterSelect: {
-            padding: '0.625rem 1rem',
+            background: 'white',
             border: '2px solid #e5e7eb',
             borderRadius: '8px',
+            color: '#1e293b',
+            cursor: 'pointer',
             fontSize: '0.875rem',
             fontWeight: 600,
-            color: '#1e293b',
-            background: 'white',
-            cursor: 'pointer',
-            minWidth: '180px'
+            minWidth: '180px',
+            padding: '0.625rem 1rem'
         },
-        filterClearBtn: {
+        filters: {
+            alignItems: 'flex-end',
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.625rem 1rem',
-            background: '#f1f5f9',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: '#64748b',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        },
-        empty: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '4rem 2rem',
-            textAlign: 'center'
-        },
-        emptyIcon: {
-            fontSize: '4rem',
-            color: '#cbd5e1',
-            marginBottom: '1rem'
-        },
-        emptyTitle: {
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            marginBottom: '0.5rem'
-        },
-        emptyText: {
-            fontSize: '0.9375rem',
-            color: '#64748b',
+            flexWrap: 'wrap',
+            gap: '1rem',
             marginBottom: '1.5rem'
+        },
+        header: {
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '1.5rem 2rem'
+        },
+        headerInner: {
+            margin: '0 auto',
+            maxWidth: '1400px'
+        },
+        item: (status) => ({
+            alignItems: 'flex-start',
+            background: status === 'completed' ? '#f8fafc' : 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            display: 'flex',
+            gap: '1rem',
+            opacity: status === 'completed' ? 0.7 : 1,
+            padding: '1.25rem',
+            transition: 'all 0.2s'
+        }),
+        itemContent: {
+            flex: 1,
+            minWidth: 0
+        },
+        itemDesc: {
+            color: '#64748b',
+            fontSize: '0.875rem',
+            marginBottom: '0.75rem'
+        },
+        itemIcon: (status) => {
+            const colors = {
+                completed: '#10b981',
+                default: '#3b82f6',
+                overdue: '#ef4444'
+            }
+            return {
+                alignItems: 'center',
+                background: status === 'completed' ? '#d1fae5' : status === 'overdue' ? '#fee2e2' : '#dbeafe',
+                borderRadius: '12px',
+                color: colors[status] || colors.default,
+                display: 'flex',
+                flexShrink: 0,
+                fontSize: '1.25rem',
+                height: '48px',
+                justifyContent: 'center',
+                width: '48px'
+            }
+        },
+        itemMeta: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '1rem'
+        },
+        itemStatus: {
+            flexShrink: 0
+        },
+        itemTitle: {
+            color: '#1e293b',
+            fontSize: '1rem',
+            fontWeight: 600,
+            marginBottom: '0.25rem'
         },
         list: {
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem'
         },
-        item: (status) => ({
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '1rem',
-            padding: '1.25rem',
-            background: status === 'completed' ? '#f8fafc' : 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            opacity: status === 'completed' ? 0.7 : 1
-        }),
-        itemIcon: (status) => {
-            const colors = {
-                completed: '#10b981',
-                overdue: '#ef4444',
-                default: '#3b82f6'
-            }
-            return {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                background: status === 'completed' ? '#d1fae5' : status === 'overdue' ? '#fee2e2' : '#dbeafe',
-                color: colors[status] || colors.default,
-                fontSize: '1.25rem',
-                flexShrink: 0
-            }
-        },
-        itemContent: {
-            flex: 1,
-            minWidth: 0
-        },
-        itemTitle: {
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            marginBottom: '0.25rem'
-        },
-        itemDesc: {
-            fontSize: '0.875rem',
-            color: '#64748b',
-            marginBottom: '0.75rem'
-        },
-        itemMeta: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            flexWrap: 'wrap'
-        },
         metaItem: {
-            display: 'flex',
             alignItems: 'center',
-            gap: '0.375rem',
+            color: '#64748b',
+            display: 'flex',
             fontSize: '0.8125rem',
-            color: '#64748b'
+            gap: '0.375rem'
         },
         plantTag: {
-            padding: '0.25rem 0.625rem',
             background: '#eff6ff',
             border: '1px solid #3b82f6',
             borderRadius: '6px',
             color: '#3b82f6',
-            fontWeight: 600
-        },
-        itemStatus: {
-            flexShrink: 0
-        },
-        statusBadge: (status) => {
-            const colors = {
-                completed: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
-                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
-                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706' },
-                approved: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
-                rejected: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
-                submitted: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' },
-                default: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' }
-            }
-            const color = colors[status] || colors.default
-            return {
-                display: 'inline-block',
-                padding: '0.375rem 0.75rem',
-                background: color.bg,
-                border: `1px solid ${color.border}`,
-                borderRadius: '6px',
-                color: color.text,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-            }
-        },
-        reviewSubTabs: {
-            display: 'flex',
-            gap: '0.5rem',
-            marginBottom: '1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-            paddingBottom: '0.5rem'
+            fontWeight: 600,
+            padding: '0.25rem 0.625rem'
         },
         reviewSubTab: (active) => ({
-            display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
             background: active ? '#f0f7ff' : 'transparent',
             border: active ? '1px solid #1e3a5f' : '1px solid transparent',
             borderRadius: '8px',
             color: active ? '#1e3a5f' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
             fontSize: '0.875rem',
             fontWeight: 600,
-            cursor: 'pointer',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
             transition: 'all 0.2s'
         }),
+        reviewSubTabs: {
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            gap: '0.5rem',
+            marginBottom: '1.5rem',
+            paddingBottom: '0.5rem'
+        },
+        section: {
+            background: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            padding: '1.5rem'
+        },
+        statusBadge: (status) => {
+            const colors = {
+                approved: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
+                completed: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
+                default: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' },
+                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
+                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706' },
+                rejected: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
+                submitted: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' }
+            }
+            const color = colors[status] || colors.default
+            return {
+                background: color.bg,
+                border: `1px solid ${color.border}`,
+                borderRadius: '6px',
+                color: color.text,
+                display: 'inline-block',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                padding: '0.375rem 0.75rem',
+                textTransform: 'uppercase'
+            }
+        },
         subTabBadge: {
-            display: 'inline-flex',
             alignItems: 'center',
+            background: '#1e3a5f',
+            borderRadius: '10px',
+            color: 'white',
+            display: 'inline-flex',
+            fontSize: '0.6875rem',
+            fontWeight: 700,
+            height: '20px',
             justifyContent: 'center',
             minWidth: '20px',
-            height: '20px',
-            padding: '0 0.375rem',
-            background: '#1e3a5f',
-            color: 'white',
+            padding: '0 0.375rem'
+        },
+        tab: (active) => ({
+            alignItems: 'center',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: active ? '2px solid #1e3a5f' : '2px solid transparent',
+            color: active ? '#1e3a5f' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            marginBottom: '-2px',
+            padding: '0.75rem 1.25rem',
+            transition: 'all 0.2s'
+        }),
+        tabBadge: {
+            alignItems: 'center',
+            background: '#ef4444',
             borderRadius: '10px',
+            color: 'white',
+            display: 'inline-flex',
             fontSize: '0.6875rem',
-            fontWeight: 700
+            fontWeight: 700,
+            height: '20px',
+            justifyContent: 'center',
+            minWidth: '20px',
+            padding: '0 0.375rem'
+        },
+        tabs: {
+            borderBottom: '2px solid #e5e7eb',
+            display: 'flex',
+            gap: '0.5rem'
+        },
+        title: {
+            color: '#1e293b',
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            margin: 0
+        },
+        titleRow: {
+            alignItems: 'center',
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '1.5rem'
         }
     }
 

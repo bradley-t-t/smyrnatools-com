@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+
 import { logSupabaseError, supabase } from '../../services/DatabaseService'
+import { RegionService } from '../../services/RegionService'
 import { UserPreferencesService } from '../../services/UserPreferencesService'
 import { UserService } from '../../services/UserService'
-import { RegionService } from '../../services/RegionService'
 
 const PreferencesContext = createContext()
 
@@ -13,7 +14,21 @@ export function usePreferences() {
 }
 
 const defaultPreferences = {
+    acceptReportSubmittedEmails: true,
     defaultViewMode: null,
+    equipmentFilters: {
+        searchText: '',
+        selectedPlant: '',
+        statusFilter: '',
+        viewMode: 'list'
+    },
+    lastViewedFilters: null,
+    managerFilters: {
+        roleFilter: '',
+        searchText: '',
+        selectedPlant: '',
+        viewMode: 'list'
+    },
     mixerFilters: {
         searchText: '',
         selectedPlant: '',
@@ -21,18 +36,14 @@ const defaultPreferences = {
         viewMode: 'list'
     },
     operatorFilters: {
+        positionFilter: '',
         searchText: '',
         selectedPlant: '',
         statusFilter: '',
-        positionFilter: '',
         viewMode: 'list'
     },
-    managerFilters: {
-        searchText: '',
-        selectedPlant: '',
-        roleFilter: '',
-        viewMode: 'list'
-    },
+    regionOverlayMinimized: true,
+    selectedRegion: { code: '', name: '', type: '' },
     tractorFilters: {
         searchText: '',
         selectedPlant: '',
@@ -44,17 +55,7 @@ const defaultPreferences = {
         selectedPlant: '',
         typeFilter: '',
         viewMode: 'list'
-    },
-    equipmentFilters: {
-        searchText: '',
-        selectedPlant: '',
-        statusFilter: '',
-        viewMode: 'list'
-    },
-    lastViewedFilters: null,
-    selectedRegion: { code: '', name: '', type: '' },
-    regionOverlayMinimized: true,
-    acceptReportSubmittedEmails: true
+    }
 }
 
 export const PreferencesProvider = ({ children }) => {
@@ -62,6 +63,46 @@ export const PreferencesProvider = ({ children }) => {
     const [loading, setLoading] = useState(true)
     const [userId, setUserId] = useState(null)
     const [_authTrigger, setAuthTrigger] = useState(0)
+    const updatePreferencesRef = useRef(null)
+
+    const updatePreferences = useCallback(
+        async (keyOrObject, value) => {
+            let updatedPreferences
+            if (typeof keyOrObject === 'string') {
+                updatedPreferences = { ...preferences, [keyOrObject]: value }
+            } else {
+                updatedPreferences = { ...preferences, ...keyOrObject }
+            }
+            setPreferences(updatedPreferences)
+            if (userId) {
+                const now = new Date().toISOString()
+                const upsertData = {
+                    created_at: now,
+                    default_view_mode: updatedPreferences.defaultViewMode,
+                    equipment_filters: updatedPreferences.equipmentFilters,
+                    last_viewed_filters: updatedPreferences.lastViewedFilters,
+                    manager_filters: updatedPreferences.managerFilters,
+                    mixer_filters: updatedPreferences.mixerFilters,
+                    operator_filters: updatedPreferences.operatorFilters,
+                    selected_region: updatedPreferences.selectedRegion,
+                    tractor_filters: updatedPreferences.tractorFilters,
+                    trailer_filters: updatedPreferences.trailerFilters,
+                    updated_at: now,
+                    user_id: userId
+                }
+                try {
+                    await supabase.from('users_preferences').upsert(upsertData, { onConflict: 'user_id' })
+                } catch (e) {
+                    logSupabaseError('upserting preferences', e)
+                }
+            }
+        },
+        [preferences, userId]
+    )
+
+    useEffect(() => {
+        updatePreferencesRef.current = updatePreferences
+    }, [updatePreferences])
 
     useEffect(() => {
         const handleAuthSuccess = () => {
@@ -86,7 +127,24 @@ export const PreferencesProvider = ({ children }) => {
                     const data = await UserPreferencesService.getUserPreferences(user.id)
                     if (data) {
                         prefs = {
+                            accept_report_submitted_emails:
+                                data.accept_report_submitted_emails === undefined
+                                    ? true
+                                    : data.accept_report_submitted_emails,
                             defaultViewMode: data.default_view_mode === undefined ? null : data.default_view_mode,
+                            equipmentFilters: data.equipment_filters
+                                ? {
+                                      ...data.equipment_filters,
+                                      viewMode: data.equipment_filters.viewMode || 'list'
+                                  }
+                                : { ...defaultPreferences.equipmentFilters },
+                            lastViewedFilters: data.last_viewed_filters,
+                            managerFilters: data.manager_filters
+                                ? {
+                                      ...data.manager_filters,
+                                      viewMode: data.manager_filters.viewMode || 'list'
+                                  }
+                                : { ...defaultPreferences.managerFilters },
                             mixerFilters: data.mixer_filters
                                 ? {
                                       ...data.mixer_filters,
@@ -96,19 +154,20 @@ export const PreferencesProvider = ({ children }) => {
                             operatorFilters: data.operator_filters
                                 ? {
                                       ...data.operator_filters,
-                                      viewMode: data.operator_filters.viewMode || 'list',
                                       positionFilter:
                                           data.operator_filters.positionFilter === undefined
                                               ? ''
-                                              : data.operator_filters.positionFilter
+                                              : data.operator_filters.positionFilter,
+                                      viewMode: data.operator_filters.viewMode || 'list'
                                   }
                                 : { ...defaultPreferences.operatorFilters },
-                            managerFilters: data.manager_filters
-                                ? {
-                                      ...data.manager_filters,
-                                      viewMode: data.manager_filters.viewMode || 'list'
-                                  }
-                                : { ...defaultPreferences.managerFilters },
+                            regionOverlayMinimized:
+                                data.region_overlay_minimized === undefined
+                                    ? defaultPreferences.regionOverlayMinimized
+                                    : data.region_overlay_minimized,
+                            selectedRegion: data.selected_region
+                                ? { ...defaultPreferences.selectedRegion, ...data.selected_region }
+                                : defaultPreferences.selectedRegion,
                             tractorFilters: data.tractor_filters
                                 ? {
                                       ...data.tractor_filters,
@@ -120,25 +179,7 @@ export const PreferencesProvider = ({ children }) => {
                                       ...data.trailer_filters,
                                       viewMode: data.trailer_filters.viewMode || 'list'
                                   }
-                                : { ...defaultPreferences.trailerFilters },
-                            equipmentFilters: data.equipment_filters
-                                ? {
-                                      ...data.equipment_filters,
-                                      viewMode: data.equipment_filters.viewMode || 'list'
-                                  }
-                                : { ...defaultPreferences.equipmentFilters },
-                            lastViewedFilters: data.last_viewed_filters,
-                            selectedRegion: data.selected_region
-                                ? { ...defaultPreferences.selectedRegion, ...data.selected_region }
-                                : defaultPreferences.selectedRegion,
-                            regionOverlayMinimized:
-                                data.region_overlay_minimized === undefined
-                                    ? defaultPreferences.regionOverlayMinimized
-                                    : data.region_overlay_minimized,
-                            accept_report_submitted_emails:
-                                data.accept_report_submitted_emails === undefined
-                                    ? true
-                                    : data.accept_report_submitted_emails
+                                : { ...defaultPreferences.trailerFilters }
                         }
                     }
                 } catch {
@@ -170,7 +211,9 @@ export const PreferencesProvider = ({ children }) => {
                 if (cancelled) return
                 setPreferences(prefs)
                 if (!originalSelectedRegion.code && prefs.selectedRegion.code) {
-                    updatePreferences('selectedRegion', prefs.selectedRegion)
+                    if (updatePreferencesRef.current) {
+                        updatePreferencesRef.current('selectedRegion', prefs.selectedRegion)
+                    }
                 }
             } else {
                 setUserId(null)
@@ -183,38 +226,6 @@ export const PreferencesProvider = ({ children }) => {
             cancelled = true
         }
     }, [userId])
-
-    const updatePreferences = async (keyOrObject, value) => {
-        let updatedPreferences
-        if (typeof keyOrObject === 'string') {
-            updatedPreferences = { ...preferences, [keyOrObject]: value }
-        } else {
-            updatedPreferences = { ...preferences, ...keyOrObject }
-        }
-        setPreferences(updatedPreferences)
-        if (userId) {
-            const now = new Date().toISOString()
-            const upsertData = {
-                user_id: userId,
-                default_view_mode: updatedPreferences.defaultViewMode,
-                mixer_filters: updatedPreferences.mixerFilters,
-                operator_filters: updatedPreferences.operatorFilters,
-                manager_filters: updatedPreferences.managerFilters,
-                tractor_filters: updatedPreferences.tractorFilters,
-                trailer_filters: updatedPreferences.trailerFilters,
-                equipment_filters: updatedPreferences.equipmentFilters,
-                last_viewed_filters: updatedPreferences.lastViewedFilters,
-                selected_region: updatedPreferences.selectedRegion,
-                updated_at: now,
-                created_at: now
-            }
-            try {
-                await supabase.from('users_preferences').upsert(upsertData, { onConflict: 'user_id' })
-            } catch (e) {
-                logSupabaseError('upserting preferences', e)
-            }
-        }
-    }
 
     const updateManagerFilter = (key, value) => {
         const newFilters = { ...preferences.managerFilters, [key]: value }
@@ -306,10 +317,10 @@ export const PreferencesProvider = ({ children }) => {
         try {
             if (!userId) return
             const finalFilters = filters || {
+                equipment: preferences.equipmentFilters,
                 mixer: preferences.mixerFilters,
                 tractor: preferences.tractorFilters,
-                trailer: preferences.trailerFilters,
-                equipment: preferences.equipmentFilters
+                trailer: preferences.trailerFilters
             }
             await UserPreferencesService.saveLastViewedFilters(userId, finalFilters)
             setPreferences((prev) => ({
@@ -324,24 +335,24 @@ export const PreferencesProvider = ({ children }) => {
     return (
         <PreferencesContext.Provider
             value={{
-                preferences,
                 loading,
-                updatePreferences,
-                updateManagerFilter,
-                resetManagerFilters,
-                updateTractorFilter,
-                resetTractorFilters,
-                updateTrailerFilter,
-                resetTrailerFilters,
-                updateEquipmentFilter,
+                preferences,
                 resetEquipmentFilters,
-                updateMixerFilter,
+                resetManagerFilters,
                 resetMixerFilters,
-                updateOperatorFilter,
                 resetOperatorFilters,
+                resetTractorFilters,
+                resetTrailerFilters,
                 saveLastViewedFilters,
+                setRegionOverlayMinimized,
                 setSelectedRegion,
-                setRegionOverlayMinimized
+                updateEquipmentFilter,
+                updateManagerFilter,
+                updateMixerFilter,
+                updateOperatorFilter,
+                updatePreferences,
+                updateTractorFilter,
+                updateTrailerFilter
             }}
         >
             {!loading && children}

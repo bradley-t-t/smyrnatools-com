@@ -1,6 +1,7 @@
 import React from 'react'
-import { TractorUtility } from '../../utils/TractorUtility'
+
 import CardSection from '../../components/sections/CardSection'
+import { TractorUtility } from '../../utils/TractorUtility'
 
 function TractorCard({
     tractor,

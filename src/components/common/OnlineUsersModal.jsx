@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { UserPresenceService } from '../../services/UserPresenceService'
+
 import { RegionService } from '../../services/RegionService'
+import { UserPresenceService } from '../../services/UserPresenceService'
 import { UserService } from '../../services/UserService'
 
 function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
@@ -57,12 +58,12 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
 
                         users.push({
                             id: currentId,
-                            name,
-                            roles: roleNames,
-                            roleWeight: userRoleWeight || 0,
-                            regionCode,
+                            isCurrentUser: true,
                             lastActivity: new Date().toISOString(),
-                            isCurrentUser: true
+                            name,
+                            regionCode,
+                            roleWeight: userRoleWeight || 0,
+                            roles: roleNames
                         })
                     } else {
                         users = users.map((u) => (u.id === currentId ? { ...u, isCurrentUser: true } : u))
@@ -134,12 +135,12 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
 
                         updatedUsers.push({
                             id: currentId,
-                            name,
-                            roles: roleNames,
-                            roleWeight: userRoleWeight || 0,
-                            regionCode,
+                            isCurrentUser: true,
                             lastActivity: new Date().toISOString(),
-                            isCurrentUser: true
+                            name,
+                            regionCode,
+                            roleWeight: userRoleWeight || 0,
+                            roles: roleNames
                         })
                     } catch {}
                 } else {
@@ -188,8 +189,8 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
 
     const modalStyle = {
         position: 'fixed',
-        top: anchorRect ? anchorRect.bottom + 8 : '80px',
         right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
+        top: anchorRect ? anchorRect.bottom + 8 : '80px',
         zIndex: 1000
     }
 

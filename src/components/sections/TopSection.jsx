@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react'
+
 import PlantDropdownModal from '../common/PlantDropdownModal'
 
 function TopSection({
@@ -100,286 +101,131 @@ function TopSection({
     }, [])
 
     const styles = {
-        section: {
-            backgroundColor: 'white',
-            backgroundImage: `
-                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
-            `,
-            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
-            backgroundPosition: '0 0, 0 0, 0 0',
-            borderBottom: '1px solid #e5e7eb',
-            padding: tightTop ? '16px 24px 20px' : '20px 28px 24px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-            ...(sticky ? { position: 'sticky', top: 0, zIndex: 50 } : {})
+        actionButton: {
+            alignItems: 'center',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '14px',
+            fontWeight: 600,
+            gap: '8px',
+            padding: '12px 20px',
+            transition: 'all 0.15s ease'
+        },
+        actionButtonPrimary: {
+            backgroundColor: '#1e3a5f',
+            color: 'white'
+        },
+        actionButtonSubtle: {
+            backgroundColor: '#f1f5f9',
+            color: '#475569'
+        },
+        actionCluster: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '12px',
+            marginLeft: 'auto'
+        },
+        badge: {
+            alignItems: 'center',
+            backgroundColor: '#f0f7ff',
+            border: 'none',
+            borderRadius: '10px',
+            color: '#1e3a5f',
+            cursor: onBadgeClick ? 'pointer' : 'default',
+            display: 'inline-flex',
+            fontSize: '14px',
+            fontWeight: 600,
+            gap: '8px',
+            padding: '8px 16px'
+        },
+        badgeContainer: {
+            marginLeft: '16px'
+        },
+        clearButton: {
+            alignItems: 'center',
+            background: '#e5e7eb',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '12px',
+            height: '26px',
+            justifyContent: 'center',
+            position: 'absolute',
+            right: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '26px'
+        },
+        controlsRow: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '14px',
+            justifyContent: 'space-between'
+        },
+        filters: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            marginLeft: 'auto'
+        },
+        headerCell: {
+            alignItems: 'center',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '11px',
+            fontWeight: 700,
+            gap: '6px',
+            letterSpacing: '0.5px',
+            padding: '12px 8px',
+            textTransform: 'uppercase',
+            userSelect: 'none'
+        },
+        headerCellHover: {
+            color: '#1e3a5f'
+        },
+        headerRow: {
+            alignItems: 'center',
+            backgroundColor: '#f8fafc',
+            borderTop: '1px solid #e5e7eb',
+            display: 'flex',
+            marginBottom: '-24px',
+            marginLeft: '-28px',
+            marginRight: '-28px',
+            marginTop: '16px',
+            paddingLeft: '28px',
+            paddingRight: '28px'
         },
         inner: {
             display: 'flex',
             flexDirection: 'column',
             gap: '18px'
         },
-        primaryRow: {
-            display: 'flex',
+        mobileActionBtn: {
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '16px'
-        },
-        title: {
-            fontSize: '28px',
-            fontWeight: 700,
-            color: '#1e293b',
-            margin: 0,
-            letterSpacing: '-0.5px'
-        },
-        badgeContainer: {
-            marginLeft: '16px'
-        },
-        badge: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            backgroundColor: '#f0f7ff',
-            color: '#1e3a5f',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: 600,
             border: 'none',
-            cursor: onBadgeClick ? 'pointer' : 'default'
-        },
-        actionCluster: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginLeft: 'auto'
-        },
-        actionButton: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 20px',
             borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            border: 'none',
-            transition: 'all 0.15s ease'
-        },
-        actionButtonSubtle: {
-            backgroundColor: '#f1f5f9',
-            color: '#475569'
-        },
-        actionButtonPrimary: {
-            backgroundColor: '#1e3a5f',
-            color: 'white'
-        },
-        controlsRow: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '14px',
-            flexWrap: 'wrap'
-        },
-        searchBar: {
-            position: 'relative',
-            flex: '0 1 auto',
-            minWidth: '220px',
-            maxWidth: '420px'
-        },
-        searchInput: {
-            width: '100%',
-            padding: '12px 18px 12px 44px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            fontSize: '14px',
-            color: '#1e293b',
-            backgroundColor: '#f8fafc',
-            boxSizing: 'border-box',
-            outline: 'none'
-        },
-        searchIcon: {
-            position: 'absolute',
-            left: '16px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#94a3b8',
-            fontSize: '15px'
-        },
-        clearButton: {
-            position: 'absolute',
-            right: '12px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '26px',
-            height: '26px',
-            border: 'none',
-            background: '#e5e7eb',
-            color: '#64748b',
             cursor: 'pointer',
             display: 'flex',
-            alignItems: 'center',
+            fontSize: '18px',
+            height: '44px',
             justifyContent: 'center',
-            borderRadius: '8px',
-            fontSize: '12px'
-        },
-        filters: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            flexWrap: 'wrap',
-            marginLeft: 'auto'
-        },
-        viewToggle: {
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#f1f5f9',
-            borderRadius: '10px',
-            padding: '4px',
-            border: '1px solid #e5e7eb'
-        },
-        viewToggleBtn: (isActive) => ({
-            width: '40px',
-            height: '40px',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '15px',
-            backgroundColor: isActive ? '#1e3a5f' : 'transparent',
-            color: isActive ? 'white' : '#64748b',
-            transition: 'all 0.15s ease'
-        }),
-        select: {
-            padding: '12px 40px 12px 16px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            fontSize: '14px',
-            color: '#1e293b',
-            backgroundColor: '#f8fafc',
-            cursor: 'pointer',
-            appearance: 'none',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 12px center',
-            backgroundSize: '18px',
-            minWidth: '140px'
-        },
-        selectButton: {
-            padding: '12px 40px 12px 16px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            fontSize: '14px',
-            color: '#1e293b',
-            backgroundColor: '#f8fafc',
-            cursor: 'pointer',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 12px center',
-            backgroundSize: '18px',
-            fontWeight: 500
-        },
-        resetButton: {
-            width: '46px',
-            height: '46px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            backgroundColor: '#f8fafc',
-            color: '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '15px'
-        },
-        mobileHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px'
-        },
-        mobileTitleSection: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-        },
-        mobileTitle: {
-            fontSize: '22px',
-            fontWeight: 700,
-            color: '#1e293b',
-            margin: 0
+            width: '44px'
         },
         mobileActionButtons: {
-            display: 'flex',
             alignItems: 'center',
+            display: 'flex',
             gap: '10px'
-        },
-        mobileActionBtn: {
-            width: '44px',
-            height: '44px',
-            border: 'none',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px'
         },
         mobileAddBtn: {
             backgroundColor: '#1e3a5f',
             color: 'white'
-        },
-        mobileMenuBtn: {
-            backgroundColor: '#f1f5f9',
-            color: '#475569'
-        },
-        mobileSearchRow: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginTop: '14px'
-        },
-        mobileSearchBar: {
-            flex: 1,
-            position: 'relative'
-        },
-        mobileSearchInput: {
-            width: '100%',
-            padding: '14px 18px 14px 44px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            fontSize: '15px',
-            color: '#1e293b',
-            backgroundColor: '#f8fafc',
-            boxSizing: 'border-box',
-            outline: 'none'
-        },
-        mobileFilterToggle: (isActive) => ({
-            width: '50px',
-            height: '50px',
-            border: isActive ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
-            borderRadius: '12px',
-            backgroundColor: isActive ? '#f0f7ff' : '#f8fafc',
-            color: isActive ? '#1e3a5f' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px'
-        }),
-        mobileFiltersPanel: {
-            marginTop: '16px',
-            padding: '20px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '16px',
-            border: '1px solid #e5e7eb'
-        },
-        mobileFiltersGrid: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '14px'
         },
         mobileFilterItem: {
             display: 'flex',
@@ -390,103 +236,258 @@ function TopSection({
             gridColumn: 'span 2'
         },
         mobileFilterLabel: {
+            color: '#64748b',
             fontSize: '11px',
             fontWeight: 700,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
+        mobileFilterToggle: (isActive) => ({
+            alignItems: 'center',
+            backgroundColor: isActive ? '#f0f7ff' : '#f8fafc',
+            border: isActive ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            borderRadius: '12px',
+            color: isActive ? '#1e3a5f' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '18px',
+            height: '50px',
+            justifyContent: 'center',
+            width: '50px'
+        }),
+        mobileFiltersGrid: {
+            display: 'grid',
+            gap: '14px',
+            gridTemplateColumns: 'repeat(2, 1fr)'
+        },
+        mobileFiltersPanel: {
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            marginTop: '16px',
+            padding: '20px'
+        },
+        mobileHeader: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'space-between'
+        },
+        mobileMenuBtn: {
+            backgroundColor: '#f1f5f9',
+            color: '#475569'
+        },
+        mobileResetBtn: {
+            alignItems: 'center',
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '14px',
+            fontWeight: 600,
+            gap: '10px',
+            justifyContent: 'center',
+            padding: '14px',
+            width: '100%'
+        },
+        mobileSearchBar: {
+            flex: 1,
+            position: 'relative'
+        },
+        mobileSearchInput: {
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxSizing: 'border-box',
+            color: '#1e293b',
+            fontSize: '15px',
+            outline: 'none',
+            padding: '14px 18px 14px 44px',
+            width: '100%'
+        },
+        mobileSearchRow: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '12px',
+            marginTop: '14px'
+        },
+        mobileSelect: {
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            color: '#1e293b',
+            fontSize: '14px',
+            padding: '12px 16px',
+            width: '100%'
+        },
+        mobileSelectBtn: {
+            alignItems: 'center',
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            color: '#1e293b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '14px',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            width: '100%'
+        },
+        mobileTitle: {
+            color: '#1e293b',
+            fontSize: '22px',
+            fontWeight: 700,
+            margin: 0
+        },
+        mobileTitleSection: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '12px'
+        },
+        mobileViewBtn: (isActive) => ({
+            alignItems: 'center',
+            backgroundColor: isActive ? '#f0f7ff' : 'white',
+            border: isActive ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            borderRadius: '10px',
+            color: isActive ? '#1e3a5f' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            flex: 1,
+            fontSize: '14px',
+            fontWeight: 600,
+            gap: '8px',
+            justifyContent: 'center',
+            padding: '12px'
+        }),
         mobileViewToggle: {
             display: 'flex',
             gap: '10px'
         },
-        mobileViewBtn: (isActive) => ({
-            flex: 1,
-            display: 'flex',
+        primaryRow: {
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            padding: '12px',
-            border: isActive ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
-            borderRadius: '10px',
-            backgroundColor: isActive ? '#f0f7ff' : 'white',
-            color: isActive ? '#1e3a5f' : '#64748b',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer'
-        }),
-        mobileSelect: {
-            width: '100%',
-            padding: '12px 16px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            fontSize: '14px',
-            color: '#1e293b',
-            backgroundColor: 'white'
-        },
-        mobileSelectBtn: {
-            width: '100%',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            fontSize: '14px',
-            color: '#1e293b',
-            backgroundColor: 'white',
-            cursor: 'pointer'
+            gap: '16px',
+            justifyContent: 'space-between'
         },
-        mobileResetBtn: {
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            padding: '14px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            backgroundColor: 'white',
-            color: '#64748b',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer'
-        },
-        headerRow: {
-            display: 'flex',
+        resetButton: {
             alignItems: 'center',
             backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e5e7eb',
-            marginTop: '16px',
-            marginLeft: '-28px',
-            marginRight: '-28px',
-            marginBottom: '-24px',
-            paddingLeft: '28px',
-            paddingRight: '28px'
-        },
-        headerCell: {
-            padding: '12px 8px',
-            fontSize: '11px',
-            fontWeight: 700,
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
             color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
             cursor: 'pointer',
             display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            userSelect: 'none'
+            fontSize: '15px',
+            height: '46px',
+            justifyContent: 'center',
+            width: '46px'
         },
-        headerCellHover: {
-            color: '#1e3a5f'
+        searchBar: {
+            flex: '0 1 auto',
+            maxWidth: '420px',
+            minWidth: '220px',
+            position: 'relative'
+        },
+        searchIcon: {
+            color: '#94a3b8',
+            fontSize: '15px',
+            left: '16px',
+            position: 'absolute',
+            top: '50%',
+            transform: 'translateY(-50%)'
+        },
+        searchInput: {
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxSizing: 'border-box',
+            color: '#1e293b',
+            fontSize: '14px',
+            outline: 'none',
+            padding: '12px 18px 12px 44px',
+            width: '100%'
+        },
+        section: {
+            backgroundColor: 'white',
+            backgroundImage: `
+                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+            `,
+            backgroundPosition: '0 0, 0 0, 0 0',
+            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            padding: tightTop ? '16px 24px 20px' : '20px 28px 24px',
+            ...(sticky ? { position: 'sticky', top: 0, zIndex: 50 } : {})
+        },
+        select: {
+            appearance: 'none',
+            backgroundColor: '#f8fafc',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 12px center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '18px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            color: '#1e293b',
+            cursor: 'pointer',
+            fontSize: '14px',
+            minWidth: '140px',
+            padding: '12px 40px 12px 16px'
+        },
+        selectButton: {
+            backgroundColor: '#f8fafc',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 12px center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '18px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            color: '#1e293b',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 500,
+            padding: '12px 40px 12px 16px'
         },
         sortIcon: {
-            fontSize: '10px',
-            color: '#94a3b8'
+            color: '#94a3b8',
+            fontSize: '10px'
         },
         sortIconActive: {
             color: '#1e3a5f'
-        }
+        },
+        title: {
+            color: '#1e293b',
+            fontSize: '28px',
+            fontWeight: 700,
+            letterSpacing: '-0.5px',
+            margin: 0
+        },
+        viewToggle: {
+            alignItems: 'center',
+            backgroundColor: '#f1f5f9',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            display: 'flex',
+            padding: '4px'
+        },
+        viewToggleBtn: (isActive) => ({
+            alignItems: 'center',
+            backgroundColor: isActive ? '#1e3a5f' : 'transparent',
+            border: 'none',
+            borderRadius: '8px',
+            color: isActive ? 'white' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '15px',
+            height: '40px',
+            justifyContent: 'center',
+            transition: 'all 0.15s ease',
+            width: '40px'
+        })
     }
 
     if (isMobile) {
@@ -926,7 +927,7 @@ function TopSection({
                                         key={label}
                                         style={{
                                             ...styles.headerCell,
-                                            ...(isFlex ? { flex: 1, minWidth: 0 } : { width: colWidth, flexShrink: 0 })
+                                            ...(isFlex ? { flex: 1, minWidth: 0 } : { flexShrink: 0, width: colWidth })
                                         }}
                                         onClick={() => onHeaderClick && onHeaderClick(label)}
                                     >

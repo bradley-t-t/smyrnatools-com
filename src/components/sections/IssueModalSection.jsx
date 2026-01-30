@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import LoadingScreen from '../common/LoadingScreen'
-import ErrorMessage from '../common/ErrorMessage'
+
 import { UserService } from '../../services/UserService'
+import ErrorMessage from '../common/ErrorMessage'
+import LoadingScreen from '../common/LoadingScreen'
 
 function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [issues, setIssues] = useState([])

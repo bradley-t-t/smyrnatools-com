@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { OperatorService } from '../../../services/OperatorService'
+
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import { OperatorService } from '../../../services/OperatorService'
 
 const rmiReportStyles = `
 .rmi-report-plugin { }
@@ -125,7 +126,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     const [showAddPendingModal, setShowAddPendingModal] = useState(false)
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [plantModalTarget, setPlantModalTarget] = useState(null)
-    const [newTrainer, setNewTrainer] = useState({ trainerId: '', plant: '', position: 'Mixer Operator' })
+    const [newTrainer, setNewTrainer] = useState({ plant: '', position: 'Mixer Operator', trainerId: '' })
     const [newPending, setNewPending] = useState({
         name: '',
         plant: '',
@@ -432,7 +433,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                 [key]: [...(prev.snapshot_data?.[key] || []), trainer]
             }
         }))
-        setNewTrainer({ trainerId: '', plant: '', position: 'Mixer Operator' })
+        setNewTrainer({ plant: '', position: 'Mixer Operator', trainerId: '' })
         setShowAddTrainerModal(false)
     }
 
@@ -590,7 +591,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                                         type="button"
                                         className="rmi-category-btn-new rmi-btn-add-new"
                                         onClick={() => {
-                                            setNewTrainer({ trainerId: '', plant: '', position: 'Mixer Operator' })
+                                            setNewTrainer({ plant: '', position: 'Mixer Operator', trainerId: '' })
                                             setShowAddTrainerModal(true)
                                         }}
                                         disabled={readOnly}
@@ -686,7 +687,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                                         type="button"
                                         className="rmi-category-btn-new rmi-btn-add-new"
                                         onClick={() => {
-                                            setNewTrainer({ trainerId: '', plant: '', position: 'Tractor Operator' })
+                                            setNewTrainer({ plant: '', position: 'Tractor Operator', trainerId: '' })
                                             setShowAddTrainerModal(true)
                                         }}
                                         disabled={readOnly}

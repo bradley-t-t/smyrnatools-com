@@ -1,16 +1,39 @@
 import VerifiedUtility from './VerifiedUtility'
 
 const mixerUtility = {
-    isServiceOverdue(serviceDate) {
-        if (!serviceDate) return false
+    formatDate(date) {
+        if (!date) return 'Not available'
         try {
-            const service = new Date(serviceDate)
-            const today = new Date()
-            const diffDays = Math.ceil((today - service) / (1000 * 60 * 60 * 24))
-            return diffDays > 180
+            return new Date(date).toLocaleDateString()
         } catch (error) {
-            return false
+            return 'Invalid date'
         }
+    },
+    getCleanlinessAverage(mixers) {
+        if (!Array.isArray(mixers) || !mixers.length) return 'N/A'
+        const ratings = mixers.filter((m) => m.cleanlinessRating != null).map((m) => Number(m.cleanlinessRating))
+        return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 'N/A'
+    },
+    getNeedServiceCount(mixers) {
+        if (!Array.isArray(mixers)) return 0
+        return mixers.filter((mixer) => mixerUtility.isServiceOverdue(mixer.lastServiceDate)).length
+    },
+    getPlantCounts(mixers) {
+        if (!Array.isArray(mixers)) return {}
+        return mixers.reduce((counts, mixer) => {
+            const plant = mixer.assignedPlant || 'Unassigned'
+            counts[plant] = (counts[plant] || 0) + 1
+            return counts
+        }, {})
+    },
+    getStatusCounts(mixers) {
+        if (!Array.isArray(mixers)) return {}
+        const counts = { Active: 0, 'In Shop': 0, Retired: 0, Spare: 0, Total: mixers.length }
+        mixers.forEach((mixer) => {
+            const status = mixer.status || 'Unknown'
+            if (['Active', 'Spare', 'In Shop', 'Retired'].includes(status)) counts[status]++
+        })
+        return counts
     },
     isChipOverdue(chipDate) {
         if (!chipDate) return false
@@ -23,42 +46,19 @@ const mixerUtility = {
             return false
         }
     },
-    isVerified(updatedLast, updatedAt, updatedBy) {
-        return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
-    },
-    formatDate(date) {
-        if (!date) return 'Not available'
+    isServiceOverdue(serviceDate) {
+        if (!serviceDate) return false
         try {
-            return new Date(date).toLocaleDateString()
+            const service = new Date(serviceDate)
+            const today = new Date()
+            const diffDays = Math.ceil((today - service) / (1000 * 60 * 60 * 24))
+            return diffDays > 180
         } catch (error) {
-            return 'Invalid date'
+            return false
         }
     },
-    getStatusCounts(mixers) {
-        if (!Array.isArray(mixers)) return {}
-        const counts = { Total: mixers.length, Active: 0, Spare: 0, 'In Shop': 0, Retired: 0 }
-        mixers.forEach((mixer) => {
-            const status = mixer.status || 'Unknown'
-            if (['Active', 'Spare', 'In Shop', 'Retired'].includes(status)) counts[status]++
-        })
-        return counts
-    },
-    getPlantCounts(mixers) {
-        if (!Array.isArray(mixers)) return {}
-        return mixers.reduce((counts, mixer) => {
-            const plant = mixer.assignedPlant || 'Unassigned'
-            counts[plant] = (counts[plant] || 0) + 1
-            return counts
-        }, {})
-    },
-    getCleanlinessAverage(mixers) {
-        if (!Array.isArray(mixers) || !mixers.length) return 'N/A'
-        const ratings = mixers.filter((m) => m.cleanlinessRating != null).map((m) => Number(m.cleanlinessRating))
-        return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 'N/A'
-    },
-    getNeedServiceCount(mixers) {
-        if (!Array.isArray(mixers)) return 0
-        return mixers.filter((mixer) => mixerUtility.isServiceOverdue(mixer.lastServiceDate)).length
+    isVerified(updatedLast, updatedAt, updatedBy) {
+        return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
     }
 }
 

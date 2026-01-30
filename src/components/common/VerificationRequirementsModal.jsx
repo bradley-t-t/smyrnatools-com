@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { ValidationUtility } from '../../utils/ValidationUtility'
-import { UserService } from '../../services/UserService'
-import GrammarUtility from '../../utils/GrammarUtility'
-import DateUtility from '../../utils/DateUtility'
-import LoadingScreen from './LoadingScreen'
+
 import { supabase } from '../../services/DatabaseService'
+import { UserService } from '../../services/UserService'
+import DateUtility from '../../utils/DateUtility'
+import GrammarUtility from '../../utils/GrammarUtility'
+import { ValidationUtility } from '../../utils/ValidationUtility'
+import LoadingScreen from './LoadingScreen'
 
 export default function VerificationRequirementsModal({
     open,
@@ -45,9 +46,9 @@ export default function VerificationRequirementsModal({
     const [canDelete, setCanDelete] = useState(false)
     const [sectionsReady, setSectionsReady] = useState({
         checklist: false,
-        operator: false,
+        comments: false,
         issues: false,
-        comments: false
+        operator: false
     })
 
     const openIssues = issues.filter((issue) => !issue.time_completed)
@@ -78,9 +79,9 @@ export default function VerificationRequirementsModal({
         if (!open) {
             setSectionsReady({
                 checklist: false,
-                operator: false,
+                comments: false,
                 issues: false,
-                comments: false
+                operator: false
             })
             setExpandedSection([])
             return
@@ -115,7 +116,7 @@ export default function VerificationRequirementsModal({
             })
         } else {
             setTimeout(() => {
-                setSectionsReady((prev) => ({ ...prev, issues: true, comments: true }))
+                setSectionsReady((prev) => ({ ...prev, comments: true, issues: true }))
             }, 250)
         }
     }, [open, assignedOperator, itemId])
@@ -332,9 +333,10 @@ export default function VerificationRequirementsModal({
         onSaveAndVerify()
     }
 
+    const vinInfo = useMemo(() => ValidationUtility.explainVIN(vin || ''), [vin])
+
     if (!open) return null
 
-    const vinInfo = useMemo(() => ValidationUtility.explainVIN(vin || ''), [vin])
     const needsVin = missingFields.includes('VIN')
     const needsMake = missingFields.includes('Make')
     const needsModel = missingFields.includes('Model')
@@ -380,115 +382,20 @@ export default function VerificationRequirementsModal({
     }
 
     const styles = {
-        overlay: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-            padding: '20px'
-        },
-        modal: {
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '600px',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden'
-        },
-        header: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '20px 24px',
-            backgroundColor: '#1e3a5f',
-            color: 'white',
-            borderRadius: '16px 16px 0 0'
-        },
-        headerContent: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px'
-        },
-        headerIcon: {
-            fontSize: '24px'
-        },
-        headerTitle: {
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: 600,
-            color: 'white'
-        },
-        headerSubtitle: {
-            margin: '4px 0 0',
-            fontSize: '13px',
-            color: 'rgba(255,255,255,0.8)'
-        },
-        closeButton: {
-            width: '36px',
-            height: '36px',
-            border: 'none',
-            background: 'rgba(255,255,255,0.2)',
-            color: 'white',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '16px'
-        },
-        content: {
-            flex: 1,
-            overflowY: 'auto',
-            padding: '16px',
-            backgroundColor: 'white'
-        },
-        section: {
-            marginBottom: '12px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            backgroundColor: 'white'
-        },
-        sectionHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 16px',
+        actions: {
             backgroundColor: '#f8fafc',
-            border: 'none',
-            width: '100%',
-            cursor: 'pointer',
-            textAlign: 'left'
-        },
-        sectionTitle: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontSize: '14px',
-            fontWeight: 600,
-            color: '#1e3a5f'
-        },
-        sectionContent: {
-            padding: '16px',
             borderTop: '1px solid #e5e7eb',
-            backgroundColor: 'white'
+            display: 'flex',
+            gap: '12px',
+            padding: '16px 24px'
         },
         badge: {
-            display: 'inline-flex',
             alignItems: 'center',
-            padding: '4px 10px',
             borderRadius: '12px',
+            display: 'inline-flex',
             fontSize: '11px',
-            fontWeight: 600
+            fontWeight: 600,
+            padding: '4px 10px'
         },
         badgeComplete: {
             backgroundColor: '#dcfce7',
@@ -498,272 +405,367 @@ export default function VerificationRequirementsModal({
             backgroundColor: '#fef2f2',
             color: '#991b1b'
         },
-        badgeWarning: {
-            backgroundColor: '#fef3c7',
-            color: '#92400e'
-        },
         badgeInfo: {
             backgroundColor: '#dbeafe',
             color: '#1e40af'
         },
+        badgeWarning: {
+            backgroundColor: '#fef3c7',
+            color: '#92400e'
+        },
+        cancelButton: {
+            backgroundColor: '#f1f5f9',
+            border: 'none',
+            borderRadius: '10px',
+            color: '#374151',
+            cursor: 'pointer',
+            flex: 1,
+            fontSize: '14px',
+            fontWeight: 600,
+            padding: '12px 20px'
+        },
+        closeButton: {
+            alignItems: 'center',
+            background: 'rgba(255,255,255,0.2)',
+            border: 'none',
+            borderRadius: '50%',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '16px',
+            height: '36px',
+            justifyContent: 'center',
+            width: '36px'
+        },
+        completeButton: {
+            alignItems: 'center',
+            backgroundColor: '#dcfce7',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#166534',
+            cursor: 'pointer',
+            display: 'flex',
+            height: '28px',
+            justifyContent: 'center',
+            width: '28px'
+        },
+        content: {
+            backgroundColor: 'white',
+            flex: 1,
+            overflowY: 'auto',
+            padding: '16px'
+        },
+        deleteButton: {
+            alignItems: 'center',
+            backgroundColor: '#fef2f2',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#991b1b',
+            cursor: 'pointer',
+            display: 'flex',
+            height: '28px',
+            justifyContent: 'center',
+            width: '28px'
+        },
         formGroup: {
             marginBottom: '16px'
         },
-        label: {
-            display: 'block',
-            marginBottom: '6px',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: '#374151'
-        },
-        requiredIndicator: {
-            color: '#dc2626',
-            fontSize: '11px',
-            marginLeft: '6px'
-        },
-        input: {
-            width: '100%',
-            padding: '10px 14px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '14px',
-            color: '#374151',
-            backgroundColor: 'white',
-            boxSizing: 'border-box'
-        },
-        inputError: {
-            borderColor: '#dc2626'
-        },
-        hint: {
-            marginTop: '6px',
-            fontSize: '12px',
-            color: '#64748b'
-        },
-        warningText: {
-            fontSize: '12px',
-            color: '#dc2626',
-            marginTop: '4px'
-        },
-        note: {
+        header: {
+            alignItems: 'center',
+            backgroundColor: '#1e3a5f',
+            borderRadius: '16px 16px 0 0',
+            color: 'white',
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: '10px',
-            padding: '14px 16px',
-            backgroundColor: '#fef3c7',
-            border: '2px solid #f59e0b',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#92400e',
-            marginBottom: '12px'
+            justifyContent: 'space-between',
+            padding: '20px 24px'
         },
-        table: {
-            width: '100%',
-            borderCollapse: 'collapse',
-            backgroundColor: 'white'
+        headerContent: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '14px'
         },
-        tableLabel: {
-            padding: '10px 12px',
-            backgroundColor: '#f8fafc',
-            fontWeight: 600,
+        headerIcon: {
+            fontSize: '24px'
+        },
+        headerSubtitle: {
+            color: 'rgba(255,255,255,0.8)',
             fontSize: '13px',
-            color: '#1e3a5f',
-            width: '35%',
-            borderBottom: '1px solid #e5e7eb'
+            margin: '4px 0 0'
         },
-        tableValue: {
-            padding: '10px 12px',
-            fontSize: '14px',
-            color: '#374151',
-            borderBottom: '1px solid #e5e7eb',
-            backgroundColor: 'white'
+        headerTitle: {
+            color: 'white',
+            fontSize: '18px',
+            fontWeight: 600,
+            margin: 0
         },
         highlightRow: {
             backgroundColor: '#fff7ed'
         },
-        requiredBadgeInline: {
-            display: 'inline-block',
-            marginLeft: '8px',
-            padding: '2px 8px',
-            backgroundColor: '#dc2626',
-            color: 'white',
-            fontSize: '10px',
-            fontWeight: 600,
-            borderRadius: '4px'
-        },
-        ratingInline: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-        },
-        starGroup: {
-            display: 'flex',
-            gap: '4px'
-        },
-        star: {
-            fontSize: '18px',
-            color: '#e5e7eb',
-            cursor: 'pointer'
-        },
-        starFilled: {
-            color: '#f59e0b'
-        },
-        ratingText: {
-            fontSize: '13px',
-            color: '#374151'
-        },
-        phoneControl: {
-            display: 'flex',
-            gap: '8px'
-        },
-        phoneInput: {
-            flex: 1,
-            padding: '8px 12px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '14px',
-            color: '#374151',
-            backgroundColor: 'white'
-        },
-        savePhoneButton: {
-            padding: '8px 12px',
-            backgroundColor: '#1e3a5f',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
+        hint: {
+            color: '#64748b',
+            fontSize: '12px',
+            marginTop: '6px'
         },
         inlineValidation: {
-            display: 'flex',
             alignItems: 'center',
+            color: '#dc2626',
+            display: 'flex',
+            fontSize: '12px',
             gap: '6px',
-            marginTop: '6px',
-            fontSize: '12px',
-            color: '#dc2626'
+            marginTop: '6px'
         },
-        noData: {
-            textAlign: 'center',
-            padding: '24px',
-            color: '#374151'
+        input: {
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            boxSizing: 'border-box',
+            color: '#374151',
+            fontSize: '14px',
+            padding: '10px 14px',
+            width: '100%'
         },
-        noDataIcon: {
-            fontSize: '32px',
-            marginBottom: '12px',
-            color: '#64748b'
-        },
-        issueItem: {
-            padding: '14px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '10px',
-            marginBottom: '10px',
-            border: '1px solid #e5e7eb'
-        },
-        issueHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '10px',
-            flexWrap: 'wrap'
-        },
-        issueSeverity: {
-            padding: '4px 10px',
-            borderRadius: '6px',
-            fontSize: '11px',
-            fontWeight: 600
-        },
-        severityHigh: {
-            backgroundColor: '#fef2f2',
-            color: '#991b1b'
-        },
-        severityMedium: {
-            backgroundColor: '#fef3c7',
-            color: '#92400e'
-        },
-        severityLow: {
-            backgroundColor: '#dbeafe',
-            color: '#1e40af'
-        },
-        issueCreator: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12px',
-            color: '#374151'
-        },
-        issueDate: {
-            fontSize: '12px',
-            color: '#64748b'
+        inputError: {
+            borderColor: '#dc2626'
         },
         issueActions: {
             display: 'flex',
             gap: '6px',
             marginLeft: 'auto'
         },
-        completeButton: {
-            width: '28px',
-            height: '28px',
-            border: 'none',
-            backgroundColor: '#dcfce7',
-            color: '#166534',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
+        issueCreator: {
             alignItems: 'center',
-            justifyContent: 'center'
+            color: '#374151',
+            display: 'flex',
+            fontSize: '12px',
+            gap: '6px'
         },
-        deleteButton: {
-            width: '28px',
-            height: '28px',
-            border: 'none',
-            backgroundColor: '#fef2f2',
-            color: '#991b1b',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
+        issueDate: {
+            color: '#64748b',
+            fontSize: '12px'
+        },
+        issueHeader: {
             alignItems: 'center',
-            justifyContent: 'center'
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            marginBottom: '10px'
+        },
+        issueItem: {
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            marginBottom: '10px',
+            padding: '14px'
+        },
+        issueSeverity: {
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 600,
+            padding: '4px 10px'
         },
         issueText: {
-            fontSize: '14px',
             color: '#374151',
+            fontSize: '14px',
             lineHeight: 1.5
         },
-        actions: {
-            display: 'flex',
-            gap: '12px',
-            padding: '16px 24px',
-            borderTop: '1px solid #e5e7eb',
-            backgroundColor: '#f8fafc'
-        },
-        cancelButton: {
-            flex: 1,
-            padding: '12px 20px',
-            backgroundColor: '#f1f5f9',
+        label: {
             color: '#374151',
-            border: 'none',
-            borderRadius: '10px',
-            fontSize: '14px',
+            display: 'block',
+            fontSize: '13px',
             fontWeight: 600,
-            cursor: 'pointer'
+            marginBottom: '6px'
+        },
+        modal: {
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '90vh',
+            maxWidth: '600px',
+            overflow: 'hidden',
+            width: '100%'
+        },
+        noData: {
+            color: '#374151',
+            padding: '24px',
+            textAlign: 'center'
+        },
+        noDataIcon: {
+            color: '#64748b',
+            fontSize: '32px',
+            marginBottom: '12px'
+        },
+        note: {
+            alignItems: 'flex-start',
+            backgroundColor: '#fef3c7',
+            border: '2px solid #f59e0b',
+            borderRadius: '10px',
+            color: '#92400e',
+            display: 'flex',
+            fontSize: '14px',
+            fontWeight: 500,
+            gap: '10px',
+            marginBottom: '12px',
+            padding: '14px 16px'
+        },
+        overlay: {
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            bottom: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            left: 0,
+            padding: '20px',
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            zIndex: 10000
+        },
+        phoneControl: {
+            display: 'flex',
+            gap: '8px'
+        },
+        phoneInput: {
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#374151',
+            flex: 1,
+            fontSize: '14px',
+            padding: '8px 12px'
         },
         primaryButton: {
-            flex: 2,
-            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            padding: '12px 20px',
             backgroundColor: '#1e3a5f',
-            color: 'white',
             border: 'none',
             borderRadius: '10px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            flex: 2,
             fontSize: '14px',
             fontWeight: 600,
-            cursor: 'pointer'
+            gap: '8px',
+            justifyContent: 'center',
+            padding: '12px 20px'
         },
         primaryButtonDisabled: {
-            opacity: 0.5,
-            cursor: 'not-allowed'
+            cursor: 'not-allowed',
+            opacity: 0.5
+        },
+        ratingInline: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '12px'
+        },
+        ratingText: {
+            color: '#374151',
+            fontSize: '13px'
+        },
+        requiredBadgeInline: {
+            backgroundColor: '#dc2626',
+            borderRadius: '4px',
+            color: 'white',
+            display: 'inline-block',
+            fontSize: '10px',
+            fontWeight: 600,
+            marginLeft: '8px',
+            padding: '2px 8px'
+        },
+        requiredIndicator: {
+            color: '#dc2626',
+            fontSize: '11px',
+            marginLeft: '6px'
+        },
+        savePhoneButton: {
+            backgroundColor: '#1e3a5f',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            padding: '8px 12px'
+        },
+        section: {
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            marginBottom: '12px',
+            overflow: 'hidden'
+        },
+        sectionContent: {
+            backgroundColor: 'white',
+            borderTop: '1px solid #e5e7eb',
+            padding: '16px'
+        },
+        sectionHeader: {
+            alignItems: 'center',
+            backgroundColor: '#f8fafc',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '14px 16px',
+            textAlign: 'left',
+            width: '100%'
+        },
+        sectionTitle: {
+            alignItems: 'center',
+            color: '#1e3a5f',
+            display: 'flex',
+            fontSize: '14px',
+            fontWeight: 600,
+            gap: '10px'
+        },
+        severityHigh: {
+            backgroundColor: '#fef2f2',
+            color: '#991b1b'
+        },
+        severityLow: {
+            backgroundColor: '#dbeafe',
+            color: '#1e40af'
+        },
+        severityMedium: {
+            backgroundColor: '#fef3c7',
+            color: '#92400e'
+        },
+        star: {
+            color: '#e5e7eb',
+            cursor: 'pointer',
+            fontSize: '18px'
+        },
+        starFilled: {
+            color: '#f59e0b'
+        },
+        starGroup: {
+            display: 'flex',
+            gap: '4px'
+        },
+        table: {
+            backgroundColor: 'white',
+            borderCollapse: 'collapse',
+            width: '100%'
+        },
+        tableLabel: {
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            color: '#1e3a5f',
+            fontSize: '13px',
+            fontWeight: 600,
+            padding: '10px 12px',
+            width: '35%'
+        },
+        tableValue: {
+            backgroundColor: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            color: '#374151',
+            fontSize: '14px',
+            padding: '10px 12px'
+        },
+        warningText: {
+            color: '#dc2626',
+            fontSize: '12px',
+            marginTop: '4px'
         }
     }
 
@@ -935,10 +937,10 @@ export default function VerificationRequirementsModal({
                                                 )}
                                                 <div
                                                     style={{
-                                                        fontSize: '11px',
                                                         color: '#64748b',
-                                                        marginTop: '4px',
-                                                        lineHeight: '1.4'
+                                                        fontSize: '11px',
+                                                        lineHeight: '1.4',
+                                                        marginTop: '4px'
                                                     }}
                                                 >
                                                     Service will show as overdue if it has been more than 6 months since
@@ -1115,10 +1117,10 @@ export default function VerificationRequirementsModal({
                                     ) : (
                                         <div style={styles.noData}>
                                             <i className="fas fa-exclamation-triangle" style={styles.noDataIcon}></i>
-                                            <p style={{ margin: '0 0 8px', color: '#374151' }}>
+                                            <p style={{ color: '#374151', margin: '0 0 8px' }}>
                                                 Unable to load operator information
                                             </p>
-                                            <p style={{ margin: 0, fontSize: '13px' }}>
+                                            <p style={{ fontSize: '13px', margin: 0 }}>
                                                 The operator may have been removed or there was a connection issue
                                             </p>
                                         </div>
@@ -1278,9 +1280,9 @@ export default function VerificationRequirementsModal({
                                                 <div key={comment.id} style={styles.issueItem}>
                                                     <div
                                                         style={{
+                                                            alignItems: 'center',
                                                             display: 'flex',
                                                             justifyContent: 'space-between',
-                                                            alignItems: 'center',
                                                             marginBottom: '8px'
                                                         }}
                                                     >
@@ -1316,9 +1318,9 @@ export default function VerificationRequirementsModal({
                     <div
                         style={{
                             ...styles.note,
-                            margin: '0 16px 16px',
                             backgroundColor: '#fef2f2',
-                            borderColor: '#dc2626'
+                            borderColor: '#dc2626',
+                            margin: '0 16px 16px'
                         }}
                     >
                         <i className="fas fa-exclamation-triangle" style={{ color: '#991b1b' }}></i>

@@ -27,78 +27,78 @@ function CardSection({
     const styles = {
         card: {
             background: 'white',
+            border: '1px solid #e5e7eb',
             borderRadius: '12px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            marginBottom: '24px',
-            transition: 'all 0.2s ease',
-            overflow: 'hidden',
             cursor: onSelect ? 'pointer' : 'default',
+            marginBottom: '24px',
+            overflow: 'hidden',
             position: 'relative',
-            border: '1px solid #e5e7eb'
+            transition: 'all 0.2s ease'
         },
-        statusBar: {
-            height: '100%',
-            width: '6px',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            zIndex: 10,
-            borderRadius: '8px 0 0 8px',
-            background: statusColor
-        },
-        verificationFlag: (verified) => ({
-            position: 'absolute',
-            top: '16px',
-            right: '12px',
-            fontSize: '1.3rem',
-            zIndex: 5,
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
-            color: verified ? '#16a34a' : '#dc2626'
-        }),
         cardContent: {
             padding: '32px'
-        },
-        cardHeader: {
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            marginBottom: '28px',
-            paddingBottom: '18px',
-            borderBottom: '2px solid #e5e7eb',
-            gap: '8px'
-        },
-        itemName: {
-            margin: 0,
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            letterSpacing: '-0.01em',
-            lineHeight: 1.3,
-            textAlign: 'left',
-            width: '100%',
-            color: accentColor
-        },
-        itemSubtitle: {
-            margin: 0,
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: '#64748b',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            textAlign: 'left',
-            width: '100%'
-        },
-        warningBadge: {
-            color: '#f59e0b',
-            marginLeft: '8px',
-            fontSize: '1.1rem'
         },
         cardDetails: {
             display: 'flex',
             flexDirection: 'column',
             gap: '4px'
+        },
+        cardHeader: {
+            alignItems: 'flex-start',
+            borderBottom: '2px solid #e5e7eb',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            justifyContent: 'flex-start',
+            marginBottom: '28px',
+            paddingBottom: '18px'
+        },
+        itemName: {
+            color: accentColor,
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+            lineHeight: 1.3,
+            margin: 0,
+            textAlign: 'left',
+            width: '100%'
+        },
+        itemSubtitle: {
+            alignItems: 'center',
+            color: '#64748b',
+            display: 'flex',
+            fontSize: '1rem',
+            fontWeight: 600,
+            gap: '6px',
+            margin: 0,
+            textAlign: 'left',
+            width: '100%'
+        },
+        statusBar: {
+            background: statusColor,
+            borderRadius: '8px 0 0 8px',
+            bottom: 0,
+            height: '100%',
+            left: 0,
+            position: 'absolute',
+            top: 0,
+            width: '6px',
+            zIndex: 10
+        },
+        verificationFlag: (verified) => ({
+            color: verified ? '#16a34a' : '#dc2626',
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
+            fontSize: '1.3rem',
+            position: 'absolute',
+            right: '12px',
+            top: '16px',
+            zIndex: 5
+        }),
+        warningBadge: {
+            color: '#f59e0b',
+            fontSize: '1.1rem',
+            marginLeft: '8px'
         }
     }
 

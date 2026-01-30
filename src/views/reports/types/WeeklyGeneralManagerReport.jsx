@@ -1,10 +1,11 @@
 import React from 'react'
+
+import { AIService } from '../../../services/AIService'
 import { supabase } from '../../../services/DatabaseService'
 import { ReportService } from '../../../services/ReportService'
-import { ReportUtility } from '../../../utils/ReportUtility'
 import { reportTypeMap } from '../../../types/ReportTypes'
+import { ReportUtility } from '../../../utils/ReportUtility'
 import { ReadyMixInstructorReviewPlugin } from './WeeklyReadyMixInstructorReport'
-import { AIService } from '../../../services/AIService'
 
 const gmReportStyles = `
 .rpt-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
@@ -191,13 +192,13 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             if (!cancelled) {
                 setEffReports(
                     effFinal.map((r) => ({
+                        completed: r.completed,
+                        data: r.data,
                         id: r.id,
                         plant_code: r.data.plant,
                         plant_name: r.data.plant,
                         report_date: r.data.report_date || '',
                         rows: Array.isArray(r.data.rows) ? r.data.rows : [],
-                        data: r.data,
-                        completed: r.completed,
                         submitted_at: r.submitted_at
                     }))
                 )
@@ -430,42 +431,42 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 const plantSummaries = plants.map((p) => {
                     const code = p.plant_code
                     return {
+                        downTrucks: form[`down_trucks_${code}`],
+                        hours: form[`total_hours_${code}`],
+                        lastWeekDown: getLastWeekValue(`down_trucks_${code}`),
+                        lastWeekHours: getLastWeekValue(`total_hours_${code}`),
+                        lastWeekOperators: getLastWeekValue(`active_operators_${code}`),
+                        lastWeekRunnable: getLastWeekValue(`runnable_trucks_${code}`),
+                        lastWeekYardage: getLastWeekValue(`total_yardage_${code}`),
+                        notes: form[`notes_${code}`],
+                        operators: form[`active_operators_${code}`],
+                        operatorsLeaving: form[`operators_leaving_${code}`],
+                        operatorsStarting: form[`operators_starting_${code}`],
+                        operatorsTraining: form[`new_operators_training_${code}`],
                         plantCode: code,
                         plantName: p.plant_name || code,
-                        operators: form[`active_operators_${code}`],
-                        lastWeekOperators: getLastWeekValue(`active_operators_${code}`),
                         runnableTrucks: form[`runnable_trucks_${code}`],
-                        lastWeekRunnable: getLastWeekValue(`runnable_trucks_${code}`),
-                        downTrucks: form[`down_trucks_${code}`],
-                        lastWeekDown: getLastWeekValue(`down_trucks_${code}`),
-                        operatorsStarting: form[`operators_starting_${code}`],
-                        operatorsLeaving: form[`operators_leaving_${code}`],
-                        operatorsTraining: form[`new_operators_training_${code}`],
-                        yardage: form[`total_yardage_${code}`],
-                        lastWeekYardage: getLastWeekValue(`total_yardage_${code}`),
-                        hours: form[`total_hours_${code}`],
-                        lastWeekHours: getLastWeekValue(`total_hours_${code}`),
-                        notes: form[`notes_${code}`]
+                        yardage: form[`total_yardage_${code}`]
                     }
                 })
 
                 const efficiencyData = effReports.map((r) => {
                     const insights = ReportService.getPlantProductionInsights(r.rows || [])
                     return {
+                        avgLoadsPerHour: insights.avgLoadsPerHour,
                         plantCode: r.plant_code,
-                        totalLoads: insights.totalLoads,
                         totalHours: insights.totalHours,
-                        avgLoadsPerHour: insights.avgLoadsPerHour
+                        totalLoads: insights.totalLoads
                     }
                 })
 
                 const reportContext = {
-                    weekIso,
-                    plants,
-                    plantSummaries,
-                    efficiencyReports: efficiencyData,
                     aggregateData: aggReport?.data || null,
-                    rmiReport: rmiReport
+                    efficiencyReports: efficiencyData,
+                    plantSummaries,
+                    plants,
+                    rmiReport: rmiReport,
+                    weekIso
                 }
 
                 const analysis = await AIService.generateGMReportAnalysis(reportContext)
@@ -504,42 +505,42 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             const plantSummaries = plants.map((p) => {
                 const code = p.plant_code
                 return {
+                    downTrucks: form[`down_trucks_${code}`],
+                    hours: form[`total_hours_${code}`],
+                    lastWeekDown: getLastWeekValue(`down_trucks_${code}`),
+                    lastWeekHours: getLastWeekValue(`total_hours_${code}`),
+                    lastWeekOperators: getLastWeekValue(`active_operators_${code}`),
+                    lastWeekRunnable: getLastWeekValue(`runnable_trucks_${code}`),
+                    lastWeekYardage: getLastWeekValue(`total_yardage_${code}`),
+                    notes: form[`notes_${code}`],
+                    operators: form[`active_operators_${code}`],
+                    operatorsLeaving: form[`operators_leaving_${code}`],
+                    operatorsStarting: form[`operators_starting_${code}`],
+                    operatorsTraining: form[`new_operators_training_${code}`],
                     plantCode: code,
                     plantName: p.plant_name || code,
-                    operators: form[`active_operators_${code}`],
-                    lastWeekOperators: getLastWeekValue(`active_operators_${code}`),
                     runnableTrucks: form[`runnable_trucks_${code}`],
-                    lastWeekRunnable: getLastWeekValue(`runnable_trucks_${code}`),
-                    downTrucks: form[`down_trucks_${code}`],
-                    lastWeekDown: getLastWeekValue(`down_trucks_${code}`),
-                    operatorsStarting: form[`operators_starting_${code}`],
-                    operatorsLeaving: form[`operators_leaving_${code}`],
-                    operatorsTraining: form[`new_operators_training_${code}`],
-                    yardage: form[`total_yardage_${code}`],
-                    lastWeekYardage: getLastWeekValue(`total_yardage_${code}`),
-                    hours: form[`total_hours_${code}`],
-                    lastWeekHours: getLastWeekValue(`total_hours_${code}`),
-                    notes: form[`notes_${code}`]
+                    yardage: form[`total_yardage_${code}`]
                 }
             })
 
             const efficiencyData = effReports.map((r) => {
                 const insights = ReportService.getPlantProductionInsights(r.rows || [])
                 return {
+                    avgLoadsPerHour: insights.avgLoadsPerHour,
                     plantCode: r.plant_code,
-                    totalLoads: insights.totalLoads,
                     totalHours: insights.totalHours,
-                    avgLoadsPerHour: insights.avgLoadsPerHour
+                    totalLoads: insights.totalLoads
                 }
             })
 
             const reportContext = {
-                weekIso,
-                plants,
-                plantSummaries,
-                efficiencyReports: efficiencyData,
                 aggregateData: aggReport?.data || null,
-                rmiReport: rmiReport
+                efficiencyReports: efficiencyData,
+                plantSummaries,
+                plants,
+                rmiReport: rmiReport,
+                weekIso
             }
 
             const analysis = await AIService.generateGMReportAnalysis(reportContext)
@@ -573,7 +574,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             const upp = t.toUpperCase()
             const digits = t.replace(/\D/g, '')
             const strip = digits.replace(/^0+/, '')
-            return { upp, digits: strip || digits }
+            return { digits: strip || digits, upp }
         }
         const want = normalize(code)
         for (const k of Object.keys(data)) {
@@ -708,12 +709,12 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     <button
                         onClick={handleRegenerateAI}
                         style={{
-                            marginLeft: '0.5rem',
-                            textDecoration: 'underline',
                             background: 'none',
                             border: 'none',
                             color: 'inherit',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            marginLeft: '0.5rem',
+                            textDecoration: 'underline'
                         }}
                     >
                         Try again
@@ -753,15 +754,15 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                         {plants.map((p) => {
                             const code = p.plant_code
                             const f = {
+                                down: `down_trucks_${code}`,
+                                hours: `total_hours_${code}`,
+                                leaving: `operators_leaving_${code}`,
+                                notes: `notes_${code}`,
                                 ops: `active_operators_${code}`,
                                 runnable: `runnable_trucks_${code}`,
-                                down: `down_trucks_${code}`,
                                 starting: `operators_starting_${code}`,
-                                leaving: `operators_leaving_${code}`,
                                 training: `new_operators_training_${code}`,
-                                yardage: `total_yardage_${code}`,
-                                hours: `total_hours_${code}`,
-                                notes: `notes_${code}`
+                                yardage: `total_yardage_${code}`
                             }
                             return (
                                 <div key={code} className="rpt-card rpt-p-16 rpt-mb-16">
@@ -1242,25 +1243,25 @@ export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
                 const plantSummaries = plants.map((p) => {
                     const code = p.plant_code
                     return {
+                        downTrucks: form[`down_trucks_${code}`],
+                        hours: form[`total_hours_${code}`],
+                        notes: form[`notes_${code}`],
+                        operators: form[`active_operators_${code}`],
+                        operatorsLeaving: form[`operators_leaving_${code}`],
+                        operatorsStarting: form[`operators_starting_${code}`],
+                        operatorsTraining: form[`new_operators_training_${code}`],
                         plantCode: code,
                         plantName: p.plant_name || code,
-                        operators: form[`active_operators_${code}`],
                         runnableTrucks: form[`runnable_trucks_${code}`],
-                        downTrucks: form[`down_trucks_${code}`],
-                        operatorsStarting: form[`operators_starting_${code}`],
-                        operatorsLeaving: form[`operators_leaving_${code}`],
-                        operatorsTraining: form[`new_operators_training_${code}`],
-                        yardage: form[`total_yardage_${code}`],
-                        hours: form[`total_hours_${code}`],
-                        notes: form[`notes_${code}`]
+                        yardage: form[`total_yardage_${code}`]
                     }
                 })
 
                 const reportContext = {
-                    weekIso,
-                    plants,
                     plantSummaries,
-                    rmiReport: rmiReport
+                    plants,
+                    rmiReport: rmiReport,
+                    weekIso
                 }
 
                 const analysis = await AIService.generateGMReportAnalysis(reportContext)
@@ -1298,25 +1299,25 @@ export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
             const plantSummaries = plants.map((p) => {
                 const code = p.plant_code
                 return {
+                    downTrucks: form[`down_trucks_${code}`],
+                    hours: form[`total_hours_${code}`],
+                    notes: form[`notes_${code}`],
+                    operators: form[`active_operators_${code}`],
+                    operatorsLeaving: form[`operators_leaving_${code}`],
+                    operatorsStarting: form[`operators_starting_${code}`],
+                    operatorsTraining: form[`new_operators_training_${code}`],
                     plantCode: code,
                     plantName: p.plant_name || code,
-                    operators: form[`active_operators_${code}`],
                     runnableTrucks: form[`runnable_trucks_${code}`],
-                    downTrucks: form[`down_trucks_${code}`],
-                    operatorsStarting: form[`operators_starting_${code}`],
-                    operatorsLeaving: form[`operators_leaving_${code}`],
-                    operatorsTraining: form[`new_operators_training_${code}`],
-                    yardage: form[`total_yardage_${code}`],
-                    hours: form[`total_hours_${code}`],
-                    notes: form[`notes_${code}`]
+                    yardage: form[`total_yardage_${code}`]
                 }
             })
 
             const reportContext = {
-                weekIso,
-                plants,
                 plantSummaries,
-                rmiReport: rmiReport
+                plants,
+                rmiReport: rmiReport,
+                weekIso
             }
 
             const analysis = await AIService.generateGMReportAnalysis(reportContext)
@@ -1353,12 +1354,12 @@ export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
                     <button
                         onClick={handleRegenerateAI}
                         style={{
-                            marginLeft: '0.5rem',
-                            textDecoration: 'underline',
                             background: 'none',
                             border: 'none',
                             color: 'inherit',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            marginLeft: '0.5rem',
+                            textDecoration: 'underline'
                         }}
                     >
                         Try again

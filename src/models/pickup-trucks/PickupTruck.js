@@ -30,19 +30,19 @@ export class PickupTruck {
 
     toApiFormat() {
         const apiObject = {
-            vin: this.vin || null,
-            make: this.make || null,
-            model: this.model || null,
-            year: this.year || null,
             assigned: this.assigned || null,
             assigned_plant: this.assignedPlant || null,
-            status: this.status || null,
-            mileage: typeof this.mileage === 'number' && this.mileage >= 0 ? this.mileage : null,
             comments: this.comments || null,
             created_at: DateUtility.toDbTimestamp(this.createdAt) || DateUtility.nowDb(),
+            make: this.make || null,
+            mileage: typeof this.mileage === 'number' && this.mileage >= 0 ? this.mileage : null,
+            model: this.model || null,
+            status: this.status || null,
             updated_at: DateUtility.nowDb(),
+            updated_by: this.updatedBy || null,
             updated_last: DateUtility.toDbTimestamp(this.updatedLast),
-            updated_by: this.updatedBy || null
+            vin: this.vin || null,
+            year: this.year || null
         }
         if (this.id) apiObject.id = this.id
         return apiObject

@@ -2,16 +2,16 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 const ProportionsCalculator = () => {
     const [target, setTarget] = useState({
+        cement: '',
         coarse: '',
         fine: '',
-        cement: '',
         supplemental: ''
     })
 
     const [actual, setActual] = useState({
+        cement: '',
         coarse: '',
         fine: '',
-        cement: '',
         supplemental: ''
     })
 
@@ -27,16 +27,16 @@ const ProportionsCalculator = () => {
 
     const calculateAdjustments = useCallback(() => {
         const t = {
+            cement: parseFloat(target.cement) || 0,
             coarse: parseFloat(target.coarse) || 0,
             fine: parseFloat(target.fine) || 0,
-            cement: parseFloat(target.cement) || 0,
             supplemental: parseFloat(target.supplemental) || 0
         }
 
         const a = {
+            cement: parseFloat(actual.cement) || 0,
             coarse: parseFloat(actual.coarse) || 0,
             fine: parseFloat(actual.fine) || 0,
-            cement: parseFloat(actual.cement) || 0,
             supplemental: parseFloat(actual.supplemental) || 0
         }
 
@@ -149,16 +149,16 @@ const ProportionsCalculator = () => {
         const adjustedYards = totalAdjustedWeight > 0 ? totalAdjustedWeight / 3800 : 0
 
         setAdjustments({
+            adjustedYards,
+            cement: adjustCite,
             coarse: adjustCoarse,
             fine: adjustFine,
-            cement: adjustCite,
-            supplemental: adjustSupp,
-            targetYards,
-            adjustedYards,
             ratios: {
                 targetAggRatio: targetAggRatio.toFixed(2),
                 targetAggToCite: targetAggToCiteRatio.toFixed(2)
-            }
+            },
+            supplemental: adjustSupp,
+            targetYards
         })
     }, [target, actual])
 
@@ -167,8 +167,8 @@ const ProportionsCalculator = () => {
     }, [calculateAdjustments])
 
     const clearForm = () => {
-        setTarget({ coarse: '', fine: '', cement: '', supplemental: '' })
-        setActual({ coarse: '', fine: '', cement: '', supplemental: '' })
+        setTarget({ cement: '', coarse: '', fine: '', supplemental: '' })
+        setActual({ cement: '', coarse: '', fine: '', supplemental: '' })
         setAdjustments(null)
     }
 
@@ -182,217 +182,217 @@ const ProportionsCalculator = () => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
-        container: {
-            background: 'white',
-            borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb'
-        },
-        section: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        sectionHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            paddingBottom: '1rem',
-            borderBottom: '2px solid #f1f5f9',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        formulaLayout: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '1rem' : '2rem',
-            flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row'
-        },
-        formulaRow: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.5rem',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fraction: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            minWidth: isMobile ? '100%' : '200px',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fractionPart: {
-            padding: isMobile ? '0.75rem' : '1rem'
-        },
-        fractionBar: {
-            height: '2px',
-            background: '#1e3a5f'
-        },
-        formulaInput: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        label: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        inputWrap: {
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center'
-        },
-        input: {
-            width: '100%',
-            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
-        },
-        inputUnit: {
-            position: 'absolute',
-            right: isMobile ? '0.75rem' : '1rem',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#94a3b8'
-        },
-        formulaLabel: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#1e3a5f',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        formulaDivider: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
         actualGrid: {
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: isMobile ? '1rem' : '1.5rem'
+            gap: isMobile ? '1rem' : '1.5rem',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))'
         },
         actualItem: {
             display: 'flex',
             flexDirection: 'column',
             gap: '0.5rem'
         },
-        resultContainer: {
-            background: '#f0fdf4',
-            border: '2px solid #dcfce7',
-            borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
-            marginBottom: isMobile ? '1.5rem' : '2rem'
+        addLabel: {
+            color: '#64748b',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
-        resultHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            color: '#16a34a'
-        },
-        additionsGrid: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem',
-            marginBottom: '1.5rem'
-        },
+        addValue: (hasAdd) => ({
+            color: hasAdd ? '#16a34a' : '#94a3b8',
+            fontSize: '1.125rem',
+            fontWeight: 700
+        }),
         additionItem: (hasAdd) => ({
+            background: hasAdd ? '#dcfce7' : '#f8fafc',
+            border: `2px solid ${hasAdd ? '#16a34a' : '#e5e7eb'}`,
+            borderRadius: '8px',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.5rem',
-            padding: '1rem',
-            background: hasAdd ? '#dcfce7' : '#f8fafc',
-            border: `2px solid ${hasAdd ? '#16a34a' : '#e5e7eb'}`,
-            borderRadius: '8px'
+            padding: '1rem'
         }),
-        addLabel: {
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        addValue: (hasAdd) => ({
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            color: hasAdd ? '#16a34a' : '#94a3b8'
-        }),
-        batchEstimate: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.75rem',
-            padding: '1rem',
-            background: 'white',
-            borderRadius: '8px',
-            border: '1px solid #dcfce7',
-            flexWrap: 'wrap'
-        },
-        batchLabel: {
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: '#64748b'
-        },
-        batchValue: {
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
+        additionsGrid: {
+            display: 'grid',
+            gap: '1rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            marginBottom: '1.5rem'
         },
         batchChange: {
+            color: '#16a34a',
             fontSize: '0.875rem',
-            fontWeight: 600,
-            color: '#16a34a'
+            fontWeight: 600
         },
-        emptyState: {
-            textAlign: 'center',
-            padding: '3rem 2rem',
-            background: '#f8fafc',
-            borderRadius: '12px',
-            border: '2px dashed #e5e7eb',
-            marginBottom: '2rem'
+        batchEstimate: {
+            alignItems: 'center',
+            background: 'white',
+            border: '1px solid #dcfce7',
+            borderRadius: '8px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            justifyContent: 'center',
+            padding: '1rem'
+        },
+        batchLabel: {
+            color: '#64748b',
+            fontSize: '0.875rem',
+            fontWeight: 600
+        },
+        batchValue: {
+            color: '#1e3a5f',
+            fontSize: '1.5rem',
+            fontWeight: 700
+        },
+        container: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: isMobile ? '8px' : '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            padding: isMobile ? '1rem' : '2rem'
         },
         emptyIcon: {
-            fontSize: '3rem',
             color: '#cbd5e1',
+            fontSize: '3rem',
             marginBottom: '1rem'
         },
+        emptyState: {
+            background: '#f8fafc',
+            border: '2px dashed #e5e7eb',
+            borderRadius: '12px',
+            marginBottom: '2rem',
+            padding: '3rem 2rem',
+            textAlign: 'center'
+        },
         emptyText: {
-            fontSize: '0.9375rem',
-            color: '#64748b'
+            color: '#64748b',
+            fontSize: '0.9375rem'
         },
         footer: {
             display: 'flex',
             justifyContent: 'center'
         },
-        resetButton: {
+        formulaDivider: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            fontWeight: 700
+        },
+        formulaInput: {
             display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        formulaLabel: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        },
+        formulaLayout: {
             alignItems: 'center',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: 'wrap',
+            gap: isMobile ? '1rem' : '2rem',
+            justifyContent: 'center'
+        },
+        formulaRow: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column',
             gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
+            width: isMobile ? '100%' : 'auto'
+        },
+        fraction: {
+            alignItems: 'stretch',
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: isMobile ? '100%' : '200px',
+            width: isMobile ? '100%' : 'auto'
+        },
+        fractionBar: {
+            background: '#1e3a5f',
+            height: '2px'
+        },
+        fractionPart: {
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        input: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        inputUnit: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
+            position: 'absolute',
+            right: isMobile ? '0.75rem' : '1rem'
+        },
+        inputWrap: {
+            alignItems: 'center',
+            display: 'flex',
+            position: 'relative'
+        },
+        label: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        },
+        resetButton: {
+            alignItems: 'center',
+            background: 'white',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
             fontSize: '0.9375rem',
             fontWeight: 600,
-            color: '#64748b',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
+            gap: '0.5rem',
+            outline: 'none',
+            padding: '0.75rem 1.5rem',
+            transition: 'all 0.2s'
+        },
+        resultContainer: {
+            background: '#f0fdf4',
+            border: '2px solid #dcfce7',
+            borderRadius: isMobile ? '8px' : '12px',
+            marginBottom: isMobile ? '1.5rem' : '2rem',
+            padding: isMobile ? '1rem' : '2rem'
+        },
+        resultHeader: {
+            alignItems: 'center',
+            color: '#16a34a',
+            display: 'flex',
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: 700,
+            gap: '0.75rem',
+            marginBottom: isMobile ? '1rem' : '1.5rem'
+        },
+        section: {
+            marginBottom: isMobile ? '1.5rem' : '2rem'
+        },
+        sectionHeader: {
+            alignItems: 'center',
+            borderBottom: '2px solid #f1f5f9',
+            color: '#1e293b',
+            display: 'flex',
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: 700,
+            gap: '0.75rem',
+            marginBottom: isMobile ? '1rem' : '1.5rem',
+            paddingBottom: '1rem'
         }
     }
 

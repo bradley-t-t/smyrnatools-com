@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react'
 const WaterCementCalculator = () => {
     const [values, setValues] = useState({
         batchSize: '',
-        waterGallons: '',
         cementLbs: '',
-        supplementalLbs: ''
+        supplementalLbs: '',
+        waterGallons: ''
     })
 
     const [result, setResult] = useState(null)
@@ -17,7 +17,7 @@ const WaterCementCalculator = () => {
     }
 
     const clearForm = () => {
-        setValues({ batchSize: '', waterGallons: '', cementLbs: '', supplementalLbs: '' })
+        setValues({ batchSize: '', cementLbs: '', supplementalLbs: '', waterGallons: '' })
         setResult(null)
     }
 
@@ -36,12 +36,12 @@ const WaterCementCalculator = () => {
             const citePerYd = batchSize > 0 ? Math.round(totalCite / batchSize) : null
 
             setResult({
-                ratio: ratio.toFixed(2),
-                waterLbs: Math.round(waterLbs),
-                totalCite: Math.round(totalCite),
-                waterPerYd,
+                batchSize: batchSize > 0 ? batchSize : null,
                 citePerYd,
-                batchSize: batchSize > 0 ? batchSize : null
+                ratio: ratio.toFixed(2),
+                totalCite: Math.round(totalCite),
+                waterLbs: Math.round(waterLbs),
+                waterPerYd
             })
         } else {
             setResult(null)
@@ -51,10 +51,10 @@ const WaterCementCalculator = () => {
     const getRatioStatus = () => {
         if (!result) return null
         const r = parseFloat(result.ratio)
-        if (r < 0.35) return { label: 'Low', color: 'warning' }
-        if (r <= 0.45) return { label: 'Optimal', color: 'success' }
-        if (r <= 0.55) return { label: 'Standard', color: 'info' }
-        return { label: 'High', color: 'error' }
+        if (r < 0.35) return { color: 'warning', label: 'Low' }
+        if (r <= 0.45) return { color: 'success', label: 'Optimal' }
+        if (r <= 0.55) return { color: 'info', label: 'Standard' }
+        return { color: 'error', label: 'High' }
     }
 
     const status = getRatioStatus()
@@ -66,68 +66,35 @@ const WaterCementCalculator = () => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
+        breakdown: {
+            alignItems: 'center',
+            color: '#64748b',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '1rem',
+            justifyContent: 'center',
+            padding: '1rem'
+        },
+        constant: {
+            background: '#eff6ff',
+            border: '1px solid #dbeafe',
+            borderRadius: '6px',
+            color: '#1e3a5f',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 700,
+            padding: isMobile ? '0.375rem 0.625rem' : '0.5rem 0.75rem'
+        },
         container: {
             background: 'white',
+            border: '1px solid #e5e7eb',
             borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb'
+            padding: isMobile ? '1rem' : '2rem'
         },
-        section: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        sectionHeader: {
+        footer: {
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            paddingBottom: '1rem',
-            borderBottom: '2px solid #f1f5f9',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        formulaLayout: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-        },
-        formulaRow: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '1rem' : '2rem',
-            flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row',
-            padding: isMobile ? '1rem' : '2rem',
-            background: '#f8fafc',
-            borderRadius: '12px'
-        },
-        fraction: {
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: isMobile ? '100%' : '300px',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fractionTop: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            justifyContent: 'center',
-            flexWrap: isMobile ? 'wrap' : 'nowrap'
-        },
-        fractionBar: {
-            height: '3px',
-            background: '#1e3a5f'
-        },
-        fractionBottom: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            justifyContent: 'center',
-            flexWrap: isMobile ? 'wrap' : 'nowrap'
+            justifyContent: 'center'
         },
         formulaInputBlock: {
             display: 'flex',
@@ -135,70 +102,172 @@ const WaterCementCalculator = () => {
             gap: '0.5rem',
             minWidth: isMobile ? '90px' : '120px'
         },
-        label: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            textAlign: 'center'
-        },
-        inputWrap: {
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center'
-        },
-        input: {
-            width: '100%',
-            padding: isMobile ? '0.5rem 2.5rem 0.5rem 0.625rem' : '0.625rem 3rem 0.625rem 0.75rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
-        },
-        inputLarge: {
-            width: '100%',
-            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
-        },
-        inputUnit: {
-            position: 'absolute',
-            right: '0.75rem',
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            color: '#94a3b8'
-        },
-        formulaOp: {
-            fontSize: isMobile ? '1rem' : '1.25rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
-        constant: {
-            padding: isMobile ? '0.375rem 0.625rem' : '0.5rem 0.75rem',
-            background: '#eff6ff',
-            borderRadius: '6px',
-            border: '1px solid #dbeafe',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
-        resultBlock: (hasData, statusColor) => ({
+        formulaLayout: {
             display: 'flex',
             flexDirection: 'column',
+            gap: '1rem'
+        },
+        formulaOp: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1rem' : '1.25rem',
+            fontWeight: 700
+        },
+        formulaRow: {
             alignItems: 'center',
+            background: '#f8fafc',
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: 'wrap',
+            gap: isMobile ? '1rem' : '2rem',
+            justifyContent: 'center',
+            padding: isMobile ? '1rem' : '2rem'
+        },
+        fraction: {
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: isMobile ? '100%' : '300px',
+            width: isMobile ? '100%' : 'auto'
+        },
+        fractionBar: {
+            background: '#1e3a5f',
+            height: '3px'
+        },
+        fractionBottom: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            gap: isMobile ? '0.5rem' : '0.75rem',
+            justifyContent: 'center',
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        fractionTop: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            gap: isMobile ? '0.5rem' : '0.75rem',
+            justifyContent: 'center',
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        input: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.5rem 2.5rem 0.5rem 0.625rem' : '0.625rem 3rem 0.625rem 0.75rem',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        inputLarge: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        inputRow: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        inputUnit: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
+            fontWeight: 600,
+            position: 'absolute',
+            right: '0.75rem'
+        },
+        inputWrap: {
+            alignItems: 'center',
+            display: 'flex',
+            position: 'relative'
+        },
+        label: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textAlign: 'center',
+            textTransform: 'uppercase'
+        },
+        perYardDisplay: {
+            display: 'grid',
+            gap: '1rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            marginTop: '1rem'
+        },
+        perYardItem: {
+            background: '#f0fdf4',
+            border: '2px solid #dcfce7',
+            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
             gap: '0.5rem',
-            padding: isMobile ? '1rem' : '1.5rem',
-            minWidth: isMobile ? '100%' : '200px',
-            width: isMobile ? '100%' : 'auto',
+            padding: '1rem'
+        },
+        perYardLabel: {
+            color: '#64748b',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        },
+        perYardValue: {
+            color: '#16a34a',
+            fontSize: '1.25rem',
+            fontWeight: 700
+        },
+        resetButton: {
+            alignItems: 'center',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            outline: 'none',
+            padding: '0.75rem 1.5rem',
+            transition: 'all 0.2s'
+        },
+        resultBadge: (color) => ({
+            background:
+                color === 'success'
+                    ? '#dcfce7'
+                    : color === 'info'
+                      ? '#dbeafe'
+                      : color === 'warning'
+                        ? '#fef3c7'
+                        : color === 'error'
+                          ? '#fee2e2'
+                          : '#f1f5f9',
+            borderRadius: '6px',
+            color:
+                color === 'success'
+                    ? '#16a34a'
+                    : color === 'info'
+                      ? '#3b82f6'
+                      : color === 'warning'
+                        ? '#f59e0b'
+                        : color === 'error'
+                          ? '#ef4444'
+                          : '#64748b',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.5px',
+            padding: '0.375rem 0.75rem',
+            textTransform: 'uppercase'
+        }),
+        resultBlock: (hasData, statusColor) => ({
+            alignItems: 'center',
             background: hasData
                 ? statusColor === 'success'
                     ? '#f0fdf4'
@@ -223,113 +292,44 @@ const WaterCementCalculator = () => {
                               : '#e5e7eb'
                     : '#e5e7eb'
             }`,
-            borderRadius: '12px'
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            minWidth: isMobile ? '100%' : '200px',
+            padding: isMobile ? '1rem' : '1.5rem',
+            width: isMobile ? '100%' : 'auto'
         }),
         resultNum: {
+            color: '#1e3a5f',
             fontSize: '3rem',
             fontWeight: 700,
-            color: '#1e3a5f',
             lineHeight: 1
         },
-        resultBadge: (color) => ({
-            padding: '0.375rem 0.75rem',
-            borderRadius: '6px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            background:
-                color === 'success'
-                    ? '#dcfce7'
-                    : color === 'info'
-                      ? '#dbeafe'
-                      : color === 'warning'
-                        ? '#fef3c7'
-                        : color === 'error'
-                          ? '#fee2e2'
-                          : '#f1f5f9',
-            color:
-                color === 'success'
-                    ? '#16a34a'
-                    : color === 'info'
-                      ? '#3b82f6'
-                      : color === 'warning'
-                        ? '#f59e0b'
-                        : color === 'error'
-                          ? '#ef4444'
-                          : '#64748b'
-        }),
-        breakdown: {
-            display: 'flex',
+        section: {
+            marginBottom: isMobile ? '1.5rem' : '2rem'
+        },
+        sectionHeader: {
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '1rem',
-            padding: '1rem',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#64748b'
-        },
-        inputRow: {
+            borderBottom: '2px solid #f1f5f9',
+            color: '#1e293b',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        perYardDisplay: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem',
-            marginTop: '1rem'
-        },
-        perYardItem: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            padding: '1rem',
-            background: '#f0fdf4',
-            border: '2px solid #dcfce7',
-            borderRadius: '8px'
-        },
-        perYardLabel: {
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        perYardValue: {
-            fontSize: '1.25rem',
+            fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
-            color: '#16a34a'
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'center'
-        },
-        resetButton: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#64748b',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
+            gap: '0.75rem',
+            marginBottom: isMobile ? '1rem' : '1.5rem',
+            paddingBottom: '1rem'
         }
     }
 
     const inputFocusHandlers = {
-        onFocus: (e) => {
-            e.target.style.borderColor = '#1e3a5f'
-            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-        },
         onBlur: (e) => {
             e.target.style.borderColor = '#e5e7eb'
             e.target.style.boxShadow = 'none'
+        },
+        onFocus: (e) => {
+            e.target.style.borderColor = '#1e3a5f'
+            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
 

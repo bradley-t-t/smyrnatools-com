@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
+
 import { supabase } from '../../services/DatabaseService'
-import { UserService } from '../../services/UserService'
 import { OperatorService } from '../../services/OperatorService'
+import { UserService } from '../../services/UserService'
 
 function RecapModalSection({
     plantCode,
@@ -38,9 +39,9 @@ function RecapModalSection({
         const allHistory = [...mixerHistory, ...operatorHistory]
         if (!allHistory || allHistory.length === 0) {
             return {
+                downNet: 0,
                 operatorsNet: 0,
                 runnableNet: 0,
-                downNet: 0,
                 transfersNet: 0
             }
         }
@@ -92,9 +93,9 @@ function RecapModalSection({
         })
 
         return {
+            downNet,
             operatorsNet,
             runnableNet,
-            downNet,
             transfersNet
         }
     }, [mixerHistory, operatorHistory, plantCode, isAllPlants])
@@ -132,10 +133,10 @@ function RecapModalSection({
             const key = `mixer_${mixerId}`
             if (!groups[key]) {
                 groups[key] = {
+                    changes: [],
                     id: mixerId,
-                    type: 'mixer',
                     name: null,
-                    changes: []
+                    type: 'mixer'
                 }
             }
             groups[key].changes.push(entry)
@@ -146,10 +147,10 @@ function RecapModalSection({
             const key = `operator_${operatorId}`
             if (!groups[key]) {
                 groups[key] = {
+                    changes: [],
                     id: operatorId,
-                    type: 'operator',
                     name: null,
-                    changes: []
+                    type: 'operator'
                 }
             }
             groups[key].changes.push(entry)
@@ -294,19 +295,19 @@ function RecapModalSection({
                         try {
                             const operator = await OperatorService.getOperatorById(opId)
                             return {
-                                id: opId,
                                 data: {
                                     name: operator?.name || 'Unknown Operator',
                                     status: operator?.status || 'Unknown'
-                                }
+                                },
+                                id: opId
                             }
                         } catch {
                             return {
-                                id: opId,
                                 data: {
                                     name: 'Unknown Operator',
                                     status: 'Unknown'
-                                }
+                                },
+                                id: opId
                             }
                         }
                     })
@@ -359,30 +360,30 @@ function RecapModalSection({
     const formatFieldName = (fieldName) => {
         if (!fieldName) return 'Unknown Field'
         const mappings = {
-            truck_number: 'Truck Number',
-            assigned_plant: 'Assigned Plant',
             assigned_operator: 'Assigned Operator',
-            status: 'Status',
+            assigned_plant: 'Assigned Plant',
+            assigned_trainer: 'Assigned Trainer',
+            automatic_restriction: 'Automatic Restriction',
             cleanliness_rating: 'Cleanliness',
-            last_service_date: 'Last Service Date',
+            condition_rating: 'Condition',
+            down_in_yard: 'Down In Yard',
+            is_trainer: 'Trainer',
             last_chip_date: 'Last Chip Date',
-            vin: 'VIN',
+            last_service_date: 'Last Service Date',
             make: 'Make',
             model: 'Model',
-            year: 'Year',
-            condition_rating: 'Condition',
-            verified: 'Verified',
-            down_in_yard: 'Down In Yard',
             name: 'Name',
-            plant_code: 'Plant',
-            is_trainer: 'Trainer',
-            assigned_trainer: 'Assigned Trainer',
-            position: 'Position',
-            smyrna_id: 'Smyrna ID',
-            phone: 'Phone',
             pending_start_date: 'Pending Start Date',
+            phone: 'Phone',
+            plant_code: 'Plant',
+            position: 'Position',
             rating: 'Rating',
-            automatic_restriction: 'Automatic Restriction'
+            smyrna_id: 'Smyrna ID',
+            status: 'Status',
+            truck_number: 'Truck Number',
+            verified: 'Verified',
+            vin: 'VIN',
+            year: 'Year'
         }
         return mappings[fieldName] || fieldName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     }
@@ -449,10 +450,10 @@ function RecapModalSection({
             if (days < 7) return `${days}d ago`
 
             return date.toLocaleDateString('en-US', {
-                month: 'short',
                 day: 'numeric',
                 hour: 'numeric',
-                minute: '2-digit'
+                minute: '2-digit',
+                month: 'short'
             })
         } catch {
             return dateStr
@@ -461,28 +462,28 @@ function RecapModalSection({
 
     const getChangeIcon = (fieldName) => {
         const iconMap = {
-            status: 'fa-solid fa-circle-dot',
             assigned_operator: 'fa-solid fa-user',
             assigned_plant: 'fa-solid fa-industry',
-            plant_code: 'fa-solid fa-industry',
+            assigned_trainer: 'fa-solid fa-user-graduate',
+            automatic_restriction: 'fa-solid fa-car-side',
             cleanliness_rating: 'fa-solid fa-sparkles',
-            last_service_date: 'fa-solid fa-wrench',
+            down_in_yard: 'fa-solid fa-parking',
+            is_trainer: 'fa-solid fa-chalkboard-teacher',
             last_chip_date: 'fa-solid fa-hammer',
-            vin: 'fa-solid fa-barcode',
+            last_service_date: 'fa-solid fa-wrench',
             make: 'fa-solid fa-car',
             model: 'fa-solid fa-tag',
-            year: 'fa-solid fa-calendar',
-            truck_number: 'fa-solid fa-truck',
-            down_in_yard: 'fa-solid fa-parking',
             name: 'fa-solid fa-id-card',
-            is_trainer: 'fa-solid fa-chalkboard-teacher',
-            assigned_trainer: 'fa-solid fa-user-graduate',
-            position: 'fa-solid fa-briefcase',
-            smyrna_id: 'fa-solid fa-hashtag',
-            phone: 'fa-solid fa-phone',
             pending_start_date: 'fa-solid fa-calendar-plus',
+            phone: 'fa-solid fa-phone',
+            plant_code: 'fa-solid fa-industry',
+            position: 'fa-solid fa-briefcase',
             rating: 'fa-solid fa-star',
-            automatic_restriction: 'fa-solid fa-car-side'
+            smyrna_id: 'fa-solid fa-hashtag',
+            status: 'fa-solid fa-circle-dot',
+            truck_number: 'fa-solid fa-truck',
+            vin: 'fa-solid fa-barcode',
+            year: 'fa-solid fa-calendar'
         }
         return iconMap[fieldName] || 'fa-solid fa-pen'
     }

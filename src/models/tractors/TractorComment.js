@@ -14,11 +14,11 @@ export class TractorComment {
 
     toRow() {
         return {
-            id: this.id,
-            tractor_id: this.tractorId,
-            text: this.text,
             author: this.author,
-            created_at: this.createdAt
+            created_at: this.createdAt,
+            id: this.id,
+            text: this.text,
+            tractor_id: this.tractorId
         }
     }
 }

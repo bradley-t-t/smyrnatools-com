@@ -1,23 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { TractorService } from '../../services/TractorService'
-import { PlantService } from '../../services/PlantService'
-import { OperatorService } from '../../services/OperatorService'
-import { UserService } from '../../services/UserService'
-import TractorHistoryView from './TractorHistoryView'
-import TractorCommentModal from './TractorCommentModal'
-import TractorIssueModal from './TractorIssueModal'
-import { TractorUtility } from '../../utils/TractorUtility'
-import DateUtility from '../../utils/DateUtility'
-import { Tractor } from '../../models/tractors/Tractor'
-import OperatorSelectModal from '../mixers/OperatorSelectModal'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
-import { ValidationUtility } from '../../utils/ValidationUtility'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
 import VerificationCardSection from '../../components/sections/VerificationCardSection'
+import { Tractor } from '../../models/tractors/Tractor'
 import { supabase } from '../../services/DatabaseService'
+import { OperatorService } from '../../services/OperatorService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { TractorService } from '../../services/TractorService'
+import { UserService } from '../../services/UserService'
+import DateUtility from '../../utils/DateUtility'
+import { TractorUtility } from '../../utils/TractorUtility'
+import { ValidationUtility } from '../../utils/ValidationUtility'
+import OperatorSelectModal from '../mixers/OperatorSelectModal'
+import TractorCommentModal from './TractorCommentModal'
+import TractorHistoryView from './TractorHistoryView'
+import TractorIssueModal from './TractorIssueModal'
 
 function TractorDetailView({ tractorId, onClose }) {
     const { preferences } = usePreferences()
@@ -87,18 +88,18 @@ function TractorDetailView({ tractorId, onClose }) {
                 setYear(String(tractorData.year || ''))
                 setFreight(tractorData.freight || '')
                 setOriginalValues({
-                    truckNumber: tractorData.truckNumber || '',
                     assignedOperator: tractorData.assignedOperator || '',
                     assignedPlant: tractorData.assignedPlant || '',
-                    status: tractorData.status || '',
                     cleanlinessRating: tractorData.cleanlinessRating || 0,
-                    lastServiceDate: tractorData.lastServiceDate ? new Date(tractorData.lastServiceDate) : null,
+                    freight: tractorData.freight || '',
                     hasBlower: tractorData.hasBlower || false,
-                    vin: (tractorData.vin || '').toUpperCase(),
+                    lastServiceDate: tractorData.lastServiceDate ? new Date(tractorData.lastServiceDate) : null,
                     make: tractorData.make || '',
                     model: tractorData.model || '',
-                    year: String(tractorData.year || ''),
-                    freight: tractorData.freight || ''
+                    status: tractorData.status || '',
+                    truckNumber: tractorData.truckNumber || '',
+                    vin: (tractorData.vin || '').toUpperCase(),
+                    year: String(tractorData.year || '')
                 })
                 document.documentElement.style.setProperty('--rating-value', tractorData.cleanlinessRating || 0)
                 if (tractorData.updatedBy) {
@@ -261,8 +262,8 @@ function TractorDetailView({ tractorId, onClose }) {
 
             const updatedTractor = {
                 ...tractor,
-                assignedPlant: newPlantCode,
-                assignedOperator: null
+                assignedOperator: null,
+                assignedPlant: newPlantCode
             }
 
             const result = await TractorService.updateTractor(tractor.id, updatedTractor, userId, tractor)
@@ -271,8 +272,8 @@ function TractorDetailView({ tractorId, onClose }) {
             setAssignedOperator('')
             setOriginalValues({
                 ...originalValues,
-                assignedPlant: newPlantCode,
-                assignedOperator: ''
+                assignedOperator: '',
+                assignedPlant: newPlantCode
             })
             setHasUnsavedChanges(false)
             setMessage(`Successfully transferred to ${newRegion.regionName}`)
@@ -350,26 +351,26 @@ function TractorDetailView({ tractorId, onClose }) {
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1
             const updatedTractor = {
                 ...tractor,
-                id: tractor.id,
-                truckNumber: overrideValues.truckNumber ?? truckNumber,
                 assignedOperator: assignedOperatorValue || null,
                 assignedPlant: overrideValues.assignedPlant ?? assignedPlant,
-                status: statusValue,
                 cleanlinessRating: cleanlinessValue,
-                lastServiceDate: formatDate(overrideValues.lastServiceDate ?? lastServiceDate),
+                freight: overrideValues.freight ?? freight,
                 hasBlower: overrideValues.hasBlower ?? hasBlower,
-                vin: ((overrideValues.vin ?? vin) || '').toUpperCase(),
+                id: tractor.id,
+                lastServiceDate: formatDate(overrideValues.lastServiceDate ?? lastServiceDate),
                 make: overrideValues.make ?? make,
                 model: overrideValues.model ?? model,
+                status: statusValue,
+                truckNumber: overrideValues.truckNumber ?? truckNumber,
+                updatedAt: new Date().toISOString(),
+                updatedBy: userId,
+                updatedLast: tractor.updatedLast,
+                vin: ((overrideValues.vin ?? vin) || '').toUpperCase(),
                 year: (() => {
                     const y = overrideValues.year ?? year
                     const n = Number(y)
                     return Number.isFinite(n) && n > 0 ? n : null
-                })(),
-                freight: overrideValues.freight ?? freight,
-                updatedAt: new Date().toISOString(),
-                updatedBy: userId,
-                updatedLast: tractor.updatedLast
+                })()
             }
             await TractorService.updateTractor(updatedTractor.id, updatedTractor, undefined, tractorForHistory)
             if (tractorForHistory.assignedOperator !== updatedTractor.assignedOperator) {
@@ -399,18 +400,18 @@ function TractorDetailView({ tractorId, onClose }) {
                 setTimeout(() => setMessage(''), 5000)
             }
             setOriginalValues({
-                truckNumber: refreshedTractor.truckNumber,
                 assignedOperator: refreshedTractor.assignedOperator,
                 assignedPlant: refreshedTractor.assignedPlant,
-                status: refreshedTractor.status,
                 cleanlinessRating: refreshedTractor.cleanlinessRating,
-                lastServiceDate: refreshedTractor.lastServiceDate ? new Date(refreshedTractor.lastServiceDate) : null,
+                freight: refreshedTractor.freight || '',
                 hasBlower: refreshedTractor.hasBlower,
-                vin: (refreshedTractor.vin || '').toUpperCase(),
+                lastServiceDate: refreshedTractor.lastServiceDate ? new Date(refreshedTractor.lastServiceDate) : null,
                 make: refreshedTractor.make,
                 model: refreshedTractor.model,
-                year: String(refreshedTractor.year || ''),
-                freight: refreshedTractor.freight || ''
+                status: refreshedTractor.status,
+                truckNumber: refreshedTractor.truckNumber,
+                vin: (refreshedTractor.vin || '').toUpperCase(),
+                year: String(refreshedTractor.year || '')
             })
             setVin((refreshedTractor.vin || '').toUpperCase())
             setYear(String(refreshedTractor.year || ''))
@@ -621,10 +622,6 @@ function TractorDetailView({ tractorId, onClose }) {
     const verificationItems = [
         {
             icon: 'fas fa-calendar-check',
-            label: 'Verified',
-            value: tractor.updatedLast
-                ? `${new Date(tractor.updatedLast).toLocaleString()}${!Tractor.ensureInstance(tractor).isVerified() ? (new Date(tractor.updatedAt) > new Date(tractor.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
-                : 'Never verified',
             iconStyle: {
                 color: tractor.updatedLast
                     ? Tractor.ensureInstance(tractor).isVerified()
@@ -634,6 +631,10 @@ function TractorDetailView({ tractorId, onClose }) {
                           : 'var(--warning)'
                     : 'var(--error)'
             },
+            label: 'Verified',
+            value: tractor.updatedLast
+                ? `${new Date(tractor.updatedLast).toLocaleString()}${!Tractor.ensureInstance(tractor).isVerified() ? (new Date(tractor.updatedAt) > new Date(tractor.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
+                : 'Never verified',
             valueStyle: {
                 color: tractor.updatedLast
                     ? Tractor.ensureInstance(tractor).isVerified()
@@ -646,12 +647,12 @@ function TractorDetailView({ tractorId, onClose }) {
         },
         {
             icon: 'fas fa-user-check',
-            label: 'Verified By',
-            value: tractor.updatedBy ? updatedByEmail || 'Unknown User' : 'No verification record',
-            title: `Last Updated: ${new Date(tractor.updatedAt).toLocaleString()}`,
             iconStyle: {
                 color: tractor.updatedBy ? 'var(--success)' : 'var(--error)'
             },
+            label: 'Verified By',
+            title: `Last Updated: ${new Date(tractor.updatedAt).toLocaleString()}`,
+            value: tractor.updatedBy ? updatedByEmail || 'Unknown User' : 'No verification record',
             valueStyle: {
                 color: tractor.updatedBy ? 'inherit' : 'var(--error)'
             }
@@ -842,8 +843,8 @@ function TractorDetailView({ tractorId, onClose }) {
                                             ['In Shop', 'Retired', 'Spare'].includes(newStatus)
                                         ) {
                                             await handleSave({
-                                                status: newStatus,
-                                                assignedOperator: null
+                                                assignedOperator: null,
+                                                status: newStatus
                                             })
                                             setStatus(newStatus)
                                             setAssignedOperator(null)
@@ -880,9 +881,9 @@ function TractorDetailView({ tractorId, onClose }) {
                                     style={
                                         !canEditTractor
                                             ? {
+                                                  backgroundColor: 'var(--card-bg)',
                                                   cursor: 'not-allowed',
-                                                  opacity: 0.8,
-                                                  backgroundColor: 'var(--card-bg)'
+                                                  opacity: 0.8
                                               }
                                             : {}
                                     }
@@ -914,9 +915,9 @@ function TractorDetailView({ tractorId, onClose }) {
                                         style={
                                             !canEditTractor
                                                 ? {
+                                                      backgroundColor: 'var(--bg-secondary)',
                                                       cursor: 'not-allowed',
-                                                      opacity: 0.8,
-                                                      backgroundColor: 'var(--bg-secondary)'
+                                                      opacity: 0.8
                                                   }
                                                 : {}
                                         }
@@ -939,8 +940,8 @@ function TractorDetailView({ tractorId, onClose }) {
                                                         const prevOperator = assignedOperator
                                                         await handleSave({
                                                             assignedOperator: null,
-                                                            status: 'Spare',
-                                                            prevAssignedOperator: prevOperator
+                                                            prevAssignedOperator: prevOperator,
+                                                            status: 'Spare'
                                                         })
                                                         setAssignedOperator(null)
                                                         setStatus('Spare')
@@ -996,16 +997,16 @@ function TractorDetailView({ tractorId, onClose }) {
                                                     type="button"
                                                     style={{
                                                         backgroundColor: 'var(--success)',
-                                                        color: 'var(--text-light)',
-                                                        marginLeft: '8px',
-                                                        height: '38px',
-                                                        minWidth: '140px',
-                                                        fontSize: '1rem',
-                                                        borderRadius: '4px',
                                                         border: 'none',
-                                                        padding: '0 16px',
+                                                        borderRadius: '4px',
+                                                        boxSizing: 'border-box',
+                                                        color: 'var(--text-light)',
                                                         cursor: 'pointer',
-                                                        boxSizing: 'border-box'
+                                                        fontSize: '1rem',
+                                                        height: '38px',
+                                                        marginLeft: '8px',
+                                                        minWidth: '140px',
+                                                        padding: '0 16px'
                                                     }}
                                                 >
                                                     Undo
@@ -1048,7 +1049,7 @@ function TractorDetailView({ tractorId, onClose }) {
                                     <div className="warning-text">Service overdue</div>
                                 )}
                                 <div
-                                    style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', lineHeight: '1.4' }}
+                                    style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}
                                 >
                                     Service will show as overdue if it has been more than 6 months since last serviced.
                                     Service is determined by hours on the asset - check hours of service.

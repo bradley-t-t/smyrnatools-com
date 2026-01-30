@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ReportUtility } from '../../../utils/ReportUtility'
+
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import { ReportUtility } from '../../../utils/ReportUtility'
 
 const safetyReportStyles = `
 .safety-report-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
@@ -86,11 +87,11 @@ const TAG_OPTIONS = ['Accident', 'Injury', 'Non-DOT', 'DOT', 'Compliance', 'Envi
 
 const TAG_COLORS = {
     Accident: { bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', icon: 'fas fa-car-crash' },
+    Compliance: { bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', icon: 'fas fa-clipboard-check' },
+    DOT: { bg: 'rgba(234, 179, 8, 0.15)', color: '#eab308', icon: 'fas fa-truck' },
+    Environmental: { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', icon: 'fas fa-leaf' },
     Injury: { bg: 'rgba(220, 38, 38, 0.15)', color: '#dc2626', icon: 'fas fa-user-injured' },
     'Non-DOT': { bg: 'rgba(249, 115, 22, 0.15)', color: '#f97316', icon: 'fas fa-file-alt' },
-    DOT: { bg: 'rgba(234, 179, 8, 0.15)', color: '#eab308', icon: 'fas fa-truck' },
-    Compliance: { bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', icon: 'fas fa-clipboard-check' },
-    Environmental: { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', icon: 'fas fa-leaf' },
     Reprimand: { bg: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', icon: 'fas fa-exclamation-triangle' },
     Safety: { bg: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9', icon: 'fas fa-shield-alt' }
 }
@@ -214,24 +215,24 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                 issues: f.issues
                     ? [
                           {
-                              id: Date.now(),
+                              affectsEfficiency: false,
+                              date: today,
                               description: f.issues,
+                              id: Date.now(),
                               plant: '',
                               tag: '',
-                              tags: [],
-                              date: today,
-                              affectsEfficiency: false
+                              tags: []
                           }
                       ]
                     : [
                           {
-                              id: Date.now(),
+                              affectsEfficiency: false,
+                              date: today,
                               description: '',
+                              id: Date.now(),
                               plant: '',
                               tag: '',
-                              tags: [],
-                              date: today,
-                              affectsEfficiency: false
+                              tags: []
                           }
                       ]
             }))
@@ -241,13 +242,13 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                 ...f,
                 issues: [
                     {
-                        id: Date.now(),
+                        affectsEfficiency: false,
+                        date: today,
                         description: '',
+                        id: Date.now(),
                         plant: '',
                         tag: '',
-                        tags: [],
-                        date: today,
-                        affectsEfficiency: false
+                        tags: []
                     }
                 ]
             }))
@@ -293,14 +294,14 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
     }
 
     function updateIssueTagsArray(id, nextArray) {
-        updateIssue(id, { tags: nextArray, tag: nextArray[0] || '' })
+        updateIssue(id, { tag: nextArray[0] || '', tags: nextArray })
     }
 
     function removeIssueTag(id, tagToRemove) {
         const issue = issues.find((i) => i.id === id)
         if (!issue) return
         const next = (issue.tags || []).filter((t) => t !== tagToRemove)
-        updateIssue(id, { tags: next, tag: next[0] || '' })
+        updateIssue(id, { tag: next[0] || '', tags: next })
     }
 
     function removeIssue(id) {
@@ -311,13 +312,13 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
     function addIssue() {
         const today = ReportUtility.getTodayISODate()
         const newIssue = {
-            id: Date.now(),
+            affectsEfficiency: false,
+            date: today,
             description: '',
+            id: Date.now(),
             plant: '',
             tag: '',
-            tags: [],
-            date: today,
-            affectsEfficiency: false
+            tags: []
         }
         setForm((f) => ({ ...f, issues: [...(f.issues || []), newIssue] }))
     }
@@ -379,8 +380,8 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                 <span className="safety-badge safety-badge-date">
                                                     <i className="fas fa-calendar"></i>
                                                     {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric'
+                                                        day: 'numeric',
+                                                        month: 'short'
                                                     })}
                                                 </span>
                                             )}
@@ -558,12 +559,12 @@ export function SafetyManagerReviewPlugin({ form }) {
         : typeof form.issues === 'string' && form.issues
           ? [
                 {
-                    id: 0,
+                    date: '',
                     description: form.issues,
+                    id: 0,
                     plant: '',
                     tag: '',
-                    tags: [],
-                    date: ''
+                    tags: []
                 }
             ]
           : []
@@ -645,9 +646,9 @@ export function SafetyManagerReviewPlugin({ form }) {
                                             <span className="safety-badge safety-badge-date">
                                                 <i className="fas fa-calendar"></i>
                                                 {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                                    weekday: 'short',
+                                                    day: 'numeric',
                                                     month: 'short',
-                                                    day: 'numeric'
+                                                    weekday: 'short'
                                                 })}
                                             </span>
                                         )}

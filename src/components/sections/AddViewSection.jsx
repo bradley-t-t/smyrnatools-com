@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
+
 import { UserService } from '../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 
@@ -61,118 +62,118 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
 
     const styles = {
         backdrop: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
+            alignItems: 'center',
+            animation: 'fadeIn 0.2s ease-out',
             backdropFilter: 'blur(4px)',
+            background: 'rgba(0, 0, 0, 0.5)',
+            bottom: 0,
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            left: 0,
             padding: '1rem',
-            animation: 'fadeIn 0.2s ease-out'
-        },
-        modal: {
-            background: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-            maxWidth: '650px',
-            width: '100%',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            animation: 'popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            border: '1px solid #e5e7eb'
-        },
-        header: {
-            background: '#f8fafc',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-            borderRadius: '12px 12px 0 0'
-        },
-        headerContent: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.875rem'
-        },
-        headerIcon: {
-            fontSize: '1.25rem',
-            color: '#1e3a5f'
-        },
-        title: {
-            margin: 0,
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            lineHeight: 1.2
-        },
-        subtitle: {
-            fontSize: '0.75rem',
-            color: '#64748b',
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            zIndex: 1000
         },
         closeButton: {
+            alignItems: 'center',
             background: 'transparent',
             border: 'none',
-            fontSize: '1.25rem',
+            borderRadius: '6px',
             color: '#64748b',
             cursor: 'pointer',
-            padding: '0.5rem',
             display: 'flex',
-            alignItems: 'center',
+            fontSize: '1.25rem',
+            height: '2rem',
             justifyContent: 'center',
-            borderRadius: '6px',
+            padding: '0.5rem',
             transition: 'all 0.2s',
-            width: '2rem',
-            height: '2rem'
+            width: '2rem'
+        },
+        content: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem',
+            padding: '1.5rem'
         },
         contentScrollable: {
             flex: 1,
-            overflowY: 'auto',
-            minHeight: 0
+            minHeight: 0,
+            overflowY: 'auto'
         },
-        content: {
-            padding: '1.5rem',
+        header: {
+            alignItems: 'center',
+            background: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            borderRadius: '12px 12px 0 0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '1.25rem 1.5rem'
+        },
+        headerContent: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '0.875rem'
+        },
+        headerIcon: {
+            color: '#1e3a5f',
+            fontSize: '1.25rem'
+        },
+        modal: {
+            animation: 'popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1.25rem'
+            maxHeight: '90vh',
+            maxWidth: '650px',
+            width: '100%'
         },
         permissionDenied: {
+            alignItems: 'center',
             background: 'white',
             border: '1px solid #e5e7eb',
             borderRadius: '10px',
-            padding: '3rem 2rem',
-            textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.875rem'
+            gap: '0.875rem',
+            padding: '3rem 2rem',
+            textAlign: 'center'
         },
         permissionIcon: {
-            fontSize: '3rem',
             color: '#ef4444',
-            opacity: 0.3,
-            marginBottom: '0.5rem'
-        },
-        permissionText: {
-            margin: 0,
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            lineHeight: 1.5
+            fontSize: '3rem',
+            marginBottom: '0.5rem',
+            opacity: 0.3
         },
         permissionSubtext: {
-            fontSize: '0.875rem',
             color: '#64748b',
+            fontSize: '0.875rem',
             fontWeight: 500
+        },
+        permissionText: {
+            color: '#1e293b',
+            fontSize: '1rem',
+            fontWeight: 600,
+            lineHeight: 1.5,
+            margin: 0
+        },
+        subtitle: {
+            color: '#64748b',
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        },
+        title: {
+            color: '#1e293b',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            lineHeight: 1.2,
+            margin: 0
         }
     }
 

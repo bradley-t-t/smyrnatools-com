@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { PickupTruckService } from '../../services/PickupTruckService'
-import { PlantService } from '../../services/PlantService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
-import { UserService } from '../../services/UserService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
-import PickupTruckHistoryView from './PickupTruckHistoryView'
+import { PickupTruckService } from '../../services/PickupTruckService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
 import PickupTruckCommentModal from './PickupTruckCommentModal'
+import PickupTruckHistoryView from './PickupTruckHistoryView'
 import PickupTruckIssueModal from './PickupTruckIssueModal'
 
 function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
@@ -53,15 +54,15 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                 setMileage(data?.mileage ?? '')
                 setComments(data?.comments || '')
                 setOriginalValues({
-                    vin: data?.vin || '',
-                    make: data?.make || '',
-                    model: data?.model || '',
-                    year: data?.year || '',
                     assigned: data?.assigned || '',
                     assignedPlant: data?.assignedPlant || '',
-                    status: data?.status || '',
+                    comments: data?.comments || '',
+                    make: data?.make || '',
                     mileage: data?.mileage ?? '',
-                    comments: data?.comments || ''
+                    model: data?.model || '',
+                    status: data?.status || '',
+                    vin: data?.vin || '',
+                    year: data?.year || ''
                 })
             } catch {
                 setPickup(null)
@@ -225,30 +226,30 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         setIsSaving(true)
         try {
             const payload = {
-                vin: vin || null,
-                make: make || null,
-                model: model || null,
-                year: year || null,
                 assigned: assigned || null,
                 assignedPlant: assignedPlant || null,
-                status: status || null,
+                comments: comments || null,
+                make: make || null,
                 mileage: mileage === '' ? null : Number(mileage),
-                comments: comments || null
+                model: model || null,
+                status: status || null,
+                vin: vin || null,
+                year: year || null
             }
             const updated = await PickupTruckService.update(pickup.id, payload)
             setPickup(updated)
             setMessage('Changes saved')
             setTimeout(() => setMessage(''), 3000)
             setOriginalValues({
-                vin: updated?.vin || '',
-                make: updated?.make || '',
-                model: updated?.model || '',
-                year: updated?.year || '',
                 assigned: updated?.assigned || '',
                 assignedPlant: updated?.assignedPlant || '',
-                status: updated?.status || '',
+                comments: updated?.comments || '',
+                make: updated?.make || '',
                 mileage: updated?.mileage ?? '',
-                comments: updated?.comments || ''
+                model: updated?.model || '',
+                status: updated?.status || '',
+                vin: updated?.vin || '',
+                year: updated?.year || ''
             })
             setHasUnsavedChanges(false)
             return updated

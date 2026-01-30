@@ -21,8 +21,8 @@ export function formatMaintenanceDate(dateStr) {
     if (!dateStr) return ''
     const date = new Date(dateStr)
     return date.toLocaleDateString('en-US', {
-        month: 'short',
         day: 'numeric',
+        month: 'short',
         year: 'numeric'
     })
 }
@@ -31,19 +31,19 @@ export function formatMaintenanceDateShort(dateStr) {
     if (!dateStr) return ''
     const date = new Date(dateStr)
     return date.toLocaleDateString('en-US', {
-        weekday: 'short',
+        day: 'numeric',
         month: 'short',
-        day: 'numeric'
+        weekday: 'short'
     })
 }
 
 export function formatFrequency(frequency, value = 1) {
     const labels = {
-        daily: value === 1 ? 'Daily' : `Every ${value} days`,
-        weekly: value === 1 ? 'Weekly' : `Every ${value} weeks`,
         biweekly: 'Bi-weekly',
+        daily: value === 1 ? 'Daily' : `Every ${value} days`,
         monthly: value === 1 ? 'Monthly' : `Every ${value} months`,
         quarterly: 'Quarterly',
+        weekly: value === 1 ? 'Weekly' : `Every ${value} weeks`,
         yearly: value === 1 ? 'Yearly' : `Every ${value} years`
     }
     return labels[frequency] || frequency
@@ -94,7 +94,7 @@ export function initializeFormResponses(fields) {
         }
     })
 
-    return { responses: initialResponses, checklists: initialChecklists }
+    return { checklists: initialChecklists, responses: initialResponses }
 }
 
 export function parseSubmissionResponses(submissionResponses) {
@@ -103,7 +103,7 @@ export function parseSubmissionResponses(submissionResponses) {
     const comments = {}
 
     if (!submissionResponses || submissionResponses.length === 0) {
-        return { responses, checklists, comments }
+        return { checklists, comments, responses }
     }
 
     submissionResponses.forEach((resp) => {
@@ -117,7 +117,7 @@ export function parseSubmissionResponses(submissionResponses) {
         }
     })
 
-    return { responses, checklists, comments }
+    return { checklists, comments, responses }
 }
 
 export function validateChecklistField(field, checkState, comments) {
@@ -140,9 +140,9 @@ export function buildResponseData(fields, responses, checklistStates, checklistC
     return fields.map((field) => {
         if (field.field_type === 'checklist') {
             return {
-                field_id: field.id,
+                checklist_comments: checklistComments[field.id] || {},
                 checklist_values: checklistStates[field.id] || {},
-                checklist_comments: checklistComments[field.id] || {}
+                field_id: field.id
             }
         }
         return {

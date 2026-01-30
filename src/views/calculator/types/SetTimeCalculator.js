@@ -6,20 +6,20 @@ const SetTimeCalculator = () => {
     const [locationError, setLocationError] = useState(null)
     const [useManual, setUseManual] = useState(false)
     const [manualWeather, setManualWeather] = useState({
-        temperature: '',
         cloudCover: '',
-        humidity: ''
+        humidity: '',
+        temperature: ''
     })
 
     const [mixData, setMixData] = useState({
-        batchSize: '',
-        slump: '',
-        cement: '',
-        supplemental: '',
-        water: '',
         addedWater: '',
+        batchSize: '',
+        cement: '',
         coarseAgg: '',
-        fineAgg: ''
+        fineAgg: '',
+        slump: '',
+        supplemental: '',
+        water: ''
     })
 
     const [result, setResult] = useState(null)
@@ -34,9 +34,9 @@ const SetTimeCalculator = () => {
             const data = await response.json()
             if (data.current) {
                 setWeather({
-                    temperature: data.current.temperature_2m,
                     cloudCover: data.current.cloud_cover,
                     humidity: data.current.relative_humidity_2m,
+                    temperature: data.current.temperature_2m,
                     windSpeed: data.current.wind_speed_10m
                 })
             }
@@ -223,25 +223,25 @@ const SetTimeCalculator = () => {
         else if (isEvening) timeOfDay = 'evening'
 
         setResult({
-            initialSet: { hours: initialSetHours, mins: initialSetMins, total: baseInitialSet },
-            finalSet: { hours: finalSetHours, mins: finalSetMins, total: baseFinalSet },
-            riskLevel,
-            riskMessage,
-            timeOfDay,
             conditions: {
-                temp: temp,
-                humidity,
                 cloudCover,
+                humidity,
+                temp: temp,
                 windSpeed
             },
+            finalSet: { hours: finalSetHours, mins: finalSetMins, total: baseFinalSet },
+            initialSet: { hours: initialSetHours, mins: initialSetMins, total: baseInitialSet },
             mix: {
-                wc: Math.round(wc * 100) / 100,
-                slump,
-                cementPerYd: Math.round(totalCementPerYd),
-                waterLbsPerYd: Math.round(totalWaterLbsPerYd),
                 addedWaterGal,
-                batchSize
-            }
+                batchSize,
+                cementPerYd: Math.round(totalCementPerYd),
+                slump,
+                waterLbsPerYd: Math.round(totalWaterLbsPerYd),
+                wc: Math.round(wc * 100) / 100
+            },
+            riskLevel,
+            riskMessage,
+            timeOfDay
         })
     }, [weather, mixData, manualWeather, useManual])
 
@@ -255,16 +255,16 @@ const SetTimeCalculator = () => {
 
     const clearForm = () => {
         setMixData({
-            batchSize: '',
-            slump: '',
-            cement: '',
-            supplemental: '',
-            water: '',
             addedWater: '',
+            batchSize: '',
+            cement: '',
             coarseAgg: '',
-            fineAgg: ''
+            fineAgg: '',
+            slump: '',
+            supplemental: '',
+            water: ''
         })
-        setManualWeather({ temperature: '', cloudCover: '', humidity: '' })
+        setManualWeather({ cloudCover: '', humidity: '', temperature: '' })
         setResult(null)
     }
 
@@ -288,180 +288,187 @@ const SetTimeCalculator = () => {
     const styles = {
         container: {
             background: 'white',
+            border: '1px solid #e5e7eb',
             borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb'
+            padding: isMobile ? '1rem' : '2rem'
         },
-        section: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
+        emptyIcon: {
+            color: '#cbd5e1',
+            fontSize: isMobile ? '2rem' : '3rem',
+            marginBottom: '1rem'
         },
-        sectionHeader: {
-            display: 'flex',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '0.75rem' : '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            paddingBottom: '1rem',
-            borderBottom: '2px solid #f1f5f9',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        toggleButton: (active) => ({
-            marginLeft: isMobile ? 0 : 'auto',
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: active ? '#1e3a5f' : '#64748b',
-            background: active ? '#f0f7ff' : 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
-        }),
-        weatherDisplay: {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: isMobile ? '1.5rem 1rem' : '2rem',
+        emptyState: {
             background: '#f8fafc',
+            border: '2px dashed #e5e7eb',
             borderRadius: '12px',
-            minHeight: isMobile ? '100px' : '120px'
-        },
-        weatherLoading: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
-            color: '#64748b',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem'
-        },
-        weatherError: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
-            color: '#ef4444',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            marginBottom: isMobile ? '1.5rem' : '2rem',
+            padding: isMobile ? '2rem 1rem' : '3rem 2rem',
             textAlign: 'center'
         },
-        retryButton: {
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            border: '1px solid #ef4444',
+        emptyText: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            marginBottom: '1rem'
+        },
+        factorBadge: (type) => ({
+            alignItems: 'center',
+            background:
+                type === 'hot' || type === 'low-cement' || type === 'high-wc'
+                    ? '#fef2f2'
+                    : type === 'cold' || type === 'low-wc'
+                      ? '#eff6ff'
+                      : type === 'sunny' || type === 'peak'
+                        ? '#fef3c7'
+                        : type === 'cloudy' || type === 'night'
+                          ? '#f1f5f9'
+                          : type === 'high-cement'
+                            ? '#f0fdf4'
+                            : 'white',
+            border: `1px solid ${
+                type === 'hot' || type === 'low-cement' || type === 'high-wc'
+                    ? '#fee2e2'
+                    : type === 'cold' || type === 'low-wc'
+                      ? '#dbeafe'
+                      : type === 'sunny' || type === 'peak'
+                        ? '#fef3c7'
+                        : type === 'cloudy' || type === 'night'
+                          ? '#e5e7eb'
+                          : type === 'high-cement'
+                            ? '#dcfce7'
+                            : '#e5e7eb'
+            }`,
             borderRadius: '8px',
+            color:
+                type === 'hot' || type === 'low-cement' || type === 'high-wc'
+                    ? '#ef4444'
+                    : type === 'cold' || type === 'low-wc'
+                      ? '#3b82f6'
+                      : type === 'sunny' || type === 'peak'
+                        ? '#f59e0b'
+                        : type === 'cloudy' || type === 'night'
+                          ? '#64748b'
+                          : type === 'high-cement'
+                            ? '#16a34a'
+                            : '#1e293b',
+            display: 'flex',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
-            color: '#ef4444',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
-        },
-        weatherStats: {
-            display: 'flex',
-            gap: isMobile ? '1rem' : '2rem',
-            flexWrap: 'wrap',
-            justifyContent: 'center'
-        },
-        weatherStat: (isMain) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
             gap: '0.5rem',
-            fontSize: isMain ? (isMobile ? '1.25rem' : '1.5rem') : isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: isMain ? 700 : 600,
-            color: isMain ? '#1e3a5f' : '#64748b'
+            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem'
         }),
-        manualWeatherInputs: {
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: isMobile ? '1rem' : '1.5rem'
-        },
-        manualWeatherRow: {
+        factors: {
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        manualWeatherInfo: {
-            gridColumn: '1 / -1',
-            display: 'flex',
-            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: isMobile ? '0.5rem' : '0.75rem',
             justifyContent: 'center',
-            gap: '0.75rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            background: '#eff6ff',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
-            color: '#1e3a5f',
-            textAlign: 'center'
+            marginBottom: isMobile ? '1rem' : '1.5rem'
         },
-        label: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        inputWrap: {
-            position: 'relative',
+        footer: {
+            alignItems: 'center',
             display: 'flex',
-            alignItems: 'center'
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            justifyContent: isMobile ? 'center' : 'space-between'
         },
         input: {
-            width: '100%',
-            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 4rem 0.75rem 1rem',
             border: '2px solid #e5e7eb',
             borderRadius: '8px',
+            color: '#1e293b',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
-            color: '#1e293b',
             outline: 'none',
-            transition: 'all 0.2s'
-        },
-        inputUnit: {
-            position: 'absolute',
-            right: isMobile ? '0.75rem' : '1rem',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#94a3b8'
-        },
-        inputsGrid: {
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: isMobile ? '1rem' : '1.5rem'
+            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 4rem 0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
         },
         inputRow: {
             display: 'flex',
             flexDirection: 'column',
             gap: '0.5rem'
         },
-        wcDisplay: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.75rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            background: '#f0fdf4',
-            borderRadius: '8px',
-            marginTop: '1rem',
-            flexWrap: 'wrap'
-        },
-        wcLabel: {
+        inputUnit: {
+            color: '#94a3b8',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
-            color: '#64748b'
+            position: 'absolute',
+            right: isMobile ? '0.75rem' : '1rem'
         },
-        wcValue: {
-            fontSize: isMobile ? '1.25rem' : '1.5rem',
-            fontWeight: 700,
-            color: '#16a34a'
+        inputWrap: {
+            alignItems: 'center',
+            display: 'flex',
+            position: 'relative'
         },
-        wcBreakdown: {
+        inputsGrid: {
+            display: 'grid',
+            gap: isMobile ? '1rem' : '1.5rem',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))'
+        },
+        label: {
+            color: '#64748b',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
-            color: '#64748b'
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        },
+        manualWeatherInfo: {
+            alignItems: 'center',
+            background: '#eff6ff',
+            borderRadius: '8px',
+            color: '#1e3a5f',
+            display: 'flex',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            fontWeight: 600,
+            gap: '0.75rem',
+            gridColumn: '1 / -1',
+            justifyContent: 'center',
+            padding: isMobile ? '0.75rem' : '1rem',
+            textAlign: 'center'
+        },
+        manualWeatherInputs: {
+            display: 'grid',
+            gap: isMobile ? '1rem' : '1.5rem',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))'
+        },
+        manualWeatherRow: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+        },
+        note: {
+            alignItems: 'center',
+            color: '#94a3b8',
+            display: 'flex',
+            fontSize: '0.8125rem',
+            fontStyle: 'italic',
+            gap: '0.5rem'
+        },
+        requiredFields: {
+            color: '#94a3b8',
+            display: 'flex',
+            flexDirection: 'column',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            gap: '0.5rem'
+        },
+        requiredLabel: {
+            color: '#64748b',
+            fontWeight: 700
+        },
+        resetButton: {
+            alignItems: 'center',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            outline: 'none',
+            padding: '0.75rem 1.5rem',
+            transition: 'all 0.2s'
         },
         resultContainer: (riskLevel) => ({
             background:
@@ -482,118 +489,102 @@ const SetTimeCalculator = () => {
                         : '#dcfce7'
             }`,
             borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
-            marginBottom: isMobile ? '1.5rem' : '2rem'
+            marginBottom: isMobile ? '1.5rem' : '2rem',
+            padding: isMobile ? '1rem' : '2rem'
         }),
         resultHeader: {
-            display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
+            color: '#1e293b',
+            display: 'flex',
             fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
-            color: '#1e293b'
+            gap: '0.75rem',
+            marginBottom: isMobile ? '1rem' : '1.5rem'
         },
-        factors: {
-            display: 'flex',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            flexWrap: 'wrap',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            justifyContent: 'center'
-        },
-        factorBadge: (type) => ({
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
+        retryButton: {
+            background: 'white',
+            border: '1px solid #ef4444',
             borderRadius: '8px',
+            color: '#ef4444',
+            cursor: 'pointer',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
+            transition: 'all 0.2s'
+        },
+        section: {
+            marginBottom: isMobile ? '1.5rem' : '2rem'
+        },
+        sectionHeader: {
+            alignItems: isMobile ? 'flex-start' : 'center',
+            borderBottom: '2px solid #f1f5f9',
+            color: '#1e293b',
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background:
-                type === 'hot' || type === 'low-cement' || type === 'high-wc'
-                    ? '#fef2f2'
-                    : type === 'cold' || type === 'low-wc'
-                      ? '#eff6ff'
-                      : type === 'sunny' || type === 'peak'
-                        ? '#fef3c7'
-                        : type === 'cloudy' || type === 'night'
-                          ? '#f1f5f9'
-                          : type === 'high-cement'
-                            ? '#f0fdf4'
-                            : 'white',
-            color:
-                type === 'hot' || type === 'low-cement' || type === 'high-wc'
-                    ? '#ef4444'
-                    : type === 'cold' || type === 'low-wc'
-                      ? '#3b82f6'
-                      : type === 'sunny' || type === 'peak'
-                        ? '#f59e0b'
-                        : type === 'cloudy' || type === 'night'
-                          ? '#64748b'
-                          : type === 'high-cement'
-                            ? '#16a34a'
-                            : '#1e293b',
-            border: `1px solid ${
-                type === 'hot' || type === 'low-cement' || type === 'high-wc'
-                    ? '#fee2e2'
-                    : type === 'cold' || type === 'low-wc'
-                      ? '#dbeafe'
-                      : type === 'sunny' || type === 'peak'
-                        ? '#fef3c7'
-                        : type === 'cloudy' || type === 'night'
-                          ? '#e5e7eb'
-                          : type === 'high-cement'
-                            ? '#dcfce7'
-                            : '#e5e7eb'
-            }`
-        }),
-        settimeResults: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '1rem' : '2rem',
+            flexDirection: isMobile ? 'column' : 'row',
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: 700,
+            gap: isMobile ? '0.75rem' : '0.75rem',
             marginBottom: isMobile ? '1rem' : '1.5rem',
-            flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row'
+            paddingBottom: '1rem'
         },
         settimeBox: (isPrimary) => ({
-            display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: '0.5rem',
-            padding: isMobile ? '1rem' : '1.5rem',
             background: isPrimary ? '#dcfce7' : 'white',
             border: `3px solid ${isPrimary ? '#16a34a' : '#e5e7eb'}`,
             borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
             minWidth: isMobile ? '100%' : '180px',
+            padding: isMobile ? '1rem' : '1.5rem',
             width: isMobile ? '100%' : 'auto'
         }),
+        settimeDivider: {
+            color: '#cbd5e1',
+            display: isMobile ? 'none' : 'block',
+            fontSize: isMobile ? '1.25rem' : '1.5rem'
+        },
         settimeLabel: {
+            color: '#64748b',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
-        settimeValue: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
+        settimeResults: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: 'wrap',
+            gap: isMobile ? '1rem' : '2rem',
+            justifyContent: 'center',
+            marginBottom: isMobile ? '1rem' : '1.5rem'
         },
         settimeSublabel: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            color: '#94a3b8'
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.625rem' : '0.75rem'
         },
-        settimeDivider: {
-            fontSize: isMobile ? '1.25rem' : '1.5rem',
-            color: '#cbd5e1',
-            display: isMobile ? 'none' : 'block'
+        settimeValue: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            fontWeight: 700
         },
+        toggleButton: (active) => ({
+            background: active ? '#f0f7ff' : 'white',
+            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: active ? '#1e3a5f' : '#64748b',
+            cursor: 'pointer',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
+            marginLeft: isMobile ? 0 : 'auto',
+            outline: 'none',
+            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
+            transition: 'all 0.2s'
+        }),
         warning: (level) => ({
-            display: 'flex',
             alignItems: isMobile ? 'flex-start' : 'center',
-            gap: '0.75rem',
-            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
             background:
                 level === 'cold' || level === 'cool'
                     ? '#eff6ff'
@@ -612,8 +603,6 @@ const SetTimeCalculator = () => {
                         : '#e5e7eb'
             }`,
             borderRadius: '12px',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
             color:
                 level === 'cold' || level === 'cool'
                     ? '#1e40af'
@@ -621,78 +610,89 @@ const SetTimeCalculator = () => {
                       ? '#92400e'
                       : level === 'hot'
                         ? '#991b1b'
-                        : '#1e293b'
+                        : '#1e293b',
+            display: 'flex',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            fontWeight: 600,
+            gap: '0.75rem',
+            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
         }),
-        emptyState: {
-            textAlign: 'center',
-            padding: isMobile ? '2rem 1rem' : '3rem 2rem',
+        wcBreakdown: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.75rem' : '0.875rem'
+        },
+        wcDisplay: {
+            alignItems: 'center',
+            background: '#f0fdf4',
+            borderRadius: '8px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            justifyContent: 'center',
+            marginTop: '1rem',
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        wcLabel: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
+        },
+        wcValue: {
+            color: '#16a34a',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            fontWeight: 700
+        },
+        weatherDisplay: {
+            alignItems: 'center',
             background: '#f8fafc',
             borderRadius: '12px',
-            border: '2px dashed #e5e7eb',
-            marginBottom: isMobile ? '1.5rem' : '2rem'
+            display: 'flex',
+            justifyContent: 'center',
+            minHeight: isMobile ? '100px' : '120px',
+            padding: isMobile ? '1.5rem 1rem' : '2rem'
         },
-        emptyIcon: {
-            fontSize: isMobile ? '2rem' : '3rem',
-            color: '#cbd5e1',
-            marginBottom: '1rem'
-        },
-        emptyText: {
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            color: '#64748b',
-            marginBottom: '1rem'
-        },
-        requiredFields: {
+        weatherError: {
+            alignItems: 'center',
+            color: '#ef4444',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.5rem',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            color: '#94a3b8'
-        },
-        requiredLabel: {
-            fontWeight: 700,
-            color: '#64748b'
-        },
-        footer: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: isMobile ? 'center' : 'space-between',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
             gap: '1rem',
-            flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row'
+            textAlign: 'center'
         },
-        resetButton: {
-            display: 'flex',
+        weatherLoading: {
             alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
             color: '#64748b',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
-        },
-        note: {
             display: 'flex',
+            flexDirection: 'column',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            gap: '1rem'
+        },
+        weatherStat: (isMain) => ({
             alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.8125rem',
-            color: '#94a3b8',
-            fontStyle: 'italic'
+            color: isMain ? '#1e3a5f' : '#64748b',
+            display: 'flex',
+            flexDirection: 'column',
+            fontSize: isMain ? (isMobile ? '1.25rem' : '1.5rem') : isMobile ? '0.8125rem' : '0.9375rem',
+            fontWeight: isMain ? 700 : 600,
+            gap: '0.5rem'
+        }),
+        weatherStats: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: isMobile ? '1rem' : '2rem',
+            justifyContent: 'center'
         }
     }
 
     const inputFocusHandlers = {
-        onFocus: (e) => {
-            e.target.style.borderColor = '#1e3a5f'
-            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-        },
         onBlur: (e) => {
             e.target.style.borderColor = '#e5e7eb'
             e.target.style.boxShadow = 'none'
+        },
+        onFocus: (e) => {
+            e.target.style.borderColor = '#1e3a5f'
+            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
 
@@ -863,10 +863,10 @@ const SetTimeCalculator = () => {
                 </div>
                 <div style={styles.inputsGrid}>
                     {[
-                        { field: 'cement', label: 'Primary Powder', unit: 'lbs/yd', placeholder: '0' },
-                        { field: 'supplemental', label: 'Supplemental', unit: 'lbs/yd', placeholder: '0' },
-                        { field: 'water', label: 'Design Water', unit: 'gal/yd', placeholder: '0' },
-                        { field: 'slump', label: 'Slump', unit: 'in', placeholder: '4', step: '0.5' }
+                        { field: 'cement', label: 'Primary Powder', placeholder: '0', unit: 'lbs/yd' },
+                        { field: 'supplemental', label: 'Supplemental', placeholder: '0', unit: 'lbs/yd' },
+                        { field: 'water', label: 'Design Water', placeholder: '0', unit: 'gal/yd' },
+                        { field: 'slump', label: 'Slump', placeholder: '4', step: '0.5', unit: 'in' }
                     ].map((input) => (
                         <div key={input.field} style={styles.inputRow}>
                             <label style={styles.label}>{input.label}</label>

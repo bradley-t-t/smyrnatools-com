@@ -59,9 +59,9 @@ export function getWeekWindow(weekIso) {
     const windowEnd = new Date(targetMondayDate)
     windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
     return {
-        targetMondayIso,
+        qEnd: windowEnd.toISOString(),
         qStart: prevSunday.toISOString(),
-        qEnd: windowEnd.toISOString()
+        targetMondayIso
     }
 }
 
@@ -137,13 +137,13 @@ export async function fetchEfficiencyReports(plants, weekIso) {
         return da.localeCompare(db, undefined, { numeric: true, sensitivity: 'base' })
     })
     return final.map((r) => ({
+        completed: r.completed,
+        data: r.data,
         id: r.id,
         plant_code: r.data.plant,
         plant_name: r.data.plant,
         report_date: r.data.report_date || '',
         rows: Array.isArray(r.data.rows) ? r.data.rows : [],
-        data: r.data,
-        completed: r.completed,
         submitted_at: r.submitted_at
     }))
 }
@@ -326,20 +326,20 @@ export async function fetchAllMonthlyGMReports() {
         if (!mondayIso) return
         const existing = byWeek.get(mondayIso)
         if (!existing) {
-            byWeek.set(mondayIso, { mondayIso, data: r.data, completed: r.completed, submitted_at: r.submitted_at })
+            byWeek.set(mondayIso, { completed: r.completed, data: r.data, mondayIso, submitted_at: r.submitted_at })
         } else {
             if (r.completed && !existing.completed)
                 byWeek.set(mondayIso, {
-                    mondayIso,
-                    data: r.data,
                     completed: r.completed,
+                    data: r.data,
+                    mondayIso,
                     submitted_at: r.submitted_at
                 })
             else if (r.completed === existing.completed && (r.submitted_at || '') > (existing.submitted_at || ''))
                 byWeek.set(mondayIso, {
-                    mondayIso,
-                    data: r.data,
                     completed: r.completed,
+                    data: r.data,
+                    mondayIso,
                     submitted_at: r.submitted_at
                 })
         }
@@ -375,9 +375,9 @@ export async function fetchAllMonthlyGMReports() {
             const year = current.getUTCFullYear()
             const month = current.getUTCMonth() + 1
             const monthKey = `${year}-${String(month).padStart(2, '0')}`
-            const monthName = current.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+            const monthName = current.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC', year: 'numeric' })
             const totalWeeks = getWeeksInMonth(year, month)
-            byMonth.set(monthKey, { monthKey, monthName, reports: [], weekIsos: new Set(), totalWeeks })
+            byMonth.set(monthKey, { monthKey, monthName, reports: [], totalWeeks, weekIsos: new Set() })
             current.setUTCMonth(current.getUTCMonth() - 1)
         }
     }
@@ -418,7 +418,7 @@ export async function createWorkbook() {
     wb.creator = 'Smyrna Ready Mix'
     wb.created = new Date()
     wb.modified = new Date()
-    return { wb, ExcelLib }
+    return { ExcelLib, wb }
 }
 
 export function downloadWorkbook(wb, filename) {
@@ -451,66 +451,66 @@ export function truncateToTenth(n) {
 
 export function calcChange(current, previous) {
     if (previous === null || previous === undefined) {
-        return { diff: 0, pct: 0, direction: 'neutral' }
+        return { diff: 0, direction: 'neutral', pct: 0 }
     }
     const diff = current - previous
     const pct = previous === 0 ? (current === 0 ? 0 : 100) : Math.round(((current - previous) / previous) * 100)
-    if (diff > 0) return { diff, pct, direction: 'up' }
-    if (diff < 0) return { diff: Math.abs(diff), pct: Math.abs(pct), direction: 'down' }
-    return { diff: 0, pct: 0, direction: 'neutral' }
+    if (diff > 0) return { diff, direction: 'up', pct }
+    if (diff < 0) return { diff: Math.abs(diff), direction: 'down', pct: Math.abs(pct) }
+    return { diff: 0, direction: 'neutral', pct: 0 }
 }
 
 export const COLORS = {
+    accent: 'FF4B7BA8',
     brand: 'FF2C4A6B',
     brandLight: 'FF3B5F8A',
-    accent: 'FF4B7BA8',
-    success: 'FF2D7A5F',
-    successLight: 'FFD4E8E0',
-    warning: 'FFCA8A2B',
+    cream: 'FFF8F9FA',
     danger: 'FFB93A3A',
     dangerLight: 'FFF5D9D9',
-    white: 'FFFFFFFF',
-    cream: 'FFF8F9FA',
-    snow: 'FFE0E3E6',
     slate100: 'FFD0D4D8',
     slate200: 'FFC8CDD2',
     slate300: 'FFB5BBC2',
     slate500: 'FF8B949E',
     slate700: 'FF5A6672',
     slate900: 'FF2D3748',
-    subtleGray: 'FFE8EAED'
+    snow: 'FFE0E3E6',
+    subtleGray: 'FFE8EAED',
+    success: 'FF2D7A5F',
+    successLight: 'FFD4E8E0',
+    warning: 'FFCA8A2B',
+    white: 'FFFFFFFF'
 }
 
 export function getChangeText(current, previous, invertColors = false) {
     const change = calcChange(current, previous)
     if (change.direction === 'neutral' || change.pct === 0) {
-        return { text: '0%', color: COLORS.slate300 }
+        return { color: COLORS.slate300, text: '0%' }
     }
     if (change.direction === 'up') {
-        return { text: `+${change.pct}%`, color: invertColors ? COLORS.danger : COLORS.success }
+        return { color: invertColors ? COLORS.danger : COLORS.success, text: `+${change.pct}%` }
     }
-    return { text: `-${change.pct}%`, color: invertColors ? COLORS.success : COLORS.danger }
+    return { color: invertColors ? COLORS.success : COLORS.danger, text: `-${change.pct}%` }
 }
 
 export function getChangeValue(current, previous, invertColors = false) {
     const change = calcChange(current, previous)
     if (change.direction === 'neutral' || change.diff === 0) {
-        return { text: '0', color: COLORS.slate300 }
+        return { color: COLORS.slate300, text: '0' }
     }
     if (change.direction === 'up') {
-        return { text: `+${change.diff}`, color: invertColors ? COLORS.danger : COLORS.success }
+        return { color: invertColors ? COLORS.danger : COLORS.success, text: `+${change.diff}` }
     }
-    return { text: `-${change.diff}`, color: invertColors ? COLORS.success : COLORS.danger }
+    return { color: invertColors ? COLORS.success : COLORS.danger, text: `-${change.diff}` }
 }
 
 export function addSectionTitle(ws, row, text) {
     ws.mergeCells(row, 2, row, 12)
     const cell = ws.getCell(row, 2)
     cell.value = text
-    cell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: COLORS.brand } }
-    cell.alignment = { vertical: 'middle', horizontal: 'left' }
+    cell.font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 14 }
+    cell.alignment = { horizontal: 'left', vertical: 'middle' }
     for (let c = 2; c <= 16; c++) {
-        ws.getCell(row, c).border = { bottom: { style: 'medium', color: { argb: COLORS.brand } } }
+        ws.getCell(row, c).border = { bottom: { color: { argb: COLORS.brand }, style: 'medium' } }
     }
     ws.getRow(row).height = 28
 }
@@ -519,10 +519,10 @@ export function addTableHeaders(ws, row, headers, startCol = 2) {
     headers.forEach((h, idx) => {
         const cell = ws.getCell(row, startCol + idx)
         cell.value = h
-        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COLORS.slate700 } }
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.border = { bottom: { style: 'thin', color: { argb: COLORS.slate300 } } }
+        cell.font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 10 }
+        cell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+        cell.alignment = { horizontal: 'center', vertical: 'middle' }
+        cell.border = { bottom: { color: { argb: COLORS.slate300 }, style: 'thin' } }
     })
     ws.getRow(row).height = 22
 }
@@ -536,26 +536,26 @@ export function addMergedTableHeaders(ws, row, headers, startCol = 2) {
             ws.mergeCells(row, col, row, col + mergeCount - 1)
             const cell = ws.getCell(row, col)
             cell.value = h.label
-            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COLORS.slate700 } }
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-            cell.alignment = { vertical: 'middle', horizontal: align }
-            cell.border = { bottom: { style: 'thin', color: { argb: COLORS.slate300 } } }
+            cell.font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 10 }
+            cell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+            cell.alignment = { horizontal: align, vertical: 'middle' }
+            cell.border = { bottom: { color: { argb: COLORS.slate300 }, style: 'thin' } }
             for (let i = 1; i < mergeCount; i++) {
                 ws.getCell(row, col + i).fill = {
-                    type: 'pattern',
+                    fgColor: { argb: COLORS.slate100 },
                     pattern: 'solid',
-                    fgColor: { argb: COLORS.slate100 }
+                    type: 'pattern'
                 }
-                ws.getCell(row, col + i).border = { bottom: { style: 'thin', color: { argb: COLORS.slate300 } } }
+                ws.getCell(row, col + i).border = { bottom: { color: { argb: COLORS.slate300 }, style: 'thin' } }
             }
             col += mergeCount
         } else {
             const cell = ws.getCell(row, col)
             cell.value = h.label
-            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COLORS.slate700 } }
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-            cell.alignment = { vertical: 'middle', horizontal: align }
-            cell.border = { bottom: { style: 'thin', color: { argb: COLORS.slate300 } } }
+            cell.font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 10 }
+            cell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+            cell.alignment = { horizontal: align, vertical: 'middle' }
+            cell.border = { bottom: { color: { argb: COLORS.slate300 }, style: 'thin' } }
             col += 1
         }
     })
@@ -566,11 +566,11 @@ export function addChangePct(cell, changeInfo, isAlt = false) {
     if (!changeInfo || !changeInfo.text) {
         cell.value = ''
         if (isAlt) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.snow } }
+            cell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
         }
     } else {
         cell.value = changeInfo.text.trim()
-        cell.font = { name: 'Calibri', size: 8, bold: true, color: { argb: changeInfo.color } }
+        cell.font = { bold: true, color: { argb: changeInfo.color }, name: 'Calibri', size: 8 }
         const bgColor =
             changeInfo.color === COLORS.success
                 ? COLORS.successLight
@@ -580,10 +580,10 @@ export function addChangePct(cell, changeInfo, isAlt = false) {
                     ? COLORS.snow
                     : null
         if (bgColor) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } }
+            cell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
         }
     }
-    cell.alignment = { vertical: 'middle', horizontal: 'right' }
+    cell.alignment = { horizontal: 'right', vertical: 'middle' }
 }
 
 export function addDataRow(ws, row, values, startCol = 2, isAlt = false) {
@@ -596,16 +596,16 @@ export function addDataRow(ws, row, values, startCol = 2, isAlt = false) {
                 cell.value = v.value
             }
             if (v.format) cell.numFmt = v.format
-            cell.alignment = { vertical: 'middle', horizontal: v.align || 'left' }
-            if (v.color) cell.font = { name: 'Calibri', size: 11, color: { argb: v.color }, bold: v.bold }
-            else if (!v.richText) cell.font = { name: 'Calibri', size: 11, color: { argb: COLORS.slate700 } }
+            cell.alignment = { horizontal: v.align || 'left', vertical: 'middle' }
+            if (v.color) cell.font = { bold: v.bold, color: { argb: v.color }, name: 'Calibri', size: 11 }
+            else if (!v.richText) cell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
         } else {
             cell.value = v
-            cell.font = { name: 'Calibri', size: 11, color: { argb: COLORS.slate700 } }
-            cell.alignment = { vertical: 'middle', horizontal: typeof v === 'number' ? 'right' : 'left' }
+            cell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
+            cell.alignment = { horizontal: typeof v === 'number' ? 'right' : 'left', vertical: 'middle' }
         }
         if (isAlt) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.snow } }
+            cell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
         }
     })
     ws.getRow(row).height = 20
@@ -617,7 +617,7 @@ export function applySubtleBackground(ws, maxRow = 200, maxCol = 30) {
         for (let colNum = 1; colNum <= maxCol; colNum++) {
             const cell = row.getCell(colNum)
             if (!cell.fill || !cell.fill.fgColor || cell.fill.fgColor.argb === 'FFFFFFFF') {
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.subtleGray } }
+                cell.fill = { fgColor: { argb: COLORS.subtleGray }, pattern: 'solid', type: 'pattern' }
             }
         }
     }
@@ -626,22 +626,22 @@ export function applySubtleBackground(ws, maxRow = 200, maxCol = 30) {
 export function applyTotalCell(cell, value, format) {
     cell.value = value
     if (format) cell.numFmt = format
-    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: COLORS.brand } }
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-    cell.border = { top: { style: 'medium', color: { argb: COLORS.brand } } }
-    cell.alignment = { vertical: 'middle', horizontal: 'left' }
+    cell.font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 11 }
+    cell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+    cell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
+    cell.alignment = { horizontal: 'left', vertical: 'middle' }
 }
 
 export function applyTotalChangeCell(cell, changeInfo) {
     if (changeInfo && changeInfo.text) {
         cell.value = changeInfo.text.trim()
-        cell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: changeInfo.color } }
+        cell.font = { bold: true, color: { argb: changeInfo.color }, name: 'Calibri', size: 9 }
     } else {
         cell.value = ''
     }
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-    cell.border = { top: { style: 'medium', color: { argb: COLORS.brand } } }
-    cell.alignment = { vertical: 'middle', horizontal: 'right' }
+    cell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+    cell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
+    cell.alignment = { horizontal: 'right', vertical: 'middle' }
 }
 
 export function addReportHeader(ws, wb, { logoBase64, title, subtitle, row = 2 }) {
@@ -654,17 +654,17 @@ export function addReportHeader(ws, wb, { logoBase64, title, subtitle, row = 2 }
             extension: 'png'
         })
         ws.addImage(imageId, {
-            tl: { col: 1, row: r - 1 },
             br: { col: 3, row: r + 2 },
-            editAs: 'oneCell'
+            editAs: 'oneCell',
+            tl: { col: 1, row: r - 1 }
         })
     }
 
     ws.mergeCells(r, 5, r, 12)
     const titleCell = ws.getCell(r, 5)
     titleCell.value = title
-    titleCell.font = { name: 'Calibri', size: 26, bold: true, color: { argb: COLORS.brand } }
-    titleCell.alignment = { vertical: 'middle', horizontal: 'left' }
+    titleCell.font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 26 }
+    titleCell.alignment = { horizontal: 'left', vertical: 'middle' }
     ws.getRow(r).height = 36
     r++
 
@@ -672,25 +672,25 @@ export function addReportHeader(ws, wb, { logoBase64, title, subtitle, row = 2 }
         ws.mergeCells(r, 5, r, 9)
         const subtitleCell = ws.getCell(r, 5)
         subtitleCell.value = subtitle
-        subtitleCell.font = { name: 'Calibri', size: 13, color: { argb: COLORS.slate700 } }
-        subtitleCell.alignment = { vertical: 'middle', horizontal: 'left' }
+        subtitleCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 13 }
+        subtitleCell.alignment = { horizontal: 'left', vertical: 'middle' }
         r++
     }
 
     ws.mergeCells(r, 5, r, 12)
     const dateCell = ws.getCell(r, 5)
     dateCell.value = {
+        hyperlink: 'https://smyrnatools.com',
         text:
             'Generated on ' +
             new Date().toLocaleDateString('en-US', {
-                month: 'short',
                 day: 'numeric',
+                month: 'short',
                 year: 'numeric'
             }) +
-            ' on smyrnatools.com',
-        hyperlink: 'https://smyrnatools.com'
+            ' on smyrnatools.com'
     }
-    dateCell.font = { name: 'Calibri', size: 10, italic: true, color: { argb: COLORS.slate500 }, underline: true }
+    dateCell.font = { color: { argb: COLORS.slate500 }, italic: true, name: 'Calibri', size: 10, underline: true }
     r += 2
 
     return r
@@ -718,11 +718,11 @@ export function addOverviewSection(
     ws.mergeCells(row, col, row, col + 2)
     const titleCell = ws.getCell(row, col)
     titleCell.value = title
-    titleCell.font = { name: 'Calibri', size: 16, bold: true, color: { argb: COLORS.white } }
-    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.brand } }
-    titleCell.alignment = { vertical: 'middle', horizontal: 'center' }
-    ws.getCell(row, col + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.brand } }
-    ws.getCell(row, col + 2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.brand } }
+    titleCell.font = { bold: true, color: { argb: COLORS.white }, name: 'Calibri', size: 16 }
+    titleCell.fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
+    ws.getCell(row, col + 1).fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
+    ws.getCell(row, col + 2).fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
     ws.getRow(row).height = 28
     row += 2
 
@@ -734,11 +734,11 @@ export function addOverviewSection(
         ws.mergeCells(row, col, row, col + 2)
         const groupCell = ws.getCell(row, col)
         groupCell.value = group.title
-        groupCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: COLORS.slate700 } }
-        groupCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-        groupCell.alignment = { vertical: 'middle', horizontal: 'left' }
-        ws.getCell(row, col + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
-        ws.getCell(row, col + 2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.slate100 } }
+        groupCell.font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
+        groupCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+        groupCell.alignment = { horizontal: 'left', vertical: 'middle' }
+        ws.getCell(row, col + 1).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
+        ws.getCell(row, col + 2).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
         ws.getRow(row).height = 20
         row++
 
@@ -748,20 +748,20 @@ export function addOverviewSection(
 
             const labelCell = ws.getCell(row, col)
             labelCell.value = metric.label
-            labelCell.font = { name: 'Calibri', size: 10, color: { argb: COLORS.slate500 } }
-            labelCell.alignment = { vertical: 'middle', horizontal: 'left' }
-            if (bgColor) labelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } }
+            labelCell.font = { color: { argb: COLORS.slate500 }, name: 'Calibri', size: 10 }
+            labelCell.alignment = { horizontal: 'left', vertical: 'middle' }
+            if (bgColor) labelCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
 
             const changeInfo =
                 metric.prev !== undefined
                     ? metric.useValue
                         ? _getChangeValue(metric.value, metric.prev, metric.invertChange || false)
                         : _getChangeText(metric.value, metric.prev, metric.invertChange || false)
-                    : { text: '', color: null }
+                    : { color: null, text: '' }
             const changeCell = ws.getCell(row, col + 1)
             _addChangePct(changeCell, changeInfo, isAlt)
             if (bgColor && (!changeInfo || !changeInfo.text)) {
-                changeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } }
+                changeCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
             }
 
             const valueCell = ws.getCell(row, col + 2)
@@ -771,9 +771,9 @@ export function addOverviewSection(
                 valueCell.value = metric.value
                 if (metric.format) valueCell.numFmt = metric.format
             }
-            valueCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: metric.color || COLORS.brand } }
-            valueCell.alignment = { vertical: 'middle', horizontal: 'left' }
-            if (bgColor) valueCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } }
+            valueCell.font = { bold: true, color: { argb: metric.color || COLORS.brand }, name: 'Calibri', size: 12 }
+            valueCell.alignment = { horizontal: 'left', vertical: 'middle' }
+            if (bgColor) valueCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
 
             ws.getRow(row).height = 20
             row++
@@ -786,12 +786,12 @@ export function addOverviewSection(
 
 export function setDefaultPageSetup(ws) {
     ws.pageSetup = {
-        paperSize: 9,
-        orientation: 'landscape',
+        fitToHeight: 0,
         fitToPage: true,
         fitToWidth: 1,
-        fitToHeight: 0,
-        margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3 }
+        margins: { bottom: 0.5, footer: 0.3, header: 0.3, left: 0.4, right: 0.4, top: 0.5 },
+        orientation: 'landscape',
+        paperSize: 9
     }
 }
 

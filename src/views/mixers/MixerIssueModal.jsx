@@ -1,6 +1,7 @@
 import React from 'react'
-import { MixerService } from '../../services/MixerService'
+
 import IssueModalSection from '../../components/sections/IssueModalSection'
+import { MixerService } from '../../services/MixerService'
 
 function MixerIssueModal({ mixerId, mixerNumber, onClose }) {
     return (

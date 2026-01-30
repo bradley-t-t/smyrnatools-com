@@ -4,28 +4,16 @@ const DatabaseUtility = {
         try {
             const { data, error } = await supabase.from(tableName).select('*').limit(1)
             if (error) {
-                return { exists: false, error: error.message, columns: null }
+                return { columns: null, error: error.message, exists: false }
             }
             return {
-                exists: true,
                 columns: data?.length ? Object.keys(data[0]) : [],
+                exists: true,
                 sample: data?.[0] ?? null
             }
         } catch (error) {
-            return { exists: false, error: error.message, columns: null }
+            return { columns: null, error: error.message, exists: false }
         }
-    },
-    storeDebugData(key, data) {
-        if (!key || !data) throw new Error('Key and data are required')
-        try {
-            localStorage.setItem(
-                key,
-                JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    data
-                })
-            )
-        } catch (error) {}
     },
     async getRequiredFields(supabase, tableName) {
         if (!supabase || !tableName) throw new Error('Supabase client and table name are required')
@@ -39,6 +27,18 @@ const DatabaseUtility = {
         } catch (error) {
             return []
         }
+    },
+    storeDebugData(key, data) {
+        if (!key || !data) throw new Error('Key and data are required')
+        try {
+            localStorage.setItem(
+                key,
+                JSON.stringify({
+                    data,
+                    timestamp: new Date().toISOString()
+                })
+            )
+        } catch (error) {}
     }
 }
 

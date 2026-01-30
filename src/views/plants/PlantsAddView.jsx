@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { PlantService } from '../../services/PlantService'
+
 import AddViewSection from '../../components/sections/AddViewSection'
+import { PlantService } from '../../services/PlantService'
 
 function PlantsAddView({ onClose, onPlantAdded }) {
     const [plantCode, setPlantCode] = useState('')

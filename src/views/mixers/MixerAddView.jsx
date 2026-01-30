@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { MixerService } from '../../services/MixerService'
-import { Mixer } from '../../models/mixers/Mixer'
-import { AuthService } from '../../services/AuthService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
+import { Mixer } from '../../models/mixers/Mixer'
+import { AuthService } from '../../services/AuthService'
+import { MixerService } from '../../services/MixerService'
+import { RegionService } from '../../services/RegionService'
 
 function MixerAddView({ plants, onClose, onMixerAdded }) {
     const { preferences } = usePreferences()
@@ -92,12 +93,12 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
 
             const now = formatDateForDb(new Date())
             const newMixer = new Mixer({
-                truck_number: truckNumber,
-                assigned_plant: assignedPlant,
                 assigned_operator: '0',
+                assigned_plant: assignedPlant,
                 cleanliness_rating: 5,
-                status,
                 created_at: now,
+                status,
+                truck_number: truckNumber,
                 updated_at: now,
                 updated_by: userId,
                 updated_last: now

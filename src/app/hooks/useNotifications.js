@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useMultiTableSubscription } from './useRealtimeSubscription'
+
 import NotificationsService from '../../services/NotificationsService'
+import { useMultiTableSubscription } from './useRealtimeSubscription'
 
 export function useNotifications(userId, selectedRegion) {
     const [notifications, setNotifications] = useState([])
@@ -53,10 +54,10 @@ export function useNotifications(userId, selectedRegion) {
     }, [refresh])
 
     useMultiTableSubscription(['list_items', 'mixers', 'equipment', 'tractors'], {
+        enabled: !!userId,
         onAnyChange: (_payload) => {
             refresh()
-        },
-        enabled: !!userId
+        }
     })
 
     useEffect(() => {
@@ -82,9 +83,9 @@ export function useNotifications(userId, selectedRegion) {
     }, [refresh, scheduleRetries])
 
     return {
-        notifications,
         count,
         loading,
+        notifications,
         refresh
     }
 }

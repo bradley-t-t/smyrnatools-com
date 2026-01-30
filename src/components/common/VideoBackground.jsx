@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+
 import vid1 from '../../assets/videos/1.mp4'
 import vid2 from '../../assets/videos/2.mp4'
 import vid3 from '../../assets/videos/3.mp4'
@@ -84,48 +85,48 @@ function VideoBackground({ className = '' }) {
     }
 
     const containerStyle = {
+        height: '100%',
+        left: 0,
+        overflow: 'hidden',
         position: 'absolute',
         top: 0,
-        left: 0,
         width: '100%',
-        height: '100%',
-        overflow: 'hidden',
         zIndex: 0
     }
 
     const fallbackStyle = {
+        backgroundColor: '#0a1929',
+        height: '100%',
+        left: 0,
         position: 'absolute',
         top: 0,
-        left: 0,
         width: '100%',
-        height: '100%',
-        backgroundColor: '#0a1929',
         zIndex: 1
     }
 
     const videoStyle = {
+        filter: 'none',
+        height: 'auto',
+        left: '50%',
+        minHeight: '100%',
+        minWidth: '100%',
+        objectFit: 'cover',
+        opacity: showVideo ? 1 : 0,
         position: 'absolute',
         top: '50%',
-        left: '50%',
-        minWidth: '100%',
-        minHeight: '100%',
-        width: 'auto',
-        height: 'auto',
         transform: 'translate(-50%, -50%)',
-        objectFit: 'cover',
-        zIndex: 2,
-        opacity: showVideo ? 1 : 0,
         transition: 'opacity 1.5s ease-in-out',
-        filter: 'none'
+        width: 'auto',
+        zIndex: 2
     }
 
     const overlayStyle = {
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        height: '100%',
+        left: 0,
         position: 'absolute',
         top: 0,
-        left: 0,
         width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         zIndex: 3
     }
 

@@ -1,91 +1,4 @@
 const LeaderboardsUtility = {
-    calculateHoursAdjustments(reports, profilesData, plantCodesInRegion) {
-        const hoursAdjustmentsByPlant = {}
-
-        plantCodesInRegion.forEach((plantCode) => {
-            hoursAdjustmentsByPlant[plantCode] = {
-                hoursAdded: 0,
-                hoursSubtracted: 0,
-                details: []
-            }
-        })
-
-        reports.forEach((report) => {
-            if (!report.data?.operators_sent_to_help) return
-
-            const sendingPlantProfile = profilesData.find((p) => p.id === report.user_id)
-            if (!sendingPlantProfile) return
-
-            const sendingPlantCode = sendingPlantProfile.plant_code
-
-            report.data.operators_sent_to_help.forEach((entry) => {
-                const { destination_plant, operators } = entry
-                if (!operators || operators.length === 0) return
-
-                const totalHours = operators.reduce((sum, op) => sum + (parseFloat(op.hours) || 0), 0)
-
-                if (hoursAdjustmentsByPlant[sendingPlantCode]) {
-                    hoursAdjustmentsByPlant[sendingPlantCode].hoursSubtracted += totalHours
-                    hoursAdjustmentsByPlant[sendingPlantCode].details.push({
-                        type: 'sent',
-                        to: destination_plant,
-                        hours: totalHours,
-                        week: report.week,
-                        operatorCount: operators.length
-                    })
-                }
-
-                if (hoursAdjustmentsByPlant[destination_plant]) {
-                    hoursAdjustmentsByPlant[destination_plant].hoursAdded += totalHours
-                    hoursAdjustmentsByPlant[destination_plant].details.push({
-                        type: 'received',
-                        from: sendingPlantCode,
-                        hours: totalHours,
-                        week: report.week,
-                        operatorCount: operators.length
-                    })
-                }
-            })
-        })
-
-        return hoursAdjustmentsByPlant
-    },
-
-    calculateSafetyIncidents(safetyReports, plantCodesInRegion) {
-        const safetyByPlant = {}
-
-        plantCodesInRegion.forEach((plantCode) => {
-            safetyByPlant[plantCode] = {
-                impactfulIncidents: 0,
-                totalIncidents: 0,
-                details: []
-            }
-        })
-
-        safetyReports.forEach((report) => {
-            if (!report.data?.issues || !Array.isArray(report.data.issues)) return
-
-            report.data.issues.forEach((issue) => {
-                const plantCode = issue.plant
-                if (!plantCode || plantCode === 'All' || !safetyByPlant[plantCode]) return
-
-                safetyByPlant[plantCode].totalIncidents++
-
-                if (issue.affectsEfficiency === true) {
-                    safetyByPlant[plantCode].impactfulIncidents++
-                    safetyByPlant[plantCode].details.push({
-                        description: issue.description,
-                        tags: issue.tags || [],
-                        date: issue.date,
-                        week: report.week
-                    })
-                }
-            })
-        })
-
-        return safetyByPlant
-    },
-
     calculateFleetCounts(plantCodesInRegion, mixersData, tractorsData, trailersData, equipmentData, operatorsData) {
         const fleetCountsByPlant = {}
 
@@ -156,20 +69,72 @@ const LeaderboardsUtility = {
                     : 0
 
             fleetCountsByPlant[plantCode] = {
-                mixers: mixerCount,
-                tractors: tractorCount,
-                trailers: trailerCount,
+                avgFleetCleanliness: avgMixerCleanliness,
+                avgFleetCleanlinessForEfficiency: Math.floor(avgMixerCleanliness),
                 equipment: equipmentCount,
                 mixerOperators: mixerOperatorCount,
-                tractorOperators: tractorOperatorCount,
+                mixers: mixerCount,
                 operators: totalOperators,
                 totalAssets: mixerCount + tractorCount + trailerCount + equipmentCount,
-                avgFleetCleanliness: avgMixerCleanliness,
-                avgFleetCleanlinessForEfficiency: Math.floor(avgMixerCleanliness)
+                tractorOperators: tractorOperatorCount,
+                tractors: tractorCount,
+                trailers: trailerCount
             }
         })
 
         return fleetCountsByPlant
+    },
+
+    calculateHoursAdjustments(reports, profilesData, plantCodesInRegion) {
+        const hoursAdjustmentsByPlant = {}
+
+        plantCodesInRegion.forEach((plantCode) => {
+            hoursAdjustmentsByPlant[plantCode] = {
+                details: [],
+                hoursAdded: 0,
+                hoursSubtracted: 0
+            }
+        })
+
+        reports.forEach((report) => {
+            if (!report.data?.operators_sent_to_help) return
+
+            const sendingPlantProfile = profilesData.find((p) => p.id === report.user_id)
+            if (!sendingPlantProfile) return
+
+            const sendingPlantCode = sendingPlantProfile.plant_code
+
+            report.data.operators_sent_to_help.forEach((entry) => {
+                const { destination_plant, operators } = entry
+                if (!operators || operators.length === 0) return
+
+                const totalHours = operators.reduce((sum, op) => sum + (parseFloat(op.hours) || 0), 0)
+
+                if (hoursAdjustmentsByPlant[sendingPlantCode]) {
+                    hoursAdjustmentsByPlant[sendingPlantCode].hoursSubtracted += totalHours
+                    hoursAdjustmentsByPlant[sendingPlantCode].details.push({
+                        hours: totalHours,
+                        operatorCount: operators.length,
+                        to: destination_plant,
+                        type: 'sent',
+                        week: report.week
+                    })
+                }
+
+                if (hoursAdjustmentsByPlant[destination_plant]) {
+                    hoursAdjustmentsByPlant[destination_plant].hoursAdded += totalHours
+                    hoursAdjustmentsByPlant[destination_plant].details.push({
+                        from: sendingPlantCode,
+                        hours: totalHours,
+                        operatorCount: operators.length,
+                        type: 'received',
+                        week: report.week
+                    })
+                }
+            })
+        })
+
+        return hoursAdjustmentsByPlant
     },
 
     calculateMetrics(
@@ -236,19 +201,19 @@ const LeaderboardsUtility = {
                 const lost = parseFloat(report.data?.total_yards_lost || 0)
 
                 allWeeks.push({
-                    yardage,
                     hours,
-                    lost,
                     isMissing: false,
-                    isNotSubmitted: !report.completed
+                    isNotSubmitted: !report.completed,
+                    lost,
+                    yardage
                 })
             } else if (currentDate >= new Date(firstDate + 'T12:00:00') && currentDate < currentWeekStart) {
                 allWeeks.push({
-                    yardage: 0,
                     hours: 0,
-                    lost: 0,
                     isMissing: true,
-                    isNotSubmitted: false
+                    isNotSubmitted: false,
+                    lost: 0,
+                    yardage: 0
                 })
             }
 
@@ -267,12 +232,12 @@ const LeaderboardsUtility = {
 
         const totals = submittedWeeks.reduce(
             (acc, week) => ({
-                totalYards: acc.totalYards + week.yardage,
+                reportCount: acc.reportCount + 1,
                 totalHours: acc.totalHours + week.hours,
                 totalLost: acc.totalLost + week.lost,
-                reportCount: acc.reportCount + 1
+                totalYards: acc.totalYards + week.yardage
             }),
-            { totalYards: 0, totalHours: 0, totalLost: 0, reportCount: 0 }
+            { reportCount: 0, totalHours: 0, totalLost: 0, totalYards: 0 }
         )
 
         let adjustedTotalHours = totals.totalHours
@@ -356,38 +321,67 @@ const LeaderboardsUtility = {
         const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports) * 100 : 100
 
         return {
-            avgYPH,
-            rawYPH,
-            avgYardageDaily,
-            avgYardageWeekly,
-            avgYardageLost,
-            avgWeeklyHours,
+            avgEfficiency,
             avgHoursDaily,
             avgLoadsDaily,
             avgLoadsWeekly,
-            avgEfficiency,
-            loadsEfficiency,
-            reportCount: totals.reportCount,
-            totalYardage: totals.totalYards,
-            totalHours: totals.totalHours,
-            totalLost: totals.totalLost,
+            avgMonthlyHours,
+            avgMonthlyYards,
+            avgWeeklyHours,
+            avgYPH,
+            avgYardageDaily,
+            avgYardageLost,
+            avgYardageWeekly,
             dataIntegrity,
             helpGiven,
-            helpReceived,
             helpRatio,
-            missingReports: missingCount,
-            incompleteReports: incompleteCount,
-            avgMonthlyYards,
-            avgMonthlyHours,
+            helpReceived,
             impactfulIncidents,
-            totalSafetyIncidents
+            incompleteReports: incompleteCount,
+            loadsEfficiency,
+            missingReports: missingCount,
+            rawYPH,
+            reportCount: totals.reportCount,
+            totalHours: totals.totalHours,
+            totalLost: totals.totalLost,
+            totalSafetyIncidents,
+            totalYardage: totals.totalYards
         }
     },
 
-    getEfficiencyColor(efficiency) {
-        if (efficiency >= 90) return 'var(--success)'
-        if (efficiency >= 80) return 'var(--warning)'
-        return 'var(--danger)'
+    calculateSafetyIncidents(safetyReports, plantCodesInRegion) {
+        const safetyByPlant = {}
+
+        plantCodesInRegion.forEach((plantCode) => {
+            safetyByPlant[plantCode] = {
+                details: [],
+                impactfulIncidents: 0,
+                totalIncidents: 0
+            }
+        })
+
+        safetyReports.forEach((report) => {
+            if (!report.data?.issues || !Array.isArray(report.data.issues)) return
+
+            report.data.issues.forEach((issue) => {
+                const plantCode = issue.plant
+                if (!plantCode || plantCode === 'All' || !safetyByPlant[plantCode]) return
+
+                safetyByPlant[plantCode].totalIncidents++
+
+                if (issue.affectsEfficiency === true) {
+                    safetyByPlant[plantCode].impactfulIncidents++
+                    safetyByPlant[plantCode].details.push({
+                        date: issue.date,
+                        description: issue.description,
+                        tags: issue.tags || [],
+                        week: report.week
+                    })
+                }
+            })
+        })
+
+        return safetyByPlant
     },
 
     getCategoryData(plantMetrics, category) {
@@ -460,6 +454,12 @@ const LeaderboardsUtility = {
             default:
                 return 'Leaderboard'
         }
+    },
+
+    getEfficiencyColor(efficiency) {
+        if (efficiency >= 90) return 'var(--success)'
+        if (efficiency >= 80) return 'var(--warning)'
+        return 'var(--danger)'
     }
 }
 

@@ -1,4 +1,5 @@
 import React from 'react'
+
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 
 function MixerHistoryView({ mixer, onClose }) {

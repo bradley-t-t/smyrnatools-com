@@ -1,5 +1,5 @@
-import { TractorUtility } from '../../utils/TractorUtility'
 import { DateUtility } from '../../utils/DateUtility'
+import { TractorUtility } from '../../utils/TractorUtility'
 
 export class Tractor {
     constructor(data = {}) {
@@ -41,22 +41,22 @@ export class Tractor {
 
     toApiFormat() {
         const apiObject = {
-            truck_number: this.truckNumber,
-            assigned_plant: this.assignedPlant,
             assigned_operator: this.assignedOperator || null,
-            last_service_date: DateUtility.toDbDate(this.lastServiceDate),
+            assigned_plant: this.assignedPlant,
             cleanliness_rating: this.cleanlinessRating,
-            status: this.status,
-            has_blower: this.hasBlower,
             created_at: DateUtility.toDbTimestamp(this.createdAt) || DateUtility.nowDb(),
-            updated_at: DateUtility.nowDb(),
-            updated_last: DateUtility.toDbTimestamp(this.updatedLast),
-            updated_by: this.updatedBy,
-            vin: (this.vin || '').toUpperCase(),
+            freight: this.freight || null,
+            has_blower: this.hasBlower,
+            last_service_date: DateUtility.toDbDate(this.lastServiceDate),
             make: this.make,
             model: this.model,
-            year: this.year,
-            freight: this.freight || null
+            status: this.status,
+            truck_number: this.truckNumber,
+            updated_at: DateUtility.nowDb(),
+            updated_by: this.updatedBy,
+            updated_last: DateUtility.toDbTimestamp(this.updatedLast),
+            vin: (this.vin || '').toUpperCase(),
+            year: this.year
         }
 
         if (this.id) apiObject.id = this.id

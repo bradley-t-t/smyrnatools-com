@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { RegionService } from '../../services/RegionService'
+
 import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
 
 function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const [regionName, setRegionName] = useState(region.region_name || region.regionName || '')
@@ -134,7 +135,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                 </button>
                 <h1>Region Details</h1>
             </div>
-            <div className="detail-content" style={{ maxWidth: 900, margin: '0 auto', width: '100%' }}>
+            <div className="detail-content" style={{ margin: '0 auto', maxWidth: 900, width: '100%' }}>
                 {message && <div className="message success">{message}</div>}
                 {error && <div className="message error">{error}</div>}
                 <div className="detail-card">

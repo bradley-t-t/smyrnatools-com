@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import LoadingScreen from '../../components/common/LoadingScreen'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { UserService } from '../../services/UserService'
-import LoadingScreen from '../../components/common/LoadingScreen'
 import { formatMaintenanceDateShort, getFieldTypeIcon } from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
@@ -68,16 +69,16 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
         const savedImages = {}
         Object.entries(fieldImages).forEach(([fieldId, imgData]) => {
             if (imgData?.uploadedUrl) {
-                savedImages[fieldId] = { uploadedUrl: imgData.uploadedUrl, uploaded: true }
+                savedImages[fieldId] = { uploaded: true, uploadedUrl: imgData.uploadedUrl }
             }
         })
 
         const draft = {
-            responses,
-            checklistStates,
             checklistComments,
-            fieldImages: savedImages,
+            checklistStates,
             currentStep,
+            fieldImages: savedImages,
+            responses,
             savedAt: new Date().toISOString()
         }
         try {
@@ -98,10 +99,10 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                     }
                 })
                 return {
-                    field_id: field.id,
-                    checklist_values: checklistStates[field.id] || {},
                     checklist_comments: checklistComments[field.id] || {},
-                    checklist_images: Object.keys(checklistImages).length > 0 ? checklistImages : null
+                    checklist_images: Object.keys(checklistImages).length > 0 ? checklistImages : null,
+                    checklist_values: checklistStates[field.id] || {},
+                    field_id: field.id
                 }
             }
 
@@ -109,8 +110,8 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
             const imageUrl = imageData?.uploadedUrl || null
             return {
                 field_id: field.id,
-                response_value: responses[field.id] || '',
-                image_url: imageUrl
+                image_url: imageUrl,
+                response_value: responses[field.id] || ''
             }
         })
     }, [fields, responses, checklistStates, checklistComments, fieldImages])
@@ -286,7 +287,7 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                                 commentMap[fieldId] = comments
                             }
                             if (resp.image_url) {
-                                imageMap[fieldId] = { uploadedUrl: resp.image_url, uploaded: true }
+                                imageMap[fieldId] = { uploaded: true, uploadedUrl: resp.image_url }
                             }
                             if (resp.checklist_images) {
                                 const checkImages =
@@ -296,7 +297,7 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                                 if (checkImages && typeof checkImages === 'object') {
                                     Object.entries(checkImages).forEach(([checkItem, imgUrl]) => {
                                         const imageKey = `${fieldId}_${checkItem.trim()}`
-                                        imageMap[imageKey] = { uploadedUrl: imgUrl, uploaded: true }
+                                        imageMap[imageKey] = { uploaded: true, uploadedUrl: imgUrl }
                                     })
                                 }
                             }
@@ -369,7 +370,7 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                         commentMap[fieldId] = comments
                     }
                     if (resp.image_url) {
-                        imageMap[fieldId] = { uploadedUrl: resp.image_url, uploaded: true }
+                        imageMap[fieldId] = { uploaded: true, uploadedUrl: resp.image_url }
                     }
                     if (resp.checklist_images) {
                         const checkImages =
@@ -379,7 +380,7 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                         if (checkImages && typeof checkImages === 'object') {
                             Object.entries(checkImages).forEach(([checkItem, imgUrl]) => {
                                 const imageKey = `${fieldId}_${checkItem.trim()}`
-                                imageMap[imageKey] = { uploadedUrl: imgUrl, uploaded: true }
+                                imageMap[imageKey] = { uploaded: true, uploadedUrl: imgUrl }
                             })
                         }
                     }
@@ -514,8 +515,8 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                 ...prev,
                 [imageKey]: {
                     ...prev[imageKey],
-                    uploadedUrl,
-                    uploaded: true
+                    uploaded: true,
+                    uploadedUrl
                 }
             }))
         } catch (error) {
@@ -718,10 +719,10 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                         }
                     })
                     return {
-                        field_id: field.id,
-                        checklist_values: checklistStates[field.id] || {},
                         checklist_comments: checklistComments[field.id] || {},
-                        checklist_images: Object.keys(checklistImages).length > 0 ? checklistImages : null
+                        checklist_images: Object.keys(checklistImages).length > 0 ? checklistImages : null,
+                        checklist_values: checklistStates[field.id] || {},
+                        field_id: field.id
                     }
                 }
 
@@ -729,8 +730,8 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                 const imageUrl = imageData?.uploadedUrl || null
                 return {
                     field_id: field.id,
-                    response_value: responses[field.id] || '',
-                    image_url: imageUrl
+                    image_url: imageUrl,
+                    response_value: responses[field.id] || ''
                 }
             })
 
@@ -922,11 +923,11 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                                                     {isUploadingThis ? (
                                                         <div
                                                             style={{
-                                                                display: 'flex',
                                                                 alignItems: 'center',
+                                                                color: '#64748b',
+                                                                display: 'flex',
                                                                 gap: '0.5rem',
-                                                                padding: '0.75rem',
-                                                                color: '#64748b'
+                                                                padding: '0.75rem'
                                                             }}
                                                         >
                                                             <i className="fas fa-spinner fa-spin"></i>
@@ -1108,11 +1109,11 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                         {isUploading ? (
                             <div
                                 style={{
-                                    display: 'flex',
                                     alignItems: 'center',
+                                    color: '#64748b',
+                                    display: 'flex',
                                     gap: '0.5rem',
-                                    padding: '0.75rem',
-                                    color: '#64748b'
+                                    padding: '0.75rem'
                                 }}
                             >
                                 <i className="fas fa-spinner fa-spin"></i>
@@ -1480,387 +1481,387 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
     }
 
     const styles = {
-        container: {
-            width: '100%',
-            minHeight: '100vh',
-            background: '#f8fafc',
+        actionButtons: {
+            borderTop: '1px solid #e5e7eb',
             display: 'flex',
-            flexDirection: 'column'
+            gap: '1rem',
+            justifyContent: 'flex-end',
+            marginTop: '2rem',
+            paddingTop: '2rem'
         },
-        header: {
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            display: 'flex',
+        approveBtn: {
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 2rem',
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        },
-        closeBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '40px',
-            height: '40px',
+            background: '#10b981',
             border: 'none',
             borderRadius: '8px',
-            background: '#f1f5f9',
-            color: '#64748b',
-            fontSize: '1.125rem',
+            color: 'white',
             cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
             transition: 'all 0.2s'
         },
-        headerInfo: {
-            flex: 1,
-            marginLeft: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem'
+        checkbox: {
+            cursor: 'pointer',
+            flexShrink: 0,
+            height: '20px',
+            marginTop: '0.125rem',
+            width: '20px'
         },
-        formTitle: {
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        dueDate: {
+        checklistComment: {
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            color: '#1e293b',
             fontSize: '0.875rem',
-            color: '#64748b'
+            outline: 'none',
+            padding: '0.5rem 0.75rem',
+            transition: 'all 0.2s',
+            width: '100%'
         },
-        progressContainer: {
+        checklistContent: {
             display: 'flex',
+            flex: 1,
             flexDirection: 'column',
-            gap: '0.5rem',
-            minWidth: '150px',
-            marginRight: '1rem'
+            gap: '0.5rem'
         },
-        progressBar: {
-            width: '100%',
-            height: '6px',
-            background: '#e5e7eb',
-            borderRadius: '3px',
-            overflow: 'hidden'
-        },
-        progressFill: {
-            height: '100%',
-            background: '#1e3a5f',
-            transition: 'width 0.3s ease'
-        },
-        progressText: {
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textAlign: 'center'
-        },
-        navButtons: {
+        checklistItem: {
+            alignItems: 'flex-start',
+            background: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
             display: 'flex',
-            gap: '0.5rem',
-            flexShrink: 0
+            gap: '0.75rem',
+            marginBottom: '0.75rem',
+            padding: '1rem'
         },
-        navBtn: (disabled) => ({
-            display: 'flex',
+        checklistLabel: {
+            color: '#1e293b',
+            fontSize: '0.9375rem',
+            fontWeight: 600
+        },
+        closeBtn: {
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.375rem',
-            padding: '0.625rem 1rem',
+            background: '#f1f5f9',
             border: 'none',
             borderRadius: '8px',
-            background: disabled ? '#f1f5f9' : '#1e3a5f',
-            color: disabled ? '#cbd5e1' : 'white',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '1.125rem',
+            height: '40px',
+            justifyContent: 'center',
             transition: 'all 0.2s',
-            opacity: disabled ? 0.5 : 1,
-            whiteSpace: 'nowrap'
-        }),
-        content: {
-            flex: 1,
+            width: '40px'
+        },
+        container: {
+            background: '#f8fafc',
             display: 'flex',
             flexDirection: 'column',
-            padding: '2rem',
-            maxWidth: '800px',
-            margin: '0 auto',
+            minHeight: '100vh',
             width: '100%'
+        },
+        content: {
+            display: 'flex',
+            flex: 1,
+            flexDirection: 'column',
+            margin: '0 auto',
+            maxWidth: '800px',
+            padding: '2rem',
+            width: '100%'
+        },
+        dueDate: {
+            color: '#64748b',
+            fontSize: '0.875rem'
+        },
+        error: {
+            background: '#fee2e2',
+            border: '1px solid #ef4444',
+            borderRadius: '8px',
+            color: '#dc2626',
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            marginTop: '0.5rem',
+            padding: '0.75rem 1rem'
         },
         fieldCard: {
             background: 'white',
             borderRadius: '12px',
-            padding: '2rem',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginBottom: '1.5rem'
+            marginBottom: '1.5rem',
+            padding: '2rem'
+        },
+        fieldDescription: {
+            color: '#64748b',
+            fontSize: '0.875rem',
+            marginTop: '0.5rem'
         },
         fieldHeader: {
             marginBottom: '1.5rem'
         },
         fieldLabel: {
+            alignItems: 'center',
+            color: '#1e293b',
+            display: 'flex',
             fontSize: '1.125rem',
             fontWeight: 700,
-            color: '#1e293b',
-            marginBottom: '0.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-        },
-        required: {
-            color: '#ef4444',
-            fontSize: '0.875rem'
-        },
-        fieldDescription: {
-            fontSize: '0.875rem',
-            color: '#64748b',
-            marginTop: '0.5rem'
+            gap: '0.5rem',
+            marginBottom: '0.5rem'
         },
         fieldType: {
-            display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.375rem',
-            padding: '0.25rem 0.625rem',
             background: '#eff6ff',
             border: '1px solid #3b82f6',
             borderRadius: '6px',
+            color: '#1e3a5f',
+            display: 'inline-flex',
             fontSize: '0.75rem',
             fontWeight: 600,
-            color: '#1e3a5f',
-            marginTop: '0.5rem'
+            gap: '0.375rem',
+            marginTop: '0.5rem',
+            padding: '0.25rem 0.625rem'
         },
-        input: {
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
+        formTitle: {
             color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
+            fontSize: '1.125rem',
+            fontWeight: 700
         },
-        textarea: {
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s',
-            minHeight: '120px',
-            resize: 'vertical'
-        },
-        checklistItem: {
+        header: {
+            alignItems: 'center',
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: '0.75rem',
-            padding: '1rem',
-            background: '#f8fafc',
-            borderRadius: '8px',
-            marginBottom: '0.75rem',
-            border: '1px solid #e5e7eb'
+            justifyContent: 'space-between',
+            padding: '1rem 2rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50
         },
-        checkbox: {
-            width: '20px',
-            height: '20px',
-            cursor: 'pointer',
-            marginTop: '0.125rem',
-            flexShrink: 0
-        },
-        checklistContent: {
+        headerInfo: {
+            display: 'flex',
             flex: 1,
-            display: 'flex',
             flexDirection: 'column',
-            gap: '0.5rem'
+            gap: '0.25rem',
+            marginLeft: '1rem'
         },
-        checklistLabel: {
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#1e293b'
-        },
-        checklistComment: {
-            width: '100%',
-            padding: '0.5rem 0.75rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '6px',
+        imageBtn: {
+            alignItems: 'center',
+            background: 'white',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e3a5f',
+            cursor: 'pointer',
+            display: 'flex',
             fontSize: '0.875rem',
-            color: '#1e293b',
-            outline: 'none',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
             transition: 'all 0.2s'
-        },
-        imageSection: {
-            marginTop: '1rem'
-        },
-        imageLabel: {
-            display: 'block',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: '#374151',
-            marginBottom: '0.75rem'
         },
         imageButtons: {
             display: 'flex',
             gap: '0.75rem',
             marginBottom: '1rem'
         },
-        imageBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.625rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
+        imageLabel: {
+            color: '#374151',
+            display: 'block',
             fontSize: '0.875rem',
             fontWeight: 600,
-            color: '#1e3a5f',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
+            marginBottom: '0.75rem'
         },
         imagePreview: {
-            position: 'relative',
-            width: '100%',
+            marginTop: '1rem',
             maxWidth: '400px',
+            position: 'relative',
+            width: '100%'
+        },
+        imageSection: {
             marginTop: '1rem'
         },
-        previewImage: {
-            width: '100%',
+        input: {
+            border: '2px solid #e5e7eb',
             borderRadius: '8px',
-            border: '1px solid #e5e7eb',
-            cursor: 'pointer'
+            color: '#1e293b',
+            fontSize: '0.9375rem',
+            outline: 'none',
+            padding: '0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
         },
-        removeImageBtn: {
-            position: 'absolute',
-            top: '0.5rem',
-            right: '0.5rem',
-            display: 'flex',
+        navBtn: (disabled) => ({
             alignItems: 'center',
-            justifyContent: 'center',
-            width: '32px',
-            height: '32px',
+            background: disabled ? '#f1f5f9' : '#1e3a5f',
             border: 'none',
-            borderRadius: '6px',
-            background: '#ef4444',
-            color: 'white',
+            borderRadius: '8px',
+            color: disabled ? '#cbd5e1' : 'white',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'flex',
             fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.375rem',
+            justifyContent: 'center',
+            opacity: disabled ? 0.5 : 1,
+            padding: '0.625rem 1rem',
+            transition: 'all 0.2s',
+            whiteSpace: 'nowrap'
+        }),
+        navButtons: {
+            display: 'flex',
+            flexShrink: 0,
+            gap: '0.5rem'
+        },
+        previewImage: {
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
             cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            width: '100%'
+        },
+        progressBar: {
+            background: '#e5e7eb',
+            borderRadius: '3px',
+            height: '6px',
+            overflow: 'hidden',
+            width: '100%'
+        },
+        progressContainer: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            marginRight: '1rem',
+            minWidth: '150px'
+        },
+        progressFill: {
+            background: '#1e3a5f',
+            height: '100%',
+            transition: 'width 0.3s ease'
+        },
+        progressText: {
+            color: '#64748b',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            textAlign: 'center'
+        },
+        rejectBtn: {
+            alignItems: 'center',
+            background: '#ef4444',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
             transition: 'all 0.2s'
         },
-        uploadingOverlay: {
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
+        removeImageBtn: {
             alignItems: 'center',
+            background: '#ef4444',
+            border: 'none',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            height: '32px',
             justifyContent: 'center',
+            position: 'absolute',
+            right: '0.5rem',
+            top: '0.5rem',
+            transition: 'all 0.2s',
+            width: '32px'
+        },
+        required: {
+            color: '#ef4444',
+            fontSize: '0.875rem'
+        },
+        reviewButtons: {
+            display: 'flex',
+            gap: '1rem'
+        },
+        reviewNotes: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: '0.9375rem',
+            marginBottom: '1rem',
+            minHeight: '100px',
+            outline: 'none',
+            padding: '0.75rem 1rem',
+            resize: 'vertical',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        reviewSection: {
+            background: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginTop: '2rem',
+            padding: '2rem'
+        },
+        reviewTitle: {
+            color: '#1e293b',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            marginBottom: '1rem'
+        },
+        submitBtn: (disabled) => ({
+            alignItems: 'center',
+            background: disabled ? '#cbd5e1' : '#10b981',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            transition: 'all 0.2s'
+        }),
+        textarea: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: '0.9375rem',
+            minHeight: '120px',
+            outline: 'none',
+            padding: '0.75rem 1rem',
+            resize: 'vertical',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        uploadingOverlay: {
+            alignItems: 'center',
             background: 'rgba(0,0,0,0.5)',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            display: 'flex',
+            inset: 0,
+            justifyContent: 'center',
+            position: 'absolute'
         },
         uploadingText: {
             color: 'white',
             fontSize: '0.875rem',
             fontWeight: 600
         },
-        actionButtons: {
-            display: 'flex',
-            gap: '1rem',
-            justifyContent: 'flex-end',
-            marginTop: '2rem',
-            paddingTop: '2rem',
-            borderTop: '1px solid #e5e7eb'
-        },
-        submitBtn: (disabled) => ({
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: 'white',
-            background: disabled ? '#cbd5e1' : '#10b981',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s'
-        }),
-        reviewSection: {
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginTop: '2rem'
-        },
-        reviewTitle: {
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            marginBottom: '1rem'
-        },
-        reviewNotes: {
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s',
-            minHeight: '100px',
-            resize: 'vertical',
-            marginBottom: '1rem'
-        },
-        reviewButtons: {
-            display: 'flex',
-            gap: '1rem'
-        },
-        approveBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: 'white',
-            background: '#10b981',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        },
-        rejectBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: 'white',
-            background: '#ef4444',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        },
-        error: {
-            display: 'block',
-            marginTop: '0.5rem',
-            padding: '0.75rem 1rem',
-            background: '#fee2e2',
-            border: '1px solid #ef4444',
-            borderRadius: '8px',
-            color: '#dc2626',
-            fontSize: '0.875rem',
-            fontWeight: 500
-        },
         viewOnlyBadge: {
-            display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.375rem',
-            padding: '0.375rem 0.75rem',
             background: '#fef3c7',
             border: '1px solid #f59e0b',
             borderRadius: '6px',
             color: '#d97706',
+            display: 'inline-flex',
             fontSize: '0.8125rem',
-            fontWeight: 600
+            fontWeight: 600,
+            gap: '0.375rem',
+            padding: '0.375rem 0.75rem'
         }
     }
 
@@ -1945,23 +1946,23 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                         <div style={styles.fieldHeader}>
                             <div
                                 style={{
-                                    display: 'flex',
                                     alignItems: 'center',
+                                    display: 'flex',
                                     gap: '0.75rem',
                                     marginBottom: '0.75rem'
                                 }}
                             >
                                 <div
                                     style={{
-                                        display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '48px',
-                                        height: '48px',
-                                        borderRadius: '12px',
                                         background: '#eff6ff',
+                                        borderRadius: '12px',
                                         color: '#1e3a5f',
-                                        fontSize: '1.25rem'
+                                        display: 'flex',
+                                        fontSize: '1.25rem',
+                                        height: '48px',
+                                        justifyContent: 'center',
+                                        width: '48px'
                                     }}
                                 >
                                     <i className={`fas ${getFieldTypeIcon(currentField.field_type)}`}></i>
@@ -2023,39 +2024,39 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
             {imagePreview && (
                 <div
                     style={{
-                        position: 'fixed',
-                        inset: 0,
-                        display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
                         background: 'rgba(0,0,0,0.9)',
-                        zIndex: 9999,
-                        padding: '1rem'
+                        display: 'flex',
+                        inset: 0,
+                        justifyContent: 'center',
+                        padding: '1rem',
+                        position: 'fixed',
+                        zIndex: 9999
                     }}
                     onClick={closeImagePreview}
                 >
                     <div
-                        style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
+                        style={{ maxHeight: '90vh', maxWidth: '90vw', position: 'relative' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
                             style={{
-                                position: 'absolute',
-                                top: '-3rem',
-                                right: '0',
-                                display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '40px',
-                                height: '40px',
+                                background: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
-                                background: 'white',
-                                color: '#1e293b',
-                                fontSize: '1.125rem',
-                                cursor: 'pointer',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                transition: 'all 0.2s'
+                                color: '#1e293b',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                fontSize: '1.125rem',
+                                height: '40px',
+                                justifyContent: 'center',
+                                position: 'absolute',
+                                right: '0',
+                                top: '-3rem',
+                                transition: 'all 0.2s',
+                                width: '40px'
                             }}
                             onClick={closeImagePreview}
                             onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
@@ -2066,7 +2067,7 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                         <img
                             src={imagePreview}
                             alt="Full preview"
-                            style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '8px' }}
+                            style={{ borderRadius: '8px', maxHeight: '90vh', maxWidth: '100%' }}
                         />
                     </div>
                 </div>

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
+
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { supabase } from '../../../services/DatabaseService'
-import { ReportUtility } from '../../../utils/ReportUtility'
-import { UserService } from '../../../services/UserService'
-import { RegionService } from '../../../services/RegionService'
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import { supabase } from '../../../services/DatabaseService'
+import { RegionService } from '../../../services/RegionService'
+import { UserService } from '../../../services/UserService'
+import { ReportUtility } from '../../../utils/ReportUtility'
 import OperatorSelectModal from '../../mixers/OperatorSelectModal'
 
 const reportStyles = `
@@ -316,35 +317,35 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                 const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
 
                                 return {
-                                    weekIso: weekStr,
-                                    yph: metrics.rawYph,
-                                    rawYph: metrics.rawYph,
                                     adjustedYph: metrics.adjustedYph,
-                                    hoursSent: metrics.hoursSent,
-                                    hoursReceived: metrics.hoursReceived,
-                                    lost: parseFloat(report.data?.total_yards_lost || 0),
-                                    yards: parseFloat(report.data?.yardage || 0),
-                                    hours: parseFloat(report.data?.total_hours || 0),
                                     data: report.data,
+                                    hours: parseFloat(report.data?.total_hours || 0),
+                                    hoursReceived: metrics.hoursReceived,
+                                    hoursSent: metrics.hoursSent,
                                     isCurrentWeek: weekStr === currentWeekDateOnly,
+                                    isPlaceholder: false,
+                                    lost: parseFloat(report.data?.total_yards_lost || 0),
+                                    rawYph: metrics.rawYph,
                                     userId: report.user_id,
-                                    isPlaceholder: false
+                                    weekIso: weekStr,
+                                    yards: parseFloat(report.data?.yardage || 0),
+                                    yph: metrics.rawYph
                                 }
                             } else {
                                 return {
-                                    weekIso: weekStr,
-                                    yph: 0,
-                                    rawYph: 0,
                                     adjustedYph: 0,
-                                    hoursSent: 0,
-                                    hoursReceived: 0,
-                                    lost: 0,
-                                    yards: 0,
-                                    hours: 0,
                                     data: null,
+                                    hours: 0,
+                                    hoursReceived: 0,
+                                    hoursSent: 0,
                                     isCurrentWeek: weekStr === currentWeekDateOnly,
+                                    isPlaceholder: true,
+                                    lost: 0,
+                                    rawYph: 0,
                                     userId: null,
-                                    isPlaceholder: true
+                                    weekIso: weekStr,
+                                    yards: 0,
+                                    yph: 0
                                 }
                             }
                         })
@@ -450,15 +451,15 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 if (mounted && filteredData) {
                     if (filteredData.length === 0) {
                         setYearlyTotals({
-                            totalYards: 0,
+                            avgYph: 0,
+                            missingWeeks: [],
+                            notSubmittedWeeks: [],
+                            reportCount: 0,
                             totalHours: 0,
                             totalLost: 0,
-                            reportCount: 0,
-                            year: currentYear,
+                            totalYards: 0,
                             weeklyBreakdown: [],
-                            notSubmittedWeeks: [],
-                            missingWeeks: [],
-                            avgYph: 0
+                            year: currentYear
                         })
                         return
                     }
@@ -522,33 +523,33 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
 
                             allWeeks.push({
-                                week: weekStr,
-                                yardage: parseFloat(report.data?.yardage || 0),
-                                hours: parseFloat(report.data?.total_hours || 0),
-                                yph: metrics.rawYph,
-                                rawYph: metrics.rawYph,
                                 adjustedYph: metrics.adjustedYph,
-                                hoursSent: metrics.hoursSent,
+                                hours: parseFloat(report.data?.total_hours || 0),
                                 hoursReceived: metrics.hoursReceived,
-                                lost: parseFloat(report.data?.total_yards_lost || 0),
+                                hoursSent: metrics.hoursSent,
                                 isMissing: false,
                                 isNotSubmitted: !report.completed,
-                                userId: report.user_id
+                                lost: parseFloat(report.data?.total_yards_lost || 0),
+                                rawYph: metrics.rawYph,
+                                userId: report.user_id,
+                                week: weekStr,
+                                yardage: parseFloat(report.data?.yardage || 0),
+                                yph: metrics.rawYph
                             })
                         } else if (currentDate >= new Date(firstDate + 'T12:00:00') && currentDate < currentSunday) {
                             allWeeks.push({
-                                week: weekStr,
-                                yardage: 0,
-                                hours: 0,
-                                yph: 0,
-                                rawYph: 0,
                                 adjustedYph: 0,
-                                hoursSent: 0,
+                                hours: 0,
                                 hoursReceived: 0,
-                                lost: 0,
+                                hoursSent: 0,
                                 isMissing: true,
                                 isNotSubmitted: false,
-                                userId: null
+                                lost: 0,
+                                rawYph: 0,
+                                userId: null,
+                                week: weekStr,
+                                yardage: 0,
+                                yph: 0
                             })
                         }
 
@@ -564,25 +565,25 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                     const totals = submittedWeeks.reduce(
                         (acc, week) => {
                             return {
-                                totalYards: acc.totalYards + week.yardage,
+                                missingWeeks,
+                                notSubmittedWeeks,
+                                reportCount: acc.reportCount + 1,
                                 totalHours: acc.totalHours + week.hours,
                                 totalLost: acc.totalLost + week.lost,
-                                reportCount: acc.reportCount + 1,
-                                year: currentYear,
+                                totalYards: acc.totalYards + week.yardage,
                                 weeklyBreakdown: allWeeks,
-                                notSubmittedWeeks,
-                                missingWeeks
+                                year: currentYear
                             }
                         },
                         {
-                            totalYards: 0,
+                            missingWeeks,
+                            notSubmittedWeeks,
+                            reportCount: 0,
                             totalHours: 0,
                             totalLost: 0,
-                            reportCount: 0,
-                            year: currentYear,
+                            totalYards: 0,
                             weeklyBreakdown: allWeeks,
-                            notSubmittedWeeks,
-                            missingWeeks
+                            year: currentYear
                         }
                     )
 
@@ -1015,9 +1016,9 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     employeeId: op.employee_id,
                     name: op.name,
                     plantCode: op.plant_code,
-                    status: op.status,
+                    position: op.position,
                     smyrnaId: op.smyrna_id,
-                    position: op.position
+                    status: op.status
                 }))
 
                 setOperators(transformedOperators)
@@ -1034,10 +1035,10 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
         const defaultDate = minDate || new Date().toISOString().split('T')[0]
 
         const newEntry = {
-            id: Date.now(),
             date: defaultDate,
             destination_plant: '',
-            operators: [{ operator_id: '', hours: '' }]
+            id: Date.now(),
+            operators: [{ hours: '', operator_id: '' }]
         }
 
         onUpdate([...(entries || []), newEntry])
@@ -1054,7 +1055,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
     const addOperator = (entryId) => {
         onUpdate(
             (entries || []).map((e) =>
-                e.id === entryId ? { ...e, operators: [...e.operators, { operator_id: '', hours: '' }] } : e
+                e.id === entryId ? { ...e, operators: [...e.operators, { hours: '', operator_id: '' }] } : e
             )
         )
     }
@@ -1091,7 +1092,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
 
     const getDayName = (dateString) => {
         const date = new Date(dateString + 'T12:00:00')
-        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+        return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'long' })
     }
 
     if (loading) {
@@ -1386,9 +1387,9 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                 employeeId: op.employee_id,
                                 name: op.name,
                                 plantCode: op.plant_code,
-                                status: op.status,
+                                position: op.position,
                                 smyrnaId: op.smyrna_id,
-                                position: op.position
+                                status: op.status
                             }))
 
                             setOperators(transformedOperators)
@@ -1419,9 +1420,9 @@ export function PlantManagerSubmitPlugin({
     const { preferences: _preferences } = usePreferences()
     const isDark = false
     const [userPlantCode, setUserPlantCode] = useState(user?.plant_code || '')
-    const [calculatedYph, setCalculatedYph] = useState({ raw: 0, adjusted: 0 })
-    const [calculatedGrade, setCalculatedGrade] = useState({ raw: '', adjusted: '' })
-    const [calculatedLabel, setCalculatedLabel] = useState({ raw: '', adjusted: '' })
+    const [calculatedYph, setCalculatedYph] = useState({ adjusted: 0, raw: 0 })
+    const [calculatedGrade, setCalculatedGrade] = useState({ adjusted: '', raw: '' })
+    const [calculatedLabel, setCalculatedLabel] = useState({ adjusted: '', raw: '' })
 
     useEffect(() => {
         async function fetchUserPlant() {
@@ -1452,9 +1453,9 @@ export function PlantManagerSubmitPlugin({
         async function calculateYph() {
             if (!weekIso || !plantCode) {
                 const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
                 return
             }
 
@@ -1477,15 +1478,15 @@ export function PlantManagerSubmitPlugin({
                 const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
 
                 const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
-                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
             } catch (err) {
                 console.error('Error calculating YPH:', err)
                 const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
             }
         }
 
@@ -1618,9 +1619,9 @@ export function PlantManagerReviewPlugin({
 }) {
     const { preferences: _preferences } = usePreferences()
     const isDark = false
-    const [calculatedYph, setCalculatedYph] = useState({ raw: 0, adjusted: 0 })
-    const [calculatedGrade, setCalculatedGrade] = useState({ raw: '', adjusted: '' })
-    const [calculatedLabel, setCalculatedLabel] = useState({ raw: '', adjusted: '' })
+    const [calculatedYph, setCalculatedYph] = useState({ adjusted: 0, raw: 0 })
+    const [calculatedGrade, setCalculatedGrade] = useState({ adjusted: '', raw: '' })
+    const [calculatedLabel, setCalculatedLabel] = useState({ adjusted: '', raw: '' })
 
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
     const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
@@ -1629,9 +1630,9 @@ export function PlantManagerReviewPlugin({
         async function calculateYph() {
             if (!weekIso || !plantCode) {
                 const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
                 return
             }
 
@@ -1654,15 +1655,15 @@ export function PlantManagerReviewPlugin({
                 const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
 
                 const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
-                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
             } catch (err) {
                 console.error('Error calculating YPH:', err)
                 const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-                setCalculatedGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-                setCalculatedLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
             }
         }
 

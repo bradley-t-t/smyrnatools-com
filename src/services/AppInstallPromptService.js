@@ -37,15 +37,15 @@ class AppInstallPromptServiceImpl {
     }
 
     async recordPromptAction(userId, promptType, action, deviceType = null) {
-        if (!userId) return { success: false, error: 'No user ID' }
+        if (!userId) return { error: 'No user ID', success: false }
 
         try {
             const dataToUpsert = {
-                user_id: userId,
-                prompt_type: promptType,
                 action: action,
                 device_type: deviceType,
-                updated_at: new Date().toISOString()
+                prompt_type: promptType,
+                updated_at: new Date().toISOString(),
+                user_id: userId
             }
 
             if (action === 'remind_later') {
@@ -62,13 +62,13 @@ class AppInstallPromptServiceImpl {
 
             if (error) {
                 console.error('Error recording prompt action:', error)
-                return { success: false, error }
+                return { error, success: false }
             }
 
-            return { success: true, data }
+            return { data, success: true }
         } catch (err) {
             console.error('Error in recordPromptAction:', err)
-            return { success: false, error: err }
+            return { error: err, success: false }
         }
     }
 

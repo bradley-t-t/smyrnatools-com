@@ -72,9 +72,9 @@ export class MaintenanceService {
             .from('maintenance_forms')
             .insert({
                 ...formInfo,
-                plant_codes: plant_codes || [],
-                created_by: user.id,
                 created_at: new Date().toISOString(),
+                created_by: user.id,
+                plant_codes: plant_codes || [],
                 updated_at: new Date().toISOString()
             })
             .select()
@@ -84,15 +84,15 @@ export class MaintenanceService {
 
         if (fields && fields.length > 0) {
             const fieldsToInsert = fields.map((field, index) => ({
-                form_id: form.id,
-                field_type: field.field_type,
-                label: field.label,
-                description: field.description || null,
-                is_required: field.is_required || false,
-                image_required: field.image_required || false,
-                field_order: index,
-                options: field.options || null,
                 created_at: new Date().toISOString(),
+                description: field.description || null,
+                field_order: index,
+                field_type: field.field_type,
+                form_id: form.id,
+                image_required: field.image_required || false,
+                is_required: field.is_required || false,
+                label: field.label,
+                options: field.options || null,
                 updated_at: new Date().toISOString()
             }))
 
@@ -129,15 +129,15 @@ export class MaintenanceService {
 
             if (fields.length > 0) {
                 const fieldsToInsert = fields.map((field, index) => ({
-                    form_id: formId,
-                    field_type: field.field_type,
-                    label: field.label,
-                    description: field.description || null,
-                    is_required: field.is_required || false,
-                    image_required: field.image_required || false,
-                    field_order: index,
-                    options: field.options || null,
                     created_at: new Date().toISOString(),
+                    description: field.description || null,
+                    field_order: index,
+                    field_type: field.field_type,
+                    form_id: formId,
+                    image_required: field.image_required || false,
+                    is_required: field.is_required || false,
+                    label: field.label,
+                    options: field.options || null,
                     updated_at: new Date().toISOString()
                 }))
 
@@ -310,11 +310,11 @@ export class MaintenanceService {
                         const isOverdue = dueDate <= today && !isCompleted
 
                         dueItems.push({
-                            id: `${form.id}-${dueDateStr}-${plantCode || 'all'}`,
-                            form_id: form.id,
-                            form: form,
-                            plant_code: plantCode,
                             due_date: dueDateStr,
+                            form: form,
+                            form_id: form.id,
+                            id: `${form.id}-${dueDateStr}-${plantCode || 'all'}`,
+                            plant_code: plantCode,
                             status: isCompleted ? 'completed' : isOverdue ? 'overdue' : 'pending',
                             submission_id: mySubmission?.id || null
                         })
@@ -418,13 +418,13 @@ export class MaintenanceService {
         const { data: submission, error: submissionError } = await supabase
             .from('maintenance_submissions')
             .insert({
-                form_id: formId,
-                submitted_by: user.id,
+                created_at: new Date().toISOString(),
                 due_date: dueDate,
+                form_id: formId,
                 plant_code: plantCode,
                 status: 'submitted',
                 submitted_at: new Date().toISOString(),
-                created_at: new Date().toISOString(),
+                submitted_by: user.id,
                 updated_at: new Date().toISOString()
             })
             .select()
@@ -434,14 +434,14 @@ export class MaintenanceService {
 
         if (responses && responses.length > 0) {
             const responsesToInsert = responses.map((response) => ({
-                submission_id: submission.id,
-                field_id: response.field_id,
-                response_value: response.response_value || null,
-                checklist_values: response.checklist_values || null,
                 checklist_comments: response.checklist_comments || null,
                 checklist_images: response.checklist_images || null,
-                image_url: response.image_url || null,
+                checklist_values: response.checklist_values || null,
                 created_at: new Date().toISOString(),
+                field_id: response.field_id,
+                image_url: response.image_url || null,
+                response_value: response.response_value || null,
+                submission_id: submission.id,
                 updated_at: new Date().toISOString()
             }))
 
@@ -473,14 +473,14 @@ export class MaintenanceService {
 
         if (responses && responses.length > 0) {
             const responsesToInsert = responses.map((response) => ({
-                submission_id: submissionId,
-                field_id: response.field_id,
-                response_value: response.response_value || null,
-                checklist_values: response.checklist_values || null,
                 checklist_comments: response.checklist_comments || null,
                 checklist_images: response.checklist_images || null,
-                image_url: response.image_url || null,
+                checklist_values: response.checklist_values || null,
                 created_at: new Date().toISOString(),
+                field_id: response.field_id,
+                image_url: response.image_url || null,
+                response_value: response.response_value || null,
+                submission_id: submissionId,
                 updated_at: new Date().toISOString()
             }))
 
@@ -530,12 +530,12 @@ export class MaintenanceService {
             const { data: submission, error: submissionError } = await supabase
                 .from('maintenance_submissions')
                 .insert({
-                    form_id: formId,
-                    submitted_by: user.id,
+                    created_at: new Date().toISOString(),
                     due_date: dueDate,
+                    form_id: formId,
                     plant_code: plantCode,
                     status: 'draft',
-                    created_at: new Date().toISOString(),
+                    submitted_by: user.id,
                     updated_at: new Date().toISOString()
                 })
                 .select()
@@ -547,14 +547,14 @@ export class MaintenanceService {
 
         if (responses && responses.length > 0) {
             const responsesToInsert = responses.map((response) => ({
-                submission_id: submissionId,
-                field_id: response.field_id,
-                response_value: response.response_value || null,
-                checklist_values: response.checklist_values || null,
                 checklist_comments: response.checklist_comments || null,
                 checklist_images: response.checklist_images || null,
-                image_url: response.image_url || null,
+                checklist_values: response.checklist_values || null,
                 created_at: new Date().toISOString(),
+                field_id: response.field_id,
+                image_url: response.image_url || null,
+                response_value: response.response_value || null,
+                submission_id: submissionId,
                 updated_at: new Date().toISOString()
             }))
 
@@ -661,10 +661,10 @@ export class MaintenanceService {
         const { data, error } = await supabase
             .from('maintenance_submissions')
             .update({
-                status: status,
-                reviewed_by: user.id,
-                reviewed_at: new Date().toISOString(),
                 review_notes: notes,
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: user.id,
+                status: status,
                 updated_at: new Date().toISOString()
             })
             .eq('id', submissionId)

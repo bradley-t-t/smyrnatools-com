@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { RegionService } from '../../services/RegionService'
+
 import LoadingScreen from '../../components/common/LoadingScreen'
-import RegionsDetailView from './RegionsDetailView'
-import RegionsAddView from './RegionsAddView'
 import TopSection from '../../components/sections/TopSection'
+import { RegionService } from '../../services/RegionService'
+import RegionsAddView from './RegionsAddView'
+import RegionsDetailView from './RegionsDetailView'
 
 function RegionsView({ title = 'Regions' }) {
     const [regions, setRegions] = useState([])
@@ -63,19 +64,19 @@ function RegionsView({ title = 'Regions' }) {
     })
 
     const selectStyle = {
-        padding: '12px 40px 12px 16px',
+        appearance: 'none',
+        backgroundColor: '#f8fafc',
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+        backgroundPosition: 'right 12px center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '18px',
         border: '1px solid #e5e7eb',
         borderRadius: '12px',
-        fontSize: '14px',
         color: '#1e293b',
-        backgroundColor: '#f8fafc',
         cursor: 'pointer',
-        appearance: 'none',
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right 12px center',
-        backgroundSize: '18px',
-        minWidth: '140px'
+        fontSize: '14px',
+        minWidth: '140px',
+        padding: '12px 40px 12px 16px'
     }
 
     const customFilters = (

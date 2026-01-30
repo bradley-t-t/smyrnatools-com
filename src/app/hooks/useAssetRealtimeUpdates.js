@@ -1,29 +1,30 @@
 import { useCallback, useEffect, useRef } from 'react'
+
 import { useRealtime } from '../context/RealtimeContext'
 
 const TABLE_MAP = {
-    mixers: 'mixers',
-    tractors: 'tractors',
-    trailers: 'trailers',
     equipment: 'heavy_equipment',
     'heavy equipment': 'heavy_equipment',
     heavy_equipment: 'heavy_equipment',
+    list: 'list_items',
+    mixers: 'mixers',
+    operators: 'operators',
     'pickup trucks': 'pickup_trucks',
     pickup_trucks: 'pickup_trucks',
-    operators: 'operators',
     plants: 'plants',
     regions: 'regions',
-    list: 'list_items'
+    tractors: 'tractors',
+    trailers: 'trailers'
 }
 
 export function useAssetRealtimeUpdates(assetType, options = {}) {
     const { onInsert, onUpdate, onDelete, onAnyChange, updateLocalState, enabled = true } = options
 
     const { subscribe } = useRealtime()
-    const handlersRef = useRef({ onInsert, onUpdate, onDelete, onAnyChange, updateLocalState })
+    const handlersRef = useRef({ onAnyChange, onDelete, onInsert, onUpdate, updateLocalState })
 
     useEffect(() => {
-        handlersRef.current = { onInsert, onUpdate, onDelete, onAnyChange, updateLocalState }
+        handlersRef.current = { onAnyChange, onDelete, onInsert, onUpdate, updateLocalState }
     }, [onInsert, onUpdate, onDelete, onAnyChange, updateLocalState])
 
     const handleRealtimeEvent = useCallback((eventType, data) => {

@@ -18,13 +18,13 @@ export async function initExport(options = {}) {
 
     const logoBase64 = options.skipLogo ? null : await loadLogo(options.logoPath)
 
-    return { wb, ExcelLib, logoBase64 }
+    return { ExcelLib, logoBase64, wb }
 }
 
 export function createSheet(wb, sheetName, options = {}) {
     const ws = wb.addWorksheet(sheetName, {
-        views: [{ showGridLines: false }],
-        properties: { defaultRowHeight: options.defaultRowHeight || 18 }
+        properties: { defaultRowHeight: options.defaultRowHeight || 18 },
+        views: [{ showGridLines: false }]
     })
 
     ws.columns = options.columns || getDefaultColumnWidths()

@@ -1,18 +1,19 @@
-import Trailer from '../../models/trailers/Trailer'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { TrailerService } from '../../services/TrailerService'
-import { PlantService } from '../../services/PlantService'
-import { TractorService } from '../../services/TractorService'
-import { UserService } from '../../services/UserService'
-import { supabase } from '../../services/DatabaseService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import TrailerHistoryView from './TrailerHistoryView'
-import TrailerCommentModal from './TrailerCommentModal'
-import TrailerIssueModal from './TrailerIssueModal'
-import TractorSelectModal from './TractorSelectModal'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
+import Trailer from '../../models/trailers/Trailer'
+import { supabase } from '../../services/DatabaseService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { TractorService } from '../../services/TractorService'
+import { TrailerService } from '../../services/TrailerService'
+import { UserService } from '../../services/UserService'
+import TractorSelectModal from './TractorSelectModal'
+import TrailerCommentModal from './TrailerCommentModal'
+import TrailerHistoryView from './TrailerHistoryView'
+import TrailerIssueModal from './TrailerIssueModal'
 
 function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
     const { preferences } = usePreferences()
@@ -72,12 +73,12 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 setCleanlinessRating(trailerData?.cleanlinessRating || 0)
                 setStatus(trailerData?.status || '')
                 setOriginalValues({
-                    trailerNumber: trailerData?.trailerNumber || '',
                     assignedPlant: trailerData?.assignedPlant || '',
-                    trailerType: trailerData?.trailerType || '',
                     assignedTractor: trailerData?.assignedTractor || '',
                     cleanlinessRating: trailerData?.cleanlinessRating || 0,
-                    status: trailerData?.status || ''
+                    status: trailerData?.status || '',
+                    trailerNumber: trailerData?.trailerNumber || '',
+                    trailerType: trailerData?.trailerType || ''
                 })
 
                 document.documentElement.style.setProperty('--rating-value', trailerData?.cleanlinessRating || 0)
@@ -333,17 +334,17 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1
 
             const updatedTrailer = new Trailer({
-                id: trailer.id,
-                trailer_number: overrideValues.trailerNumber ?? trailerNumber,
                 assigned_plant: overrideValues.assignedPlant ?? assignedPlant,
-                trailer_type: trailerTypeValue,
                 assigned_tractor: assignedTractorValue || null,
                 cleanliness_rating: cleanlinessValue,
+                created_at: trailer.createdAt,
+                id: trailer.id,
+                status: statusValue,
+                trailer_number: overrideValues.trailerNumber ?? trailerNumber,
+                trailer_type: trailerTypeValue,
                 updated_at: new Date().toISOString(),
                 updated_by: userId,
-                updated_last: trailer.updatedLast,
-                created_at: trailer.createdAt,
-                status: statusValue
+                updated_last: trailer.updatedLast
             })
             await TrailerService.updateTrailer(updatedTrailer.id, updatedTrailer, userId, trailerForHistory)
             setTrailer(updatedTrailer)
@@ -356,12 +357,12 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             setMessage('Changes saved successfully!')
             setTimeout(() => setMessage(''), 5000)
             setOriginalValues({
-                trailerNumber: updatedTrailer.trailerNumber,
                 assignedPlant: updatedTrailer.assignedPlant,
-                trailerType: updatedTrailer.trailerType,
                 assignedTractor: updatedTrailer.assignedTractor,
                 cleanlinessRating: updatedTrailer.cleanlinessRating,
-                status: updatedTrailer.status
+                status: updatedTrailer.status,
+                trailerNumber: updatedTrailer.trailerNumber,
+                trailerType: updatedTrailer.trailerType
             })
             setHasUnsavedChanges(false)
         } catch (error) {
@@ -566,12 +567,12 @@ ${
                                 setCleanlinessRating(updatedTrailer.cleanlinessRating || 0)
                                 setStatus(updatedTrailer.status || '')
                                 setOriginalValues({
-                                    trailerNumber: updatedTrailer.trailerNumber,
                                     assignedPlant: updatedTrailer.assignedPlant,
-                                    trailerType: updatedTrailer.trailerType,
                                     assignedTractor: updatedTrailer.assignedTractor,
                                     cleanlinessRating: updatedTrailer.cleanlinessRating,
-                                    status: updatedTrailer.status
+                                    status: updatedTrailer.status,
+                                    trailerNumber: updatedTrailer.trailerNumber,
+                                    trailerType: updatedTrailer.trailerType
                                 })
                                 setHasUnsavedChanges(false)
                                 setMessage('Tractor assigned')
@@ -693,9 +694,9 @@ ${
                                     style={
                                         !canEditTrailer
                                             ? {
+                                                  backgroundColor: 'var(--card-bg)',
                                                   cursor: 'not-allowed',
-                                                  opacity: 0.8,
-                                                  backgroundColor: 'var(--card-bg)'
+                                                  opacity: 0.8
                                               }
                                             : {}
                                     }
@@ -773,12 +774,12 @@ ${
                                                         setCleanlinessRating(updatedTrailer.cleanlinessRating || 0)
                                                         setStatus(updatedTrailer.status || '')
                                                         setOriginalValues({
-                                                            trailerNumber: updatedTrailer.trailerNumber,
                                                             assignedPlant: updatedTrailer.assignedPlant,
-                                                            trailerType: updatedTrailer.trailerType,
                                                             assignedTractor: updatedTrailer.assignedTractor,
                                                             cleanlinessRating: updatedTrailer.cleanlinessRating,
-                                                            status: updatedTrailer.status
+                                                            status: updatedTrailer.status,
+                                                            trailerNumber: updatedTrailer.trailerNumber,
+                                                            trailerType: updatedTrailer.trailerType
                                                         })
                                                         setAssignedTractor(null)
                                                         setStatus('Spare')
@@ -829,12 +830,12 @@ ${
                                                             setCleanlinessRating(updatedTrailer.cleanlinessRating || 0)
                                                             setStatus(updatedTrailer.status || '')
                                                             setOriginalValues({
-                                                                trailerNumber: updatedTrailer.trailerNumber,
                                                                 assignedPlant: updatedTrailer.assignedPlant,
-                                                                trailerType: updatedTrailer.trailerType,
                                                                 assignedTractor: updatedTrailer.assignedTractor,
                                                                 cleanlinessRating: updatedTrailer.cleanlinessRating,
-                                                                status: updatedTrailer.status
+                                                                status: updatedTrailer.status,
+                                                                trailerNumber: updatedTrailer.trailerNumber,
+                                                                trailerType: updatedTrailer.trailerType
                                                             })
                                                             setHasUnsavedChanges(false)
                                                             setMessage('Tractor re-assigned and status set to Active')

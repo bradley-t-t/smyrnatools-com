@@ -1,27 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
 import LoadingScreen from '../../components/common/LoadingScreen'
-import TractorCard from './TractorCard'
-import { TractorService } from '../../services/TractorService'
-import { TractorUtility } from '../../utils/TractorUtility'
-import { OperatorService } from '../../services/OperatorService'
-import { PlantService } from '../../services/PlantService'
-import TractorAddView from './TractorAddView'
-import TractorDetailView from './TractorDetailView'
-import TractorIssueModal from './TractorIssueModal'
-import TractorCommentModal from './TractorCommentModal'
 import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
-import { ValidationUtility } from '../../utils/ValidationUtility'
-import { RegionService } from '../../services/RegionService'
-import AsyncUtility from '../../utils/AsyncUtility'
-import FleetUtility from '../../utils/FleetUtility'
-import FormatUtility from '../../utils/FormatUtility'
-import TopSection from '../../components/sections/TopSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import CleanupUtility from '../../utils/CleanupUtility'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import TopSection from '../../components/sections/TopSection'
 import { supabase } from '../../services/DatabaseService'
+import { OperatorService } from '../../services/OperatorService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { TractorService } from '../../services/TractorService'
+import AsyncUtility from '../../utils/AsyncUtility'
+import CleanupUtility from '../../utils/CleanupUtility'
+import FleetUtility from '../../utils/FleetUtility'
+import FormatUtility from '../../utils/FormatUtility'
+import { TractorUtility } from '../../utils/TractorUtility'
+import { ValidationUtility } from '../../utils/ValidationUtility'
+import TractorAddView from './TractorAddView'
+import TractorCard from './TractorCard'
+import TractorCommentModal from './TractorCommentModal'
+import TractorDetailView from './TractorDetailView'
+import TractorIssueModal from './TractorIssueModal'
 
 function TractorsView({
     title = 'Tractor Fleet',
@@ -90,14 +91,14 @@ function TractorsView({
         'Open Issues'
     ]
     const sortMappings = {
-        Plant: 'assignedPlant',
-        'Truck #': 'truckNumber',
-        Status: 'status',
-        Operator: 'assignedOperator',
         Cleanliness: 'cleanlinessRating',
+        More: null,
+        Operator: 'assignedOperator',
+        Plant: 'assignedPlant',
+        Status: 'status',
+        'Truck #': 'truckNumber',
         VIN: 'vinNumber',
-        Verified: null,
-        More: null
+        Verified: null
     }
 
     useEffect(() => {
@@ -113,12 +114,12 @@ function TractorsView({
     const unassignedActiveOperatorsCount = useMemo(
         () =>
             FleetUtility.countUnassignedActiveOperators(tractors, operators, searchText, {
-                position: 'Tractor Operator',
-                selectedPlant,
-                regionPlantCodes,
-                operatorIdField: 'employeeId',
                 assignedOperatorField: 'assignedOperator',
-                assignedPlantField: 'assignedPlant'
+                assignedPlantField: 'assignedPlant',
+                operatorIdField: 'employeeId',
+                position: 'Tractor Operator',
+                regionPlantCodes,
+                selectedPlant
             }),
         [operators, tractors, selectedPlant, searchText, regionPlantCodes]
     )
@@ -145,21 +146,21 @@ function TractorsView({
                         if (tractor.id === updatedData.id) {
                             const updated = {
                                 ...tractor,
-                                truckNumber: updatedData.truck_number ?? tractor.truckNumber,
-                                assignedPlant: updatedData.assigned_plant ?? tractor.assignedPlant,
                                 assignedOperator: updatedData.assigned_operator ?? tractor.assignedOperator,
-                                lastServiceDate: updatedData.last_service_date ?? tractor.lastServiceDate,
+                                assignedPlant: updatedData.assigned_plant ?? tractor.assignedPlant,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? tractor.cleanlinessRating,
-                                status: updatedData.status ?? tractor.status,
+                                freight: updatedData.freight ?? tractor.freight,
                                 hasBlower: updatedData.has_blower ?? tractor.hasBlower,
-                                updatedAt: updatedData.updated_at ?? tractor.updatedAt,
-                                updatedLast: updatedData.updated_last ?? tractor.updatedLast,
-                                updatedBy: updatedData.updated_by ?? tractor.updatedBy,
-                                vin: updatedData.vin ?? tractor.vin,
+                                lastServiceDate: updatedData.last_service_date ?? tractor.lastServiceDate,
                                 make: updatedData.make ?? tractor.make,
                                 model: updatedData.model ?? tractor.model,
-                                year: updatedData.year ?? tractor.year,
-                                freight: updatedData.freight ?? tractor.freight
+                                status: updatedData.status ?? tractor.status,
+                                truckNumber: updatedData.truck_number ?? tractor.truckNumber,
+                                updatedAt: updatedData.updated_at ?? tractor.updatedAt,
+                                updatedBy: updatedData.updated_by ?? tractor.updatedBy,
+                                updatedLast: updatedData.updated_last ?? tractor.updatedLast,
+                                vin: updatedData.vin ?? tractor.vin,
+                                year: updatedData.year ?? tractor.year
                             }
                             return attachIsVerified(updated)
                         }
@@ -171,21 +172,21 @@ function TractorsView({
                         if (tractor.id === updatedData.id) {
                             const updated = {
                                 ...tractor,
-                                truckNumber: updatedData.truck_number ?? tractor.truckNumber,
-                                assignedPlant: updatedData.assigned_plant ?? tractor.assignedPlant,
                                 assignedOperator: updatedData.assigned_operator ?? tractor.assignedOperator,
-                                lastServiceDate: updatedData.last_service_date ?? tractor.lastServiceDate,
+                                assignedPlant: updatedData.assigned_plant ?? tractor.assignedPlant,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? tractor.cleanlinessRating,
-                                status: updatedData.status ?? tractor.status,
+                                freight: updatedData.freight ?? tractor.freight,
                                 hasBlower: updatedData.has_blower ?? tractor.hasBlower,
-                                updatedAt: updatedData.updated_at ?? tractor.updatedAt,
-                                updatedLast: updatedData.updated_last ?? tractor.updatedLast,
-                                updatedBy: updatedData.updated_by ?? tractor.updatedBy,
-                                vin: updatedData.vin ?? tractor.vin,
+                                lastServiceDate: updatedData.last_service_date ?? tractor.lastServiceDate,
                                 make: updatedData.make ?? tractor.make,
                                 model: updatedData.model ?? tractor.model,
-                                year: updatedData.year ?? tractor.year,
-                                freight: updatedData.freight ?? tractor.freight
+                                status: updatedData.status ?? tractor.status,
+                                truckNumber: updatedData.truck_number ?? tractor.truckNumber,
+                                updatedAt: updatedData.updated_at ?? tractor.updatedAt,
+                                updatedBy: updatedData.updated_by ?? tractor.updatedBy,
+                                updatedLast: updatedData.updated_last ?? tractor.updatedLast,
+                                vin: updatedData.vin ?? tractor.vin,
+                                year: updatedData.year ?? tractor.year
                             }
                             return attachIsVerified(updated)
                         }
@@ -196,23 +197,23 @@ function TractorsView({
                 const newData = data.new
                 if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
                 const newTractor = attachIsVerified({
-                    id: newData.id,
-                    truckNumber: newData.truck_number ?? '',
-                    assignedPlant: newData.assigned_plant ?? '',
                     assignedOperator: newData.assigned_operator ?? '',
-                    lastServiceDate: newData.last_service_date ?? null,
+                    assignedPlant: newData.assigned_plant ?? '',
                     cleanlinessRating: newData.cleanliness_rating ?? 0,
-                    status: newData.status ?? 'Active',
-                    hasBlower: newData.has_blower ?? false,
                     createdAt: newData.created_at ?? new Date().toISOString(),
-                    updatedAt: newData.updated_at ?? new Date().toISOString(),
-                    updatedLast: newData.updated_last ?? new Date().toISOString(),
-                    updatedBy: newData.updated_by ?? null,
-                    vin: newData.vin ?? '',
+                    freight: newData.freight ?? '',
+                    hasBlower: newData.has_blower ?? false,
+                    id: newData.id,
+                    lastServiceDate: newData.last_service_date ?? null,
                     make: newData.make ?? '',
                     model: newData.model ?? '',
-                    year: newData.year ?? '',
-                    freight: newData.freight ?? ''
+                    status: newData.status ?? 'Active',
+                    truckNumber: newData.truck_number ?? '',
+                    updatedAt: newData.updated_at ?? new Date().toISOString(),
+                    updatedBy: newData.updated_by ?? null,
+                    updatedLast: newData.updated_last ?? new Date().toISOString(),
+                    vin: newData.vin ?? '',
+                    year: newData.year ?? ''
                 })
                 setTractors((prev) => {
                     if (prev.some((t) => t.id === newData.id)) return prev
@@ -703,18 +704,18 @@ function TractorsView({
                     const operator = operators.find((op) => op.employeeId === item.assignedOperator)
                     const plant = plants.find((p) => p.code === item.assignedPlant)
                     const cellStyle = {
-                        padding: '20px 16px',
-                        fontSize: '14px',
-                        color: '#374151',
                         backgroundColor: alternatingBg,
                         borderBottom: '1px solid #e5e7eb',
+                        color: '#374151',
+                        fontSize: '14px',
+                        padding: '20px 16px',
                         verticalAlign: 'middle'
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        fontWeight: 700,
                         color: '#1e3a5f',
-                        fontSize: '15px'
+                        fontSize: '15px',
+                        fontWeight: 700
                     }
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9',
@@ -733,41 +734,41 @@ function TractorsView({
                             color = '#64748b'
                         }
                         return {
-                            display: 'inline-block',
-                            padding: '6px 14px',
+                            backgroundColor: bg,
                             borderRadius: '20px',
+                            color: color,
+                            display: 'inline-block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            backgroundColor: bg,
-                            color: color
+                            padding: '6px 14px'
                         }
                     }
                     const verifyBtnStyle = (verified) => ({
-                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
+                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
                         border: 'none',
                         borderRadius: '8px',
+                        color: verified ? '#166534' : '#92400e',
+                        cursor: verified ? 'default' : 'pointer',
+                        display: 'inline-flex',
                         fontSize: '12px',
                         fontWeight: 600,
-                        cursor: verified ? 'default' : 'pointer',
-                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
-                        color: verified ? '#166534' : '#92400e'
+                        gap: '6px',
+                        padding: '8px 14px'
                     })
                     const actionBtnStyle = {
-                        width: '36px',
-                        height: '36px',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
                         borderRadius: '8px',
-                        backgroundColor: 'white',
                         color: '#64748b',
                         cursor: 'pointer',
                         display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                         fontSize: '14px',
-                        marginRight: '8px'
+                        height: '36px',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                        width: '36px'
                     }
                     return (
                         <tr
@@ -796,7 +797,7 @@ function TractorsView({
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                     {Array.from({ length: 5 }).map((_, i) => (
                                         <i
                                             key={i}
@@ -813,10 +814,10 @@ function TractorsView({
                             <td
                                 style={{
                                     ...cellStyle,
-                                    width: '16%',
+                                    color: '#64748b',
                                     fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
-                                    color: '#64748b'
+                                    width: '16%'
                                 }}
                             >
                                 {item.vinNumber || item.vin || '-'}
@@ -825,12 +826,12 @@ function TractorsView({
                                 {item.status === 'Retired' ? (
                                     <span
                                         style={{
-                                            padding: '8px 14px',
                                             backgroundColor: '#f1f5f9',
-                                            color: '#94a3b8',
                                             borderRadius: '8px',
+                                            color: '#94a3b8',
                                             fontSize: '12px',
-                                            fontWeight: 600
+                                            fontWeight: 600,
+                                            padding: '8px 14px'
                                         }}
                                     >
                                         N/A
@@ -856,7 +857,7 @@ function TractorsView({
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ alignItems: 'center', display: 'flex' }}>
                                     <button
                                         type="button"
                                         onClick={(e) => {
@@ -1029,7 +1030,7 @@ function TractorsView({
                                 setSelectedPlant('')
                                 setStatusFilter('')
                                 setFreightFilter('')
-                                resetTractorFilters({ keepViewMode: true, currentViewMode: viewMode })
+                                resetTractorFilters({ currentViewMode: viewMode, keepViewMode: true })
                             }}
                             listLabels={[
                                 'Plant',

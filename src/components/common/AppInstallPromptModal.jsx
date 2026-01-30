@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+
 import { AppInstallPromptService } from '../../services/AppInstallPromptService'
 import { UserService } from '../../services/UserService'
 
@@ -6,10 +7,6 @@ function AppInstallPromptModal() {
     const [showModal, setShowModal] = useState(false)
     const [deviceType, setDeviceType] = useState('desktop')
     const [promptType, setPromptType] = useState('mobile_install')
-
-    useEffect(() => {
-        checkAndShowPrompt()
-    }, [])
 
     const checkAndShowPrompt = async () => {
         const currentUser = await UserService.getCurrentUser()
@@ -31,6 +28,10 @@ function AppInstallPromptModal() {
             setTimeout(() => setShowModal(true), 2000)
         }
     }
+
+    useEffect(() => {
+        checkAndShowPrompt()
+    }, [])
 
     const handleDismissForever = async () => {
         const currentUser = await UserService.getCurrentUser()
@@ -59,45 +60,45 @@ function AppInstallPromptModal() {
     if (!showModal) return null
 
     const overlayStyle = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        display: 'flex',
         alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        bottom: 0,
+        display: 'flex',
         justifyContent: 'center',
-        zIndex: 10000,
-        padding: '20px'
+        left: 0,
+        padding: '20px',
+        position: 'fixed',
+        right: 0,
+        top: 0,
+        zIndex: 10000
     }
 
     const modalStyle = {
         backgroundColor: 'white',
         borderRadius: '20px',
-        maxWidth: '480px',
-        width: '100%',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         maxHeight: '90vh',
+        maxWidth: '480px',
         overflow: 'auto',
         position: 'relative',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+        width: '100%'
     }
 
     const closeButtonStyle = {
-        position: 'absolute',
-        top: '16px',
-        right: '16px',
-        width: '36px',
-        height: '36px',
-        border: 'none',
+        alignItems: 'center',
         background: '#f1f5f9',
-        color: '#64748b',
+        border: 'none',
         borderRadius: '50%',
+        color: '#64748b',
         cursor: 'pointer',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         fontSize: '16px',
+        height: '36px',
+        justifyContent: 'center',
+        position: 'absolute',
+        right: '16px',
+        top: '16px',
+        width: '36px',
         zIndex: 1
     }
 
@@ -107,62 +108,62 @@ function AppInstallPromptModal() {
     }
 
     const iconStyle = {
-        width: '80px',
-        height: '80px',
-        borderRadius: '20px',
+        alignItems: 'center',
         backgroundColor: '#f0f7ff',
+        borderRadius: '20px',
         color: '#1e3a5f',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         fontSize: '36px',
-        margin: '0 auto 20px'
+        height: '80px',
+        justifyContent: 'center',
+        margin: '0 auto 20px',
+        width: '80px'
     }
 
     const titleStyle = {
+        color: '#1e3a5f',
         fontSize: '24px',
         fontWeight: 700,
-        color: '#1e3a5f',
         margin: '0 0 12px'
     }
 
     const descriptionStyle = {
-        fontSize: '15px',
         color: '#64748b',
+        fontSize: '15px',
         lineHeight: 1.6,
         margin: '0 0 28px'
     }
 
     const stepsContainerStyle = {
-        textAlign: 'left',
-        marginBottom: '28px'
+        marginBottom: '28px',
+        textAlign: 'left'
     }
 
     const stepStyle = {
-        display: 'flex',
         alignItems: 'flex-start',
+        borderBottom: '1px solid #f1f5f9',
+        display: 'flex',
         gap: '14px',
-        padding: '12px 0',
-        borderBottom: '1px solid #f1f5f9'
+        padding: '12px 0'
     }
 
     const stepNumberStyle = {
-        width: '28px',
-        height: '28px',
-        borderRadius: '50%',
+        alignItems: 'center',
         backgroundColor: '#1e3a5f',
+        borderRadius: '50%',
         color: 'white',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flexShrink: 0,
         fontSize: '13px',
         fontWeight: 600,
-        flexShrink: 0
+        height: '28px',
+        justifyContent: 'center',
+        width: '28px'
     }
 
     const stepContentStyle = {
-        fontSize: '14px',
         color: '#374151',
+        fontSize: '14px',
         lineHeight: 1.5,
         paddingTop: '4px'
     }
@@ -174,34 +175,34 @@ function AppInstallPromptModal() {
     }
 
     const primaryButtonStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        padding: '14px 24px',
         backgroundColor: '#1e3a5f',
-        color: 'white',
         border: 'none',
         borderRadius: '12px',
+        color: 'white',
+        cursor: 'pointer',
+        display: 'flex',
         fontSize: '15px',
         fontWeight: 600,
-        cursor: 'pointer',
+        gap: '10px',
+        justifyContent: 'center',
+        padding: '14px 24px',
         width: '100%'
     }
 
     const secondaryButtonStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        padding: '14px 24px',
         backgroundColor: '#f1f5f9',
-        color: '#374151',
         border: 'none',
         borderRadius: '12px',
+        color: '#374151',
+        cursor: 'pointer',
+        display: 'flex',
         fontSize: '15px',
         fontWeight: 500,
-        cursor: 'pointer',
+        gap: '10px',
+        justifyContent: 'center',
+        padding: '14px 24px',
         width: '100%'
     }
 
@@ -209,10 +210,10 @@ function AppInstallPromptModal() {
         background: 'none',
         border: 'none',
         color: '#94a3b8',
-        fontSize: '13px',
         cursor: 'pointer',
-        padding: '8px',
-        marginTop: '4px'
+        fontSize: '13px',
+        marginTop: '4px',
+        padding: '8px'
     }
 
     const tutorialTabsStyle = {
@@ -230,45 +231,45 @@ function AppInstallPromptModal() {
     }
 
     const tutorialHeaderStyle = {
-        display: 'flex',
         alignItems: 'center',
+        display: 'flex',
         gap: '12px',
         marginBottom: '16px'
     }
 
     const tutorialIconStyle = {
-        fontSize: '24px',
-        color: '#1e3a5f'
+        color: '#1e3a5f',
+        fontSize: '24px'
     }
 
     const tutorialTitleStyle = {
+        color: '#1e3a5f',
         fontSize: '16px',
         fontWeight: 600,
-        color: '#1e3a5f',
         margin: 0
     }
 
     const tutorialStepStyle = {
-        display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        padding: '8px 0',
+        color: '#374151',
+        display: 'flex',
         fontSize: '13px',
-        color: '#374151'
+        gap: '10px',
+        padding: '8px 0'
     }
 
     const tutorialStepNumberStyle = {
-        width: '22px',
-        height: '22px',
-        borderRadius: '50%',
+        alignItems: 'center',
         backgroundColor: '#1e3a5f',
+        borderRadius: '50%',
         color: 'white',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flexShrink: 0,
         fontSize: '11px',
         fontWeight: 600,
-        flexShrink: 0
+        height: '22px',
+        justifyContent: 'center',
+        width: '22px'
     }
 
     const renderMobileContent = () => {

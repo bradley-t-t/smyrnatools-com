@@ -12,11 +12,11 @@ function isServer() {
 export function getMailerSendConfig() {
     const token = isServer() ? getenv('MAILERSEND_API_TOKEN') : undefined
     return {
-        token,
         fromEmail: getenv('MAILERSEND_FROM_EMAIL'),
         fromName: getenv('MAILERSEND_FROM_NAME'),
         host: getenv('MAILERSEND_API_HOST', 'https://api.mailersend.com'),
-        path: getenv('MAILERSEND_API_PATH', '/v1/email')
+        path: getenv('MAILERSEND_API_PATH', '/v1/email'),
+        token
     }
 }
 
@@ -28,7 +28,7 @@ export function validateMailerSendConfig() {
     if (!c.fromName) missing.push('MAILERSEND_FROM_NAME')
     const invalid = []
     if (c.fromEmail && !EMAIL_RE.test(c.fromEmail)) invalid.push('MAILERSEND_FROM_EMAIL')
-    return { ok: missing.length === 0 && invalid.length === 0, missing, invalid, config: c }
+    return { config: c, invalid, missing, ok: missing.length === 0 && invalid.length === 0 }
 }
 
 export function normalizeRecipient(r) {
@@ -52,7 +52,7 @@ export function buildMailerSendMessage({ to, subject, html, text, replyTo, cc, b
     const tos = normalizeRecipientList(to)
     const ccs = normalizeRecipientList(cc)
     const bccs = normalizeRecipientList(bcc)
-    const payload = { from, to: tos, subject }
+    const payload = { from, subject, to: tos }
     if (ccs.length) payload.cc = ccs
     if (bccs.length) payload.bcc = bccs
     if (text) payload.text = text
@@ -73,10 +73,10 @@ export function buildMailerSendRequest(message, overrides) {
     const host = overrides && overrides.host ? overrides.host : cfg.host
     const path = overrides && overrides.path ? overrides.path : cfg.path
     return {
-        url: `${host}${path}`,
-        method: 'POST',
+        body: JSON.stringify(message),
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(message)
+        method: 'POST',
+        url: `${host}${path}`
     }
 }
 
@@ -93,20 +93,20 @@ export function prepareMailerSend(input, overrides) {
     if (!canSendHere()) return { ok: false }
     const msg = buildMailerSendMessage(input)
     const req = buildMailerSendRequest(msg, overrides)
-    return { ok: true, request: req, message: msg }
+    return { message: msg, ok: true, request: req }
 }
 
 const EmailUtility = {
-    getMailerSendConfig,
-    validateMailerSendConfig,
-    normalizeRecipient,
-    normalizeRecipientList,
     buildMailerSendMessage,
     buildMailerSendRequest,
-    isValidEmail,
-    isServer,
     canSendHere,
-    prepareMailerSend
+    getMailerSendConfig,
+    isServer,
+    isValidEmail,
+    normalizeRecipient,
+    normalizeRecipientList,
+    prepareMailerSend,
+    validateMailerSendConfig
 }
 export { EmailUtility }
 export default EmailUtility

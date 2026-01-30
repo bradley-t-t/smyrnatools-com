@@ -1,147 +1,115 @@
 import React, { useEffect, useState } from 'react'
+
 import { supabase } from '../../services/DatabaseService'
 import { ReportService } from '../../services/ReportService'
-import { PlantManagerSubmitPlugin } from './types/WeeklyPlantManagerReport'
+import { DateUtility } from '../../utils/DateUtility'
+import { exportGeneralManagerReport } from '../../utils/ExportUtility'
+import { ReportUtility } from '../../utils/ReportUtility'
+import { AggregateProductionSubmitPlugin } from './types/WeeklyAggregateProductionReport'
 import { DistrictManagerSubmitPlugin } from './types/WeeklyDistrictManagerReport'
 import { EfficiencySubmitPlugin } from './types/WeeklyEfficiencyReport'
-import { SafetyManagerSubmitPlugin } from './types/WeeklySafetyManagerReport'
 import { GeneralManagerSubmitPlugin } from './types/WeeklyGeneralManagerReport'
-import { AggregateProductionSubmitPlugin } from './types/WeeklyAggregateProductionReport'
+import { PlantManagerSubmitPlugin } from './types/WeeklyPlantManagerReport'
 import { ReadyMixInstructorSubmitPlugin } from './types/WeeklyReadyMixInstructorReport'
-import { ReportUtility } from '../../utils/ReportUtility'
-import { exportGeneralManagerReport } from '../../utils/ExportUtility'
-import { DateUtility } from '../../utils/DateUtility'
+import { SafetyManagerSubmitPlugin } from './types/WeeklySafetyManagerReport'
 
 const styles = {
-    container: {
-        width: '100%',
-        minHeight: '100vh',
-        background: '#f8fafc',
-        padding: '0'
-    },
-    header: {
-        display: 'flex',
+    actions: {
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '1rem 1.5rem',
-        background: 'white',
-        borderBottom: '1px solid #e5e7eb',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        flexWrap: 'wrap',
-        gap: '1rem'
-    },
-    headerLeft: {
+        borderTop: '1px solid #e5e7eb',
         display: 'flex',
-        alignItems: 'center',
-        gap: '1rem'
+        gap: '0.75rem',
+        justifyContent: 'flex-end',
+        marginTop: '1.5rem',
+        paddingTop: '1.5rem'
     },
     backBtn: {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        width: '40px',
-        height: '40px',
+        background: '#f1f5f9',
         border: 'none',
         borderRadius: '10px',
-        background: '#f1f5f9',
         color: '#475569',
-        fontSize: '1rem',
         cursor: 'pointer',
-        transition: 'all 0.2s'
-    },
-    titleSection: {
         display: 'flex',
-        flexDirection: 'column',
-        gap: '0.25rem'
+        fontSize: '1rem',
+        height: '40px',
+        justifyContent: 'center',
+        transition: 'all 0.2s',
+        width: '40px'
     },
-    title: {
-        fontSize: '1.25rem',
-        fontWeight: 700,
-        color: '#1e293b',
-        margin: 0
-    },
-    subtitle: {
-        fontSize: '0.875rem',
-        color: '#64748b',
-        margin: 0
-    },
-    headerRight: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
-    },
-    exportBtn: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.625rem 1rem',
-        background: '#10b981',
-        color: 'white',
+    btnConfirm: {
+        background: '#1e3a5f',
         border: 'none',
         borderRadius: '8px',
-        fontSize: '0.875rem',
-        fontWeight: 600,
+        color: 'white',
         cursor: 'pointer',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        padding: '0.75rem 1.5rem'
+    },
+    btnSecondary: {
+        background: '#f1f5f9',
+        border: 'none',
+        borderRadius: '8px',
+        color: '#475569',
+        cursor: 'pointer',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        padding: '0.75rem 1.5rem'
+    },
+    cancelBtn: {
+        background: '#f1f5f9',
+        border: 'none',
+        borderRadius: '8px',
+        color: '#475569',
+        cursor: 'pointer',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        padding: '0.75rem 1.5rem',
         transition: 'all 0.2s'
     },
-    metaBar: {
+    checkboxLabel: {
+        alignItems: 'flex-start',
+        color: '#374151',
+        cursor: 'pointer',
         display: 'flex',
-        alignItems: 'center',
-        gap: '1.5rem',
-        padding: '1rem 1.5rem',
+        fontSize: '0.9375rem',
+        gap: '0.75rem',
+        marginBottom: '1rem'
+    },
+    container: {
         background: '#f8fafc',
-        borderBottom: '1px solid #e5e7eb',
-        flexWrap: 'wrap'
-    },
-    metaItem: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        fontSize: '0.875rem',
-        color: '#64748b'
-    },
-    metaIcon: {
-        color: '#94a3b8'
-    },
-    metaStrong: {
-        fontWeight: 600,
-        color: '#1e293b'
+        minHeight: '100vh',
+        padding: '0',
+        width: '100%'
     },
     content: {
-        padding: '1.5rem',
+        margin: '0 auto',
         maxWidth: '1200px',
-        margin: '0 auto'
+        padding: '1.5rem'
     },
-    section: {
-        background: 'white',
-        borderRadius: '12px',
-        border: '1px solid #e5e7eb',
-        padding: '1.5rem',
-        marginBottom: '1.5rem'
-    },
-    sectionHeader: {
-        marginBottom: '1.25rem'
-    },
-    sectionTitle: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        fontSize: '1.125rem',
-        fontWeight: 600,
-        color: '#1e293b',
-        margin: 0
-    },
-    sectionSubtitle: {
+    error: {
+        background: '#fee2e2',
+        borderRadius: '8px',
+        color: '#dc2626',
         fontSize: '0.875rem',
-        color: '#64748b',
-        margin: '0.5rem 0 0 0'
+        fontWeight: 500,
+        marginBottom: '1rem',
+        padding: '1rem'
     },
-    fieldsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '1.25rem'
+    exportBtn: {
+        alignItems: 'center',
+        background: '#10b981',
+        border: 'none',
+        borderRadius: '8px',
+        color: 'white',
+        cursor: 'pointer',
+        display: 'flex',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        gap: '0.5rem',
+        padding: '0.625rem 1rem',
+        transition: 'all 0.2s'
     },
     field: {
         display: 'flex',
@@ -149,8 +117,8 @@ const styles = {
         gap: '0.5rem'
     },
     fieldHeader: {
-        display: 'flex',
         alignItems: 'center',
+        display: 'flex',
         gap: '0.5rem'
     },
     fieldIcon: {
@@ -158,190 +126,223 @@ const styles = {
         fontSize: '0.875rem'
     },
     fieldLabel: {
+        color: '#374151',
         fontSize: '0.875rem',
-        fontWeight: 600,
-        color: '#374151'
+        fontWeight: 600
+    },
+    fieldsGrid: {
+        display: 'grid',
+        gap: '1.25rem',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
+    },
+    header: {
+        alignItems: 'center',
+        background: 'white',
+        borderBottom: '1px solid #e5e7eb',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '1rem',
+        justifyContent: 'space-between',
+        padding: '1rem 1.5rem',
+        position: 'sticky',
+        top: 0,
+        zIndex: 40
+    },
+    headerLeft: {
+        alignItems: 'center',
+        display: 'flex',
+        gap: '1rem'
+    },
+    headerRight: {
+        alignItems: 'center',
+        display: 'flex',
+        gap: '0.75rem'
+    },
+    input: {
+        background: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        boxSizing: 'border-box',
+        color: '#1e293b',
+        fontSize: '0.9375rem',
+        outline: 'none',
+        padding: '0.75rem 1rem',
+        transition: 'all 0.2s',
+        width: '100%'
+    },
+    metaBar: {
+        alignItems: 'center',
+        background: '#f8fafc',
+        borderBottom: '1px solid #e5e7eb',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '1.5rem',
+        padding: '1rem 1.5rem'
+    },
+    metaIcon: {
+        color: '#94a3b8'
+    },
+    metaItem: {
+        alignItems: 'center',
+        color: '#64748b',
+        display: 'flex',
+        fontSize: '0.875rem',
+        gap: '0.5rem'
+    },
+    metaStrong: {
+        color: '#1e293b',
+        fontWeight: 600
+    },
+    modalActions: {
+        alignItems: 'center',
+        display: 'flex',
+        gap: '0.75rem',
+        justifyContent: 'flex-end',
+        marginTop: '1.5rem'
+    },
+    modalBackdrop: {
+        alignItems: 'center',
+        background: 'rgba(0, 0, 0, 0.5)',
+        bottom: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        left: 0,
+        padding: '1rem',
+        position: 'fixed',
+        right: 0,
+        top: 0,
+        zIndex: 1000
+    },
+    modalContent: {
+        background: 'white',
+        borderRadius: '16px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        maxWidth: '500px',
+        padding: '2rem',
+        width: '100%'
+    },
+    modalText: {
+        color: '#64748b',
+        fontSize: '0.9375rem',
+        marginBottom: '1.5rem'
+    },
+    modalTitle: {
+        color: '#1e293b',
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        marginBottom: '1rem'
     },
     required: {
         color: '#ef4444',
         marginLeft: '0.25rem'
     },
-    input: {
-        padding: '0.75rem 1rem',
-        border: '1px solid #e5e7eb',
+    saveBtn: {
+        background: '#e0f2fe',
+        border: 'none',
         borderRadius: '8px',
+        color: '#0369a1',
+        cursor: 'pointer',
         fontSize: '0.9375rem',
-        color: '#1e293b',
-        background: 'white',
-        outline: 'none',
-        transition: 'all 0.2s',
-        width: '100%',
-        boxSizing: 'border-box'
+        fontWeight: 600,
+        padding: '0.75rem 1.5rem',
+        transition: 'all 0.2s'
     },
-    textarea: {
-        padding: '0.75rem 1rem',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        fontSize: '0.9375rem',
-        color: '#1e293b',
+    section: {
         background: 'white',
-        outline: 'none',
-        transition: 'all 0.2s',
-        width: '100%',
-        boxSizing: 'border-box',
-        minHeight: '100px',
-        resize: 'vertical'
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        marginBottom: '1.5rem',
+        padding: '1.5rem'
+    },
+    sectionHeader: {
+        marginBottom: '1.25rem'
+    },
+    sectionSubtitle: {
+        color: '#64748b',
+        fontSize: '0.875rem',
+        margin: '0.5rem 0 0 0'
+    },
+    sectionTitle: {
+        alignItems: 'center',
+        color: '#1e293b',
+        display: 'flex',
+        fontSize: '1.125rem',
+        fontWeight: 600,
+        gap: '0.75rem',
+        margin: 0
     },
     select: {
-        padding: '0.75rem 1rem',
+        background: 'white',
         border: '1px solid #e5e7eb',
         borderRadius: '8px',
-        fontSize: '0.9375rem',
+        boxSizing: 'border-box',
         color: '#1e293b',
-        background: 'white',
         cursor: 'pointer',
+        fontSize: '0.9375rem',
         outline: 'none',
-        width: '100%',
-        boxSizing: 'border-box'
+        padding: '0.75rem 1rem',
+        width: '100%'
     },
-    error: {
-        background: '#fee2e2',
-        color: '#dc2626',
-        padding: '1rem',
+    submitBtn: {
+        background: '#1e3a5f',
+        border: 'none',
         borderRadius: '8px',
-        marginBottom: '1rem',
+        color: 'white',
+        cursor: 'pointer',
+        fontSize: '0.9375rem',
+        fontWeight: 600,
+        padding: '0.75rem 1.5rem',
+        transition: 'all 0.2s'
+    },
+    subtitle: {
+        color: '#64748b',
         fontSize: '0.875rem',
-        fontWeight: 500
+        margin: 0
     },
     success: {
         background: '#d1fae5',
+        borderRadius: '8px',
         color: '#059669',
-        padding: '1rem',
-        borderRadius: '8px',
-        marginBottom: '1rem',
         fontSize: '0.875rem',
-        fontWeight: 500
-    },
-    actions: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: '0.75rem',
-        paddingTop: '1.5rem',
-        borderTop: '1px solid #e5e7eb',
-        marginTop: '1.5rem'
-    },
-    cancelBtn: {
-        padding: '0.75rem 1.5rem',
-        background: '#f1f5f9',
-        color: '#475569',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '0.9375rem',
-        fontWeight: 600,
-        cursor: 'pointer',
-        transition: 'all 0.2s'
-    },
-    saveBtn: {
-        padding: '0.75rem 1.5rem',
-        background: '#e0f2fe',
-        color: '#0369a1',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '0.9375rem',
-        fontWeight: 600,
-        cursor: 'pointer',
-        transition: 'all 0.2s'
-    },
-    submitBtn: {
-        padding: '0.75rem 1.5rem',
-        background: '#1e3a5f',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '0.9375rem',
-        fontWeight: 600,
-        cursor: 'pointer',
-        transition: 'all 0.2s'
-    },
-    modalBackdrop: {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
+        fontWeight: 500,
+        marginBottom: '1rem',
         padding: '1rem'
     },
-    modalContent: {
+    textarea: {
         background: 'white',
-        borderRadius: '16px',
-        padding: '2rem',
-        maxWidth: '500px',
-        width: '100%',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        boxSizing: 'border-box',
+        color: '#1e293b',
+        fontSize: '0.9375rem',
+        minHeight: '100px',
+        outline: 'none',
+        padding: '0.75rem 1rem',
+        resize: 'vertical',
+        transition: 'all 0.2s',
+        width: '100%'
     },
-    modalTitle: {
+    title: {
+        color: '#1e293b',
         fontSize: '1.25rem',
         fontWeight: 700,
-        color: '#1e293b',
-        marginBottom: '1rem'
+        margin: 0
     },
-    modalText: {
-        fontSize: '0.9375rem',
-        color: '#64748b',
-        marginBottom: '1.5rem'
-    },
-    checkboxLabel: {
+    titleSection: {
         display: 'flex',
-        alignItems: 'flex-start',
-        gap: '0.75rem',
-        fontSize: '0.9375rem',
-        color: '#374151',
-        marginBottom: '1rem',
-        cursor: 'pointer'
-    },
-    modalActions: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: '0.75rem',
-        marginTop: '1.5rem'
-    },
-    btnSecondary: {
-        padding: '0.75rem 1.5rem',
-        background: '#f1f5f9',
-        color: '#475569',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '0.9375rem',
-        fontWeight: 600,
-        cursor: 'pointer'
-    },
-    btnConfirm: {
-        padding: '0.75rem 1.5rem',
-        background: '#1e3a5f',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '0.9375rem',
-        fontWeight: 600,
-        cursor: 'pointer'
+        flexDirection: 'column',
+        gap: '0.25rem'
     }
 }
 
 const plugins = {
-    plant_manager: PlantManagerSubmitPlugin,
-    district_manager: DistrictManagerSubmitPlugin,
-    plant_production: EfficiencySubmitPlugin,
-    safety_manager: SafetyManagerSubmitPlugin,
-    general_manager: GeneralManagerSubmitPlugin,
     aggregate_production: AggregateProductionSubmitPlugin,
-    ready_mix_instructor: ReadyMixInstructorSubmitPlugin
+    district_manager: DistrictManagerSubmitPlugin,
+    general_manager: GeneralManagerSubmitPlugin,
+    plant_manager: PlantManagerSubmitPlugin,
+    plant_production: EfficiencySubmitPlugin,
+    ready_mix_instructor: ReadyMixInstructorSubmitPlugin,
+    safety_manager: SafetyManagerSubmitPlugin
 }
 
 function ReportsSubmitView({
@@ -576,14 +577,14 @@ function ReportsSubmitView({
         if (!operatorId) return
         const mixer = mixers.find((m) => m.assigned_operator === operatorId)
         const newRow = {
-            name: operatorId,
-            truck_number: mixer && mixer.truck_number ? mixer.truck_number : '',
-            start_time: '',
-            first_load: '',
+            comments: '',
             eod_in_yard: '',
-            punch_out: '',
+            first_load: '',
             loads: '',
-            comments: ''
+            name: operatorId,
+            punch_out: '',
+            start_time: '',
+            truck_number: mixer && mixer.truck_number ? mixer.truck_number : ''
         }
         setForm((f) => {
             const rows = [...(f.rows || []), newRow]
@@ -677,14 +678,14 @@ function ReportsSubmitView({
                     activeOperators.forEach((op) => {
                         const mixer = mixers.find((m) => m.assigned_operator === op.employee_id)
                         rows.push({
-                            name: op.employee_id,
-                            truck_number: mixer && mixer.truck_number ? mixer.truck_number : '',
-                            start_time: '',
-                            first_load: '',
+                            comments: '',
                             eod_in_yard: '',
-                            punch_out: '',
+                            first_load: '',
                             loads: '',
-                            comments: ''
+                            name: op.employee_id,
+                            punch_out: '',
+                            start_time: '',
+                            truck_number: mixer && mixer.truck_number ? mixer.truck_number : ''
                         })
                     })
                     setForm((f) => ({ ...f, rows }))
@@ -767,14 +768,14 @@ function ReportsSubmitView({
 
         if (report.name === 'plant_manager') {
             const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
-            setYph({ raw: metrics.raw, adjusted: metrics.adjusted })
-            setYphGrade({ raw: metrics.rawGrade, adjusted: metrics.adjustedGrade })
-            setYphLabel({ raw: metrics.rawLabel, adjusted: metrics.adjustedLabel })
+            setYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+            setYphGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+            setYphLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
         } else {
             const { yph, yphGrade, yphLabel } = ReportService.getYardageMetrics(form)
-            setYph({ raw: yph, adjusted: yph })
-            setYphGrade({ raw: yphGrade, adjusted: yphGrade })
-            setYphLabel({ raw: yphLabel, adjusted: yphLabel })
+            setYph({ adjusted: yph, raw: yph })
+            setYphGrade({ adjusted: yphGrade, raw: yphGrade })
+            setYphLabel({ adjusted: yphLabel, raw: yphLabel })
         }
 
         setLost(lost)
@@ -901,13 +902,13 @@ function ReportsSubmitView({
                 {managerEditUser && (
                     <div
                         style={{
+                            alignItems: 'center',
                             background: '#fef3c7',
                             color: '#92400e',
-                            padding: '0.75rem 1.5rem',
                             display: 'flex',
-                            alignItems: 'center',
+                            fontWeight: 500,
                             gap: '0.5rem',
-                            fontWeight: 500
+                            padding: '0.75rem 1.5rem'
                         }}
                     >
                         <i className="fas fa-edit"></i>
@@ -927,15 +928,15 @@ function ReportsSubmitView({
                     <div style={styles.headerRight}>
                         <div
                             style={{
-                                display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.5rem 1rem',
+                                background: isCompleted ? '#d1fae5' : '#fef3c7',
                                 borderRadius: '8px',
+                                color: isCompleted ? '#059669' : '#d97706',
+                                display: 'flex',
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
-                                background: isCompleted ? '#d1fae5' : '#fef3c7',
-                                color: isCompleted ? '#059669' : '#d97706'
+                                gap: '0.5rem',
+                                padding: '0.5rem 1rem'
                             }}
                         >
                             <i className={`fas ${isCompleted ? 'fa-check-circle' : 'fa-edit'}`}></i>
@@ -982,8 +983,8 @@ function ReportsSubmitView({
                                         <div
                                             style={{
                                                 display: 'grid',
-                                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                                                 gap: '1rem',
+                                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                                                 marginBottom: '1rem'
                                             }}
                                         >
@@ -1026,8 +1027,8 @@ function ReportsSubmitView({
                                                 {report.name === 'plant_production' && (
                                                     <div
                                                         style={{
-                                                            fontSize: '0.8125rem',
                                                             color: '#64748b',
+                                                            fontSize: '0.8125rem',
                                                             marginTop: '0.25rem'
                                                         }}
                                                     >

@@ -1,4 +1,4 @@
-import { PROMPTS, PLANT_SUMMARY_BASE, getRoleContext, getToneModifier } from '../app/ai'
+import { getRoleContext, getToneModifier, PLANT_SUMMARY_BASE, PROMPTS } from '../app/ai'
 
 const GROK_API_KEY = process.env.REACT_APP_GROK_API_KEY
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions'
@@ -14,20 +14,20 @@ class AIInsightsServiceClass {
 
         try {
             const response = await fetch(GROK_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${GROK_API_KEY}`
-                },
                 body: JSON.stringify({
-                    model,
                     messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: userPrompt }
+                        { content: systemPrompt, role: 'system' },
+                        { content: userPrompt, role: 'user' }
                     ],
+                    model,
                     stream: false,
                     temperature
-                })
+                }),
+                headers: {
+                    Authorization: `Bearer ${GROK_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST'
             })
 
             if (response.status === 429) return { error: 'rate_limited' }
@@ -52,17 +52,17 @@ class AIInsightsServiceClass {
 
         try {
             const response = await fetch(GROK_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${GROK_API_KEY}`
-                },
                 body: JSON.stringify({
+                    messages: [{ content: systemPrompt, role: 'system' }, ...messages],
                     model,
-                    messages: [{ role: 'system', content: systemPrompt }, ...messages],
                     stream: false,
                     temperature
-                })
+                }),
+                headers: {
+                    Authorization: `Bearer ${GROK_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST'
             })
 
             if (response.status === 429) return 'Rate limited. Please wait a moment and try again.'
@@ -93,8 +93,8 @@ class AIInsightsServiceClass {
     async askFollowUp(question, conversationHistory, contextData) {
         const formattedContext = this.selectRelevantContext(question, contextData)
         const messages = [
-            { role: 'user', content: formattedContext },
-            ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content }))
+            { content: formattedContext, role: 'user' },
+            ...conversationHistory.map((msg) => ({ content: msg.content, role: msg.role }))
         ]
 
         return this.callAPIWithMessages(PROMPTS.followUp, messages)
@@ -148,9 +148,9 @@ class AIInsightsServiceClass {
 
         try {
             const parsed = JSON.parse(result.content.trim())
-            return { description: parsed.description || description, comments: parsed.comments || '' }
+            return { comments: parsed.comments || '', description: parsed.description || description }
         } catch {
-            return { description: result.content, comments: '' }
+            return { comments: '', description: result.content }
         }
     }
 

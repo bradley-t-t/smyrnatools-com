@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import APIUtility from '../../utils/APIUtility'
+
 import { supabase } from '../../services/DatabaseService'
+import APIUtility from '../../utils/APIUtility'
 
 const AUTH_CONTEXT_FUNCTION = '/auth-context'
 
@@ -104,20 +105,20 @@ export function AuthProvider({ children }) {
         try {
             const now = new Date().toISOString()
             const baseFilters = { searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'list' }
-            const roleFilters = { searchText: '', selectedPlant: '', roleFilter: '', viewMode: 'list' }
+            const roleFilters = { roleFilter: '', searchText: '', selectedPlant: '', viewMode: 'list' }
             await supabase.from('users_preferences').upsert(
                 {
-                    user_id: userId,
+                    created_at: now,
                     default_view_mode: null,
-                    mixer_filters: baseFilters,
-                    operator_filters: baseFilters,
-                    manager_filters: roleFilters,
-                    tractor_filters: baseFilters,
-                    trailer_filters: baseFilters,
                     equipment_filters: baseFilters,
                     last_viewed_filters: null,
-                    created_at: now,
-                    updated_at: now
+                    manager_filters: roleFilters,
+                    mixer_filters: baseFilters,
+                    operator_filters: baseFilters,
+                    tractor_filters: baseFilters,
+                    trailer_filters: baseFilters,
+                    updated_at: now,
+                    user_id: userId
                 },
                 { onConflict: 'user_id' }
             )
@@ -130,9 +131,9 @@ export function AuthProvider({ children }) {
         try {
             const { res, json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/sign-up`, {
                 email,
-                password,
                 firstName,
-                lastName
+                lastName,
+                password
             })
             if (!res.ok) {
                 setError(json.error || 'Sign up failed')
@@ -166,10 +167,10 @@ export function AuthProvider({ children }) {
         setLoading(true)
         try {
             const { res, json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/update-profile`, {
-                userId,
                 firstName,
                 lastName,
-                plantCode
+                plantCode,
+                userId
             })
             if (!res.ok || !json.success) {
                 setError(json.error || 'Update profile failed')
@@ -189,16 +190,16 @@ export function AuthProvider({ children }) {
     return (
         <AuthContext.Provider
             value={{
-                user,
-                loading,
                 error,
-                signIn,
-                signUp,
-                signOut,
-                restoreSession,
+                isAuthenticated: !!user,
                 loadUserProfile,
+                loading,
+                restoreSession,
+                signIn,
+                signOut,
+                signUp,
                 updateProfile,
-                isAuthenticated: !!user
+                user
             }}
         >
             {children}

@@ -1,23 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { MixerService } from '../../services/MixerService'
-import { PlantService } from '../../services/PlantService'
-import { OperatorService } from '../../services/OperatorService'
-import { UserService } from '../../services/UserService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import MixerHistoryView from './MixerHistoryView'
-import MixerCommentModal from './MixerCommentModal'
-import MixerIssueModal from './MixerIssueModal'
-import OperatorSelectModal from './OperatorSelectModal'
-import MixerUtility from '../../utils/MixerUtility'
-import { Mixer } from '../../models/mixers/Mixer'
-import { RegionService } from '../../services/RegionService'
-import { ValidationUtility } from '../../utils/ValidationUtility'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
 import VerificationCardSection from '../../components/sections/VerificationCardSection'
-import { DateUtility } from '../../utils/DateUtility'
+import { Mixer } from '../../models/mixers/Mixer'
 import { supabase } from '../../services/DatabaseService'
+import { MixerService } from '../../services/MixerService'
+import { OperatorService } from '../../services/OperatorService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import { DateUtility } from '../../utils/DateUtility'
+import MixerUtility from '../../utils/MixerUtility'
+import { ValidationUtility } from '../../utils/ValidationUtility'
+import MixerCommentModal from './MixerCommentModal'
+import MixerHistoryView from './MixerHistoryView'
+import MixerIssueModal from './MixerIssueModal'
+import OperatorSelectModal from './OperatorSelectModal'
 
 function MixerDetailView({ mixerId, onClose }) {
     const { preferences } = usePreferences()
@@ -89,20 +90,20 @@ function MixerDetailView({ mixerId, onClose }) {
                 setYear(mixerData.year || '')
                 setDownInYard(mixerData.downInYard || false)
                 setOriginalValues({
-                    truckNumber: mixerData.truckNumber || '',
                     assignedOperator: mixerData.assignedOperator || '',
                     assignedPlant: mixerData.assignedPlant || '',
-                    status: mixerData.status || '',
                     cleanlinessRating: mixerData.cleanlinessRating || 0,
+                    downInYard: mixerData.downInYard || false,
+                    lastChipDate: mixerData.lastChipDate ? DateUtility.parseLocalDate(mixerData.lastChipDate) : null,
                     lastServiceDate: mixerData.lastServiceDate
                         ? DateUtility.parseLocalDate(mixerData.lastServiceDate)
                         : null,
-                    lastChipDate: mixerData.lastChipDate ? DateUtility.parseLocalDate(mixerData.lastChipDate) : null,
-                    vin: (mixerData.vin || '').toUpperCase(),
                     make: mixerData.make || '',
                     model: mixerData.model || '',
-                    year: mixerData.year || '',
-                    downInYard: mixerData.downInYard || false
+                    status: mixerData.status || '',
+                    truckNumber: mixerData.truckNumber || '',
+                    vin: (mixerData.vin || '').toUpperCase(),
+                    year: mixerData.year || ''
                 })
                 document.documentElement.style.setProperty('--rating-value', mixerData.cleanlinessRating || 0)
                 if (mixerData.updatedBy) {
@@ -264,8 +265,8 @@ function MixerDetailView({ mixerId, onClose }) {
 
             const updatedMixer = {
                 ...mixer,
-                assignedPlant: newPlantCode,
-                assignedOperator: null
+                assignedOperator: null,
+                assignedPlant: newPlantCode
             }
 
             const result = await MixerService.updateMixer(mixer.id, updatedMixer, userId, mixer)
@@ -274,8 +275,8 @@ function MixerDetailView({ mixerId, onClose }) {
             setAssignedOperator('')
             setOriginalValues({
                 ...originalValues,
-                assignedPlant: newPlantCode,
-                assignedOperator: ''
+                assignedOperator: '',
+                assignedPlant: newPlantCode
             })
             setHasUnsavedChanges(false)
             setMessage(`Successfully transferred to ${newRegion.regionName}`)
@@ -355,22 +356,22 @@ function MixerDetailView({ mixerId, onClose }) {
 
             const updatedMixer = {
                 ...mixer,
-                id: mixer.id,
-                truckNumber: overrideValues.truckNumber ?? truckNumber,
                 assignedOperator: assignedOperatorValue || null,
                 assignedPlant: overrideValues.assignedPlant ?? assignedPlant,
-                status: statusValue,
                 cleanlinessRating: cleanlinessValue,
-                lastServiceDate: DateUtility.toDbDate(overrideValues.lastServiceDate ?? lastServiceDate),
+                downInYard: finalDownInYard,
+                id: mixer.id,
                 lastChipDate: DateUtility.toDbDate(overrideValues.lastChipDate ?? lastChipDate),
-                vin: ((overrideValues.vin ?? vin) || '').toUpperCase(),
+                lastServiceDate: DateUtility.toDbDate(overrideValues.lastServiceDate ?? lastServiceDate),
                 make: overrideValues.make ?? make,
                 model: overrideValues.model ?? model,
-                year: overrideValues.year ?? year,
-                downInYard: finalDownInYard,
+                status: statusValue,
+                truckNumber: overrideValues.truckNumber ?? truckNumber,
                 updatedAt: new Date().toISOString(),
                 updatedBy: userId,
-                updatedLast: mixer.updatedLast
+                updatedLast: mixer.updatedLast,
+                vin: ((overrideValues.vin ?? vin) || '').toUpperCase(),
+                year: overrideValues.year ?? year
             }
             await MixerService.updateMixer(updatedMixer.id, updatedMixer, undefined, mixerForHistory)
             if (mixerForHistory.assignedOperator !== updatedMixer.assignedOperator) {
@@ -399,20 +400,20 @@ function MixerDetailView({ mixerId, onClose }) {
                 setTimeout(() => setMessage(''), 5000)
             }
             setOriginalValues({
-                truckNumber: updatedMixer.truckNumber,
                 assignedOperator: updatedMixer.assignedOperator,
                 assignedPlant: updatedMixer.assignedPlant,
-                status: updatedMixer.status,
                 cleanlinessRating: updatedMixer.cleanlinessRating,
+                downInYard: updatedMixer.downInYard,
+                lastChipDate: updatedMixer.lastChipDate ? DateUtility.parseLocalDate(updatedMixer.lastChipDate) : null,
                 lastServiceDate: updatedMixer.lastServiceDate
                     ? DateUtility.parseLocalDate(updatedMixer.lastServiceDate)
                     : null,
-                lastChipDate: updatedMixer.lastChipDate ? DateUtility.parseLocalDate(updatedMixer.lastChipDate) : null,
-                vin: updatedMixer.vin,
                 make: updatedMixer.make,
                 model: updatedMixer.model,
-                year: updatedMixer.year,
-                downInYard: updatedMixer.downInYard
+                status: updatedMixer.status,
+                truckNumber: updatedMixer.truckNumber,
+                vin: updatedMixer.vin,
+                year: updatedMixer.year
             })
             setHasUnsavedChanges(false)
         } catch (error) {
@@ -506,12 +507,12 @@ function MixerDetailView({ mixerId, onClose }) {
             await handleSave(overrides)
             const candidateMixer = {
                 ...mixer,
-                vin: overrides.vin ?? mixer.vin,
+                lastChipDate: overrides.lastChipDate ?? mixer.lastChipDate,
+                lastServiceDate: overrides.lastServiceDate ?? mixer.lastServiceDate,
                 make: overrides.make ?? mixer.make,
                 model: overrides.model ?? mixer.model,
-                year: overrides.year ?? mixer.year,
-                lastServiceDate: overrides.lastServiceDate ?? mixer.lastServiceDate,
-                lastChipDate: overrides.lastChipDate ?? mixer.lastChipDate
+                vin: overrides.vin ?? mixer.vin,
+                year: overrides.year ?? mixer.year
             }
             const operatorName = getOperatorName(assignedOperator)
             if (
@@ -599,10 +600,10 @@ function MixerDetailView({ mixerId, onClose }) {
                 ])
                 const normalizedComments = Array.isArray(commentData)
                     ? commentData.map((c) => ({
-                          id: c.id,
                           author: c.author,
-                          text: c.text,
-                          created_at: c.createdAt || c.created_at
+                          created_at: c.createdAt || c.created_at,
+                          id: c.id,
+                          text: c.text
                       }))
                     : []
                 setComments(normalizedComments)
@@ -656,19 +657,6 @@ function MixerDetailView({ mixerId, onClose }) {
     const verificationItems = [
         {
             icon: 'fas fa-calendar-check',
-            label: 'Verified',
-            value: mixer.updatedLast
-                ? `${new Date(mixer.updatedLast).toLocaleString()}${!Mixer.ensureInstance(mixer).isVerified() ? (new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
-                : 'Never verified',
-            style: {
-                color: mixer.updatedLast
-                    ? Mixer.ensureInstance(mixer).isVerified()
-                        ? 'var(--success)'
-                        : new Date(mixer.updatedAt) > new Date(mixer.updatedLast)
-                          ? 'var(--error)'
-                          : 'var(--warning)'
-                    : 'var(--error)'
-            },
             iconStyle: {
                 color: mixer.updatedLast
                     ? Mixer.ensureInstance(mixer).isVerified()
@@ -678,6 +666,19 @@ function MixerDetailView({ mixerId, onClose }) {
                           : 'var(--warning)'
                     : 'var(--error)'
             },
+            label: 'Verified',
+            style: {
+                color: mixer.updatedLast
+                    ? Mixer.ensureInstance(mixer).isVerified()
+                        ? 'var(--success)'
+                        : new Date(mixer.updatedAt) > new Date(mixer.updatedLast)
+                          ? 'var(--error)'
+                          : 'var(--warning)'
+                    : 'var(--error)'
+            },
+            value: mixer.updatedLast
+                ? `${new Date(mixer.updatedLast).toLocaleString()}${!Mixer.ensureInstance(mixer).isVerified() ? (new Date(mixer.updatedAt) > new Date(mixer.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
+                : 'Never verified',
             valueStyle: {
                 color: mixer.updatedLast
                     ? Mixer.ensureInstance(mixer).isVerified()
@@ -690,12 +691,12 @@ function MixerDetailView({ mixerId, onClose }) {
         },
         {
             icon: 'fas fa-user-check',
-            label: 'Verified By',
-            value: mixer.updatedBy ? updatedByEmail || 'Unknown User' : 'No verification record',
-            title: `Last Updated: ${new Date(mixer.updatedAt).toLocaleString()}`,
             iconStyle: {
                 color: mixer.updatedBy ? 'var(--success)' : 'var(--error)'
             },
+            label: 'Verified By',
+            title: `Last Updated: ${new Date(mixer.updatedAt).toLocaleString()}`,
+            value: mixer.updatedBy ? updatedByEmail || 'Unknown User' : 'No verification record',
             valueStyle: {
                 color: mixer.updatedBy ? 'inherit' : 'var(--error)'
             }
@@ -887,7 +888,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                             originalValues.status === 'Active' &&
                                             newStatus !== 'Active'
                                         ) {
-                                            await handleSave({ status: newStatus, assignedOperator: null })
+                                            await handleSave({ assignedOperator: null, status: newStatus })
                                             setStatus(newStatus)
                                             setAssignedOperator(null)
                                             setLastUnassignedOperatorId(assignedOperator)
@@ -954,9 +955,9 @@ function MixerDetailView({ mixerId, onClose }) {
                                     style={
                                         !canEditMixer
                                             ? {
+                                                  backgroundColor: 'var(--card-bg)',
                                                   cursor: 'not-allowed',
-                                                  opacity: 0.8,
-                                                  backgroundColor: 'var(--card-bg)'
+                                                  opacity: 0.8
                                               }
                                             : {}
                                     }
@@ -988,9 +989,9 @@ function MixerDetailView({ mixerId, onClose }) {
                                         style={
                                             !canEditMixer
                                                 ? {
+                                                      backgroundColor: 'var(--bg-secondary)',
                                                       cursor: 'not-allowed',
-                                                      opacity: 0.8,
-                                                      backgroundColor: 'var(--bg-secondary)'
+                                                      opacity: 0.8
                                                   }
                                                 : {}
                                         }
@@ -1013,8 +1014,8 @@ function MixerDetailView({ mixerId, onClose }) {
                                                         const prevOperator = assignedOperator
                                                         await handleSave({
                                                             assignedOperator: null,
-                                                            status: 'Spare',
-                                                            prevAssignedOperator: prevOperator
+                                                            prevAssignedOperator: prevOperator,
+                                                            status: 'Spare'
                                                         })
                                                         setAssignedOperator(null)
                                                         setStatus('Spare')
@@ -1069,16 +1070,16 @@ function MixerDetailView({ mixerId, onClose }) {
                                                     type="button"
                                                     style={{
                                                         backgroundColor: 'var(--success)',
-                                                        color: 'var(--text-light)',
-                                                        marginLeft: '8px',
-                                                        height: '38px',
-                                                        minWidth: '140px',
-                                                        fontSize: '1rem',
-                                                        borderRadius: '4px',
                                                         border: 'none',
-                                                        padding: '0 16px',
+                                                        borderRadius: '4px',
+                                                        boxSizing: 'border-box',
+                                                        color: 'var(--text-light)',
                                                         cursor: 'pointer',
-                                                        boxSizing: 'border-box'
+                                                        fontSize: '1rem',
+                                                        height: '38px',
+                                                        marginLeft: '8px',
+                                                        minWidth: '140px',
+                                                        padding: '0 16px'
                                                     }}
                                                 >
                                                     Undo
@@ -1107,7 +1108,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                     <div className="warning-text">Service overdue</div>
                                 )}
                                 <div
-                                    style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', lineHeight: '1.4' }}
+                                    style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}
                                 >
                                     Service will show as overdue if it has been more than 6 months since last serviced.
                                     Service is determined by hours on the asset - check hours of service.

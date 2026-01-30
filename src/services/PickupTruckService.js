@@ -1,7 +1,7 @@
-import APIUtility from '../utils/APIUtility'
 import PickupTruck from '../models/pickup-trucks/PickupTruck'
-import { UserService } from './UserService'
+import APIUtility from '../utils/APIUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import { UserService } from './UserService'
 
 class PickupTruckServiceImpl {
     static async getAll() {
@@ -41,7 +41,7 @@ class PickupTruckServiceImpl {
             if (!userId) throw new Error('Authentication required')
         }
         if (pickup && pickup.id) delete pickup.id
-        const { res, json } = await APIUtility.post('/pickup-truck-service/create', { userId, pickup })
+        const { res, json } = await APIUtility.post('/pickup-truck-service/create', { pickup, userId })
         if (!res.ok) throw new Error(json?.error || 'Failed to create pickup truck')
         return PickupTruck.fromApiFormat(json?.data)
     }
@@ -138,7 +138,7 @@ class PickupTruckServiceImpl {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         if (!text?.trim()) throw new Error('Comment text is required')
         if (!author) throw new Error('Author is required')
-        const { res, json } = await APIUtility.post('/pickup-truck-service/add-comment', { pickupId, text, author })
+        const { res, json } = await APIUtility.post('/pickup-truck-service/add-comment', { author, pickupId, text })
         if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
         return json?.data
     }
@@ -169,8 +169,8 @@ class PickupTruckServiceImpl {
         if (!issue?.trim()) throw new Error('Issue description is required')
         if (!['Low', 'Medium', 'High'].includes(severity)) throw new Error('Severity must be Low, Medium, or High')
         const { res, json } = await APIUtility.post('/pickup-truck-service/add-issue', {
-            pickupId,
             issue: issue.trim(),
+            pickupId,
             severity,
             userId: createdBy
         })

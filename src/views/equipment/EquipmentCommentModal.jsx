@@ -1,4 +1,5 @@
 import React from 'react'
+
 import CommentModalSection from '../../components/sections/CommentModalSection'
 import { EquipmentService } from '../../services/EquipmentService'
 

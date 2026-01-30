@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { DatabaseService, supabase } from '../../services/DatabaseService'
-import { usePreferences } from '../../app/context/PreferencesContext'
+
 import { useAuth } from '../../app/context/AuthContext'
-import { UserService } from '../../services/UserService'
-import { AuthUtility } from '../../utils/AuthUtility'
-import { RegionService } from '../../services/RegionService'
+import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
+import { DatabaseService, supabase } from '../../services/DatabaseService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import { AuthUtility } from '../../utils/AuthUtility'
 
 function ManagerDetailView({ managerId, onClose }) {
     const { preferences } = usePreferences()
@@ -201,15 +202,15 @@ function ManagerDetailView({ managerId, onClose }) {
             }
 
             const managerData = {
-                id: managerId,
+                createdAt: profileData.created_at,
                 email: userData.email,
                 firstName: profileData.first_name,
+                id: managerId,
                 lastName: profileData.last_name,
                 plantCode: profileData.plant_code,
-                roleName: rName,
                 roleId,
+                roleName: rName,
                 roleWeight,
-                createdAt: profileData.created_at,
                 updatedAt: profileData.updated_at
             }
 
@@ -220,9 +221,9 @@ function ManagerDetailView({ managerId, onClose }) {
             setPlantCode(managerData.plantCode)
             setRoleName(managerData.roleName)
             setOriginalValues({
+                email: managerData.email,
                 firstName: managerData.firstName,
                 lastName: managerData.lastName,
-                email: managerData.email,
                 plantCode: managerData.plantCode,
                 roleName: managerData.roleName
             })
@@ -302,8 +303,8 @@ function ManagerDetailView({ managerId, onClose }) {
                 ? await supabase.from('users_permissions').update(updateData).eq('user_id', managerId)
                 : await supabase.from('users_permissions').insert({
                       ...updateData,
-                      user_id: managerId,
-                      created_at: new Date().toISOString()
+                      created_at: new Date().toISOString(),
+                      user_id: managerId
                   })
             if (permError) throw permError
 
@@ -327,7 +328,7 @@ function ManagerDetailView({ managerId, onClose }) {
 
             setMessage('Changes saved successfully!')
             setTimeout(() => setMessage(''), 3000)
-            setOriginalValues({ firstName, lastName, email, plantCode, roleName })
+            setOriginalValues({ email, firstName, lastName, plantCode, roleName })
             setHasUnsavedChanges(false)
             setShowPasswordField(false)
             setPassword('')
@@ -533,7 +534,7 @@ function ManagerDetailView({ managerId, onClose }) {
                                 <div className="form-group">
                                     <label>Password</label>
                                     <div
-                                        style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}
+                                        style={{ alignItems: 'center', display: 'flex', gap: '12px', marginTop: '8px' }}
                                     >
                                         <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
                                             ••••••••
@@ -542,7 +543,7 @@ function ManagerDetailView({ managerId, onClose }) {
                                             <button
                                                 className="global-button-secondary"
                                                 onClick={() => setShowPasswordField(true)}
-                                                style={{ padding: '8px 16px', fontSize: '14px' }}
+                                                style={{ fontSize: '14px', padding: '8px 16px' }}
                                             >
                                                 <i className="fas fa-key"></i> Change Password
                                             </button>
@@ -552,8 +553,8 @@ function ManagerDetailView({ managerId, onClose }) {
                                         style={{
                                             color: 'var(--text-secondary)',
                                             fontSize: '13px',
-                                            marginTop: '8px',
-                                            marginBottom: '0'
+                                            marginBottom: '0',
+                                            marginTop: '8px'
                                         }}
                                     >
                                         Click &quot;Change Password&quot; to set a new password for this manager.
@@ -575,8 +576,8 @@ function ManagerDetailView({ managerId, onClose }) {
                                         style={{
                                             color: 'var(--text-secondary)',
                                             fontSize: '13px',
-                                            marginTop: '8px',
-                                            marginBottom: '12px'
+                                            marginBottom: '12px',
+                                            marginTop: '8px'
                                         }}
                                     >
                                         Enter a new password and click &quot;Save Changes&quot; at the bottom to apply
@@ -589,7 +590,7 @@ function ManagerDetailView({ managerId, onClose }) {
                                                 setShowPasswordField(false)
                                                 setPassword('')
                                             }}
-                                            style={{ padding: '8px 16px', fontSize: '14px' }}
+                                            style={{ fontSize: '14px', padding: '8px 16px' }}
                                         >
                                             <i className="fas fa-times"></i> Cancel
                                         </button>

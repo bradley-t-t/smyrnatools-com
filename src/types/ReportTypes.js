@@ -1,131 +1,131 @@
 function createReportType({ name, title, frequency, assignment, review, fields }) {
     return {
-        name,
-        title,
-        frequency,
         assignment: Array.isArray(assignment) ? assignment : [],
-        review: Array.isArray(review) ? review : [],
         fields: Array.isArray(fields)
             ? fields.map((f) => ({
                   ...f,
+                  label: f.label || f.name,
                   required: !!f.required,
-                  type: f.type || 'text',
-                  label: f.label || f.name
+                  type: f.type || 'text'
               }))
-            : []
+            : [],
+        frequency,
+        name,
+        review: Array.isArray(review) ? review : [],
+        title
     }
 }
 
 const reportTypes = [
     createReportType({
-        name: 'district_manager',
-        title: 'District Manager Report',
-        frequency: 'weekly',
         assignment: ['reports.assigned.district_manager'],
+        fields: [
+            { label: 'Monday Recap', name: 'monday', required: true, type: 'textarea' },
+            { label: 'Tuesday Recap', name: 'tuesday', required: true, type: 'textarea' },
+            { label: 'Wednesday Recap', name: 'wednesday', required: true, type: 'textarea' },
+            { label: 'Thursday Recap', name: 'thursday', required: true, type: 'textarea' },
+            { label: 'Friday Recap', name: 'friday', required: true, type: 'textarea' },
+            { label: 'Saturday Recap', name: 'saturday', required: true, type: 'textarea' }
+        ],
+        frequency: 'weekly',
+        name: 'district_manager',
         review: ['reports.review.district_manager'],
-        fields: [
-            { name: 'monday', label: 'Monday Recap', type: 'textarea', required: true },
-            { name: 'tuesday', label: 'Tuesday Recap', type: 'textarea', required: true },
-            { name: 'wednesday', label: 'Wednesday Recap', type: 'textarea', required: true },
-            { name: 'thursday', label: 'Thursday Recap', type: 'textarea', required: true },
-            { name: 'friday', label: 'Friday Recap', type: 'textarea', required: true },
-            { name: 'saturday', label: 'Saturday Recap', type: 'textarea', required: true }
-        ]
+        title: 'District Manager Report'
     }),
     createReportType({
-        name: 'plant_manager',
-        title: 'Plant Manager Report',
-        frequency: 'weekly',
         assignment: ['reports.assigned.plant_manager'],
+        fields: [
+            { label: 'Yardage', name: 'yardage', required: true, type: 'number' },
+            { label: 'Total Hours', name: 'total_hours', required: true, type: 'number' },
+            { label: 'Total Yards Lost', name: 'total_yards_lost', required: true, type: 'number' },
+            { label: 'Yards Resold', name: 'yards_resold', required: true, type: 'number' },
+            { label: 'Operators Sent to Other Plants', name: 'operators_sent_to_help', required: false, type: 'table' }
+        ],
+        frequency: 'weekly',
+        name: 'plant_manager',
         review: ['reports.review.plant_manager'],
-        fields: [
-            { name: 'yardage', label: 'Yardage', type: 'number', required: true },
-            { name: 'total_hours', label: 'Total Hours', type: 'number', required: true },
-            { name: 'total_yards_lost', label: 'Total Yards Lost', type: 'number', required: true },
-            { name: 'yards_resold', label: 'Yards Resold', type: 'number', required: true },
-            { name: 'operators_sent_to_help', label: 'Operators Sent to Other Plants', type: 'table', required: false }
-        ]
+        title: 'Plant Manager Report'
     }),
     createReportType({
-        name: 'plant_production',
-        title: 'Weekly Plant Efficiency Report',
-        frequency: 'weekly',
         assignment: ['reports.assigned.plant_production'],
-        review: ['reports.review.plant_production'],
         fields: [
             {
-                name: 'rows',
                 label: 'Production Rows',
-                type: 'table',
-                required: false
+                name: 'rows',
+                required: false,
+                type: 'table'
             }
-        ]
+        ],
+        frequency: 'weekly',
+        name: 'plant_production',
+        review: ['reports.review.plant_production'],
+        title: 'Weekly Plant Efficiency Report'
     }),
     createReportType({
-        name: 'aggregate_production',
-        title: 'Aggregate Production',
-        frequency: 'weekly',
         assignment: ['reports.assigned.aggregate_production'],
-        review: ['reports.review.aggregate_production'],
         fields: [
-            { name: 'sand', label: 'Sand', type: 'number', required: true },
-            { name: 'fill_dirt', label: 'Fill Dirt', type: 'number', required: true },
-            { name: 'black_dirt', label: 'Black Dirt', type: 'number', required: true },
-            { name: 'select_fill', label: 'Select Fill', type: 'number', required: true },
-            { name: 'crushed_concrete', label: 'Freeport Crushed Concrete', type: 'number', required: true },
-            { name: 'houston_crushed_concrete', label: 'Houston Crushed Concrete', type: 'number', required: true },
-            { name: 'three_by_five_crushed', label: '3 x 5 Crushed', type: 'number', required: true },
-            { name: 'stabilized_sand', label: 'Stabilized Sand', type: 'number', required: true },
+            { label: 'Sand', name: 'sand', required: true, type: 'number' },
+            { label: 'Fill Dirt', name: 'fill_dirt', required: true, type: 'number' },
+            { label: 'Black Dirt', name: 'black_dirt', required: true, type: 'number' },
+            { label: 'Select Fill', name: 'select_fill', required: true, type: 'number' },
+            { label: 'Freeport Crushed Concrete', name: 'crushed_concrete', required: true, type: 'number' },
+            { label: 'Houston Crushed Concrete', name: 'houston_crushed_concrete', required: true, type: 'number' },
+            { label: '3 x 5 Crushed', name: 'three_by_five_crushed', required: true, type: 'number' },
+            { label: 'Stabilized Sand', name: 'stabilized_sand', required: true, type: 'number' },
             {
-                name: 'stabilized_crushed_concrete',
                 label: 'Stabilized Crushed Concrete',
-                type: 'number',
-                required: true
+                name: 'stabilized_crushed_concrete',
+                required: true,
+                type: 'number'
             },
-            { name: 'beach_quality_sand', label: 'Beach Quality Sand', type: 'number', required: true },
-            { name: 'limestone_one_inch', label: 'Limestone - 1"', type: 'number', required: true },
-            { name: 'white_screened_sand', label: 'White Screened Sand', type: 'number', required: true },
-            { name: 'pea_gravel_three_eighths', label: '3/8" Pea Gravel', type: 'number', required: true },
-            { name: 'crushed_asphalt', label: 'Crushed Asphalt', type: 'number', required: true },
-            { name: 'screened_sand', label: 'Screened Sand', type: 'number', required: true },
-            { name: 'washout', label: 'Washout', type: 'number', required: true },
-            { name: 'rip_rap', label: 'Rip Rap', type: 'number', required: true }
-        ]
+            { label: 'Beach Quality Sand', name: 'beach_quality_sand', required: true, type: 'number' },
+            { label: 'Limestone - 1"', name: 'limestone_one_inch', required: true, type: 'number' },
+            { label: 'White Screened Sand', name: 'white_screened_sand', required: true, type: 'number' },
+            { label: '3/8" Pea Gravel', name: 'pea_gravel_three_eighths', required: true, type: 'number' },
+            { label: 'Crushed Asphalt', name: 'crushed_asphalt', required: true, type: 'number' },
+            { label: 'Screened Sand', name: 'screened_sand', required: true, type: 'number' },
+            { label: 'Washout', name: 'washout', required: true, type: 'number' },
+            { label: 'Rip Rap', name: 'rip_rap', required: true, type: 'number' }
+        ],
+        frequency: 'weekly',
+        name: 'aggregate_production',
+        review: ['reports.review.aggregate_production'],
+        title: 'Aggregate Production'
     }),
     createReportType({
-        name: 'safety_manager',
-        title: 'Safety Manager Report',
-        frequency: 'weekly',
         assignment: ['reports.assigned.safety_manager'],
+        fields: [{ label: 'Issues', name: 'issues', required: false, type: 'table' }],
+        frequency: 'weekly',
+        name: 'safety_manager',
         review: ['reports.review.safety_manager'],
-        fields: [{ name: 'issues', label: 'Issues', type: 'table', required: false }]
+        title: 'Safety Manager Report'
     }),
     createReportType({
-        name: 'general_manager',
-        title: 'General Manager Report',
-        frequency: 'weekly',
         assignment: ['reports.assigned.general_manager'],
+        fields: [],
+        frequency: 'weekly',
+        name: 'general_manager',
         review: ['reports.review.general_manager'],
-        fields: []
+        title: 'General Manager Report'
     }),
     createReportType({
-        name: 'ready_mix_instructor',
-        title: 'Ready Mix Instructor',
-        frequency: 'weekly',
         assignment: ['reports.assigned.rmi'],
+        fields: [],
+        frequency: 'weekly',
+        name: 'ready_mix_instructor',
         review: ['reports.review.rmi'],
-        fields: []
+        title: 'Ready Mix Instructor'
     }),
     createReportType({
-        name: 'test',
-        title: 'Test',
-        frequency: 'weekly',
         assignment: ['reports.assigned.test'],
+        fields: [{ label: 'test', name: 'test', required: true, type: 'text' }],
+        frequency: 'weekly',
+        name: 'test',
         review: ['reports.review.test'],
-        fields: [{ name: 'test', label: 'test', type: 'text', required: true }]
+        title: 'Test'
     })
 ]
 
 const reportTypeMap = Object.fromEntries(reportTypes.map((rt) => [rt.name, rt]))
 
-export { reportTypes, reportTypeMap }
+export { reportTypeMap, reportTypes }

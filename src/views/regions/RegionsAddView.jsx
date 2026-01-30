@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { RegionService } from '../../services/RegionService'
+
 import AddViewSection from '../../components/sections/AddViewSection'
+import { RegionService } from '../../services/RegionService'
 
 function RegionsAddView({ onClose, onRegionAdded }) {
     const [regionCode, setRegionCode] = useState('')

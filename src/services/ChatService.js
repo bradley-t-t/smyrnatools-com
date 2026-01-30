@@ -1,6 +1,6 @@
+import APIUtility from '../utils/APIUtility'
 import supabase, { getSupabaseErrorDetails, logSupabaseError } from './DatabaseService'
 import { UserService } from './UserService'
-import APIUtility from '../utils/APIUtility'
 
 class ChatServiceImpl {
     channelByItem = new Map()
@@ -29,7 +29,7 @@ class ChatServiceImpl {
         if (!userId) throw new Error('Not authenticated')
         if (!message) throw new Error('Empty message')
         try {
-            const payload = { listItemId, message, userId, id: userId, user_id: userId, userid: userId }
+            const payload = { id: userId, listItemId, message, userId, user_id: userId, userid: userId }
             const { res, json } = await APIUtility.post('/chat-service/send-message', payload)
             if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to send message')
             return true
@@ -49,7 +49,7 @@ class ChatServiceImpl {
         if (!messageId) throw new Error('Missing message id')
         if (!userId) throw new Error('Not authenticated')
         try {
-            const payload = { messageId, userId, id: userId, user_id: userId, userid: userId }
+            const payload = { id: userId, messageId, userId, user_id: userId, userid: userId }
             const { res, json } = await APIUtility.post('/chat-service/delete-message', payload)
             if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete message')
             return true
@@ -69,9 +69,9 @@ class ChatServiceImpl {
                 'postgres_changes',
                 {
                     event: '*',
+                    filter: `list_item_id=eq.${key}`,
                     schema: 'public',
-                    table: 'list_item_messages',
-                    filter: `list_item_id=eq.${key}`
+                    table: 'list_item_messages'
                 },
                 (payload) => {
                     handler(payload)

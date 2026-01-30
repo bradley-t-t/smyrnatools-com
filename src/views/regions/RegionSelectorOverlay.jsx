@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { usePreferences } from '../../app/context/PreferencesContext'
-import { UserService } from '../../services/UserService'
-import { RegionService } from '../../services/RegionService'
 import './styles/Regions.css'
+
+import React, { useEffect, useMemo, useState } from 'react'
+
+import { usePreferences } from '../../app/context/PreferencesContext'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
 
 function RegionSelectorOverlay() {
     const { preferences, updatePreferences } = usePreferences()

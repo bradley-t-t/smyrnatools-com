@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react'
-import { EquipmentService } from '../../services/EquipmentService'
-import { AuthService } from '../../services/AuthService'
+
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
+import { AuthService } from '../../services/AuthService'
+import { EquipmentService } from '../../services/EquipmentService'
 
 function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
     const [identifyingNumber, setIdentifyingNumber] = useState('')
@@ -41,9 +42,9 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
             if (!userId) throw new Error('User ID not available. Please log in again.')
 
             const newEquipment = {
-                identifying_number: identifyingNumber,
                 assigned_plant: assignedPlant,
                 equipment_type: equipmentType,
+                identifying_number: identifyingNumber,
                 status
             }
 

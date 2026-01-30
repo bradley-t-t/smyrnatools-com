@@ -1,20 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { EquipmentService } from '../../services/EquipmentService'
-import { PlantService } from '../../services/PlantService'
-import { UserService } from '../../services/UserService'
-import { supabase } from '../../services/DatabaseService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import EquipmentCommentModal from './EquipmentCommentModal'
-import EquipmentIssueModal from './EquipmentIssueModal'
-import EquipmentUtility from '../../utils/EquipmentUtility'
-import DateUtility from '../../utils/DateUtility'
-import EquipmentHistoryView from './EquipmentHistoryView'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
 import VerificationCardSection from '../../components/sections/VerificationCardSection'
-import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import { Equipment } from '../../models/equipment/Equipment'
+import { supabase } from '../../services/DatabaseService'
+import { EquipmentService } from '../../services/EquipmentService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import DateUtility from '../../utils/DateUtility'
+import EquipmentUtility from '../../utils/EquipmentUtility'
+import EquipmentCommentModal from './EquipmentCommentModal'
+import EquipmentHistoryView from './EquipmentHistoryView'
+import EquipmentIssueModal from './EquipmentIssueModal'
 
 function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
     const { preferences } = usePreferences()
@@ -77,16 +78,16 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 setComments(equipmentData.comments || [])
                 setIssues(equipmentData.issues || [])
                 setOriginalValues({
-                    identifyingNumber: equipmentData.identifyingNumber || '',
                     assignedPlant: equipmentData.assignedPlant || '',
-                    equipmentType: equipmentData.equipmentType || '',
-                    status: equipmentData.status || '',
                     cleanlinessRating: equipmentData.cleanlinessRating || 0,
                     conditionRating: equipmentData.conditionRating || 0,
-                    lastServiceDate: equipmentData.lastServiceDate || null,
-                    hoursMileage: equipmentData.hoursMileage ? equipmentData.hoursMileage.toString() : '',
                     equipmentMake: equipmentData.equipmentMake || '',
                     equipmentModel: equipmentData.equipmentModel || '',
+                    equipmentType: equipmentData.equipmentType || '',
+                    hoursMileage: equipmentData.hoursMileage ? equipmentData.hoursMileage.toString() : '',
+                    identifyingNumber: equipmentData.identifyingNumber || '',
+                    lastServiceDate: equipmentData.lastServiceDate || null,
+                    status: equipmentData.status || '',
                     yearMade: equipmentData.yearMade ? equipmentData.yearMade.toString() : ''
                 })
             } catch (error) {
@@ -305,18 +306,18 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             if (!conditionValue || isNaN(conditionValue) || conditionValue < 1) conditionValue = 1
 
             const updatedEquipment = {
-                identifyingNumber,
                 assignedPlant,
-                equipmentType,
-                status,
                 cleanlinessRating: cleanlinessValue,
                 conditionRating: conditionValue,
-                lastServiceDate,
-                hoursMileage: hoursMileage ? parseFloat(hoursMileage) : null,
                 equipmentMake: make,
                 equipmentModel: model,
-                yearMade: year ? parseInt(year) : null,
+                equipmentType,
+                hoursMileage: hoursMileage ? parseFloat(hoursMileage) : null,
+                identifyingNumber,
+                lastServiceDate,
+                status,
                 updatedLast: equipment.updatedLast,
+                yearMade: year ? parseInt(year) : null,
                 ...overrides
             }
             const result = await EquipmentService.updateEquipment(equipment.id, updatedEquipment, userId)
@@ -330,16 +331,16 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 setTimeout(() => setMessage(''), 5000)
             }
             setOriginalValues({
-                identifyingNumber: result.identifyingNumber,
                 assignedPlant: result.assignedPlant,
-                equipmentType: result.equipmentType,
-                status: result.status,
                 cleanlinessRating: result.cleanlinessRating,
                 conditionRating: result.conditionRating,
-                lastServiceDate: result.lastServiceDate,
-                hoursMileage: result.hoursMileage ? result.hoursMileage.toString() : '',
                 equipmentMake: result.equipmentMake,
                 equipmentModel: result.equipmentModel,
+                equipmentType: result.equipmentType,
+                hoursMileage: result.hoursMileage ? result.hoursMileage.toString() : '',
+                identifyingNumber: result.identifyingNumber,
+                lastServiceDate: result.lastServiceDate,
+                status: result.status,
                 yearMade: result.yearMade ? result.yearMade.toString() : ''
             })
             setHasUnsavedChanges(false)
@@ -350,9 +351,9 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         } catch (error) {
             console.error('Save error:', error)
             console.error('Error details:', {
+                equipmentId: equipment?.id,
                 message: error.message,
-                stack: error.stack,
-                equipmentId: equipment?.id
+                stack: error.stack
             })
 
             let errorMessage = 'Unknown error'
@@ -465,8 +466,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 ...equipment,
                 equipmentMake: overrides.equipmentMake ?? make ?? equipment.equipmentMake,
                 equipmentModel: overrides.equipmentModel ?? model ?? equipment.equipmentModel,
-                yearMade: overrides.yearMade ?? year ?? equipment.yearMade,
-                lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate
+                lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate,
+                yearMade: overrides.yearMade ?? year ?? equipment.yearMade
             }
 
             if (hasUnsavedChanges) {
@@ -506,8 +507,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             const overrides = {
                 equipmentMake: make,
                 equipmentModel: model,
-                yearMade: year ? parseInt(year) : null,
-                lastServiceDate: lastServiceDate
+                lastServiceDate: lastServiceDate,
+                yearMade: year ? parseInt(year) : null
             }
             const existingService = equipment.lastServiceDate ? new Date(equipment.lastServiceDate) : null
             const incomingService = lastServiceDate
@@ -523,8 +524,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 ...equipment,
                 equipmentMake: overrides.equipmentMake ?? equipment.equipmentMake,
                 equipmentModel: overrides.equipmentModel ?? equipment.equipmentModel,
-                yearMade: overrides.yearMade ?? equipment.yearMade,
-                lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate
+                lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate,
+                yearMade: overrides.yearMade ?? equipment.yearMade
             }
 
             if (hasUnsavedChanges) {
@@ -673,19 +674,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                         verificationItems={[
                             {
                                 icon: 'fas fa-calendar-check',
-                                label: 'Verified',
-                                value: equipment.updatedLast
-                                    ? `${new Date(equipment.updatedLast).toLocaleString()}${!Equipment.ensureInstance(equipment).isVerified() ? (new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
-                                    : 'Never verified',
-                                style: {
-                                    color: equipment.updatedLast
-                                        ? Equipment.ensureInstance(equipment).isVerified()
-                                            ? 'var(--success)'
-                                            : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
-                                              ? 'var(--error)'
-                                              : 'var(--warning)'
-                                        : 'var(--error)'
-                                },
                                 iconStyle: {
                                     color: equipment.updatedLast
                                         ? Equipment.ensureInstance(equipment).isVerified()
@@ -695,6 +683,19 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                               : 'var(--warning)'
                                         : 'var(--error)'
                                 },
+                                label: 'Verified',
+                                style: {
+                                    color: equipment.updatedLast
+                                        ? Equipment.ensureInstance(equipment).isVerified()
+                                            ? 'var(--success)'
+                                            : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
+                                              ? 'var(--error)'
+                                              : 'var(--warning)'
+                                        : 'var(--error)'
+                                },
+                                value: equipment.updatedLast
+                                    ? `${new Date(equipment.updatedLast).toLocaleString()}${!Equipment.ensureInstance(equipment).isVerified() ? (new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
+                                    : 'Never verified',
                                 valueStyle: {
                                     color: equipment.updatedLast
                                         ? Equipment.ensureInstance(equipment).isVerified()
@@ -707,14 +708,14 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                             },
                             {
                                 icon: 'fas fa-user-check',
-                                label: 'Verified By',
-                                value: equipment.updatedBy
-                                    ? updatedByEmail || 'Unknown User'
-                                    : 'No verification record',
-                                title: `Last Updated: ${new Date(equipment.updatedAt).toLocaleString()}`,
                                 iconStyle: {
                                     color: equipment.updatedBy ? 'var(--success)' : 'var(--error)'
                                 },
+                                label: 'Verified By',
+                                title: `Last Updated: ${new Date(equipment.updatedAt).toLocaleString()}`,
+                                value: equipment.updatedBy
+                                    ? updatedByEmail || 'Unknown User'
+                                    : 'No verification record',
                                 valueStyle: {
                                     color: equipment.updatedBy ? 'inherit' : 'var(--error)'
                                 }
@@ -791,9 +792,9 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                     style={
                                         !canEditEquipment
                                             ? {
+                                                  backgroundColor: 'var(--card-bg)',
                                                   cursor: 'not-allowed',
-                                                  opacity: 0.8,
-                                                  backgroundColor: 'var(--card-bg)'
+                                                  opacity: 0.8
                                               }
                                             : {}
                                     }
@@ -863,7 +864,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                     <div className="warning-text">Service overdue</div>
                                 )}
                                 <div
-                                    style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', lineHeight: '1.4' }}
+                                    style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}
                                 >
                                     Service will show as overdue if it has been more than 6 months since last serviced.
                                     Service is determined by hours on the asset - check hours of service.

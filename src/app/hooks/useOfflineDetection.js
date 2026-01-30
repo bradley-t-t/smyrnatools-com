@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+
 import { NetworkUtility } from '../../utils/NetworkUtility'
 
 export function useOfflineDetection(setOfflineMode) {
@@ -67,5 +68,5 @@ export function useOfflineDetection(setOfflineMode) {
         }
     }, [setOfflineMode])
 
-    return { onlineStreakRef, offlineStreakRef, offlineSinceRef }
+    return { offlineSinceRef, offlineStreakRef, onlineStreakRef }
 }

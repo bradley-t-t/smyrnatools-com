@@ -1,11 +1,11 @@
-import APIUtility from '../utils/APIUtility'
 import { Tractor } from '../models/tractors/Tractor'
-import { TractorUtility } from '../utils/TractorUtility'
-import { TractorHistory } from '../models/tractors/TractorHistory'
-import { UserService } from './UserService'
 import { TractorComment } from '../models/tractors/TractorComment'
-import { ValidationUtility } from '../utils/ValidationUtility'
+import { TractorHistory } from '../models/tractors/TractorHistory'
+import APIUtility from '../utils/APIUtility'
 import CleanupUtility from '../utils/CleanupUtility'
+import { TractorUtility } from '../utils/TractorUtility'
+import { ValidationUtility } from '../utils/ValidationUtility'
+import { UserService } from './UserService'
 
 export class TractorService {
     static async getAllTractors() {
@@ -45,7 +45,7 @@ export class TractorService {
 
     static async getLatestHistoryDate(tractorId) {
         if (!tractorId) return null
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-history', { tractorId, limit: 1 })
+        const { res, json } = await APIUtility.post('/tractor-service/fetch-history', { limit: 1, tractorId })
         if (!res.ok) return null
         const first = (json?.data ?? [])[0]
         return first?.changed_at ?? null
@@ -70,7 +70,7 @@ export class TractorService {
         if (tractor && typeof tractor === 'object' && 'vin' in tractor && tractor.vin) {
             tractor.vin = tractor.vin.toUpperCase()
         }
-        const { res, json } = await APIUtility.post('/tractor-service/create', { userId, tractor })
+        const { res, json } = await APIUtility.post('/tractor-service/create', { tractor, userId })
         if (!res.ok) throw new Error(json?.error || 'Failed to create tractor')
         return Tractor.fromApiFormat(json?.data)
     }
@@ -162,11 +162,11 @@ export class TractorService {
         if (!userId) userId = '00000000-0000-0000-0000-000000000000'
         if (snakeCaseField === 'vin') newValue = (newValue || '').toUpperCase()
         const { res, json } = await APIUtility.post('/tractor-service/add-history', {
-            tractorId,
+            changedBy: userId,
             fieldName: snakeCaseField,
-            oldValue,
             newValue,
-            changedBy: userId
+            oldValue,
+            tractorId
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
         return json?.data
@@ -238,9 +238,9 @@ export class TractorService {
         if (!text?.trim()) throw new Error('Comment text is required')
         if (!author?.trim()) throw new Error('Author is required')
         const { res, json } = await APIUtility.post('/tractor-service/add-comment', {
-            tractorId,
+            author: author.trim(),
             text: text.trim(),
-            author: author.trim()
+            tractorId
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
         return json?.data ? TractorComment.fromRow(json.data) : null
@@ -275,9 +275,9 @@ export class TractorService {
         const validSeverities = ['Low', 'Medium', 'High']
         const finalSeverity = validSeverities.includes(severity) ? severity : 'Medium'
         const { res, json } = await APIUtility.post('/tractor-service/add-issue', {
-            tractorId,
             issue: issueText.trim(),
             severity: finalSeverity,
+            tractorId,
             userId: createdBy
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to add issue')

@@ -17,6 +17,7 @@
 .env.production.local
 .env
 .commitmsg
+.idea
 
 npm-debug.log*
 yarn-debug.log*

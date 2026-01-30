@@ -45,129 +45,129 @@ function PlantDropdownModal({
     }
 
     const overlayStyle = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
         alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        bottom: 0,
+        display: 'flex',
         justifyContent: 'center',
+        left: 0,
+        position: 'fixed',
+        right: 0,
+        top: 0,
         zIndex: 10000
     }
 
     const modalStyle = {
         backgroundColor: 'white',
         borderRadius: '16px',
-        width: '90%',
-        maxWidth: '400px',
-        maxHeight: '80vh',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        overflow: 'hidden'
+        maxHeight: '80vh',
+        maxWidth: '400px',
+        overflow: 'hidden',
+        width: '90%'
     }
 
     const headerStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 20px',
-        borderBottom: '1px solid #e5e7eb',
         backgroundColor: '#f8fafc',
-        borderRadius: '16px 16px 0 0'
+        borderBottom: '1px solid #e5e7eb',
+        borderRadius: '16px 16px 0 0',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '16px 20px'
     }
 
     const titleStyle = {
+        color: '#1e3a5f',
         fontSize: '18px',
         fontWeight: 600,
-        color: '#1e3a5f',
         margin: 0
     }
 
     const closeButtonStyle = {
-        width: '32px',
-        height: '32px',
-        border: 'none',
+        alignItems: 'center',
         background: 'transparent',
+        border: 'none',
+        borderRadius: '8px',
         color: '#64748b',
         cursor: 'pointer',
-        borderRadius: '8px',
         display: 'flex',
-        alignItems: 'center',
+        fontSize: '16px',
+        height: '32px',
         justifyContent: 'center',
-        fontSize: '16px'
+        width: '32px'
     }
 
     const searchWrapperStyle = {
-        position: 'relative',
+        borderBottom: '1px solid #e5e7eb',
         padding: '12px 16px',
-        borderBottom: '1px solid #e5e7eb'
+        position: 'relative'
     }
 
     const searchInputStyle = {
-        width: '100%',
-        padding: '12px 16px 12px 40px',
         border: '1px solid #e5e7eb',
         borderRadius: '10px',
+        boxSizing: 'border-box',
         fontSize: '14px',
         outline: 'none',
-        boxSizing: 'border-box'
+        padding: '12px 16px 12px 40px',
+        width: '100%'
     }
 
     const searchIconStyle = {
-        position: 'absolute',
-        left: '28px',
-        top: '50%',
-        transform: 'translateY(-50%)',
         color: '#94a3b8',
-        fontSize: '14px'
+        fontSize: '14px',
+        left: '28px',
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)'
     }
 
     const listStyle = {
+        backgroundColor: 'white',
         flex: 1,
         overflowY: 'auto',
-        padding: '8px',
-        backgroundColor: 'white'
+        padding: '8px'
     }
 
     const optionStyle = (isSelected) => ({
-        display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        padding: '12px 16px',
-        borderRadius: '10px',
-        cursor: 'pointer',
         backgroundColor: isSelected ? '#f0f7ff' : 'transparent',
+        borderRadius: '10px',
         color: '#374151',
+        cursor: 'pointer',
+        display: 'flex',
         fontSize: '14px',
         fontWeight: isSelected ? 600 : 400,
+        gap: '12px',
+        padding: '12px 16px',
         transition: 'background-color 0.15s'
     })
 
     const checkboxStyle = {
-        width: '18px',
+        accentColor: '#1e3a5f',
         height: '18px',
-        accentColor: '#1e3a5f'
+        width: '18px'
     }
 
     const footerStyle = {
-        padding: '12px 16px',
+        backgroundColor: '#f8fafc',
         borderTop: '1px solid #e5e7eb',
-        backgroundColor: '#f8fafc'
+        padding: '12px 16px'
     }
 
     const doneButtonStyle = {
-        width: '100%',
-        padding: '12px 20px',
         backgroundColor: '#1e3a5f',
-        color: 'white',
         border: 'none',
         borderRadius: '10px',
+        color: 'white',
+        cursor: 'pointer',
         fontSize: '14px',
         fontWeight: 600,
-        cursor: 'pointer'
+        padding: '12px 20px',
+        width: '100%'
     }
 
     return ReactDOM.createPortal(

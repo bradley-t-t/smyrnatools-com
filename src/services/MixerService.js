@@ -1,13 +1,14 @@
-import APIUtility from '../utils/APIUtility'
-import { Mixer } from '../models/mixers/Mixer'
-import MixerUtility from '../utils/MixerUtility'
-import { MixerHistory } from '../models/mixers/MixerHistory'
-import { UserService } from './UserService'
-import { MixerComment } from '../models/mixers/MixerComment'
-import { MixerImage } from '../models/mixers/MixerImage'
 import { v4 as uuidv4 } from 'uuid'
-import { ValidationUtility } from '../utils/ValidationUtility'
+
+import { Mixer } from '../models/mixers/Mixer'
+import { MixerComment } from '../models/mixers/MixerComment'
+import { MixerHistory } from '../models/mixers/MixerHistory'
+import { MixerImage } from '../models/mixers/MixerImage'
+import APIUtility from '../utils/APIUtility'
 import CleanupUtility from '../utils/CleanupUtility'
+import MixerUtility from '../utils/MixerUtility'
+import { ValidationUtility } from '../utils/ValidationUtility'
+import { UserService } from './UserService'
 
 class MixerServiceImpl {
     static async getAllMixers() {
@@ -54,7 +55,7 @@ class MixerServiceImpl {
 
     static async getLatestHistoryDate(mixerId) {
         if (!mixerId) return null
-        const { res, json } = await APIUtility.post('/mixer-service/fetch-history', { mixerId, limit: 1 })
+        const { res, json } = await APIUtility.post('/mixer-service/fetch-history', { limit: 1, mixerId })
         if (!res.ok) return null
         const first = (json?.data ?? [])[0]
         return first?.changed_at ?? null
@@ -79,7 +80,7 @@ class MixerServiceImpl {
         if (mixer && typeof mixer === 'object' && 'vin' in mixer && mixer.vin) {
             mixer.vin = mixer.vin.toUpperCase()
         }
-        const { res, json } = await APIUtility.post('/mixer-service/create', { userId, mixer })
+        const { res, json } = await APIUtility.post('/mixer-service/create', { mixer, userId })
         if (!res.ok) throw new Error(json?.error || 'Failed to create mixer')
         return new Mixer(json?.data)
     }
@@ -136,11 +137,11 @@ class MixerServiceImpl {
         if (!userId) userId = '00000000-0000-0000-0000-000000000000'
         if (fieldName === 'vin') newValue = (newValue || '').toUpperCase()
         const { res, json } = await APIUtility.post('/mixer-service/add-history', {
-            mixerId,
+            changedBy: userId,
             fieldName,
-            oldValue,
+            mixerId,
             newValue,
-            changedBy: userId
+            oldValue
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
         return json?.data
@@ -212,9 +213,9 @@ class MixerServiceImpl {
         if (!text?.trim()) throw new Error('Comment text is required')
         if (!author?.trim()) throw new Error('Author is required')
         const { res, json } = await APIUtility.post('/mixer-service/add-comment', {
+            author: author.trim(),
             mixerId,
-            text: text.trim(),
-            author: author.trim()
+            text: text.trim()
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
         return json?.data ? MixerComment.fromRow(json.data) : null
@@ -265,10 +266,10 @@ class MixerServiceImpl {
         })
         const contentType = file.type || 'application/octet-stream'
         const { res, json } = await APIUtility.post('/mixer-service/upload-image', {
-            mixerId,
-            fileName,
+            contentType,
             fileBase64,
-            contentType
+            fileName,
+            mixerId
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to upload mixer image')
         return MixerImage.fromRow(json?.data)
@@ -300,8 +301,8 @@ class MixerServiceImpl {
         if (!issue?.trim()) throw new Error('Issue description is required')
         if (!['Low', 'Medium', 'High'].includes(severity)) throw new Error('Severity must be Low, Medium, or High')
         const { res, json } = await APIUtility.post('/mixer-service/add-issue', {
-            mixerId,
             issue: issue.trim(),
+            mixerId,
             severity,
             userId: createdBy
         })
@@ -353,11 +354,11 @@ class MixerServiceImpl {
         for (const m of toUpdate) {
             try {
                 const updates = {
-                    status: 'Spare',
                     assignedOperator: null,
-                    updatedLast: null,
+                    status: 'Spare',
                     updatedAt: null,
-                    updatedBy: null
+                    updatedBy: null,
+                    updatedLast: null
                 }
                 await this.updateMixer(m.id, updates)
                 m.status = 'Spare'
@@ -393,9 +394,9 @@ class MixerServiceImpl {
                 window.dispatchEvent(
                     new CustomEvent('notifications-refresh', {
                         detail: {
-                            type: 'mixer',
                             id: mixerId,
-                            plant: mixer.assignedPlant
+                            plant: mixer.assignedPlant,
+                            type: 'mixer'
                         }
                     })
                 )

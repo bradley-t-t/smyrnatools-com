@@ -1,16 +1,17 @@
-import supabase, { DatabaseService } from '../../services/DatabaseService'
-import GrammarUtility from '../../utils/GrammarUtility'
 import { useEffect, useMemo, useState } from 'react'
+
+import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import DetailViewSection from '../../components/sections/DetailViewSection'
+import supabase, { DatabaseService } from '../../services/DatabaseService'
 import { MixerService } from '../../services/MixerService'
-import { TractorService } from '../../services/TractorService'
-import OperatorHistoryView from './OperatorHistoryView'
-import OperatorCommentModal from './OperatorCommentModal'
-import { UserService } from '../../services/UserService'
 import { OperatorService } from '../../services/OperatorService'
 import { RegionService } from '../../services/RegionService'
-import DetailViewSection from '../../components/sections/DetailViewSection'
-import { usePreferences } from '../../app/context/PreferencesContext'
+import { TractorService } from '../../services/TractorService'
+import { UserService } from '../../services/UserService'
+import GrammarUtility from '../../utils/GrammarUtility'
+import OperatorCommentModal from './OperatorCommentModal'
+import OperatorHistoryView from './OperatorHistoryView'
 
 function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     const { preferences } = usePreferences()
@@ -134,8 +135,8 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             const { data } = await supabase.from('operators').select('*').eq('employee_id', operatorId).single()
             setOperator({
                 ...data,
-                id: data.employee_id,
-                employeeId: data.employee_id
+                employeeId: data.employee_id,
+                id: data.employee_id
             })
             setSmyrnaId(data.smyrna_id || '')
             setName(data.name || '')
@@ -225,17 +226,17 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         setMessage('')
         const pendingForSave = status === 'Pending Start' && pendingStartDate ? pendingStartDate.slice(0, 10) : null
         const updateObj = {
-            smyrna_id: smyrnaId,
+            assigned_trainer: ['Training', 'Pending Start'].includes(status) && !isTrainer ? assignedTrainer : null,
+            automatic_restriction: automaticRestriction,
+            is_trainer: isTrainer,
             name: name,
-            status: status,
+            pending_start_date: pendingForSave,
+            phone: phone || null,
             plant_code: assignedPlant,
             position: position,
-            is_trainer: isTrainer,
-            assigned_trainer: ['Training', 'Pending Start'].includes(status) && !isTrainer ? assignedTrainer : null,
-            pending_start_date: pendingForSave,
             rating: typeof rating === 'number' ? rating : Number(rating) || 0,
-            phone: phone || null,
-            automatic_restriction: automaticRestriction,
+            smyrna_id: smyrnaId,
+            status: status,
             updated_at: new Date().toISOString()
         }
         try {

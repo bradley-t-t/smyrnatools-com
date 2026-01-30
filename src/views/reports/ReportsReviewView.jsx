@@ -1,97 +1,98 @@
 import React, { useEffect, useMemo, useState } from 'react'
+
 import { supabase } from '../../services/DatabaseService'
-import { UserService } from '../../services/UserService'
 import { ReportService } from '../../services/ReportService'
-import { PlantManagerReviewPlugin } from './types/WeeklyPlantManagerReport'
+import { UserService } from '../../services/UserService'
+import { exportGeneralManagerReport } from '../../utils/ExportUtility'
+import { ReportUtility } from '../../utils/ReportUtility'
 import { DistrictManagerReviewPlugin } from './types/WeeklyDistrictManagerReport'
 import { EfficiencyReviewPlugin } from './types/WeeklyEfficiencyReport'
-import { SafetyManagerReviewPlugin } from './types/WeeklySafetyManagerReport'
 import { GeneralManagerReviewPlugin } from './types/WeeklyGeneralManagerReport'
+import { PlantManagerReviewPlugin } from './types/WeeklyPlantManagerReport'
 import { ReadyMixInstructorReviewPlugin } from './types/WeeklyReadyMixInstructorReport'
-import { ReportUtility } from '../../utils/ReportUtility'
-import { exportGeneralManagerReport } from '../../utils/ExportUtility'
+import { SafetyManagerReviewPlugin } from './types/WeeklySafetyManagerReport'
 
 const plugins = {
-    plant_manager: PlantManagerReviewPlugin,
     district_manager: DistrictManagerReviewPlugin,
-    plant_production: EfficiencyReviewPlugin,
-    safety_manager: SafetyManagerReviewPlugin,
     general_manager: GeneralManagerReviewPlugin,
-    ready_mix_instructor: ReadyMixInstructorReviewPlugin
+    plant_manager: PlantManagerReviewPlugin,
+    plant_production: EfficiencyReviewPlugin,
+    ready_mix_instructor: ReadyMixInstructorReviewPlugin,
+    safety_manager: SafetyManagerReviewPlugin
 }
 
 function ReportsReviewView({ report, initialData, onBack, user, completedByUser, onManagerEdit }) {
     const styles = {
-        container: { width: '100%', minHeight: '100vh', background: '#f8fafc', padding: '0' },
-        header: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.5rem',
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-            flexWrap: 'wrap',
-            gap: '1rem'
-        },
-        headerLeft: { display: 'flex', alignItems: 'center', gap: '1rem' },
         backBtn: {
-            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: '40px',
-            height: '40px',
+            background: '#f1f5f9',
             border: 'none',
             borderRadius: '10px',
-            background: '#f1f5f9',
             color: '#475569',
-            fontSize: '1rem',
-            cursor: 'pointer'
-        },
-        titleSection: { display: 'flex', flexDirection: 'column', gap: '0.25rem' },
-        title: { fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-        subtitle: { fontSize: '0.875rem', color: '#64748b', margin: 0 },
-        headerRight: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
-        metaBar: {
+            cursor: 'pointer',
             display: 'flex',
+            fontSize: '1rem',
+            height: '40px',
+            justifyContent: 'center',
+            width: '40px'
+        },
+        container: { background: '#f8fafc', minHeight: '100vh', padding: '0', width: '100%' },
+        editBtn: {
             alignItems: 'center',
-            gap: '1.5rem',
+            background: '#1e3a5f',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.625rem 1rem'
+        },
+        exportBtn: {
+            alignItems: 'center',
+            background: '#10b981',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.625rem 1rem'
+        },
+        header: {
+            alignItems: 'center',
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            justifyContent: 'space-between',
             padding: '1rem 1.5rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 40
+        },
+        headerLeft: { alignItems: 'center', display: 'flex', gap: '1rem' },
+        headerRight: { alignItems: 'center', display: 'flex', gap: '0.75rem' },
+        metaBar: {
+            alignItems: 'center',
             background: '#f8fafc',
             borderBottom: '1px solid #e5e7eb',
-            flexWrap: 'wrap'
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '1.5rem',
+            padding: '1rem 1.5rem'
         },
-        metaItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#64748b' },
         metaIcon: { color: '#94a3b8' },
-        metaStrong: { fontWeight: 600, color: '#1e293b' },
-        exportBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.625rem 1rem',
-            background: '#10b981',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer'
-        },
-        editBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.625rem 1rem',
-            background: '#1e3a5f',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer'
-        }
+        metaItem: { alignItems: 'center', color: '#64748b', display: 'flex', fontSize: '0.875rem', gap: '0.5rem' },
+        metaStrong: { color: '#1e293b', fontWeight: 600 },
+        subtitle: { color: '#64748b', fontSize: '0.875rem', margin: 0 },
+        title: { color: '#1e293b', fontSize: '1.25rem', fontWeight: 700, margin: 0 },
+        titleSection: { display: 'flex', flexDirection: 'column', gap: '0.25rem' }
     }
 
     const [form, setForm] = useState(initialData?.data || initialData || {})
@@ -321,22 +322,22 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
         if (report.name === 'plant_manager') {
             const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
             return {
-                yph: { raw: metrics.raw, adjusted: metrics.adjusted },
-                yphGrade: { raw: metrics.rawGrade, adjusted: metrics.adjustedGrade },
-                yphLabel: { raw: metrics.rawLabel, adjusted: metrics.adjustedLabel },
                 lost,
                 lostGrade,
-                lostLabel
+                lostLabel,
+                yph: { adjusted: metrics.adjusted, raw: metrics.raw },
+                yphGrade: { adjusted: metrics.adjustedGrade, raw: metrics.rawGrade },
+                yphLabel: { adjusted: metrics.adjustedLabel, raw: metrics.rawLabel }
             }
         } else {
             const { yph, yphGrade, yphLabel } = ReportService.getYardageMetrics(form)
             return {
-                yph: { raw: yph, adjusted: yph },
-                yphGrade: { raw: yphGrade, adjusted: yphGrade },
-                yphLabel: { raw: yphLabel, adjusted: yphLabel },
                 lost,
                 lostGrade,
-                lostLabel
+                lostLabel,
+                yph: { adjusted: yph, raw: yph },
+                yphGrade: { adjusted: yphGrade, raw: yphGrade },
+                yphLabel: { adjusted: yphLabel, raw: yphLabel }
             }
         }
     }, [form, report.name, hoursReceivedFromOtherPlants])
@@ -417,15 +418,15 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
                 <div style={styles.headerRight}>
                     <div
                         style={{
-                            display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 1rem',
+                            background: isSubmitted ? '#d1fae5' : '#fef3c7',
                             borderRadius: '8px',
+                            color: isSubmitted ? '#059669' : '#d97706',
+                            display: 'flex',
                             fontSize: '0.875rem',
                             fontWeight: 600,
-                            background: isSubmitted ? '#d1fae5' : '#fef3c7',
-                            color: isSubmitted ? '#059669' : '#d97706'
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem'
                         }}
                     >
                         <i className={`fas ${isSubmitted ? 'fa-check-circle' : 'fa-save'}`}></i>

@@ -1,6 +1,7 @@
 import React from 'react'
-import { TrailerUtility } from '../../utils/TrailerUtility'
+
 import CardSection from '../../components/sections/CardSection'
+import { TrailerUtility } from '../../utils/TrailerUtility'
 
 function TrailerCard({
     trailer,

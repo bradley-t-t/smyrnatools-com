@@ -19,19 +19,19 @@ export class Operator {
     static fromApiFormat(data) {
         if (!data) return null
         return new Operator({
-            employee_id: data.employee_id ?? data.employeeId ?? UserUtility.generateUUID(),
-            smyrna_id: data.smyrna_id ?? data.smyrnaId ?? null,
-            name: data.name ?? '',
-            plant_code: data.plant_code ?? data.plantCode ?? null,
-            status: data.status ?? 'Active',
-            is_trainer: data.is_trainer ?? data.isTrainer ?? false,
             assigned_trainer: data.assigned_trainer ?? data.assignedTrainer ?? null,
-            position: data.position ?? null,
+            automatic_restriction: data.automatic_restriction ?? data.automaticRestriction ?? false,
             created_at: data.created_at ?? data.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
-            updated_at: data.updated_at ?? data.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+            employee_id: data.employee_id ?? data.employeeId ?? UserUtility.generateUUID(),
+            is_trainer: data.is_trainer ?? data.isTrainer ?? false,
+            name: data.name ?? '',
             pending_start_date: data.pending_start_date ?? data.pendingStartDate ?? null,
             phone: data.phone ?? null,
-            automatic_restriction: data.automatic_restriction ?? data.automaticRestriction ?? false
+            plant_code: data.plant_code ?? data.plantCode ?? null,
+            position: data.position ?? null,
+            smyrna_id: data.smyrna_id ?? data.smyrnaId ?? null,
+            status: data.status ?? 'Active',
+            updated_at: data.updated_at ?? data.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
         })
     }
 
@@ -47,19 +47,19 @@ export class Operator {
             throw new Error('smyrna_id cannot be a UUID')
         }
         return {
-            employee_id: this.employeeId,
-            smyrna_id: this.smyrnaId ?? null,
-            name: this.name?.trim() || '',
-            plant_code: this.plantCode ?? null,
-            status: this.status || 'Active',
-            is_trainer: this.isTrainer ?? false,
             assigned_trainer: UserUtility.safeUUID(this.assignedTrainer),
-            position: this.position ?? null,
+            automatic_restriction: this.automaticRestriction ?? false,
             created_at: this.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
-            updated_at: this.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+            employee_id: this.employeeId,
+            is_trainer: this.isTrainer ?? false,
+            name: this.name?.trim() || '',
             pending_start_date: this.pendingStartDate ?? null,
             phone: this.phone ?? null,
-            automatic_restriction: this.automaticRestriction ?? false
+            plant_code: this.plantCode ?? null,
+            position: this.position ?? null,
+            smyrna_id: this.smyrnaId ?? null,
+            status: this.status || 'Active',
+            updated_at: this.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
         }
     }
 }

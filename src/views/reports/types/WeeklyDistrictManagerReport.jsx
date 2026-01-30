@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { ReportUtility } from '../../../utils/ReportUtility'
+
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { RegionService } from '../../../services/RegionService'
+import { ReportUtility } from '../../../utils/ReportUtility'
 
 const dmReportStyles = `
 .dm-daily-recap-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
@@ -53,12 +54,12 @@ const dmReportStyles = `
 
 function DailyRecapSection({ form, handleChange, readOnly }) {
     const days = [
-        { key: 'monday', label: 'Monday', icon: 'fa-calendar-day' },
-        { key: 'tuesday', label: 'Tuesday', icon: 'fa-calendar-day' },
-        { key: 'wednesday', label: 'Wednesday', icon: 'fa-calendar-day' },
-        { key: 'thursday', label: 'Thursday', icon: 'fa-calendar-day' },
-        { key: 'friday', label: 'Friday', icon: 'fa-calendar-day' },
-        { key: 'saturday', label: 'Saturday', icon: 'fa-calendar-week' }
+        { icon: 'fa-calendar-day', key: 'monday', label: 'Monday' },
+        { icon: 'fa-calendar-day', key: 'tuesday', label: 'Tuesday' },
+        { icon: 'fa-calendar-day', key: 'wednesday', label: 'Wednesday' },
+        { icon: 'fa-calendar-day', key: 'thursday', label: 'Thursday' },
+        { icon: 'fa-calendar-day', key: 'friday', label: 'Friday' },
+        { icon: 'fa-calendar-week', key: 'saturday', label: 'Saturday' }
     ]
 
     return (

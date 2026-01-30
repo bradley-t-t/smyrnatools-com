@@ -1,6 +1,6 @@
-import { UserService } from '../services/UserService'
 import { ListService } from '../services/ListService'
 import { RegionService } from '../services/RegionService'
+import { UserService } from '../services/UserService'
 
 async function getRegionScopedPlantCodes(userId, selectedRegion) {
     const code = selectedRegion?.code || ''
@@ -72,13 +72,13 @@ async function getNotifications({ userId, selectedRegion }) {
             if (overdueCount > 0) {
                 const plural = overdueCount === 1 ? 'item' : 'items'
                 notifications.push({
+                    count: overdueCount,
                     id: `list-overdue-${plantCode}`,
-                    title: `Plant ${plantCode} has Overdue Tasks`,
-                    subtitle: `This plant has ${overdueCount} overdue task ${plural}.`,
-                    severity: 'error',
-                    type: 'list.overdue',
                     plantCode: plantCode,
-                    count: overdueCount
+                    severity: 'error',
+                    subtitle: `This plant has ${overdueCount} overdue task ${plural}.`,
+                    title: `Plant ${plantCode} has Overdue Tasks`,
+                    type: 'list.overdue'
                 })
             }
         })
@@ -107,15 +107,15 @@ async function getNotifications({ userId, selectedRegion }) {
 
     return [
         {
+            count: overdueCount,
             id: `list-overdue-${userPlantCodeUpper}`,
-            title: `You have Overdue Tasks`,
-            subtitle: `You have ${overdueCount} overdue task ${plural} for Plant ${userPlantCode}.`,
-            severity: 'error',
-            type: 'list.overdue',
             plantCode: userPlantCode,
-            count: overdueCount
+            severity: 'error',
+            subtitle: `You have ${overdueCount} overdue task ${plural} for Plant ${userPlantCode}.`,
+            title: `You have Overdue Tasks`,
+            type: 'list.overdue'
         }
     ]
 }
 
-export default { id: 'list.overdue', getNotifications }
+export default { getNotifications, id: 'list.overdue' }

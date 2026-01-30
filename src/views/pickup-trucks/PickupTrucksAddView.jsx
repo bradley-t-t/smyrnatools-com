@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { PickupTruckService } from '../../services/PickupTruckService'
-import { AuthService } from '../../services/AuthService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { PlantService } from '../../services/PlantService'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
+import { AuthService } from '../../services/AuthService'
+import { PickupTruckService } from '../../services/PickupTruckService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
 
 function PickupTrucksAddView({ onClose, onAdded }) {
     const { preferences } = usePreferences()
@@ -106,16 +107,16 @@ function PickupTrucksAddView({ onClose, onAdded }) {
             const userId = AuthService.currentUser?.id || sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
             const payload = {
-                vin: vin || null,
-                make: make || null,
-                model: model || null,
-                year: year || null,
                 assigned: assigned || null,
                 assignedPlant: assignedPlant || null,
                 assigned_plant: assignedPlant || null,
-                status: status || null,
+                comments: comments || null,
+                make: make || null,
                 mileage: mileage === '' ? null : Number(mileage),
-                comments: comments || null
+                model: model || null,
+                status: status || null,
+                vin: vin || null,
+                year: year || null
             }
             const saved = await PickupTruckService.create(payload, userId)
             onAdded?.(saved)

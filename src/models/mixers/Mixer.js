@@ -1,5 +1,5 @@
-import MixerUtility from '../../utils/MixerUtility'
 import { DateUtility } from '../../utils/DateUtility'
+import MixerUtility from '../../utils/MixerUtility'
 
 export class Mixer {
     constructor(data = {}) {
@@ -41,22 +41,22 @@ export class Mixer {
 
     toApiFormat() {
         const apiObject = {
-            truck_number: this.truckNumber,
-            assigned_plant: this.assignedPlant,
             assigned_operator: this.assignedOperator || null,
-            last_service_date: DateUtility.toDbDate(this.lastServiceDate),
-            last_chip_date: DateUtility.toDbDate(this.lastChipDate),
+            assigned_plant: this.assignedPlant,
             cleanliness_rating: this.cleanlinessRating,
-            status: this.status,
             created_at: DateUtility.toDbTimestamp(this.createdAt) || DateUtility.nowDb(),
-            updated_at: DateUtility.toDbTimestamp(this.updatedAt) || DateUtility.nowDb(),
-            updated_last: DateUtility.toDbTimestamp(this.updatedLast),
-            updated_by: this.updatedBy,
-            vin: (this.vin || '').toUpperCase(),
+            down_in_yard: this.downInYard,
+            last_chip_date: DateUtility.toDbDate(this.lastChipDate),
+            last_service_date: DateUtility.toDbDate(this.lastServiceDate),
             make: this.make,
             model: this.model,
-            year: this.year,
-            down_in_yard: this.downInYard
+            status: this.status,
+            truck_number: this.truckNumber,
+            updated_at: DateUtility.toDbTimestamp(this.updatedAt) || DateUtility.nowDb(),
+            updated_by: this.updatedBy,
+            updated_last: DateUtility.toDbTimestamp(this.updatedLast),
+            vin: (this.vin || '').toUpperCase(),
+            year: this.year
         }
 
         if (this.id) apiObject.id = this.id

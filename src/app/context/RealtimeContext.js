@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+
 import { supabase } from '../../services/DatabaseService'
 
 const RealtimeContext = createContext(null)
@@ -56,9 +57,9 @@ export function RealtimeProvider({ children }) {
                 .channel(channelName)
                 .on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
                     notifyListeners(table, payload.eventType, {
+                        eventType: payload.eventType,
                         new: payload.new,
-                        old: payload.old,
-                        eventType: payload.eventType
+                        old: payload.old
                     })
                 })
                 .subscribe((status) => {
@@ -81,18 +82,18 @@ export function RealtimeProvider({ children }) {
     }, [notifyListeners])
 
     const value = {
+        isConnected,
         subscribe,
-        subscribeToAll,
-        isConnected
+        subscribeToAll
     }
 
     return <RealtimeContext.Provider value={value}>{children}</RealtimeContext.Provider>
 }
 
 const noopContext = {
+    isConnected: false,
     subscribe: () => () => {},
-    subscribeToAll: () => () => {},
-    isConnected: false
+    subscribeToAll: () => () => {}
 }
 
 export function useRealtime() {

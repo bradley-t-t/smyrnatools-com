@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
+
+import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
+import { EquipmentService } from '../../services/EquipmentService'
 import { MixerService } from '../../services/MixerService'
+import { OperatorService } from '../../services/OperatorService'
+import { RegionService } from '../../services/RegionService'
 import { TractorService } from '../../services/TractorService'
 import { TrailerService } from '../../services/TrailerService'
-import { EquipmentService } from '../../services/EquipmentService'
-import { OperatorService } from '../../services/OperatorService'
-import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 
 export default function LeaderboardsView() {
@@ -15,147 +16,177 @@ export default function LeaderboardsView() {
     const [plantMetrics, setPlantMetrics] = useState([])
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-    const [helpDetailsModal, setHelpDetailsModal] = useState({ isOpen: false, plant: null, details: null })
+    const [helpDetailsModal, setHelpDetailsModal] = useState({ details: null, isOpen: false, plant: null })
     const [hoursAdjustmentsData, setHoursAdjustmentsData] = useState({})
 
     const selectedRegionCode = preferences.selectedRegion?.code || null
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
-        view: {
-            width: '100%',
-            height: '100%',
-            overflowY: 'auto',
+        categories: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem'
+        },
+        categoryButton: (active) => ({
+            background: active ? '#f0f7ff' : 'white',
+            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: active ? '#1e3a5f' : '#64748b',
+            cursor: 'pointer',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: active ? 600 : 500,
+            outline: 'none',
+            padding: isMobile ? '0.5rem 0.875rem' : '0.625rem 1.25rem',
+            transition: 'all 0.2s'
+        }),
+        closeButton: {
+            background: 'none',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#94a3b8',
+            cursor: 'pointer',
+            fontSize: '1.25rem',
+            padding: '0.5rem',
+            transition: 'all 0.2s'
+        },
+        content: {
+            margin: '0 auto',
+            maxWidth: '1400px'
+        },
+        empty: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '4rem 2rem',
+            textAlign: 'center'
+        },
+        emptyIcon: {
+            color: '#cbd5e1',
+            fontSize: '3rem',
+            marginBottom: '1rem'
+        },
+        emptySubtext: {
+            color: '#94a3b8',
+            fontSize: '0.875rem'
+        },
+        emptyText: {
+            color: '#64748b',
+            fontSize: '1.125rem',
+            fontWeight: 600,
+            marginBottom: '0.5rem'
+        },
+        formula: {
+            alignItems: 'center',
+            background: 'white',
+            borderRadius: '8px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            gap: '0.5rem',
+            marginBottom: '1rem',
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        formulaOperator: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 700
+        },
+        formulaPart: {
             background: '#f8fafc',
-            padding: isMobile ? '1rem' : '2rem'
+            borderRadius: '6px',
+            color: '#475569',
+            fontWeight: 500,
+            padding: isMobile ? '0.25rem 0.5rem' : '0.375rem 0.75rem'
         },
         header: {
-            maxWidth: '1400px',
-            margin: isMobile ? '0 auto 1rem' : '0 auto 2rem',
             background: 'white',
             backgroundImage: `
                 linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
                 radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
             `,
-            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
             backgroundPosition: '0 0, 0 0, 0 0',
-            borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb'
-        },
-        titleRow: {
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            justifyContent: 'space-between',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            gap: isMobile ? '1rem' : '0',
-            marginBottom: '1.5rem'
-        },
-        title: {
-            fontSize: isMobile ? '1.25rem' : '1.75rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            margin: 0
-        },
-        yearSelector: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
-        },
-        yearLabel: {
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        yearSelect: {
-            padding: '0.5rem 1rem',
+            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
             border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#1e3a5f',
-            background: 'white',
-            cursor: 'pointer',
-            outline: 'none',
-            transition: 'all 0.2s'
-        },
-        categories: {
-            display: 'flex',
-            gap: '0.5rem',
-            flexWrap: 'wrap'
-        },
-        categoryButton: (active) => ({
-            padding: isMobile ? '0.5rem 0.875rem' : '0.625rem 1.25rem',
-            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: active ? 600 : 500,
-            color: active ? '#1e3a5f' : '#64748b',
-            background: active ? '#f0f7ff' : 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
-        }),
-        content: {
+            borderRadius: isMobile ? '8px' : '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            margin: isMobile ? '0 auto 1rem' : '0 auto 2rem',
             maxWidth: '1400px',
-            margin: '0 auto'
+            padding: isMobile ? '1rem' : '2rem'
+        },
+        helpEntry: (type) => ({
+            background: type === 'sent' ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${type === 'sent' ? '#dcfce7' : '#fee2e2'}`,
+            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: isMobile ? '0.5rem' : '0.75rem',
+            marginBottom: isMobile ? '0.5rem' : '0.75rem',
+            padding: isMobile ? '0.75rem' : '1rem'
+        }),
+        helpEntryDetails: {
+            color: '#64748b',
+            display: 'flex',
+            flexWrap: 'wrap',
+            fontSize: isMobile ? '0.6875rem' : '0.8125rem',
+            gap: isMobile ? '0.75rem' : '1.5rem',
+            paddingLeft: isMobile ? '2rem' : '3rem'
+        },
+        helpEntryHours: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 700
+        },
+        helpEntryIndicator: (type) => ({
+            alignItems: 'center',
+            background: type === 'sent' ? '#16a34a' : '#ef4444',
+            borderRadius: '50%',
+            color: 'white',
+            display: 'flex',
+            flexShrink: 0,
+            fontSize: isMobile ? '0.875rem' : '1.125rem',
+            fontWeight: 700,
+            height: isMobile ? '24px' : '32px',
+            justifyContent: 'center',
+            width: isMobile ? '24px' : '32px'
+        }),
+        helpEntryMain: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: isMobile ? '0.5rem' : '1rem'
+        },
+        helpEntryPlant: {
+            color: '#1e293b',
+            flex: 1,
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            fontWeight: 600
         },
         infoCard: {
             background: '#eff6ff',
             border: '1px solid #dbeafe',
             borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '1.5rem',
-            marginBottom: isMobile ? '1rem' : '2rem'
-        },
-        infoHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: '1rem',
-            color: '#1e3a5f',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600
-        },
-        formula: {
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-            alignItems: 'center',
-            marginBottom: '1rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            background: 'white',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.75rem' : '0.875rem'
-        },
-        formulaPart: {
-            padding: isMobile ? '0.25rem 0.5rem' : '0.375rem 0.75rem',
-            background: '#f8fafc',
-            borderRadius: '6px',
-            color: '#475569',
-            fontWeight: 500
-        },
-        formulaOperator: {
-            color: '#1e3a5f',
-            fontWeight: 700,
-            fontSize: isMobile ? '0.875rem' : '1rem'
+            marginBottom: isMobile ? '1rem' : '2rem',
+            padding: isMobile ? '1rem' : '1.5rem'
         },
         infoFooter: {
-            display: isMobile ? 'none' : 'flex',
-            gap: '0.75rem',
-            fontSize: '0.8125rem',
             color: '#64748b',
+            display: isMobile ? 'none' : 'flex',
+            fontSize: '0.8125rem',
+            gap: '0.75rem',
             lineHeight: 1.6
         },
-        list: {
+        infoHeader: {
+            alignItems: 'center',
+            color: '#1e3a5f',
             display: 'flex',
-            flexDirection: 'column',
-            gap: isMobile ? '0.75rem' : '1rem'
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+            gap: '0.75rem',
+            marginBottom: '1rem'
         },
         item: (rank) => ({
+            alignItems: isMobile ? 'stretch' : 'center',
             background: 'white',
             border:
                 rank === 1
@@ -166,30 +197,100 @@ export default function LeaderboardsView() {
                         ? '2px solid #f97316'
                         : '1px solid #e5e7eb',
             borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '1.5rem',
+            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.08)' : '0 2px 6px rgba(0,0,0,0.04)',
             display: isMobile ? 'flex' : 'grid',
             flexDirection: isMobile ? 'column' : undefined,
-            gridTemplateColumns: isMobile ? undefined : '60px 1fr auto 1fr',
             gap: isMobile ? '0.75rem' : '1.5rem',
-            alignItems: isMobile ? 'stretch' : 'center',
-            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.08)' : '0 2px 6px rgba(0,0,0,0.04)',
+            gridTemplateColumns: isMobile ? undefined : '60px 1fr auto 1fr',
+            padding: isMobile ? '1rem' : '1.5rem',
             transition: 'all 0.2s'
         }),
         itemMobileHeader: {
-            display: 'flex',
             alignItems: 'center',
+            display: 'flex',
             gap: '0.75rem'
         },
-        rankBadge: (rank) => ({
-            width: isMobile ? '40px' : '60px',
-            height: isMobile ? '40px' : '60px',
-            borderRadius: '50%',
+        list: {
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: isMobile ? '1rem' : rank <= 3 ? '1.5rem' : '1.25rem',
+            flexDirection: 'column',
+            gap: isMobile ? '0.75rem' : '1rem'
+        },
+        metricValue: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700,
-            flexShrink: 0,
+            textAlign: isMobile ? 'left' : 'center'
+        },
+        modal: {
+            alignItems: 'center',
+            backdropFilter: 'blur(4px)',
+            background: 'rgba(0, 0, 0, 0.5)',
+            bottom: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            left: 0,
+            padding: '2rem',
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            zIndex: 1000
+        },
+        modalBody: {
+            flex: 1,
+            overflowY: 'auto',
+            padding: isMobile ? '1rem' : '1.5rem 2rem'
+        },
+        modalContent: {
+            background: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '90vh',
+            maxWidth: '800px',
+            width: '100%'
+        },
+        modalHeader: {
+            alignItems: 'center',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '1.5rem 2rem'
+        },
+        modalSummary: {
+            background: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'grid',
+            gap: '1rem',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            padding: '1.5rem 2rem'
+        },
+        modalTitle: {
+            alignItems: 'center',
+            color: '#1e293b',
+            display: 'flex',
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            gap: '0.75rem',
+            margin: 0
+        },
+        plantCode: {
+            color: '#1e293b',
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: 700
+        },
+        plantInfo: {
+            display: 'flex',
+            flex: isMobile ? 1 : undefined,
+            flexDirection: 'column',
+            gap: '0.25rem'
+        },
+        plantName: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.75rem' : '0.875rem'
+        },
+        rankBadge: (rank) => ({
+            alignItems: 'center',
             background:
                 rank === 1
                     ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
@@ -198,34 +299,22 @@ export default function LeaderboardsView() {
                       : rank === 3
                         ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
                         : '#f1f5f9',
+            borderRadius: '50%',
+            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
             color: rank <= 3 ? 'white' : '#64748b',
-            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
-        }),
-        plantInfo: {
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem',
-            flex: isMobile ? 1 : undefined
-        },
-        plantCode: {
-            fontSize: isMobile ? '1rem' : '1.125rem',
+            flexShrink: 0,
+            fontSize: isMobile ? '1rem' : rank <= 3 ? '1.5rem' : '1.25rem',
             fontWeight: 700,
-            color: '#1e293b'
-        },
-        plantName: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            color: '#64748b'
-        },
-        metricValue: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            color: '#1e3a5f',
-            textAlign: isMobile ? 'left' : 'center'
-        },
-        stats: {
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: isMobile ? '0.5rem' : '1rem'
+            height: isMobile ? '40px' : '60px',
+            justifyContent: 'center',
+            width: isMobile ? '40px' : '60px'
+        }),
+        skeleton: {
+            animation: 'shimmer 2s infinite',
+            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+            backgroundSize: '200% 100%',
+            borderRadius: '8px'
         },
         statItem: {
             display: 'flex',
@@ -233,175 +322,87 @@ export default function LeaderboardsView() {
             gap: '0.125rem'
         },
         statLabel: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
             color: '#64748b',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 500,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
         statValue: {
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
-            color: '#1e293b'
-        },
-        empty: {
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            background: 'white',
-            borderRadius: '12px',
-            border: '1px solid #e5e7eb'
-        },
-        emptyIcon: {
-            fontSize: '3rem',
-            color: '#cbd5e1',
-            marginBottom: '1rem'
-        },
-        emptyText: {
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            color: '#64748b',
-            marginBottom: '0.5rem'
-        },
-        emptySubtext: {
-            fontSize: '0.875rem',
-            color: '#94a3b8'
-        },
-        modal: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '2rem'
-        },
-        modalContent: {
-            background: 'white',
-            borderRadius: '12px',
-            maxWidth: '800px',
-            width: '100%',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-        },
-        modalHeader: {
-            padding: '1.5rem 2rem',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-        },
-        modalTitle: {
-            fontSize: '1.25rem',
-            fontWeight: 700,
             color: '#1e293b',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            margin: 0
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            fontWeight: 600
         },
-        modalSummary: {
+        stats: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '1rem',
-            padding: '1.5rem 2rem',
-            background: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb'
+            gap: isMobile ? '0.5rem' : '1rem',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(150px, 1fr))'
         },
         summaryItem: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.5rem',
-            padding: '1rem',
-            background: 'white',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb'
+            padding: '1rem'
         },
         summaryLabel: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
             color: '#64748b',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
         summaryValue: {
+            color: '#1e3a5f',
             fontSize: isMobile ? '1.125rem' : '1.5rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
+            fontWeight: 700
         },
-        modalBody: {
-            flex: 1,
+        title: {
+            color: '#1e293b',
+            fontSize: isMobile ? '1.25rem' : '1.75rem',
+            fontWeight: 700,
+            margin: 0
+        },
+        titleRow: {
+            alignItems: isMobile ? 'flex-start' : 'center',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? '1rem' : '0',
+            justifyContent: 'space-between',
+            marginBottom: '1.5rem'
+        },
+        view: {
+            background: '#f8fafc',
+            height: '100%',
             overflowY: 'auto',
-            padding: isMobile ? '1rem' : '1.5rem 2rem'
+            padding: isMobile ? '1rem' : '2rem',
+            width: '100%'
         },
-        helpEntry: (type) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            background: type === 'sent' ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${type === 'sent' ? '#dcfce7' : '#fee2e2'}`,
-            borderRadius: '8px',
-            marginBottom: isMobile ? '0.5rem' : '0.75rem'
-        }),
-        helpEntryMain: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: isMobile ? '0.5rem' : '1rem'
-        },
-        helpEntryIndicator: (type) => ({
-            width: isMobile ? '24px' : '32px',
-            height: isMobile ? '24px' : '32px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: isMobile ? '0.875rem' : '1.125rem',
-            fontWeight: 700,
-            flexShrink: 0,
-            background: type === 'sent' ? '#16a34a' : '#ef4444',
-            color: 'white'
-        }),
-        helpEntryPlant: {
-            flex: 1,
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
-            color: '#1e293b'
-        },
-        helpEntryHours: {
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
-        helpEntryDetails: {
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: isMobile ? '0.75rem' : '1.5rem',
-            fontSize: isMobile ? '0.6875rem' : '0.8125rem',
+        yearLabel: {
             color: '#64748b',
-            paddingLeft: isMobile ? '2rem' : '3rem'
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
-        closeButton: {
-            background: 'none',
-            border: 'none',
-            fontSize: '1.25rem',
-            color: '#94a3b8',
+        yearSelect: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e3a5f',
             cursor: 'pointer',
-            padding: '0.5rem',
-            borderRadius: '6px',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: '0.5rem 1rem',
             transition: 'all 0.2s'
         },
-        skeleton: {
-            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 2s infinite',
-            borderRadius: '8px'
+        yearSelector: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '0.75rem'
         }
     }
 
@@ -565,14 +566,14 @@ export default function LeaderboardsView() {
                 Object.keys(userIdsByPlant).forEach((plantCode) => {
                     const plantReports = filteredReports.filter((r) => userIdsByPlant[plantCode].includes(r.user_id))
                     const fleetData = fleetCountsByPlant[plantCode] || {
-                        mixers: 0,
-                        tractors: 0,
-                        trailers: 0,
+                        avgFleetCleanliness: 0,
+                        avgFleetCleanlinessForEfficiency: 0,
                         equipment: 0,
+                        mixers: 0,
                         operators: 0,
                         totalAssets: 0,
-                        avgFleetCleanliness: 0,
-                        avgFleetCleanlinessForEfficiency: 0
+                        tractors: 0,
+                        trailers: 0
                     }
 
                     const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
@@ -595,9 +596,9 @@ export default function LeaderboardsView() {
                             plantName: plantNames[plantCode] || plantCode,
                             ...metrics,
                             ...fleetData,
+                            helpDetails: hoursAdjustments || null,
                             helpGiven: hoursAdjustments?.hoursSubtracted || 0,
                             helpReceived: hoursAdjustments?.hoursAdded || 0,
-                            helpDetails: hoursAdjustments || null,
                             safetyReportsCount: safetyIncidents?.count || 0
                         })
                     }
@@ -662,18 +663,18 @@ export default function LeaderboardsView() {
         return Array.from({ length: 8 }).map((_, index) => (
             <div key={`skeleton-${index}`} style={styles.item(0)}>
                 <div style={styles.rankBadge(0)}>
-                    <div style={{ ...styles.skeleton, width: '24px', height: '24px', borderRadius: '50%' }} />
+                    <div style={{ ...styles.skeleton, borderRadius: '50%', height: '24px', width: '24px' }} />
                 </div>
                 <div style={styles.plantInfo}>
-                    <div style={{ ...styles.skeleton, width: '40%', height: '20px', marginBottom: '6px' }} />
-                    <div style={{ ...styles.skeleton, width: '60%', height: '16px' }} />
+                    <div style={{ ...styles.skeleton, height: '20px', marginBottom: '6px', width: '40%' }} />
+                    <div style={{ ...styles.skeleton, height: '16px', width: '60%' }} />
                 </div>
                 <div style={styles.metricValue}>
-                    <div style={{ ...styles.skeleton, width: '80px', height: '28px' }} />
+                    <div style={{ ...styles.skeleton, height: '28px', width: '80px' }} />
                 </div>
                 <div style={styles.stats}>
-                    <div style={{ ...styles.skeleton, width: '60%', height: '16px', marginBottom: '4px' }} />
-                    <div style={{ ...styles.skeleton, width: '40%', height: '16px' }} />
+                    <div style={{ ...styles.skeleton, height: '16px', marginBottom: '4px', width: '60%' }} />
+                    <div style={{ ...styles.skeleton, height: '16px', width: '40%' }} />
                 </div>
             </div>
         ))
@@ -821,16 +822,16 @@ export default function LeaderboardsView() {
                                                     <span
                                                         style={{
                                                             ...styles.statValue,
+                                                            alignItems: 'center',
                                                             display: 'flex',
-                                                            gap: '0.25rem',
-                                                            alignItems: 'center'
+                                                            gap: '0.25rem'
                                                         }}
                                                         title="Left: YPH before help adjustment / Right: YPH after help adjustment"
                                                     >
                                                         <em
                                                             style={{
-                                                                fontStyle: 'italic',
-                                                                color: '#64748b'
+                                                                color: '#64748b',
+                                                                fontStyle: 'italic'
                                                             }}
                                                         >
                                                             {(plant.rawYPH ?? plant.avgYPH).toFixed(2)}
@@ -849,8 +850,8 @@ export default function LeaderboardsView() {
                                                     <span
                                                         style={{
                                                             ...styles.statLabel,
-                                                            cursor: 'pointer',
-                                                            color: '#1e3a5f'
+                                                            color: '#1e3a5f',
+                                                            cursor: 'pointer'
                                                         }}
                                                         onClick={() => {
                                                             const details = hoursAdjustmentsData[plant.plantCode]
@@ -858,7 +859,7 @@ export default function LeaderboardsView() {
                                                                 details &&
                                                                 (details.hoursAdded > 0 || details.hoursSubtracted > 0)
                                                             ) {
-                                                                setHelpDetailsModal({ isOpen: true, plant, details })
+                                                                setHelpDetailsModal({ details, isOpen: true, plant })
                                                             }
                                                         }}
                                                         title="Click for details"
@@ -948,7 +949,7 @@ export default function LeaderboardsView() {
             {helpDetailsModal.isOpen && helpDetailsModal.details && (
                 <div
                     style={styles.modal}
-                    onClick={() => setHelpDetailsModal({ isOpen: false, plant: null, details: null })}
+                    onClick={() => setHelpDetailsModal({ details: null, isOpen: false, plant: null })}
                 >
                     <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <div style={styles.modalHeader}>
@@ -958,7 +959,7 @@ export default function LeaderboardsView() {
                             </h3>
                             <button
                                 style={styles.closeButton}
-                                onClick={() => setHelpDetailsModal({ isOpen: false, plant: null, details: null })}
+                                onClick={() => setHelpDetailsModal({ details: null, isOpen: false, plant: null })}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = '#f1f5f9'
                                     e.currentTarget.style.color = '#1e293b'
@@ -1046,22 +1047,22 @@ export default function LeaderboardsView() {
                                                     <div style={styles.helpEntryDetails}>
                                                         <span
                                                             style={{
-                                                                display: 'flex',
                                                                 alignItems: 'center',
+                                                                display: 'flex',
                                                                 gap: '0.375rem'
                                                             }}
                                                         >
                                                             <i className="fas fa-calendar"></i>
                                                             {new Date(entry.week).toLocaleDateString('en-US', {
-                                                                month: 'short',
                                                                 day: 'numeric',
+                                                                month: 'short',
                                                                 year: 'numeric'
                                                             })}
                                                         </span>
                                                         <span
                                                             style={{
-                                                                display: 'flex',
                                                                 alignItems: 'center',
+                                                                display: 'flex',
                                                                 gap: '0.375rem'
                                                             }}
                                                         >

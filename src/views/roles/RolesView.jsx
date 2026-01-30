@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { UserService } from '../../services/UserService'
-import { supabase } from '../../services/DatabaseService'
+
 import LoadingScreen from '../../components/common/LoadingScreen'
+import { supabase } from '../../services/DatabaseService'
+import { UserService } from '../../services/UserService'
 
 function RolesView() {
     const [roles, setRoles] = useState([])
@@ -154,8 +155,8 @@ function RolesView() {
                 .insert([
                     {
                         name: newRoleName.trim(),
-                        weight: newRoleWeight,
-                        permissions: []
+                        permissions: [],
+                        weight: newRoleWeight
                     }
                 ])
                 .select()
@@ -231,8 +232,8 @@ function RolesView() {
 
                 if (matchingPermissions.length > 0) {
                     results.push({
-                        role: role,
-                        matchingPermissions: matchingPermissions
+                        matchingPermissions: matchingPermissions,
+                        role: role
                     })
                 }
             }
@@ -471,8 +472,8 @@ function RolesView() {
                         linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
                         radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
                     `,
-                    backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                     backgroundPosition: '0 0, 0 0, 0 0',
+                    backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                 }}
             >

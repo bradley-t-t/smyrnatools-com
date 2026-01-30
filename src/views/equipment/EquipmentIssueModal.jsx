@@ -1,6 +1,7 @@
 import React from 'react'
-import { EquipmentService } from '../../services/EquipmentService'
+
 import IssueModalSection from '../../components/sections/IssueModalSection'
+import { EquipmentService } from '../../services/EquipmentService'
 
 function EquipmentIssueModal({ equipmentId, equipmentNumber, onClose }) {
     return (

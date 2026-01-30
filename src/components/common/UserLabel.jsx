@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+
 import { UserService } from '../../services/UserService'
 
 function UserLabel({ userId, showInitials = false, showIcon = false, size = 'medium' }) {
@@ -63,36 +64,36 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
     const getSizeStyles = () => {
         switch (size) {
             case 'small':
-                return { fontSize: '12px', initialsSize: '20px', initialsFontSize: '10px' }
+                return { fontSize: '12px', initialsFontSize: '10px', initialsSize: '20px' }
             case 'large':
-                return { fontSize: '16px', initialsSize: '32px', initialsFontSize: '13px' }
+                return { fontSize: '16px', initialsFontSize: '13px', initialsSize: '32px' }
             default:
-                return { fontSize: '14px', initialsSize: '26px', initialsFontSize: '11px' }
+                return { fontSize: '14px', initialsFontSize: '11px', initialsSize: '26px' }
         }
     }
 
     const sizeStyles = getSizeStyles()
 
     const labelStyle = {
-        display: 'inline-flex',
         alignItems: 'center',
-        gap: '8px',
+        color: '#374151',
+        display: 'inline-flex',
         fontSize: sizeStyles.fontSize,
-        color: '#374151'
+        gap: '8px'
     }
 
     const initialsStyle = {
-        display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        width: sizeStyles.initialsSize,
-        height: sizeStyles.initialsSize,
-        borderRadius: '50%',
         backgroundColor: '#1e3a5f',
+        borderRadius: '50%',
         color: 'white',
+        display: 'inline-flex',
+        flexShrink: 0,
         fontSize: sizeStyles.initialsFontSize,
         fontWeight: 600,
-        flexShrink: 0
+        height: sizeStyles.initialsSize,
+        justifyContent: 'center',
+        width: sizeStyles.initialsSize
     }
 
     const initialsErrorStyle = {
@@ -114,10 +115,10 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
 
     const nameLoadingStyle = {
         ...nameStyle,
-        width: '80px',
-        height: '14px',
         backgroundColor: '#e5e7eb',
-        borderRadius: '4px'
+        borderRadius: '4px',
+        height: '14px',
+        width: '80px'
     }
 
     const iconStyle = {

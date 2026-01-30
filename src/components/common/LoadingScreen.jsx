@@ -1,94 +1,95 @@
 import React from 'react'
+
 import SrmLogo from '../../assets/images/srm-logo.svg'
 
 function LoadingScreen({ message = 'Loading...', fullPage = false, inline = false }) {
     const getContainerStyle = () => {
         const baseStyle = {
-            display: 'flex',
             alignItems: 'center',
+            display: 'flex',
             justifyContent: 'center'
         }
 
         if (fullPage) {
             return {
                 ...baseStyle,
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 9999,
+                backdropFilter: 'blur(8px)',
                 backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                backdropFilter: 'blur(8px)'
+                bottom: 0,
+                left: 0,
+                position: 'fixed',
+                right: 0,
+                top: 0,
+                zIndex: 9999
             }
         }
 
         if (inline) {
             return {
                 ...baseStyle,
-                padding: '40px 20px',
-                backgroundColor: 'transparent'
+                backgroundColor: 'transparent',
+                padding: '40px 20px'
             }
         }
 
         return {
             ...baseStyle,
-            padding: '60px 40px',
-            backgroundColor: 'transparent'
+            backgroundColor: 'transparent',
+            padding: '60px 40px'
         }
     }
 
     const contentStyle = {
-        display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '28px',
-        padding: '50px 70px',
         backgroundColor: '#1e3a5f',
         backgroundImage: `
             linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
         `,
         backgroundSize: '20px 20px',
+        border: '2px solid rgba(255,255,255,0.15)',
         borderRadius: '20px',
-        border: '2px solid rgba(255,255,255,0.15)'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '28px',
+        justifyContent: 'center',
+        padding: '50px 70px'
     }
 
     const logoStyle = {
-        width: '100px',
-        height: '100px'
+        height: '100px',
+        width: '100px'
     }
 
     const textContainerStyle = {
+        alignItems: 'center',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
         gap: '16px'
     }
 
     const messageStyle = {
+        color: 'white',
         fontSize: '16px',
         fontWeight: 600,
-        color: 'white',
-        margin: 0,
-        letterSpacing: '1px'
+        letterSpacing: '1px',
+        margin: 0
     }
 
     const progressBarContainerStyle = {
-        width: '200px',
-        height: '4px',
         backgroundColor: 'rgba(255,255,255,0.2)',
         borderRadius: '2px',
-        overflow: 'hidden'
+        height: '4px',
+        overflow: 'hidden',
+        width: '200px'
     }
 
     const progressBarStyle = {
-        height: '100%',
-        width: '30%',
+        animation: 'progress 1.5s ease-in-out infinite',
         backgroundColor: 'white',
         borderRadius: '2px',
-        animation: 'progress 1.5s ease-in-out infinite'
+        height: '100%',
+        width: '30%'
     }
 
     return (

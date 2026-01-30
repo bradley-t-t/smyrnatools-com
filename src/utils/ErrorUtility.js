@@ -25,6 +25,19 @@ const persistLogsInternal = (logs) => {
 }
 
 const ErrorUtility = {
+    clearLogs() {
+        if (!storageAvailable()) return
+        try {
+            localStorage.removeItem('app_error_logs')
+        } catch (e) {}
+    },
+    getLatestLog() {
+        const logs = getLogsInternal()
+        return logs[logs.length - 1] || null
+    },
+    getStoredLogs() {
+        return getLogsInternal()
+    },
     logError(source, error, context = {}) {
         if (!source || !error) throw new Error('Source and error are required')
         const err =
@@ -33,12 +46,12 @@ const ErrorUtility = {
         console.error(`[${source}] Error ${errorId}:`, err)
         if (context && Object.keys(context).length) console.error(`Context for error ${errorId}:`, context)
         const errorLog = {
+            context: context || {},
             id: errorId,
-            timestamp: new Date().toISOString(),
-            source,
             message: err.message,
+            source,
             stack: err.stack,
-            context: context || {}
+            timestamp: new Date().toISOString()
         }
         const logs = getLogsInternal()
         logs.push(errorLog)
@@ -50,25 +63,12 @@ const ErrorUtility = {
         const message = error.message || error.error_description || 'Unknown error'
         const hint = error.hint || error.details || error.detail
         return {
-            message,
             code: error.code || error.status,
             details: error.details || error.detail,
+            formatted: `${message}${hint ? ` (Hint: ${hint})` : ''}`,
             hint,
-            formatted: `${message}${hint ? ` (Hint: ${hint})` : ''}`
+            message
         }
-    },
-    getStoredLogs() {
-        return getLogsInternal()
-    },
-    getLatestLog() {
-        const logs = getLogsInternal()
-        return logs[logs.length - 1] || null
-    },
-    clearLogs() {
-        if (!storageAvailable()) return
-        try {
-            localStorage.removeItem('app_error_logs')
-        } catch (e) {}
     },
     prune(predicate) {
         const logs = getLogsInternal()

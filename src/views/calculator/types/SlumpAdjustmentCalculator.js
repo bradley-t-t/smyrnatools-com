@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 const SlumpAdjustmentCalculator = () => {
     const [values, setValues] = useState({
-        currentSlump: '',
-        targetSlump: '',
         batchSize: '',
-        currentWater: ''
+        currentSlump: '',
+        currentWater: '',
+        targetSlump: ''
     })
 
     const [result, setResult] = useState(null)
@@ -33,11 +33,11 @@ const SlumpAdjustmentCalculator = () => {
         const strengthImpact = waterAdjustment > 0 ? Math.round((waterAdjustment / (water || 1)) * 100 * 0.5) : 0
 
         setResult({
-            slumpDiff,
-            waterAdjustment,
+            direction: slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none',
             newWater,
+            slumpDiff,
             strengthImpact,
-            direction: slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none'
+            waterAdjustment
         })
     }, [values])
 
@@ -46,7 +46,7 @@ const SlumpAdjustmentCalculator = () => {
     }, [calculate])
 
     const clearForm = () => {
-        setValues({ currentSlump: '', targetSlump: '', batchSize: '', currentWater: '' })
+        setValues({ batchSize: '', currentSlump: '', currentWater: '', targetSlump: '' })
         setResult(null)
     }
 
@@ -56,56 +56,42 @@ const SlumpAdjustmentCalculator = () => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
-        container: {
-            background: 'white',
-            borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb'
-        },
-        section: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        sectionHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            paddingBottom: '1rem',
-            borderBottom: '2px solid #f1f5f9',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        equation: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '0.5rem' : '1rem',
-            flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row',
-            padding: isMobile ? '1rem' : '2rem',
-            background: '#f8fafc',
-            borderRadius: '12px'
-        },
-        equationPart: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            justifyContent: 'center'
+        adjustValue: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1rem' : '1.25rem',
+            fontWeight: 700
         },
         bracket: {
+            color: '#1e3a5f',
             fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
+            fontWeight: 700
         },
-        equationInputs: {
-            display: 'flex',
+        constant: {
             alignItems: 'center',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            justifyContent: 'center'
+            background: '#eff6ff',
+            border: '2px solid #dbeafe',
+            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        constantNum: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            fontWeight: 700
+        },
+        constantUnit: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
+            fontWeight: 600
+        },
+        container: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: isMobile ? '8px' : '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            padding: isMobile ? '1rem' : '2rem'
         },
         eqInput: {
             display: 'flex',
@@ -113,160 +99,67 @@ const SlumpAdjustmentCalculator = () => {
             gap: '0.5rem',
             minWidth: isMobile ? '80px' : '100px'
         },
-        label: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            textAlign: 'center'
-        },
-        inputWrap: {
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center'
-        },
-        input: {
-            width: '100%',
-            padding: isMobile ? '0.5rem 0.625rem' : '0.625rem 0.75rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s',
-            textAlign: 'center'
-        },
-        inputLarge: {
-            width: '100%',
-            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
-        },
-        inputUnit: {
-            position: 'absolute',
-            right: isMobile ? '0.75rem' : '1rem',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#94a3b8'
-        },
         eqOp: {
+            color: '#1e3a5f',
             fontSize: isMobile ? '1.25rem' : '1.5rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
+            fontWeight: 700
         },
         eqUnit: {
+            color: '#94a3b8',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#94a3b8'
+            fontWeight: 600
         },
-        constant: {
-            display: 'flex',
-            flexDirection: 'column',
+        equation: {
             alignItems: 'center',
-            gap: '0.25rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            background: '#eff6ff',
-            borderRadius: '8px',
-            border: '2px solid #dbeafe'
-        },
-        constantNum: {
-            fontSize: isMobile ? '1.25rem' : '1.5rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
-        constantUnit: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            color: '#64748b'
-        },
-        result: (direction) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: isMobile ? '1rem' : '1.5rem',
-            minWidth: isMobile ? '100%' : '150px',
-            width: isMobile ? '100%' : 'auto',
-            background: direction === 'add' ? '#dcfce7' : direction === 'reduce' ? '#fef2f2' : 'white',
-            border: `3px solid ${direction === 'add' ? '#16a34a' : direction === 'reduce' ? '#ef4444' : '#e5e7eb'}`,
-            borderRadius: '12px'
-        }),
-        resAction: (direction) => ({
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            color: direction === 'add' ? '#16a34a' : '#ef4444'
-        }),
-        resValue: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
-        resUnit: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#64748b'
-        },
-        resEmpty: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            color: '#cbd5e1'
-        },
-        totalEquation: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '1rem' : '1.5rem',
-            flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row',
-            padding: isMobile ? '1rem' : '2rem',
             background: '#f8fafc',
-            borderRadius: '12px'
-        },
-        totalInput: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            alignItems: 'center',
-            width: isMobile ? '100%' : 'auto'
-        },
-        totalAdjust: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.25rem',
-            padding: isMobile ? '0.75rem' : '1rem',
-            background: 'white',
-            borderRadius: '8px',
-            border: '2px solid #e5e7eb'
-        },
-        adjustValue: {
-            fontSize: isMobile ? '1rem' : '1.25rem',
-            fontWeight: 700,
-            color: '#1e3a5f'
-        },
-        totalResult: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.25rem',
-            padding: isMobile ? '1rem' : '1.5rem',
-            background: '#dcfce7',
             borderRadius: '12px',
-            border: '3px solid #16a34a',
-            width: isMobile ? '100%' : 'auto'
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: 'wrap',
+            gap: isMobile ? '0.5rem' : '1rem',
+            justifyContent: 'center',
+            padding: isMobile ? '1rem' : '2rem'
         },
-        totalValue: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            color: '#16a34a'
+        equationInputs: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            gap: isMobile ? '0.5rem' : '0.75rem',
+            justifyContent: 'center'
+        },
+        equationPart: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            gap: '0.5rem',
+            justifyContent: 'center'
+        },
+        footer: {
+            display: 'flex',
+            justifyContent: 'center'
+        },
+        input: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.5rem 0.625rem' : '0.625rem 0.75rem',
+            textAlign: 'center',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        inputLarge: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
         },
         inputRow: {
             display: 'flex',
@@ -274,48 +167,155 @@ const SlumpAdjustmentCalculator = () => {
             gap: '0.5rem',
             width: isMobile ? '100%' : 'auto'
         },
-        warning: {
+        inputUnit: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
+            position: 'absolute',
+            right: isMobile ? '0.75rem' : '1rem'
+        },
+        inputWrap: {
+            alignItems: 'center',
             display: 'flex',
-            alignItems: isMobile ? 'flex-start' : 'center',
+            position: 'relative'
+        },
+        label: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textAlign: 'center',
+            textTransform: 'uppercase'
+        },
+        resAction: (direction) => ({
+            color: direction === 'add' ? '#16a34a' : '#ef4444',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 700,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        }),
+        resEmpty: {
+            color: '#cbd5e1',
+            fontSize: isMobile ? '1.5rem' : '2rem'
+        },
+        resUnit: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
+        },
+        resValue: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            fontWeight: 700
+        },
+        resetButton: {
+            alignItems: 'center',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            outline: 'none',
+            padding: '0.75rem 1.5rem',
+            transition: 'all 0.2s'
+        },
+        result: (direction) => ({
+            alignItems: 'center',
+            background: direction === 'add' ? '#dcfce7' : direction === 'reduce' ? '#fef2f2' : 'white',
+            border: `3px solid ${direction === 'add' ? '#16a34a' : direction === 'reduce' ? '#ef4444' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            minWidth: isMobile ? '100%' : '150px',
+            padding: isMobile ? '1rem' : '1.5rem',
+            width: isMobile ? '100%' : 'auto'
+        }),
+        section: {
+            marginBottom: isMobile ? '1.5rem' : '2rem'
+        },
+        sectionHeader: {
+            alignItems: 'center',
+            borderBottom: '2px solid #f1f5f9',
+            color: '#1e293b',
+            display: 'flex',
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: 700,
             gap: '0.75rem',
-            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
+            marginBottom: isMobile ? '1rem' : '1.5rem',
+            paddingBottom: '1rem'
+        },
+        totalAdjust: {
+            alignItems: 'center',
+            background: 'white',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            padding: isMobile ? '0.75rem' : '1rem'
+        },
+        totalEquation: {
+            alignItems: 'center',
+            background: '#f8fafc',
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: 'wrap',
+            gap: isMobile ? '1rem' : '1.5rem',
+            justifyContent: 'center',
+            padding: isMobile ? '1rem' : '2rem'
+        },
+        totalInput: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            width: isMobile ? '100%' : 'auto'
+        },
+        totalResult: {
+            alignItems: 'center',
+            background: '#dcfce7',
+            border: '3px solid #16a34a',
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            padding: isMobile ? '1rem' : '1.5rem',
+            width: isMobile ? '100%' : 'auto'
+        },
+        totalValue: {
+            color: '#16a34a',
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            fontWeight: 700
+        },
+        warning: {
+            alignItems: isMobile ? 'flex-start' : 'center',
             background: '#fef3c7',
             border: '2px solid #fbbf24',
             borderRadius: '12px',
+            color: '#92400e',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            gap: '0.75rem',
             marginBottom: '2rem',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#92400e'
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'center'
-        },
-        resetButton: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#64748b',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
+            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
         }
     }
 
     const inputFocusHandlers = {
-        onFocus: (e) => {
-            e.target.style.borderColor = '#1e3a5f'
-            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-        },
         onBlur: (e) => {
             e.target.style.borderColor = '#e5e7eb'
             e.target.style.boxShadow = 'none'
+        },
+        onFocus: (e) => {
+            e.target.style.borderColor = '#1e3a5f'
+            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
 

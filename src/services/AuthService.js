@@ -37,7 +37,7 @@ class AuthServiceImpl {
         if (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) device = 'Mobile'
         else if (ua.includes('Tablet') || ua.includes('iPad')) device = 'Tablet'
 
-        return { browser, os, device, userAgent: ua }
+        return { browser, device, os, userAgent: ua }
     }
 
     async _createDbSession(userId) {
@@ -47,14 +47,14 @@ class AuthServiceImpl {
         try {
             const { error } = await supabase.from('users_sessions').upsert(
                 {
-                    id: sessionId,
-                    user_id: userId,
                     browser,
-                    os,
+                    created_at: new Date().toISOString(),
                     device,
-                    user_agent: userAgent,
+                    id: sessionId,
                     last_active: new Date().toISOString(),
-                    created_at: new Date().toISOString()
+                    os,
+                    user_agent: userAgent,
+                    user_id: userId
                 },
                 { onConflict: 'id' }
             )
@@ -81,13 +81,13 @@ class AuthServiceImpl {
         if (!userId) {
             const sessionUserId = sessionStorage.getItem('userId')
             if (sessionUserId) {
-                return { valid: true, userId: sessionUserId }
+                return { userId: sessionUserId, valid: true }
             }
-            return { valid: false, userId: null }
+            return { userId: null, valid: false }
         }
 
         if (!sessionId) {
-            return { valid: true, userId }
+            return { userId, valid: true }
         }
 
         try {
@@ -99,7 +99,7 @@ class AuthServiceImpl {
                 .maybeSingle()
 
             if (error || !data) {
-                return { valid: true, userId }
+                return { userId, valid: true }
             }
 
             const lastActive = new Date(data.last_active)
@@ -108,7 +108,7 @@ class AuthServiceImpl {
 
             if (lastActive < thirtyDaysAgo) {
                 this._clearSession()
-                return { valid: false, userId: null }
+                return { userId: null, valid: false }
             }
 
             supabase
@@ -118,9 +118,9 @@ class AuthServiceImpl {
                 .then(() => {})
                 .catch(() => {})
 
-            return { valid: true, userId }
+            return { userId, valid: true }
         } catch {
-            return { valid: true, userId }
+            return { userId, valid: true }
         }
     }
 
@@ -145,7 +145,7 @@ class AuthServiceImpl {
             { skipAuthCheck: true }
         )
         if (!res.ok) throw new Error(json.error || 'Sign in failed')
-        this.currentUser = { userId: json.userId, email: json.email }
+        this.currentUser = { email: json.email, userId: json.userId }
         this.isAuthenticated = true
         this.sessionValidated = true
         await this._createDbSession(json.userId)
@@ -158,20 +158,20 @@ class AuthServiceImpl {
         try {
             const now = new Date().toISOString()
             const baseFilters = { searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'grid' }
-            const roleFilters = { searchText: '', selectedPlant: '', roleFilter: '', viewMode: 'grid' }
+            const roleFilters = { roleFilter: '', searchText: '', selectedPlant: '', viewMode: 'grid' }
             await supabase.from('users_preferences').upsert(
                 {
-                    user_id: userId,
+                    created_at: now,
                     default_view_mode: null,
-                    mixer_filters: baseFilters,
-                    operator_filters: baseFilters,
-                    manager_filters: roleFilters,
-                    tractor_filters: baseFilters,
-                    trailer_filters: baseFilters,
                     equipment_filters: baseFilters,
                     last_viewed_filters: null,
-                    created_at: now,
-                    updated_at: now
+                    manager_filters: roleFilters,
+                    mixer_filters: baseFilters,
+                    operator_filters: baseFilters,
+                    tractor_filters: baseFilters,
+                    trailer_filters: baseFilters,
+                    updated_at: now,
+                    user_id: userId
                 },
                 { onConflict: 'user_id' }
             )
@@ -183,14 +183,14 @@ class AuthServiceImpl {
             `${AUTH_SERVICE_FUNCTION}/sign-up`,
             {
                 email,
-                password,
                 firstName,
-                lastName
+                lastName,
+                password
             },
             { skipAuthCheck: true }
         )
         if (!res.ok) throw new Error(json.error || 'Sign up failed')
-        this.currentUser = { userId: json.userId, email: json.email }
+        this.currentUser = { email: json.email, userId: json.userId }
         this.isAuthenticated = true
         this.sessionValidated = true
         await this._createDbSession(json.userId)
@@ -287,8 +287,8 @@ class AuthServiceImpl {
     _notifyObservers() {
         this.observers.forEach((callback) =>
             callback({
-                isAuthenticated: this.isAuthenticated,
-                currentUser: this.currentUser
+                currentUser: this.currentUser,
+                isAuthenticated: this.isAuthenticated
             })
         )
     }

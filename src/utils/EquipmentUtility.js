@@ -1,20 +1,6 @@
 import VerifiedUtility from './VerifiedUtility'
 
 const equipmentUtility = {
-    isServiceOverdue(serviceDate) {
-        if (!serviceDate) return false
-        try {
-            const service = new Date(serviceDate)
-            const today = new Date()
-            const diffDays = Math.ceil((today - service) / (1000 * 60 * 60 * 24))
-            return diffDays > 180
-        } catch (error) {
-            return false
-        }
-    },
-    isVerified(updatedLast, updatedAt, updatedBy) {
-        return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
-    },
     formatDate(date) {
         if (!date) return 'Not available'
         try {
@@ -22,23 +8,6 @@ const equipmentUtility = {
         } catch (error) {
             return 'Invalid date'
         }
-    },
-    getStatusCounts(equipments) {
-        if (!Array.isArray(equipments)) return {}
-        const counts = { Total: equipments.length, Active: 0, Spare: 0, 'In Shop': 0, Retired: 0 }
-        equipments.forEach((equipment) => {
-            const status = equipment.status || 'Unknown'
-            if (['Active', 'Spare', 'In Shop', 'Retired'].includes(status)) counts[status]++
-        })
-        return counts
-    },
-    getPlantCounts(equipments) {
-        if (!Array.isArray(equipments)) return {}
-        return equipments.reduce((counts, equipment) => {
-            const plant = equipment.assignedPlant || 'Unassigned'
-            counts[plant] = (counts[plant] || 0) + 1
-            return counts
-        }, {})
     },
     getCleanlinessAverage(equipments) {
         if (!Array.isArray(equipments) || !equipments.length) return 'N/A'
@@ -53,6 +22,37 @@ const equipmentUtility = {
     getNeedServiceCount(equipments) {
         if (!Array.isArray(equipments)) return 0
         return equipments.filter((equipment) => equipmentUtility.isServiceOverdue(equipment.lastServiceDate)).length
+    },
+    getPlantCounts(equipments) {
+        if (!Array.isArray(equipments)) return {}
+        return equipments.reduce((counts, equipment) => {
+            const plant = equipment.assignedPlant || 'Unassigned'
+            counts[plant] = (counts[plant] || 0) + 1
+            return counts
+        }, {})
+    },
+    getStatusCounts(equipments) {
+        if (!Array.isArray(equipments)) return {}
+        const counts = { Active: 0, 'In Shop': 0, Retired: 0, Spare: 0, Total: equipments.length }
+        equipments.forEach((equipment) => {
+            const status = equipment.status || 'Unknown'
+            if (['Active', 'Spare', 'In Shop', 'Retired'].includes(status)) counts[status]++
+        })
+        return counts
+    },
+    isServiceOverdue(serviceDate) {
+        if (!serviceDate) return false
+        try {
+            const service = new Date(serviceDate)
+            const today = new Date()
+            const diffDays = Math.ceil((today - service) / (1000 * 60 * 60 * 24))
+            return diffDays > 180
+        } catch (error) {
+            return false
+        }
+    },
+    isVerified(updatedLast, updatedAt, updatedBy) {
+        return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
     }
 }
 

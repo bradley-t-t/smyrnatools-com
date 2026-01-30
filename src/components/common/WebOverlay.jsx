@@ -2,53 +2,53 @@ import React from 'react'
 
 function WebOverlay({ url, onClose }) {
     const containerStyle = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
         backgroundColor: 'white',
-        zIndex: 10000,
+        bottom: 0,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        left: 0,
+        position: 'fixed',
+        right: 0,
+        top: 0,
+        zIndex: 10000
     }
 
     const headerStyle = {
-        display: 'flex',
         alignItems: 'center',
-        gap: '16px',
-        padding: '12px 16px',
         backgroundColor: '#1e3a5f',
-        borderBottom: '1px solid #163352'
+        borderBottom: '1px solid #163352',
+        display: 'flex',
+        gap: '16px',
+        padding: '12px 16px'
     }
 
     const closeButtonStyle = {
-        width: '36px',
-        height: '36px',
-        border: 'none',
+        alignItems: 'center',
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        color: 'white',
+        border: 'none',
         borderRadius: '8px',
+        color: 'white',
         cursor: 'pointer',
         display: 'flex',
-        alignItems: 'center',
+        fontSize: '16px',
+        height: '36px',
         justifyContent: 'center',
-        fontSize: '16px'
+        width: '36px'
     }
 
     const urlDisplayStyle = {
+        color: 'rgba(255, 255, 255, 0.8)',
         flex: 1,
         fontSize: '14px',
-        color: 'rgba(255, 255, 255, 0.8)',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap'
     }
 
     const frameStyle = {
+        border: 'none',
         flex: 1,
-        width: '100%',
-        border: 'none'
+        width: '100%'
     }
 
     return (

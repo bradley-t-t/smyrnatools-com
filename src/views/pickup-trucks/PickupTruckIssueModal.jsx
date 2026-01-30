@@ -1,6 +1,7 @@
 import React from 'react'
-import { PickupTruckService } from '../../services/PickupTruckService'
+
 import IssueModalSection from '../../components/sections/IssueModalSection'
+import { PickupTruckService } from '../../services/PickupTruckService'
 
 function PickupTruckIssueModal({ pickupId, pickupNumber, onClose }) {
     return (

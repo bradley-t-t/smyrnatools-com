@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+
 import SrmLogo from '../../assets/images/srm-logo.svg'
-import APIUtility from '../../utils/APIUtility'
 import VideoBackground from '../../components/common/VideoBackground'
+import APIUtility from '../../utils/APIUtility'
 
 function PasswordRecoveryView({ onBackToLogin }) {
     const [email, setEmail] = useState('')

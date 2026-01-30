@@ -15,12 +15,12 @@ export class MixerImage {
 
     toRow() {
         return {
+            file_path: this.filePath,
             id: this.id,
             mixer_id: this.mixerId,
             part_key: this.partKey,
-            file_path: this.filePath,
-            uploaded_by: this.uploadedBy,
-            uploaded_at: this.uploadedAt
+            uploaded_at: this.uploadedAt,
+            uploaded_by: this.uploadedBy
         }
     }
 }

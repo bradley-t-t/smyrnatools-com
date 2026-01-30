@@ -18,27 +18,27 @@ function GridViewModeSection({
     tractors = tractors || []
 
     const styles = {
+        cardWrapper: {
+            animationFillMode: 'both'
+        },
         container: {
-            width: '100%',
-            maxWidth: '100vw',
-            margin: 0,
-            marginBottom: '24px',
-            padding: 0,
-            overflow: 'auto',
-            overflowX: 'hidden',
             background: 'transparent',
             display: 'block',
+            margin: 0,
+            marginBottom: '24px',
+            maxHeight: 'calc(100vh - 250px)',
+            maxWidth: '100vw',
+            overflow: 'auto',
+            overflowX: 'hidden',
             overscrollBehavior: 'none',
-            maxHeight: 'calc(100vh - 250px)'
+            padding: 0,
+            width: '100%'
         },
         grid: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: '1rem',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             padding: '1rem'
-        },
-        cardWrapper: {
-            animationFillMode: 'both'
         }
     }
 

@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
+
+import { AIService } from '../../services/AIService'
+import { supabase } from '../../services/DatabaseService'
 import { OperatorService } from '../../services/OperatorService'
-import LoadingScreen from '../common/LoadingScreen'
-import UserLabel from '../common/UserLabel'
-import ErrorMessage from '../common/ErrorMessage'
 import { UserService } from '../../services/UserService'
 import { FormatUtility } from '../../utils/FormatUtility'
 import { HistoryUtility } from '../../utils/HistoryUtility'
-import { supabase } from '../../services/DatabaseService'
-import { AIService } from '../../services/AIService'
+import ErrorMessage from '../common/ErrorMessage'
+import LoadingScreen from '../common/LoadingScreen'
+import UserLabel from '../common/UserLabel'
 
 function HistoryViewSection({ item, type, onClose }) {
     const [history, setHistory] = useState([])
@@ -18,8 +19,8 @@ function HistoryViewSection({ item, type, onClose }) {
     const [users, setUsers] = useState([])
     const [activeTab, setActiveTab] = useState('ai-summary')
     const [sortConfig] = useState({
-        key: 'changedAt',
-        direction: 'descending'
+        direction: 'descending',
+        key: 'changedAt'
     })
     const [issues, setIssues] = useState([])
     const [newIssue, setNewIssue] = useState('')
@@ -58,11 +59,11 @@ function HistoryViewSection({ item, type, onClose }) {
 
         try {
             const serviceMap = {
-                mixer: 'MixerService',
-                tractor: 'TractorService',
                 equipment: 'EquipmentService',
-                trailer: 'TrailerService',
-                'pickup-truck': 'PickupTruckService'
+                mixer: 'MixerService',
+                'pickup-truck': 'PickupTruckService',
+                tractor: 'TractorService',
+                trailer: 'TrailerService'
             }
 
             const serviceName = serviceMap[type]
@@ -96,20 +97,20 @@ function HistoryViewSection({ item, type, onClose }) {
 
     const fetchHistory = async () => {
         const serviceMap = {
-            mixer: { service: 'MixerService', method: 'getMixerHistory' },
-            tractor: { service: 'TractorService', method: 'getTractorHistory' },
-            equipment: { service: 'EquipmentService', method: 'getEquipmentHistory' },
-            trailer: { service: 'TrailerService', method: 'getTrailerHistory' },
-            operator: { service: 'OperatorService', method: 'getOperatorHistory' },
-            'pickup-truck': { service: 'PickupTruckService', method: 'fetchHistory' }
+            equipment: { method: 'getEquipmentHistory', service: 'EquipmentService' },
+            mixer: { method: 'getMixerHistory', service: 'MixerService' },
+            operator: { method: 'getOperatorHistory', service: 'OperatorService' },
+            'pickup-truck': { method: 'fetchHistory', service: 'PickupTruckService' },
+            tractor: { method: 'getTractorHistory', service: 'TractorService' },
+            trailer: { method: 'getTrailerHistory', service: 'TrailerService' }
         }
         const tableMap = {
-            mixer: 'mixers_history',
-            tractor: 'tractors_history',
             equipment: 'heavy_equipment_history',
-            trailer: 'trailers_history',
+            mixer: 'mixers_history',
             operator: 'operators_history',
-            'pickup-truck': 'pickup_trucks_history'
+            'pickup-truck': 'pickup_trucks_history',
+            tractor: 'tractors_history',
+            trailer: 'trailers_history'
         }
         try {
             const { service, method } = serviceMap[type]
@@ -157,15 +158,15 @@ function HistoryViewSection({ item, type, onClose }) {
     const formatFieldName = (fieldName) => {
         const snakeCaseField = fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
         const commonFields = {
-            truck_number: 'Truck Number',
-            assigned_plant: 'Plant',
             assigned_operator: 'Operator',
-            status: 'Status',
-            last_service_date: 'Service Date',
-            last_chip_date: 'Chip Date',
+            assigned_plant: 'Plant',
             cleanliness_rating: 'Cleanliness',
-            verification: 'Verification',
-            created: 'Created'
+            created: 'Created',
+            last_chip_date: 'Chip Date',
+            last_service_date: 'Service Date',
+            status: 'Status',
+            truck_number: 'Truck Number',
+            verification: 'Verification'
         }
         if (type === 'tractor') {
             commonFields['has_blower'] = 'Has Blower'
@@ -345,10 +346,10 @@ function HistoryViewSection({ item, type, onClose }) {
 
                 return {
                     date: new Date(entry.changedAt || entry.changed_at),
+                    isEmpty: isEmpty,
                     operator: isEmpty ? 'Empty' : operatorName,
                     operatorId: operatorId,
-                    timestamp: entry.changedAt || entry.changed_at,
-                    isEmpty: isEmpty
+                    timestamp: entry.changedAt || entry.changed_at
                 }
             })
             .filter((entry) => entry.operator !== 'Unknown')
@@ -384,11 +385,11 @@ function HistoryViewSection({ item, type, onClose }) {
                 const serviceDate = entry.newValue || entry.new_value
 
                 return {
+                    changedBy: entry.changedBy || entry.changed_by,
                     date: new Date(entry.changedAt || entry.changed_at),
                     serviceDate: serviceDate,
                     serviceType: key === 'last_chip_date' ? 'Chip' : 'Service',
-                    timestamp: entry.changedAt || entry.changed_at,
-                    changedBy: entry.changedBy || entry.changed_by
+                    timestamp: entry.changedAt || entry.changed_at
                 }
             })
             .filter((entry) => entry.serviceDate)
@@ -414,10 +415,10 @@ function HistoryViewSection({ item, type, onClose }) {
 
         return plantEntries
             .map((entry) => ({
+                changedBy: entry.changedBy || entry.changed_by,
                 date: new Date(entry.changedAt || entry.changed_at),
                 plant: entry.newValue || entry.new_value,
-                timestamp: entry.changedAt || entry.changed_at,
-                changedBy: entry.changedBy || entry.changed_by
+                timestamp: entry.changedAt || entry.changed_at
             }))
             .filter((entry) => entry.plant && entry.plant !== 'null' && entry.plant !== '')
     }, [history])
@@ -442,10 +443,10 @@ function HistoryViewSection({ item, type, onClose }) {
 
         return statusEntries
             .map((entry) => ({
+                changedBy: entry.changedBy || entry.changed_by,
                 date: new Date(entry.changedAt || entry.changed_at),
                 status: entry.newValue || entry.new_value,
-                timestamp: entry.changedAt || entry.changed_at,
-                changedBy: entry.changedBy || entry.changed_by
+                timestamp: entry.changedAt || entry.changed_at
             }))
             .filter((entry) => entry.status && entry.status !== 'null' && entry.status !== '')
     }, [history])
@@ -470,10 +471,10 @@ function HistoryViewSection({ item, type, onClose }) {
 
         return positionEntries
             .map((entry) => ({
+                changedBy: entry.changedBy || entry.changed_by,
                 date: new Date(entry.changedAt || entry.changed_at),
                 position: entry.newValue || entry.new_value,
-                timestamp: entry.changedAt || entry.changed_at,
-                changedBy: entry.changedBy || entry.changed_by
+                timestamp: entry.changedAt || entry.changed_at
             }))
             .filter((entry) => entry.position && entry.position !== 'null' && entry.position !== '')
     }, [history])
@@ -498,10 +499,10 @@ function HistoryViewSection({ item, type, onClose }) {
 
         return ratingEntries
             .map((entry) => ({
+                changedBy: entry.changedBy || entry.changed_by,
                 date: new Date(entry.changedAt || entry.changed_at),
                 rating: parseInt(entry.newValue || entry.new_value, 10),
-                timestamp: entry.changedAt || entry.changed_at,
-                changedBy: entry.changedBy || entry.changed_by
+                timestamp: entry.changedAt || entry.changed_at
             }))
             .filter((d) => !isNaN(d.rating) && d.rating >= 0)
     }, [history])
@@ -526,10 +527,10 @@ function HistoryViewSection({ item, type, onClose }) {
 
         return mileageEntries
             .map((entry) => ({
+                changedBy: entry.changedBy || entry.changed_by,
                 date: new Date(entry.changedAt || entry.changed_at),
                 mileage: parseInt(entry.newValue || entry.new_value, 10),
-                timestamp: entry.changedAt || entry.changed_at,
-                changedBy: entry.changedBy || entry.changed_by
+                timestamp: entry.changedAt || entry.changed_at
             }))
             .filter((entry) => !isNaN(entry.mileage) && entry.mileage >= 0)
     }, [history])
@@ -565,14 +566,14 @@ function HistoryViewSection({ item, type, onClose }) {
             const oldValue = entry.oldValue || entry.old_value
 
             return {
-                date: new Date(entry.changedAt || entry.changed_at),
                 assignmentType: assignmentType,
-                vehicleNumber: newValue && newValue !== 'null' && newValue !== '' ? newValue : null,
+                changedBy: entry.changedBy || entry.changed_by,
+                date: new Date(entry.changedAt || entry.changed_at),
+                isAssignment: newValue && newValue !== 'null' && newValue !== '',
+                isUnassignment: !newValue || newValue === 'null' || newValue === '',
                 previousVehicleNumber: oldValue && oldValue !== 'null' && oldValue !== '' ? oldValue : null,
                 timestamp: entry.changedAt || entry.changed_at,
-                changedBy: entry.changedBy || entry.changed_by,
-                isAssignment: newValue && newValue !== 'null' && newValue !== '',
-                isUnassignment: !newValue || newValue === 'null' || newValue === ''
+                vehicleNumber: newValue && newValue !== 'null' && newValue !== '' ? newValue : null
             }
         })
     }, [history])
@@ -611,15 +612,15 @@ function HistoryViewSection({ item, type, onClose }) {
 
                 if (initialDays > 0) {
                     statusPeriods.push({
-                        status: oldStatus,
-                        startDate: oldestHistoryEntry,
-                        endDate: firstChangeDate,
-                        startTimestamp: oldestHistoryEntry.toISOString(),
-                        endTimestamp: firstEntry.changedAt || firstEntry.changed_at,
-                        days: initialDays,
-                        isCurrent: false,
                         changedBy: null,
-                        endChangedBy: firstEntry.changedBy || firstEntry.changed_by
+                        days: initialDays,
+                        endChangedBy: firstEntry.changedBy || firstEntry.changed_by,
+                        endDate: firstChangeDate,
+                        endTimestamp: firstEntry.changedAt || firstEntry.changed_at,
+                        isCurrent: false,
+                        startDate: oldestHistoryEntry,
+                        startTimestamp: oldestHistoryEntry.toISOString(),
+                        status: oldStatus
                     })
                 }
             }
@@ -638,15 +639,15 @@ function HistoryViewSection({ item, type, onClose }) {
             const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24))
 
             statusPeriods.push({
-                status: status,
-                startDate: startDate,
-                endDate: endDate,
-                startTimestamp: timestamp,
-                endTimestamp: endTimestamp,
-                days: days,
-                isCurrent: !nextEntry,
                 changedBy: changedBy,
-                endChangedBy: endChangedBy
+                days: days,
+                endChangedBy: endChangedBy,
+                endDate: endDate,
+                endTimestamp: endTimestamp,
+                isCurrent: !nextEntry,
+                startDate: startDate,
+                startTimestamp: timestamp,
+                status: status
             })
         })
 
@@ -693,9 +694,9 @@ function HistoryViewSection({ item, type, onClose }) {
                 const cached = localStorage.getItem(AI_HISTORY_CACHE_KEY)
                 const cacheData = cached ? JSON.parse(cached) : {}
                 cacheData[getAssetCacheKey()] = {
+                    historyCount: history.length,
                     summary,
-                    timestamp: Date.now(),
-                    historyCount: history.length
+                    timestamp: Date.now()
                 }
                 localStorage.setItem(AI_HISTORY_CACHE_KEY, JSON.stringify(cacheData))
             } catch {}
@@ -733,7 +734,6 @@ function HistoryViewSection({ item, type, onClose }) {
 
             try {
                 const historyContext = {
-                    assetType: type,
                     assetIdentifier:
                         type === 'mixer' || type === 'tractor'
                             ? item.truckNumber
@@ -742,21 +742,13 @@ function HistoryViewSection({ item, type, onClose }) {
                               : type === 'pickup-truck'
                                 ? `${item.make} ${item.model}`
                                 : item.identifyingNumber || item.name || 'Unknown',
-                    currentStatus: item.status || 'Unknown',
-                    currentPlant: item.plantCode || item.assignedPlant || 'Unknown',
-                    totalHistoryEntries: history.length,
-                    statusChanges: statusData.length,
-                    statusBreakdown: statusData.reduce((acc, s) => {
-                        acc[s.status] = (acc[s.status] || 0) + s.days
-                        return acc
-                    }, {}),
-                    currentStatusDays: statusData.find((s) => s.isCurrent)?.days || 0,
+                    assetType: type,
                     cleanlinessHistory:
                         cleanlinessData.length > 0
                             ? {
-                                  count: cleanlinessData.length,
                                   average:
                                       cleanlinessData.reduce((sum, c) => sum + c.rating, 0) / cleanlinessData.length,
+                                  count: cleanlinessData.length,
                                   current: cleanlinessData[cleanlinessData.length - 1]?.rating,
                                   trend:
                                       cleanlinessData.length >= 2
@@ -765,16 +757,23 @@ function HistoryViewSection({ item, type, onClose }) {
                                           : 0
                               }
                             : null,
+                    currentPlant: item.plantCode || item.assignedPlant || 'Unknown',
+                    currentStatus: item.status || 'Unknown',
+                    currentStatusDays: statusData.find((s) => s.isCurrent)?.days || 0,
+                    highSeverityIssues: issues.filter((i) => i.severity === 'High' && i.status !== 'Resolved').length,
+                    openIssues: issues.filter((i) => i.status !== 'Resolved').length,
                     operatorChanges: type === 'mixer' || type === 'tractor' ? operatorData.length : 0,
-                    uniqueOperators:
-                        type === 'mixer' || type === 'tractor'
-                            ? new Set(operatorData.filter((o) => !o.isEmpty).map((o) => o.operatorId)).size
-                            : 0,
+                    plantChanges: plantData?.length || 0,
+                    recentChanges: history.slice(0, 10).map((h) => ({
+                        date: h.changedAt || h.changed_at,
+                        field: h.fieldName || h.field_name,
+                        from: h.oldValue || h.old_value,
+                        to: h.newValue || h.new_value
+                    })),
+                    resolvedIssues: issues.filter((i) => i.status === 'Resolved').length,
                     serviceHistory:
                         serviceData.length > 0
                             ? {
-                                  count: serviceData.length,
-                                  lastService: serviceData[serviceData.length - 1]?.date,
                                   avgDaysBetweenService:
                                       serviceData.length >= 2
                                           ? Math.round(
@@ -786,19 +785,21 @@ function HistoryViewSection({ item, type, onClose }) {
                                                 }, 0) /
                                                     (serviceData.length - 1)
                                             )
-                                          : null
+                                          : null,
+                                  count: serviceData.length,
+                                  lastService: serviceData[serviceData.length - 1]?.date
                               }
                             : null,
-                    plantChanges: plantData?.length || 0,
-                    openIssues: issues.filter((i) => i.status !== 'Resolved').length,
-                    resolvedIssues: issues.filter((i) => i.status === 'Resolved').length,
-                    highSeverityIssues: issues.filter((i) => i.severity === 'High' && i.status !== 'Resolved').length,
-                    recentChanges: history.slice(0, 10).map((h) => ({
-                        field: h.fieldName || h.field_name,
-                        from: h.oldValue || h.old_value,
-                        to: h.newValue || h.new_value,
-                        date: h.changedAt || h.changed_at
-                    }))
+                    statusBreakdown: statusData.reduce((acc, s) => {
+                        acc[s.status] = (acc[s.status] || 0) + s.days
+                        return acc
+                    }, {}),
+                    statusChanges: statusData.length,
+                    totalHistoryEntries: history.length,
+                    uniqueOperators:
+                        type === 'mixer' || type === 'tractor'
+                            ? new Set(operatorData.filter((o) => !o.isEmpty).map((o) => o.operatorId)).size
+                            : 0
                 }
 
                 const summary = await AIService.generateHistorySummary(historyContext)
@@ -1262,24 +1263,24 @@ function HistoryViewSection({ item, type, onClose }) {
                     statusDaysMap[currentStatus.status] += lastStatusDays
 
                     statusPeriods = Object.entries(statusDaysMap).map(([status, totalDays]) => ({
-                        status: status,
-                        days: totalDays
+                        days: totalDays,
+                        status: status
                     }))
                 } else {
                     const currentStatus = item.status || 'Unknown'
                     statusPeriods.push({
-                        status: currentStatus,
-                        days: days
+                        days: days,
+                        status: currentStatus
                     })
                 }
             }
 
             consolidatedTimeline.push({
-                operator: entry.operator,
-                startDate: entry.timestamp,
                 days: days,
                 isCurrent: endIndex >= operatorData.length,
                 isEmpty: entry.isEmpty,
+                operator: entry.operator,
+                startDate: entry.timestamp,
                 statusPeriods: statusPeriods
             })
             j = endIndex
@@ -1399,9 +1400,9 @@ function HistoryViewSection({ item, type, onClose }) {
             statusDaysMap[currentStatus] = totalDaysSinceCreation > 0 ? totalDaysSinceCreation : 1
             statusPercentages = [
                 {
-                    status: currentStatus,
                     days: statusDaysMap[currentStatus],
-                    percentage: '100.0'
+                    percentage: '100.0',
+                    status: currentStatus
                 }
             ]
         } else {
@@ -1418,9 +1419,9 @@ function HistoryViewSection({ item, type, onClose }) {
 
             statusPercentages = Object.entries(statusDaysMap)
                 .map(([status, days]) => ({
-                    status,
                     days,
-                    percentage: totalDaysSinceCreation > 0 ? ((days / totalDaysSinceCreation) * 100).toFixed(1) : 0
+                    percentage: totalDaysSinceCreation > 0 ? ((days / totalDaysSinceCreation) * 100).toFixed(1) : 0,
+                    status
                 }))
                 .sort((a, b) => b.days - a.days)
         }
@@ -1453,8 +1454,8 @@ function HistoryViewSection({ item, type, onClose }) {
                                             key={index}
                                             className="flex items-center justify-center text-white text-xs font-semibold min-w-[30px] transition-all"
                                             style={{
-                                                width: `${item.percentage}%`,
-                                                background: getStatusColor(item.status)
+                                                background: getStatusColor(item.status),
+                                                width: `${item.percentage}%`
                                             }}
                                             title={`${item.status}: ${item.percentage}%`}
                                         >
@@ -1645,22 +1646,22 @@ function HistoryViewSection({ item, type, onClose }) {
 
         serviceData.forEach((service) => {
             combinedTimeline.push({
-                type: 'service',
+                changedBy: service.changedBy,
                 date: service.serviceDate,
-                timestamp: service.timestamp,
                 serviceType: service.serviceType,
-                changedBy: service.changedBy
+                timestamp: service.timestamp,
+                type: 'service'
             })
         })
 
         issues.forEach((issue) => {
             combinedTimeline.push({
-                type: 'issue',
+                completedDate: issue.time_completed,
                 date: issue.time_created,
-                timestamp: issue.time_created,
-                issue: issue,
                 isCompleted: !!issue.time_completed,
-                completedDate: issue.time_completed
+                issue: issue,
+                timestamp: issue.time_created,
+                type: 'issue'
             })
         })
 
@@ -1854,10 +1855,10 @@ function HistoryViewSection({ item, type, onClose }) {
             const entry = plantData[i]
             const { days, endIndex } = calculateDuration(i, entry.plant)
             consolidatedTimeline.push({
-                plant: entry.plant,
-                startDate: entry.timestamp,
                 days: days,
-                isCurrent: endIndex >= plantData.length
+                isCurrent: endIndex >= plantData.length,
+                plant: entry.plant,
+                startDate: entry.timestamp
             })
             i = endIndex
         }
@@ -1970,11 +1971,11 @@ function HistoryViewSection({ item, type, onClose }) {
             const entry = statusData[i]
             const { days, endIndex } = calculateDuration(i, entry.status)
             consolidatedTimeline.push({
-                status: entry.status,
-                startDate: entry.timestamp,
+                changedBy: entry.changedBy,
                 days: days,
                 isCurrent: endIndex >= statusData.length,
-                changedBy: entry.changedBy
+                startDate: entry.timestamp,
+                status: entry.status
             })
             i = endIndex
         }
@@ -2072,9 +2073,9 @@ function HistoryViewSection({ item, type, onClose }) {
 
         const chartData = Object.entries(positionCounts)
             .map(([position, count]) => ({
-                position,
                 count,
-                percentage: ((count / totalChanges) * 100).toFixed(1)
+                percentage: ((count / totalChanges) * 100).toFixed(1),
+                position
             }))
             .sort((a, b) => b.count - a.count)
 
@@ -2095,11 +2096,11 @@ function HistoryViewSection({ item, type, onClose }) {
             const entry = positionData[i]
             const { days, endIndex } = calculateDuration(i, entry.position)
             consolidatedTimeline.push({
-                position: entry.position,
-                startDate: entry.timestamp,
+                changedBy: entry.changedBy,
                 days: days,
                 isCurrent: endIndex >= positionData.length,
-                changedBy: entry.changedBy
+                position: entry.position,
+                startDate: entry.timestamp
             })
             i = endIndex
         }
@@ -2324,10 +2325,10 @@ function HistoryViewSection({ item, type, onClose }) {
         const avgMileage = mileageData.reduce((sum, d) => sum + d.mileage, 0) / mileageData.length
 
         const getMaintenanceMilestone = (miles) => {
-            if (miles >= 300000) return { level: 'critical', label: 'High Mileage' }
-            if (miles >= 200000) return { level: 'warning', label: 'Elevated' }
-            if (miles >= 100000) return { level: 'info', label: 'Moderate' }
-            return { level: 'good', label: 'Low' }
+            if (miles >= 300000) return { label: 'High Mileage', level: 'critical' }
+            if (miles >= 200000) return { label: 'Elevated', level: 'warning' }
+            if (miles >= 100000) return { label: 'Moderate', level: 'info' }
+            return { label: 'Low', level: 'good' }
         }
 
         const milestone = getMaintenanceMilestone(currentMileage)
@@ -2478,13 +2479,13 @@ function HistoryViewSection({ item, type, onClose }) {
                 if (entry.vehicleNumber) {
                     currentMixerEntry = {
                         assignmentType: 'Mixer',
-                        vehicleNumber: entry.vehicleNumber,
-                        startDate: entry.timestamp,
-                        endDate: null,
                         changedBy: entry.changedBy,
+                        endDate: null,
                         isCurrent:
                             index === assignmentsData.length - 1 ||
-                            !assignmentsData.slice(index + 1).some((e) => e.assignmentType === 'Mixer')
+                            !assignmentsData.slice(index + 1).some((e) => e.assignmentType === 'Mixer'),
+                        startDate: entry.timestamp,
+                        vehicleNumber: entry.vehicleNumber
                     }
                 } else {
                     currentMixerEntry = null
@@ -2501,13 +2502,13 @@ function HistoryViewSection({ item, type, onClose }) {
                 if (entry.vehicleNumber) {
                     currentTractorEntry = {
                         assignmentType: 'Tractor',
-                        vehicleNumber: entry.vehicleNumber,
-                        startDate: entry.timestamp,
-                        endDate: null,
                         changedBy: entry.changedBy,
+                        endDate: null,
                         isCurrent:
                             index === assignmentsData.length - 1 ||
-                            !assignmentsData.slice(index + 1).some((e) => e.assignmentType === 'Tractor')
+                            !assignmentsData.slice(index + 1).some((e) => e.assignmentType === 'Tractor'),
+                        startDate: entry.timestamp,
+                        vehicleNumber: entry.vehicleNumber
                     }
                 } else {
                     currentTractorEntry = null
@@ -2757,9 +2758,9 @@ function HistoryViewSection({ item, type, onClose }) {
         setError(null)
         try {
             const serviceMap = {
+                equipment: 'EquipmentService',
                 mixer: 'MixerService',
                 tractor: 'TractorService',
-                equipment: 'EquipmentService',
                 trailer: 'TrailerService'
             }
 
@@ -2789,9 +2790,9 @@ function HistoryViewSection({ item, type, onClose }) {
         }
         try {
             const serviceMap = {
+                equipment: 'EquipmentService',
                 mixer: 'MixerService',
                 tractor: 'TractorService',
-                equipment: 'EquipmentService',
                 trailer: 'TrailerService'
             }
 
@@ -2809,9 +2810,9 @@ function HistoryViewSection({ item, type, onClose }) {
     const handleCompleteIssue = async (issueId) => {
         try {
             const serviceMap = {
+                equipment: 'EquipmentService',
                 mixer: 'MixerService',
                 tractor: 'TractorService',
-                equipment: 'EquipmentService',
                 trailer: 'TrailerService'
             }
 

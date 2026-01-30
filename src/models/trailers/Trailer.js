@@ -33,20 +33,20 @@ class Trailer {
 
     static fromApiFormat(apiData) {
         return new Trailer({
-            id: apiData.id,
-            trailer_number: apiData.trailer_number,
             assigned_plant: apiData.assigned_plant,
-            trailer_type: apiData.trailer_type,
             assigned_tractor: apiData.assigned_tractor,
             cleanliness_rating: apiData.cleanliness_rating,
+            commentsCount: apiData.commentsCount,
             created_at: apiData.created_at,
-            updated_at: apiData.updated_at,
-            updated_last: apiData.updated_last,
-            updated_by: apiData.updated_by,
-            status: apiData.status,
+            id: apiData.id,
             latestHistoryDate: apiData.latestHistoryDate,
             openIssuesCount: apiData.openIssuesCount,
-            commentsCount: apiData.commentsCount
+            status: apiData.status,
+            trailer_number: apiData.trailer_number,
+            trailer_type: apiData.trailer_type,
+            updated_at: apiData.updated_at,
+            updated_by: apiData.updated_by,
+            updated_last: apiData.updated_last
         })
     }
 
@@ -56,17 +56,17 @@ class Trailer {
 
     toApiFormat() {
         return {
-            id: this.id,
-            trailer_number: this.trailerNumber,
             assigned_plant: this.assignedPlant,
-            trailer_type: this.trailerType,
             assigned_tractor: this.assignedTractor,
             cleanliness_rating: this.cleanlinessRating,
             created_at: this.createdAt,
+            id: this.id,
+            status: this.status,
+            trailer_number: this.trailerNumber,
+            trailer_type: this.trailerType,
             updated_at: this.updatedAt,
-            updated_last: this.updatedLast,
             updated_by: this.updatedBy,
-            status: this.status
+            updated_last: this.updatedLast
         }
     }
 

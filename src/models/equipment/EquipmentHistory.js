@@ -11,13 +11,13 @@ export class EquipmentHistory {
 
     static fromApiFormat(data) {
         return new EquipmentHistory({
-            id: data.id,
+            changedAt: data.changed_at,
+            changedBy: data.changed_by,
             equipmentId: data.equipment_id,
             fieldName: data.field_name,
-            oldValue: data.old_value,
+            id: data.id,
             newValue: data.new_value,
-            changedAt: data.changed_at,
-            changedBy: data.changed_by
+            oldValue: data.old_value
         })
     }
 }

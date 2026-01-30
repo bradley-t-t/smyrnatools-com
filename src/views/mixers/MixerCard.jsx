@@ -1,6 +1,7 @@
 import React from 'react'
-import MixerUtility from '../../utils/MixerUtility'
+
 import CardSection from '../../components/sections/CardSection'
+import MixerUtility from '../../utils/MixerUtility'
 
 function MixerCard({
     mixer,
@@ -52,7 +53,7 @@ function MixerCard({
             </div>
             <div className="detail-row">
                 <div className="detail-label">Status</div>
-                <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="detail-value" style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
                     <span>{mixer.status || 'Unknown'}</span>
                     {mixer.status === 'In Shop' && mixer.downInYard && (
                         <span className="in-yard-badge" title="This mixer is down in the yard">
@@ -79,7 +80,7 @@ function MixerCard({
                     {mixer.status === 'Retired' ? (
                         <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
                     ) : mixer.cleanlinessRating ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
                             <div className="stars-container">
                                 {[...Array(5)].map((_, i) => (
                                     <i
@@ -95,12 +96,12 @@ function MixerCard({
                                     title="This truck cannot run loads until the cleanliness is 3 stars or better. Do not ignore this warning."
                                     style={{
                                         backgroundColor: 'var(--error)',
-                                        color: 'white',
-                                        padding: '2px 6px',
                                         borderRadius: '4px',
+                                        color: 'white',
+                                        cursor: 'help',
                                         fontSize: '11px',
                                         fontWeight: 'bold',
-                                        cursor: 'help'
+                                        padding: '2px 6px'
                                     }}
                                 >
                                     DOWNED

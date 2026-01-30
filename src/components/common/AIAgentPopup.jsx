@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+
 import { AIService } from '../../services/AIService'
-import { RegionService } from '../../services/RegionService'
+import { supabase } from '../../services/DatabaseService'
+import { EquipmentService } from '../../services/EquipmentService'
+import { ListService } from '../../services/ListService'
 import { MixerService } from '../../services/MixerService'
+import { OperatorService } from '../../services/OperatorService'
+import { PickupTruckService } from '../../services/PickupTruckService'
+import { RegionService } from '../../services/RegionService'
 import { TractorService } from '../../services/TractorService'
 import { TrailerService } from '../../services/TrailerService'
-import { EquipmentService } from '../../services/EquipmentService'
-import { PickupTruckService } from '../../services/PickupTruckService'
-import { OperatorService } from '../../services/OperatorService'
-import { ListService } from '../../services/ListService'
-import { supabase } from '../../services/DatabaseService'
 
 export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, selectedPlant }) {
     const [messages, setMessages] = useState([])
@@ -160,165 +161,165 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
             }
 
             const mixerStats = {
-                total: mixers.filter((m) => m.status !== 'Retired').length,
                 active: mixers.filter((m) => m.status === 'Active').length,
                 inShop: mixers.filter((m) => m.status === 'In Shop').length,
-                spare: mixers.filter((m) => m.status === 'Spare').length,
+                openIssues: 0,
                 serviceOverdue: mixers.filter((m) => m.status !== 'Retired' && isOverdue(m.lastServiceDate)).length,
-                openIssues: 0
+                spare: mixers.filter((m) => m.status === 'Spare').length,
+                total: mixers.filter((m) => m.status !== 'Retired').length
             }
 
             const tractorStats = {
-                total: tractors.filter((t) => t.status !== 'Retired').length,
                 active: tractors.filter((t) => t.status === 'Active').length,
-                inShop: tractors.filter((t) => t.status === 'In Shop').length,
-                spare: tractors.filter((t) => t.status === 'Spare').length,
-                serviceOverdue: tractors.filter((t) => t.status !== 'Retired' && isOverdue(t.lastServiceDate)).length,
-                openIssues: 0,
-                endDump: tractors.filter((t) => t.tractorType === 'End Dump').length,
                 cementHauler: tractors.filter((t) => t.tractorType === 'Cement Hauler').length,
-                dumpTruck: tractors.filter((t) => t.tractorType === 'Dump Truck').length
+                dumpTruck: tractors.filter((t) => t.tractorType === 'Dump Truck').length,
+                endDump: tractors.filter((t) => t.tractorType === 'End Dump').length,
+                inShop: tractors.filter((t) => t.status === 'In Shop').length,
+                openIssues: 0,
+                serviceOverdue: tractors.filter((t) => t.status !== 'Retired' && isOverdue(t.lastServiceDate)).length,
+                spare: tractors.filter((t) => t.status === 'Spare').length,
+                total: tractors.filter((t) => t.status !== 'Retired').length
             }
 
             const trailerStats = {
-                total: trailers.filter((t) => t.status !== 'Retired').length,
                 active: trailers.filter((t) => t.status === 'Active').length,
                 inShop: trailers.filter((t) => t.status === 'In Shop').length,
-                spare: trailers.filter((t) => t.status === 'Spare').length,
+                openIssues: 0,
                 serviceOverdue: trailers.filter((t) => t.status !== 'Retired' && isOverdue(t.lastServiceDate)).length,
-                openIssues: 0
+                spare: trailers.filter((t) => t.status === 'Spare').length,
+                total: trailers.filter((t) => t.status !== 'Retired').length
             }
 
             const equipmentStats = {
-                total: equipment.filter((e) => e.status !== 'Retired').length,
                 active: equipment.filter((e) => e.status === 'Active').length,
                 inShop: equipment.filter((e) => e.status === 'In Shop').length,
-                spare: equipment.filter((e) => e.status === 'Spare').length,
+                openIssues: 0,
                 serviceOverdue: equipment.filter((e) => e.status !== 'Retired' && isOverdue(e.lastServiceDate)).length,
-                openIssues: 0
+                spare: equipment.filter((e) => e.status === 'Spare').length,
+                total: equipment.filter((e) => e.status !== 'Retired').length
             }
 
             const pickupStats = {
-                total: pickups.filter((p) => p.status !== 'Retired').length,
                 active: pickups.filter((p) => p.status === 'Active').length,
                 inShop: pickups.filter((p) => p.status === 'In Shop').length,
                 spare: pickups.filter((p) => p.status === 'Spare').length,
-                stationary: pickups.filter((p) => p.status === 'Stationary').length
+                stationary: pickups.filter((p) => p.status === 'Stationary').length,
+                total: pickups.filter((p) => p.status !== 'Retired').length
             }
 
             const operatorStats = {
-                total: operators.length,
                 active: operators.filter((o) => o.status === 'Active').length,
-                training: operators.filter((o) => o.status === 'Training').length,
-                pending: operators.filter((o) => o.status === 'Pending Start').length,
                 lightDuty: operators.filter((o) => o.status === 'Light Duty').length,
-                terminated: operators.filter((o) => o.status === 'Terminated').length
+                pending: operators.filter((o) => o.status === 'Pending Start').length,
+                terminated: operators.filter((o) => o.status === 'Terminated').length,
+                total: operators.length,
+                training: operators.filter((o) => o.status === 'Training').length
             }
 
             const mixersInShop = mixers
                 .filter((m) => m.status === 'In Shop')
                 .map((m) => ({
-                    truckNumber: m.truckNumber,
-                    plant: m.assignedPlant
+                    plant: m.assignedPlant,
+                    truckNumber: m.truckNumber
                 }))
 
             const tractorsInShop = tractors
                 .filter((t) => t.status === 'In Shop')
                 .map((t) => ({
-                    truckNumber: t.truckNumber,
                     plant: t.assignedPlant,
+                    truckNumber: t.truckNumber,
                     type: t.tractorType
                 }))
 
             const mixersSpare = mixers
                 .filter((m) => m.status === 'Spare')
                 .map((m) => ({
-                    truckNumber: m.truckNumber,
-                    plant: m.assignedPlant
+                    plant: m.assignedPlant,
+                    truckNumber: m.truckNumber
                 }))
 
             const tractorsSpare = tractors
                 .filter((t) => t.status === 'Spare')
                 .map((t) => ({
-                    truckNumber: t.truckNumber,
                     plant: t.assignedPlant,
+                    truckNumber: t.truckNumber,
                     type: t.tractorType
                 }))
 
             const allMixersList = mixers
                 .filter((m) => m.status !== 'Retired')
                 .map((m) => ({
-                    truckNumber: m.truckNumber,
-                    status: m.status,
-                    plant: m.assignedPlant,
-                    operatorId: m.assignedOperator,
-                    operatorName: operatorIdToName.get(m.assignedOperator) || 'Unassigned',
-                    vin: m.vin || '',
+                    cleanlinessRating: m.cleanlinessRating || 0,
+                    lastServiceDate: m.lastServiceDate || '',
                     make: m.make || '',
                     model: m.model || '',
-                    year: m.year || '',
-                    lastServiceDate: m.lastServiceDate || '',
-                    cleanlinessRating: m.cleanlinessRating || 0
+                    operatorId: m.assignedOperator,
+                    operatorName: operatorIdToName.get(m.assignedOperator) || 'Unassigned',
+                    plant: m.assignedPlant,
+                    status: m.status,
+                    truckNumber: m.truckNumber,
+                    vin: m.vin || '',
+                    year: m.year || ''
                 }))
 
             const allTractorsList = tractors
                 .filter((t) => t.status !== 'Retired')
                 .map((t) => ({
-                    truckNumber: t.truckNumber,
-                    status: t.status,
-                    plant: t.assignedPlant,
-                    operatorId: t.assignedOperator,
-                    operatorName: operatorIdToName.get(t.assignedOperator) || 'Unassigned',
-                    type: t.freight || t.tractorType || 'Unknown',
-                    vin: t.vin || '',
+                    lastServiceDate: t.lastServiceDate || '',
                     make: t.make || '',
                     model: t.model || '',
-                    year: t.year || '',
-                    lastServiceDate: t.lastServiceDate || ''
+                    operatorId: t.assignedOperator,
+                    operatorName: operatorIdToName.get(t.assignedOperator) || 'Unassigned',
+                    plant: t.assignedPlant,
+                    status: t.status,
+                    truckNumber: t.truckNumber,
+                    type: t.freight || t.tractorType || 'Unknown',
+                    vin: t.vin || '',
+                    year: t.year || ''
                 }))
 
             const allTrailersList = trailers
                 .filter((t) => t.status !== 'Retired')
                 .map((t) => ({
-                    trailerNumber: t.trailerNumber,
-                    status: t.status,
-                    plant: t.assignedPlant,
-                    type: t.trailerType,
-                    vin: t.vin,
+                    lastServiceDate: t.lastServiceDate,
+                    licensePlate: t.licensePlate,
                     make: t.make,
                     model: t.model,
-                    year: t.year,
-                    licensePlate: t.licensePlate,
-                    lastServiceDate: t.lastServiceDate
+                    plant: t.assignedPlant,
+                    status: t.status,
+                    trailerNumber: t.trailerNumber,
+                    type: t.trailerType,
+                    vin: t.vin,
+                    year: t.year
                 }))
 
             const allEquipmentList = equipment
                 .filter((e) => e.status !== 'Retired')
                 .map((e) => ({
                     identifyingNumber: e.identifyingNumber,
-                    status: e.status,
-                    plant: e.assignedPlant,
-                    type: e.equipmentType,
+                    lastServiceDate: e.lastServiceDate,
                     make: e.make,
                     model: e.model,
-                    year: e.year,
+                    plant: e.assignedPlant,
                     serialNumber: e.serialNumber,
-                    lastServiceDate: e.lastServiceDate
+                    status: e.status,
+                    type: e.equipmentType,
+                    year: e.year
                 }))
 
             const allPickupsList = pickups
                 .filter((p) => p.status !== 'Retired')
                 .map((p) => ({
-                    truckNumber: p.truckNumber,
-                    status: p.status,
-                    plant: p.assignedPlant,
                     assignedTo: p.assignedTo,
-                    vin: p.vin,
-                    make: p.make,
-                    model: p.model,
-                    year: p.year,
                     licensePlate: p.licensePlate,
-                    mileage: p.mileage
+                    make: p.make,
+                    mileage: p.mileage,
+                    model: p.model,
+                    plant: p.assignedPlant,
+                    status: p.status,
+                    truckNumber: p.truckNumber,
+                    vin: p.vin,
+                    year: p.year
                 }))
 
             const operatorsTraining = operators
@@ -334,28 +335,28 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                 .filter((o) => o.status === 'Pending Start')
                 .map((o) => ({
                     name: o.name,
+                    pendingDate: o.pendingStartDate,
                     plant: o.plantCode,
-                    position: o.position,
-                    pendingDate: o.pendingStartDate
+                    position: o.position
                 }))
 
             const pendingListItems = listItems
                 .filter((li) => !li.completed)
                 .map((li) => ({
-                    description: li.description,
+                    comments: li.comments,
                     deadline: li.deadline,
+                    description: li.description,
                     plant: li.plantCode,
-                    status: li.status,
                     responsible: li.responsible,
-                    comments: li.comments
+                    status: li.status
                 }))
 
             const completedListItems = listItems
                 .filter((li) => li.completed)
                 .slice(0, 20)
                 .map((li) => ({
-                    description: li.description,
                     completedAt: li.completedAt,
+                    description: li.description,
                     plant: li.plantCode
                 }))
 
@@ -420,46 +421,46 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                 .filter((h) => mixerIdToPlant.has(h.mixer_id))
                 .map((h) => ({
                     assetNumber: mixerIdToTruck.get(h.mixer_id),
-                    plant: mixerIdToPlant.get(h.mixer_id),
-                    oldStatus: h.old_value,
+                    changedAt: h.changed_at,
                     newStatus: h.new_value,
-                    changedAt: h.changed_at
+                    oldStatus: h.old_value,
+                    plant: mixerIdToPlant.get(h.mixer_id)
                 }))
             const tractorsHistory = (tractorsHistRes.data || [])
                 .filter((h) => tractorIdToPlant.has(h.tractor_id))
                 .map((h) => ({
                     assetNumber: tractorIdToTruck.get(h.tractor_id),
-                    plant: tractorIdToPlant.get(h.tractor_id),
-                    oldStatus: h.old_value,
+                    changedAt: h.changed_at,
                     newStatus: h.new_value,
-                    changedAt: h.changed_at
+                    oldStatus: h.old_value,
+                    plant: tractorIdToPlant.get(h.tractor_id)
                 }))
             const trailersHistory = (trailersHistRes.data || [])
                 .filter((h) => trailerIdToPlant.has(h.trailer_id))
                 .map((h) => ({
                     assetNumber: trailerIdToNumber.get(h.trailer_id),
-                    plant: trailerIdToPlant.get(h.trailer_id),
-                    oldStatus: h.old_value,
+                    changedAt: h.changed_at,
                     newStatus: h.new_value,
-                    changedAt: h.changed_at
+                    oldStatus: h.old_value,
+                    plant: trailerIdToPlant.get(h.trailer_id)
                 }))
             const equipmentHistory = (equipmentHistRes.data || [])
                 .filter((h) => equipmentIdToPlant.has(h.equipment_id))
                 .map((h) => ({
                     assetNumber: equipmentIdToNumber.get(h.equipment_id),
-                    plant: equipmentIdToPlant.get(h.equipment_id),
-                    oldStatus: h.old_value,
+                    changedAt: h.changed_at,
                     newStatus: h.new_value,
-                    changedAt: h.changed_at
+                    oldStatus: h.old_value,
+                    plant: equipmentIdToPlant.get(h.equipment_id)
                 }))
             const pickupsHistory = (pickupsHistRes.data || [])
                 .filter((h) => pickupIdToPlant.has(h.truck_id))
                 .map((h) => ({
                     assetNumber: pickupIdToTruck.get(h.truck_id),
-                    plant: pickupIdToPlant.get(h.truck_id),
-                    oldStatus: h.old_value,
+                    changedAt: h.changed_at,
                     newStatus: h.new_value,
-                    changedAt: h.changed_at
+                    oldStatus: h.old_value,
+                    plant: pickupIdToPlant.get(h.truck_id)
                 }))
 
             const getOperatorName = (id) => {
@@ -480,26 +481,26 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
             const mixerOperatorHistory = rawMixerOpHist
                 .filter((h) => mixerIdToPlant.has(h.mixer_id))
                 .map((h) => ({
-                    truckNumber: mixerIdToTruck.get(h.mixer_id),
+                    assetType: 'Mixer',
+                    changedAt: h.changed_at,
+                    newOperator: getOperatorName(h.new_value),
+                    newOperatorId: h.new_value,
                     plant: mixerIdToPlant.get(h.mixer_id),
                     previousOperator: getOperatorName(h.old_value),
                     previousOperatorId: h.old_value,
-                    newOperator: getOperatorName(h.new_value),
-                    newOperatorId: h.new_value,
-                    changedAt: h.changed_at,
-                    assetType: 'Mixer'
+                    truckNumber: mixerIdToTruck.get(h.mixer_id)
                 }))
             const tractorOperatorHistory = (tractorOpHistRes.data || [])
                 .filter((h) => tractorIdToPlant.has(h.tractor_id))
                 .map((h) => ({
-                    truckNumber: tractorIdToTruck.get(h.tractor_id),
+                    assetType: 'Tractor',
+                    changedAt: h.changed_at,
+                    newOperator: getOperatorName(h.new_value),
+                    newOperatorId: h.new_value,
                     plant: tractorIdToPlant.get(h.tractor_id),
                     previousOperator: getOperatorName(h.old_value),
                     previousOperatorId: h.old_value,
-                    newOperator: getOperatorName(h.new_value),
-                    newOperatorId: h.new_value,
-                    changedAt: h.changed_at,
-                    assetType: 'Tractor'
+                    truckNumber: tractorIdToTruck.get(h.tractor_id)
                 }))
             const operatorAssignmentHistory = [...mixerOperatorHistory, ...tractorOperatorHistory].sort(
                 (a, b) => new Date(b.changedAt) - new Date(a.changedAt)
@@ -509,47 +510,47 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
             }
 
             const allOperatorsList = operators.map((o) => ({
+                hireDate: o.createdAt,
                 id: o.employeeId || o.employee_id || o.id,
+                isTrainer: o.isTrainer,
                 name: o.name,
-                status: o.status,
+                phone: o.phone,
                 plant: o.plantCode,
                 position: o.position,
-                hireDate: o.createdAt,
-                trainer: o.assignedTrainer,
-                isTrainer: o.isTrainer,
-                phone: o.phone
+                status: o.status,
+                trainer: o.assignedTrainer
             }))
 
             const statusHistorySummary = {
-                mixers: {
-                    totalChanges: mixersHistory.length,
-                    enteredShop: mixersHistory.filter((h) => h.newStatus === 'In Shop').length,
-                    exitedShop: mixersHistory.filter((h) => h.oldStatus === 'In Shop').length,
-                    byPlant: {}
-                },
-                tractors: {
-                    totalChanges: tractorsHistory.length,
-                    enteredShop: tractorsHistory.filter((h) => h.newStatus === 'In Shop').length,
-                    exitedShop: tractorsHistory.filter((h) => h.oldStatus === 'In Shop').length,
-                    byPlant: {}
-                },
-                trailers: {
-                    totalChanges: trailersHistory.length,
-                    enteredShop: trailersHistory.filter((h) => h.newStatus === 'In Shop').length,
-                    exitedShop: trailersHistory.filter((h) => h.oldStatus === 'In Shop').length,
-                    byPlant: {}
-                },
                 equipment: {
-                    totalChanges: equipmentHistory.length,
+                    byPlant: {},
                     enteredShop: equipmentHistory.filter((h) => h.newStatus === 'In Shop').length,
                     exitedShop: equipmentHistory.filter((h) => h.oldStatus === 'In Shop').length,
-                    byPlant: {}
+                    totalChanges: equipmentHistory.length
+                },
+                mixers: {
+                    byPlant: {},
+                    enteredShop: mixersHistory.filter((h) => h.newStatus === 'In Shop').length,
+                    exitedShop: mixersHistory.filter((h) => h.oldStatus === 'In Shop').length,
+                    totalChanges: mixersHistory.length
                 },
                 pickups: {
-                    totalChanges: pickupsHistory.length,
+                    byPlant: {},
                     enteredShop: pickupsHistory.filter((h) => h.newStatus === 'In Shop').length,
                     exitedShop: pickupsHistory.filter((h) => h.oldStatus === 'In Shop').length,
-                    byPlant: {}
+                    totalChanges: pickupsHistory.length
+                },
+                tractors: {
+                    byPlant: {},
+                    enteredShop: tractorsHistory.filter((h) => h.newStatus === 'In Shop').length,
+                    exitedShop: tractorsHistory.filter((h) => h.oldStatus === 'In Shop').length,
+                    totalChanges: tractorsHistory.length
+                },
+                trailers: {
+                    byPlant: {},
+                    enteredShop: trailersHistory.filter((h) => h.newStatus === 'In Shop').length,
+                    exitedShop: trailersHistory.filter((h) => h.oldStatus === 'In Shop').length,
+                    totalChanges: trailersHistory.length
                 }
             }
 
@@ -592,19 +593,19 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                         plantName = 'Unknown'
                     }
                     return {
-                        week: r.week?.slice(0, 10),
-                        submittedAt: r.submitted_at,
+                        downMixers: r.data?.down_mixers || r.data?.downMixers || 0,
+                        helpReceivedFromOtherPlants: r.data?.help_received_from_other_plants || [],
+                        notes: r.data?.notes,
+                        operatorCount: r.data?.operators?.length || 0,
+                        operatorsSentToHelp: r.data?.operators_sent_to_help || [],
                         plant: plantCode || 'Unknown',
                         plantName: plantName,
-                        yardage: parseFloat(r.data?.yardage || 0),
+                        runnableMixers: r.data?.runnable_mixers || r.data?.runnableMixers || 0,
+                        submittedAt: r.submitted_at,
                         totalHours: parseFloat(r.data?.total_hours || 0),
                         totalYardsLost: parseFloat(r.data?.total_yards_lost || 0),
-                        operatorCount: r.data?.operators?.length || 0,
-                        runnableMixers: r.data?.runnable_mixers || r.data?.runnableMixers || 0,
-                        downMixers: r.data?.down_mixers || r.data?.downMixers || 0,
-                        notes: r.data?.notes,
-                        operatorsSentToHelp: r.data?.operators_sent_to_help || [],
-                        helpReceivedFromOtherPlants: r.data?.help_received_from_other_plants || []
+                        week: r.week?.slice(0, 10),
+                        yardage: parseFloat(r.data?.yardage || 0)
                     }
                 })
             if (plantManagerReports.length > 0) {
@@ -617,15 +618,15 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                         plantCode = userIdToPlantCode.get(r.user_id) || ''
                     }
                     return {
-                        week: r.week?.slice(0, 10),
-                        submittedAt: r.submitted_at,
                         plant: plantCode,
                         rows: (r.data?.rows || []).map((row) => ({
-                            date: row.date,
-                            avgStart: row.avgStart,
                             avgEnd: row.avgEnd,
+                            avgStart: row.avgStart,
+                            date: row.date,
                             loadsPerHour: row.loadsPerHour
-                        }))
+                        })),
+                        submittedAt: r.submitted_at,
+                        week: r.week?.slice(0, 10)
                     }
                 })
                 .filter((r) => {
@@ -635,60 +636,60 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
             const aggregateReports = allReports
                 .filter((r) => r.report_name === 'aggregate_production')
                 .map((r) => ({
-                    week: r.week?.slice(0, 10),
-                    submittedAt: r.submitted_at,
                     location: r.data?.location,
-                    materials: r.data?.materials || []
+                    materials: r.data?.materials || [],
+                    submittedAt: r.submitted_at,
+                    week: r.week?.slice(0, 10)
                 }))
             const rmiReports = allReports
                 .filter((r) => r.report_name === 'rmi')
                 .map((r) => ({
-                    week: r.week?.slice(0, 10),
+                    data: r.data,
                     submittedAt: r.submitted_at,
-                    data: r.data
+                    week: r.week?.slice(0, 10)
                 }))
 
             setContextData({
-                regionName,
-                selectedPlant,
-                currentDate: new Date().toISOString().slice(0, 10),
-                mixerStats,
-                tractorStats,
-                trailerStats,
-                equipmentStats,
-                pickupStats,
-                operatorStats,
-                mixersInShop,
-                tractorsInShop,
-                mixersSpare,
-                tractorsSpare,
+                aggregateReports,
+                allEquipmentList,
                 allMixersList,
+                allOperatorsList,
+                allPickupsList,
                 allTractorsList,
-                operatorsTraining,
-                operatorsPendingStart,
-                pendingListItems,
+                allTrailersList,
                 completedListItems,
+                currentDate: new Date().toISOString().slice(0, 10),
+                efficiencyReports,
+                equipmentHistory,
+                equipmentStats,
+                mixerStats,
+                mixersHistory,
+                mixersInShop,
+                mixersSpare,
+                operatorAssignmentHistory,
+                operatorStats,
+                operatorsPendingStart,
+                operatorsTraining,
+                pendingListItems,
+                pickupStats,
+                pickupsHistory,
+                plantManagerReports,
+                regionName,
+                rmiReports,
+                selectedPlant,
+                statusHistorySummary,
                 totalOpenMaintenanceIssues: 0,
                 totalServiceOverdue:
                     mixerStats.serviceOverdue +
                     tractorStats.serviceOverdue +
                     trailerStats.serviceOverdue +
                     equipmentStats.serviceOverdue,
-                statusHistorySummary,
-                mixersHistory,
+                tractorStats,
                 tractorsHistory,
-                trailersHistory,
-                equipmentHistory,
-                pickupsHistory,
-                operatorAssignmentHistory,
-                allOperatorsList,
-                allTrailersList,
-                allEquipmentList,
-                allPickupsList,
-                plantManagerReports,
-                efficiencyReports,
-                aggregateReports,
-                rmiReports
+                tractorsInShop,
+                tractorsSpare,
+                trailerStats,
+                trailersHistory
             })
         } catch (err) {
             console.error('Error fetching AI context:', err)
@@ -706,19 +707,19 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
 
         const userMessage = inputValue.trim()
         setInputValue('')
-        setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
+        setMessages((prev) => [...prev, { content: userMessage, role: 'user' }])
         setIsLoading(true)
 
         try {
-            const conversationHistory = [...messages, { role: 'user', content: userMessage }]
+            const conversationHistory = [...messages, { content: userMessage, role: 'user' }]
             const response = await AIService.askFollowUp(userMessage, conversationHistory, contextData || {})
-            setMessages((prev) => [...prev, { role: 'assistant', content: response }])
+            setMessages((prev) => [...prev, { content: response, role: 'assistant' }])
         } catch (err) {
             setMessages((prev) => [
                 ...prev,
                 {
-                    role: 'assistant',
-                    content: 'Sorry, I encountered an error. Please try again.'
+                    content: 'Sorry, I encountered an error. Please try again.',
+                    role: 'assistant'
                 }
             ])
         } finally {
@@ -746,160 +747,160 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
     if (!isOpen) return null
 
     const overlayStyle = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
         alignItems: 'flex-start',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        bottom: 0,
+        display: 'flex',
         justifyContent: 'flex-end',
+        left: 0,
         padding: '16px',
+        position: 'fixed',
+        right: 0,
+        top: 0,
         zIndex: 10000
     }
 
     const popupStyle = {
-        width: '420px',
-        maxWidth: 'calc(100vw - 32px)',
-        height: 'calc(100vh - 32px)',
-        maxHeight: '700px',
         backgroundColor: 'white',
         borderRadius: '16px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        overflow: 'hidden'
+        height: 'calc(100vh - 32px)',
+        maxHeight: '700px',
+        maxWidth: 'calc(100vw - 32px)',
+        overflow: 'hidden',
+        width: '420px'
     }
 
     const headerStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 20px',
-        borderBottom: '1px solid #e5e7eb',
         backgroundColor: '#f0f7ff',
-        borderRadius: '16px 16px 0 0'
+        borderBottom: '1px solid #e5e7eb',
+        borderRadius: '16px 16px 0 0',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '16px 20px'
     }
 
     const titleStyle = {
-        display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        fontWeight: 600,
+        color: '#1e3a5f',
+        display: 'flex',
         fontSize: '16px',
-        color: '#1e3a5f'
+        fontWeight: 600,
+        gap: '10px'
     }
 
     const iconButtonStyle = {
-        width: '32px',
-        height: '32px',
-        border: 'none',
+        alignItems: 'center',
         background: 'transparent',
+        border: 'none',
+        borderRadius: '8px',
         color: '#64748b',
         cursor: 'pointer',
-        borderRadius: '8px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+        height: '32px',
+        justifyContent: 'center',
+        width: '32px'
     }
 
     const messagesContainerStyle = {
-        flex: 1,
-        overflowY: 'auto',
-        padding: '16px',
+        backgroundColor: 'white',
         display: 'flex',
+        flex: 1,
         flexDirection: 'column',
         gap: '16px',
-        backgroundColor: 'white'
+        overflowY: 'auto',
+        padding: '16px'
     }
 
     const welcomeStyle = {
+        alignItems: 'center',
+        color: '#64748b',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        textAlign: 'center',
-        color: '#64748b',
         gap: '16px',
-        padding: '40px 20px'
+        height: '100%',
+        justifyContent: 'center',
+        padding: '40px 20px',
+        textAlign: 'center'
     }
 
     const suggestionButtonStyle = {
-        padding: '8px 14px',
         backgroundColor: '#f0f7ff',
         border: '1px solid #bfdbfe',
         borderRadius: '8px',
         color: '#1e3a5f',
-        fontSize: '12px',
         cursor: 'pointer',
-        fontWeight: 500
+        fontSize: '12px',
+        fontWeight: 500,
+        padding: '8px 14px'
     }
 
     const messageStyle = (isUser) => ({
         display: 'flex',
-        gap: '12px',
-        flexDirection: isUser ? 'row-reverse' : 'row'
+        flexDirection: isUser ? 'row-reverse' : 'row',
+        gap: '12px'
     })
 
     const messageIconStyle = (isUser) => ({
-        width: '32px',
-        height: '32px',
-        borderRadius: '50%',
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: isUser ? '#1e3a5f' : '#e2e8f0',
+        borderRadius: '50%',
+        color: isUser ? 'white' : '#64748b',
+        display: 'flex',
         flexShrink: 0,
         fontSize: '14px',
-        backgroundColor: isUser ? '#1e3a5f' : '#e2e8f0',
-        color: isUser ? 'white' : '#64748b'
+        height: '32px',
+        justifyContent: 'center',
+        width: '32px'
     })
 
     const messageContentStyle = (isUser) => ({
-        flex: 1,
-        padding: '12px 16px',
-        borderRadius: '12px',
         backgroundColor: isUser ? '#1e3a5f' : '#f1f5f9',
+        borderRadius: '12px',
         color: isUser ? 'white' : '#374151',
+        flex: 1,
         fontSize: '14px',
-        lineHeight: 1.6
+        lineHeight: 1.6,
+        padding: '12px 16px'
     })
 
     const inputContainerStyle = {
-        display: 'flex',
         alignItems: 'flex-end',
-        gap: '12px',
-        padding: '16px 20px',
+        backgroundColor: '#f9fafb',
         borderTop: '1px solid #e5e7eb',
-        backgroundColor: '#f9fafb'
+        display: 'flex',
+        gap: '12px',
+        padding: '16px 20px'
     }
 
     const textareaStyle = {
-        flex: 1,
-        padding: '12px 16px',
         border: '1px solid #e5e7eb',
         borderRadius: '12px',
-        fontSize: '14px',
-        resize: 'none',
-        outline: 'none',
+        flex: 1,
         fontFamily: 'inherit',
+        fontSize: '14px',
+        maxHeight: '120px',
         minHeight: '44px',
-        maxHeight: '120px'
+        outline: 'none',
+        padding: '12px 16px',
+        resize: 'none'
     }
 
     const sendButtonStyle = {
-        width: '44px',
-        height: '44px',
-        borderRadius: '12px',
-        border: 'none',
+        alignItems: 'center',
         backgroundColor: '#1e3a5f',
+        border: 'none',
+        borderRadius: '12px',
         color: 'white',
         cursor: 'pointer',
         display: 'flex',
-        alignItems: 'center',
+        height: '44px',
         justifyContent: 'center',
-        opacity: !inputValue.trim() || isLoading ? 0.5 : 1
+        opacity: !inputValue.trim() || isLoading ? 0.5 : 1,
+        width: '44px'
     }
 
     return (
@@ -910,7 +911,7 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                         <i className="fas fa-robot" style={{ color: '#1e3a5f', fontSize: '18px' }}></i>
                         <span>AI Assistant</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
                         <button style={iconButtonStyle} onClick={handleRefreshContext} title="Refresh data">
                             <i className="fas fa-sync-alt"></i>
                         </button>
@@ -927,9 +928,9 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                         <div style={welcomeStyle}>
                             <i
                                 className="fas fa-comments"
-                                style={{ fontSize: '48px', opacity: 0.4, color: '#94a3b8' }}
+                                style={{ color: '#94a3b8', fontSize: '48px', opacity: 0.4 }}
                             ></i>
-                            <p style={{ fontSize: '14px', lineHeight: 1.6, maxWidth: '280px', color: '#64748b' }}>
+                            <p style={{ color: '#64748b', fontSize: '14px', lineHeight: 1.6, maxWidth: '280px' }}>
                                 Ask me anything about your fleet, operators, reports, or operations.
                             </p>
                             <div
@@ -983,8 +984,8 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                                                 <p
                                                     key={lineIdx}
                                                     style={{
-                                                        margin: lineIdx > 0 ? '8px 0 0 0' : 0,
-                                                        color: isUser ? 'white' : '#374151'
+                                                        color: isUser ? 'white' : '#374151',
+                                                        margin: lineIdx > 0 ? '8px 0 0 0' : 0
                                                     }}
                                                 >
                                                     {line
@@ -1007,32 +1008,32 @@ export default function AIAgentPopup({ isOpen, onClose, regionName, regionCode, 
                                 <i className="fas fa-robot"></i>
                             </div>
                             <div style={messageContentStyle(false)}>
-                                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                     <span
                                         style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            borderRadius: '50%',
+                                            animation: 'bounce 1s infinite',
                                             backgroundColor: '#94a3b8',
-                                            animation: 'bounce 1s infinite'
+                                            borderRadius: '50%',
+                                            height: '8px',
+                                            width: '8px'
                                         }}
                                     ></span>
                                     <span
                                         style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            borderRadius: '50%',
+                                            animation: 'bounce 1s infinite 0.2s',
                                             backgroundColor: '#94a3b8',
-                                            animation: 'bounce 1s infinite 0.2s'
+                                            borderRadius: '50%',
+                                            height: '8px',
+                                            width: '8px'
                                         }}
                                     ></span>
                                     <span
                                         style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            borderRadius: '50%',
+                                            animation: 'bounce 1s infinite 0.4s',
                                             backgroundColor: '#94a3b8',
-                                            animation: 'bounce 1s infinite 0.4s'
+                                            borderRadius: '50%',
+                                            height: '8px',
+                                            width: '8px'
                                         }}
                                     ></span>
                                 </div>

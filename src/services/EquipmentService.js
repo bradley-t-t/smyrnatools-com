@@ -1,10 +1,10 @@
-import APIUtility from '../utils/APIUtility'
-import { UserService } from './UserService'
 import { Equipment } from '../models/equipment/Equipment'
-import { EquipmentHistory } from '../models/equipment/EquipmentHistory'
 import { EquipmentComment } from '../models/equipment/EquipmentComment'
-import { ValidationUtility } from '../utils/ValidationUtility'
+import { EquipmentHistory } from '../models/equipment/EquipmentHistory'
+import APIUtility from '../utils/APIUtility'
 import EquipmentUtility from '../utils/EquipmentUtility'
+import { ValidationUtility } from '../utils/ValidationUtility'
+import { UserService } from './UserService'
 
 class EquipmentServiceImpl {
     static async getAllEquipments() {
@@ -65,7 +65,7 @@ class EquipmentServiceImpl {
     }
 
     static async addEquipment(equipment, userId) {
-        const { res, json } = await APIUtility.post('/equipment-service/create', { userId, equipment })
+        const { res, json } = await APIUtility.post('/equipment-service/create', { equipment, userId })
         if (!res.ok) throw new Error(json?.error || 'Failed to create equipment')
         return json?.data ? new Equipment(json.data) : null
     }
@@ -88,13 +88,13 @@ class EquipmentServiceImpl {
             userId = typeof user === 'object' && user !== null ? user.id : user
         }
         if (!userId) throw new Error('User ID is required')
-        const { res, json } = await APIUtility.post('/equipment-service/update', { id, equipment, userId })
+        const { res, json } = await APIUtility.post('/equipment-service/update', { equipment, id, userId })
         if (!res.ok) {
             console.error('Equipment update failed:', {
-                status: res.status,
-                statusText: res.statusText,
                 error: json?.error,
-                fullResponse: json
+                fullResponse: json,
+                status: res.status,
+                statusText: res.statusText
             })
             throw new Error(json?.error || 'Failed to update equipment')
         }
@@ -104,9 +104,9 @@ class EquipmentServiceImpl {
                 window.dispatchEvent(
                     new CustomEvent('notifications-refresh', {
                         detail: {
-                            type: 'equipment',
                             id,
-                            plant: updated.assignedPlant
+                            plant: updated.assignedPlant,
+                            type: 'equipment'
                         }
                     })
                 )
@@ -132,11 +132,11 @@ class EquipmentServiceImpl {
         }
         if (!userId) userId = '00000000-0000-0000-0000-000000000000'
         const { res, json } = await APIUtility.post('/equipment-service/add-history', {
+            changedBy: userId,
             equipmentId,
             fieldName,
-            oldValue,
             newValue,
-            changedBy: userId
+            oldValue
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
         return json?.data
@@ -194,9 +194,9 @@ class EquipmentServiceImpl {
         if (!text?.trim()) throw new Error('Comment text is required')
         if (!author?.trim()) throw new Error('Author is required')
         const { res, json } = await APIUtility.post('/equipment-service/add-comment', {
+            author: author.trim(),
             equipmentId,
-            text: text.trim(),
-            author: author.trim()
+            text: text.trim()
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
         return json?.data ? EquipmentComment.fromRow(json.data) : null
@@ -292,9 +292,9 @@ class EquipmentServiceImpl {
                 window.dispatchEvent(
                     new CustomEvent('notifications-refresh', {
                         detail: {
-                            type: 'equipment',
                             id: equipmentId,
-                            plant: equipment.assignedPlant
+                            plant: equipment.assignedPlant,
+                            type: 'equipment'
                         }
                     })
                 )

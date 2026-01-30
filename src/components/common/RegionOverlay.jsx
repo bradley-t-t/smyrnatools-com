@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { UserService } from '../../services/UserService'
 import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
 
 function RegionOverlay() {
     const { preferences, setSelectedRegion, setRegionOverlayMinimized } = usePreferences()
@@ -99,92 +100,92 @@ function RegionOverlay() {
     if (!userId || loading) return null
 
     const overlayStyle = {
-        position: 'fixed',
         bottom: '24px',
         left: '24px',
+        position: 'fixed',
         zIndex: 1000
     }
 
     const minimizedPillStyle = {
-        display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        padding: '10px 16px',
         backgroundColor: '#1e3a5f',
-        color: 'white',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: '16px',
-        cursor: 'pointer',
         boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
+        color: 'white',
+        cursor: 'pointer',
+        display: 'flex',
+        gap: '10px',
+        padding: '10px 16px'
     }
 
     const panelStyle = {
         backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
         borderRadius: '16px',
         boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-        border: '1px solid #e5e7eb',
-        overflow: 'hidden',
-        minWidth: '260px'
+        minWidth: '260px',
+        overflow: 'hidden'
     }
 
     const headerStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '12px 16px',
         backgroundColor: '#1e3a5f',
+        borderRadius: '16px 16px 0 0',
         color: 'white',
-        borderRadius: '16px 16px 0 0'
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '12px 16px'
     }
 
     const headerTitleStyle = {
-        display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        display: 'flex',
         fontSize: '14px',
-        fontWeight: 600
+        fontWeight: 600,
+        gap: '10px'
     }
 
     const actionButtonStyle = {
-        width: '28px',
-        height: '28px',
-        border: 'none',
+        alignItems: 'center',
         background: 'rgba(255, 255, 255, 0.2)',
-        color: 'white',
+        border: 'none',
         borderRadius: '50%',
+        color: 'white',
         cursor: 'pointer',
         display: 'flex',
-        alignItems: 'center',
+        fontSize: '12px',
+        height: '28px',
         justifyContent: 'center',
-        fontSize: '12px'
+        width: '28px'
     }
 
     const bodyStyle = {
-        padding: '16px',
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        padding: '16px'
     }
 
     const selectStyle = {
-        width: '100%',
-        padding: '12px 16px',
-        borderRadius: '10px',
-        border: '1px solid #e5e7eb',
-        fontSize: '14px',
-        color: '#374151',
-        backgroundColor: '#f8fafc',
-        cursor: canSelectRegion ? 'pointer' : 'not-allowed',
-        opacity: canSelectRegion ? 1 : 0.7,
         appearance: 'none',
+        backgroundColor: '#f8fafc',
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-        backgroundRepeat: 'no-repeat',
         backgroundPosition: 'right 12px center',
-        backgroundSize: '16px'
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '16px',
+        border: '1px solid #e5e7eb',
+        borderRadius: '10px',
+        color: '#374151',
+        cursor: canSelectRegion ? 'pointer' : 'not-allowed',
+        fontSize: '14px',
+        opacity: canSelectRegion ? 1 : 0.7,
+        padding: '12px 16px',
+        width: '100%'
     }
 
     const noteStyle = {
-        marginTop: '10px',
-        fontSize: '12px',
         color: '#94a3b8',
+        fontSize: '12px',
+        marginTop: '10px',
         textAlign: 'center'
     }
 

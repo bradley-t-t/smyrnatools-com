@@ -1,8 +1,8 @@
 import { AuthService } from '../../services/AuthService'
-import { ProfileService } from '../../services/ProfileService'
-import { PlantService } from '../../services/PlantService'
-import { OperatorService } from '../../services/OperatorService'
 import { ListService } from '../../services/ListService'
+import { OperatorService } from '../../services/OperatorService'
+import { PlantService } from '../../services/PlantService'
+import { ProfileService } from '../../services/ProfileService'
 import { NetworkUtility } from '../../utils/NetworkUtility'
 
 export class AppState {
@@ -20,7 +20,7 @@ export class AppState {
         this.plantCode = ''
         this.isEmailValid = false
         this.passwordsMatch = true
-        this.passwordStrength = { value: '', color: '' }
+        this.passwordStrength = { color: '', value: '' }
         this.currentUser = null
         this.userProfile = null
         this.currentUserRole = ''
@@ -84,12 +84,12 @@ export class AppState {
 
         this.passwordStrength =
             this.password.length === 0
-                ? { value: '', color: '' }
+                ? { color: '', value: '' }
                 : score < 3
-                  ? { value: 'weak', color: '#e53e3e' }
+                  ? { color: '#e53e3e', value: 'weak' }
                   : score < 5
-                    ? { value: 'medium', color: '#ecc94b' }
-                    : { value: 'strong', color: '#38a169' }
+                    ? { color: '#ecc94b', value: 'medium' }
+                    : { color: '#38a169', value: 'strong' }
     }
 
     async signIn() {
@@ -148,7 +148,7 @@ export class AppState {
         this.errorMessage = ''
         this.isEmailValid = false
         this.passwordsMatch = true
-        this.passwordStrength = { value: '', color: '' }
+        this.passwordStrength = { color: '', value: '' }
     }
 
     async fetchUserProfile() {

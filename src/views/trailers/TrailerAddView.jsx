@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { TrailerService } from '../../services/TrailerService'
-import Trailer from '../../models/trailers/Trailer'
-import { AuthService } from '../../services/AuthService'
+
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
+import Trailer from '../../models/trailers/Trailer'
+import { AuthService } from '../../services/AuthService'
+import { TrailerService } from '../../services/TrailerService'
 
 function TrailerAddView({ plants, onClose, onTrailerAdded }) {
     const [trailerNumber, setTrailerNumber] = useState('')
@@ -59,12 +60,12 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
 
             const now = formatDateForDb(new Date())
             const newTrailer = new Trailer({
-                trailer_number: trailerNumber,
                 assigned_plant: assignedPlant,
-                trailer_type: trailerType,
                 assigned_tractor: null,
                 cleanliness_rating: cleanlinessRating,
                 created_at: now,
+                trailer_number: trailerNumber,
+                trailer_type: trailerType,
                 updated_at: now,
                 updated_by: userId,
                 updated_last: now

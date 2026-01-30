@@ -1,25 +1,26 @@
 import React, { useCallback, useEffect, useRef, useState, useTransition } from 'react'
-import { RegionService } from '../../services/RegionService'
-import { MixerService } from '../../services/MixerService'
-import { TractorService } from '../../services/TractorService'
-import TrailerService from '../../services/TrailerService'
-import { EquipmentService } from '../../services/EquipmentService'
-import { PickupTruckService } from '../../services/PickupTruckService'
-import { OperatorService } from '../../services/OperatorService'
-import { ReportService } from '../../services/ReportService'
-import { supabase } from '../../services/DatabaseService'
-import VerifiedUtility from '../../utils/VerifiedUtility'
-import { UserService } from '../../services/UserService'
-import GrammarUtility from '../../utils/GrammarUtility'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import { AIService } from '../../services/AIService'
+import { supabase } from '../../services/DatabaseService'
+import { EquipmentService } from '../../services/EquipmentService'
+import { MixerService } from '../../services/MixerService'
+import { OperatorService } from '../../services/OperatorService'
+import { PickupTruckService } from '../../services/PickupTruckService'
+import { RegionService } from '../../services/RegionService'
+import { ReportService } from '../../services/ReportService'
+import { TractorService } from '../../services/TractorService'
+import TrailerService from '../../services/TrailerService'
+import { UserService } from '../../services/UserService'
+import GrammarUtility from '../../utils/GrammarUtility'
+import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
+import VerifiedUtility from '../../utils/VerifiedUtility'
+import EquipmentsView from '../equipment/EquipmentsView'
 import MixersView from '../mixers/MixersView'
+import OperatorsView from '../operators/OperatorsView'
 import TractorsView from '../tractors/TractorsView'
 import TrailersView from '../trailers/TrailersView'
-import EquipmentsView from '../equipment/EquipmentsView'
-import OperatorsView from '../operators/OperatorsView'
 
 export default function DashboardView() {
     const { preferences } = usePreferences()
@@ -53,71 +54,71 @@ export default function DashboardView() {
     const [embeddedView, setEmbeddedView] = useState(null)
     const [embeddedViewSearch, setEmbeddedViewSearch] = useState('')
     const [expandedSections, setExpandedSections] = useState({
-        unverifiedMixers: false,
-        overdueService: false,
         assetsWithIssues: false,
         longTermShop: false,
-        unassignedOperators: false,
+        overdueService: false,
         pendingOperators: false,
-        trainingOperators: false
+        trainingOperators: false,
+        unassignedOperators: false,
+        unverifiedMixers: false
     })
     const [plantNotifications, setPlantNotifications] = useState({
-        unverifiedMixers: [],
-        pendingOperators: [],
-        assetsWithMostIssues: [],
-        overdueService: [],
-        trainingOperators: [],
-        shopIssue: null,
-        unassignedOperators: [],
-        longTermShopAssets: [],
-        leaderboardMetrics: null,
         aiSummary: null,
+        aiSummaryFailed: false,
         aiSummaryLoading: false,
-        aiSummaryFailed: false
+        assetsWithMostIssues: [],
+        leaderboardMetrics: null,
+        longTermShopAssets: [],
+        overdueService: [],
+        pendingOperators: [],
+        shopIssue: null,
+        trainingOperators: [],
+        unassignedOperators: [],
+        unverifiedMixers: []
     })
     const [stats, setStats] = useState({
-        mixers: {
-            total: 0,
-            active: 0,
-            spare: 0,
-            shop: 0,
-            verified: 0,
-            verifiedPercent: 0,
-            issues: 0,
-            comments: 0,
-            overdue: 0,
-            allocationPercent: 0
-        },
-        tractors: {
-            total: 0,
-            active: 0,
-            spare: 0,
-            shop: 0,
-            verified: 0,
-            verifiedPercent: 0,
-            issues: 0,
-            comments: 0,
-            overdue: 0,
-            allocationPercent: 0
-        },
-        trailers: { total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0, allocationPercent: 0 },
-        equipment: { total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0, allocationPercent: 0 },
-        pickups: { total: 0, active: 0, shop: 0, stationary: 0, spare: 0, sold: 0, retired: 0, allocationPercent: 0 },
-        operators: {
-            total: 0,
-            active: 0,
-            lightDuty: 0,
-            assigned: 0,
-            mixerAssigned: 0,
-            tractorAssigned: 0,
-            unassigned: 0,
-            pending: 0
-        },
+        equipment: { active: 0, allocationPercent: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 },
         fleetTotal: 0,
+        mixers: {
+            active: 0,
+            allocationPercent: 0,
+            comments: 0,
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            verified: 0,
+            verifiedPercent: 0
+        },
         openIssuesTotal: 0,
+        operators: {
+            active: 0,
+            assigned: 0,
+            lightDuty: 0,
+            mixerAssigned: 0,
+            pending: 0,
+            total: 0,
+            tractorAssigned: 0,
+            unassigned: 0
+        },
+        overallAllocationPercent: 0,
         overdueTotal: 0,
-        verificationAverage: 0,
-        overallAllocationPercent: 0
+        pickups: { active: 0, allocationPercent: 0, retired: 0, shop: 0, sold: 0, spare: 0, stationary: 0, total: 0 },
+        tractors: {
+            active: 0,
+            allocationPercent: 0,
+            comments: 0,
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            verified: 0,
+            verifiedPercent: 0
+        },
+        trailers: { active: 0, allocationPercent: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 },
+        verificationAverage: 0
     })
     const [trainingOperators, setTrainingOperators] = useState([])
     const [trainingCollapsed, setTrainingCollapsed] = useState(true)
@@ -127,11 +128,11 @@ export default function DashboardView() {
     const [lightDutyCollapsed, setLightDutyCollapsed] = useState(true)
     const [assetIssueDetails, setAssetIssueDetails] = useState([])
     const [statusHistoryData, setStatusHistoryData] = useState({
-        mixers: [],
-        tractors: [],
-        trailers: [],
         equipment: [],
-        pickups: []
+        mixers: [],
+        pickups: [],
+        tractors: [],
+        trailers: []
     })
     const [historyStartDate, setHistoryStartDate] = useState('')
     const [historyEndDate, setHistoryEndDate] = useState('')
@@ -149,81 +150,81 @@ export default function DashboardView() {
     const [isFiltering, startTransition] = useTransition()
     const filterTimeoutRef = useRef(null)
     const plantSetRef = useRef(new Set())
-    const countsRef = useRef({ mixers: {}, tractors: {}, trailers: {}, equipment: {} })
+    const countsRef = useRef({ equipment: {}, mixers: {}, tractors: {}, trailers: {} })
     const historyRecordsRef = useRef({
-        mixers: [],
-        tractors: [],
-        trailers: [],
         equipment: [],
-        pickups: []
+        mixers: [],
+        pickups: [],
+        tractors: [],
+        trailers: []
     })
 
     const slimMixer = useCallback(
         (m) => ({
-            id: m.id,
-            status: m.status,
             assignedOperator: m.assignedOperator,
+            assignedPlant: m.assignedPlant || m.plantCode,
+            cleanlinessRating: m.cleanlinessRating || m.cleanliness_rating || 0,
+            downInYard: m.downInYard || m.down_in_yard || false,
+            id: m.id,
             lastServiceDate: m.lastServiceDate,
-            updatedLast: m.updatedLast,
+            plantCode: m.assignedPlant || m.plantCode,
+            status: m.status,
+            truckNumber: m.truckNumber || m.truck_number || '',
             updatedAt: m.updatedAt,
             updatedBy: m.updatedBy,
-            plantCode: m.assignedPlant || m.plantCode,
-            assignedPlant: m.assignedPlant || m.plantCode,
-            truckNumber: m.truckNumber || m.truck_number || '',
-            vin: m.vin || '',
-            cleanlinessRating: m.cleanlinessRating || m.cleanliness_rating || 0,
-            downInYard: m.downInYard || m.down_in_yard || false
+            updatedLast: m.updatedLast,
+            vin: m.vin || ''
         }),
         []
     )
     const slimTractor = useCallback(
         (t) => ({
-            id: t.id,
-            status: t.status,
             assignedOperator: t.assignedOperator,
+            assignedPlant: t.assignedPlant || t.plantCode,
+            id: t.id,
             lastServiceDate: t.lastServiceDate,
-            updatedLast: t.updatedLast,
+            plantCode: t.assignedPlant || t.plantCode,
+            status: t.status,
+            truckNumber: t.truckNumber || t.truck_number || '',
             updatedAt: t.updatedAt,
             updatedBy: t.updatedBy,
-            plantCode: t.assignedPlant || t.plantCode,
-            assignedPlant: t.assignedPlant || t.plantCode,
-            truckNumber: t.truckNumber || t.truck_number || '',
+            updatedLast: t.updatedLast,
             vin: t.vin || ''
         }),
         []
     )
     const slimTrailer = useCallback(
         (t) => ({
+            assignedPlant: t.assignedPlant || t.plantCode,
             id: t.id,
-            status: t.status,
+            identifyingNumber: t.trailerNumber || t.trailer_number || t.truck_number || t.asset_number || '',
             lastServiceDate: t.lastServiceDate,
             plantCode: t.assignedPlant || t.plantCode,
-            assignedPlant: t.assignedPlant || t.plantCode,
-            identifyingNumber: t.trailerNumber || t.trailer_number || t.truck_number || t.asset_number || ''
+            status: t.status
         }),
         []
     )
     const slimEquipment = useCallback(
         (e) => ({
+            assignedPlant: e.assignedPlant || e.plantCode,
             id: e.id,
-            status: e.status,
+            identifyingNumber: e.identifyingNumber || e.identifying_number || e.asset_number || e.truck_number || '',
             lastServiceDate: e.lastServiceDate,
             plantCode: e.assignedPlant || e.plantCode,
-            assignedPlant: e.assignedPlant || e.plantCode,
-            identifyingNumber: e.identifyingNumber || e.identifying_number || e.asset_number || e.truck_number || ''
+            status: e.status
         }),
         []
     )
     const slimPickup = useCallback(
-        (p) => ({ id: p.id, status: p.status, plantCode: p.assignedPlant || p.plantCode }),
+        (p) => ({ id: p.id, plantCode: p.assignedPlant || p.plantCode, status: p.status }),
         []
     )
     const slimOperator = useCallback(
         (o) => ({
-            id: o.id,
             employeeId: o.employeeId,
-            status: o.status,
-            plantCode: o.plantCode
+            id: o.id,
+            plantCode: o.plantCode,
+            status: o.status
         }),
         []
     )
@@ -394,9 +395,9 @@ export default function DashboardView() {
             const entries = Object.entries(statusDaysMap)
                 .filter(([status]) => status !== 'Retired')
                 .map(([status, days]) => ({
-                    status,
                     days,
-                    percentage: ((days / totalDays) * 100).toFixed(1)
+                    percentage: ((days / totalDays) * 100).toFixed(1),
+                    status
                 }))
                 .sort((a, b) => b.days - a.days)
 
@@ -435,20 +436,20 @@ export default function DashboardView() {
         }
         plantSetRef.current = plantSet
         const filterActive = plantSet.size > 0
-        let mixersTotals = { total: 0, active: 0, spare: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0 }
-        let tractorsTotals = { total: 0, active: 0, spare: 0, shop: 0, verified: 0, issues: 0, comments: 0, overdue: 0 }
-        let trailersTotals = { total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0 }
-        let equipmentTotals = { total: 0, active: 0, spare: 0, shop: 0, issues: 0, comments: 0, overdue: 0 }
-        let pickupsTotals = { total: 0, active: 0, shop: 0, stationary: 0, spare: 0, sold: 0, retired: 0 }
+        let mixersTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0, verified: 0 }
+        let tractorsTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0, verified: 0 }
+        let trailersTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 }
+        let equipmentTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 }
+        let pickupsTotals = { active: 0, retired: 0, shop: 0, sold: 0, spare: 0, stationary: 0, total: 0 }
         let operatorsTotals = {
-            total: 0,
             active: 0,
-            lightDuty: 0,
             assigned: 0,
+            lightDuty: 0,
             mixerAssigned: 0,
+            pending: 0,
+            total: 0,
             tractorAssigned: 0,
-            unassigned: 0,
-            pending: 0
+            unassigned: 0
         }
         const mixerAssignedIds = new Set()
         const tractorAssignedIds = new Set()
@@ -606,25 +607,25 @@ export default function DashboardView() {
             ? Math.round((overallActiveNumerator / overallAvailable) * 100)
             : 0
         setStats({
+            equipment: { ...equipmentTotals, allocationPercent: equipmentAllocationPercent },
+            fleetTotal,
             mixers: {
                 ...mixersTotals,
-                verifiedPercent: mixersVerifiedPercent,
-                allocationPercent: mixersAllocationPercent
+                allocationPercent: mixersAllocationPercent,
+                verifiedPercent: mixersVerifiedPercent
             },
+            openIssuesTotal,
+            operators: operatorsTotals,
+            overallAllocationPercent,
+            overdueTotal,
+            pickups: { ...pickupsTotals, allocationPercent: pickupsAllocationPercent },
             tractors: {
                 ...tractorsTotals,
-                verifiedPercent: tractorsVerifiedPercent,
-                allocationPercent: tractorsAllocationPercent
+                allocationPercent: tractorsAllocationPercent,
+                verifiedPercent: tractorsVerifiedPercent
             },
             trailers: { ...trailersTotals, allocationPercent: trailersAllocationPercent },
-            equipment: { ...equipmentTotals, allocationPercent: equipmentAllocationPercent },
-            pickups: { ...pickupsTotals, allocationPercent: pickupsAllocationPercent },
-            operators: operatorsTotals,
-            fleetTotal,
-            openIssuesTotal,
-            overdueTotal,
-            verificationAverage: verificationAvg,
-            overallAllocationPercent
+            verificationAverage: verificationAvg
         })
         prevSnapshotRef.current = { fleet: fleetTotal }
     }, [dashboardPlant, regionPlants, allPlants, dashboardRegionCode])
@@ -697,93 +698,93 @@ export default function DashboardView() {
                           .in('equipment_id', equipmentIds)
                     : Promise.resolve({ data: [] })
             ])
-            const counts = { mixers: {}, tractors: {}, trailers: {}, equipment: {} }
+            const counts = { equipment: {}, mixers: {}, tractors: {}, trailers: {} }
             const issueDetails = []
             const mixersMap = new Map(allMixersRef.current.map((a) => [a.id, a]))
             const tractorsMap = new Map(allTractorsRef.current.map((a) => [a.id, a]))
             const trailersMap = new Map(allTrailersRef.current.map((a) => [a.id, a]))
             const equipmentMap = new Map(allEquipmentRef.current.map((a) => [a.id, a]))
             ;(mMaint.data || []).forEach((r) => {
-                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || { issues: 0, comments: 0 }
+                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || { comments: 0, issues: 0 }
                 counts.mixers[r.mixer_id].issues++
                 const a = mixersMap.get(r.mixer_id)
                 const ident = a?.truckNumber || a?.vin || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
                 const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
-                    type: 'Mixer',
                     assetId: r.mixer_id,
+                    description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
-                    description: desc || 'Issue'
+                    type: 'Mixer'
                 })
             })
             const mComData = mCom.data || []
             mComData.forEach((r) => {
-                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || { issues: 0, comments: 0 }
+                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || { comments: 0, issues: 0 }
                 counts.mixers[r.mixer_id].comments++
             })
             const tMaintData = tMaint.data || []
             tMaintData.forEach((r) => {
-                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || { issues: 0, comments: 0 }
+                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || { comments: 0, issues: 0 }
                 counts.tractors[r.tractor_id].issues++
                 const a = tractorsMap.get(r.tractor_id)
                 const ident = a?.truckNumber || a?.vin || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
                 const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
-                    type: 'Tractor',
                     assetId: r.tractor_id,
+                    description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
-                    description: desc || 'Issue'
+                    type: 'Tractor'
                 })
             })
             const tComData = tCom.data || []
             tComData.forEach((r) => {
-                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || { issues: 0, comments: 0 }
+                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || { comments: 0, issues: 0 }
                 counts.tractors[r.tractor_id].comments++
             })
             const trMaintData = trMaint.data || []
             trMaintData.forEach((r) => {
-                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || { issues: 0, comments: 0 }
+                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || { comments: 0, issues: 0 }
                 counts.trailers[r.trailer_id].issues++
                 const a = trailersMap.get(r.trailer_id)
                 const ident = a?.identifyingNumber || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
                 const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
-                    type: 'Trailer',
                     assetId: r.trailer_id,
+                    description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
-                    description: desc || 'Issue'
+                    type: 'Trailer'
                 })
             })
             const trComData = trCom.data || []
             trComData.forEach((r) => {
-                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || { issues: 0, comments: 0 }
+                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || { comments: 0, issues: 0 }
                 counts.trailers[r.trailer_id].comments++
             })
             const eMaintData = eMaint.data || []
             eMaintData.forEach((r) => {
-                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || { issues: 0, comments: 0 }
+                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || { comments: 0, issues: 0 }
                 counts.equipment[r.equipment_id].issues++
                 const a = equipmentMap.get(r.equipment_id)
                 const ident = a?.identifyingNumber || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
                 const desc = GrammarUtility.cleanDescription(raw || 'Issue')
                 issueDetails.push({
-                    type: 'Equipment',
                     assetId: r.equipment_id,
+                    description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
-                    description: desc || 'Issue'
+                    type: 'Equipment'
                 })
             })
             const eComData = eCom.data || []
             eComData.forEach((r) => {
-                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || { issues: 0, comments: 0 }
+                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || { comments: 0, issues: 0 }
                 counts.equipment[r.equipment_id].comments++
             })
             countsRef.current = counts
@@ -959,10 +960,10 @@ export default function DashboardView() {
                         return {
                             id: o.employeeId,
                             operatorName: o.name || '',
-                            trainerName: trainer?.name || '',
-                            trainerPlant: trainer?.plantCode || '',
+                            operatorPlant: o.plantCode || '',
                             operatorPosition: o.position || '',
-                            operatorPlant: o.plantCode || ''
+                            trainerName: trainer?.name || '',
+                            trainerPlant: trainer?.plantCode || ''
                         }
                     })
                 setTrainingOperators(training)
@@ -974,8 +975,8 @@ export default function DashboardView() {
                             id: o.employeeId,
                             operatorName: o.name || '',
                             operatorPlant: o.plantCode || '',
-                            trainerPlant: trainer?.plantCode || '',
-                            pendingDate: o.pendingStartDate || ''
+                            pendingDate: o.pendingStartDate || '',
+                            trainerPlant: trainer?.plantCode || ''
                         }
                     })
                 setPendingStartOperators(pending)
@@ -994,14 +995,14 @@ export default function DashboardView() {
                     sessionStorage.setItem(
                         CACHE_KEY,
                         JSON.stringify({
-                            savedAt: Date.now(),
+                            equipment: allEquipmentRef.current,
                             lastUpdated: fetchedAt.toISOString(),
                             mixers: allMixersRef.current,
-                            tractors: allTractorsRef.current,
-                            trailers: allTrailersRef.current,
-                            equipment: allEquipmentRef.current,
+                            operators: allOperatorsRef.current,
                             pickups: allPickupsRef.current,
-                            operators: allOperatorsRef.current
+                            savedAt: Date.now(),
+                            tractors: allTractorsRef.current,
+                            trailers: allTrailersRef.current
                         })
                     )
                 } catch {}
@@ -1107,7 +1108,7 @@ export default function DashboardView() {
                     !VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy)
             )
             .slice(0, 10)
-            .map((m) => ({ id: m.id, truckNumber: m.truckNumber, plantCode: m.plantCode, type: 'Mixer' }))
+            .map((m) => ({ id: m.id, plantCode: m.plantCode, truckNumber: m.truckNumber, type: 'Mixer' }))
 
         const pendingOps = pendingStartOperators
             .filter(
@@ -1153,36 +1154,36 @@ export default function DashboardView() {
                 .map((m) => ({
                     id: m.id,
                     identifier: m.truckNumber,
-                    type: 'Mixer',
+                    lastServiceDate: m.lastServiceDate,
                     plantCode: m.plantCode,
-                    lastServiceDate: m.lastServiceDate
+                    type: 'Mixer'
                 })),
             ...allTractorsRef.current
                 .filter((t) => t.status !== 'Retired' && consider(t.plantCode) && isServiceOverdue(t.lastServiceDate))
                 .map((t) => ({
                     id: t.id,
                     identifier: t.truckNumber,
-                    type: 'Tractor',
+                    lastServiceDate: t.lastServiceDate,
                     plantCode: t.plantCode,
-                    lastServiceDate: t.lastServiceDate
+                    type: 'Tractor'
                 })),
             ...allTrailersRef.current
                 .filter((t) => t.status !== 'Retired' && consider(t.plantCode) && isServiceOverdue(t.lastServiceDate))
                 .map((t) => ({
                     id: t.id,
                     identifier: t.identifyingNumber,
-                    type: 'Trailer',
+                    lastServiceDate: t.lastServiceDate,
                     plantCode: t.plantCode,
-                    lastServiceDate: t.lastServiceDate
+                    type: 'Trailer'
                 })),
             ...allEquipmentRef.current
                 .filter((e) => e.status !== 'Retired' && consider(e.plantCode) && isServiceOverdue(e.lastServiceDate))
                 .map((e) => ({
                     id: e.id,
                     identifier: e.identifyingNumber,
-                    type: 'Equipment',
+                    lastServiceDate: e.lastServiceDate,
                     plantCode: e.plantCode,
-                    lastServiceDate: e.lastServiceDate
+                    type: 'Equipment'
                 }))
         ].slice(0, 5)
 
@@ -1192,12 +1193,12 @@ export default function DashboardView() {
         const shopIssue =
             (spareMixers < 1 && inShopMixers >= 1) || inShopMixers > 2
                 ? {
-                      spareCount: spareMixers,
                       inShopCount: inShopMixers,
                       inShopMixers: filteredMixers
                           .filter((m) => m.status === 'In Shop')
                           .slice(0, 3)
-                          .map((m) => m.truckNumber || 'Unknown')
+                          .map((m) => m.truckNumber || 'Unknown'),
+                      spareCount: spareMixers
                   }
                 : null
 
@@ -1220,13 +1221,13 @@ export default function DashboardView() {
                     if (shopEntryDate && shopEntryDate <= sixDaysAgo) {
                         const daysInShop = Math.floor((Date.now() - shopEntryDate.getTime()) / 86400000)
                         return {
+                            daysInShop,
+                            downInYard: asset.downInYard || false,
+                            enteredShop: shopEntryDate.toISOString(),
                             id: asset.id,
                             identifier: asset[identifierField] || 'Unknown',
-                            type,
                             plantCode: asset.plantCode,
-                            enteredShop: shopEntryDate.toISOString(),
-                            daysInShop,
-                            downInYard: asset.downInYard || false
+                            type
                         }
                     }
                     return null
@@ -1262,14 +1263,14 @@ export default function DashboardView() {
 
         setPlantNotifications((prev) => ({
             ...prev,
-            unverifiedMixers,
-            pendingOperators: pendingOps,
             assetsWithMostIssues: topIssueAssets,
+            longTermShopAssets: longTermShop,
             overdueService: overdueAssets,
-            trainingOperators: trainingOps,
+            pendingOperators: pendingOps,
             shopIssue,
+            trainingOperators: trainingOps,
             unassignedOperators: unassignedOps,
-            longTermShopAssets: longTermShop
+            unverifiedMixers
         }))
     }, [
         dataReady,
@@ -1377,14 +1378,14 @@ export default function DashboardView() {
                 for (const plantCode of Object.keys(userIdsByPlant)) {
                     const plantReports = filteredReports.filter((r) => userIdsByPlant[plantCode].includes(r.user_id))
                     const fleetData = fleetCountsByPlant[plantCode] || {
-                        mixers: 0,
-                        tractors: 0,
-                        trailers: 0,
+                        avgFleetCleanliness: 0,
                         equipment: 0,
+                        mixerOperators: 1,
+                        mixers: 0,
                         operators: 0,
                         totalAssets: 0,
-                        avgFleetCleanliness: 0,
-                        mixerOperators: 1
+                        tractors: 0,
+                        trailers: 0
                     }
 
                     const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
@@ -1427,16 +1428,16 @@ export default function DashboardView() {
                     setPlantNotifications((prev) => ({
                         ...prev,
                         leaderboardMetrics: {
-                            rank: plantRank,
-                            totalPlants: sortedByEfficiency.length,
-                            efficiency: plantMetrics.avgEfficiency,
-                            rawYPH: plantMetrics.rawYPH,
                             adjustedYPH: plantMetrics.avgYPH,
+                            avgCleanliness: plantMetrics.avgFleetCleanliness || 0,
+                            efficiency: plantMetrics.avgEfficiency,
                             helpGiven: plantMetrics.helpGiven,
                             helpReceived: plantMetrics.helpReceived,
                             netHelp: plantMetrics.netHelp,
-                            avgCleanliness: plantMetrics.avgFleetCleanliness || 0,
-                            safetyIncidents: plantMetrics.safetyReportsCount || 0
+                            rank: plantRank,
+                            rawYPH: plantMetrics.rawYPH,
+                            safetyIncidents: plantMetrics.safetyReportsCount || 0,
+                            totalPlants: sortedByEfficiency.length
                         }
                     }))
                 }
@@ -1502,7 +1503,7 @@ export default function DashboardView() {
     const handleRegenerateAISummary = useCallback(() => {
         if (!dashboardPlant) return
         clearAISummaryCache(dashboardPlant)
-        setPlantNotifications((prev) => ({ ...prev, aiSummary: null, aiSummaryLoading: false, aiSummaryFailed: false }))
+        setPlantNotifications((prev) => ({ ...prev, aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false }))
         setForceRegenerateAI((prev) => prev + 1)
     }, [dashboardPlant, clearAISummaryCache])
 
@@ -1516,8 +1517,8 @@ export default function DashboardView() {
                 setPlantNotifications((prev) => ({
                     ...prev,
                     aiSummary: cachedSummary,
-                    aiSummaryLoading: false,
-                    aiSummaryFailed: false
+                    aiSummaryFailed: false,
+                    aiSummaryLoading: false
                 }))
                 return
             }
@@ -1526,7 +1527,7 @@ export default function DashboardView() {
         let cancelled = false
 
         async function generateAISummary() {
-            setPlantNotifications((prev) => ({ ...prev, aiSummaryLoading: true, aiSummaryFailed: false }))
+            setPlantNotifications((prev) => ({ ...prev, aiSummaryFailed: false, aiSummaryLoading: true }))
 
             try {
                 const plantSet = plantSetRef.current
@@ -1541,33 +1542,33 @@ export default function DashboardView() {
                           mixersWithCleanliness.length
                         : 0
                 const cleanlinessBreakdown = {
+                    average: activeMixers.filter((m) => m.cleanlinessRating === 3).length,
                     excellent: activeMixers.filter((m) => m.cleanlinessRating === 5).length,
                     good: activeMixers.filter((m) => m.cleanlinessRating === 4).length,
-                    average: activeMixers.filter((m) => m.cleanlinessRating === 3).length,
                     poor: activeMixers.filter((m) => m.cleanlinessRating > 0 && m.cleanlinessRating < 3).length,
                     unrated: activeMixers.filter((m) => !m.cleanlinessRating || m.cleanlinessRating === 0).length
                 }
 
                 const summary = await AIService.generatePlantSummary({
-                    plantCode: dashboardPlant,
-                    leaderboardMetrics: plantNotifications.leaderboardMetrics,
-                    overdueService: plantNotifications.overdueService,
-                    shopIssue: plantNotifications.shopIssue,
-                    unassignedOperators: plantNotifications.unassignedOperators,
-                    pendingOperators: plantNotifications.pendingOperators,
-                    trainingOperators: plantNotifications.trainingOperators,
                     assetsWithMostIssues: plantNotifications.assetsWithMostIssues,
-                    longTermShopAssets: plantNotifications.longTermShopAssets,
-                    userContext: {
-                        roleName: userRoleName,
-                        roleWeight: userRoleWeight,
-                        assignedPlant: userPlantCode,
-                        isViewingOwnPlant: userPlantCode === dashboardPlant
-                    },
                     fleetCleanliness: {
                         average: avgCleanliness,
-                        totalActiveMixers: activeMixers.length,
-                        breakdown: cleanlinessBreakdown
+                        breakdown: cleanlinessBreakdown,
+                        totalActiveMixers: activeMixers.length
+                    },
+                    leaderboardMetrics: plantNotifications.leaderboardMetrics,
+                    longTermShopAssets: plantNotifications.longTermShopAssets,
+                    overdueService: plantNotifications.overdueService,
+                    pendingOperators: plantNotifications.pendingOperators,
+                    plantCode: dashboardPlant,
+                    shopIssue: plantNotifications.shopIssue,
+                    trainingOperators: plantNotifications.trainingOperators,
+                    unassignedOperators: plantNotifications.unassignedOperators,
+                    userContext: {
+                        assignedPlant: userPlantCode,
+                        isViewingOwnPlant: userPlantCode === dashboardPlant,
+                        roleName: userRoleName,
+                        roleWeight: userRoleWeight
                     }
                 })
 
@@ -1577,15 +1578,15 @@ export default function DashboardView() {
                         setPlantNotifications((prev) => ({
                             ...prev,
                             aiSummary: summary,
-                            aiSummaryLoading: false,
-                            aiSummaryFailed: false
+                            aiSummaryFailed: false,
+                            aiSummaryLoading: false
                         }))
                     } else {
                         setPlantNotifications((prev) => ({
                             ...prev,
                             aiSummary: null,
-                            aiSummaryLoading: false,
-                            aiSummaryFailed: true
+                            aiSummaryFailed: true,
+                            aiSummaryLoading: false
                         }))
                         setTimeout(() => {
                             if (!cancelled) {
@@ -1600,8 +1601,8 @@ export default function DashboardView() {
                     setPlantNotifications((prev) => ({
                         ...prev,
                         aiSummary: null,
-                        aiSummaryLoading: false,
-                        aiSummaryFailed: true
+                        aiSummaryFailed: true,
+                        aiSummaryLoading: false
                     }))
                     setTimeout(() => {
                         if (!cancelled) {
@@ -1706,11 +1707,11 @@ export default function DashboardView() {
             ])
 
             historyRecordsRef.current = {
-                mixers: mixersHist.data || [],
-                tractors: tractorsHist.data || [],
-                trailers: trailersHist.data || [],
                 equipment: equipmentHist.data || [],
-                pickups: pickupsHist.data || []
+                mixers: mixersHist.data || [],
+                pickups: pickupsHist.data || [],
+                tractors: tractorsHist.data || [],
+                trailers: trailersHist.data || []
             }
 
             const region = RegionService.getRegionByCode(dashboardRegionCode)
@@ -1826,11 +1827,11 @@ export default function DashboardView() {
             )
 
             setStatusHistoryData({
-                mixers: mixersData,
-                tractors: tractorsData,
-                trailers: trailersData,
                 equipment: equipmentData,
-                pickups: pickupsData
+                mixers: mixersData,
+                pickups: pickupsData,
+                tractors: tractorsData,
+                trailers: trailersData
             })
             setHistoryLoaded(true)
         } catch (err) {}
@@ -1931,11 +1932,11 @@ export default function DashboardView() {
             )
 
             setStatusHistoryData({
-                mixers: mixersData,
-                tractors: tractorsData,
-                trailers: trailersData,
                 equipment: equipmentData,
-                pickups: pickupsData
+                mixers: mixersData,
+                pickups: pickupsData,
+                tractors: tractorsData,
+                trailers: trailersData
             })
         }
     }, [
@@ -2122,15 +2123,15 @@ export default function DashboardView() {
     const Pill = ({ children }) => (
         <span
             style={{
+                backgroundColor: '#e5e7eb',
+                borderRadius: '16px',
+                color: '#374151',
                 display: 'inline-block',
                 fontSize: '12px',
-                padding: '4px 10px',
-                borderRadius: '16px',
-                marginRight: '6px',
+                fontWeight: 500,
                 marginBottom: '6px',
-                backgroundColor: '#e5e7eb',
-                color: '#374151',
-                fontWeight: 500
+                marginRight: '6px',
+                padding: '4px 10px'
             }}
         >
             {children}
@@ -2139,43 +2140,43 @@ export default function DashboardView() {
 
     const cardStyle = {
         backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
         borderRadius: '16px',
-        padding: '24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
-        border: '1px solid #e5e7eb'
+        padding: '24px'
     }
 
     const metricCardStyle = {
         backgroundColor: '#f8fafc',
+        border: '1px solid #e2e8f0',
         borderRadius: '12px',
-        padding: '20px',
-        border: '1px solid #e2e8f0'
+        padding: '20px'
     }
 
     const sectionTitleStyle = {
+        color: '#1e3a5f',
         fontSize: '18px',
         fontWeight: 600,
-        color: '#1e3a5f',
         marginBottom: '20px'
     }
 
     const metricLabelStyle = {
+        color: '#64748b',
         fontSize: '13px',
         fontWeight: 500,
-        color: '#64748b',
         marginBottom: '4px'
     }
 
     const metricValueStyle = {
+        color: '#1e3a5f',
         fontSize: '28px',
         fontWeight: 700,
-        color: '#1e3a5f',
         lineHeight: 1.2
     }
 
     const metricSubStyle = {
-        fontSize: '12px',
         color: '#94a3b8',
+        fontSize: '12px',
         marginTop: '4px'
     }
 
@@ -2190,9 +2191,9 @@ export default function DashboardView() {
             <div
                 className="dashboard-full-width"
                 style={{
-                    minHeight: '100vh',
                     backgroundColor: '#f8fafc',
-                    color: '#1e293b'
+                    color: '#1e293b',
+                    minHeight: '100vh'
                 }}
             >
                 <div
@@ -2203,48 +2204,48 @@ export default function DashboardView() {
                         linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
                         radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
                     `,
-                        backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                         backgroundPosition: '0 0, 0 0, 0 0',
+                        backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                         borderBottom: '1px solid #e2e8f0',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                         padding: '12px 16px',
                         position: 'sticky',
                         top: 0,
-                        zIndex: 10,
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                        zIndex: 10
                     }}
                 >
                     <div
                         style={{
-                            maxWidth: '100%',
-                            margin: '0 auto',
-                            display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between',
+                            display: 'flex',
                             flexWrap: 'wrap',
-                            gap: '12px'
+                            gap: '12px',
+                            justifyContent: 'space-between',
+                            margin: '0 auto',
+                            maxWidth: '100%'
                         }}
                     >
-                        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#1e3a5f', margin: 0 }}>Dashboard</h1>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <h1 style={{ color: '#1e3a5f', fontSize: '20px', fontWeight: 700, margin: 0 }}>Dashboard</h1>
+                        <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             <button
                                 type="button"
                                 onClick={onRefresh}
                                 disabled={refreshing}
                                 style={{
-                                    display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '6px',
-                                    padding: '8px 12px',
                                     backgroundColor: '#1e3a5f',
-                                    color: 'white',
                                     border: 'none',
                                     borderRadius: '8px',
+                                    color: 'white',
+                                    cursor: refreshing ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
                                     fontSize: '13px',
                                     fontWeight: 500,
-                                    cursor: refreshing ? 'not-allowed' : 'pointer',
+                                    gap: '6px',
+                                    justifyContent: 'center',
+                                    minWidth: '36px',
                                     opacity: refreshing ? 0.7 : 1,
-                                    minWidth: '36px'
+                                    padding: '8px 12px'
                                 }}
                             >
                                 <i
@@ -2259,18 +2260,18 @@ export default function DashboardView() {
                                     onClick={() => setPlantModalOpen(true)}
                                     disabled={refreshing}
                                     style={{
-                                        padding: '8px 12px',
                                         backgroundColor: 'white',
-                                        color: '#374151',
                                         border: '1px solid #d1d5db',
                                         borderRadius: '8px',
+                                        color: '#374151',
+                                        cursor: 'pointer',
                                         fontSize: '13px',
                                         fontWeight: 500,
-                                        cursor: 'pointer',
-                                        whiteSpace: 'nowrap',
+                                        maxWidth: '150px',
                                         overflow: 'hidden',
+                                        padding: '8px 12px',
                                         textOverflow: 'ellipsis',
-                                        maxWidth: '150px'
+                                        whiteSpace: 'nowrap'
                                     }}
                                 >
                                     {dashboardPlant
@@ -2283,7 +2284,7 @@ export default function DashboardView() {
                     </div>
                 </div>
 
-                <div style={{ maxWidth: '100%', margin: '0 auto', padding: '24px' }}>
+                <div style={{ margin: '0 auto', maxWidth: '100%', padding: '24px' }}>
                     {!showSkeleton &&
                         (isPlantManager || dashboardPlant) &&
                         (() => {
@@ -2939,18 +2940,18 @@ export default function DashboardView() {
                                 <>
                                     <div
                                         style={{
-                                            height: '24px',
                                             backgroundColor: '#e2e8f0',
                                             borderRadius: '6px',
-                                            width: '200px',
-                                            marginBottom: '8px'
+                                            height: '24px',
+                                            marginBottom: '8px',
+                                            width: '200px'
                                         }}
                                     ></div>
                                     <div
                                         style={{
-                                            height: '16px',
                                             backgroundColor: '#e2e8f0',
                                             borderRadius: '6px',
+                                            height: '16px',
                                             width: '300px'
                                         }}
                                     ></div>
@@ -2959,15 +2960,15 @@ export default function DashboardView() {
                                 <>
                                     <h2
                                         style={{
+                                            color: '#1e3a5f',
                                             fontSize: '22px',
                                             fontWeight: 600,
-                                            color: '#1e3a5f',
                                             margin: '0 0 4px 0'
                                         }}
                                     >
                                         {regionDisplayName}
                                     </h2>
-                                    <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>{heroRegionSub}</p>
+                                    <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>{heroRegionSub}</p>
                                 </>
                             )}
                         </div>
@@ -2975,8 +2976,8 @@ export default function DashboardView() {
                         <div
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                                gap: '16px'
+                                gap: '16px',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
                             }}
                         >
                             {showSkeleton ? (
@@ -2984,27 +2985,27 @@ export default function DashboardView() {
                                     <div key={i} style={metricCardStyle}>
                                         <div
                                             style={{
+                                                backgroundColor: '#e2e8f0',
+                                                borderRadius: '4px',
                                                 height: '14px',
-                                                backgroundColor: '#e2e8f0',
-                                                borderRadius: '4px',
-                                                width: '60%',
-                                                marginBottom: '12px'
+                                                marginBottom: '12px',
+                                                width: '60%'
                                             }}
                                         ></div>
                                         <div
                                             style={{
+                                                backgroundColor: '#e2e8f0',
+                                                borderRadius: '4px',
                                                 height: '32px',
-                                                backgroundColor: '#e2e8f0',
-                                                borderRadius: '4px',
-                                                width: '50%',
-                                                marginBottom: '8px'
+                                                marginBottom: '8px',
+                                                width: '50%'
                                             }}
                                         ></div>
                                         <div
                                             style={{
-                                                height: '12px',
                                                 backgroundColor: '#e2e8f0',
                                                 borderRadius: '4px',
+                                                height: '12px',
                                                 width: '40%'
                                             }}
                                         ></div>
@@ -3040,26 +3041,26 @@ export default function DashboardView() {
                     {error && (
                         <div
                             style={{
+                                alignItems: 'center',
                                 backgroundColor: '#fef2f2',
                                 border: '1px solid #fecaca',
-                                color: '#dc2626',
-                                padding: '16px 20px',
                                 borderRadius: '12px',
-                                marginBottom: '24px',
+                                color: '#dc2626',
                                 display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between'
+                                justifyContent: 'space-between',
+                                marginBottom: '24px',
+                                padding: '16px 20px'
                             }}
                         >
                             <span>{error}</span>
                             <button
                                 onClick={onRetry}
                                 style={{
-                                    color: '#dc2626',
-                                    fontWeight: 600,
                                     background: 'none',
                                     border: 'none',
-                                    cursor: 'pointer'
+                                    color: '#dc2626',
+                                    cursor: 'pointer',
+                                    fontWeight: 600
                                 }}
                             >
                                 Retry
@@ -3072,80 +3073,80 @@ export default function DashboardView() {
                             <div style={cardStyle}>
                                 <div
                                     style={{
-                                        height: '20px',
                                         backgroundColor: '#e2e8f0',
                                         borderRadius: '6px',
-                                        width: '150px',
-                                        marginBottom: '20px'
+                                        height: '20px',
+                                        marginBottom: '20px',
+                                        width: '150px'
                                     }}
                                 ></div>
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                                        gap: '16px'
+                                        gap: '16px',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'
                                     }}
                                 >
                                     {[1, 2, 3, 4, 5].map((i) => (
                                         <div key={i} style={metricCardStyle}>
                                             <div
                                                 style={{
+                                                    alignItems: 'flex-start',
                                                     display: 'flex',
                                                     justifyContent: 'space-between',
-                                                    alignItems: 'flex-start',
                                                     marginBottom: '12px'
                                                 }}
                                             >
                                                 <div>
                                                     <div
                                                         style={{
-                                                            height: '14px',
                                                             backgroundColor: '#e2e8f0',
                                                             borderRadius: '4px',
-                                                            width: '80px',
-                                                            marginBottom: '8px'
+                                                            height: '14px',
+                                                            marginBottom: '8px',
+                                                            width: '80px'
                                                         }}
                                                     ></div>
                                                     <div
                                                         style={{
-                                                            height: '32px',
                                                             backgroundColor: '#e2e8f0',
                                                             borderRadius: '4px',
+                                                            height: '32px',
                                                             width: '60px'
                                                         }}
                                                     ></div>
                                                 </div>
                                                 <div
                                                     style={{
-                                                        width: '36px',
-                                                        height: '36px',
                                                         backgroundColor: '#e2e8f0',
-                                                        borderRadius: '8px'
+                                                        borderRadius: '8px',
+                                                        height: '36px',
+                                                        width: '36px'
                                                     }}
                                                 ></div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 <div
                                                     style={{
-                                                        height: '24px',
                                                         backgroundColor: '#e2e8f0',
                                                         borderRadius: '16px',
+                                                        height: '24px',
                                                         width: '70px'
                                                     }}
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        height: '24px',
                                                         backgroundColor: '#e2e8f0',
                                                         borderRadius: '16px',
+                                                        height: '24px',
                                                         width: '60px'
                                                     }}
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        height: '24px',
                                                         backgroundColor: '#e2e8f0',
                                                         borderRadius: '16px',
+                                                        height: '24px',
                                                         width: '80px'
                                                     }}
                                                 ></div>
@@ -3158,58 +3159,58 @@ export default function DashboardView() {
                             <div style={cardStyle}>
                                 <div
                                     style={{
-                                        height: '20px',
                                         backgroundColor: '#e2e8f0',
                                         borderRadius: '6px',
-                                        width: '100px',
-                                        marginBottom: '20px'
+                                        height: '20px',
+                                        marginBottom: '20px',
+                                        width: '100px'
                                     }}
                                 ></div>
                                 <div style={metricCardStyle}>
                                     <div
                                         style={{
+                                            alignItems: 'flex-start',
                                             display: 'flex',
                                             justifyContent: 'space-between',
-                                            alignItems: 'flex-start',
                                             marginBottom: '12px'
                                         }}
                                     >
                                         <div>
                                             <div
                                                 style={{
-                                                    height: '14px',
                                                     backgroundColor: '#e2e8f0',
                                                     borderRadius: '4px',
-                                                    width: '80px',
-                                                    marginBottom: '8px'
+                                                    height: '14px',
+                                                    marginBottom: '8px',
+                                                    width: '80px'
                                                 }}
                                             ></div>
                                             <div
                                                 style={{
-                                                    height: '32px',
                                                     backgroundColor: '#e2e8f0',
                                                     borderRadius: '4px',
+                                                    height: '32px',
                                                     width: '60px'
                                                 }}
                                             ></div>
                                         </div>
                                         <div
                                             style={{
-                                                width: '36px',
-                                                height: '36px',
                                                 backgroundColor: '#e2e8f0',
-                                                borderRadius: '8px'
+                                                borderRadius: '8px',
+                                                height: '36px',
+                                                width: '36px'
                                             }}
                                         ></div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                         {[1, 2, 3, 4, 5].map((i) => (
                                             <div
                                                 key={i}
                                                 style={{
-                                                    height: '24px',
                                                     backgroundColor: '#e2e8f0',
                                                     borderRadius: '16px',
+                                                    height: '24px',
                                                     width: '80px'
                                                 }}
                                             ></div>
@@ -3221,18 +3222,18 @@ export default function DashboardView() {
                                         <div
                                             key={i}
                                             style={{
+                                                backgroundColor: '#f8fafc',
                                                 border: '1px solid #e2e8f0',
                                                 borderRadius: '10px',
                                                 marginBottom: '12px',
-                                                padding: '14px 16px',
-                                                backgroundColor: '#f8fafc'
+                                                padding: '14px 16px'
                                             }}
                                         >
                                             <div
                                                 style={{
-                                                    height: '16px',
                                                     backgroundColor: '#e2e8f0',
                                                     borderRadius: '4px',
+                                                    height: '16px',
                                                     width: '200px'
                                                 }}
                                             ></div>
@@ -3244,18 +3245,18 @@ export default function DashboardView() {
                             <div style={cardStyle}>
                                 <div
                                     style={{
-                                        height: '20px',
                                         backgroundColor: '#e2e8f0',
                                         borderRadius: '6px',
-                                        width: '200px',
-                                        marginBottom: '20px'
+                                        height: '20px',
+                                        marginBottom: '20px',
+                                        width: '200px'
                                     }}
                                 ></div>
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                         gap: '16px',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                         marginBottom: '24px'
                                     }}
                                 >
@@ -3263,48 +3264,48 @@ export default function DashboardView() {
                                         <div key={i} style={metricCardStyle}>
                                             <div
                                                 style={{
+                                                    alignItems: 'flex-start',
                                                     display: 'flex',
                                                     justifyContent: 'space-between',
-                                                    alignItems: 'flex-start',
                                                     marginBottom: '12px'
                                                 }}
                                             >
                                                 <div>
                                                     <div
                                                         style={{
-                                                            height: '14px',
                                                             backgroundColor: '#e2e8f0',
                                                             borderRadius: '4px',
-                                                            width: '100px',
-                                                            marginBottom: '8px'
+                                                            height: '14px',
+                                                            marginBottom: '8px',
+                                                            width: '100px'
                                                         }}
                                                     ></div>
                                                     <div
                                                         style={{
-                                                            height: '32px',
                                                             backgroundColor: '#e2e8f0',
                                                             borderRadius: '4px',
+                                                            height: '32px',
                                                             width: '50px'
                                                         }}
                                                     ></div>
                                                 </div>
                                                 <div
                                                     style={{
-                                                        width: '36px',
-                                                        height: '36px',
                                                         backgroundColor: '#e2e8f0',
-                                                        borderRadius: '8px'
+                                                        borderRadius: '8px',
+                                                        height: '36px',
+                                                        width: '36px'
                                                     }}
                                                 ></div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                 {[1, 2, 3, 4].map((j) => (
                                                     <div
                                                         key={j}
                                                         style={{
-                                                            height: '24px',
                                                             backgroundColor: '#e2e8f0',
                                                             borderRadius: '16px',
+                                                            height: '24px',
                                                             width: '80px'
                                                         }}
                                                     ></div>
@@ -3316,18 +3317,18 @@ export default function DashboardView() {
                                 <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
                                     <div
                                         style={{
-                                            height: '18px',
                                             backgroundColor: '#e2e8f0',
                                             borderRadius: '6px',
-                                            width: '250px',
-                                            marginBottom: '20px'
+                                            height: '18px',
+                                            marginBottom: '20px',
+                                            width: '250px'
                                         }}
                                     ></div>
                                     <div
                                         style={{
                                             display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                                             gap: '12px',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                                             marginBottom: '24px'
                                         }}
                                     >
@@ -3336,18 +3337,18 @@ export default function DashboardView() {
                                                 key={i}
                                                 style={{
                                                     backgroundColor: '#f8fafc',
+                                                    border: '1px solid #e2e8f0',
                                                     borderRadius: '10px',
-                                                    padding: '14px',
-                                                    border: '1px solid #e2e8f0'
+                                                    padding: '14px'
                                                 }}
                                             >
                                                 <div
                                                     style={{
-                                                        height: '14px',
                                                         backgroundColor: '#e2e8f0',
                                                         borderRadius: '4px',
-                                                        width: '60px',
-                                                        marginBottom: '10px'
+                                                        height: '14px',
+                                                        marginBottom: '10px',
+                                                        width: '60px'
                                                     }}
                                                 ></div>
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -3358,17 +3359,17 @@ export default function DashboardView() {
                                                         >
                                                             <div
                                                                 style={{
-                                                                    height: '12px',
                                                                     backgroundColor: '#e2e8f0',
                                                                     borderRadius: '4px',
+                                                                    height: '12px',
                                                                     width: '40px'
                                                                 }}
                                                             ></div>
                                                             <div
                                                                 style={{
-                                                                    height: '12px',
                                                                     backgroundColor: '#e2e8f0',
                                                                     borderRadius: '4px',
+                                                                    height: '12px',
                                                                     width: '30px'
                                                                 }}
                                                             ></div>
@@ -3380,21 +3381,21 @@ export default function DashboardView() {
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         {[1, 2, 3, 4, 5].map((i) => (
-                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div key={i} style={{ alignItems: 'center', display: 'flex', gap: '12px' }}>
                                                 <div
                                                     style={{
-                                                        width: '80px',
-                                                        height: '14px',
                                                         backgroundColor: '#e2e8f0',
-                                                        borderRadius: '4px'
+                                                        borderRadius: '4px',
+                                                        height: '14px',
+                                                        width: '80px'
                                                     }}
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        flex: 1,
-                                                        height: '28px',
                                                         backgroundColor: '#e2e8f0',
-                                                        borderRadius: '6px'
+                                                        borderRadius: '6px',
+                                                        flex: 1,
+                                                        height: '28px'
                                                     }}
                                                 ></div>
                                             </div>
@@ -3412,8 +3413,8 @@ export default function DashboardView() {
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                                        gap: '16px'
+                                        gap: '16px',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'
                                     }}
                                 >
                                     {!isAggregate && (
@@ -3428,9 +3429,9 @@ export default function DashboardView() {
                                         >
                                             <div
                                                 style={{
+                                                    alignItems: 'flex-start',
                                                     display: 'flex',
                                                     justifyContent: 'space-between',
-                                                    alignItems: 'flex-start',
                                                     marginBottom: '12px'
                                                 }}
                                             >
@@ -3438,9 +3439,9 @@ export default function DashboardView() {
                                                     <div style={metricLabelStyle}>Mixers</div>
                                                     <div
                                                         style={{
+                                                            color: '#1e3a5f',
                                                             fontSize: '32px',
-                                                            fontWeight: 700,
-                                                            color: '#1e3a5f'
+                                                            fontWeight: 700
                                                         }}
                                                     >
                                                         {stats.mixers.total}
@@ -3448,9 +3449,9 @@ export default function DashboardView() {
                                                 </div>
                                                 <div
                                                     style={{
-                                                        padding: '8px',
                                                         backgroundColor: '#dbeafe',
-                                                        borderRadius: '8px'
+                                                        borderRadius: '8px',
+                                                        padding: '8px'
                                                     }}
                                                 >
                                                     <i
@@ -3479,9 +3480,9 @@ export default function DashboardView() {
                                     >
                                         <div
                                             style={{
+                                                alignItems: 'flex-start',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                alignItems: 'flex-start',
                                                 marginBottom: '12px'
                                             }}
                                         >
@@ -3489,9 +3490,9 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Tractors</div>
                                                 <div
                                                     style={{
+                                                        color: '#1e3a5f',
                                                         fontSize: '32px',
-                                                        fontWeight: 700,
-                                                        color: '#1e3a5f'
+                                                        fontWeight: 700
                                                     }}
                                                 >
                                                     {stats.tractors.total}
@@ -3499,9 +3500,9 @@ export default function DashboardView() {
                                             </div>
                                             <div
                                                 style={{
-                                                    padding: '8px',
                                                     backgroundColor: '#dcfce7',
-                                                    borderRadius: '8px'
+                                                    borderRadius: '8px',
+                                                    padding: '8px'
                                                 }}
                                             >
                                                 <i
@@ -3521,9 +3522,9 @@ export default function DashboardView() {
                                     <div style={metricCardStyle}>
                                         <div
                                             style={{
+                                                alignItems: 'flex-start',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                alignItems: 'flex-start',
                                                 marginBottom: '12px'
                                             }}
                                         >
@@ -3531,9 +3532,9 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Trailers</div>
                                                 <div
                                                     style={{
+                                                        color: '#1e3a5f',
                                                         fontSize: '32px',
-                                                        fontWeight: 700,
-                                                        color: '#1e3a5f'
+                                                        fontWeight: 700
                                                     }}
                                                 >
                                                     {stats.trailers.total}
@@ -3541,9 +3542,9 @@ export default function DashboardView() {
                                             </div>
                                             <div
                                                 style={{
-                                                    padding: '8px',
                                                     backgroundColor: '#fef3c7',
-                                                    borderRadius: '8px'
+                                                    borderRadius: '8px',
+                                                    padding: '8px'
                                                 }}
                                             >
                                                 <i
@@ -3562,9 +3563,9 @@ export default function DashboardView() {
                                     <div style={metricCardStyle}>
                                         <div
                                             style={{
+                                                alignItems: 'flex-start',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                alignItems: 'flex-start',
                                                 marginBottom: '12px'
                                             }}
                                         >
@@ -3572,9 +3573,9 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Equipment</div>
                                                 <div
                                                     style={{
+                                                        color: '#1e3a5f',
                                                         fontSize: '32px',
-                                                        fontWeight: 700,
-                                                        color: '#1e3a5f'
+                                                        fontWeight: 700
                                                     }}
                                                 >
                                                     {stats.equipment.total}
@@ -3582,9 +3583,9 @@ export default function DashboardView() {
                                             </div>
                                             <div
                                                 style={{
-                                                    padding: '8px',
                                                     backgroundColor: '#f3e8ff',
-                                                    borderRadius: '8px'
+                                                    borderRadius: '8px',
+                                                    padding: '8px'
                                                 }}
                                             >
                                                 <i
@@ -3603,9 +3604,9 @@ export default function DashboardView() {
                                     <div style={metricCardStyle}>
                                         <div
                                             style={{
+                                                alignItems: 'flex-start',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                alignItems: 'flex-start',
                                                 marginBottom: '12px'
                                             }}
                                         >
@@ -3613,9 +3614,9 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Pickup Trucks</div>
                                                 <div
                                                     style={{
+                                                        color: '#1e3a5f',
                                                         fontSize: '32px',
-                                                        fontWeight: 700,
-                                                        color: '#1e3a5f'
+                                                        fontWeight: 700
                                                     }}
                                                 >
                                                     {stats.pickups.total}
@@ -3623,9 +3624,9 @@ export default function DashboardView() {
                                             </div>
                                             <div
                                                 style={{
-                                                    padding: '8px',
                                                     backgroundColor: '#fce7f3',
-                                                    borderRadius: '8px'
+                                                    borderRadius: '8px',
+                                                    padding: '8px'
                                                 }}
                                             >
                                                 <i
@@ -3648,9 +3649,9 @@ export default function DashboardView() {
                                 <div style={{ ...metricCardStyle, marginBottom: '20px' }}>
                                     <div
                                         style={{
+                                            alignItems: 'flex-start',
                                             display: 'flex',
                                             justifyContent: 'space-between',
-                                            alignItems: 'flex-start',
                                             marginBottom: '12px'
                                         }}
                                     >
@@ -3658,16 +3659,16 @@ export default function DashboardView() {
                                             <div style={metricLabelStyle}>Operators</div>
                                             <div
                                                 style={{
+                                                    color: '#1e3a5f',
                                                     fontSize: '32px',
-                                                    fontWeight: 700,
-                                                    color: '#1e3a5f'
+                                                    fontWeight: 700
                                                 }}
                                             >
                                                 {stats.operators.total}
                                             </div>
                                         </div>
                                         <div
-                                            style={{ padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '8px' }}
+                                            style={{ backgroundColor: '#e0f2fe', borderRadius: '8px', padding: '8px' }}
                                         >
                                             <i
                                                 className="fas fa-users"
@@ -3743,17 +3744,17 @@ export default function DashboardView() {
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                         gap: '16px',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                         marginBottom: '24px'
                                     }}
                                 >
                                     <div style={metricCardStyle}>
                                         <div
                                             style={{
+                                                alignItems: 'flex-start',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                alignItems: 'flex-start',
                                                 marginBottom: '12px'
                                             }}
                                         >
@@ -3761,9 +3762,9 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Service Overdue</div>
                                                 <div
                                                     style={{
+                                                        color: '#dc2626',
                                                         fontSize: '32px',
-                                                        fontWeight: 700,
-                                                        color: '#dc2626'
+                                                        fontWeight: 700
                                                     }}
                                                 >
                                                     {stats.overdueTotal}
@@ -3771,9 +3772,9 @@ export default function DashboardView() {
                                             </div>
                                             <div
                                                 style={{
-                                                    padding: '8px',
                                                     backgroundColor: '#fee2e2',
-                                                    borderRadius: '8px'
+                                                    borderRadius: '8px',
+                                                    padding: '8px'
                                                 }}
                                             >
                                                 <i
@@ -3792,9 +3793,9 @@ export default function DashboardView() {
                                     <div style={metricCardStyle}>
                                         <div
                                             style={{
+                                                alignItems: 'flex-start',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                alignItems: 'flex-start',
                                                 marginBottom: '12px'
                                             }}
                                         >
@@ -3802,9 +3803,9 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Open Issues</div>
                                                 <div
                                                     style={{
+                                                        color: '#f59e0b',
                                                         fontSize: '32px',
-                                                        fontWeight: 700,
-                                                        color: '#f59e0b'
+                                                        fontWeight: 700
                                                     }}
                                                 >
                                                     {stats.openIssuesTotal}
@@ -3812,9 +3813,9 @@ export default function DashboardView() {
                                             </div>
                                             <div
                                                 style={{
-                                                    padding: '8px',
                                                     backgroundColor: '#fef3c7',
-                                                    borderRadius: '8px'
+                                                    borderRadius: '8px',
+                                                    padding: '8px'
                                                 }}
                                             >
                                                 <i
@@ -3835,19 +3836,19 @@ export default function DashboardView() {
                                 <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
                                     <div
                                         style={{
+                                            alignItems: 'center',
                                             display: 'flex',
                                             flexWrap: 'wrap',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
                                             gap: '16px',
+                                            justifyContent: 'space-between',
                                             marginBottom: '20px'
                                         }}
                                     >
                                         <h4
                                             style={{
+                                                color: '#1e3a5f',
                                                 fontSize: '16px',
                                                 fontWeight: 600,
-                                                color: '#1e3a5f',
                                                 margin: 0
                                             }}
                                         >
@@ -3855,9 +3856,9 @@ export default function DashboardView() {
                                         </h4>
                                         <div
                                             style={{
+                                                alignItems: 'center',
                                                 display: 'flex',
                                                 flexWrap: 'wrap',
-                                                alignItems: 'center',
                                                 gap: '8px'
                                             }}
                                         >
@@ -3867,14 +3868,14 @@ export default function DashboardView() {
                                                         key={filter}
                                                         onClick={() => handleQuickDateFilter(filter)}
                                                         style={{
-                                                            padding: '6px 12px',
-                                                            fontSize: '12px',
                                                             backgroundColor: '#f1f5f9',
-                                                            color: '#475569',
                                                             border: 'none',
                                                             borderRadius: '6px',
+                                                            color: '#475569',
                                                             cursor: 'pointer',
-                                                            fontWeight: 500
+                                                            fontSize: '12px',
+                                                            fontWeight: 500,
+                                                            padding: '6px 12px'
                                                         }}
                                                     >
                                                         {filter
@@ -3890,8 +3891,8 @@ export default function DashboardView() {
                                     <div
                                         style={{
                                             display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                                             gap: '12px',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                                             marginBottom: '24px'
                                         }}
                                     >
@@ -3903,8 +3904,8 @@ export default function DashboardView() {
                                                 const total = data.reduce((sum, d) => sum + d.days, 0)
                                                 return {
                                                     active: total > 0 ? Math.round((active / total) * 100) : 0,
-                                                    spare: total > 0 ? Math.round((spare / total) * 100) : 0,
-                                                    inShop: total > 0 ? Math.round((inShop / total) * 100) : 0
+                                                    inShop: total > 0 ? Math.round((inShop / total) * 100) : 0,
+                                                    spare: total > 0 ? Math.round((spare / total) * 100) : 0
                                                 }
                                             }
                                             const assets = [
@@ -3940,16 +3941,16 @@ export default function DashboardView() {
                                                     key={idx}
                                                     style={{
                                                         backgroundColor: '#f8fafc',
+                                                        border: '1px solid #e2e8f0',
                                                         borderRadius: '10px',
-                                                        padding: '14px',
-                                                        border: '1px solid #e2e8f0'
+                                                        padding: '14px'
                                                     }}
                                                 >
                                                     <div
                                                         style={{
+                                                            color: '#475569',
                                                             fontSize: '13px',
                                                             fontWeight: 600,
-                                                            color: '#475569',
                                                             marginBottom: '10px'
                                                         }}
                                                     >
@@ -3961,15 +3962,15 @@ export default function DashboardView() {
                                                         <div
                                                             style={{
                                                                 display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                fontSize: '12px'
+                                                                fontSize: '12px',
+                                                                justifyContent: 'space-between'
                                                             }}
                                                         >
                                                             <span style={{ color: '#16a34a' }}>Active</span>
                                                             <span
                                                                 style={{
-                                                                    fontWeight: 600,
-                                                                    color: '#1e293b'
+                                                                    color: '#1e293b',
+                                                                    fontWeight: 600
                                                                 }}
                                                             >
                                                                 {asset.active}%
@@ -3978,15 +3979,15 @@ export default function DashboardView() {
                                                         <div
                                                             style={{
                                                                 display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                fontSize: '12px'
+                                                                fontSize: '12px',
+                                                                justifyContent: 'space-between'
                                                             }}
                                                         >
                                                             <span style={{ color: '#9333ea' }}>Spare</span>
                                                             <span
                                                                 style={{
-                                                                    fontWeight: 600,
-                                                                    color: '#1e293b'
+                                                                    color: '#1e293b',
+                                                                    fontWeight: 600
                                                                 }}
                                                             >
                                                                 {asset.spare}%
@@ -3995,15 +3996,15 @@ export default function DashboardView() {
                                                         <div
                                                             style={{
                                                                 display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                fontSize: '12px'
+                                                                fontSize: '12px',
+                                                                justifyContent: 'space-between'
                                                             }}
                                                         >
                                                             <span style={{ color: '#2563eb' }}>In Shop</span>
                                                             <span
                                                                 style={{
-                                                                    fontWeight: 600,
-                                                                    color: '#1e293b'
+                                                                    color: '#1e293b',
+                                                                    fontWeight: 600
                                                                 }}
                                                             >
                                                                 {asset.inShop}%
@@ -4020,10 +4021,10 @@ export default function DashboardView() {
                                             const getColor = (status) => {
                                                 const colors = {
                                                     Active: '#22c55e',
-                                                    Spare: '#a855f7',
                                                     'In Shop': '#3b82f6',
-                                                    Stationary: '#eab308',
-                                                    Sold: '#6b7280'
+                                                    Sold: '#6b7280',
+                                                    Spare: '#a855f7',
+                                                    Stationary: '#eab308'
                                                 }
                                                 return colors[status] || '#64748b'
                                             }
@@ -4034,37 +4035,37 @@ export default function DashboardView() {
                                                 )
                                             }
                                             const bars = [
-                                                { label: 'Mixers', data: statusHistoryData.mixers, show: !isAggregate },
-                                                { label: 'Tractors', data: statusHistoryData.tractors, show: true },
-                                                { label: 'Trailers', data: statusHistoryData.trailers, show: true },
-                                                { label: 'Equipment', data: statusHistoryData.equipment, show: true },
-                                                { label: 'Pickups', data: statusHistoryData.pickups, show: true }
+                                                { data: statusHistoryData.mixers, label: 'Mixers', show: !isAggregate },
+                                                { data: statusHistoryData.tractors, label: 'Tractors', show: true },
+                                                { data: statusHistoryData.trailers, label: 'Trailers', show: true },
+                                                { data: statusHistoryData.equipment, label: 'Equipment', show: true },
+                                                { data: statusHistoryData.pickups, label: 'Pickups', show: true }
                                             ].filter((b) => b.show)
 
                                             return bars.map((bar, idx) => (
                                                 <div
                                                     key={idx}
-                                                    style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                                                    style={{ alignItems: 'center', display: 'flex', gap: '12px' }}
                                                 >
                                                     <div
                                                         style={{
-                                                            width: '80px',
+                                                            color: '#475569',
+                                                            flexShrink: 0,
                                                             fontSize: '13px',
                                                             fontWeight: 500,
-                                                            color: '#475569',
-                                                            flexShrink: 0
+                                                            width: '80px'
                                                         }}
                                                     >
                                                         {bar.label}
                                                     </div>
                                                     <div
                                                         style={{
-                                                            flex: 1,
-                                                            height: '28px',
                                                             backgroundColor: '#e2e8f0',
                                                             borderRadius: '6px',
-                                                            overflow: 'hidden',
-                                                            display: 'flex'
+                                                            display: 'flex',
+                                                            flex: 1,
+                                                            height: '28px',
+                                                            overflow: 'hidden'
                                                         }}
                                                     >
                                                         {bar.data.length > 0 ? (
@@ -4074,15 +4075,15 @@ export default function DashboardView() {
                                                                     <div
                                                                         key={i}
                                                                         style={{
-                                                                            width: `${item.percentage}%`,
-                                                                            height: '100%',
-                                                                            backgroundColor: getColor(item.status),
-                                                                            display: 'flex',
                                                                             alignItems: 'center',
-                                                                            justifyContent: 'center',
+                                                                            backgroundColor: getColor(item.status),
                                                                             color: 'white',
+                                                                            display: 'flex',
                                                                             fontSize: '11px',
-                                                                            fontWeight: 600
+                                                                            fontWeight: 600,
+                                                                            height: '100%',
+                                                                            justifyContent: 'center',
+                                                                            width: `${item.percentage}%`
                                                                         }}
                                                                         title={`${item.status}: ${item.percentage}%`}
                                                                     >
@@ -4093,12 +4094,12 @@ export default function DashboardView() {
                                                         ) : (
                                                             <div
                                                                 style={{
-                                                                    width: '100%',
-                                                                    display: 'flex',
                                                                     alignItems: 'center',
-                                                                    justifyContent: 'center',
                                                                     color: '#94a3b8',
-                                                                    fontSize: '12px'
+                                                                    display: 'flex',
+                                                                    fontSize: '12px',
+                                                                    justifyContent: 'center',
+                                                                    width: '100%'
                                                                 }}
                                                             >
                                                                 No data
@@ -4205,24 +4206,24 @@ export default function DashboardView() {
             >
                 <div
                     style={{
-                        display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '14px 16px',
                         backgroundColor: '#f8fafc',
-                        borderBottom: collapsed ? 'none' : '1px solid #e2e8f0'
+                        borderBottom: collapsed ? 'none' : '1px solid #e2e8f0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px'
                     }}
                 >
-                    <span style={{ fontWeight: 500, color: '#374151', fontSize: '14px' }}>{title}</span>
+                    <span style={{ color: '#374151', fontSize: '14px', fontWeight: 500 }}>{title}</span>
                     <button
                         onClick={onToggle}
                         disabled={disabled}
                         style={{
-                            fontSize: '13px',
-                            color: disabled ? '#9ca3af' : '#1e3a5f',
                             background: 'none',
                             border: 'none',
+                            color: disabled ? '#9ca3af' : '#1e3a5f',
                             cursor: disabled ? 'default' : 'pointer',
+                            fontSize: '13px',
                             fontWeight: 500
                         }}
                     >
@@ -4232,18 +4233,18 @@ export default function DashboardView() {
                 {!collapsed &&
                     (rows.length > 0 ? (
                         <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                            <table style={{ borderCollapse: 'collapse', fontSize: '13px', width: '100%' }}>
                                 <thead>
                                     <tr style={{ backgroundColor: '#f8fafc' }}>
                                         {headers.map((h, i) => (
                                             <th
                                                 key={i}
                                                 style={{
-                                                    textAlign: 'left',
-                                                    padding: '12px 16px',
-                                                    fontWeight: 500,
+                                                    borderBottom: '1px solid #e2e8f0',
                                                     color: '#64748b',
-                                                    borderBottom: '1px solid #e2e8f0'
+                                                    fontWeight: 500,
+                                                    padding: '12px 16px',
+                                                    textAlign: 'left'
                                                 }}
                                             >
                                                 {h}
@@ -4255,7 +4256,7 @@ export default function DashboardView() {
                                     {rows.map((r, i) => (
                                         <tr key={r.id || i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                             {renderRow(r).map((cell, j) => (
-                                                <td key={j} style={{ padding: '12px 16px', color: '#374151' }}>
+                                                <td key={j} style={{ color: '#374151', padding: '12px 16px' }}>
                                                     {cell}
                                                 </td>
                                             ))}
@@ -4267,10 +4268,10 @@ export default function DashboardView() {
                     ) : (
                         <div
                             style={{
-                                padding: '20px',
-                                textAlign: 'center',
                                 color: '#94a3b8',
-                                fontSize: '14px'
+                                fontSize: '14px',
+                                padding: '20px',
+                                textAlign: 'center'
                             }}
                         >
                             None

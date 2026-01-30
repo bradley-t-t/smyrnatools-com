@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+
 import { AppService } from '../../services/AppService'
 
 export function useVersion() {

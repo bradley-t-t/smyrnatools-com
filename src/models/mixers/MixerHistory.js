@@ -23,25 +23,25 @@ export class MixerHistory {
         }
 
         return new MixerHistory({
+            changed_at: data.changed_at,
+            changed_by: data.changed_by,
+            field_name: data.field_name,
             id: data.id,
             mixer_id: data.mixer_id,
-            field_name: data.field_name,
-            old_value: oldValue,
             new_value: newValue,
-            changed_at: data.changed_at,
-            changed_by: data.changed_by
+            old_value: oldValue
         })
     }
 
     toApiFormat() {
         return {
+            changed_at: this.changedAt,
+            changed_by: this.changedBy,
+            field_name: this.fieldName,
             id: this.id,
             mixer_id: this.mixerId,
-            field_name: this.fieldName,
-            old_value: this.oldValue,
             new_value: this.newValue,
-            changed_at: this.changedAt,
-            changed_by: this.changedBy
+            old_value: this.oldValue
         }
     }
 

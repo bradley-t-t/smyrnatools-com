@@ -1,28 +1,29 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import MixerAddView from './MixerAddView'
-import MixerUtility from '../../utils/MixerUtility'
-import { MixerService } from '../../services/MixerService'
-import { PlantService } from '../../services/PlantService'
-import { OperatorService } from '../../services/OperatorService'
-import LoadingScreen from '../../components/common/LoadingScreen'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import MixerCard from './MixerCard'
-import MixerDetailView from './MixerDetailView'
-import MixerIssueModal from './MixerIssueModal'
-import MixerCommentModal from './MixerCommentModal'
+import LoadingScreen from '../../components/common/LoadingScreen'
 import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
-import { RegionService } from '../../services/RegionService'
-import AsyncUtility from '../../utils/AsyncUtility'
-import FleetUtility from '../../utils/FleetUtility'
-import FormatUtility from '../../utils/FormatUtility'
-import TopSection from '../../components/sections/TopSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import { ValidationUtility } from '../../utils/ValidationUtility'
-import CleanupUtility from '../../utils/CleanupUtility'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
 import RecapModalSection from '../../components/sections/RecapModalSection'
+import TopSection from '../../components/sections/TopSection'
 import { supabase } from '../../services/DatabaseService'
+import { MixerService } from '../../services/MixerService'
+import { OperatorService } from '../../services/OperatorService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import AsyncUtility from '../../utils/AsyncUtility'
+import CleanupUtility from '../../utils/CleanupUtility'
+import FleetUtility from '../../utils/FleetUtility'
+import FormatUtility from '../../utils/FormatUtility'
+import MixerUtility from '../../utils/MixerUtility'
+import { ValidationUtility } from '../../utils/ValidationUtility'
+import MixerAddView from './MixerAddView'
+import MixerCard from './MixerCard'
+import MixerCommentModal from './MixerCommentModal'
+import MixerDetailView from './MixerDetailView'
+import MixerIssueModal from './MixerIssueModal'
 
 function MixersView({
     title = 'Mixer Fleet',
@@ -91,14 +92,14 @@ function MixersView({
         'Open Issues'
     ]
     const sortMappings = {
-        Plant: 'assignedPlant',
-        'Truck #': 'status',
-        Status: 'status',
-        Operator: 'assignedOperator',
         Cleanliness: 'cleanlinessRating',
+        More: null,
+        Operator: 'assignedOperator',
+        Plant: 'assignedPlant',
+        Status: 'status',
+        'Truck #': 'status',
         VIN: 'vinNumber',
-        Verified: null,
-        More: null
+        Verified: null
     }
 
     useEffect(() => {
@@ -114,12 +115,12 @@ function MixersView({
     const unassignedActiveOperatorsCount = useMemo(
         () =>
             FleetUtility.countUnassignedActiveOperators(mixers, operators, searchText, {
-                position: 'Mixer Operator',
-                selectedPlant,
-                regionPlantCodes,
-                operatorIdField: 'employeeId',
                 assignedOperatorField: 'assignedOperator',
-                assignedPlantField: 'assignedPlant'
+                assignedPlantField: 'assignedPlant',
+                operatorIdField: 'employeeId',
+                position: 'Mixer Operator',
+                regionPlantCodes,
+                selectedPlant
             }),
         [operators, mixers, selectedPlant, searchText, regionPlantCodes]
     )
@@ -146,21 +147,21 @@ function MixersView({
                         if (mixer.id === updatedData.id) {
                             const updated = {
                                 ...mixer,
-                                truckNumber: updatedData.truck_number ?? mixer.truckNumber,
-                                assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
                                 assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
-                                lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
-                                lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                                assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
-                                status: updatedData.status ?? mixer.status,
-                                updatedAt: updatedData.updated_at ?? mixer.updatedAt,
-                                updatedLast: updatedData.updated_last ?? mixer.updatedLast,
-                                updatedBy: updatedData.updated_by ?? mixer.updatedBy,
-                                vin: updatedData.vin ?? mixer.vin,
+                                downInYard: updatedData.down_in_yard ?? mixer.downInYard,
+                                lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                                lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
                                 make: updatedData.make ?? mixer.make,
                                 model: updatedData.model ?? mixer.model,
-                                year: updatedData.year ?? mixer.year,
-                                downInYard: updatedData.down_in_yard ?? mixer.downInYard
+                                status: updatedData.status ?? mixer.status,
+                                truckNumber: updatedData.truck_number ?? mixer.truckNumber,
+                                updatedAt: updatedData.updated_at ?? mixer.updatedAt,
+                                updatedBy: updatedData.updated_by ?? mixer.updatedBy,
+                                updatedLast: updatedData.updated_last ?? mixer.updatedLast,
+                                vin: updatedData.vin ?? mixer.vin,
+                                year: updatedData.year ?? mixer.year
                             }
                             return attachIsVerified(updated)
                         }
@@ -172,21 +173,21 @@ function MixersView({
                         if (mixer.id === updatedData.id) {
                             const updated = {
                                 ...mixer,
-                                truckNumber: updatedData.truck_number ?? mixer.truckNumber,
-                                assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
                                 assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
-                                lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
-                                lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                                assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
-                                status: updatedData.status ?? mixer.status,
-                                updatedAt: updatedData.updated_at ?? mixer.updatedAt,
-                                updatedLast: updatedData.updated_last ?? mixer.updatedLast,
-                                updatedBy: updatedData.updated_by ?? mixer.updatedBy,
-                                vin: updatedData.vin ?? mixer.vin,
+                                downInYard: updatedData.down_in_yard ?? mixer.downInYard,
+                                lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
+                                lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
                                 make: updatedData.make ?? mixer.make,
                                 model: updatedData.model ?? mixer.model,
-                                year: updatedData.year ?? mixer.year,
-                                downInYard: updatedData.down_in_yard ?? mixer.downInYard
+                                status: updatedData.status ?? mixer.status,
+                                truckNumber: updatedData.truck_number ?? mixer.truckNumber,
+                                updatedAt: updatedData.updated_at ?? mixer.updatedAt,
+                                updatedBy: updatedData.updated_by ?? mixer.updatedBy,
+                                updatedLast: updatedData.updated_last ?? mixer.updatedLast,
+                                vin: updatedData.vin ?? mixer.vin,
+                                year: updatedData.year ?? mixer.year
                             }
                             return attachIsVerified(updated)
                         }
@@ -197,23 +198,23 @@ function MixersView({
                 const newData = data.new
                 if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
                 const newMixer = attachIsVerified({
-                    id: newData.id,
-                    truckNumber: newData.truck_number ?? '',
-                    assignedPlant: newData.assigned_plant ?? '',
                     assignedOperator: newData.assigned_operator ?? '',
-                    lastServiceDate: newData.last_service_date ?? null,
-                    lastChipDate: newData.last_chip_date ?? null,
+                    assignedPlant: newData.assigned_plant ?? '',
                     cleanlinessRating: newData.cleanliness_rating ?? 0,
-                    status: newData.status ?? 'Active',
                     createdAt: newData.created_at ?? new Date().toISOString(),
-                    updatedAt: newData.updated_at ?? new Date().toISOString(),
-                    updatedLast: newData.updated_last ?? new Date().toISOString(),
-                    updatedBy: newData.updated_by ?? null,
-                    vin: newData.vin ?? '',
+                    downInYard: newData.down_in_yard ?? false,
+                    id: newData.id,
+                    lastChipDate: newData.last_chip_date ?? null,
+                    lastServiceDate: newData.last_service_date ?? null,
                     make: newData.make ?? '',
                     model: newData.model ?? '',
-                    year: newData.year ?? '',
-                    downInYard: newData.down_in_yard ?? false
+                    status: newData.status ?? 'Active',
+                    truckNumber: newData.truck_number ?? '',
+                    updatedAt: newData.updated_at ?? new Date().toISOString(),
+                    updatedBy: newData.updated_by ?? null,
+                    updatedLast: newData.updated_last ?? new Date().toISOString(),
+                    vin: newData.vin ?? '',
+                    year: newData.year ?? ''
                 })
                 setMixers((prev) => {
                     if (prev.some((m) => m.id === newData.id)) return prev
@@ -718,18 +719,18 @@ function MixersView({
                     const operator = operators.find((op) => op.employeeId === item.assignedOperator)
                     const plant = plants.find((p) => p.code === item.assignedPlant)
                     const cellStyle = {
-                        padding: '20px 16px',
-                        fontSize: '14px',
-                        color: '#374151',
                         backgroundColor: alternatingBg,
                         borderBottom: '1px solid #e5e7eb',
+                        color: '#374151',
+                        fontSize: '14px',
+                        padding: '20px 16px',
                         verticalAlign: 'middle'
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        fontWeight: 700,
                         color: '#1e3a5f',
-                        fontSize: '15px'
+                        fontSize: '15px',
+                        fontWeight: 700
                     }
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9',
@@ -748,41 +749,41 @@ function MixersView({
                             color = '#64748b'
                         }
                         return {
-                            display: 'inline-block',
-                            padding: '6px 14px',
+                            backgroundColor: bg,
                             borderRadius: '20px',
+                            color: color,
+                            display: 'inline-block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            backgroundColor: bg,
-                            color: color
+                            padding: '6px 14px'
                         }
                     }
                     const verifyBtnStyle = (verified) => ({
-                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
+                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
                         border: 'none',
                         borderRadius: '8px',
+                        color: verified ? '#166534' : '#92400e',
+                        cursor: verified ? 'default' : 'pointer',
+                        display: 'inline-flex',
                         fontSize: '12px',
                         fontWeight: 600,
-                        cursor: verified ? 'default' : 'pointer',
-                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
-                        color: verified ? '#166534' : '#92400e'
+                        gap: '6px',
+                        padding: '8px 14px'
                     })
                     const actionBtnStyle = {
-                        width: '36px',
-                        height: '36px',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
                         borderRadius: '8px',
-                        backgroundColor: 'white',
                         color: '#64748b',
                         cursor: 'pointer',
                         display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                         fontSize: '14px',
-                        marginRight: '8px'
+                        height: '36px',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                        width: '36px'
                     }
                     return (
                         <tr
@@ -807,13 +808,13 @@ function MixersView({
                                 {item.status === 'In Shop' && item.downInYard && (
                                     <span
                                         style={{
-                                            marginLeft: '8px',
                                             backgroundColor: '#fef2f2',
-                                            color: '#991b1b',
-                                            padding: '4px 8px',
                                             borderRadius: '6px',
+                                            color: '#991b1b',
                                             fontSize: '10px',
-                                            fontWeight: 700
+                                            fontWeight: 700,
+                                            marginLeft: '8px',
+                                            padding: '4px 8px'
                                         }}
                                     >
                                         IN YARD
@@ -829,7 +830,7 @@ function MixersView({
                                 {item.status === 'Retired' ? (
                                     <span style={{ color: '#94a3b8' }}>N/A</span>
                                 ) : (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                         {Array.from({ length: 5 }).map((_, i) => (
                                             <i
                                                 key={i}
@@ -846,13 +847,13 @@ function MixersView({
                                         {item.cleanlinessRating && item.cleanlinessRating < 3 && (
                                             <span
                                                 style={{
-                                                    marginLeft: '8px',
                                                     backgroundColor: '#dc2626',
-                                                    color: 'white',
-                                                    padding: '3px 8px',
                                                     borderRadius: '4px',
+                                                    color: 'white',
                                                     fontSize: '10px',
-                                                    fontWeight: 700
+                                                    fontWeight: 700,
+                                                    marginLeft: '8px',
+                                                    padding: '3px 8px'
                                                 }}
                                             >
                                                 DOWNED
@@ -864,10 +865,10 @@ function MixersView({
                             <td
                                 style={{
                                     ...cellStyle,
-                                    width: '16%',
+                                    color: '#64748b',
                                     fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
-                                    color: '#64748b'
+                                    width: '16%'
                                 }}
                             >
                                 {item.vinNumber || item.vin || '-'}
@@ -876,12 +877,12 @@ function MixersView({
                                 {item.status === 'Retired' ? (
                                     <span
                                         style={{
-                                            padding: '8px 14px',
                                             backgroundColor: '#f1f5f9',
-                                            color: '#94a3b8',
                                             borderRadius: '8px',
+                                            color: '#94a3b8',
                                             fontSize: '12px',
-                                            fontWeight: 600
+                                            fontWeight: 600,
+                                            padding: '8px 14px'
                                         }}
                                     >
                                         N/A
@@ -907,7 +908,7 @@ function MixersView({
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ alignItems: 'center', display: 'flex' }}>
                                     <button
                                         type="button"
                                         onClick={(e) => {
@@ -1054,7 +1055,7 @@ function MixersView({
                                 setSearchInput('')
                                 setSelectedPlant('')
                                 setStatusFilter('')
-                                resetMixerFilters({ keepViewMode: true, currentViewMode: viewMode })
+                                resetMixerFilters({ currentViewMode: viewMode, keepViewMode: true })
                             }}
                             listLabels={[
                                 'Plant',

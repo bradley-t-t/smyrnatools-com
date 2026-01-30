@@ -1,5 +1,5 @@
-import APIUtility from '../utils/APIUtility'
 import Region from '../models/regions/Region'
+import APIUtility from '../utils/APIUtility'
 import { UserService } from './UserService'
 
 class RegionServiceImpl {
@@ -44,7 +44,7 @@ class RegionServiceImpl {
 
     async updateRegion(regionCode, regionName, plantCodes = [], type) {
         if (!regionCode?.trim() || !regionName?.trim()) throw new Error('Region code and name are required')
-        const payload = { regionCode, regionName, plantCodes }
+        const payload = { plantCodes, regionCode, regionName }
         if (type && ['Concrete', 'Aggregate', 'Office'].includes(type)) payload.type = type
         const { res, json } = await APIUtility.post('/region-service/update', payload)
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to update region')

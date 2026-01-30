@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 
@@ -162,7 +163,7 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
             const hours = start !== null && punch !== null ? (punch - start) / 60 : null
             const lph = r.loads && hours && hours > 0 ? r.loads / hours : null
             const key = r.name || `idx:${idx}`
-            return { r, start, first, eod, punch, dStart, dEnd, hours, lph, key }
+            return { dEnd, dStart, eod, first, hours, key, lph, punch, r, start }
         })
         const dir = sortDir === 'desc' ? -1 : 1
 

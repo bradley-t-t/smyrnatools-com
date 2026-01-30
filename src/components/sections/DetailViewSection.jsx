@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import LoadingScreen from '../common/LoadingScreen'
+
 import { UserService } from '../../services/UserService'
+import LoadingScreen from '../common/LoadingScreen'
 
 const detailViewStyles = `
 .detail-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1rem; }
@@ -362,7 +363,7 @@ function DetailViewSection({
             <style>{detailViewStyles}</style>
             <div
                 className={`fixed left-0 right-0 bottom-0 bg-slate-50 z-40 ${className}`}
-                style={{ top: '64px', display: 'flex', flexDirection: 'column' }}
+                style={{ display: 'flex', flexDirection: 'column', top: '64px' }}
             >
                 {isSaving && (
                     <div className="absolute inset-0 bg-white/80 z-[100] flex items-center justify-center">
@@ -371,39 +372,39 @@ function DetailViewSection({
                 )}
                 <header
                     style={{
-                        display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '16px 24px',
-                        borderBottom: '1px solid #e2e8f0',
                         backgroundColor: 'white',
+                        borderBottom: '1px solid #e2e8f0',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        display: 'flex',
                         flexShrink: 0,
+                        justifyContent: 'space-between',
                         minHeight: '68px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                        padding: '16px 24px'
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '12px' }}>
                         <button
                             style={{
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: '8px',
                                 backgroundColor: '#f1f5f9',
                                 border: 'none',
+                                borderRadius: '8px',
+                                color: '#475569',
                                 cursor: 'pointer',
-                                color: '#475569'
+                                display: 'flex',
+                                height: '40px',
+                                justifyContent: 'center',
+                                width: '40px'
                             }}
                             onClick={onBack || onClose}
                             aria-label="Back"
                         >
                             <i className="fas fa-arrow-left"></i>
                         </button>
-                        <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', margin: 0 }}>{title}</h1>
+                        <h1 style={{ color: '#1e293b', fontSize: '18px', fontWeight: 600, margin: 0 }}>{title}</h1>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>{headerActions}</div>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>{headerActions}</div>
                 </header>
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                     {isLoading ? (

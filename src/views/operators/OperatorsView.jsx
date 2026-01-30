@@ -1,22 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { UserService } from '../../services/UserService'
-import LoadingScreen from '../../components/common/LoadingScreen'
-import OperatorDetailView from './OperatorDetailView'
-import OperatorCard from './OperatorCard'
-import OperatorAddView from './OperatorAddView'
-import OperatorCommentModal from './OperatorCommentModal'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
+import LoadingScreen from '../../components/common/LoadingScreen'
+import GridViewModeSection from '../../components/sections/GridViewModeSection'
+import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import TopSection from '../../components/sections/TopSection'
+import { supabase } from '../../services/DatabaseService'
+import { MixerService } from '../../services/MixerService'
 import { OperatorService } from '../../services/OperatorService'
 import { PlantService } from '../../services/PlantService'
-import { MixerService } from '../../services/MixerService'
+import { RegionService } from '../../services/RegionService'
 import { TractorService } from '../../services/TractorService'
-import TopSection from '../../components/sections/TopSection'
+import { UserService } from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
-import GridViewModeSection from '../../components/sections/GridViewModeSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
-import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import { supabase } from '../../services/DatabaseService'
+import OperatorAddView from './OperatorAddView'
+import OperatorCard from './OperatorCard'
+import OperatorCommentModal from './OperatorCommentModal'
+import OperatorDetailView from './OperatorDetailView'
 
 function OperatorsView({
     title = 'Operator Roster',
@@ -76,11 +77,11 @@ function OperatorsView({
     const positionOptions = ['All Positions', 'Mixer', 'Tractor']
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const sortMappings = {
-        Plant: 'plantCode',
         Name: 'name',
         Phone: 'phone',
-        Status: 'status',
+        Plant: 'plantCode',
         Rating: 'rating',
+        Status: 'status',
         Trainer: null
     }
     const [showHistoryModal, setShowHistoryModal] = useState(false)
@@ -108,19 +109,19 @@ function OperatorsView({
                     return [
                         ...prev,
                         {
-                            employeeId: newData.employee_id,
-                            smyrnaId: newData.smyrna_id ?? null,
-                            name: newData.name ?? '',
-                            plantCode: newData.plant_code ?? null,
-                            status: newData.status ?? 'Active',
-                            isTrainer: newData.is_trainer ?? false,
                             assignedTrainer: newData.assigned_trainer ?? null,
-                            position: newData.position ?? null,
-                            phone: newData.phone ?? null,
-                            pendingStartDate: newData.pending_start_date ?? null,
-                            rating: newData.rating ?? 0,
                             automaticRestriction: newData.automatic_restriction ?? false,
                             createdAt: newData.created_at ?? new Date().toISOString(),
+                            employeeId: newData.employee_id,
+                            isTrainer: newData.is_trainer ?? false,
+                            name: newData.name ?? '',
+                            pendingStartDate: newData.pending_start_date ?? null,
+                            phone: newData.phone ?? null,
+                            plantCode: newData.plant_code ?? null,
+                            position: newData.position ?? null,
+                            rating: newData.rating ?? 0,
+                            smyrnaId: newData.smyrna_id ?? null,
+                            status: newData.status ?? 'Active',
                             updatedAt: newData.updated_at ?? new Date().toISOString()
                         }
                     ]
@@ -133,19 +134,19 @@ function OperatorsView({
                         if (operator.employeeId === updatedData.employee_id) {
                             return {
                                 ...operator,
-                                employeeId: updatedData.employee_id ?? operator.employeeId,
-                                smyrnaId: updatedData.smyrna_id ?? operator.smyrnaId,
-                                name: updatedData.name ?? operator.name,
-                                plantCode: updatedData.plant_code ?? operator.plantCode,
-                                status: updatedData.status ?? operator.status,
-                                isTrainer: updatedData.is_trainer ?? operator.isTrainer,
                                 assignedTrainer: updatedData.assigned_trainer ?? operator.assignedTrainer,
-                                position: updatedData.position ?? operator.position,
-                                phone: updatedData.phone ?? operator.phone,
-                                pendingStartDate: updatedData.pending_start_date ?? operator.pendingStartDate,
-                                rating: updatedData.rating ?? operator.rating,
                                 automaticRestriction:
                                     updatedData.automatic_restriction ?? operator.automaticRestriction,
+                                employeeId: updatedData.employee_id ?? operator.employeeId,
+                                isTrainer: updatedData.is_trainer ?? operator.isTrainer,
+                                name: updatedData.name ?? operator.name,
+                                pendingStartDate: updatedData.pending_start_date ?? operator.pendingStartDate,
+                                phone: updatedData.phone ?? operator.phone,
+                                plantCode: updatedData.plant_code ?? operator.plantCode,
+                                position: updatedData.position ?? operator.position,
+                                rating: updatedData.rating ?? operator.rating,
+                                smyrnaId: updatedData.smyrna_id ?? operator.smyrnaId,
+                                status: updatedData.status ?? operator.status,
                                 updatedAt: updatedData.updated_at ?? operator.updatedAt
                             }
                         }
@@ -286,13 +287,13 @@ function OperatorsView({
             try {
                 const comments = await OperatorService.fetchComments(operator.employeeId).catch(() => [])
                 return {
-                    employeeId: operator.employeeId,
-                    commentsCount: Array.isArray(comments) ? comments.length : 0
+                    commentsCount: Array.isArray(comments) ? comments.length : 0,
+                    employeeId: operator.employeeId
                 }
             } catch {
                 return {
-                    employeeId: operator.employeeId,
-                    commentsCount: 0
+                    commentsCount: 0,
+                    employeeId: operator.employeeId
                 }
             }
         })
@@ -494,7 +495,7 @@ function OperatorsView({
         setSelectedPlant('')
         setStatusFilter('')
         setPositionFilter('')
-        resetOperatorFilters({ keepViewMode: true, currentViewMode })
+        resetOperatorFilters({ currentViewMode, keepViewMode: true })
     }
 
     useEffect(() => {
@@ -531,7 +532,7 @@ function OperatorsView({
                 ></i>
             )
         }
-        return <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>{stars}</div>
+        return <div style={{ alignItems: 'center', display: 'flex', gap: '2px' }}>{stars}</div>
     }
 
     const renderStarsOrNA = (operator) => {
@@ -649,8 +650,8 @@ function OperatorsView({
                                             (operator.name || '').trim().toLowerCase()
                                         )
                                         return {
-                                            trainerName: trainerObj ? trainerObj.name : '',
-                                            isDuplicateName: duplicate
+                                            isDuplicateName: duplicate,
+                                            trainerName: trainerObj ? trainerObj.name : ''
                                         }
                                     }}
                                 />
@@ -677,30 +678,30 @@ function OperatorsView({
                                             (t) => t.employeeId === operator.assignedTrainer
                                         )
                                         const cellStyle = {
-                                            padding: '20px 24px',
-                                            fontSize: '15px',
+                                            backgroundColor: alternatingBg,
                                             color: '#1e293b',
+                                            fontSize: '15px',
                                             fontWeight: 500,
+                                            padding: '20px 24px',
                                             textAlign: 'left',
-                                            verticalAlign: 'middle',
-                                            backgroundColor: alternatingBg
+                                            verticalAlign: 'middle'
                                         }
                                         const cellSecondaryStyle = {
-                                            padding: '20px 24px',
-                                            fontSize: '14px',
+                                            backgroundColor: alternatingBg,
                                             color: '#475569',
+                                            fontSize: '14px',
+                                            padding: '20px 24px',
                                             textAlign: 'left',
-                                            verticalAlign: 'middle',
-                                            backgroundColor: alternatingBg
+                                            verticalAlign: 'middle'
                                         }
                                         const cellHighlightStyle = {
-                                            padding: '20px 24px',
-                                            fontSize: '16px',
+                                            backgroundColor: alternatingBg,
                                             color: '#1e3a5f',
+                                            fontSize: '16px',
                                             fontWeight: 700,
+                                            padding: '20px 24px',
                                             textAlign: 'left',
-                                            verticalAlign: 'middle',
-                                            backgroundColor: alternatingBg
+                                            verticalAlign: 'middle'
                                         }
                                         const statusBadgeStyle = (status) => {
                                             let bg = '#f1f5f9'
@@ -725,36 +726,36 @@ function OperatorsView({
                                                 textColor = '#b91c1c'
                                             }
                                             return {
-                                                display: 'inline-block',
-                                                padding: '8px 16px',
+                                                backgroundColor: bg,
                                                 borderRadius: '24px',
+                                                color: textColor,
+                                                display: 'inline-block',
                                                 fontSize: '13px',
                                                 fontWeight: 600,
-                                                backgroundColor: bg,
-                                                color: textColor
+                                                padding: '8px 16px'
                                             }
                                         }
                                         const actionBtnStyle = {
-                                            width: '42px',
-                                            height: '42px',
+                                            alignItems: 'center',
+                                            backgroundColor: 'white',
                                             border: '1px solid #e2e8f0',
                                             borderRadius: '12px',
-                                            backgroundColor: 'white',
                                             color: '#64748b',
                                             cursor: 'pointer',
                                             display: 'inline-flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
                                             fontSize: '16px',
-                                            marginRight: '8px'
+                                            height: '42px',
+                                            justifyContent: 'center',
+                                            marginRight: '8px',
+                                            width: '42px'
                                         }
                                         return (
                                             <tr
                                                 key={operator.employeeId}
                                                 onClick={() => handleSelect(operator)}
                                                 style={{
-                                                    cursor: 'pointer',
-                                                    borderBottom: '1px solid #e2e8f0'
+                                                    borderBottom: '1px solid #e2e8f0',
+                                                    cursor: 'pointer'
                                                 }}
                                                 onMouseEnter={(e) => {
                                                     const cells = e.currentTarget.querySelectorAll('td')
@@ -812,7 +813,7 @@ function OperatorsView({
                                                     {trainerObj ? trainerObj.name : '\u2014'}
                                                 </td>
                                                 <td style={{ ...cellSecondaryStyle, width: '12%' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <div style={{ alignItems: 'center', display: 'flex' }}>
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation()

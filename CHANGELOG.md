@@ -2,6 +2,27 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.1] - 2026-01-29
+
+- Updated ESLint configuration with new plugins for React hooks, SonarJS, and security checks.
+- Added linting rules for import sorting, unused imports/variables, and code quality with SonarJS.
+- Enhanced security by integrating eslint-plugin-security with specific detection rules.
+- Updated .gitignore to exclude .idea directory for better project hygiene.
+- Incremented project dependencies in package.json to support new ESLint plugins.
+- Comprehensive refactoring across application components, services, and utilities for improved maintainability.
+- Enhanced report generation and export functionalities with structural improvements.
+- Updated various UI components and views for consistency and minor bug fixes.
+
+## [2.0] - 2026-01-29
+
+- Enhanced ESLint configuration with additional plugins for React hooks, security, and code organization.
+- Added new linting rules for import sorting, unused imports, and security checks.
+- Updated dependencies in package.json to include new ESLint plugins and tools.
+- Ignored .idea directory in .gitignore for better project hygiene.
+- Comprehensive refactoring across application components, services, and utilities for improved maintainability.
+- Updated various UI components and views for consistency and minor bug fixes.
+- Enhanced report generation and export functionalities with structural improvements.
+
 ## [1.9] - 2026-01-29
 
 - Simplified README.md by removing detailed sections on Getting Started, Environment, and Scripts.

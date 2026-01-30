@@ -1,25 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import EquipmentAddView from './EquipmentAddView'
-import EquipmentUtility from '../../utils/EquipmentUtility'
+
+import { usePreferences } from '../../app/context/PreferencesContext'
+import LoadingScreen from '../../components/common/LoadingScreen'
+import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
+import GridViewModeSection from '../../components/sections/GridViewModeSection'
+import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import TopSection from '../../components/sections/TopSection'
+import { supabase } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'
 import { PlantService } from '../../services/PlantService'
-import LoadingScreen from '../../components/common/LoadingScreen'
-import { usePreferences } from '../../app/context/PreferencesContext'
-import EquipmentCard from './EquipmentCard'
-import EquipmentDetailView from './EquipmentDetailView'
-import EquipmentIssueModal from './EquipmentIssueModal'
-import EquipmentCommentModal from './EquipmentCommentModal'
-import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import { RegionService } from '../../services/RegionService'
 import { debounce } from '../../utils/AsyncUtility'
-import { getPlantName as lookupGetPlantName } from '../../utils/LookupUtility'
-import FleetUtility from '../../utils/FleetUtility'
-import TopSection from '../../components/sections/TopSection'
-import GridViewModeSection from '../../components/sections/GridViewModeSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
-import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import CleanupUtility from '../../utils/CleanupUtility'
-import { supabase } from '../../services/DatabaseService'
+import EquipmentUtility from '../../utils/EquipmentUtility'
+import FleetUtility from '../../utils/FleetUtility'
+import { getPlantName as lookupGetPlantName } from '../../utils/LookupUtility'
+import EquipmentAddView from './EquipmentAddView'
+import EquipmentCard from './EquipmentCard'
+import EquipmentCommentModal from './EquipmentCommentModal'
+import EquipmentDetailView from './EquipmentDetailView'
+import EquipmentIssueModal from './EquipmentIssueModal'
 
 function EquipmentsView({
     title = 'Equipment Fleet',
@@ -113,15 +114,15 @@ function EquipmentsView({
     ]
     const headerRef = useRef(null)
     const sortMappings = {
-        Plant: 'assignedPlant',
-        'Equipment #': 'identifyingNumber',
-        Status: 'status',
-        Type: 'equipmentType',
-        'Make & Model': 'equipmentMake',
         Cleanliness: 'cleanlinessRating',
         Condition: 'conditionRating',
-        Verified: 'verified',
-        More: null
+        'Equipment #': 'identifyingNumber',
+        'Make & Model': 'equipmentMake',
+        More: null,
+        Plant: 'assignedPlant',
+        Status: 'status',
+        Type: 'equipmentType',
+        Verified: 'verified'
     }
 
     useEffect(() => {
@@ -156,20 +157,20 @@ function EquipmentsView({
                         if (equipment.id === updatedData.id) {
                             const updated = {
                                 ...equipment,
-                                identifyingNumber: updatedData.identifying_number ?? equipment.identifyingNumber,
                                 assignedPlant: updatedData.assigned_plant ?? equipment.assignedPlant,
-                                equipmentType: updatedData.equipment_type ?? equipment.equipmentType,
-                                status: updatedData.status ?? equipment.status,
-                                lastServiceDate: updatedData.last_service_date ?? equipment.lastServiceDate,
-                                hoursMileage: updatedData.hours_mileage ?? equipment.hoursMileage,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? equipment.cleanlinessRating,
                                 conditionRating: updatedData.condition_rating ?? equipment.conditionRating,
                                 equipmentMake: updatedData.equipment_make ?? equipment.equipmentMake,
                                 equipmentModel: updatedData.equipment_model ?? equipment.equipmentModel,
-                                yearMade: updatedData.year_made ?? equipment.yearMade,
+                                equipmentType: updatedData.equipment_type ?? equipment.equipmentType,
+                                hoursMileage: updatedData.hours_mileage ?? equipment.hoursMileage,
+                                identifyingNumber: updatedData.identifying_number ?? equipment.identifyingNumber,
+                                lastServiceDate: updatedData.last_service_date ?? equipment.lastServiceDate,
+                                status: updatedData.status ?? equipment.status,
                                 updatedAt: updatedData.updated_at ?? equipment.updatedAt,
+                                updatedBy: updatedData.updated_by ?? equipment.updatedBy,
                                 updatedLast: updatedData.updated_last ?? equipment.updatedLast,
-                                updatedBy: updatedData.updated_by ?? equipment.updatedBy
+                                yearMade: updatedData.year_made ?? equipment.yearMade
                             }
                             return attachIsVerified(updated)
                         }
@@ -180,22 +181,22 @@ function EquipmentsView({
                 const newData = data.new
                 if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
                 const newEquipment = attachIsVerified({
-                    id: newData.id,
-                    identifyingNumber: newData.identifying_number ?? '',
                     assignedPlant: newData.assigned_plant ?? '',
-                    equipmentType: newData.equipment_type ?? '',
-                    status: newData.status ?? 'Active',
-                    lastServiceDate: newData.last_service_date ?? null,
-                    hoursMileage: newData.hours_mileage ?? null,
                     cleanlinessRating: newData.cleanliness_rating ?? null,
                     conditionRating: newData.condition_rating ?? null,
+                    createdAt: newData.created_at ?? new Date().toISOString(),
                     equipmentMake: newData.equipment_make ?? '',
                     equipmentModel: newData.equipment_model ?? '',
-                    yearMade: newData.year_made ?? '',
-                    createdAt: newData.created_at ?? new Date().toISOString(),
+                    equipmentType: newData.equipment_type ?? '',
+                    hoursMileage: newData.hours_mileage ?? null,
+                    id: newData.id,
+                    identifyingNumber: newData.identifying_number ?? '',
+                    lastServiceDate: newData.last_service_date ?? null,
+                    status: newData.status ?? 'Active',
                     updatedAt: newData.updated_at ?? new Date().toISOString(),
+                    updatedBy: newData.updated_by ?? null,
                     updatedLast: newData.updated_last ?? new Date().toISOString(),
-                    updatedBy: newData.updated_by ?? null
+                    yearMade: newData.year_made ?? ''
                 })
                 setEquipments((prev) => {
                     if (prev.some((e) => e.id === newData.id)) return prev
@@ -620,8 +621,8 @@ function EquipmentsView({
                 <GridViewModeSection
                     filteredItems={filteredEquipments}
                     getCardProps={(equipment) => ({
-                        plantName: lookupGetPlantName(plants, equipment.assignedPlant),
-                        operatorName: undefined
+                        operatorName: undefined,
+                        plantName: lookupGetPlantName(plants, equipment.assignedPlant)
                     })}
                     handleSelectItem={handleSelectEquipment}
                     cardComponent={EquipmentCard}
@@ -670,18 +671,18 @@ function EquipmentsView({
                                   item.latestHistoryDate
                               )
                     const cellStyle = {
-                        padding: '20px 16px',
-                        fontSize: '14px',
-                        color: '#374151',
                         backgroundColor: alternatingBg,
                         borderBottom: '1px solid #e5e7eb',
+                        color: '#374151',
+                        fontSize: '14px',
+                        padding: '20px 16px',
                         verticalAlign: 'middle'
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        fontWeight: 700,
                         color: '#1e3a5f',
-                        fontSize: '15px'
+                        fontSize: '15px',
+                        fontWeight: 700
                     }
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9',
@@ -700,41 +701,41 @@ function EquipmentsView({
                             color = '#64748b'
                         }
                         return {
-                            display: 'inline-block',
-                            padding: '6px 14px',
+                            backgroundColor: bg,
                             borderRadius: '20px',
+                            color: color,
+                            display: 'inline-block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            backgroundColor: bg,
-                            color: color
+                            padding: '6px 14px'
                         }
                     }
                     const verifyBtnStyle = (verified) => ({
-                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
+                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
                         border: 'none',
                         borderRadius: '8px',
+                        color: verified ? '#166534' : '#92400e',
+                        cursor: verified ? 'default' : 'pointer',
+                        display: 'inline-flex',
                         fontSize: '12px',
                         fontWeight: 600,
-                        cursor: verified ? 'default' : 'pointer',
-                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
-                        color: verified ? '#166534' : '#92400e'
+                        gap: '6px',
+                        padding: '8px 14px'
                     })
                     const actionBtnStyle = {
-                        width: '36px',
-                        height: '36px',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
                         borderRadius: '8px',
-                        backgroundColor: 'white',
                         color: '#64748b',
                         cursor: 'pointer',
                         display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                         fontSize: '14px',
-                        marginRight: '8px'
+                        height: '36px',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                        width: '36px'
                     }
                     return (
                         <tr
@@ -769,7 +770,7 @@ function EquipmentsView({
                                 <span style={statusBadge(item.status)}>{item.status || '---'}</span>
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                     {Array.from({ length: 5 }).map((_, i) => (
                                         <i
                                             key={i}
@@ -784,7 +785,7 @@ function EquipmentsView({
                                 </div>
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                     {Array.from({ length: 5 }).map((_, i) => (
                                         <i
                                             key={i}
@@ -802,12 +803,12 @@ function EquipmentsView({
                                 {item.status === 'Retired' ? (
                                     <span
                                         style={{
-                                            padding: '8px 14px',
                                             backgroundColor: '#f1f5f9',
-                                            color: '#94a3b8',
                                             borderRadius: '8px',
+                                            color: '#94a3b8',
                                             fontSize: '12px',
-                                            fontWeight: 600
+                                            fontWeight: 600,
+                                            padding: '8px 14px'
                                         }}
                                     >
                                         N/A
@@ -833,7 +834,7 @@ function EquipmentsView({
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ alignItems: 'center', display: 'flex' }}>
                                     <button
                                         type="button"
                                         onClick={(e) => {
@@ -944,19 +945,19 @@ function EquipmentsView({
                             customFilters={
                                 <select
                                     style={{
-                                        padding: '12px 40px 12px 16px',
+                                        appearance: 'none',
+                                        backgroundColor: '#f8fafc',
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                        backgroundPosition: 'right 12px center',
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: '18px',
                                         border: '1px solid #e5e7eb',
                                         borderRadius: '12px',
-                                        fontSize: '14px',
                                         color: '#1e293b',
-                                        backgroundColor: '#f8fafc',
                                         cursor: 'pointer',
-                                        appearance: 'none',
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundPosition: 'right 12px center',
-                                        backgroundSize: '18px',
-                                        minWidth: '140px'
+                                        fontSize: '14px',
+                                        minWidth: '140px',
+                                        padding: '12px 40px 12px 16px'
                                     }}
                                     value={equipmentTypeFilter}
                                     onChange={(e) => {
@@ -980,7 +981,7 @@ function EquipmentsView({
                                 setSelectedPlant('')
                                 setStatusFilter('')
                                 setEquipmentTypeFilter('')
-                                resetEquipmentFilters({ keepViewMode: true, currentViewMode: viewMode })
+                                resetEquipmentFilters({ currentViewMode: viewMode, keepViewMode: true })
                             }}
                             listLabels={[
                                 'Plant',

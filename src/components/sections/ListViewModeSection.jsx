@@ -14,58 +14,97 @@ function ListViewModeSection({
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
-        wrapper: {
-            marginLeft: isMobile ? '8px' : '24px',
-            marginRight: isMobile ? '8px' : '24px',
-            marginBottom: '24px',
-            marginTop: isMobile ? '16px' : '30px',
-            boxSizing: 'border-box',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch'
+        actionBtn: {
+            alignItems: 'center',
+            backgroundColor: 'white',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: isMobile ? '12px' : '14px',
+            height: isMobile ? '28px' : '36px',
+            justifyContent: 'center',
+            width: isMobile ? '28px' : '36px'
+        },
+        actionsContainer: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: isMobile ? '4px' : '8px'
+        },
+        cell: {
+            color: '#1e293b',
+            fontSize: isMobile ? '12px' : '14px',
+            fontWeight: 500,
+            padding: isMobile ? '10px 8px' : '16px 20px',
+            textAlign: 'left',
+            verticalAlign: 'middle',
+            whiteSpace: 'nowrap'
+        },
+        cellHighlight: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '13px' : '15px',
+            fontWeight: 700,
+            padding: isMobile ? '10px 8px' : '16px 20px',
+            textAlign: 'left',
+            verticalAlign: 'middle',
+            whiteSpace: 'nowrap'
+        },
+        cellSecondary: {
+            color: '#475569',
+            fontSize: isMobile ? '11px' : '13px',
+            padding: isMobile ? '10px 8px' : '16px 20px',
+            textAlign: 'left',
+            verticalAlign: 'middle',
+            whiteSpace: 'nowrap'
         },
         container: {
-            width: '100%',
-            minWidth: isMobile ? '600px' : 'auto',
             backgroundColor: 'white',
-            borderRadius: '12px 12px 0 0',
-            overflow: 'hidden',
             border: '1px solid #e2e8f0',
-            boxSizing: 'border-box'
+            borderRadius: '12px 12px 0 0',
+            boxSizing: 'border-box',
+            minWidth: isMobile ? '600px' : 'auto',
+            overflow: 'hidden',
+            width: '100%'
         },
-        table: {
-            width: '100%',
-            borderCollapse: 'collapse'
+        emptyIcon: {
+            color: '#cbd5e1',
+            fontSize: isMobile ? '40px' : '56px',
+            marginBottom: '16px'
+        },
+        emptyState: {
+            backgroundColor: 'white',
+            padding: isMobile ? '40px 20px' : '80px 40px',
+            textAlign: 'center'
+        },
+        emptyText: {
+            color: '#64748b',
+            fontSize: isMobile ? '14px' : '18px',
+            fontWeight: 500,
+            margin: 0
+        },
+        notRated: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '10px' : '12px',
+            fontStyle: 'italic'
         },
         row: {
             backgroundColor: 'white',
             borderBottom: '1px solid #e2e8f0',
             cursor: 'pointer'
         },
-        cell: {
-            padding: isMobile ? '10px 8px' : '16px 20px',
-            fontSize: isMobile ? '12px' : '14px',
-            color: '#1e293b',
-            fontWeight: 500,
-            textAlign: 'left',
-            verticalAlign: 'middle',
-            whiteSpace: 'nowrap'
+        starEmpty: {
+            color: '#e2e8f0',
+            fontSize: isMobile ? '12px' : '14px'
         },
-        cellSecondary: {
-            padding: isMobile ? '10px 8px' : '16px 20px',
-            fontSize: isMobile ? '11px' : '13px',
-            color: '#475569',
-            textAlign: 'left',
-            verticalAlign: 'middle',
-            whiteSpace: 'nowrap'
+        starFilled: {
+            color: '#f59e0b',
+            fontSize: isMobile ? '12px' : '14px'
         },
-        cellHighlight: {
-            padding: isMobile ? '10px 8px' : '16px 20px',
-            fontSize: isMobile ? '13px' : '15px',
-            color: '#1e3a5f',
-            fontWeight: 700,
-            textAlign: 'left',
-            verticalAlign: 'middle',
-            whiteSpace: 'nowrap'
+        starsContainer: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '1px'
         },
         statusBadge: (status) => {
             let bg = '#f1f5f9'
@@ -84,97 +123,58 @@ function ListViewModeSection({
                 textColor = '#64748b'
             }
             return {
-                display: 'inline-block',
-                padding: isMobile ? '4px 8px' : '6px 12px',
+                backgroundColor: bg,
                 borderRadius: '16px',
+                color: textColor,
+                display: 'inline-block',
                 fontSize: isMobile ? '10px' : '12px',
                 fontWeight: 600,
-                backgroundColor: bg,
-                color: textColor
+                padding: isMobile ? '4px 8px' : '6px 12px'
             }
         },
+        table: {
+            borderCollapse: 'collapse',
+            width: '100%'
+        },
         verifyBtn: (isVerified) => ({
-            display: 'inline-flex',
             alignItems: 'center',
-            gap: isMobile ? '4px' : '6px',
-            padding: isMobile ? '6px 10px' : '8px 14px',
+            backgroundColor: isVerified ? '#dcfce7' : '#fef3c7',
             border: 'none',
             borderRadius: '8px',
+            color: isVerified ? '#166534' : '#92400e',
+            cursor: isVerified ? 'default' : 'pointer',
+            display: 'inline-flex',
             fontSize: isMobile ? '10px' : '12px',
             fontWeight: 600,
-            cursor: isVerified ? 'default' : 'pointer',
-            backgroundColor: isVerified ? '#dcfce7' : '#fef3c7',
-            color: isVerified ? '#166534' : '#92400e',
+            gap: isMobile ? '4px' : '6px',
+            padding: isMobile ? '6px 10px' : '8px 14px',
             whiteSpace: 'nowrap'
         }),
         verifyNA: {
-            display: 'inline-block',
-            padding: isMobile ? '6px 10px' : '8px 14px',
             backgroundColor: '#f1f5f9',
-            color: '#64748b',
             borderRadius: '8px',
-            fontSize: isMobile ? '10px' : '12px',
-            fontWeight: 600
-        },
-        actionsContainer: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: isMobile ? '4px' : '8px'
-        },
-        actionBtn: {
-            width: isMobile ? '28px' : '36px',
-            height: isMobile ? '28px' : '36px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            backgroundColor: 'white',
             color: '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: isMobile ? '12px' : '14px'
-        },
-        starsContainer: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1px'
-        },
-        starFilled: {
-            color: '#f59e0b',
-            fontSize: isMobile ? '12px' : '14px'
-        },
-        starEmpty: {
-            color: '#e2e8f0',
-            fontSize: isMobile ? '12px' : '14px'
-        },
-        notRated: {
-            color: '#94a3b8',
+            display: 'inline-block',
             fontSize: isMobile ? '10px' : '12px',
-            fontStyle: 'italic'
+            fontWeight: 600,
+            padding: isMobile ? '6px 10px' : '8px 14px'
         },
         vinText: {
+            backgroundColor: '#f8fafc',
+            borderRadius: '4px',
+            color: '#64748b',
             fontFamily: 'ui-monospace, monospace',
             fontSize: isMobile ? '10px' : '12px',
-            color: '#64748b',
-            backgroundColor: '#f8fafc',
-            padding: isMobile ? '3px 6px' : '4px 8px',
-            borderRadius: '4px'
+            padding: isMobile ? '3px 6px' : '4px 8px'
         },
-        emptyState: {
-            padding: isMobile ? '40px 20px' : '80px 40px',
-            textAlign: 'center',
-            backgroundColor: 'white'
-        },
-        emptyIcon: {
-            fontSize: isMobile ? '40px' : '56px',
-            color: '#cbd5e1',
-            marginBottom: '16px'
-        },
-        emptyText: {
-            margin: 0,
-            fontSize: isMobile ? '14px' : '18px',
-            color: '#64748b',
-            fontWeight: 500
+        wrapper: {
+            WebkitOverflowScrolling: 'touch',
+            boxSizing: 'border-box',
+            marginBottom: '24px',
+            marginLeft: isMobile ? '8px' : '24px',
+            marginRight: isMobile ? '8px' : '24px',
+            marginTop: isMobile ? '16px' : '30px',
+            overflowX: 'auto'
         }
     }
 

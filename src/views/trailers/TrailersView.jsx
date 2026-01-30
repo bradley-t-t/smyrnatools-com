@@ -1,25 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
 import LoadingScreen from '../../components/common/LoadingScreen'
-import TrailerCard from './TrailerCard'
-import { TrailerService } from '../../services/TrailerService'
-import { TrailerUtility } from '../../utils/TrailerUtility'
+import GridViewModeSection from '../../components/sections/GridViewModeSection'
+import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import TopSection from '../../components/sections/TopSection'
+import { supabase } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
-import { TractorService } from '../../services/TractorService'
-import TrailerAddView from './TrailerAddView'
-import TrailerDetailView from './TrailerDetailView'
-import TrailerIssueModal from './TrailerIssueModal'
-import TrailerCommentModal from './TrailerCommentModal'
 import { RegionService } from '../../services/RegionService'
+import { TractorService } from '../../services/TractorService'
+import { TrailerService } from '../../services/TrailerService'
 import AsyncUtility from '../../utils/AsyncUtility'
-import LookupUtility from '../../utils/LookupUtility'
 import FleetUtility from '../../utils/FleetUtility'
 import FormatUtility from '../../utils/FormatUtility'
-import TopSection from '../../components/sections/TopSection'
-import GridViewModeSection from '../../components/sections/GridViewModeSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
-import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import { supabase } from '../../services/DatabaseService'
+import LookupUtility from '../../utils/LookupUtility'
+import { TrailerUtility } from '../../utils/TrailerUtility'
+import TrailerAddView from './TrailerAddView'
+import TrailerCard from './TrailerCard'
+import TrailerCommentModal from './TrailerCommentModal'
+import TrailerDetailView from './TrailerDetailView'
+import TrailerIssueModal from './TrailerIssueModal'
 
 function TrailersView({
     title = 'Trailer Fleet',
@@ -64,14 +65,14 @@ function TrailersView({
     const [selectedTrailerForHistory, setSelectedTrailerForHistory] = useState(null)
     const filterOptions = ['All Types', 'Cement', 'End Dump', 'Past Due Service', 'Open Issues']
     const sortMappings = {
-        Plant: 'assignedPlant',
-        'Trailer #': 'trailerNumber',
-        Status: 'status',
-        Type: 'trailerType',
         Cleanliness: 'cleanlinessRating',
+        More: null,
+        Plant: 'assignedPlant',
+        Status: 'status',
         Tractor: null,
-        VIN: 'vinNumber',
-        More: null
+        'Trailer #': 'trailerNumber',
+        Type: 'trailerType',
+        VIN: 'vinNumber'
     }
     const headerRef = useRef(null)
 
@@ -111,15 +112,15 @@ function TrailersView({
                         if (trailer.id === updatedData.id) {
                             const updated = {
                                 ...trailer,
-                                trailerNumber: updatedData.trailer_number ?? trailer.trailerNumber,
                                 assignedPlant: updatedData.assigned_plant ?? trailer.assignedPlant,
-                                trailerType: updatedData.trailer_type ?? trailer.trailerType,
                                 assignedTractor: updatedData.assigned_tractor ?? trailer.assignedTractor,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? trailer.cleanlinessRating,
                                 status: updatedData.status ?? trailer.status,
+                                trailerNumber: updatedData.trailer_number ?? trailer.trailerNumber,
+                                trailerType: updatedData.trailer_type ?? trailer.trailerType,
                                 updatedAt: updatedData.updated_at ?? trailer.updatedAt,
-                                updatedLast: updatedData.updated_last ?? trailer.updatedLast,
-                                updatedBy: updatedData.updated_by ?? trailer.updatedBy
+                                updatedBy: updatedData.updated_by ?? trailer.updatedBy,
+                                updatedLast: updatedData.updated_last ?? trailer.updatedLast
                             }
                             return attachIsVerified(updated)
                         }
@@ -130,17 +131,17 @@ function TrailersView({
                 const newData = data.new
                 if (regionPlantCodes && !regionPlantCodes.has(newData.assigned_plant)) return
                 const newTrailer = attachIsVerified({
-                    id: newData.id,
-                    trailerNumber: newData.trailer_number ?? '',
                     assignedPlant: newData.assigned_plant ?? '',
-                    trailerType: newData.trailer_type ?? 'Cement',
                     assignedTractor: newData.assigned_tractor ?? null,
                     cleanlinessRating: newData.cleanliness_rating ?? 1,
-                    status: newData.status ?? 'Active',
                     createdAt: newData.created_at ?? new Date().toISOString(),
+                    id: newData.id,
+                    status: newData.status ?? 'Active',
+                    trailerNumber: newData.trailer_number ?? '',
+                    trailerType: newData.trailer_type ?? 'Cement',
                     updatedAt: newData.updated_at ?? new Date().toISOString(),
-                    updatedLast: newData.updated_last ?? null,
-                    updatedBy: newData.updated_by ?? null
+                    updatedBy: newData.updated_by ?? null,
+                    updatedLast: newData.updated_last ?? null
                 })
                 setTrailers((prev) => {
                     if (prev.some((t) => t.id === newData.id)) return prev
@@ -483,18 +484,18 @@ function TrailersView({
                     const commentsCount = Number(item.commentsCount || 0)
                     const issuesCount = Number(item.openIssuesCount || 0)
                     const cellStyle = {
-                        padding: '20px 16px',
-                        fontSize: '14px',
-                        color: '#374151',
                         backgroundColor: alternatingBg,
                         borderBottom: '1px solid #e5e7eb',
+                        color: '#374151',
+                        fontSize: '14px',
+                        padding: '20px 16px',
                         verticalAlign: 'middle'
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        fontWeight: 700,
                         color: '#1e3a5f',
-                        fontSize: '15px'
+                        fontSize: '15px',
+                        fontWeight: 700
                     }
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9',
@@ -513,28 +514,28 @@ function TrailersView({
                             color = '#64748b'
                         }
                         return {
-                            display: 'inline-block',
-                            padding: '6px 14px',
+                            backgroundColor: bg,
                             borderRadius: '20px',
+                            color: color,
+                            display: 'inline-block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            backgroundColor: bg,
-                            color: color
+                            padding: '6px 14px'
                         }
                     }
                     const actionBtnStyle = {
-                        width: '36px',
-                        height: '36px',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
                         borderRadius: '8px',
-                        backgroundColor: 'white',
                         color: '#64748b',
                         cursor: 'pointer',
                         display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                         fontSize: '14px',
-                        marginRight: '8px'
+                        height: '36px',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                        width: '36px'
                     }
                     return (
                         <tr
@@ -559,7 +560,7 @@ function TrailersView({
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>{item.trailerType || '---'}</td>
                             <td style={{ ...cellStyle, width: '14%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                     {Array.from({ length: 5 }).map((_, i) => (
                                         <i
                                             key={i}
@@ -582,13 +583,13 @@ function TrailersView({
                                 ) && (
                                     <span
                                         style={{
-                                            marginLeft: '8px',
                                             backgroundColor: '#fef3c7',
-                                            color: '#92400e',
-                                            padding: '4px 8px',
                                             borderRadius: '6px',
+                                            color: '#92400e',
                                             fontSize: '10px',
-                                            fontWeight: 700
+                                            fontWeight: 700,
+                                            marginLeft: '8px',
+                                            padding: '4px 8px'
                                         }}
                                     >
                                         <i className="fas fa-exclamation-triangle"></i>
@@ -598,16 +599,16 @@ function TrailersView({
                             <td
                                 style={{
                                     ...cellStyle,
-                                    width: '12%',
+                                    color: '#64748b',
                                     fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
-                                    color: '#64748b'
+                                    width: '12%'
                                 }}
                             >
                                 {item.vinNumber || item.vin || '---'}
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ alignItems: 'center', display: 'flex' }}>
                                     <button
                                         type="button"
                                         onClick={(e) => {

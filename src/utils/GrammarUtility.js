@@ -140,7 +140,7 @@ function formatPhone(input) {
     return raw.trim()
 }
 
-const GrammarUtility = { cleanDescription, cleanComments, formatPhone }
+const GrammarUtility = { cleanComments, cleanDescription, formatPhone }
 
 export default GrammarUtility
-export { GrammarUtility, cleanText, formatPhone }
+export { cleanText, formatPhone, GrammarUtility }

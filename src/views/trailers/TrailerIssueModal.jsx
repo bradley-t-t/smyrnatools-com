@@ -1,6 +1,7 @@
 import React from 'react'
-import TrailerService from '../../services/TrailerService'
+
 import IssueModalSection from '../../components/sections/IssueModalSection'
+import TrailerService from '../../services/TrailerService'
 
 function TrailerIssueModal({ trailerId, trailerNumber, onClose }) {
     return (

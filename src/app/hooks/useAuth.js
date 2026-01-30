@@ -20,7 +20,7 @@ export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedVi
 
         const handleSignOut = () => {
             setUserId(null)
-            setSelectedView({ view: 'Dashboard', initialStatusFilter: null })
+            setSelectedView({ initialStatusFilter: null, view: 'Dashboard' })
             setIsGuestOnly(false)
             setRolesLoaded(false)
         }

@@ -1,17 +1,19 @@
+import './app/index.css'
+import './utils/APIErrorHandler'
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import './app/index.css'
+
 import App from './app/App.js'
-import { PreferencesProvider } from './app/context/PreferencesContext'
 import { AuthProvider } from './app/context/AuthContext'
+import { PreferencesProvider } from './app/context/PreferencesContext'
 import vitalsUtility from './utils/VitalsUtility'
-import './utils/APIErrorHandler'
 
 document.head.appendChild(
     Object.assign(document.createElement('meta'), {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
+        content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+        name: 'viewport'
     })
 )
 

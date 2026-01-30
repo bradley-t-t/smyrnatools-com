@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { TractorService } from '../../services/TractorService'
-import { Tractor } from '../../models/tractors/Tractor'
-import { AuthService } from '../../services/AuthService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
+import { Tractor } from '../../models/tractors/Tractor'
+import { AuthService } from '../../services/AuthService'
+import { RegionService } from '../../services/RegionService'
+import { TractorService } from '../../services/TractorService'
 
 function TractorAddView({ plants, onClose, onTractorAdded }) {
     const { preferences } = usePreferences()
@@ -95,14 +96,14 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
 
             const now = formatDateForDb(new Date())
             const newTractor = new Tractor({
-                truck_number: truckNumber,
-                assigned_plant: assignedPlant,
                 assigned_operator: '0',
+                assigned_plant: assignedPlant,
                 cleanliness_rating: 1,
-                status,
-                has_blower: hasBlower,
-                freight,
                 created_at: now,
+                freight,
+                has_blower: hasBlower,
+                status,
+                truck_number: truckNumber,
                 updated_at: now,
                 updated_by: userId,
                 updated_last: now

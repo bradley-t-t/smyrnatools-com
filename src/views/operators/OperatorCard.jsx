@@ -1,13 +1,14 @@
 import React from 'react'
+
 import CardSection from '../../components/sections/CardSection'
 import formatUtility from '../../utils/FormatUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 
 const operatorStatusColors = {
     active: '#10b981',
+    default: '#64748b',
     inactive: '#ef4444',
-    terminated: '#6b7280',
-    default: '#64748b'
+    terminated: '#6b7280'
 }
 
 function OperatorCard({

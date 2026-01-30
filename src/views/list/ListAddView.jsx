@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { ListService } from '../../services/ListService'
-import { UserService } from '../../services/UserService'
-import { RegionService } from '../../services/RegionService'
-import { PlantService } from '../../services/PlantService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import GrammarUtility from '../../utils/GrammarUtility'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
 import { AIService } from '../../services/AIService'
+import { ListService } from '../../services/ListService'
+import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import GrammarUtility from '../../utils/GrammarUtility'
 
 function ListAddView({ onClose, onItemAdded, item = null }) {
     const { preferences } = usePreferences()
@@ -33,18 +34,18 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     const [isImprovingDescription, setIsImprovingDescription] = useState(false)
 
     const statusOptions = [
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'ordered_materials', label: 'Ordered Materials / Parts' },
-        { value: 'waiting', label: 'Waiting' },
-        { value: 'blocked', label: 'Blocked' }
+        { label: 'Pending', value: 'pending' },
+        { label: 'In Progress', value: 'in_progress' },
+        { label: 'Ordered Materials / Parts', value: 'ordered_materials' },
+        { label: 'Waiting', value: 'waiting' },
+        { label: 'Blocked', value: 'blocked' }
     ]
 
     const responsibleRoleOptions = [
-        { value: '', label: 'Unassigned' },
-        { value: 'maintenance', label: 'Maintenance' },
-        { value: 'plant_manager', label: 'Plant Manager' },
-        { value: 'district_manager', label: 'District Manager' }
+        { label: 'Unassigned', value: '' },
+        { label: 'Maintenance', value: 'maintenance' },
+        { label: 'Plant Manager', value: 'plant_manager' },
+        { label: 'District Manager', value: 'district_manager' }
     ]
 
     useEffect(() => {
@@ -166,10 +167,10 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
 
             if (item) {
                 const updateData = {
-                    plant_code: plantCode,
-                    description: description.trim(),
+                    comments: comments.trim(),
                     deadline: new Date(deadline).toISOString(),
-                    comments: comments.trim()
+                    description: description.trim(),
+                    plant_code: plantCode
                 }
                 await ListService.updateListItem({ ...item, ...updateData })
             } else if (selectedPlantCodes.length > 0) {
@@ -371,18 +372,18 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 <select
                                     id="status"
                                     style={{
-                                        padding: '12px 40px 12px 16px',
+                                        appearance: 'none',
+                                        backgroundColor: '#f8fafc',
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                        backgroundPosition: 'right 12px center',
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: '18px',
                                         border: '1px solid #e5e7eb',
                                         borderRadius: '12px',
-                                        fontSize: '14px',
                                         color: '#1e293b',
-                                        backgroundColor: '#f8fafc',
                                         cursor: 'pointer',
-                                        appearance: 'none',
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundPosition: 'right 12px center',
-                                        backgroundSize: '18px',
+                                        fontSize: '14px',
+                                        padding: '12px 40px 12px 16px',
                                         width: '100%'
                                     }}
                                     value={status}
@@ -402,18 +403,18 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 <select
                                     id="responsibleRole"
                                     style={{
-                                        padding: '12px 40px 12px 16px',
+                                        appearance: 'none',
+                                        backgroundColor: '#f8fafc',
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                        backgroundPosition: 'right 12px center',
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: '18px',
                                         border: '1px solid #e5e7eb',
                                         borderRadius: '12px',
-                                        fontSize: '14px',
                                         color: '#1e293b',
-                                        backgroundColor: '#f8fafc',
                                         cursor: 'pointer',
-                                        appearance: 'none',
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundPosition: 'right 12px center',
-                                        backgroundSize: '18px',
+                                        fontSize: '14px',
+                                        padding: '12px 40px 12px 16px',
                                         width: '100%'
                                     }}
                                     value={responsibleRole}

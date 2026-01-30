@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { supabase } from '../../services/DatabaseService'
-import { AuthService } from '../../services/AuthService'
-import { UserService } from '../../services/UserService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { AuthService } from '../../services/AuthService'
+import { supabase } from '../../services/DatabaseService'
+import { UserService } from '../../services/UserService'
 
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
@@ -223,14 +224,14 @@ function MyAccountView({ userId }) {
                         try {
                             await supabase.from('users_sessions').upsert(
                                 {
-                                    id: currentSessId,
-                                    user_id: uid,
                                     browser: currentBrowser,
-                                    os: currentOS,
+                                    created_at: new Date().toISOString(),
                                     device: currentDevice,
-                                    user_agent: userAgent,
+                                    id: currentSessId,
                                     last_active: new Date().toISOString(),
-                                    created_at: new Date().toISOString()
+                                    os: currentOS,
+                                    user_agent: userAgent,
+                                    user_id: uid
                                 },
                                 { onConflict: 'id' }
                             )
@@ -251,13 +252,13 @@ function MyAccountView({ userId }) {
 
                     if (userSessions && userSessions.length > 0) {
                         const sessionsList = userSessions.map((s) => ({
-                            id: s.id,
-                            createdAt: s.created_at,
-                            lastActive: s.last_active,
                             browser: s.browser,
-                            os: s.os,
+                            createdAt: s.created_at,
                             device: s.device,
-                            isCurrent: s.id === currentSessId
+                            id: s.id,
+                            isCurrent: s.id === currentSessId,
+                            lastActive: s.last_active,
+                            os: s.os
                         }))
                         setSessions(sessionsList)
                     }

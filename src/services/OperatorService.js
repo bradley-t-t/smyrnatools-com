@@ -1,10 +1,10 @@
 import { Operator } from '../models/operators/Operator'
+import { OperatorHistory } from '../models/operators/OperatorHistory'
+import APIUtility from '../utils/APIUtility'
 import UserUtility from '../utils/UserUtility'
 import { supabase } from './DatabaseService'
-import APIUtility from '../utils/APIUtility'
 import { MixerService } from './MixerService'
 import { TractorService } from './TractorService'
-import { OperatorHistory } from '../models/operators/OperatorHistory'
 
 class OperatorServiceImpl {
     async getAllOperators() {
@@ -105,17 +105,17 @@ class OperatorServiceImpl {
                 const normalizedPending =
                     typeof rawPending === 'string' && rawPending.includes('T') ? rawPending.slice(0, 10) : rawPending
                 return {
-                    employeeId: op.employee_id,
-                    smyrnaId: op.smyrna_id || '',
-                    name: op.name,
-                    plantCode: op.plant_code,
-                    status: op.status,
-                    isTrainer: op.is_trainer,
                     assignedTrainer: op.assigned_trainer,
-                    position: op.position,
+                    employeeId: op.employee_id,
+                    isTrainer: op.is_trainer,
+                    name: op.name,
                     pendingStartDate: normalizedPending,
+                    phone: op.phone || '',
+                    plantCode: op.plant_code,
+                    position: op.position,
                     rating: typeof op.rating === 'number' ? op.rating : Number(op.rating) || 0,
-                    phone: op.phone || ''
+                    smyrnaId: op.smyrna_id || '',
+                    status: op.status
                 }
             })
             if (regionCodes) {
@@ -193,14 +193,14 @@ class OperatorServiceImpl {
     }
 
     async getOperatorHistory(operatorId, limit = null) {
-        const payload = { operatorId, limit }
+        const payload = { limit, operatorId }
         const { res, json } = await APIUtility.post('/operator-service/fetch-history', payload)
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch operator history')
         return (json?.data ?? []).map((entry) => new OperatorHistory(entry))
     }
 
     async createHistoryEntry(operatorId, fieldName, oldValue, newValue, changedBy) {
-        const payload = { operatorId, fieldName, oldValue, newValue, changedBy }
+        const payload = { changedBy, fieldName, newValue, oldValue, operatorId }
         const { res, json } = await APIUtility.post('/operator-service/add-history', payload)
         if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
         return json?.data

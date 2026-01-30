@@ -1,40 +1,42 @@
-import React, { useEffect, useRef, useState } from 'react'
-import PropTypes from 'prop-types'
 import './index.css'
 import './App.css'
+
+import PropTypes from 'prop-types'
+import React, { useEffect, useRef, useState } from 'react'
+
+import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
+import LockedOverlay from '../components/common/LockedOverlay'
+import Navigation from '../components/common/Navigation'
+import OfflineOverlay from '../components/common/OfflineOverlay'
+import TerminatedOverlay from '../components/common/TerminatedOverlay'
+import VideoBackground from '../components/common/VideoBackground'
+import WebOverlay from '../components/common/WebOverlay'
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import { NetworkUtility } from '../utils/NetworkUtility'
-import { useVersionPolling } from './hooks/useVersionPolling'
-import { useOfflineDetection } from './hooks/useOfflineDetection'
-import { useAuth } from './hooks/useAuth'
-import Navigation from '../components/common/Navigation'
-import VideoBackground from '../components/common/VideoBackground'
-import WebOverlay from '../components/common/WebOverlay'
-import OfflineOverlay from '../components/common/OfflineOverlay'
-import LockedOverlay from '../components/common/LockedOverlay'
-import TerminatedOverlay from '../components/common/TerminatedOverlay'
-import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
-import LoginView from '../views/login/LoginView'
+import CalculatorView from '../views/calculator/CalculatorView'
 import DashboardView from '../views/dashboard/DashboardView'
-import MixersView from '../views/mixers/MixersView'
-import MixerDetailView from '../views/mixers/MixerDetailView'
-import OperatorsView from '../views/operators/OperatorsView'
-import ManagersView from '../views/managers/ManagersView'
-import TractorsView from '../views/tractors/TractorsView'
-import TrailersView from '../views/trailers/TrailersView'
 import EquipmentsView from '../views/equipment/EquipmentsView'
+import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
+import ListDetailView from '../views/list/ListDetailView'
+import ListView from '../views/list/ListView'
+import LoginView from '../views/login/LoginView'
+import MaintenanceView from '../views/maintenance/MaintenanceView'
+import ManagersView from '../views/managers/ManagersView'
+import MixerDetailView from '../views/mixers/MixerDetailView'
+import MixersView from '../views/mixers/MixersView'
+import MyAccountView from '../views/myaccount/MyAccountView'
+import OperatorsView from '../views/operators/OperatorsView'
 import PickupTrucksView from '../views/pickup-trucks/PickupTrucksView'
 import PlantsView from '../views/plants/PlantsView'
 import RegionsView from '../views/regions/RegionsView'
-import RolesView from '../views/roles/RolesView'
-import ListView from '../views/list/ListView'
-import ListDetailView from '../views/list/ListDetailView'
 import ReportsView from '../views/reports/ReportsView'
-import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
-import CalculatorView from '../views/calculator/CalculatorView'
-import MaintenanceView from '../views/maintenance/MaintenanceView'
-import MyAccountView from '../views/myaccount/MyAccountView'
+import RolesView from '../views/roles/RolesView'
+import TractorsView from '../views/tractors/TractorsView'
+import TrailersView from '../views/trailers/TrailersView'
+import { useAuth } from './hooks/useAuth'
+import { useOfflineDetection } from './hooks/useOfflineDetection'
+import { useVersionPolling } from './hooks/useVersionPolling'
 
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
 const AGGREGATE_HIDDEN_VIEWS = new Set(['Mixers', 'Plants', 'Regions'])
@@ -64,35 +66,35 @@ function UpdateLoadingScreen({ version }) {
     }, [progress])
 
     return (
-        <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#000', zIndex: 99999 }}>
+        <div style={{ background: '#000', inset: 0, overflow: 'hidden', position: 'fixed', zIndex: 99999 }}>
             <VideoBackground />
             <div
                 style={{
-                    position: 'absolute',
+                    alignItems: 'center',
+                    backdropFilter: 'blur(12px)',
+                    background: 'rgba(31, 41, 55, 0.85)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 12,
                     bottom: 60,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    zIndex: 10,
-                    width: 420,
+                    left: '50%',
                     maxWidth: '90%',
-                    background: 'rgba(31, 41, 55, 0.85)',
-                    backdropFilter: 'blur(12px)',
-                    borderRadius: 12,
                     padding: '24px 32px',
-                    border: '1px solid rgba(255,255,255,0.1)'
+                    position: 'absolute',
+                    textAlign: 'center',
+                    transform: 'translateX(-50%)',
+                    width: 420,
+                    zIndex: 10
                 }}
             >
                 <h1
                     style={{
                         color: '#fff',
+                        fontFamily: 'Inter, -apple-system, sans-serif',
                         fontSize: '1.25rem',
                         fontWeight: 600,
-                        marginBottom: 8,
-                        fontFamily: 'Inter, -apple-system, sans-serif'
+                        marginBottom: 8
                     }}
                 >
                     Updating Smyrna Tools
@@ -100,38 +102,38 @@ function UpdateLoadingScreen({ version }) {
                 <p
                     style={{
                         color: 'rgba(255,255,255,0.6)',
+                        fontFamily: 'Inter, -apple-system, sans-serif',
                         fontSize: '0.875rem',
-                        marginBottom: 20,
-                        fontFamily: 'Inter, -apple-system, sans-serif'
+                        marginBottom: 20
                     }}
                 >
                     Please wait while we apply the latest updates...
                 </p>
                 <div
                     style={{
-                        width: '100%',
-                        height: 6,
-                        borderRadius: 3,
                         background: 'rgba(255,255,255,0.1)',
+                        borderRadius: 3,
+                        height: 6,
+                        marginBottom: 12,
                         overflow: 'hidden',
-                        marginBottom: 12
+                        width: '100%'
                     }}
                 >
                     <div
                         style={{
-                            width: `${progress}%`,
-                            height: '100%',
                             background: 'linear-gradient(90deg, #1e40af, #3b82f6)',
                             borderRadius: 3,
-                            transition: 'width 0.3s ease'
+                            height: '100%',
+                            transition: 'width 0.3s ease',
+                            width: `${progress}%`
                         }}
                     />
                 </div>
                 <span
                     style={{
                         color: 'rgba(255,255,255,0.5)',
-                        fontSize: '0.75rem',
-                        fontFamily: 'Inter, -apple-system, sans-serif'
+                        fontFamily: 'Inter, -apple-system, sans-serif',
+                        fontSize: '0.75rem'
                     }}
                 >
                     Version {version}
@@ -175,9 +177,9 @@ function UpdateWarningPopup({ onRefreshNow, onClose, latestVersion }) {
 }
 
 UpdateWarningPopup.propTypes = {
-    onRefreshNow: PropTypes.func.isRequired,
+    latestVersion: PropTypes.string,
     onClose: PropTypes.func.isRequired,
-    latestVersion: PropTypes.string
+    onRefreshNow: PropTypes.func.isRequired
 }
 
 function ScheduledUpdateBanner({ remainingMs, onRefreshNow, onDismiss }) {
@@ -206,14 +208,14 @@ function ScheduledUpdateBanner({ remainingMs, onRefreshNow, onDismiss }) {
 }
 
 ScheduledUpdateBanner.propTypes = {
-    remainingMs: PropTypes.number.isRequired,
+    onDismiss: PropTypes.func.isRequired,
     onRefreshNow: PropTypes.func.isRequired,
-    onDismiss: PropTypes.func.isRequired
+    remainingMs: PropTypes.number.isRequired
 }
 
 function AppContent() {
     const [userId, setUserId] = useState(null)
-    const [selectedView, setSelectedView] = useState({ view: 'Dashboard', initialStatusFilter: null })
+    const [selectedView, setSelectedView] = useState({ initialStatusFilter: null, view: 'Dashboard' })
     const [title, setTitle] = useState('Dashboard')
     const [selectedMixer, setSelectedMixer] = useState(null)
     const [selectedTractor, setSelectedTractor] = useState(null)
@@ -269,7 +271,7 @@ function AppContent() {
             }
 
             if (!isViewAllowed(view, regionType)) {
-                setSelectedView({ view: 'Dashboard', initialStatusFilter: null })
+                setSelectedView({ initialStatusFilter: null, view: 'Dashboard' })
             }
             setRegionKey((prev) => prev + 1)
         }
@@ -296,7 +298,7 @@ function AppContent() {
                 const guestOnly = roles.length > 0 && roles.every((r) => r?.name?.toLowerCase() === 'guest')
                 setIsGuestOnly(guestOnly)
                 setRolesLoaded(true)
-                if (guestOnly) setSelectedView({ view: 'Guest', initialStatusFilter: null })
+                if (guestOnly) setSelectedView({ initialStatusFilter: null, view: 'Guest' })
             } catch (error) {
                 console.error('Failed to load user roles:', error)
                 if (!cancelled) {
@@ -348,7 +350,7 @@ function AppContent() {
 
     const handleViewSelection = (viewId) => {
         if (isGuestOnly && viewId !== 'Guest') return
-        setSelectedView({ view: viewId, initialStatusFilter: null })
+        setSelectedView({ initialStatusFilter: null, view: viewId })
         setTitle(viewId === 'Guest' ? 'Access Pending' : viewId)
         if (selectedMixer && viewId !== 'Mixers') setSelectedMixer(null)
         if (selectedTractor && viewId !== 'Tractors') setSelectedTractor(null)
@@ -361,7 +363,7 @@ function AppContent() {
         initialSelectedPlant = null,
         initialPositionFilter = null
     ) => {
-        setSelectedView({ view, initialStatusFilter, initialSelectedPlant, initialPositionFilter })
+        setSelectedView({ initialPositionFilter, initialSelectedPlant, initialStatusFilter, view })
     }
 
     const startImmediateUpdate = () => {

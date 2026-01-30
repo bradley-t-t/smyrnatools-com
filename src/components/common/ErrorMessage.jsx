@@ -4,36 +4,36 @@ function ErrorMessage({ message, onDismiss, className = '' }) {
     if (!message) return null
 
     const containerStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        padding: '14px 18px',
         backgroundColor: '#fef2f2',
         border: '1px solid #fecaca',
         borderRadius: '10px',
         color: '#991b1b',
+        display: 'flex',
         fontSize: '14px',
-        lineHeight: 1.5
+        gap: '12px',
+        justifyContent: 'space-between',
+        lineHeight: 1.5,
+        padding: '14px 18px'
     }
 
     const textStyle = {
-        flex: 1,
-        color: '#991b1b'
+        color: '#991b1b',
+        flex: 1
     }
 
     const buttonStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        width: '28px',
-        height: '28px',
-        border: 'none',
         background: 'transparent',
+        border: 'none',
+        borderRadius: '6px',
         color: '#991b1b',
         cursor: 'pointer',
-        borderRadius: '6px',
-        flexShrink: 0
+        display: 'flex',
+        flexShrink: 0,
+        height: '28px',
+        justifyContent: 'center',
+        width: '28px'
     }
 
     return (

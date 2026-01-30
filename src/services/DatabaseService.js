@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+
 import APIUtility from '../utils/APIUtility'
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
@@ -124,19 +125,19 @@ export const refreshAuth = async () => {
     try {
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
         if (!refreshError && refreshData?.session?.user?.id) {
-            return { userId: refreshData.session.user.id, source: 'refreshSession' }
+            return { source: 'refreshSession', userId: refreshData.session.user.id }
         }
         const { data: sessionData } = await supabase.auth.getSession()
         if (sessionData?.session?.user?.id) {
-            return { userId: sessionData.session.user.id, source: 'getSession' }
+            return { source: 'getSession', userId: sessionData.session.user.id }
         }
         const { data: userData } = await supabase.auth.getUser()
         if (userData?.user?.id) {
-            return { userId: userData.user.id, source: 'getUser' }
+            return { source: 'getUser', userId: userData.user.id }
         }
-        return { userId: null, source: 'none' }
+        return { source: 'none', userId: null }
     } catch (error) {
-        return { userId: null, source: 'error', error }
+        return { error, source: 'error', userId: null }
     }
 }
 
@@ -161,16 +162,18 @@ export const createPartialTextFilter = (column, searchTerm) => {
 }
 
 export const SupabaseUtils = {
-    async fetchAll(table, columns = '*') {
+    async delete(table, filterColumn, value) {
         const sanitizedTable = sanitizeTableName(table)
+        const sanitizedColumn = sanitizeColumnName(filterColumn)
         if (!sanitizedTable) throw new Error('Invalid or disallowed table name')
-        const { res, json } = await APIUtility.post('/database-service/fetch-all', {
+        if (!sanitizedColumn || value === undefined) throw new Error('Filter column and value are required')
+        const { res, json } = await APIUtility.post('/database-service/delete', {
+            filterColumn: sanitizedColumn,
             table: sanitizedTable,
-            columns,
-            orderBy: 'id'
+            value
         })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch all')
-        return json?.data ?? []
+        if (!res.ok) throw new Error(json?.error || 'Failed to delete')
+        return true
     },
 
     async fetch(table, columns = '*', filterColumn, value) {
@@ -179,12 +182,24 @@ export const SupabaseUtils = {
         if (!sanitizedTable) throw new Error('Invalid or disallowed table name')
         if (!sanitizedColumn || value === undefined) throw new Error('Filter column and value are required')
         const { res, json } = await APIUtility.post('/database-service/fetch', {
-            table: sanitizedTable,
             columns,
             filterColumn: sanitizedColumn,
+            table: sanitizedTable,
             value
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch')
+        return json?.data ?? []
+    },
+
+    async fetchAll(table, columns = '*') {
+        const sanitizedTable = sanitizeTableName(table)
+        if (!sanitizedTable) throw new Error('Invalid or disallowed table name')
+        const { res, json } = await APIUtility.post('/database-service/fetch-all', {
+            columns,
+            orderBy: 'id',
+            table: sanitizedTable
+        })
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch all')
         return json?.data ?? []
     },
 
@@ -192,8 +207,8 @@ export const SupabaseUtils = {
         const sanitizedTable = sanitizeTableName(table)
         if (!sanitizedTable || !item) throw new Error('Invalid table or item missing')
         const { res, json } = await APIUtility.post('/database-service/insert', {
-            table: sanitizedTable,
-            item
+            item,
+            table: sanitizedTable
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to insert')
         return json?.data ?? []
@@ -206,26 +221,12 @@ export const SupabaseUtils = {
         if (!sanitizedColumn || value === undefined || !data)
             throw new Error('Filter column, value, and data are required')
         const { res, json } = await APIUtility.post('/database-service/update', {
-            table: sanitizedTable,
+            data,
             filterColumn: sanitizedColumn,
-            value,
-            data
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to update')
-        return true
-    },
-
-    async delete(table, filterColumn, value) {
-        const sanitizedTable = sanitizeTableName(table)
-        const sanitizedColumn = sanitizeColumnName(filterColumn)
-        if (!sanitizedTable) throw new Error('Invalid or disallowed table name')
-        if (!sanitizedColumn || value === undefined) throw new Error('Filter column and value are required')
-        const { res, json } = await APIUtility.post('/database-service/delete', {
             table: sanitizedTable,
-            filterColumn: sanitizedColumn,
             value
         })
-        if (!res.ok) throw new Error(json?.error || 'Failed to delete')
+        if (!res.ok) throw new Error(json?.error || 'Failed to update')
         return true
     }
 }

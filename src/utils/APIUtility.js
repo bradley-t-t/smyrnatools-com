@@ -14,21 +14,21 @@ const APIUtility = {
                 const timeoutId = setTimeout(() => controller.abort(), 30000)
 
                 const res = await fetch(url, {
-                    method: 'POST',
+                    body: JSON.stringify(data),
                     headers: {
-                        'Content-Type': 'application/json',
                         Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
                         ...(options.headers || {})
                     },
-                    body: JSON.stringify(data),
                     keepalive: Boolean(options.keepalive),
+                    method: 'POST',
                     signal: controller.signal
                 })
 
                 clearTimeout(timeoutId)
 
                 const json = await res.json().catch(() => ({}))
-                return { res, json }
+                return { json, res }
             } catch (error) {
                 const isLastAttempt = attempt === maxRetries
 
@@ -40,7 +40,7 @@ const APIUtility = {
                                 ? 'Request timeout. Please check your connection and try again.'
                                 : error.message || 'Network request failed. Please check your connection.'
                     }
-                    return { res, json }
+                    return { json, res }
                 }
 
                 if (!isLastAttempt) {
@@ -51,7 +51,7 @@ const APIUtility = {
 
         const res = { ok: false, status: 0 }
         const json = { error: 'Network request failed after multiple attempts.' }
-        return { res, json }
+        return { json, res }
     }
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+
 import { UserPresenceService } from '../../services/UserPresenceService'
 
 export function usePresence() {
@@ -47,7 +48,7 @@ export function usePresence() {
         }
     }, [])
 
-    return { onlineUsers, loading, error }
+    return { error, loading, onlineUsers }
 }
 
 export default usePresence

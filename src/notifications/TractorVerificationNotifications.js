@@ -1,6 +1,6 @@
-import { UserService } from '../services/UserService'
 import { RegionService } from '../services/RegionService'
 import { TractorService } from '../services/TractorService'
+import { UserService } from '../services/UserService'
 import TractorUtility from '../utils/TractorUtility'
 
 async function getRegionScopedPlantCodes(userId, selectedRegion) {
@@ -44,11 +44,11 @@ async function getNotifications({ userId, selectedRegion }) {
 
     const now = new Date()
     const centralParts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Chicago',
-        weekday: 'short',
         hour: '2-digit',
+        hour12: false,
         minute: '2-digit',
-        hour12: false
+        timeZone: 'America/Chicago',
+        weekday: 'short'
     }).formatToParts(now)
     const mp = {}
     centralParts.forEach((p) => {
@@ -80,11 +80,11 @@ async function getNotifications({ userId, selectedRegion }) {
                 const severity = pastDue ? 'error' : 'warning'
                 notifications.push({
                     id: `tractors-verify-${code}`,
-                    title: `Plant ${code} Tractor Verifications ${titlePhase}`,
-                    subtitle: `This plant has ${unverifiedCount} unverified tractors.`,
+                    plantCode: code,
                     severity,
-                    type: 'tractors.verifications',
-                    plantCode: code
+                    subtitle: `This plant has ${unverifiedCount} unverified tractors.`,
+                    title: `Plant ${code} Tractor Verifications ${titlePhase}`,
+                    type: 'tractors.verifications'
                 })
             }
         })
@@ -114,12 +114,12 @@ async function getNotifications({ userId, selectedRegion }) {
     return [
         {
             id: `tractors-verify-${userPlantCodeUpper}`,
-            title: `Tractor Verifications ${titlePhase}`,
-            subtitle: `You have ${unverifiedCount} unverified tractors.`,
             severity,
+            subtitle: `You have ${unverifiedCount} unverified tractors.`,
+            title: `Tractor Verifications ${titlePhase}`,
             type: 'tractors.verifications'
         }
     ]
 }
 
-export default { id: 'tractors.verifications', getNotifications }
+export default { getNotifications, id: 'tractors.verifications' }

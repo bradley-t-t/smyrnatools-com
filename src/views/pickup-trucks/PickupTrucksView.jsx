@@ -1,22 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { usePreferences } from '../../app/context/PreferencesContext'
 import LoadingScreen from '../../components/common/LoadingScreen'
-import PickupTrucksCard from './PickupTrucksCard'
-import PickupTrucksDetailView from './PickupTrucksDetailView'
-import PickupTrucksAddView from './PickupTrucksAddView'
-import PickupTruckCommentModal from './PickupTruckCommentModal'
-import PickupTruckIssueModal from './PickupTruckIssueModal'
+import GridViewModeSection from '../../components/sections/GridViewModeSection'
+import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import TopSection from '../../components/sections/TopSection'
+import { supabase } from '../../services/DatabaseService'
 import { PickupTruckService } from '../../services/PickupTruckService'
-import AsyncUtility from '../../utils/AsyncUtility'
 import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import AsyncUtility from '../../utils/AsyncUtility'
 import FleetUtility from '../../utils/FleetUtility'
 import FormatUtility from '../../utils/FormatUtility'
-import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
-import TopSection from '../../components/sections/TopSection'
-import GridViewModeSection from '../../components/sections/GridViewModeSection'
-import ListViewModeSection from '../../components/sections/ListViewModeSection'
-import HistoryViewSection from '../../components/sections/HistoryViewSection'
-import { supabase } from '../../services/DatabaseService'
+import PickupTruckCommentModal from './PickupTruckCommentModal'
+import PickupTruckIssueModal from './PickupTruckIssueModal'
+import PickupTrucksAddView from './PickupTrucksAddView'
+import PickupTrucksCard from './PickupTrucksCard'
+import PickupTrucksDetailView from './PickupTrucksDetailView'
 
 function PickupTrucksView({ title = 'Pickup Trucks' }) {
     const { preferences } = usePreferences()
@@ -51,14 +52,14 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         'Over 300k Miles'
     ]
     const sortMappings = {
+        Assigned: 'assigned',
+        'Make & Model': null,
+        Mileage: 'mileage',
+        More: null,
         Plant: 'assignedPlant',
         Status: 'status',
-        Assigned: 'assigned',
-        Year: 'year',
-        'Make & Model': null,
         VIN: 'vin',
-        Mileage: 'mileage',
-        More: null
+        Year: 'year'
     }
 
     const handleRealtimeUpdate = useCallback(
@@ -70,18 +71,18 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                         if (pickup.id === updatedData.id) {
                             return {
                                 ...pickup,
-                                vin: updatedData.vin ?? pickup.vin,
-                                make: updatedData.make ?? pickup.make,
-                                model: updatedData.model ?? pickup.model,
-                                year: updatedData.year ?? pickup.year,
                                 assigned: updatedData.assigned ?? pickup.assigned,
                                 assignedPlant: updatedData.assigned_plant ?? pickup.assignedPlant,
-                                status: updatedData.status ?? pickup.status,
-                                mileage: updatedData.mileage ?? pickup.mileage,
                                 comments: updatedData.comments ?? pickup.comments,
+                                make: updatedData.make ?? pickup.make,
+                                mileage: updatedData.mileage ?? pickup.mileage,
+                                model: updatedData.model ?? pickup.model,
+                                status: updatedData.status ?? pickup.status,
                                 updatedAt: updatedData.updated_at ?? pickup.updatedAt,
+                                updatedBy: updatedData.updated_by ?? pickup.updatedBy,
                                 updatedLast: updatedData.updated_last ?? pickup.updatedLast,
-                                updatedBy: updatedData.updated_by ?? pickup.updatedBy
+                                vin: updatedData.vin ?? pickup.vin,
+                                year: updatedData.year ?? pickup.year
                             }
                         }
                         return pickup
@@ -92,20 +93,20 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                 if (regionPlantCodes && regionPlantCodes.size > 0 && !regionPlantCodes.has(newData.assigned_plant))
                     return
                 const newPickup = {
-                    id: newData.id,
-                    vin: newData.vin ?? '',
-                    make: newData.make ?? '',
-                    model: newData.model ?? '',
-                    year: newData.year ?? '',
                     assigned: newData.assigned ?? '',
                     assignedPlant: newData.assigned_plant ?? '',
-                    status: newData.status ?? 'Active',
-                    mileage: newData.mileage ?? 0,
                     comments: newData.comments ?? '',
                     createdAt: newData.created_at ?? new Date().toISOString(),
+                    id: newData.id,
+                    make: newData.make ?? '',
+                    mileage: newData.mileage ?? 0,
+                    model: newData.model ?? '',
+                    status: newData.status ?? 'Active',
                     updatedAt: newData.updated_at ?? new Date().toISOString(),
+                    updatedBy: newData.updated_by ?? null,
                     updatedLast: newData.updated_last ?? null,
-                    updatedBy: newData.updated_by ?? null
+                    vin: newData.vin ?? '',
+                    year: newData.year ?? ''
                 }
                 setPickups((prev) => {
                     if (prev.some((p) => p.id === newData.id)) return prev
@@ -351,8 +352,8 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             .toLowerCase()
                         const isHighMileage = typeof pickup.mileage === 'number' && pickup.mileage > 300000
                         return {
-                            isDuplicateVin: duplicateVINs.has(vinKey),
                             isDuplicateAssigned: duplicateAssigned.has(assignedKey),
+                            isDuplicateVin: duplicateVINs.has(vinKey),
                             isHighMileage
                         }
                     }}
@@ -377,18 +378,18 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                         .trim()
                         .toLowerCase()
                     const cellStyle = {
-                        padding: '20px 16px',
-                        fontSize: '14px',
-                        color: '#374151',
                         backgroundColor: alternatingBg,
                         borderBottom: '1px solid #e5e7eb',
+                        color: '#374151',
+                        fontSize: '14px',
+                        padding: '20px 16px',
                         verticalAlign: 'middle'
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        fontWeight: 700,
                         color: '#1e3a5f',
-                        fontSize: '15px'
+                        fontSize: '15px',
+                        fontWeight: 700
                     }
                     const statusBadge = (status) => {
                         let bg = '#f1f5f9',
@@ -410,37 +411,37 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             color = '#64748b'
                         }
                         return {
-                            display: 'inline-block',
-                            padding: '6px 14px',
+                            backgroundColor: bg,
                             borderRadius: '20px',
+                            color: color,
+                            display: 'inline-block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            backgroundColor: bg,
-                            color: color
+                            padding: '6px 14px'
                         }
                     }
                     const actionBtnStyle = {
-                        width: '36px',
-                        height: '36px',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
                         border: '1px solid #e5e7eb',
                         borderRadius: '8px',
-                        backgroundColor: 'white',
                         color: '#64748b',
                         cursor: 'pointer',
                         display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                         fontSize: '14px',
-                        marginRight: '8px'
+                        height: '36px',
+                        justifyContent: 'center',
+                        marginRight: '8px',
+                        width: '36px'
                     }
                     const warningBadge = {
-                        marginLeft: '8px',
                         backgroundColor: '#fef3c7',
-                        color: '#92400e',
-                        padding: '4px 8px',
                         borderRadius: '6px',
+                        color: '#92400e',
                         fontSize: '10px',
-                        fontWeight: 700
+                        fontWeight: 700,
+                        marginLeft: '8px',
+                        padding: '4px 8px'
                     }
                     return (
                         <tr
@@ -482,10 +483,10 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             <td
                                 style={{
                                     ...cellStyle,
-                                    width: '15%',
+                                    color: '#64748b',
                                     fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
-                                    color: '#64748b'
+                                    width: '15%'
                                 }}
                             >
                                 {item.vin || '---'}
@@ -517,7 +518,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '13%' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ alignItems: 'center', display: 'flex' }}>
                                     <button
                                         type="button"
                                         onClick={(e) => {

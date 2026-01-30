@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ListService } from '../../services/ListService'
-import { UserService } from '../../services/UserService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import GrammarUtility from '../../utils/GrammarUtility'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
 import { AIService } from '../../services/AIService'
+import { ListService } from '../../services/ListService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import GrammarUtility from '../../utils/GrammarUtility'
 
 function ListDetailView({ itemId, onClose }) {
     const { preferences } = usePreferences()
@@ -15,7 +16,7 @@ function ListDetailView({ itemId, onClose }) {
     const [creator, setCreator] = useState(null)
     const [completer, setCompleter] = useState(null)
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
-    const [formData, setFormData] = useState({ description: '', plantCode: '', deadline: '', comments: '' })
+    const [formData, setFormData] = useState({ comments: '', deadline: '', description: '', plantCode: '' })
     const [status, setStatus] = useState('pending')
     const [responsibleRole, setResponsibleRole] = useState('')
     const [plants, setPlants] = useState([])
@@ -23,19 +24,19 @@ function ListDetailView({ itemId, onClose }) {
     const [isImprovingDescription, setIsImprovingDescription] = useState(false)
 
     const statusOptions = [
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'ordered_materials', label: 'Ordered Materials / Parts' },
-        { value: 'waiting', label: 'Waiting' },
-        { value: 'blocked', label: 'Blocked' },
-        { value: 'completed', label: 'Completed' }
+        { label: 'Pending', value: 'pending' },
+        { label: 'In Progress', value: 'in_progress' },
+        { label: 'Ordered Materials / Parts', value: 'ordered_materials' },
+        { label: 'Waiting', value: 'waiting' },
+        { label: 'Blocked', value: 'blocked' },
+        { label: 'Completed', value: 'completed' }
     ]
 
     const responsibleRoleOptions = [
-        { value: '', label: 'Unassigned' },
-        { value: 'maintenance', label: 'Maintenance' },
-        { value: 'plant_manager', label: 'Plant Manager' },
-        { value: 'district_manager', label: 'District Manager' }
+        { label: 'Unassigned', value: '' },
+        { label: 'Maintenance', value: 'maintenance' },
+        { label: 'Plant Manager', value: 'plant_manager' },
+        { label: 'District Manager', value: 'district_manager' }
     ]
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showPlantModal, setShowPlantModal] = useState(false)
@@ -83,10 +84,10 @@ function ListDetailView({ itemId, onClose }) {
             const found = items.find((i) => i.id === itemId)
             setItem(found)
             setFormData({
-                description: found?.description || '',
-                plantCode: found?.plant_code || '',
+                comments: found?.comments || '',
                 deadline: ListService.formatDateForInput(found?.deadline) || '',
-                comments: found?.comments || ''
+                description: found?.description || '',
+                plantCode: found?.plant_code || ''
             })
             setCreator(ListService.creatorProfiles[found?.user_id])
             setCompleter(ListService.creatorProfiles[found?.completed_by])
@@ -94,12 +95,12 @@ function ListDetailView({ itemId, onClose }) {
             setStatus(loadedStatus)
             setResponsibleRole(found?.responsible_role || '')
             setOriginalValues({
+                comments: found?.comments || '',
+                deadline: ListService.formatDateForInput(found?.deadline) || '',
                 description: found?.description || '',
                 plantCode: found?.plant_code || '',
-                deadline: ListService.formatDateForInput(found?.deadline) || '',
-                comments: found?.comments || '',
-                status: loadedStatus,
-                responsibleRole: found?.responsible_role || ''
+                responsibleRole: found?.responsible_role || '',
+                status: loadedStatus
             })
         } catch {
             showMessage('Failed to load item details', 'error')
@@ -207,13 +208,13 @@ function ListDetailView({ itemId, onClose }) {
             if (isNaN(deadlineDate.getTime())) return showMessage('Invalid deadline date', 'error')
             await ListService.updateListItem({
                 ...item,
-                description: formData.description,
-                plant_code: formData.plantCode || null,
-                deadline: deadlineDate.toISOString(),
                 comments: formData.comments || null,
                 completed: status === 'completed',
-                status: status,
-                responsible_role: responsibleRole || null
+                deadline: deadlineDate.toISOString(),
+                description: formData.description,
+                plant_code: formData.plantCode || null,
+                responsible_role: responsibleRole || null,
+                status: status
             })
             await fetchItem()
             setHasUnsavedChanges(false)
@@ -234,8 +235,8 @@ function ListDetailView({ itemId, onClose }) {
                     const newComments = improved.comments !== undefined ? improved.comments : formData.comments
                     setFormData((prev) => ({
                         ...prev,
-                        description: newDescription,
-                        comments: newComments
+                        comments: newComments,
+                        description: newDescription
                     }))
                     if (improved.comments && improved.comments !== formData.comments) {
                         showMessage('Description and comments improved by AI')
@@ -366,9 +367,9 @@ function ListDetailView({ itemId, onClose }) {
                                             disabled={isImprovingDescription}
                                             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                                             style={{
-                                                color: '#1e3a5f',
                                                 backgroundColor: '#eff6ff',
                                                 border: 'none',
+                                                color: '#1e3a5f',
                                                 cursor: isImprovingDescription ? 'not-allowed' : 'pointer'
                                             }}
                                             title="AI will improve and add ready-mix context to your description"

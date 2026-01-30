@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
-import SrmLogo from '../../assets/images/srm-logo.svg'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { useNotifications } from '../../app/hooks/useNotifications'
+import SrmLogo from '../../assets/images/srm-logo.svg'
+import { UserPresenceService } from '../../services/UserPresenceService'
 import { UserService } from '../../services/UserService'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
-import { useNotifications } from '../../app/hooks/useNotifications'
-import { UserPresenceService } from '../../services/UserPresenceService'
 
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
 const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards', 'Calculators', 'Maintenance']
@@ -13,46 +14,46 @@ const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
 const OFFICE_ONLY_ITEMS = ['Roles']
 
 const ICONS = {
-    Dashboard: 'fa-tachometer-alt',
-    Mixers: 'fa-truck',
-    Tractors: 'fa-tractor',
-    Trailers: 'fa-trailer',
-    'Pickup Trucks': 'fa-truck-pickup',
-    'Heavy Equipment': 'fa-snowplow',
-    Operators: 'fa-users',
-    Managers: 'fa-user-tie',
-    People: 'fa-users',
-    Plants: 'fa-industry',
-    Regions: 'fa-map-marker-alt',
-    List: 'fa-list',
-    Leaderboards: 'fa-trophy',
     Archive: 'fa-archive',
-    MyAccount: 'fa-user',
+    Assets: 'fa-truck',
+    Calculators: 'fa-calculator',
+    Dashboard: 'fa-tachometer-alt',
+    'Heavy Equipment': 'fa-snowplow',
+    Leaderboards: 'fa-trophy',
+    List: 'fa-list',
     Logout: 'fa-sign-out-alt',
+    Maintenance: 'fa-wrench',
+    Managers: 'fa-user-tie',
+    Mixers: 'fa-truck',
+    MyAccount: 'fa-user',
+    Operators: 'fa-users',
+    People: 'fa-users',
+    'Pickup Trucks': 'fa-truck-pickup',
+    Plants: 'fa-industry',
+    Productivity: 'fa-chart-line',
+    Regions: 'fa-map-marker-alt',
     Reports: 'fa-file-alt',
     Roles: 'fa-lock',
-    Calculators: 'fa-calculator',
-    Maintenance: 'fa-wrench',
-    Assets: 'fa-truck',
-    Productivity: 'fa-chart-line'
+    Tractors: 'fa-tractor',
+    Trailers: 'fa-trailer'
 }
 
 const menuItems = [
-    { text: 'Dashboard', id: 'Dashboard', permission: 'dashboard.view' },
-    { text: 'Mixers', id: 'Mixers', permission: 'mixers.view' },
-    { text: 'Tractors', id: 'Tractors', permission: 'tractors.view' },
-    { text: 'Trailers', id: 'Trailers', permission: 'trailers.view' },
-    { text: 'Heavy Equipment', id: 'Heavy Equipment', permission: 'equipment.view' },
-    { text: 'Pickup Trucks', id: 'Pickup Trucks', permission: 'pickup_trucks.view' },
-    { text: 'Operators', id: 'Operators', permission: 'operators.view' },
-    { text: 'Managers', id: 'Managers', permission: 'managers.view' },
-    { text: 'List', id: 'List', permission: 'list.view' },
-    { text: 'Reports', id: 'Reports', permission: 'reports.view' },
-    { text: 'Plants', id: 'Plants', permission: 'plants.view' },
-    { text: 'Regions', id: 'Regions', permission: 'regions.view' },
-    { text: 'Roles', id: 'Roles', permission: 'roles.view' },
-    { text: 'Calculators', id: 'Calculators', permission: 'calculator.view' },
-    { text: 'Leaderboards', id: 'Leaderboards', permission: 'leaderboards.view' }
+    { id: 'Dashboard', permission: 'dashboard.view', text: 'Dashboard' },
+    { id: 'Mixers', permission: 'mixers.view', text: 'Mixers' },
+    { id: 'Tractors', permission: 'tractors.view', text: 'Tractors' },
+    { id: 'Trailers', permission: 'trailers.view', text: 'Trailers' },
+    { id: 'Heavy Equipment', permission: 'equipment.view', text: 'Heavy Equipment' },
+    { id: 'Pickup Trucks', permission: 'pickup_trucks.view', text: 'Pickup Trucks' },
+    { id: 'Operators', permission: 'operators.view', text: 'Operators' },
+    { id: 'Managers', permission: 'managers.view', text: 'Managers' },
+    { id: 'List', permission: 'list.view', text: 'List' },
+    { id: 'Reports', permission: 'reports.view', text: 'Reports' },
+    { id: 'Plants', permission: 'plants.view', text: 'Plants' },
+    { id: 'Regions', permission: 'regions.view', text: 'Regions' },
+    { id: 'Roles', permission: 'roles.view', text: 'Roles' },
+    { id: 'Calculators', permission: 'calculator.view', text: 'Calculators' },
+    { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' }
 ]
 
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
@@ -208,32 +209,32 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     )
 
     const navItemStyle = (isActive) => ({
-        display: 'flex',
         alignItems: 'center',
+        backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+        border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
+        borderRadius: '10px',
+        color: 'white',
+        cursor: 'pointer',
+        display: 'flex',
+        fontSize: '14px',
+        fontWeight: isActive ? 600 : 500,
         gap: '8px',
         padding: '10px 16px',
-        borderRadius: '10px',
-        cursor: 'pointer',
         transition: 'all 0.2s ease',
-        backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-        color: 'white',
-        fontWeight: isActive ? 600 : 500,
-        fontSize: '14px',
-        whiteSpace: 'nowrap',
-        border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
+        whiteSpace: 'nowrap'
     })
 
     const dropdownStyle = {
-        position: 'absolute',
-        top: '100%',
-        left: 0,
-        marginTop: '8px',
         backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
         borderRadius: '14px',
         boxShadow: '0 12px 48px rgba(0,0,0,0.18)',
-        border: '1px solid #e5e7eb',
-        padding: '10px',
+        left: 0,
+        marginTop: '8px',
         minWidth: '220px',
+        padding: '10px',
+        position: 'absolute',
+        top: '100%',
         zIndex: 1000
     }
 
@@ -263,16 +264,16 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 <div
                                     key={item.id}
                                     style={{
-                                        display: 'flex',
                                         alignItems: 'center',
+                                        backgroundColor: isItemActive ? '#f0f7ff' : 'transparent',
+                                        borderRadius: '8px',
+                                        color: isItemActive ? '#1e3a5f' : '#374151',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        fontWeight: isItemActive ? 600 : 400,
                                         gap: '10px',
                                         padding: '10px 14px',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s',
-                                        backgroundColor: isItemActive ? '#f0f7ff' : 'transparent',
-                                        color: isItemActive ? '#1e3a5f' : '#374151',
-                                        fontWeight: isItemActive ? 600 : 400
+                                        transition: 'all 0.15s'
                                     }}
                                     onClick={() => handleMenuClick(item.id)}
                                     onMouseEnter={(e) =>
@@ -286,7 +287,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 >
                                     <i
                                         className={`fas ${ICONS[item.id]}`}
-                                        style={{ fontSize: '14px', width: '18px', color: '#64748b' }}
+                                        style={{ color: '#64748b', fontSize: '14px', width: '18px' }}
                                     ></i>
                                     <span style={{ color: isItemActive ? '#1e3a5f' : '#374151' }}>{item.text}</span>
                                 </div>
@@ -301,18 +302,18 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const renderIconButton = (icon, title, onClick, isActive = false, badge = null, badgeColor = '#ef4444') => (
         <div
             style={{
-                position: 'relative',
-                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                cursor: 'pointer',
                 backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
+                border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '12px',
                 color: 'white',
+                cursor: 'pointer',
+                display: 'flex',
+                height: '42px',
+                justifyContent: 'center',
+                position: 'relative',
                 transition: 'all 0.2s ease',
-                border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.08)'
+                width: '42px'
             }}
             onClick={onClick}
             title={title}
@@ -329,22 +330,22 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             {badge > 0 && (
                 <span
                     style={{
-                        position: 'absolute',
-                        top: '-2px',
-                        right: '-2px',
-                        minWidth: '20px',
-                        height: '20px',
-                        borderRadius: '10px',
+                        alignItems: 'center',
                         backgroundColor: badgeColor,
+                        border: '2px solid #1e3a5f',
+                        borderRadius: '10px',
+                        boxShadow: `0 2px 8px ${badgeColor}66`,
                         color: 'white',
+                        display: 'flex',
                         fontSize: '11px',
                         fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
+                        height: '20px',
                         justifyContent: 'center',
+                        minWidth: '20px',
                         padding: '0 6px',
-                        border: '2px solid #1e3a5f',
-                        boxShadow: `0 2px 8px ${badgeColor}66`
+                        position: 'absolute',
+                        right: '-2px',
+                        top: '-2px'
                     }}
                 >
                     {badge}
@@ -359,10 +360,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
                     <div
                         style={{
-                            display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px 16px',
                             backgroundColor: '#1e3a5f',
                             backgroundImage: `
                             linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
@@ -370,26 +368,29 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         `,
                             backgroundSize: '20px 20px',
                             borderBottom: '1px solid rgba(255,255,255,0.08)',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            padding: '12px 16px',
                             position: 'sticky',
                             top: 0,
-                            zIndex: 100,
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                            zIndex: 100
                         }}
                     >
                         <img src={SrmLogo} alt="Logo" style={{ height: '34px' }} draggable={false} />
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             style={{
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: '10px',
-                                border: 'none',
                                 backgroundColor: mobileMenuOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                                border: 'none',
+                                borderRadius: '10px',
                                 color: 'white',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                display: 'flex',
+                                height: '40px',
+                                justifyContent: 'center',
+                                width: '40px'
                             }}
                         >
                             <i className={`fas fa-${mobileMenuOpen ? 'times' : 'bars'}`}></i>
@@ -399,27 +400,27 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     {mobileMenuOpen && (
                         <div
                             style={{
-                                position: 'fixed',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
                                 backgroundColor: 'rgba(0,0,0,0.5)',
+                                bottom: 0,
+                                left: 0,
+                                position: 'fixed',
+                                right: 0,
+                                top: 0,
                                 zIndex: 200
                             }}
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             <div
                                 style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    right: 0,
-                                    width: '280px',
-                                    height: '100%',
                                     backgroundColor: 'white',
                                     boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
+                                    height: '100%',
                                     overflowY: 'auto',
-                                    padding: '20px'
+                                    padding: '20px',
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: 0,
+                                    width: '280px'
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -428,13 +429,13 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         value={regionCode || ''}
                                         onChange={handleRegionChange}
                                         style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            borderRadius: '10px',
+                                            backgroundColor: '#f8fafc',
                                             border: '1px solid #e5e7eb',
+                                            borderRadius: '10px',
                                             fontSize: '14px',
                                             fontWeight: 500,
-                                            backgroundColor: '#f8fafc'
+                                            padding: '12px',
+                                            width: '100%'
                                         }}
                                     >
                                         {permittedRegions.length === 0 ? (
@@ -534,7 +535,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         </div>
                     )}
 
-                    <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>{children}</div>
+                    <div style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>{children}</div>
                 </div>
             </>
         )
@@ -545,11 +546,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
                 <header
                     style={{
-                        display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0 24px',
-                        height: '68px',
                         backgroundColor: '#1e3a5f',
                         backgroundImage: `
                         linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
@@ -557,25 +554,29 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     `,
                         backgroundSize: '20px 20px',
                         borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                        display: 'flex',
+                        height: '68px',
+                        justifyContent: 'space-between',
+                        padding: '0 24px',
                         position: 'sticky',
                         top: 0,
-                        zIndex: 100,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                        zIndex: 100
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '28px' }}>
                         <div
                             style={{
-                                display: 'flex',
                                 alignItems: 'center',
-                                paddingRight: '24px',
-                                borderRight: '1px solid rgba(255,255,255,0.1)'
+                                borderRight: '1px solid rgba(255,255,255,0.1)',
+                                display: 'flex',
+                                paddingRight: '24px'
                             }}
                         >
                             <img src={SrmLogo} alt="Smyrna Ready Mix" style={{ height: '40px' }} draggable={false} />
                         </div>
 
-                        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <nav style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
                             {standaloneItems.find((i) => i.id === 'Dashboard') && (
                                 <div
                                     style={navItemStyle(selectedView === 'Dashboard')}
@@ -634,24 +635,24 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         </nav>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '16px' }}>
                         <select
                             value={regionCode || ''}
                             onChange={handleRegionChange}
                             style={{
-                                padding: '10px 36px 10px 16px',
-                                borderRadius: '12px',
-                                border: '1px solid rgba(255,255,255,0.15)',
-                                fontSize: '14px',
-                                fontWeight: 600,
+                                appearance: 'none',
                                 backgroundColor: 'rgba(255,255,255,0.08)',
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundPosition: 'right 12px center',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundSize: '16px',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                borderRadius: '12px',
                                 color: 'white',
                                 cursor: 'pointer',
-                                appearance: 'none',
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'right 12px center',
-                                backgroundSize: '16px',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                padding: '10px 36px 10px 16px',
                                 transition: 'all 0.2s ease'
                             }}
                         >
@@ -697,7 +698,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     </div>
                 </header>
 
-                <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>{children}</main>
+                <main style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>{children}</main>
 
                 {showNotifications && (
                     <NotificationsModal
@@ -727,13 +728,13 @@ function MobileSection({ title, children }) {
         <div style={{ marginBottom: '16px' }}>
             <div
                 style={{
+                    color: '#94a3b8',
                     fontSize: '11px',
                     fontWeight: 600,
-                    color: '#94a3b8',
-                    textTransform: 'uppercase',
                     letterSpacing: '0.5px',
+                    marginBottom: '4px',
                     padding: '8px 12px',
-                    marginBottom: '4px'
+                    textTransform: 'uppercase'
                 }}
             >
                 {title}
@@ -748,22 +749,22 @@ function MobileMenuItem({ item, isActive, onClick }) {
         <div
             onClick={onClick}
             style={{
-                display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '12px',
-                borderRadius: '10px',
-                cursor: 'pointer',
                 backgroundColor: isActive ? '#f0f7ff' : 'transparent',
+                borderRadius: '10px',
                 color: isActive ? '#1e3a5f' : '#374151',
+                cursor: 'pointer',
+                display: 'flex',
                 fontWeight: isActive ? 600 : 400,
+                gap: '12px',
                 marginBottom: '4px',
+                padding: '12px',
                 transition: 'all 0.15s'
             }}
         >
             <i
                 className={`fas ${ICONS[item.id] || 'fa-circle'}`}
-                style={{ fontSize: '16px', width: '20px', color: isActive ? '#1e3a5f' : '#64748b' }}
+                style={{ color: isActive ? '#1e3a5f' : '#64748b', fontSize: '16px', width: '20px' }}
             ></i>
             <span style={{ fontSize: '15px' }}>{item.text}</span>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+
 import { PlantService } from '../../services/PlantService'
 
 function PlantsDetailView({ plant, onClose, onDelete }) {
@@ -50,7 +51,7 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
                 </button>
                 <h1>Plant Details</h1>
             </div>
-            <div className="detail-content" style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
+            <div className="detail-content" style={{ margin: '0 auto', maxWidth: 600, width: '100%' }}>
                 {message && (
                     <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</div>
                 )}
@@ -78,7 +79,7 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
                             onChange={(e) => setPlantName(e.target.value)}
                         />
                     </div>
-                    <div className="form-actions" style={{ marginTop: 24, gap: 12 }}>
+                    <div className="form-actions" style={{ gap: 12, marginTop: 24 }}>
                         <button
                             className="primary-button save-button"
                             onClick={handleSave}

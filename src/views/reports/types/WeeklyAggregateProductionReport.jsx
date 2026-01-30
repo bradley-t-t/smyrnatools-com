@@ -1,7 +1,8 @@
 import React from 'react'
+
 import { supabase } from '../../../services/DatabaseService'
-import { ReportUtility } from '../../../utils/ReportUtility'
 import { reportTypeMap } from '../../../types/ReportTypes'
+import { ReportUtility } from '../../../utils/ReportUtility'
 
 const aggReportStyles = `
 .agg-report-container { }

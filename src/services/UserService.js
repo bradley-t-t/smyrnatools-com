@@ -20,9 +20,9 @@ class UserServiceImpl {
         if (this.userProfileCache.has(userId)) {
             const cachedUser = this.userProfileCache.get(userId)
             return {
+                email: cachedUser.email,
                 id: userId,
-                name: cachedUser.displayName || cachedUser.name || `User ${userId.slice(0, 8)}`,
-                email: cachedUser.email
+                name: cachedUser.displayName || cachedUser.name || `User ${userId.slice(0, 8)}`
             }
         }
         const { json } = await APIUtility.post(`${USER_FUNCTION}/user-by-id`, { userId })
@@ -33,9 +33,9 @@ class UserServiceImpl {
         }
         this.userProfileCache.set(userId, json)
         return {
+            email: json.email,
             id: json.id,
-            name: json.name || json.email?.split('@')[0] || `User ${userId.slice(0, 8)}`,
-            email: json.email
+            name: json.name || json.email?.split('@')[0] || `User ${userId.slice(0, 8)}`
         }
     }
 
@@ -117,28 +117,28 @@ UserService.hasPermission = async function (userId, permission) {
     if (!userId || !permission) return false
     if (permission === 'my_account.view') return true
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    const { json } = await APIUtility.post(`${USER_FUNCTION}/has-permission`, { userId: id, permission })
+    const { json } = await APIUtility.post(`${USER_FUNCTION}/has-permission`, { permission, userId: id })
     return !!json
 }
 
 UserService.hasAnyPermission = async function (userId, permissions) {
     if (!userId || !permissions?.length) return false
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    const { json } = await APIUtility.post(`${USER_FUNCTION}/has-any-permission`, { userId: id, permissions })
+    const { json } = await APIUtility.post(`${USER_FUNCTION}/has-any-permission`, { permissions, userId: id })
     return !!json
 }
 
 UserService.hasAllPermissions = async function (userId, permissions) {
     if (!userId || !permissions?.length) return false
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    const { json } = await APIUtility.post(`${USER_FUNCTION}/has-all-permissions`, { userId: id, permissions })
+    const { json } = await APIUtility.post(`${USER_FUNCTION}/has-all-permissions`, { permissions, userId: id })
     return !!json
 }
 
 UserService.getMenuVisibility = async function (userId, requiredPermissions = {}) {
     if (!userId) return {}
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    const { json } = await APIUtility.post(`${USER_FUNCTION}/menu-visibility`, { userId: id, requiredPermissions })
+    const { json } = await APIUtility.post(`${USER_FUNCTION}/menu-visibility`, { requiredPermissions, userId: id })
     return json ?? {}
 }
 
@@ -152,7 +152,7 @@ UserService.getHighestRole = async function (userId) {
 UserService.assignRole = async function (userId, roleId) {
     if (!userId || !roleId) throw new Error('User ID and role ID are required')
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    const { json } = await APIUtility.post(`${USER_FUNCTION}/assign-role`, { userId: id, roleId })
+    const { json } = await APIUtility.post(`${USER_FUNCTION}/assign-role`, { roleId, userId: id })
     this.userRolesCache.delete(id)
     return !!json
 }
@@ -160,7 +160,7 @@ UserService.assignRole = async function (userId, roleId) {
 UserService.removeRole = async function (userId, roleId) {
     if (!userId || !roleId) throw new Error('User ID and role ID are required')
     const id = typeof userId === 'object' && userId.id ? userId.id : userId
-    await APIUtility.post(`${USER_FUNCTION}/remove-role`, { userId: id, roleId })
+    await APIUtility.post(`${USER_FUNCTION}/remove-role`, { roleId, userId: id })
     this.userRolesCache.delete(id)
     return true
 }
@@ -240,14 +240,14 @@ UserService.getAllUsersWithProfilesAndRoles = async function () {
         const permission = permissions.find((p) => p.user_id === user.id) || {}
         const role = permission.role_id ? rolesList.find((r) => r.id === permission.role_id) : null
         return {
-            id: user.id,
+            createdAt: user.created_at,
             email: user.email,
             firstName: profile.first_name || '',
+            id: user.id,
             lastName: profile.last_name || '',
             plantCode: profile.plant_code || '',
             roleName: role?.name || 'User',
             roleWeight: role?.weight || 0,
-            createdAt: user.created_at,
             updatedAt: user.updated_at
         }
     })

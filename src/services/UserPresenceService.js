@@ -1,6 +1,6 @@
 import { supabase } from './DatabaseService'
-import { UserService } from './UserService'
 import { RegionService } from './RegionService'
+import { UserService } from './UserService'
 
 class UserPresenceService {
     constructor() {
@@ -110,11 +110,11 @@ class UserPresenceService {
             const now = new Date().toISOString()
             await supabase.from('users_presence').upsert(
                 {
-                    user_id: userId,
                     is_online: true,
-                    last_seen: now,
                     last_activity: now,
-                    updated_at: now
+                    last_seen: now,
+                    updated_at: now,
+                    user_id: userId
                 },
                 { onConflict: 'user_id' }
             )
@@ -221,10 +221,10 @@ class UserPresenceService {
                 presenceList = [
                     ...presenceList,
                     {
-                        user_id: currentUserId,
-                        last_seen: new Date().toISOString(),
+                        is_online: true,
                         last_activity: new Date().toISOString(),
-                        is_online: true
+                        last_seen: new Date().toISOString(),
+                        user_id: currentUserId
                     }
                 ]
             }
@@ -270,12 +270,12 @@ class UserPresenceService {
 
                     users.push({
                         id: presence.user_id,
-                        name,
-                        roles: roleNames,
-                        roleWeight: userRoleWeight || 0,
-                        regionCode,
+                        lastActivity: presence.last_activity,
                         lastSeen: presence.last_seen,
-                        lastActivity: presence.last_activity
+                        name,
+                        regionCode,
+                        roleWeight: userRoleWeight || 0,
+                        roles: roleNames
                     })
                 } catch {}
             }

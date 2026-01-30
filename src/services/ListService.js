@@ -1,7 +1,7 @@
 import APIUtility from '../utils/APIUtility'
-import { UserService } from './UserService'
-import GrammarUtility from '../utils/GrammarUtility'
 import CacheUtility from '../utils/CacheUtility'
+import GrammarUtility from '../utils/GrammarUtility'
+import { UserService } from './UserService'
 
 class ListServiceImpl {
     listItems = []
@@ -31,8 +31,8 @@ class ListServiceImpl {
         }
         const cleaned = data.map((i) => ({
             ...i,
-            description: GrammarUtility.cleanDescription(i?.description || ''),
-            comments: GrammarUtility.cleanComments(i?.comments || '')
+            comments: GrammarUtility.cleanComments(i?.comments || ''),
+            description: GrammarUtility.cleanDescription(i?.description || '')
         }))
         this.listItems = cleaned
         this.creatorProfiles = profiles
@@ -80,13 +80,13 @@ class ListServiceImpl {
         if (!userId) throw new Error('User ID is required')
         const deadlineString = deadline instanceof Date ? deadline.toISOString() : deadline
         const { res, json } = await APIUtility.post('/list-service/create', {
-            userId,
-            plantCode,
-            description: desc,
-            deadline: deadlineString,
             comments: GrammarUtility.cleanComments(comments || ''),
+            deadline: deadlineString,
+            description: desc,
+            plantCode,
+            responsible_role: responsibleRole || null,
             status: status || 'pending',
-            responsible_role: responsibleRole || null
+            userId
         })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to create list item')
         CacheUtility.delete('list:items-with-profiles')
@@ -99,15 +99,15 @@ class ListServiceImpl {
         const desc = GrammarUtility.cleanDescription(item?.description || '')
         if (!desc.trim()) throw new Error('Description is required')
         const update = {
-            id: item.id,
-            plant_code: item.plant_code?.trim() ?? '',
-            description: desc,
-            deadline: item.deadline,
             comments: GrammarUtility.cleanComments(item?.comments || ''),
             completed: item.completed ?? false,
             completed_at: item.completed_at,
-            status: item.status || 'pending',
-            responsible_role: item.responsible_role || null
+            deadline: item.deadline,
+            description: desc,
+            id: item.id,
+            plant_code: item.plant_code?.trim() ?? '',
+            responsible_role: item.responsible_role || null,
+            status: item.status || 'pending'
         }
         const { res, json } = await APIUtility.post('/list-service/update', { item: update })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to update list item')
@@ -121,9 +121,9 @@ class ListServiceImpl {
         if (!currentUserId) throw new Error('No authenticated user')
         const newCompletionStatus = !item.completed
         const { res, json } = await APIUtility.post('/list-service/toggle-completion', {
-            id: item.id,
+            completed: newCompletionStatus,
             currentUserId,
-            completed: newCompletionStatus
+            id: item.id
         })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to toggle completion')
         CacheUtility.delete('list:items-with-profiles')
@@ -185,11 +185,11 @@ class ListServiceImpl {
         const date = new Date(dateString)
         if (isNaN(date.getTime())) return 'Invalid Date'
         return date.toLocaleString(undefined, {
-            year: 'numeric',
-            month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            month: 'short',
+            year: 'numeric'
         })
     }
 
@@ -205,89 +205,89 @@ class ListServiceImpl {
     }
 
     calculateStatusInfo(item) {
-        if (!item) return { color: 'var(--gray-500)', label: 'Unknown', icon: 'question-circle' }
+        if (!item) return { color: 'var(--gray-500)', icon: 'question-circle', label: 'Unknown' }
         if (item.completed || item.status === 'completed')
             return {
                 color: 'var(--success)',
-                label: 'Completed',
-                icon: 'check-circle'
+                icon: 'check-circle',
+                label: 'Completed'
             }
-        if (item.status === 'in_progress') return { color: 'var(--accent)', label: 'In Progress', icon: 'spinner' }
+        if (item.status === 'in_progress') return { color: 'var(--accent)', icon: 'spinner', label: 'In Progress' }
         if (item.status === 'ordered_materials')
             return {
                 color: 'var(--info)',
-                label: 'Ordered Materials',
-                icon: 'truck-loading'
+                icon: 'truck-loading',
+                label: 'Ordered Materials'
             }
-        if (item.status === 'blocked') return { color: 'var(--danger)', label: 'Blocked', icon: 'ban' }
-        if (item.status === 'waiting') return { color: 'var(--warning)', label: 'Waiting', icon: 'hourglass-half' }
+        if (item.status === 'blocked') return { color: 'var(--danger)', icon: 'ban', label: 'Blocked' }
+        if (item.status === 'waiting') return { color: 'var(--warning)', icon: 'hourglass-half', label: 'Waiting' }
         const deadline = new Date(item.deadline)
         const now = new Date()
-        if (isNaN(deadline.getTime())) return { color: 'var(--gray-500)', label: 'No Deadline', icon: 'calendar-times' }
+        if (isNaN(deadline.getTime())) return { color: 'var(--gray-500)', icon: 'calendar-times', label: 'No Deadline' }
         if (deadline < now || item.status === 'overdue')
             return {
                 color: 'var(--danger)',
-                label: 'Overdue',
-                icon: 'exclamation-circle'
+                icon: 'exclamation-circle',
+                label: 'Overdue'
             }
         const hours = (deadline - now) / (1000 * 60 * 60)
-        if (hours < 24) return { color: 'var(--warning)', label: 'Due Soon', icon: 'clock' }
-        return { color: 'var(--primary)', label: 'Pending', icon: 'calendar-check' }
+        if (hours < 24) return { color: 'var(--warning)', icon: 'clock', label: 'Due Soon' }
+        return { color: 'var(--primary)', icon: 'calendar-check', label: 'Pending' }
     }
 
     getStatusLabel(status) {
         const labels = {
-            pending: 'Pending',
+            blocked: 'Blocked',
+            completed: 'Completed',
             in_progress: 'In Progress',
             ordered_materials: 'Ordered Materials',
-            blocked: 'Blocked',
-            waiting: 'Waiting',
             overdue: 'Overdue',
-            completed: 'Completed'
+            pending: 'Pending',
+            waiting: 'Waiting'
         }
         return labels[status] || 'Pending'
     }
 
     getStatusIcon(status) {
         const icons = {
-            pending: 'fa-clock',
+            blocked: 'fa-ban',
+            completed: 'fa-check-circle',
             in_progress: 'fa-spinner',
             ordered_materials: 'fa-truck-loading',
-            blocked: 'fa-ban',
-            waiting: 'fa-hourglass-half',
             overdue: 'fa-exclamation-circle',
-            completed: 'fa-check-circle'
+            pending: 'fa-clock',
+            waiting: 'fa-hourglass-half'
         }
         return icons[status] || 'fa-clock'
     }
 
     getStatusColor(status) {
         const colors = {
-            pending: 'pending',
+            blocked: 'blocked',
+            completed: 'completed',
             in_progress: 'in-progress',
             ordered_materials: 'ordered',
-            blocked: 'blocked',
-            waiting: 'waiting',
             overdue: 'overdue',
-            completed: 'completed'
+            pending: 'pending',
+            waiting: 'waiting'
         }
         return colors[status] || 'pending'
     }
 
     getResponsibleRoleLabel(role) {
         const labels = {
+            district_manager: 'District Manager',
             maintenance: 'Maintenance',
-            plant_manager: 'Plant Manager',
-            district_manager: 'District Manager'
+            plant_manager: 'Plant Manager'
         }
         return labels[role] || 'Unassigned'
     }
 
     getResponsibleRoleIcon(role) {
         const icons = {
+            district_manager: 'fa-user-shield',
             maintenance: 'fa-wrench',
-            plant_manager: 'fa-user-tie',
-            district_manager: 'fa-user-shield'
+            plant_manager: 'fa-user-tie'
         }
         return icons[role] || 'fa-users'
     }
@@ -320,7 +320,7 @@ class ListServiceImpl {
         const distribution = {}
         const uniquePlants = [...new Set(listItems.map((item) => item.plant_code || 'Unassigned'))]
         uniquePlants.forEach((plant) => {
-            distribution[plant] = { Total: 0, Pending: 0, Completed: 0, Overdue: 0 }
+            distribution[plant] = { Completed: 0, Overdue: 0, Pending: 0, Total: 0 }
         })
         listItems.forEach((item) => {
             const plant = item.plant_code || 'Unassigned'

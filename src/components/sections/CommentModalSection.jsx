@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import LoadingScreen from '../common/LoadingScreen'
-import ErrorMessage from '../common/ErrorMessage'
+
 import { UserService } from '../../services/UserService'
+import ErrorMessage from '../common/ErrorMessage'
+import LoadingScreen from '../common/LoadingScreen'
 
 function CommentModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [comments, setComments] = useState([])
@@ -112,137 +113,109 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
     })
 
     const styles = {
-        backdrop: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
+        actions: {
             display: 'flex',
+            gap: '0.375rem',
+            marginLeft: 'auto'
+        },
+        addButton: (disabled) => ({
             alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-            animation: 'fadeIn 0.2s ease-out'
-        },
-        modal: {
-            background: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-            maxWidth: '750px',
-            width: '100%',
-            maxHeight: '85vh',
+            alignSelf: 'flex-end',
+            background: disabled ? '#94a3b8' : '#1e3a5f',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: disabled ? 'not-allowed' : 'pointer',
             display: 'flex',
-            flexDirection: 'column',
-            animation: 'popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            border: '1px solid #e5e7eb'
-        },
-        header: {
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            opacity: disabled ? 0.4 : 1,
+            padding: '0.625rem 1.25rem',
+            transition: 'all 0.2s'
+        }),
+        addSection: {
             background: '#f8fafc',
-            display: 'flex',
-            justifyContent: 'space-between',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            marginBottom: '1.5rem',
+            padding: '1rem'
+        },
+        author: {
             alignItems: 'center',
-            padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid #e5e7eb',
-            borderRadius: '12px 12px 0 0'
-        },
-        headerContent: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.875rem'
-        },
-        headerIcon: {
-            fontSize: '1.25rem',
-            color: '#1e3a5f'
-        },
-        title: {
-            margin: 0,
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            lineHeight: 1.2
-        },
-        subtitle: {
-            fontSize: '0.75rem',
             color: '#64748b',
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            display: 'flex',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            gap: '0.375rem'
+        },
+        backdrop: {
+            alignItems: 'center',
+            animation: 'fadeIn 0.2s ease-out',
+            backdropFilter: 'blur(4px)',
+            background: 'rgba(0, 0, 0, 0.5)',
+            bottom: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            left: 0,
+            padding: '1rem',
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            zIndex: 1000
         },
         closeButton: {
+            alignItems: 'center',
             background: 'transparent',
             border: 'none',
-            fontSize: '1.25rem',
+            borderRadius: '6px',
             color: '#64748b',
             cursor: 'pointer',
-            padding: '0.5rem',
             display: 'flex',
-            alignItems: 'center',
+            fontSize: '1.25rem',
+            height: '2rem',
             justifyContent: 'center',
-            borderRadius: '6px',
+            padding: '0.5rem',
             transition: 'all 0.2s',
-            width: '2rem',
-            height: '2rem'
+            width: '2rem'
         },
         content: {
             flex: 1,
             overflowY: 'auto',
             padding: '1.5rem'
         },
-        addSection: {
-            background: '#f8fafc',
-            padding: '1rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            border: '1px solid #e5e7eb'
+        count: {
+            background: '#e5e7eb',
+            borderRadius: '12px',
+            color: '#1e293b',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            padding: '0.25rem 0.625rem'
         },
-        formRow: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
+        date: {
+            color: '#64748b',
+            fontSize: '0.75rem',
+            fontWeight: 500
         },
-        textarea: {
-            width: '100%',
-            padding: '0.75rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontFamily: 'inherit',
-            fontSize: '0.9375rem',
-            lineHeight: 1.5,
-            resize: 'vertical',
-            transition: 'all 0.2s',
-            background: 'white',
-            color: '#1e293b'
-        },
-        addButton: (disabled) => ({
-            background: disabled ? '#94a3b8' : '#1e3a5f',
-            color: 'white',
+        deleteButton: {
+            alignItems: 'center',
+            background: '#ef4444',
             border: 'none',
-            padding: '0.625rem 1.25rem',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s',
+            borderRadius: '6px',
+            color: 'white',
+            cursor: 'pointer',
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            alignSelf: 'flex-end',
-            opacity: disabled ? 0.4 : 1
-        }),
-        loading: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
+            fontSize: '0.75rem',
+            height: '1.875rem',
             justifyContent: 'center',
-            padding: '2rem'
+            padding: '0.375rem',
+            transition: 'all 0.2s',
+            width: '1.875rem'
         },
         empty: {
-            textAlign: 'center',
+            color: '#64748b',
             padding: '3rem 1.5rem',
-            color: '#64748b'
+            textAlign: 'center'
         },
         emptyIcon: {
             fontSize: '2.5rem',
@@ -250,94 +223,122 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
             opacity: 0.3
         },
         emptyText: {
-            margin: 0,
             fontSize: '0.9375rem',
-            fontWeight: 500
+            fontWeight: 500,
+            margin: 0
         },
-        sectionHeader: {
+        formRow: {
             display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+        },
+        header: {
             alignItems: 'center',
+            background: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            borderRadius: '12px 12px 0 0',
+            display: 'flex',
             justifyContent: 'space-between',
-            marginBottom: '0.75rem',
-            paddingBottom: '0.5rem',
-            borderBottom: '1px solid #e5e7eb'
+            padding: '1.25rem 1.5rem'
         },
-        sectionTitle: {
-            margin: 0,
-            fontWeight: 700,
-            color: '#1e293b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            fontSize: '0.75rem'
+        headerContent: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '0.875rem'
         },
-        count: {
-            background: '#e5e7eb',
-            color: '#1e293b',
-            padding: '0.25rem 0.625rem',
-            borderRadius: '12px',
-            fontSize: '0.75rem',
-            fontWeight: 700
+        headerIcon: {
+            color: '#1e3a5f',
+            fontSize: '1.25rem'
         },
         item: {
             background: 'white',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
-            padding: '0.875rem',
             marginBottom: '0.625rem',
+            padding: '0.875rem',
             transition: 'all 0.2s'
         },
         itemTop: {
-            display: 'flex',
             alignItems: 'center',
+            display: 'flex',
+            flexWrap: 'wrap',
             gap: '0.75rem',
-            marginBottom: '0.625rem',
-            flexWrap: 'wrap'
+            marginBottom: '0.625rem'
+        },
+        loading: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '2rem'
         },
         meta: {
-            display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem',
-            flex: 1
+            display: 'flex',
+            flex: 1,
+            gap: '0.75rem'
         },
-        author: {
+        modal: {
+            animation: 'popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '85vh',
+            maxWidth: '750px',
+            width: '100%'
+        },
+        sectionHeader: {
+            alignItems: 'center',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '0.75rem',
+            paddingBottom: '0.5rem'
+        },
+        sectionTitle: {
+            color: '#1e293b',
             fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.5px',
+            margin: 0,
+            textTransform: 'uppercase'
+        },
+        subtitle: {
             color: '#64748b',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.375rem'
-        },
-        date: {
             fontSize: '0.75rem',
-            color: '#64748b',
-            fontWeight: 500
-        },
-        actions: {
-            marginLeft: 'auto',
-            display: 'flex',
-            gap: '0.375rem'
-        },
-        deleteButton: {
-            border: 'none',
-            padding: '0.375rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '1.875rem',
-            height: '1.875rem',
-            transition: 'all 0.2s',
-            fontSize: '0.75rem',
-            background: '#ef4444',
-            color: 'white'
+            fontWeight: 500,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
         text: {
             color: '#1e293b',
+            fontSize: '0.875rem',
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            fontSize: '0.875rem'
+            wordBreak: 'break-word'
+        },
+        textarea: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontFamily: 'inherit',
+            fontSize: '0.9375rem',
+            lineHeight: 1.5,
+            padding: '0.75rem',
+            resize: 'vertical',
+            transition: 'all 0.2s',
+            width: '100%'
+        },
+        title: {
+            color: '#1e293b',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            lineHeight: 1.2,
+            margin: 0
         }
     }
 

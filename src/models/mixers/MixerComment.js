@@ -14,11 +14,11 @@ export class MixerComment {
 
     toRow() {
         return {
+            author: this.author,
+            created_at: this.createdAt,
             id: this.id,
             mixer_id: this.mixerId,
-            text: this.text,
-            author: this.author,
-            created_at: this.createdAt
+            text: this.text
         }
     }
 }

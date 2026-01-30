@@ -5,28 +5,6 @@ const isMobileDevice = () => {
 const PING_TIMEOUT = isMobileDevice() ? 15000 : 5000
 
 const NetworkUtility = {
-    isOnline() {
-        return navigator.onLine
-    },
-    isMobileDevice() {
-        return isMobileDevice()
-    },
-    addOnlineListener(callback) {
-        if (typeof callback !== 'function') return
-        window.addEventListener('online', callback)
-    },
-    removeOnlineListener(callback) {
-        if (typeof callback !== 'function') return
-        window.removeEventListener('online', callback)
-    },
-    addOfflineListener(callback) {
-        if (typeof callback !== 'function') return
-        window.addEventListener('offline', callback)
-    },
-    removeOfflineListener(callback) {
-        if (typeof callback !== 'function') return
-        window.removeEventListener('offline', callback)
-    },
     addNetworkListeners(onlineCallback, offlineCallback) {
         if (!onlineCallback || !offlineCallback) throw new Error('Callbacks are required')
         window.addEventListener('online', onlineCallback)
@@ -36,6 +14,14 @@ const NetworkUtility = {
             window.removeEventListener('offline', offlineCallback)
         }
     },
+    addOfflineListener(callback) {
+        if (typeof callback !== 'function') return
+        window.addEventListener('offline', callback)
+    },
+    addOnlineListener(callback) {
+        if (typeof callback !== 'function') return
+        window.addEventListener('online', callback)
+    },
     async checkConnection() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), PING_TIMEOUT)
@@ -43,11 +29,11 @@ const NetworkUtility = {
         if (!isMobileDevice()) {
             try {
                 await fetch('https://clients3.google.com/generate_204', {
+                    cache: 'no-store',
+                    credentials: 'omit',
                     method: 'GET',
                     mode: 'no-cors',
-                    cache: 'no-store',
-                    signal: controller.signal,
-                    credentials: 'omit'
+                    signal: controller.signal
                 })
                 clearTimeout(timeoutId)
                 return true
@@ -56,8 +42,8 @@ const NetworkUtility = {
 
         try {
             const res = await fetch(`/version.json?cb=${Date.now()}`, {
-                method: 'GET',
                 cache: 'reload',
+                method: 'GET',
                 signal: controller.signal
             })
             clearTimeout(timeoutId)
@@ -66,6 +52,20 @@ const NetworkUtility = {
             clearTimeout(timeoutId)
             return false
         }
+    },
+    isMobileDevice() {
+        return isMobileDevice()
+    },
+    isOnline() {
+        return navigator.onLine
+    },
+    removeOfflineListener(callback) {
+        if (typeof callback !== 'function') return
+        window.removeEventListener('offline', callback)
+    },
+    removeOnlineListener(callback) {
+        if (typeof callback !== 'function') return
+        window.removeEventListener('online', callback)
     }
 }
 

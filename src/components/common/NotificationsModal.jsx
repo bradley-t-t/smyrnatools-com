@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { UserService } from '../../services/UserService'
 import { useNotifications } from '../../app/hooks/useNotifications'
+import { UserService } from '../../services/UserService'
 
 function NotificationsModal({ isOpen, onClose, anchorRect }) {
     const { preferences } = usePreferences()
@@ -50,11 +51,11 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
         const reports = items.filter((n) => n.type?.includes('reports'))
 
         return {
-            mixerVerifications,
-            tractorVerifications,
             equipmentVerifications,
+            mixerVerifications,
+            reports,
             tasks,
-            reports
+            tractorVerifications
         }
     }, [items])
 
@@ -63,46 +64,46 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
 
         if (categorizedItems.mixerVerifications.length > 0) {
             cats.push({
-                key: 'mixerVerifications',
-                label: 'Mixer Verifications',
                 icon: 'fas fa-truck',
-                items: categorizedItems.mixerVerifications
+                items: categorizedItems.mixerVerifications,
+                key: 'mixerVerifications',
+                label: 'Mixer Verifications'
             })
         }
 
         if (categorizedItems.tractorVerifications.length > 0) {
             cats.push({
-                key: 'tractorVerifications',
-                label: 'Tractor Verifications',
                 icon: 'fas fa-tractor',
-                items: categorizedItems.tractorVerifications
+                items: categorizedItems.tractorVerifications,
+                key: 'tractorVerifications',
+                label: 'Tractor Verifications'
             })
         }
 
         if (categorizedItems.equipmentVerifications.length > 0) {
             cats.push({
-                key: 'equipmentVerifications',
-                label: 'Equipment Verifications',
                 icon: 'fas fa-snowplow',
-                items: categorizedItems.equipmentVerifications
+                items: categorizedItems.equipmentVerifications,
+                key: 'equipmentVerifications',
+                label: 'Equipment Verifications'
             })
         }
 
         if (categorizedItems.tasks.length > 0) {
             cats.push({
-                key: 'tasks',
-                label: 'Overdue Tasks',
                 icon: 'fas fa-list',
-                items: categorizedItems.tasks
+                items: categorizedItems.tasks,
+                key: 'tasks',
+                label: 'Overdue Tasks'
             })
         }
 
         if (categorizedItems.reports.length > 0) {
             cats.push({
-                key: 'reports',
-                label: 'Overdue Reports',
                 icon: 'fas fa-file-alt',
-                items: categorizedItems.reports
+                items: categorizedItems.reports,
+                key: 'reports',
+                label: 'Overdue Reports'
             })
         }
 
@@ -133,8 +134,8 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
 
     const modalStyle = {
         position: 'fixed',
-        top: anchorRect ? anchorRect.bottom + 8 : '80px',
         right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
+        top: anchorRect ? anchorRect.bottom + 8 : '80px',
         zIndex: 1000
     }
 

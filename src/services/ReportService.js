@@ -1,9 +1,9 @@
-import { supabase } from './DatabaseService'
-import CacheUtility from '../utils/CacheUtility'
-import { UserService } from './UserService'
-import { RegionService } from './RegionService'
 import { reportTypes } from '../types/ReportTypes'
+import CacheUtility from '../utils/CacheUtility'
 import { ReportUtility } from '../utils/ReportUtility'
+import { supabase } from './DatabaseService'
+import { RegionService } from './RegionService'
+import { UserService } from './UserService'
 
 const TTL_SHORT = 5 * 60 * 1000
 const TTL_MED = 10 * 60 * 1000
@@ -157,7 +157,7 @@ class ReportServiceImpl {
         else if (lostGrade === 'good') lostLabel = 'Good'
         else if (lostGrade === 'average') lostLabel = 'Average'
         else if (lostGrade === 'poor') lostLabel = 'Poor'
-        return { yph, yphGrade, yphLabel, lost, lostGrade, lostLabel }
+        return { lost, lostGrade, lostLabel, yph, yphGrade, yphLabel }
     }
 
     getYphColor(grade) {
@@ -211,8 +211,8 @@ class ReportServiceImpl {
                     countElapsedStart++
                     if (elapsed > 15)
                         warnings.push({
-                            row: rows.indexOf(row),
-                            message: `Start to 1st Load is ${elapsed} min (> 15 min)`
+                            message: `Start to 1st Load is ${elapsed} min (> 15 min)`,
+                            row: rows.indexOf(row)
                         })
                 }
             }
@@ -223,8 +223,8 @@ class ReportServiceImpl {
                     countElapsedEnd++
                     if (elapsed > 20)
                         warnings.push({
-                            row: rows.indexOf(row),
-                            message: `EOD to Punch Out is ${elapsed} min (> 20 min)`
+                            message: `EOD to Punch Out is ${elapsed} min (> 20 min)`,
+                            row: rows.indexOf(row)
                         })
                 }
             }
@@ -234,13 +234,13 @@ class ReportServiceImpl {
             }
             if (!isNaN(loads) && loads < 3)
                 warnings.push({
-                    row: rows.indexOf(row),
-                    message: `Total Loads is ${loads} (< 3)`
+                    message: `Total Loads is ${loads} (< 3)`,
+                    row: rows.indexOf(row)
                 })
             if (hours !== null && hours > 14)
                 warnings.push({
-                    row: rows.indexOf(row),
-                    message: `Total Hours is ${hours.toFixed(2)} (> 14 hours)`
+                    message: `Total Hours is ${hours.toFixed(2)} (> 14 hours)`,
+                    row: rows.indexOf(row)
                 })
         })
         const avgElapsedStart = countElapsedStart ? totalElapsedStart / countElapsedStart : null
@@ -265,15 +265,15 @@ class ReportServiceImpl {
         if (avgHours !== null && avgHours > 14)
             avgWarnings.push(`Avg Total Hours is ${avgHours.toFixed(2)} (> 14 hours)`)
         return {
-            totalLoads,
-            totalHours,
-            avgElapsedStart,
             avgElapsedEnd,
-            avgLoads,
+            avgElapsedStart,
             avgHours,
+            avgLoads,
             avgLoadsPerHour,
-            warnings,
-            avgWarnings
+            avgWarnings,
+            totalHours,
+            totalLoads,
+            warnings
         }
     }
 
@@ -332,13 +332,13 @@ class ReportServiceImpl {
         const cached = CacheUtility.get(key)
         if (cached) return cached
         const { data, error } = await supabase.from('operators').select('employee_id, name').eq('plant_code', plantCode)
-        const options = !error && Array.isArray(data) ? data.map((u) => ({ value: u.employee_id, label: u.name })) : []
+        const options = !error && Array.isArray(data) ? data.map((u) => ({ label: u.name, value: u.employee_id })) : []
         CacheUtility.set(key, options, TTL_SHORT)
         return options
     }
 
     async fetchActiveOperatorsAndMixers(plantCode) {
-        if (!plantCode) return { operatorOptions: [], mixers: [] }
+        if (!plantCode) return { mixers: [], operatorOptions: [] }
         const [opsRes, mixRes] = await Promise.all([
             supabase
                 .from('operators')
@@ -350,10 +350,10 @@ class ReportServiceImpl {
         ])
         const operatorOptions =
             !opsRes.error && Array.isArray(opsRes.data)
-                ? opsRes.data.map((u) => ({ value: u.employee_id, label: u.name }))
+                ? opsRes.data.map((u) => ({ label: u.name, value: u.employee_id }))
                 : []
         const mixers = !mixRes.error && Array.isArray(mixRes.data) ? mixRes.data : []
-        return { operatorOptions, mixers, activeOperators: opsRes.data || [] }
+        return { activeOperators: opsRes.data || [], mixers, operatorOptions }
     }
 
     async fetchMaintenanceItems(weekIso) {
@@ -411,7 +411,7 @@ class ReportServiceImpl {
                     const has = perms.some((perm) => permsSet.has(perm))
                     if (has) names.push(rt.name)
                 })
-                if (names.length > 0) assignedMap.set(userId, { user: p, reportNames: names })
+                if (names.length > 0) assignedMap.set(userId, { reportNames: names, user: p })
             })
         )
         const candidateUserIds = Array.from(assignedMap.keys())
@@ -477,7 +477,7 @@ class ReportServiceImpl {
             const { monday, saturday } = ReportUtility.getWeekDatesFromIso(iso)
             const startIso = monday ? monday.toISOString() : null
             const endIso = saturday ? new Date(saturday.getTime() + 86399999).toISOString() : null
-            return { iso, startIso, endIso }
+            return { endIso, iso, startIso }
         })
         const submittedQueries = await Promise.all(
             weekRanges.map(async (wr) => {
@@ -546,10 +546,10 @@ class ReportServiceImpl {
                     const done = existing.get(key)
                     if (!done) {
                         overdue.push({
-                            userId,
                             first_name: info.user.first_name || '',
                             last_name: info.user.last_name || '',
                             report_name: rtName,
+                            userId,
                             week: day
                         })
                     }

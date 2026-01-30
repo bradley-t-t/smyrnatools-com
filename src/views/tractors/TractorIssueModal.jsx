@@ -1,6 +1,7 @@
 import React from 'react'
-import { TractorService } from '../../services/TractorService'
+
 import IssueModalSection from '../../components/sections/IssueModalSection'
+import { TractorService } from '../../services/TractorService'
 
 function TractorIssueModal({ tractorId, tractorNumber, onClose }) {
     return (

@@ -1,6 +1,6 @@
-import { UserService } from '../services/UserService'
-import { RegionService } from '../services/RegionService'
 import { EquipmentService } from '../services/EquipmentService'
+import { RegionService } from '../services/RegionService'
+import { UserService } from '../services/UserService'
 import EquipmentUtility from '../utils/EquipmentUtility'
 
 async function getRegionScopedPlantCodes(userId, selectedRegion) {
@@ -44,11 +44,11 @@ async function getNotifications({ userId, selectedRegion }) {
 
     const now = new Date()
     const centralParts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Chicago',
-        weekday: 'short',
         hour: '2-digit',
+        hour12: false,
         minute: '2-digit',
-        hour12: false
+        timeZone: 'America/Chicago',
+        weekday: 'short'
     }).formatToParts(now)
     const mp = {}
     centralParts.forEach((p) => {
@@ -82,11 +82,11 @@ async function getNotifications({ userId, selectedRegion }) {
                 const severity = pastDue ? 'error' : 'warning'
                 notifications.push({
                     id: `equipment-verify-${code}`,
-                    title: `Plant ${code} Equipment Verifications ${titlePhase}`,
-                    subtitle: `This plant has ${unverifiedCount} unverified equipment.`,
+                    plantCode: code,
                     severity,
-                    type: 'equipment.verifications',
-                    plantCode: code
+                    subtitle: `This plant has ${unverifiedCount} unverified equipment.`,
+                    title: `Plant ${code} Equipment Verifications ${titlePhase}`,
+                    type: 'equipment.verifications'
                 })
             }
         })
@@ -118,12 +118,12 @@ async function getNotifications({ userId, selectedRegion }) {
     return [
         {
             id: `equipment-verify-${userPlantCodeUpper}`,
-            title: `Equipment Verifications ${titlePhase}`,
-            subtitle: `You have ${unverifiedCount} unverified equipment.`,
             severity,
+            subtitle: `You have ${unverifiedCount} unverified equipment.`,
+            title: `Equipment Verifications ${titlePhase}`,
             type: 'equipment.verifications'
         }
     ]
 }
 
-export default { id: 'equipment.verifications', getNotifications }
+export default { getNotifications, id: 'equipment.verifications' }

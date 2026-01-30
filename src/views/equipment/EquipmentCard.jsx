@@ -1,6 +1,7 @@
 import React from 'react'
-import EquipmentUtility from '../../utils/EquipmentUtility'
+
 import CardSection from '../../components/sections/CardSection'
+import EquipmentUtility from '../../utils/EquipmentUtility'
 
 function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onShowIssueModal }) {
     const isServiceOverdue = EquipmentUtility.isServiceOverdue(equipment.lastServiceDate)

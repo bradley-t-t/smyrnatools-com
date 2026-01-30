@@ -10,11 +10,11 @@ class Region {
 
     static fromRow(row) {
         return new Region({
+            createdAt: row.created_at,
             id: row.id,
             regionCode: row.region_code,
             regionName: row.region_name,
             type: row.type,
-            createdAt: row.created_at,
             updatedAt: row.updated_at
         })
     }

@@ -25,25 +25,25 @@ export class TractorHistory {
         }
 
         return new TractorHistory({
-            id: data.id,
-            tractor_id: data.tractor_id,
-            field_name: data.field_name,
-            old_value: oldValue,
-            new_value: newValue,
             changed_at: data.changed_at,
-            changed_by: data.changed_by
+            changed_by: data.changed_by,
+            field_name: data.field_name,
+            id: data.id,
+            new_value: newValue,
+            old_value: oldValue,
+            tractor_id: data.tractor_id
         })
     }
 
     toApiFormat() {
         return {
-            id: this.id,
-            tractor_id: this.tractorId,
-            field_name: this.fieldName,
-            old_value: this.oldValue,
-            new_value: this.newValue,
             changed_at: this.changedAt,
-            changed_by: this.changedBy
+            changed_by: this.changedBy,
+            field_name: this.fieldName,
+            id: this.id,
+            new_value: this.newValue,
+            old_value: this.oldValue,
+            tractor_id: this.tractorId
         }
     }
 

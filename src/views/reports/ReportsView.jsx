@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import ReportsSubmitView from './ReportsSubmitView'
-import ReportsReviewView from './ReportsReviewView'
-import { supabase } from '../../services/DatabaseService'
-import { UserService } from '../../services/UserService'
-import { ReportService } from '../../services/ReportService'
-import LoadingScreen from '../../components/common/LoadingScreen'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
-import { ReportUtility } from '../../utils/ReportUtility'
+import LoadingScreen from '../../components/common/LoadingScreen'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
 import TopSection from '../../components/sections/TopSection'
+import { supabase } from '../../services/DatabaseService'
+import { RegionService } from '../../services/RegionService'
+import { ReportService } from '../../services/ReportService'
+import { UserService } from '../../services/UserService'
+import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
+import { ReportUtility } from '../../utils/ReportUtility'
+import ReportsReviewView from './ReportsReviewView'
+import ReportsSubmitView from './ReportsSubmitView'
 
 const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
@@ -53,156 +54,70 @@ function ReportsView() {
     const [reviewedByCurrentUser, setReviewedByCurrentUser] = useState(new Set())
 
     const styles = {
-        root: {
-            width: '100%',
-            minHeight: '100vh',
-            background: '#f8fafc',
-            padding: '0',
-            paddingBottom: '4rem'
-        },
-        loadError: {
-            background: '#fee2e2',
-            color: '#dc2626',
-            padding: '1rem',
-            borderRadius: '8px',
-            margin: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.875rem',
-            fontWeight: 500
-        },
-        toolbar: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            padding: '1rem 1.5rem',
-            background: 'white',
-            backgroundImage: `
-                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
-            `,
-            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
-            borderBottom: '1px solid #e5e7eb',
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-            flexWrap: 'wrap'
-        },
-        toolbarLeft: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
-        },
-        toolbarTitle: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        toolbarRight: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            flexWrap: 'wrap'
-        },
-        refreshBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '10px 16px',
+        actionBtn: {
             background: '#1e3a5f',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-        },
-        filters: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
-        },
-        selectControl: {
-            padding: '10px 36px 10px 14px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: 500,
-            color: '#1e293b',
-            backgroundColor: 'white',
-            cursor: 'pointer',
-            outline: 'none',
-            minWidth: '140px',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 10px center',
-            backgroundSize: '16px',
-            WebkitAppearance: 'none',
-            MozAppearance: 'none',
-            appearance: 'none',
-            transition: 'all 0.15s'
-        },
-        tabs: {
-            display: 'flex',
-            gap: '3px',
-            background: '#f1f5f9',
-            padding: '3px',
-            borderRadius: '8px'
-        },
-        tab: (active) => ({
-            padding: '8px 14px',
             border: 'none',
             borderRadius: '6px',
-            fontSize: '13px',
-            fontWeight: active ? 600 : 500,
-            color: active ? 'white' : '#64748b',
-            background: active ? '#1e3a5f' : 'transparent',
+            color: 'white',
             cursor: 'pointer',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            padding: '0.5rem 1rem',
             transition: 'all 0.2s'
-        }),
+        },
+        badge: (type) => {
+            const colors = {
+                'Last Week': { bg: '#fef3c7', color: '#92400e' },
+                Older: { bg: '#f1f5f9', color: '#64748b' },
+                'This Week': { bg: '#dbeafe', color: '#1e40af' }
+            }
+            const c = colors[type] || colors['Older']
+            return {
+                background: c.bg,
+                borderRadius: '6px',
+                color: c.color,
+                display: 'inline-flex',
+                fontSize: '0.6875rem',
+                fontWeight: 600,
+                letterSpacing: '0.3px',
+                marginRight: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                textTransform: 'uppercase'
+            }
+        },
         content: {
             padding: '1.5rem'
         },
-        list: {
-            background: 'white',
-            borderRadius: '12px',
-            border: '1px solid #e5e7eb',
-            overflow: 'hidden',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-        },
         empty: {
+            alignItems: 'center',
+            color: '#64748b',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '4rem 2rem',
-            color: '#64748b',
             fontSize: '1rem',
-            gap: '1rem'
+            gap: '1rem',
+            justifyContent: 'center',
+            padding: '4rem 2rem'
         },
         emptyIcon: {
-            fontSize: '3rem',
-            color: '#cbd5e1'
+            color: '#cbd5e1',
+            fontSize: '3rem'
+        },
+        filters: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '0.75rem'
         },
         headerRow: {
-            display: 'grid',
-            gap: '1rem',
-            padding: '0.875rem 1.25rem',
             background: '#f8fafc',
             borderBottom: '1px solid #e5e7eb',
+            color: '#64748b',
+            display: 'grid',
             fontSize: '0.75rem',
             fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            gap: '1rem',
+            letterSpacing: '0.5px',
+            padding: '0.875rem 1.25rem',
+            textTransform: 'uppercase'
         },
         headerRowMy: {
             gridTemplateColumns: '1fr 1fr 120px 120px 100px'
@@ -210,86 +125,87 @@ function ReportsView() {
         headerRowReview: {
             gridTemplateColumns: '1fr 1fr 1fr 120px 120px 100px'
         },
-        tableRow: {
-            display: 'flex',
+        list: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            overflow: 'hidden'
+        },
+        loadError: {
             alignItems: 'center',
-            padding: '12px 28px',
-            borderBottom: '1px solid #f1f5f9',
-            fontSize: '0.9375rem',
-            color: '#1e293b',
-            transition: 'background 0.15s'
+            background: '#fee2e2',
+            borderRadius: '8px',
+            color: '#dc2626',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            gap: '0.5rem',
+            margin: '1rem',
+            padding: '1rem'
         },
-        tableCell: {
-            padding: '0 8px'
+        loading: {
+            alignItems: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '3rem'
         },
-        tableCellFlex: {
-            flex: 1,
-            minWidth: 0,
-            padding: '0 8px'
-        },
-        tableCellFixed120: {
-            width: '120px',
-            flexShrink: 0,
-            padding: '0 8px'
-        },
-        tableCellFixed100: {
-            width: '100px',
-            flexShrink: 0,
-            padding: '0 8px',
-            textAlign: 'right'
-        },
-        tableRowMy: {},
-        tableRowReview: {},
-        badge: (type) => {
-            const colors = {
-                'This Week': { bg: '#dbeafe', color: '#1e40af' },
-                'Last Week': { bg: '#fef3c7', color: '#92400e' },
-                Older: { bg: '#f1f5f9', color: '#64748b' }
-            }
-            const c = colors[type] || colors['Older']
-            return {
-                display: 'inline-flex',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '6px',
-                fontSize: '0.6875rem',
-                fontWeight: 600,
-                background: c.bg,
-                color: c.color,
-                marginRight: '0.5rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.3px'
-            }
-        },
-        status: (type) => {
-            const colors = {
-                success: { bg: '#d1fae5', color: '#059669' },
-                info: { bg: '#dbeafe', color: '#1e40af' },
-                error: { bg: '#fee2e2', color: '#dc2626' },
-                warning: { bg: '#fef3c7', color: '#d97706' }
-            }
-            const c = colors[type] || colors.error
-            return {
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                padding: '0.375rem 0.75rem',
-                borderRadius: '6px',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                background: c.bg,
-                color: c.color
-            }
-        },
-        actionBtn: {
-            padding: '0.5rem 1rem',
-            background: '#1e3a5f',
-            color: 'white',
-            border: 'none',
+        pageBtn: (disabled) => ({
+            background: disabled ? '#f1f5f9' : 'white',
+            border: '1px solid #e5e7eb',
             borderRadius: '6px',
-            fontSize: '0.8125rem',
-            fontWeight: 600,
-            cursor: 'pointer',
+            color: disabled ? '#94a3b8' : '#374151',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            padding: '0.5rem 1rem',
             transition: 'all 0.2s'
+        }),
+        pageControls: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '0.75rem'
+        },
+        pageInfo: {
+            color: '#64748b',
+            fontSize: '0.875rem'
+        },
+        pageSize: {
+            alignItems: 'center',
+            color: '#64748b',
+            display: 'flex',
+            fontSize: '0.875rem',
+            gap: '0.5rem'
+        },
+        pageSizeSelect: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            padding: '0.375rem 0.75rem'
+        },
+        pagination: {
+            alignItems: 'center',
+            background: '#fafafa',
+            borderTop: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '1rem 1.25rem'
+        },
+        refreshBtn: {
+            alignItems: 'center',
+            background: '#1e3a5f',
+            border: 'none',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '13px',
+            fontWeight: 600,
+            gap: '6px',
+            padding: '10px 16px',
+            transition: 'all 0.15s ease'
         },
         reviewedCheck: {
             color: '#10b981',
@@ -299,54 +215,139 @@ function ReportsView() {
             color: '#f59e0b',
             marginRight: '0.375rem'
         },
-        pagination: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.25rem',
-            borderTop: '1px solid #e5e7eb',
-            background: '#fafafa'
+        root: {
+            background: '#f8fafc',
+            minHeight: '100vh',
+            padding: '0',
+            paddingBottom: '4rem',
+            width: '100%'
         },
-        pageSize: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.875rem',
-            color: '#64748b'
-        },
-        pageSizeSelect: {
-            padding: '0.375rem 0.75rem',
+        selectControl: {
+            MozAppearance: 'none',
+            WebkitAppearance: 'none',
+            appearance: 'none',
+            backgroundColor: 'white',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 10px center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '16px',
             border: '1px solid #e5e7eb',
-            borderRadius: '6px',
-            fontSize: '0.875rem',
-            background: 'white',
-            cursor: 'pointer'
-        },
-        pageControls: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
-        },
-        pageBtn: (disabled) => ({
-            padding: '0.5rem 1rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '6px',
-            fontSize: '0.875rem',
+            borderRadius: '8px',
+            color: '#1e293b',
+            cursor: 'pointer',
+            fontSize: '13px',
             fontWeight: 500,
-            background: disabled ? '#f1f5f9' : 'white',
-            color: disabled ? '#94a3b8' : '#374151',
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            minWidth: '140px',
+            outline: 'none',
+            padding: '10px 36px 10px 14px',
+            transition: 'all 0.15s'
+        },
+        status: (type) => {
+            const colors = {
+                error: { bg: '#fee2e2', color: '#dc2626' },
+                info: { bg: '#dbeafe', color: '#1e40af' },
+                success: { bg: '#d1fae5', color: '#059669' },
+                warning: { bg: '#fef3c7', color: '#d97706' }
+            }
+            const c = colors[type] || colors.error
+            return {
+                alignItems: 'center',
+                background: c.bg,
+                borderRadius: '6px',
+                color: c.color,
+                display: 'inline-flex',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                gap: '0.375rem',
+                padding: '0.375rem 0.75rem'
+            }
+        },
+        tab: (active) => ({
+            background: active ? '#1e3a5f' : 'transparent',
+            border: 'none',
+            borderRadius: '6px',
+            color: active ? 'white' : '#64748b',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: active ? 600 : 500,
+            padding: '8px 14px',
             transition: 'all 0.2s'
         }),
-        pageInfo: {
-            fontSize: '0.875rem',
-            color: '#64748b'
+        tableCell: {
+            padding: '0 8px'
         },
-        loading: {
-            display: 'flex',
+        tableCellFixed100: {
+            flexShrink: 0,
+            padding: '0 8px',
+            textAlign: 'right',
+            width: '100px'
+        },
+        tableCellFixed120: {
+            flexShrink: 0,
+            padding: '0 8px',
+            width: '120px'
+        },
+        tableCellFlex: {
+            flex: 1,
+            minWidth: 0,
+            padding: '0 8px'
+        },
+        tableRow: {
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '3rem'
+            borderBottom: '1px solid #f1f5f9',
+            color: '#1e293b',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            padding: '12px 28px',
+            transition: 'background 0.15s'
+        },
+        tableRowMy: {},
+        tableRowReview: {},
+        tabs: {
+            background: '#f1f5f9',
+            borderRadius: '8px',
+            display: 'flex',
+            gap: '3px',
+            padding: '3px'
+        },
+        toolbar: {
+            alignItems: 'center',
+            background: 'white',
+            backgroundImage: `
+                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+            `,
+            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            justifyContent: 'space-between',
+            padding: '1rem 1.5rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 40
+        },
+        toolbarLeft: {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '0.75rem'
+        },
+        toolbarRight: {
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '1rem'
+        },
+        toolbarTitle: {
+            alignItems: 'center',
+            color: '#1e293b',
+            display: 'flex',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            gap: '0.75rem'
         }
     }
 
@@ -425,16 +426,16 @@ function ReportsView() {
             const mapped = data
                 .filter((r) => !existingIds.has(r.id))
                 .map((r) => ({
-                    id: r.id,
-                    name: r.report_name,
-                    title: (reportTypeMap[r.report_name] || {}).title || r.report_name,
                     completed: !!r.completed,
                     completedDate: r.submitted_at,
                     data: r.data,
-                    userId: r.user_id,
-                    week: r.week || r.data?.week || null,
+                    id: r.id,
+                    name: r.report_name,
+                    report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null,
                     report_date_range_start: r.report_date_range_start ? new Date(r.report_date_range_start) : null,
-                    report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null
+                    title: (reportTypeMap[r.report_name] || {}).title || r.report_name,
+                    userId: r.user_id,
+                    week: r.week || r.data?.week || null
                 }))
             return [...prev, ...mapped]
         })
@@ -517,7 +518,7 @@ function ReportsView() {
 
         async function loadInitial() {
             setIsLoadingMy(true)
-            await fetchReportsBatch({ weeks: initialMyWeeks, scope: 'my' })
+            await fetchReportsBatch({ scope: 'my', weeks: initialMyWeeks })
             setIsLoadingMy(false)
         }
 
@@ -536,7 +537,7 @@ function ReportsView() {
 
         async function loadReview() {
             setIsLoadingReview(true)
-            await fetchReportsBatch({ weeks: toLoad, scope: 'review' })
+            await fetchReportsBatch({ scope: 'review', weeks: toLoad })
             if (!cancelled) setReviewLoadedWeeks((prev) => new Set([...toLoad, ...prev]))
             setIsLoadingReview(false)
         }
@@ -644,9 +645,9 @@ function ReportsView() {
                 grouped[weekIso] = grouped[weekIso] || []
                 grouped[weekIso].push({
                     ...rt,
-                    weekIso,
                     completed: !!(existing && existing.completed),
-                    report: existing || null
+                    report: existing || null,
+                    weekIso
                 })
             })
         })
@@ -703,14 +704,14 @@ function ReportsView() {
         const monday = weekIso ? new Date(weekIso) : null
         const saturday = monday ? new Date(monday.getTime() + 5 * 24 * 60 * 60 * 1000) : null
         const upsertData = {
-            report_name: reportName,
-            user_id: userId,
-            data: { ...formData, week: weekIso },
-            week: monday?.toISOString() || null,
             completed: completed === true,
-            submitted_at: completed ? new Date().toISOString() : null,
+            data: { ...formData, week: weekIso },
+            report_date_range_end: saturday?.toISOString() || null,
             report_date_range_start: monday?.toISOString() || null,
-            report_date_range_end: saturday?.toISOString() || null
+            report_name: reportName,
+            submitted_at: completed ? new Date().toISOString() : null,
+            user_id: userId,
+            week: monday?.toISOString() || null
         }
         const { data: existing, error: findError } = await supabase
             .from('reports')
@@ -748,18 +749,18 @@ function ReportsView() {
             setLocalReports((prev) => [
                 ...prev.filter((r) => r.id !== data.id),
                 {
-                    id: data.id,
-                    name: data.report_name,
-                    title: (reportTypeMap[data.report_name] || {}).title || data.report_name,
                     completed: !!data.completed,
                     completedDate: data.submitted_at,
                     data: data.data,
-                    userId: data.user_id,
-                    week: data.week || data.data?.week || weekIso,
+                    id: data.id,
+                    name: data.report_name,
+                    report_date_range_end: data.report_date_range_end ? new Date(data.report_date_range_end) : saturday,
                     report_date_range_start: data.report_date_range_start
                         ? new Date(data.report_date_range_start)
                         : monday,
-                    report_date_range_end: data.report_date_range_end ? new Date(data.report_date_range_end) : saturday
+                    title: (reportTypeMap[data.report_name] || {}).title || data.report_name,
+                    userId: data.user_id,
+                    week: data.week || data.data?.week || weekIso
                 }
             ])
             setShowForm(null)
@@ -776,14 +777,14 @@ function ReportsView() {
         const monday = weekIso ? new Date(weekIso) : null
         const saturday = monday ? new Date(monday.getTime() + 5 * 24 * 60 * 60 * 1000) : null
         const upsertData = {
-            report_name: reportName,
-            user_id: userId,
-            data: { ...formData, week: weekIso },
-            week: monday?.toISOString() || null,
             completed: true,
-            submitted_at: new Date().toISOString(),
+            data: { ...formData, week: weekIso },
+            report_date_range_end: saturday?.toISOString() || null,
             report_date_range_start: monday?.toISOString() || null,
-            report_date_range_end: saturday?.toISOString() || null
+            report_name: reportName,
+            submitted_at: new Date().toISOString(),
+            user_id: userId,
+            week: monday?.toISOString() || null
         }
         const { data: existing, error: findError } = await supabase
             .from('reports')
@@ -821,18 +822,18 @@ function ReportsView() {
             setLocalReports((prev) => [
                 ...prev.filter((r) => r.id !== data.id),
                 {
-                    id: data.id,
-                    name: data.report_name,
-                    title: (reportTypeMap[data.report_name] || {}).title || data.report_name,
                     completed: !!data.completed,
                     completedDate: data.submitted_at,
                     data: data.data,
-                    userId: data.user_id,
-                    week: data.week || data.data?.week || weekIso,
+                    id: data.id,
+                    name: data.report_name,
+                    report_date_range_end: data.report_date_range_end ? new Date(data.report_date_range_end) : saturday,
                     report_date_range_start: data.report_date_range_start
                         ? new Date(data.report_date_range_start)
                         : monday,
-                    report_date_range_end: data.report_date_range_end ? new Date(data.report_date_range_end) : saturday
+                    title: (reportTypeMap[data.report_name] || {}).title || data.report_name,
+                    userId: data.user_id,
+                    week: data.week || data.data?.week || weekIso
                 }
             ])
             setShowForm(null)
@@ -846,8 +847,8 @@ function ReportsView() {
             const { error } = await supabase.from('reports_reviewed').upsert(
                 {
                     report_id: report.id,
-                    reviewed_by_user_id: user.id,
-                    reviewed_at: new Date().toISOString()
+                    reviewed_at: new Date().toISOString(),
+                    reviewed_by_user_id: user.id
                 },
                 {
                     onConflict: 'report_id,reviewed_by_user_id'
@@ -870,8 +871,8 @@ function ReportsView() {
         setReviewData(null)
         setShowForm({
             ...reportType,
-            weekIso: reportData.week || reportData.data?.week,
-            name: reportType.name
+            name: reportType.name,
+            weekIso: reportData.week || reportData.data?.week
         })
         setSubmitInitialData({
             ...reportData,
@@ -897,16 +898,16 @@ function ReportsView() {
             .maybeSingle()
         if (!error && data) {
             setSubmitInitialData({
-                id: data.id,
-                name: data.report_name,
-                title: (reportTypeMap[data.report_name] || {}).title || data.report_name,
                 completed: !!data.completed,
                 completedDate: data.submitted_at,
                 data: data.data,
-                userId: data.user_id,
-                week: data.week || data.data?.week || item.weekIso,
+                id: data.id,
+                name: data.report_name,
+                report_date_range_end: data.report_date_range_end ? new Date(data.report_date_range_end) : null,
                 report_date_range_start: data.report_date_range_start ? new Date(data.report_date_range_start) : null,
-                report_date_range_end: data.report_date_range_end ? new Date(data.report_date_range_end) : null
+                title: (reportTypeMap[data.report_name] || {}).title || data.report_name,
+                userId: data.user_id,
+                week: data.week || data.data?.week || item.weekIso
             })
         }
         setShowForm(item)
@@ -987,7 +988,7 @@ function ReportsView() {
                                     : ['auto', 'auto', '120px', '120px', '100px']
                             }
                             customFilters={
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                                     <button
                                         style={styles.refreshBtn}
                                         onClick={() => {
@@ -1079,8 +1080,8 @@ function ReportsView() {
                                                             ReportUtility.computeMyReportStatus({
                                                                 completed: item.completed,
                                                                 hasSavedData,
-                                                                weekIso,
-                                                                today: new Date()
+                                                                today: new Date(),
+                                                                weekIso
                                                             })
                                                         const badge = ReportUtility.getWeekBadge(weekIso)
                                                         return (

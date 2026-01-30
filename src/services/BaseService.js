@@ -1,8 +1,8 @@
-import supabase from './DatabaseService'
-import { ErrorUtility } from '../utils/ErrorUtility'
-import { DateUtility } from '../utils/DateUtility'
 import { CacheUtility } from '../utils/CacheUtility'
+import { DateUtility } from '../utils/DateUtility'
+import { ErrorUtility } from '../utils/ErrorUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import supabase from './DatabaseService'
 
 export class BaseService {
     constructor(tableName, ModelClass = null, options = {}) {
@@ -31,7 +31,7 @@ export class BaseService {
         return value
     }
 
-    async list({ filters = {}, select = '*', order = { column: 'id', ascending: true }, useCache = true } = {}) {
+    async list({ filters = {}, select = '*', order = { ascending: true, column: 'id' }, useCache = true } = {}) {
         try {
             if (useCache) {
                 const cached = this._cacheGet(this.cacheKeyAll)

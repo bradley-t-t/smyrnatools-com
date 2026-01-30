@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { UserService } from '../../services/UserService'
-import LoadingScreen from '../../components/common/LoadingScreen'
-import ManagerDetailView from './ManagerDetailView'
-import ManagerCard from './ManagerCard'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
-import TopSection from '../../components/sections/TopSection'
+import LoadingScreen from '../../components/common/LoadingScreen'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
+import TopSection from '../../components/sections/TopSection'
 import { PlantService } from '../../services/PlantService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import ManagerCard from './ManagerCard'
+import ManagerDetailView from './ManagerDetailView'
 
 function ManagersView({ title = 'Managers', onSelectManager }) {
     const { preferences, updateManagerFilter, resetManagerFilters } = usePreferences()
@@ -34,10 +35,10 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState('asc')
     const sortMappings = {
-        Plant: 'plantCode',
         Email: 'email',
         'First Name': 'firstName',
         'Last Name': 'lastName',
+        Plant: 'plantCode',
         Role: 'roleName'
     }
     const headerRef = useRef(null)
@@ -285,7 +286,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                 setSearchText('')
                                 setSelectedPlant('')
                                 setRoleFilter('')
-                                resetManagerFilters?.({ keepViewMode: true, currentViewMode })
+                                resetManagerFilters?.({ currentViewMode, keepViewMode: true })
                             }}
                             listLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
                             colWidths={['12%', '28%', '18%', '18%', '24%']}
@@ -331,44 +332,44 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                     colWidths={['12%', '28%', '18%', '18%', '24%']}
                                     renderRow={(manager, handleSelect) => {
                                         const cellStyle = {
-                                            padding: '20px 24px',
-                                            fontSize: '15px',
                                             color: '#1e293b',
+                                            fontSize: '15px',
                                             fontWeight: 500,
+                                            padding: '20px 24px',
                                             textAlign: 'left',
                                             verticalAlign: 'middle'
                                         }
                                         const cellSecondaryStyle = {
-                                            padding: '20px 24px',
-                                            fontSize: '14px',
                                             color: '#475569',
+                                            fontSize: '14px',
+                                            padding: '20px 24px',
                                             textAlign: 'left',
                                             verticalAlign: 'middle'
                                         }
                                         const cellHighlightStyle = {
-                                            padding: '20px 24px',
-                                            fontSize: '16px',
                                             color: '#1e3a5f',
+                                            fontSize: '16px',
                                             fontWeight: 700,
+                                            padding: '20px 24px',
                                             textAlign: 'left',
                                             verticalAlign: 'middle'
                                         }
                                         const roleBadgeStyle = {
-                                            display: 'inline-block',
-                                            padding: '8px 16px',
+                                            backgroundColor: '#e0e7ff',
                                             borderRadius: '24px',
+                                            color: '#4338ca',
+                                            display: 'inline-block',
                                             fontSize: '13px',
                                             fontWeight: 600,
-                                            backgroundColor: '#e0e7ff',
-                                            color: '#4338ca'
+                                            padding: '8px 16px'
                                         }
                                         return (
                                             <tr
                                                 key={manager.id}
                                                 onClick={() => handleSelect(manager)}
                                                 style={{
-                                                    cursor: 'pointer',
-                                                    borderBottom: '1px solid #e2e8f0'
+                                                    borderBottom: '1px solid #e2e8f0',
+                                                    cursor: 'pointer'
                                                 }}
                                                 onMouseEnter={(e) => {
                                                     const cells = e.currentTarget.querySelectorAll('td')

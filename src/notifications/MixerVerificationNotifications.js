@@ -1,6 +1,6 @@
-import { UserService } from '../services/UserService'
-import { RegionService } from '../services/RegionService'
 import { MixerService } from '../services/MixerService'
+import { RegionService } from '../services/RegionService'
+import { UserService } from '../services/UserService'
 import MixerUtility from '../utils/MixerUtility'
 
 async function getRegionScopedPlantCodes(userId, selectedRegion) {
@@ -64,11 +64,11 @@ async function getNotifications({ userId, selectedRegion }) {
 
     const now = new Date()
     const centralParts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Chicago',
-        weekday: 'short',
         hour: '2-digit',
+        hour12: false,
         minute: '2-digit',
-        hour12: false
+        timeZone: 'America/Chicago',
+        weekday: 'short'
     }).formatToParts(now)
     const mp = {}
     centralParts.forEach((p) => {
@@ -100,11 +100,11 @@ async function getNotifications({ userId, selectedRegion }) {
                 const severity = pastDue ? 'error' : 'warning'
                 notifications.push({
                     id: `mixers-verify-${code}`,
-                    title: `Plant ${code} Mixer Verifications ${titlePhase}`,
-                    subtitle: `This plant has ${missingCount} unverified ${plural}.`,
+                    plantCode: code,
                     severity,
-                    type: 'mixers.verifications',
-                    plantCode: code
+                    subtitle: `This plant has ${missingCount} unverified ${plural}.`,
+                    title: `Plant ${code} Mixer Verifications ${titlePhase}`,
+                    type: 'mixers.verifications'
                 })
             }
         })
@@ -128,12 +128,12 @@ async function getNotifications({ userId, selectedRegion }) {
     return [
         {
             id: `mixers-verify-${userPlantCode}`,
-            title: `Mixer Verifications ${titlePhase}`,
-            subtitle: `You have ${missingCount} unverified ${plural}.`,
             severity,
+            subtitle: `You have ${missingCount} unverified ${plural}.`,
+            title: `Mixer Verifications ${titlePhase}`,
             type: 'mixers.verifications'
         }
     ]
 }
 
-export default { id: 'mixers.verifications', getNotifications }
+export default { getNotifications, id: 'mixers.verifications' }

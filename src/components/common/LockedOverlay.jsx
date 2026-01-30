@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+
 import { useAuth } from '../../app/context/AuthContext'
 import VideoBackground from './VideoBackground'
 
@@ -44,40 +45,40 @@ function LockedOverlay({ reason }) {
     }
 
     const backdropStyle = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
         alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        bottom: 0,
+        display: 'flex',
         justifyContent: 'center',
+        left: 0,
+        position: 'fixed',
+        right: 0,
+        top: 0,
         zIndex: 9999
     }
 
     const modalStyle = {
         backgroundColor: 'white',
         borderRadius: '20px',
-        padding: '48px',
-        maxWidth: '440px',
-        width: '90%',
-        textAlign: 'center',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+        maxWidth: '440px',
+        padding: '48px',
         position: 'relative',
+        textAlign: 'center',
+        width: '90%',
         zIndex: 1
     }
 
     const titleStyle = {
+        color: '#1e3a5f',
         fontSize: '28px',
         fontWeight: 700,
-        color: '#1e3a5f',
         margin: '0 0 16px 0'
     }
 
     const messageStyle = {
-        fontSize: '16px',
         color: '#64748b',
+        fontSize: '16px',
         lineHeight: 1.7,
         margin: '0 0 32px 0'
     }
@@ -89,16 +90,16 @@ function LockedOverlay({ reason }) {
     }
 
     const buttonBaseStyle = {
-        display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        padding: '14px 24px',
         border: 'none',
         borderRadius: '12px',
+        cursor: 'pointer',
+        display: 'flex',
         fontSize: '15px',
         fontWeight: 600,
-        cursor: 'pointer',
+        gap: '10px',
+        justifyContent: 'center',
+        padding: '14px 24px',
         width: '100%'
     }
 

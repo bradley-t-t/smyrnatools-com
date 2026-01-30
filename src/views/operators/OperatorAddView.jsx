@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { OperatorService } from '../../services/OperatorService'
-import { UserService } from '../../services/UserService'
-import UserUtility from '../../utils/UserUtility'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { RegionService } from '../../services/RegionService'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import AddViewSection from '../../components/sections/AddViewSection'
+import { OperatorService } from '../../services/OperatorService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
+import UserUtility from '../../utils/UserUtility'
 
 function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, allowedPlantCodes }) {
     const { preferences } = usePreferences()
@@ -119,23 +120,23 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
             const normalizedPending =
                 status === 'Pending Start' && pendingStartDate ? pendingStartDate.slice(0, 10) : null
             const newOperator = {
-                employee_id: UserUtility.generateUUID(),
-                smyrna_id: null,
-                name: name.trim(),
-                plant_code: assignedPlant,
-                status,
-                position: position || null,
-                is_trainer: isTrainer,
                 assigned_trainer:
                     ['Training', 'Pending Start'].includes(status) && !isTrainer
                         ? UserUtility.safeUUID(assignedTrainer)
                         : null,
+                automatic_restriction: automaticRestriction,
                 created_at: now,
-                updated_at: now,
-                updated_by: userId,
+                employee_id: UserUtility.generateUUID(),
+                is_trainer: isTrainer,
+                name: name.trim(),
                 pending_start_date: normalizedPending,
                 phone: phone || null,
-                automatic_restriction: automaticRestriction
+                plant_code: assignedPlant,
+                position: position || null,
+                smyrna_id: null,
+                status,
+                updated_at: now,
+                updated_by: userId
             }
             const savedOperator = await OperatorService.createOperator(newOperator)
             if (savedOperator) {

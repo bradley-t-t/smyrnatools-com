@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { MaintenanceService } from '../../services/MaintenanceService'
-import { UserService } from '../../services/UserService'
-import { RegionService } from '../../services/RegionService'
+
 import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import { MaintenanceService } from '../../services/MaintenanceService'
+import { RegionService } from '../../services/RegionService'
+import { UserService } from '../../services/UserService'
 import { getFieldTypeIcon, getFieldTypeName } from '../../utils/MaintenanceUtility'
 
 export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved }) {
@@ -76,12 +77,12 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         const existingFields = (form.maintenance_form_fields || [])
             .sort((a, b) => a.field_order - b.field_order)
             .map((f) => ({
-                id: f.id,
-                field_type: f.field_type,
-                label: f.label,
                 description: f.description || '',
-                is_required: f.is_required,
+                field_type: f.field_type,
+                id: f.id,
                 image_required: f.image_required || false,
+                is_required: f.is_required,
+                label: f.label,
                 options: f.options || {}
             }))
 
@@ -90,12 +91,12 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
 
     const addField = (type) => {
         const newField = {
-            id: `temp-${Date.now()}`,
-            field_type: type,
-            label: '',
             description: '',
-            is_required: false,
+            field_type: type,
+            id: `temp-${Date.now()}`,
             image_required: false,
+            is_required: false,
+            label: '',
             options: type === 'checklist' ? { items: [''] } : {}
         }
         setFields([...fields, newField])
@@ -114,8 +115,12 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
     const moveField = (index, direction) => {
         const newFields = [...fields]
         const newIndex = index + direction
-        if (newIndex < 0 || newIndex >= fields.length) return
-        ;[newFields[index], newFields[newIndex]] = [newFields[newIndex], newFields[index]]
+        if (newIndex < 0 || newIndex >= fields.length) {
+            return
+        }
+        const temp = newFields[index]
+        newFields[index] = newFields[newIndex]
+        newFields[newIndex] = temp
         setFields(newFields)
     }
 
@@ -187,26 +192,26 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         setSaving(true)
         try {
             const formData = {
-                title: title.trim(),
-                description: description.trim(),
-                frequency,
-                frequency_value: frequencyValue,
                 assigned_roles: assignedRoles,
-                plant_codes: selectedPlants,
-                start_date: startDate,
-                region_code: preferences.selectedRegion?.code || null,
+                description: description.trim(),
                 fields: fields.map((field, index) => ({
-                    field_type: field.field_type,
-                    label: field.label.trim(),
                     description: field.description?.trim() || null,
-                    is_required: field.is_required,
-                    image_required: field.image_required || false,
                     field_order: index,
+                    field_type: field.field_type,
+                    image_required: field.image_required || false,
+                    is_required: field.is_required,
+                    label: field.label.trim(),
                     options:
                         field.field_type === 'checklist'
                             ? { items: (field.options?.items || []).filter((item) => item.trim()) }
                             : null
-                }))
+                })),
+                frequency,
+                frequency_value: frequencyValue,
+                plant_codes: selectedPlants,
+                region_code: preferences.selectedRegion?.code || null,
+                start_date: startDate,
+                title: title.trim()
             }
 
             if (editingForm) {
@@ -237,217 +242,79 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
     }
 
     const styles = {
-        container: {
-            width: '100%',
-            minHeight: '100vh',
-            background: '#f8fafc'
-        },
-        header: {
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            padding: '1rem 2rem',
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        },
         backBtn: {
-            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: '40px',
-            height: '40px',
-            border: 'none',
-            borderRadius: '8px',
             background: '#f1f5f9',
-            color: '#1e3a5f',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        },
-        headerContent: {
-            flex: 1
-        },
-        title: {
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            margin: 0
-        },
-        deleteBtn: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '40px',
-            height: '40px',
             border: 'none',
             borderRadius: '8px',
-            background: '#fee2e2',
-            color: '#ef4444',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        },
-        content: {
-            padding: '2rem',
-            maxWidth: '1000px',
-            margin: '0 auto'
-        },
-        section: {
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            marginBottom: '1.5rem',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        },
-        sectionTitle: {
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            marginBottom: '1.5rem'
-        },
-        formGroup: {
-            marginBottom: '1.5rem'
-        },
-        label: {
-            display: 'block',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: '#374151',
-            marginBottom: '0.5rem'
-        },
-        required: {
-            color: '#ef4444',
-            marginLeft: '0.25rem'
-        },
-        input: (hasError) => ({
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
-        }),
-        textarea: (hasError) => ({
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s',
-            minHeight: '100px',
-            resize: 'vertical'
-        }),
-        select: (hasError) => ({
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '0.9375rem',
-            color: '#1e293b',
-            background: 'white',
-            cursor: 'pointer',
-            outline: 'none',
-            transition: 'all 0.2s'
-        }),
-        error: {
-            display: 'block',
-            marginTop: '0.5rem',
-            fontSize: '0.8125rem',
-            color: '#ef4444',
-            fontWeight: 500
-        },
-        plantMultiSelect: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-        },
-        selectedPlantsList: {
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.5rem'
-        },
-        plantChip: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 0.75rem',
-            background: '#eff6ff',
-            border: '1px solid #3b82f6',
-            borderRadius: '6px',
             color: '#1e3a5f',
-            fontSize: '0.875rem',
-            fontWeight: 600
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '1rem',
+            height: '40px',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            width: '40px'
         },
         chipRemoveBtn: {
-            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: '18px',
-            height: '18px',
+            background: '#3b82f6',
             border: 'none',
             borderRadius: '50%',
-            background: '#3b82f6',
             color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
             fontSize: '0.75rem',
-            cursor: 'pointer',
+            height: '18px',
+            justifyContent: 'center',
             padding: 0,
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            width: '18px'
         },
-        plantSelectorBtn: (hasError) => ({
-            display: 'flex',
+        container: {
+            background: '#f8fafc',
+            minHeight: '100vh',
+            width: '100%'
+        },
+        content: {
+            margin: '0 auto',
+            maxWidth: '1000px',
+            padding: '2rem'
+        },
+        deleteBtn: {
             alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            padding: '0.75rem 1rem',
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            background: '#fee2e2',
+            border: 'none',
             borderRadius: '8px',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            background: 'white',
+            color: '#ef4444',
             cursor: 'pointer',
-            transition: 'all 0.2s'
-        }),
-        frequencyRow: {
             display: 'flex',
-            gap: '1rem',
-            alignItems: 'flex-end'
+            fontSize: '1rem',
+            height: '40px',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            width: '40px'
         },
-        frequencyGroup: {
-            flex: 1
+        error: {
+            color: '#ef4444',
+            display: 'block',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            marginTop: '0.5rem'
         },
-        valueGroup: {
-            width: '120px'
-        },
-        rolesGrid: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '0.75rem'
-        },
-        roleCheckbox: {
-            display: 'flex',
+        fieldTypeBtn: {
             alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.75rem',
+            background: 'white',
             border: '2px solid #e5e7eb',
             borderRadius: '8px',
+            color: '#1e3a5f',
             cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.75rem 1rem',
             transition: 'all 0.2s'
-        },
-        roleCheckboxChecked: {
-            border: '2px solid #1e3a5f',
-            background: '#f0f7ff'
-        },
-        fieldsSection: {
-            marginTop: '2rem'
         },
         fieldTypeButtons: {
             display: 'flex',
@@ -455,19 +322,157 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             gap: '0.75rem',
             marginBottom: '1.5rem'
         },
-        fieldTypeBtn: {
+        fieldsSection: {
+            marginTop: '2rem'
+        },
+        formGroup: {
+            marginBottom: '1.5rem'
+        },
+        frequencyGroup: {
+            flex: 1
+        },
+        frequencyRow: {
+            alignItems: 'flex-end',
             display: 'flex',
+            gap: '1rem'
+        },
+        header: {
             alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1rem',
-            border: '2px solid #e5e7eb',
+            background: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            display: 'flex',
+            gap: '1rem',
+            padding: '1rem 2rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50
+        },
+        headerContent: {
+            flex: 1
+        },
+        input: (hasError) => ({
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
             borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: '0.9375rem',
+            outline: 'none',
+            padding: '0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
+        }),
+        label: {
+            color: '#374151',
+            display: 'block',
             fontSize: '0.875rem',
             fontWeight: 600,
+            marginBottom: '0.5rem'
+        },
+        plantChip: {
+            alignItems: 'center',
+            background: '#eff6ff',
+            border: '1px solid #3b82f6',
+            borderRadius: '6px',
             color: '#1e3a5f',
+            display: 'inline-flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: '0.5rem 0.75rem'
+        },
+        plantMultiSelect: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+        },
+        plantSelectorBtn: (hasError) => ({
+            alignItems: 'center',
             background: 'white',
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
             cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            justifyContent: 'space-between',
+            padding: '0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
+        }),
+        required: {
+            color: '#ef4444',
+            marginLeft: '0.25rem'
+        },
+        roleCheckbox: {
+            alignItems: 'center',
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            gap: '0.75rem',
+            padding: '0.75rem',
             transition: 'all 0.2s'
+        },
+        roleCheckboxChecked: {
+            background: '#f0f7ff',
+            border: '2px solid #1e3a5f'
+        },
+        rolesGrid: {
+            display: 'grid',
+            gap: '0.75rem',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))'
+        },
+        section: {
+            background: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginBottom: '1.5rem',
+            padding: '2rem'
+        },
+        sectionTitle: {
+            color: '#1e293b',
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            marginBottom: '1.5rem'
+        },
+        select: (hasError) => ({
+            background: 'white',
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            cursor: 'pointer',
+            fontSize: '0.9375rem',
+            outline: 'none',
+            padding: '0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
+        }),
+        selectedPlantsList: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem'
+        },
+        textarea: (hasError) => ({
+            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: '0.9375rem',
+            minHeight: '100px',
+            outline: 'none',
+            padding: '0.75rem 1rem',
+            resize: 'vertical',
+            transition: 'all 0.2s',
+            width: '100%'
+        }),
+        title: {
+            color: '#1e293b',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            margin: 0
+        },
+        valueGroup: {
+            width: '120px'
         }
     }
 

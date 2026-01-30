@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
+
 import { useAuth } from '../../app/context/AuthContext'
-import { AuthUtility } from '../../utils/AuthUtility'
-import { supabase } from '../../services/DatabaseService'
+import { useVersion } from '../../app/hooks/useVersion'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import VersionPopup from '../../components/common/VersionPopup'
-import { useVersion } from '../../app/hooks/useVersion'
-import PasswordRecoveryView from './PasswordRecoveryView'
 import VideoBackground from '../../components/common/VideoBackground'
+import { supabase } from '../../services/DatabaseService'
+import { AuthUtility } from '../../utils/AuthUtility'
+import PasswordRecoveryView from './PasswordRecoveryView'
 
 function LoginView() {
     const version = useVersion()
@@ -18,7 +19,7 @@ function LoginView() {
     const [lastName, setLastName] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
-    const [passwordStrength, setPasswordStrength] = useState({ value: '', color: '' })
+    const [passwordStrength, setPasswordStrength] = useState({ color: '', value: '' })
     const { signIn, signUp, loading, error } = useAuth()
     const timeoutRef = useRef(null)
     const [showRecovery, setShowRecovery] = useState(false)
@@ -39,9 +40,9 @@ function LoginView() {
                 else if (strengthValue === 'medium') color = '#f59e0b'
                 else if (strengthValue === 'strong') color = '#22c55e'
                 const capitalizedValue = strengthValue.charAt(0).toUpperCase() + strengthValue.slice(1)
-                setPasswordStrength({ value: capitalizedValue, color })
+                setPasswordStrength({ color, value: capitalizedValue })
             } else {
-                setPasswordStrength({ value: '', color: '' })
+                setPasswordStrength({ color: '', value: '' })
             }
         }
         updateStrength()
@@ -82,14 +83,14 @@ function LoginView() {
 
             await supabase.from('users_sessions').upsert(
                 {
-                    id: sessionId,
-                    user_id: userId,
                     browser: getBrowserInfo(userAgent),
-                    os: getOSInfo(userAgent),
+                    created_at: new Date().toISOString(),
                     device: getDeviceInfo(userAgent),
-                    user_agent: userAgent,
+                    id: sessionId,
                     last_active: new Date().toISOString(),
-                    created_at: new Date().toISOString()
+                    os: getOSInfo(userAgent),
+                    user_agent: userAgent,
+                    user_id: userId
                 },
                 { onConflict: 'id' }
             )

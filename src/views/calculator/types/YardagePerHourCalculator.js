@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 const YardagePerHourCalculator = () => {
     const [values, setValues] = useState({
+        completionTime: '',
         firstLoadTime: '',
         totalYards: '',
-        completionTime: '',
         yardsPoured: ''
     })
     const [isOngoing, setIsOngoing] = useState(true)
@@ -68,11 +68,11 @@ const YardagePerHourCalculator = () => {
         const mins = elapsedMins % 60
 
         setResult({
-            yardsPerHour: yardsPerHour.toFixed(1),
-            loadsPerHour: loadsPerHour.toFixed(2),
-            elapsedTime: `${hours}h ${mins}m`,
             elapsedMins,
-            totalYards: yards
+            elapsedTime: `${hours}h ${mins}m`,
+            loadsPerHour: loadsPerHour.toFixed(2),
+            totalYards: yards,
+            yardsPerHour: yardsPerHour.toFixed(1)
         })
     }, [values, isOngoing])
 
@@ -82,9 +82,9 @@ const YardagePerHourCalculator = () => {
 
     const clearForm = () => {
         setValues({
+            completionTime: getCurrentTimeString(),
             firstLoadTime: '',
             totalYards: '',
-            completionTime: getCurrentTimeString(),
             yardsPoured: ''
         })
         setIsOngoing(false)
@@ -94,11 +94,11 @@ const YardagePerHourCalculator = () => {
     const getPerformanceStatus = () => {
         if (!result) return null
         const yph = parseFloat(result.yardsPerHour)
-        if (yph >= 40) return { label: 'Excellent', color: 'success' }
-        if (yph >= 30) return { label: 'Good', color: 'success' }
-        if (yph >= 20) return { label: 'Average', color: 'info' }
-        if (yph >= 10) return { label: 'Below Avg', color: 'warning' }
-        return { label: 'Slow', color: 'error' }
+        if (yph >= 40) return { color: 'success', label: 'Excellent' }
+        if (yph >= 30) return { color: 'success', label: 'Good' }
+        if (yph >= 20) return { color: 'info', label: 'Average' }
+        if (yph >= 10) return { color: 'warning', label: 'Below Avg' }
+        return { color: 'error', label: 'Slow' }
     }
 
     const status = getPerformanceStatus()
@@ -107,151 +107,174 @@ const YardagePerHourCalculator = () => {
     const styles = {
         container: {
             background: 'white',
+            border: '1px solid #e5e7eb',
             borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '1rem' : '2rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb'
+            padding: isMobile ? '1rem' : '2rem'
         },
-        sectionHeader: {
-            display: 'flex',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            justifyContent: 'space-between',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '1rem' : '0',
-            marginBottom: isMobile ? '1.5rem' : '2rem',
-            paddingBottom: '1rem',
-            borderBottom: '2px solid #f1f5f9'
+        emptyIcon: {
+            color: '#cbd5e1',
+            fontSize: isMobile ? '2rem' : '3rem',
+            marginBottom: '1rem'
         },
-        headerTitle: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            fontSize: isMobile ? '1rem' : '1.25rem',
-            fontWeight: 700,
-            color: '#1e293b'
-        },
-        modeToggle: {
-            display: 'flex',
-            gap: '0.5rem',
-            padding: '0.25rem',
+        emptyState: {
             background: '#f8fafc',
-            borderRadius: '8px'
+            border: '2px dashed #e5e7eb',
+            borderRadius: '12px',
+            marginBottom: isMobile ? '1.5rem' : '2rem',
+            padding: isMobile ? '2rem 1rem' : '3rem 2rem',
+            textAlign: 'center'
         },
-        modeButton: (active, isLive) => ({
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            background: active ? '#1e3a5f' : 'transparent',
-            color: active ? 'white' : '#64748b',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-        }),
-        mainLayout: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
+        emptyText: {
+            color: '#64748b',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem'
+        },
+        equals: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.5rem' : '2rem',
+            fontWeight: 700
         },
         equation: {
-            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '1rem' : '2rem',
-            marginBottom: isMobile ? '1.5rem' : '2rem',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
             flexWrap: 'wrap',
-            flexDirection: isMobile ? 'column' : 'row'
+            gap: isMobile ? '1rem' : '2rem',
+            justifyContent: 'center',
+            marginBottom: isMobile ? '1.5rem' : '2rem'
+        },
+        footer: {
+            display: 'flex',
+            justifyContent: 'center'
         },
         fraction: {
+            alignItems: 'center',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
             minWidth: isMobile ? '100%' : '300px',
             width: isMobile ? '100%' : 'auto'
         },
-        fractionPart: {
-            width: '100%',
-            padding: isMobile ? '0.75rem' : '1rem'
-        },
         fractionBar: {
-            width: '100%',
-            height: '3px',
             background: '#1e3a5f',
-            margin: '0.5rem 0'
+            height: '3px',
+            margin: '0.5rem 0',
+            width: '100%'
+        },
+        fractionPart: {
+            padding: isMobile ? '0.75rem' : '1rem',
+            width: '100%'
+        },
+        headerTitle: {
+            alignItems: 'center',
+            color: '#1e293b',
+            display: 'flex',
+            fontSize: isMobile ? '1rem' : '1.25rem',
+            fontWeight: 700,
+            gap: '0.75rem'
+        },
+        input: {
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#1e293b',
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: 600,
+            outline: 'none',
+            padding: isMobile ? '0.625rem 0.75rem' : '0.75rem 1rem',
+            transition: 'all 0.2s',
+            width: '100%'
         },
         inputGroup: {
             display: 'flex',
+            flex: 1,
             flexDirection: 'column',
-            gap: '0.5rem',
-            flex: 1
-        },
-        label: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-        },
-        inputWrap: {
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center'
-        },
-        input: {
-            width: '100%',
-            padding: isMobile ? '0.625rem 0.75rem' : '0.75rem 1rem',
-            border: '2px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            outline: 'none',
-            transition: 'all 0.2s'
+            gap: '0.5rem'
         },
         inputUnit: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
             position: 'absolute',
-            right: '1rem',
+            right: '1rem'
+        },
+        inputWrap: {
+            alignItems: 'center',
+            display: 'flex',
+            position: 'relative'
+        },
+        label: {
+            color: '#64748b',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
-            color: '#94a3b8'
-        },
-        timeInputs: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: isMobile ? '0.5rem' : '1rem',
-            flexWrap: isMobile ? 'wrap' : 'nowrap'
-        },
-        timeTo: {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            color: '#94a3b8'
-        },
-        liveTime: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: isMobile ? '0.625rem 0.75rem' : '0.75rem 1rem',
-            background: '#dcfce7',
-            borderRadius: '8px',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            color: '#16a34a'
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
         },
         liveIcon: {
-            fontSize: '0.5rem',
-            animation: 'pulse 2s infinite'
+            animation: 'pulse 2s infinite',
+            fontSize: '0.5rem'
         },
-        equals: {
-            fontSize: isMobile ? '1.5rem' : '2rem',
+        liveTime: {
+            alignItems: 'center',
+            background: '#dcfce7',
+            borderRadius: '8px',
+            color: '#16a34a',
+            display: 'flex',
+            fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
-            color: '#1e3a5f'
+            gap: '0.5rem',
+            padding: isMobile ? '0.625rem 0.75rem' : '0.75rem 1rem'
+        },
+        mainLayout: {
+            marginBottom: isMobile ? '1.5rem' : '2rem'
+        },
+        modeButton: (active, isLive) => ({
+            alignItems: 'center',
+            background: active ? '#1e3a5f' : 'transparent',
+            border: 'none',
+            borderRadius: '6px',
+            color: active ? 'white' : '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
+            transition: 'all 0.2s'
+        }),
+        modeToggle: {
+            background: '#f8fafc',
+            borderRadius: '8px',
+            display: 'flex',
+            gap: '0.5rem',
+            padding: '0.25rem'
+        },
+        resetButton: {
+            alignItems: 'center',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            color: '#64748b',
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            outline: 'none',
+            padding: isMobile ? '0.625rem 1rem' : '0.75rem 1.5rem',
+            transition: 'all 0.2s'
         },
         resultBox: (hasResult, statusColor) => ({
-            minWidth: isMobile ? '100%' : '200px',
-            width: isMobile ? '100%' : 'auto',
-            padding: isMobile ? '1rem' : '1.5rem',
-            borderRadius: '12px',
+            alignItems: 'center',
+            background: hasResult
+                ? statusColor === 'success'
+                    ? '#f0fdf4'
+                    : statusColor === 'info'
+                      ? '#eff6ff'
+                      : statusColor === 'warning'
+                        ? '#fffbeb'
+                        : statusColor === 'error'
+                          ? '#fef2f2'
+                          : 'white'
+                : 'white',
             border: '3px solid',
             borderColor: hasResult
                 ? statusColor === 'success'
@@ -264,80 +287,76 @@ const YardagePerHourCalculator = () => {
                           ? '#ef4444'
                           : '#e5e7eb'
                 : '#e5e7eb',
-            background: hasResult
-                ? statusColor === 'success'
-                    ? '#f0fdf4'
-                    : statusColor === 'info'
-                      ? '#eff6ff'
-                      : statusColor === 'warning'
-                        ? '#fffbeb'
-                        : statusColor === 'error'
-                          ? '#fef2f2'
-                          : 'white'
-                : 'white',
+            borderRadius: '12px',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.3s'
+            minWidth: isMobile ? '100%' : '200px',
+            padding: isMobile ? '1rem' : '1.5rem',
+            transition: 'all 0.3s',
+            width: isMobile ? '100%' : 'auto'
         }),
-        resultValue: {
-            fontSize: isMobile ? '2rem' : '3rem',
-            fontWeight: 700,
-            color: '#1e3a5f',
-            lineHeight: 1
+        resultEmpty: {
+            color: '#cbd5e1',
+            fontSize: isMobile ? '2rem' : '3rem'
         },
         resultUnit: {
+            color: '#64748b',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
-            color: '#64748b',
             marginTop: '0.5rem'
         },
-        resultEmpty: {
+        resultValue: {
+            color: '#1e3a5f',
             fontSize: isMobile ? '2rem' : '3rem',
-            color: '#cbd5e1'
-        },
-        statsRow: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: isMobile ? '1rem' : '2rem',
-            padding: isMobile ? '1rem' : '1.5rem',
-            background: '#f8fafc',
-            borderRadius: '12px',
-            flexWrap: 'wrap'
-        },
-        statItem: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.25rem'
-        },
-        statValue: {
-            fontSize: isMobile ? '1.125rem' : '1.5rem',
             fontWeight: 700,
-            color: '#1e3a5f'
+            lineHeight: 1
         },
-        statLabel: {
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            color: '#94a3b8',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+        sectionHeader: {
+            alignItems: isMobile ? 'flex-start' : 'center',
+            borderBottom: '2px solid #f1f5f9',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? '1rem' : '0',
+            justifyContent: 'space-between',
+            marginBottom: isMobile ? '1.5rem' : '2rem',
+            paddingBottom: '1rem'
         },
         statDivider: {
-            width: '1px',
-            height: isMobile ? '30px' : '40px',
             background: '#e5e7eb',
-            display: isMobile ? 'none' : 'block'
+            display: isMobile ? 'none' : 'block',
+            height: isMobile ? '30px' : '40px',
+            width: '1px'
+        },
+        statItem: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem'
+        },
+        statLabel: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.625rem' : '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+        },
+        statValue: {
+            color: '#1e3a5f',
+            fontSize: isMobile ? '1.125rem' : '1.5rem',
+            fontWeight: 700
+        },
+        statsRow: {
+            alignItems: 'center',
+            background: '#f8fafc',
+            borderRadius: '12px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: isMobile ? '1rem' : '2rem',
+            justifyContent: 'center',
+            padding: isMobile ? '1rem' : '1.5rem'
         },
         statusBadge: (color) => ({
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
             background:
                 color === 'success'
                     ? '#dcfce7'
@@ -348,6 +367,7 @@ const YardagePerHourCalculator = () => {
                         : color === 'error'
                           ? '#fee2e2'
                           : '#f1f5f9',
+            borderRadius: '8px',
             color:
                 color === 'success'
                     ? '#16a34a'
@@ -357,43 +377,23 @@ const YardagePerHourCalculator = () => {
                         ? '#f59e0b'
                         : color === 'error'
                           ? '#ef4444'
-                          : '#64748b'
+                          : '#64748b',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 700,
+            letterSpacing: '0.5px',
+            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
+            textTransform: 'uppercase'
         }),
-        emptyState: {
-            textAlign: 'center',
-            padding: isMobile ? '2rem 1rem' : '3rem 2rem',
-            background: '#f8fafc',
-            borderRadius: '12px',
-            border: '2px dashed #e5e7eb',
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        emptyIcon: {
-            fontSize: isMobile ? '2rem' : '3rem',
-            color: '#cbd5e1',
-            marginBottom: '1rem'
-        },
-        emptyText: {
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            color: '#64748b'
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'center'
-        },
-        resetButton: {
-            display: 'flex',
+        timeInputs: {
             alignItems: 'center',
-            gap: '0.5rem',
-            padding: isMobile ? '0.625rem 1rem' : '0.75rem 1.5rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
-            color: '#64748b',
-            background: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none'
+            display: 'flex',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            gap: isMobile ? '0.5rem' : '1rem'
+        },
+        timeTo: {
+            color: '#94a3b8',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
         }
     }
 
