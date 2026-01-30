@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [2.8] - 2026-01-30
+
+- Code formatting and cleanup
+
 ## [2.7] - 2026-01-30
 
 - Added new method `validatePlantManagerMetrics` in AIService.js to validate weekly plant manager reports for concrete manufacturing operations.
