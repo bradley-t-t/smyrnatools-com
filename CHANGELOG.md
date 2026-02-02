@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [3.5] - 2026-02-02
+
+- Updated dependency versions for improved performance and security.
+- Enhanced release and cleanup scripts for smoother deployment processes.
+- Incremented version information in public files for accurate tracking.
+
 ## [3.0] - 2026-01-30
 
 - Replaced the browser's native confirm dialog for AI validation warnings with a custom modal dialog in the report submission view.
