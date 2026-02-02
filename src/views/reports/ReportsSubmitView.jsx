@@ -946,6 +946,31 @@ function ReportsSubmitView({
                 .pm-production-field label { font-size: 0.875rem; font-weight: 600; color: #374151; }
                 .pm-production-input { padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; width: 100%; box-sizing: border-box; }
                 .pm-production-input:disabled { background: #f8fafc; color: #64748b; }
+                .rpt-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
+                .rpt-card-accent { border-left: 4px solid #1e3a5f; }
+                .rpt-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
+                .rpt-card-title { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
+                .rpt-form-row { display: flex; flex-direction: column; gap: 1rem; }
+                .rpt-flex-col { flex-direction: column; }
+                .rpt-plant-summary-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+                .rpt-plant-summary-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; }
+                .rpt-plant-summary-table td { padding: 0.75rem 1rem; font-size: 0.9375rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; vertical-align: middle; background: white; }
+                .rpt-plant-summary-table tr:last-child td { border-bottom: none; }
+                .rpt-plant-summary-table tr:hover td { background: #f8fafc; }
+                .rpt-agg-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; margin-top: 0; }
+                .rpt-agg-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; }
+                .rpt-agg-table td { padding: 0.75rem 1rem; font-size: 0.9375rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+                .rpt-agg-table tr:last-child td { border-bottom: none; }
+                .rpt-agg-table tr:hover td { background: #f8fafc; }
+                .rpt-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; box-sizing: border-box; }
+                .rpt-input:disabled { background: #f8fafc; color: #64748b; }
+                .rpt-input:focus { outline: none; border-color: #1e3a5f; box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1); }
+                .rpt-variance-cell { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.8125rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 4px; }
+                .rpt-variance-positive { color: #059669; background: #d1fae5; }
+                .rpt-variance-negative { color: #dc2626; background: #fee2e2; }
+                .rpt-variance-neutral { color: #64748b; background: #f1f5f9; }
+                .rpt-variance-symbol { font-size: 0.6875rem; }
+                .rpt-empty { text-align: center; padding: 2rem; color: #64748b; font-size: 0.9375rem; background: #f8fafc; border-radius: 8px; }
             `}</style>
             <div>
                 {managerEditUser && (
