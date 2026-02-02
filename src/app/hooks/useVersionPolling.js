@@ -18,7 +18,7 @@ export function useVersionPolling(
         }
 
         const pollVersion = () => {
-            fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' })
+            fetch(`/turl.json?t=${Date.now()}`, { cache: 'no-store' })
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.version && hasMajorVersionChange(data.version, currentVersion)) {
@@ -26,7 +26,7 @@ export function useVersionPolling(
                         if (!updateMode && !showUpdateWarning && !scheduledAt) setShowUpdateWarning(true)
                     }
                 })
-                .catch((err) => console.error('Failed to poll version:', err))
+                .catch(() => {})
         }
 
         const intervalId = setInterval(pollVersion, 30000)

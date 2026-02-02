@@ -52,12 +52,6 @@ body,
 }
 
 .detail-card,
-.mixer-card {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
 :root {
     --primary-color: #003896;
     --primary-hover: #002d76;

@@ -7,7 +7,7 @@ async function getVersion() {
     const cached = CacheUtility.get(cacheKey)
     if (cached) return cached
     try {
-        const res = await fetch('/version.json', { cache: 'no-store' })
+        const res = await fetch('/turl.json', { cache: 'no-store' })
         if (!res.ok) throw new Error('failed')
         const data = await res.json()
         const version = data.version || ''

@@ -32,7 +32,7 @@
     "test": "react-app-rewired test",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
-    "release": "node /Users/trentontaylor/turl-release/src/index.js",
+    "release": "turl-release",
     "eject": "react-scripts eject",
     "mail:send": "node scripts/send-mailersend.js",
     "password-reset:server": "node scripts/password-reset-server.js",
@@ -92,6 +92,7 @@
     "prettier": "^3.2.5",
     "react-app-rewired": "^2.2.1",
     "sharp": "^0.33.4",
+    "turl-release": "github:bradley-t-t/turl-release",
     "typescript": "^4.9.5"
   },
   "browserslist": {

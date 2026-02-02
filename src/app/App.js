@@ -248,7 +248,7 @@ function AppContent() {
     )
 
     useEffect(() => {
-        fetch('/version.json', { cache: 'no-store' })
+        fetch('/turl.json', { cache: 'no-store' })
             .then((res) => res.json())
             .then((data) => setCurrentVersion(data.version || ''))
             .catch(() => setCurrentVersion(''))

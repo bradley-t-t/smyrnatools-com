@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [3.6] - 2026-02-02
+
+- Added new dependency `turl-release` from GitHub repository `bradley-t-t/turl-release` in `package.json` and `package-lock.json`.
+- Updated `release` script in `package.json` to use `turl-release` instead of a hardcoded path.
+- Replaced `version.json` with `turl.json` in the `public` directory, adding additional fields like `projectName` and `branch`.
+- Updated version fetching logic in `App.js`, `useVersionPolling.js`, `AppService.js`, and `NetworkUtility.js` to use `/turl.json` instead of `/version.json`.
+- Modified error handling in `useVersionPolling.js` to silently handle fetch errors instead of logging them.
+- Removed CSS styles for `.mixer-card` from `index.css`.
+
 ## [3.5] - 2026-02-02
 
 - Updated dependency versions for improved performance and security.
