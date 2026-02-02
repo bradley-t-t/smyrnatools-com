@@ -400,6 +400,7 @@ function ReportsSubmitView({
     const [aiValidationProgress, setAiValidationProgress] = useState({ current: 0, total: 0 })
     const [aiWarningModal, setAiWarningModal] = useState(null)
     const [error, setError] = useState('')
+    const [showErrorModal, setShowErrorModal] = useState(false)
     const [success, setSuccess] = useState(false)
     const [maintenanceItems, setMaintenanceItems] = useState([])
     const [summaryTab, setSummaryTab] = useState('summary')
@@ -454,9 +455,15 @@ function ReportsSubmitView({
         setForm({ ...form, [name]: value })
     }
 
+    function showError(msg) {
+        setError(msg)
+        setShowErrorModal(true)
+    }
+
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
+        setShowErrorModal(false)
         setSuccess(false)
         if (report.name === 'plant_manager') {
             setAiValidating(true)
@@ -481,7 +488,7 @@ function ReportsSubmitView({
         if (report.name === 'safety_manager') {
             const issues = Array.isArray(form.issues) ? form.issues : []
             if (issues.some((i) => !i.description || !i.plant || !i.tag)) {
-                setError('All issues must have a description, plant, and tag.')
+                showError('All issues must have a description, plant, and tag.')
                 return
             }
         }
@@ -492,7 +499,7 @@ function ReportsSubmitView({
                     field.required &&
                     (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0))
                 ) {
-                    setError('Please fill out all required fields before submitting.')
+                    showError('Please fill out all required fields before submitting.')
                     return
                 }
             }
@@ -513,7 +520,7 @@ function ReportsSubmitView({
                     for (const field of requiredFields) {
                         const val = form[field]
                         if (val === undefined || val === null || val === '') {
-                            setError('Please fill out all required fields before submitting.')
+                            showError('Please fill out all required fields before submitting.')
                             return
                         }
                     }
@@ -544,7 +551,7 @@ function ReportsSubmitView({
             const v = await ReportUtility.validatePlantProduction(form, operatorOptions)
             setAiValidating(false)
             if (v) {
-                setError(v)
+                showError(v)
                 return
             }
         }
@@ -553,7 +560,7 @@ function ReportsSubmitView({
             await onSubmit(form, 'submit')
             setSuccess(true)
         } catch (err) {
-            setError(err?.message || 'Error submitting report')
+            showError(err?.message || 'Error submitting report')
         }
         setSubmitting(false)
     }
@@ -562,6 +569,7 @@ function ReportsSubmitView({
         setShowConfirmationModal(false)
         setSubmitting(true)
         setError('')
+        setShowErrorModal(false)
         setSuccess(false)
         try {
             const submitData = { ...form }
@@ -571,7 +579,7 @@ function ReportsSubmitView({
             await onSubmit(submitData, 'submit')
             setSuccess(true)
         } catch (err) {
-            setError(err?.message || 'Error submitting report')
+            showError(err?.message || 'Error submitting report')
         }
         setSubmitting(false)
     }
@@ -579,12 +587,13 @@ function ReportsSubmitView({
     async function handleSaveDraft(e) {
         e.preventDefault()
         setError('')
+        setShowErrorModal(false)
         setSuccess(false)
         setSaveMessage('')
         if (managerEditUser && report.name === 'plant_production') {
             const v = ReportUtility.validatePlantProduction(form, operatorOptions)
             if (v) {
-                setError(v)
+                showError(v)
                 return
             }
         }
@@ -595,7 +604,7 @@ function ReportsSubmitView({
             setInitialFormSnapshot(JSON.stringify(form))
             setHasUnsavedChanges(false)
         } catch (err) {
-            setError(err?.message || 'Error saving draft')
+            showError(err?.message || 'Error saving draft')
         }
         setSavingDraft(false)
     }
@@ -1494,7 +1503,6 @@ function ReportsSubmitView({
                             onChange={handleChange}
                         />
                     )}
-                    {error && <div className="rpts-sbmt-error">{error}</div>}
                     {success && <div className="rpts-sbmt-success">Report submitted successfully.</div>}
                     {saveMessage && <div className="rpts-sbmt-success">{saveMessage}</div>}
                     {!readOnly && (
@@ -1569,6 +1577,199 @@ function ReportsSubmitView({
                                 onClick={handleConfirmedSubmit}
                             >
                                 Confirm & Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showErrorModal && error && (
+                <div className="rpts-sbmt-modal-backdrop" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="rpts-sbmt-modal-content" style={{ maxWidth: '480px' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '12px', marginBottom: '20px' }}>
+                            <div
+                                style={{
+                                    alignItems: 'center',
+                                    background: '#fee2e2',
+                                    borderRadius: '50%',
+                                    color: '#dc2626',
+                                    display: 'flex',
+                                    flexShrink: 0,
+                                    fontSize: '18px',
+                                    height: '40px',
+                                    justifyContent: 'center',
+                                    width: '40px'
+                                }}
+                            >
+                                <i className="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <h2 style={{ color: '#1e293b', fontSize: '16px', fontWeight: 700, margin: 0 }}>
+                                    {error.includes('Comment needs improvement')
+                                        ? error.split(':')[0]
+                                        : 'Validation Error'}
+                                </h2>
+                                {error.includes('Comment needs improvement') && (
+                                    <p
+                                        style={{
+                                            color: '#dc2626',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            margin: '2px 0 0 0'
+                                        }}
+                                    >
+                                        Comment needs improvement
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {error.includes('Comment needs improvement') ? (
+                            <>
+                                <div
+                                    style={{
+                                        background: '#fef2f2',
+                                        borderRadius: '8px',
+                                        marginBottom: '12px',
+                                        padding: '12px'
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            color: '#991b1b',
+                                            fontSize: '13px',
+                                            fontWeight: 500,
+                                            marginBottom: '8px'
+                                        }}
+                                    >
+                                        {error.split('\n\n')[1] || 'Provide a specific reason for the timing issues.'}
+                                    </div>
+                                    {error.includes('Your comment:') && (
+                                        <div
+                                            style={{
+                                                background: '#fff',
+                                                border: '1px solid #fecaca',
+                                                borderRadius: '6px',
+                                                marginBottom: '8px',
+                                                padding: '8px 10px'
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    color: '#64748b',
+                                                    fontSize: '10px',
+                                                    fontWeight: 600,
+                                                    marginBottom: '2px',
+                                                    textTransform: 'uppercase'
+                                                }}
+                                            >
+                                                Your Comment
+                                            </div>
+                                            <div style={{ color: '#1e293b', fontSize: '13px', fontStyle: 'italic' }}>
+                                                {error.split('Your comment:')[1]?.split('\n\n')[0]?.trim() || ''}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {error.includes('Issues:') && (
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {error
+                                                .split('Issues:')[1]
+                                                ?.split('|')
+                                                .map((issue, i) => (
+                                                    <span
+                                                        key={i}
+                                                        style={{
+                                                            background: '#fecaca',
+                                                            borderRadius: '4px',
+                                                            color: '#991b1b',
+                                                            fontSize: '11px',
+                                                            fontWeight: 600,
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        {issue.trim()}
+                                                    </span>
+                                                ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div
+                                    style={{
+                                        background: '#f0fdf4',
+                                        borderRadius: '8px',
+                                        display: 'grid',
+                                        gap: '8px',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        marginBottom: '16px',
+                                        padding: '12px'
+                                    }}
+                                >
+                                    <div>
+                                        <div
+                                            style={{
+                                                color: '#166534',
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                                marginBottom: '4px'
+                                            }}
+                                        >
+                                            <i className="fas fa-check" style={{ marginRight: '4px' }}></i>VALID
+                                        </div>
+                                        <div style={{ color: '#166534', fontSize: '12px' }}>
+                                            {'"Sent to plant 402"'}
+                                            <br />
+                                            {'"Truck breakdown"'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div
+                                            style={{
+                                                color: '#991b1b',
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                                marginBottom: '4px'
+                                            }}
+                                        >
+                                            <i className="fas fa-times" style={{ marginRight: '4px' }}></i>INVALID
+                                        </div>
+                                        <div style={{ color: '#991b1b', fontSize: '12px' }}>
+                                            {'"N/A", "mixer"'}
+                                            <br />
+                                            {'"none", vague'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div
+                                style={{
+                                    background: '#fef2f2',
+                                    borderRadius: '8px',
+                                    color: '#991b1b',
+                                    fontSize: '14px',
+                                    marginBottom: '16px',
+                                    padding: '12px'
+                                }}
+                            >
+                                {error}
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                                type="button"
+                                onClick={() => setShowErrorModal(false)}
+                                style={{
+                                    background: '#1e3a5f',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    padding: '10px 20px'
+                                }}
+                            >
+                                OK
                             </button>
                         </div>
                     </div>

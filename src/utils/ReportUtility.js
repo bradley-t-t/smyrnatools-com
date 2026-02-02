@@ -321,9 +321,13 @@ const ReportUtility = {
                 }
 
                 if (!validation.valid) {
-                    const guidance =
-                        validation.guidance || 'Please provide a detailed explanation for the timing issues.'
-                    return `${label}: Comment needs improvement. ${guidance}\n\nProvide specific reasons why the operator was:\n${startDelayed ? `• Delayed from punch-in to 1st load (${dStart} min, expected ≤15)\n` : ''}${endDelayed ? `• Delayed from washout to punch-out (${dEnd} min, expected ≤20)\n` : ''}${lowLoads ? `• Below minimum loads (${loadsNum} loads, expected ≥3)\n` : ''}${excessiveHours ? `• Over maximum hours (${hours.toFixed(1)} hrs, expected ≤14)\n` : ''}`
+                    const guidance = validation.guidance || 'Provide a specific reason for the timing issues.'
+                    const issuesList = []
+                    if (startDelayed) issuesList.push(`Punch-in to 1st load: ${dStart} min (max 15)`)
+                    if (endDelayed) issuesList.push(`Washout to punch-out: ${dEnd} min (max 20)`)
+                    if (lowLoads) issuesList.push(`Loads: ${loadsNum} (min 3)`)
+                    if (excessiveHours) issuesList.push(`Hours: ${hours.toFixed(1)} (max 14)`)
+                    return `${label}: Comment needs improvement.\n\n${guidance}\n\nYour comment: ${r.comments}\n\nIssues: ${issuesList.join(' | ')}`
                 }
             }
         }

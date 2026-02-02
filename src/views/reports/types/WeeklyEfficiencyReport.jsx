@@ -332,31 +332,74 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                                         (!r.comments || !r.comments.trim()) && (
                                                             <div
                                                                 style={{
-                                                                    alignItems: 'center',
                                                                     background:
                                                                         'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
                                                                     border: '1px solid #f59e0b',
                                                                     borderLeft: '4px solid #f59e0b',
                                                                     borderRadius: '6px',
                                                                     color: '#92400e',
-                                                                    display: 'flex',
                                                                     fontSize: '0.8125rem',
-                                                                    fontWeight: 500,
-                                                                    gap: '8px',
                                                                     marginTop: '8px',
-                                                                    padding: '10px 12px'
+                                                                    padding: '12px'
                                                                 }}
                                                             >
-                                                                <i
-                                                                    className="fas fa-robot"
-                                                                    style={{ color: '#f59e0b', fontSize: '1rem' }}
-                                                                ></i>
-                                                                <span>
-                                                                    <strong>AI Validation Required:</strong> Your
-                                                                    explanation will be checked to ensure it provides
-                                                                    specific reasons for the timing issues before
-                                                                    submission.
-                                                                </span>
+                                                                <div
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        display: 'flex',
+                                                                        fontWeight: 600,
+                                                                        gap: '8px',
+                                                                        marginBottom: '8px'
+                                                                    }}
+                                                                >
+                                                                    <i
+                                                                        className="fas fa-robot"
+                                                                        style={{
+                                                                            color: '#f59e0b',
+                                                                            fontSize: '1rem'
+                                                                        }}
+                                                                    ></i>
+                                                                    <span>AI Validation Required</span>
+                                                                </div>
+                                                                <div style={{ marginBottom: '8px' }}>
+                                                                    Your explanation must provide a{' '}
+                                                                    <strong>specific reason</strong> for the timing
+                                                                    issues. Generic or vague answers will be rejected.
+                                                                </div>
+                                                                <div
+                                                                    style={{
+                                                                        background: 'rgba(255,255,255,0.5)',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.75rem',
+                                                                        padding: '8px'
+                                                                    }}
+                                                                >
+                                                                    <div
+                                                                        style={{
+                                                                            color: '#166534',
+                                                                            marginBottom: '4px'
+                                                                        }}
+                                                                    >
+                                                                        <i
+                                                                            className="fas fa-check"
+                                                                            style={{ marginRight: '4px' }}
+                                                                        ></i>
+                                                                        <strong>Good:</strong>{' '}
+                                                                        {
+                                                                            '"Sent to plant 402 for afternoon deliveries" or "Truck breakdown - waited for mechanic" or "Training new driver on route"'
+                                                                        }
+                                                                    </div>
+                                                                    <div style={{ color: '#991b1b' }}>
+                                                                        <i
+                                                                            className="fas fa-times"
+                                                                            style={{ marginRight: '4px' }}
+                                                                        ></i>
+                                                                        <strong>Bad:</strong>{' '}
+                                                                        {
+                                                                            '"N/A" or "mixer" or "truck issues" or unrelated explanations'
+                                                                        }
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
                                                 </div>

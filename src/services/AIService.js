@@ -628,20 +628,26 @@ class AIInsightsServiceClass {
     }
 
     async validateEfficiencyComment(comment, issues) {
-        const systemPrompt = `You are a validation assistant for weekly plant efficiency reports. Your job is to determine if a comment provides a meaningful explanation for performance issues.
+        const systemPrompt = `You are a validation assistant for weekly plant efficiency reports at a concrete company. Use common sense to determine if a comment provides a reasonable explanation for performance issues.
 
-A VALID comment must:
-- Specifically explain WHY timing issues occurred
-- Provide concrete reasons (equipment issues, scheduling problems, delays, etc.)
-- Be more than just a statement of fact or placeholder
+VALID comments include ANY of these (use common sense, be lenient):
+- Operational tasks: winterizing, maintenance, cleaning, inspections, safety meetings
+- Weather issues: rain, snow, cold, heat, storms
+- Equipment problems: breakdowns, repairs, waiting for parts/mechanic
+- Scheduling: sent to another plant, helping other locations, training, orientation
+- Delivery issues: long pours, difficult job sites, traffic, waiting at job
+- Staffing: short staffed, covering for others, new driver learning routes
+- Any reasonable work-related explanation that makes sense in context
 
-INVALID comments include:
-- Single words like "N/A", "na", "mixers", "trucks", "none"
-- Just listing what happened without explaining why
-- Generic statements without specific reasons
-- Empty or placeholder text
+ONLY mark as INVALID if the comment is:
+- Completely empty or just whitespace
+- Single unhelpful words like "N/A", "na", "none", "x", "-"
+- Completely unrelated to work (e.g., "the sky is blue")
+- Gibberish or random characters
 
-Respond with ONLY "VALID" or "INVALID: [brief guidance]" where guidance helps the user understand what to add.`
+When in doubt, mark as VALID. We want explanations, but real operational reasons should always pass.
+
+Respond with ONLY "VALID" or "INVALID: [brief guidance]".`
 
         const issuesText = []
         if (issues.startDelayed) issuesText.push(`Punch in to 1st load: ${issues.startMinutes} minutes (expected: ≤15)`)
