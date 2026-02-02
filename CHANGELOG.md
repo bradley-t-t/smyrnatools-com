@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [3.8] - 2026-02-02
+
+- Added 'Unscreened White Sand' as a new material option in the General Manager Export report in `src/components/modules/export/reports/GeneralManagerExport.js`
+- Added 'Unscreened White Sand' to the report types configuration with required field and number type in `src/types/ReportTypes.js`
+
 ## [3.7] - 2026-02-02
 
 - Updated AI comment validation logic in `src/services/AIService.js` to be more lenient, accepting a broader range of operational reasons as valid (e.g., weather, equipment issues, staffing) and only marking comments as invalid if empty, unhelpful, or unrelated to work.

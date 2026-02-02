@@ -1327,6 +1327,7 @@ async function createWeekSheet(
             ['beach_quality_sand', 'Beach Quality Sand'],
             ['limestone_one_inch', 'Limestone - 1"'],
             ['white_screened_sand', 'White Screened Sand'],
+            ['unscreened_white_sand', 'Unscreened White Sand'],
             ['pea_gravel_three_eighths', '3/8" Pea Gravel'],
             ['crushed_asphalt', 'Crushed Asphalt'],
             ['screened_sand', 'Screened Sand'],

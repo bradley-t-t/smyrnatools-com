@@ -81,6 +81,7 @@ const reportTypes = [
             { label: 'Beach Quality Sand', name: 'beach_quality_sand', required: true, type: 'number' },
             { label: 'Limestone - 1"', name: 'limestone_one_inch', required: true, type: 'number' },
             { label: 'White Screened Sand', name: 'white_screened_sand', required: true, type: 'number' },
+            { label: 'Unscreened White Sand', name: 'unscreened_white_sand', required: true, type: 'number' },
             { label: '3/8" Pea Gravel', name: 'pea_gravel_three_eighths', required: true, type: 'number' },
             { label: 'Crushed Asphalt', name: 'crushed_asphalt', required: true, type: 'number' },
             { label: 'Screened Sand', name: 'screened_sand', required: true, type: 'number' },
