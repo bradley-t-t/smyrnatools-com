@@ -22,6 +22,7 @@ function MixerCard({
     let statusColor = 'var(--accent)'
     if (mixer.status === 'Active') statusColor = 'var(--status-active)'
     else if (mixer.status === 'Spare') statusColor = 'var(--status-spare)'
+    else if (mixer.status === 'In Shop' && mixer.downInYard) statusColor = 'var(--error)'
     else if (mixer.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (mixer.status === 'Retired') statusColor = 'var(--status-retired)'
     else if (MixerUtility.isServiceOverdue(mixer.lastServiceDate)) statusColor = 'var(--error)'
@@ -54,12 +55,9 @@ function MixerCard({
             <div className="detail-row">
                 <div className="detail-label">Status</div>
                 <div className="detail-value" style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                    <span>{mixer.status || 'Unknown'}</span>
-                    {mixer.status === 'In Shop' && mixer.downInYard && (
-                        <span className="in-yard-badge" title="This mixer is down in the yard">
-                            IN YARD
-                        </span>
-                    )}
+                    <span>
+                        {mixer.status === 'In Shop' && mixer.downInYard ? 'Down In Yard' : mixer.status || 'Unknown'}
+                    </span>
                 </div>
             </div>
             <div className="detail-row">

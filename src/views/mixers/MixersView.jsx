@@ -744,6 +744,9 @@ function MixersView({
                         } else if (status === 'In Shop') {
                             bg = '#fef3c7'
                             color = '#92400e'
+                        } else if (status === 'Down In Yard') {
+                            bg = '#fef2f2'
+                            color = '#991b1b'
                         } else if (status === 'Retired') {
                             bg = '#f1f5f9'
                             color = '#64748b'
@@ -804,22 +807,13 @@ function MixersView({
                             <td style={{ ...cellStyle, width: '10%' }}>{plant?.name || item.assignedPlant}</td>
                             <td style={{ ...cellBoldStyle, width: '12%' }}>{item.truckNumber}</td>
                             <td style={{ ...cellStyle, width: '12%' }}>
-                                <span style={statusBadge(item.status)}>{item.status}</span>
-                                {item.status === 'In Shop' && item.downInYard && (
-                                    <span
-                                        style={{
-                                            backgroundColor: '#fef2f2',
-                                            borderRadius: '6px',
-                                            color: '#991b1b',
-                                            fontSize: '10px',
-                                            fontWeight: 700,
-                                            marginLeft: '8px',
-                                            padding: '4px 8px'
-                                        }}
-                                    >
-                                        IN YARD
-                                    </span>
-                                )}
+                                <span
+                                    style={statusBadge(
+                                        item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status
+                                    )}
+                                >
+                                    {item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status}
+                                </span>
                             </td>
                             <td style={{ ...cellStyle, width: '18%' }}>
                                 {operator?.name || (

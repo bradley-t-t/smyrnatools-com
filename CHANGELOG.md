@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [4.7] - 2026-02-03
+
+- Updated status display in `MixerCard.jsx` to show "Down In Yard" instead of a separate badge when a mixer is in shop and down in the yard.
+- Added specific color coding for "Down In Yard" status in `MixerCard.jsx` using `var(--error)` color.
+- Modified status display in `MixersView.jsx` to combine "In Shop" and "downInYard" into a single "Down In Yard" status label.
+- Added new background and text color styling for "Down In Yard" status in `MixersView.jsx` with background `#fef2f2` and text color `#991b1b`.
+- Removed separate "IN YARD" badge styling from `MixersView.jsx` and integrated it into the main status badge.
+
 ## [4.6] - 2026-02-03
 
 - Updated `MixerDetailView` in `MixersView.jsx` to pass `selectedMixer.id` instead of `selectedMixer` as the `mixerId` prop.
