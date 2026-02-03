@@ -103,7 +103,9 @@ function PlanView() {
         headerActions: {
             alignItems: 'center',
             display: 'flex',
-            gap: '0.75rem'
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            width: isMobile ? '100%' : 'auto'
         },
         dateInput: {
             background: 'white',
@@ -111,6 +113,7 @@ function PlanView() {
             borderRadius: '8px',
             color: '#1e3a5f',
             cursor: 'pointer',
+            flex: isMobile ? '1 1 100%' : 'none',
             fontSize: '0.9375rem',
             fontWeight: 600,
             outline: 'none',
@@ -164,7 +167,8 @@ function PlanView() {
         mixerCountsRow: {
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '0.5rem'
+            gap: '0.5rem',
+            marginTop: isMobile ? '1rem' : '0'
         },
         mixerBadge: {
             alignItems: 'center',
@@ -271,6 +275,35 @@ function PlanView() {
             color: '#1e3a5f',
             fontSize: '1rem'
         },
+        mobileAllocationCard: {
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            display: isMobile ? 'block' : 'none',
+            marginBottom: '1rem',
+            padding: '1rem'
+        },
+        mobileAllocationTitle: {
+            color: '#1e3a5f',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            marginBottom: '0.75rem'
+        },
+        mobileAllocationGrid: {
+            display: 'grid',
+            gap: '0.5rem',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))'
+        },
+        mobileAllocationItem: {
+            alignItems: 'center',
+            background: '#f8fafc',
+            borderRadius: '6px',
+            display: 'flex',
+            gap: '0.5rem',
+            justifyContent: 'space-between',
+            padding: '0.5rem 0.75rem'
+        },
         configCard: {
             background: 'white',
             border: '1px solid #e5e7eb',
@@ -297,6 +330,7 @@ function PlanView() {
         configForm: {
             alignItems: 'center',
             display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
             flexWrap: 'wrap',
             gap: '0.5rem'
         },
@@ -315,10 +349,11 @@ function PlanView() {
             fontSize: '0.875rem',
             outline: 'none',
             padding: '0.625rem 2rem 0.625rem 1rem',
-            width: '100px'
+            width: isMobile ? '100%' : '100px'
         },
         configArrow: {
             color: '#94a3b8',
+            display: isMobile ? 'none' : 'block',
             fontSize: '0.875rem'
         },
         configMinInput: {
@@ -330,7 +365,7 @@ function PlanView() {
             outline: 'none',
             padding: '0.625rem',
             textAlign: 'center',
-            width: '70px'
+            width: isMobile ? '100%' : '70px'
         },
         configAddBtn: {
             alignItems: 'center',
@@ -342,7 +377,7 @@ function PlanView() {
             display: 'flex',
             height: '38px',
             justifyContent: 'center',
-            width: '38px'
+            width: isMobile ? '100%' : '38px'
         },
         configList: {
             display: 'flex',
@@ -476,7 +511,7 @@ function PlanView() {
         cardRow: {
             display: 'grid',
             gap: '1rem',
-            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)'
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(5, 1fr)'
         },
         field: {
             display: 'flex',
@@ -737,6 +772,7 @@ function PlanView() {
         },
         buttonsRow: {
             display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
             gap: '1rem',
             marginTop: '1rem'
         },
@@ -1381,6 +1417,38 @@ function PlanView() {
                     )}
                 </div>
 
+                {isMobile && getAllocationStats().length > 0 && (
+                    <div style={styles.mobileAllocationCard}>
+                        <div style={styles.mobileAllocationTitle}>
+                            <i className="fas fa-chart-bar" style={{ marginRight: '0.5rem' }}></i>
+                            Allocation
+                        </div>
+                        <div style={styles.mobileAllocationGrid}>
+                            {getAllocationStats().map((stat) => (
+                                <div key={stat.plantCode} style={styles.mobileAllocationItem}>
+                                    <span style={{ color: '#475569', fontSize: '0.8125rem', fontWeight: 600 }}>
+                                        {stat.plantCode}
+                                    </span>
+                                    <span
+                                        style={{
+                                            color:
+                                                stat.percent > 100
+                                                    ? '#16a34a'
+                                                    : stat.percent < 100
+                                                      ? '#d97706'
+                                                      : '#1e3a5f',
+                                            fontSize: '0.8125rem',
+                                            fontWeight: 700
+                                        }}
+                                    >
+                                        {stat.percent}%
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {getAllocationStats().length > 0 && (
                     <div style={styles.allocationSidebar(sidebarMinimized)}>
                         {sidebarMinimized ? (
@@ -1874,7 +1942,9 @@ function PlanView() {
                         ) : (
                             <div style={styles.empty}>
                                 <i className="fas fa-comment-alt" style={styles.emptyIcon}></i>
-                                <p style={styles.emptyText}>Generated message will appear here</p>
+                                <p style={styles.emptyText}>
+                                    Generated message will appear here. It is generated to send to plant managers.
+                                </p>
                             </div>
                         )}
                     </div>

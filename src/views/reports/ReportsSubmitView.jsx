@@ -598,13 +598,6 @@ function ReportsSubmitView({
         setShowErrorModal(false)
         setSuccess(false)
         setSaveMessage('')
-        if (managerEditUser && report.name === 'plant_production') {
-            const v = ReportUtility.validatePlantProduction(form, operatorOptions)
-            if (v) {
-                showError(v)
-                return
-            }
-        }
         setSavingDraft(true)
         try {
             await onSubmit(form, 'draft')
