@@ -1,6 +1,7 @@
 import './index.css'
 import './App.css'
 
+import { Analytics } from '@vercel/analytics/react'
 import React, { useEffect, useState } from 'react'
 
 import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
@@ -314,6 +315,7 @@ function App() {
         <>
             <AppContent />
             <AppInstallPromptModal />
+            <Analytics />
         </>
     )
 }

@@ -817,12 +817,17 @@ function MixersView({
                                     )}
                                 >
                                     {item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status}
-                                    {item.updatedAt &&
+                                    {item.status !== 'Retired' &&
                                         (() => {
-                                            const days = Math.max(
-                                                1,
-                                                Math.floor((Date.now() - new Date(item.updatedAt).getTime()) / 86400000)
-                                            )
+                                            const days = item.statusChangedAt
+                                                ? Math.max(
+                                                      1,
+                                                      Math.floor(
+                                                          (Date.now() - new Date(item.statusChangedAt).getTime()) /
+                                                              86400000
+                                                      )
+                                                  )
+                                                : 1
                                             return ` (${days} day${days !== 1 ? 's' : ''})`
                                         })()}
                                 </span>

@@ -23,6 +23,7 @@ export class Mixer {
         this.latestHistoryDate = data.latestHistoryDate ?? null
         this.openIssuesCount = data.openIssuesCount ?? 0
         this.commentsCount = data.commentsCount ?? 0
+        this.statusChangedAt = data.status_changed_at ?? data.statusChangedAt ?? null
     }
 
     static fromApiFormat(data) {

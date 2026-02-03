@@ -8,6 +8,7 @@ import APIUtility from '../utils/APIUtility'
 import CleanupUtility from '../utils/CleanupUtility'
 import MixerUtility from '../utils/MixerUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 
 class MixerServiceImpl {
@@ -319,6 +320,28 @@ class MixerServiceImpl {
 
     static async fetchMixersWithDetails(regionCodes = null) {
         const base = await this.getAllMixers().catch(() => [])
+
+        const mixerIds = base.map((m) => m.id).filter(Boolean)
+        let statusHistoryMap = {}
+        if (mixerIds.length > 0) {
+            try {
+                const { data: statusHistory } = await supabase
+                    .from('mixers_history')
+                    .select('mixer_id, changed_at')
+                    .eq('field_name', 'status')
+                    .in('mixer_id', mixerIds)
+                    .order('changed_at', { ascending: false })
+
+                if (statusHistory) {
+                    for (const h of statusHistory) {
+                        if (!statusHistoryMap[h.mixer_id]) {
+                            statusHistoryMap[h.mixer_id] = h.changed_at
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
         const processedBase = (Array.isArray(base) ? base : []).map((m) => {
             const mixer = { ...m }
 
@@ -326,6 +349,9 @@ class MixerServiceImpl {
                 MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
             if (typeof mixer.openIssuesCount !== 'number') mixer.openIssuesCount = 0
             if (typeof mixer.commentsCount !== 'number') mixer.commentsCount = 0
+
+            mixer.statusChangedAt = statusHistoryMap[mixer.id] || null
+
             return mixer
         })
         if (regionCodes) {
