@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [4.2] - 2026-02-03
+
+- Removed the `user_plans` table and associated indexes from `sql/users_plans.sql`
+- Removed row-level security configuration and access policy for the `user_plans` table
+
 ## [4.1] - 2026-02-03
 
 - Added a new `pulse` animation keyframe in `src/app/index.css` for visual effects.
