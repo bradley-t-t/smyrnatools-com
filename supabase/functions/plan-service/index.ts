@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
                         headers: corsHeaders
                     });
                 }
-                const {userId, planDate, assignments, notes, generatedMessage} = body || {};
+                const {userId, planDate, assignments, notes} = body || {};
                 if (!userId || !planDate) {
                     return new Response(JSON.stringify({error: "userId and planDate are required"}), {
                         status: 400,
@@ -161,7 +161,6 @@ Deno.serve(async (req) => {
                     plan_date: planDate,
                     assignments: assignments || [],
                     notes: notes || "",
-                    generated_message: generatedMessage || "",
                     updated_at: now
                 }, {
                     onConflict: "user_id,plan_date"

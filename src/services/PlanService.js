@@ -68,13 +68,12 @@ class PlanServiceImpl {
         return json?.data ?? null
     }
 
-    async saveUserPlan(userId, planDate, assignments, notes, generatedMessage) {
+    async saveUserPlan(userId, planDate, assignments, notes) {
         if (!userId || !planDate) {
             throw new Error('userId and planDate are required')
         }
         const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/save-user-plan`, {
             assignments: assignments || [],
-            generatedMessage: generatedMessage || '',
             notes: notes || '',
             planDate,
             userId

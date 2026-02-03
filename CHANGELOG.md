@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [4.3] - 2026-02-03
+
+- Removed support for `generatedMessage` parameter in `saveUserPlan` function in `src/services/PlanService.js`
+- Updated `PlanView.jsx` to remove references to `generatedMessage` in state and function calls
+- Modified `supabase/functions/plan-service/index.ts` to exclude `generatedMessage` from request body parsing and database operations
+
 ## [4.2] - 2026-02-03
 
 - Removed the `user_plans` table and associated indexes from `sql/users_plans.sql`

@@ -861,7 +861,6 @@ function PlanView() {
                         setAssignments(plan.assignments)
                     }
                     if (plan.notes) setNotes(plan.notes)
-                    if (plan.generated_message) setGeneratedMessage(plan.generated_message)
                 }
             } catch (e) {}
         }
@@ -872,11 +871,11 @@ function PlanView() {
         if (!userId || !planDate || isLoadingPlan) return
         const saveTimeout = setTimeout(async () => {
             try {
-                await PlanService.saveUserPlan(userId, planDate, assignments, notes, generatedMessage)
+                await PlanService.saveUserPlan(userId, planDate, assignments, notes)
             } catch (e) {}
         }, 1000)
         return () => clearTimeout(saveTimeout)
-    }, [userId, planDate, assignments, notes, generatedMessage, isLoadingPlan])
+    }, [userId, planDate, assignments, notes, isLoadingPlan])
 
     const loadTravelTimes = async () => {
         try {
