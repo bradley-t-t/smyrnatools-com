@@ -1,15 +1,13 @@
 import './index.css'
 import './App.css'
 
-import PropTypes from 'prop-types'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
 import LockedOverlay from '../components/common/LockedOverlay'
 import Navigation from '../components/common/Navigation'
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import TerminatedOverlay from '../components/common/TerminatedOverlay'
-import VideoBackground from '../components/common/VideoBackground'
 import WebOverlay from '../components/common/WebOverlay'
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
@@ -37,182 +35,10 @@ import TractorsView from '../views/tractors/TractorsView'
 import TrailersView from '../views/trailers/TrailersView'
 import { useAuth } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
-import { useVersionPolling } from './hooks/useVersionPolling'
 
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
 const AGGREGATE_HIDDEN_VIEWS = new Set(['Mixers', 'Plants', 'Regions'])
 const DEFAULT_HIDDEN_VIEWS = new Set(['Plants', 'Regions'])
-
-function VersionPopup({ version }) {
-    if (!version) return null
-    return <div className="version-popup-centered">Version: {version}</div>
-}
-
-VersionPopup.propTypes = { version: PropTypes.string }
-
-function UpdateLoadingScreen({ version }) {
-    const [progress, setProgress] = useState(0)
-
-    useEffect(() => {
-        const start = Date.now()
-        const interval = setInterval(() => {
-            const elapsed = Date.now() - start
-            setProgress((prev) => Math.min(100, prev + Math.floor(Math.random() * 7) + 2))
-            if (elapsed >= 15000 && progress >= 100) {
-                clearInterval(interval)
-                setTimeout(() => window.location.reload(true), 500)
-            }
-        }, 300)
-        return () => clearInterval(interval)
-    }, [progress])
-
-    return (
-        <div style={{ background: '#000', inset: 0, overflow: 'hidden', position: 'fixed', zIndex: 99999 }}>
-            <VideoBackground />
-            <div
-                style={{
-                    alignItems: 'center',
-                    backdropFilter: 'blur(12px)',
-                    background: 'rgba(31, 41, 55, 0.85)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 12,
-                    bottom: 60,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    left: '50%',
-                    maxWidth: '90%',
-                    padding: '24px 32px',
-                    position: 'absolute',
-                    textAlign: 'center',
-                    transform: 'translateX(-50%)',
-                    width: 420,
-                    zIndex: 10
-                }}
-            >
-                <h1
-                    style={{
-                        color: '#fff',
-                        fontFamily: 'Inter, -apple-system, sans-serif',
-                        fontSize: '1.25rem',
-                        fontWeight: 600,
-                        marginBottom: 8
-                    }}
-                >
-                    Updating Smyrna Tools
-                </h1>
-                <p
-                    style={{
-                        color: 'rgba(255,255,255,0.6)',
-                        fontFamily: 'Inter, -apple-system, sans-serif',
-                        fontSize: '0.875rem',
-                        marginBottom: 20
-                    }}
-                >
-                    Please wait while we apply the latest updates...
-                </p>
-                <div
-                    style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: 3,
-                        height: 6,
-                        marginBottom: 12,
-                        overflow: 'hidden',
-                        width: '100%'
-                    }}
-                >
-                    <div
-                        style={{
-                            background: 'linear-gradient(90deg, #1e40af, #3b82f6)',
-                            borderRadius: 3,
-                            height: '100%',
-                            transition: 'width 0.3s ease',
-                            width: `${progress}%`
-                        }}
-                    />
-                </div>
-                <span
-                    style={{
-                        color: 'rgba(255,255,255,0.5)',
-                        fontFamily: 'Inter, -apple-system, sans-serif',
-                        fontSize: '0.75rem'
-                    }}
-                >
-                    Version {version}
-                </span>
-            </div>
-        </div>
-    )
-}
-
-UpdateLoadingScreen.propTypes = { version: PropTypes.string }
-
-function UpdateWarningPopup({ onRefreshNow, onClose, latestVersion }) {
-    return (
-        <div className="global-modal-backdrop" onClick={onClose}>
-            <div className="global-modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="global-modal-header">
-                    <h2>Update Available</h2>
-                    <button className="global-close-button" onClick={onClose} aria-label="Close">
-                        <i className="fas fa-times"></i>
-                    </button>
-                </div>
-                <div className="global-modal-body">
-                    <p>A new version is available.</p>
-                    {latestVersion && <p style={{ opacity: 0.8 }}>Version: {latestVersion}</p>}
-                    <p>
-                        Refresh now to apply the update, or close this popup to keep working. The page will
-                        automatically refresh in 5 minutes to apply updates.
-                    </p>
-                </div>
-                <div className="global-modal-footer">
-                    <button className="global-action-button" onClick={onClose}>
-                        Close
-                    </button>
-                    <button className="global-action-button primary" onClick={onRefreshNow}>
-                        Refresh Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-UpdateWarningPopup.propTypes = {
-    latestVersion: PropTypes.string,
-    onClose: PropTypes.func.isRequired,
-    onRefreshNow: PropTypes.func.isRequired
-}
-
-function ScheduledUpdateBanner({ remainingMs, onRefreshNow, onDismiss }) {
-    const minutes = Math.max(0, Math.floor(remainingMs / 60000))
-    const seconds = Math.max(0, Math.floor((remainingMs % 60000) / 1000))
-
-    return (
-        <div className="global-update-banner">
-            <div className="global-banner-content">
-                <i className="fas fa-sync global-banner-icon"></i>
-                <span>
-                    An update is scheduled. The page will refresh in {String(minutes).padStart(2, '0')}:
-                    {String(seconds).padStart(2, '0')} to apply updates.
-                </span>
-            </div>
-            <div className="global-banner-actions">
-                <button className="global-action-button" onClick={onDismiss}>
-                    Dismiss
-                </button>
-                <button className="global-action-button primary" onClick={onRefreshNow}>
-                    Refresh Now
-                </button>
-            </div>
-        </div>
-    )
-}
-
-ScheduledUpdateBanner.propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    onRefreshNow: PropTypes.func.isRequired,
-    remainingMs: PropTypes.number.isRequired
-}
 
 function AppContent() {
     const [userId, setUserId] = useState(null)
@@ -223,37 +49,14 @@ function AppContent() {
     const [selectedItem, setSelectedItem] = useState(null)
     const [webViewURL, setWebViewURL] = useState(null)
     const [userDisplayName, setUserDisplayName] = useState('')
-    const [currentVersion, setCurrentVersion] = useState('')
-    const [latestVersion, setLatestVersion] = useState('')
-    const [updateMode, setUpdateMode] = useState(false)
-    const [showUpdateWarning, setShowUpdateWarning] = useState(false)
-    const [scheduledAt, setScheduledAt] = useState(null)
-    const [showScheduledBanner, setShowScheduledBanner] = useState(false)
-    const [remainingMs, setRemainingMs] = useState(0)
     const [isGuestOnly, setIsGuestOnly] = useState(false)
     const [rolesLoaded, setRolesLoaded] = useState(false)
     const [offlineMode, setOfflineMode] = useState(false)
     const [terminatedMode, setTerminatedMode] = useState(false)
     const [regionKey, setRegionKey] = useState(0)
-    const scheduledTimeoutRef = useRef(null)
 
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
     useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView)
-    useVersionPolling(
-        currentVersion,
-        updateMode,
-        showUpdateWarning,
-        scheduledAt,
-        setLatestVersion,
-        setShowUpdateWarning
-    )
-
-    useEffect(() => {
-        fetch('/turl.json', { cache: 'no-store' })
-            .then((res) => res.json())
-            .then((data) => setCurrentVersion(data.version || ''))
-            .catch(() => setCurrentVersion(''))
-    }, [])
 
     useEffect(() => {
         UserService.getCurrentUser().catch(() => {})
@@ -300,8 +103,7 @@ function AppContent() {
                 setIsGuestOnly(guestOnly)
                 setRolesLoaded(true)
                 if (guestOnly) setSelectedView({ initialStatusFilter: null, view: 'Guest' })
-            } catch (error) {
-                console.error('Failed to load user roles:', error)
+            } catch (err) {
                 if (!cancelled) {
                     setIsGuestOnly(false)
                     setRolesLoaded(true)
@@ -336,19 +138,6 @@ function AppContent() {
             })
     }, [userId])
 
-    useEffect(() => {
-        if (!scheduledAt || updateMode) return
-
-        let raf
-        const tick = () => {
-            const remaining = Math.max(0, scheduledAt - Date.now())
-            setRemainingMs(remaining)
-            if (remaining > 0) raf = requestAnimationFrame(tick)
-        }
-        raf = requestAnimationFrame(tick)
-        return () => raf && cancelAnimationFrame(raf)
-    }, [scheduledAt, updateMode])
-
     const handleViewSelection = (viewId) => {
         if (isGuestOnly && viewId !== 'Guest') return
         setSelectedView({ initialStatusFilter: null, view: viewId })
@@ -365,25 +154,6 @@ function AppContent() {
         initialPositionFilter = null
     ) => {
         setSelectedView({ initialPositionFilter, initialSelectedPlant, initialStatusFilter, view })
-    }
-
-    const startImmediateUpdate = () => {
-        if (scheduledTimeoutRef.current) {
-            clearTimeout(scheduledTimeoutRef.current)
-            scheduledTimeoutRef.current = null
-        }
-        setShowUpdateWarning(false)
-        setShowScheduledBanner(false)
-        setUpdateMode(true)
-    }
-
-    const scheduleUpdateInFiveMinutes = () => {
-        if (scheduledTimeoutRef.current) return
-        setShowUpdateWarning(false)
-        const at = Date.now() + 5 * 60 * 1000
-        setScheduledAt(at)
-        setShowScheduledBanner(true)
-        scheduledTimeoutRef.current = setTimeout(startImmediateUpdate, 5 * 60 * 1000)
     }
 
     const handleRetryConnection = async () => {
@@ -509,7 +279,6 @@ function AppContent() {
     }
 
     if (terminatedMode) return <TerminatedOverlay />
-    if (updateMode) return <UpdateLoadingScreen version={latestVersion || currentVersion} />
     if (!userId) return <div className="App">{renderCurrentView()}</div>
     if (!rolesLoaded) return null
 
@@ -525,20 +294,6 @@ function AppContent() {
             >
                 <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
             </Navigation>
-            {showUpdateWarning && (
-                <UpdateWarningPopup
-                    latestVersion={latestVersion}
-                    onRefreshNow={startImmediateUpdate}
-                    onClose={scheduleUpdateInFiveMinutes}
-                />
-            )}
-            {showScheduledBanner && scheduledAt && !updateMode && (
-                <ScheduledUpdateBanner
-                    remainingMs={remainingMs}
-                    onRefreshNow={startImmediateUpdate}
-                    onDismiss={() => setShowScheduledBanner(false)}
-                />
-            )}
             {offlineMode && <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline} />}
             {isGuestOnly && <LockedOverlay reason="guest-only" />}
         </div>

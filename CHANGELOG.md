@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [5.1] - 2026-02-03
+
+- Removed PropTypes import and related prop type definitions from src/app/App.js
+- Removed VideoBackground component import and usage from src/app/App.js
+- Removed useVersionPolling hook import from src/app/App.js
+- Removed VersionPopup component and its associated code from src/app/App.js
+- Removed UpdateLoadingScreen component and its associated code from src/app/App.js
+- Removed UpdateWarningPopup component and its associated code from src/app/App.js
+- Removed ScheduledUpdateBanner component and its associated code from src/app/App.js
+
 ## [5.0] - 2026-02-03
 
 - Added `overflow: 'hidden'` to the card style in `PlanView.jsx` to prevent content overflow.

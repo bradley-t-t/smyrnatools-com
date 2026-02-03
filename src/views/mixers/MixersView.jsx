@@ -85,6 +85,7 @@ function MixersView({
         'Active',
         'Spare',
         'In Shop',
+        'Down In Yard',
         'Retired',
         'Past Due Service',
         'Verified',
@@ -578,17 +579,20 @@ function MixersView({
                 )
             let matchesStatus = true
             if (statusFilter && statusFilter !== 'All Statuses') {
-                matchesStatus = ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter)
-                    ? mixer.status === statusFilter
-                    : statusFilter === 'Past Due Service'
-                      ? MixerUtility.isServiceOverdue(mixer.lastServiceDate)
-                      : statusFilter === 'Verified'
-                        ? mixer.isVerified()
-                        : statusFilter === 'Not Verified'
-                          ? !mixer.isVerified() && mixer.status !== 'Retired'
-                          : statusFilter === 'Open Issues'
-                            ? Number(mixer.openIssuesCount || 0) > 0
-                            : false
+                matchesStatus =
+                    statusFilter === 'Down In Yard'
+                        ? mixer.status === 'In Shop' && mixer.downInYard === true
+                        : ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter)
+                          ? mixer.status === statusFilter
+                          : statusFilter === 'Past Due Service'
+                            ? MixerUtility.isServiceOverdue(mixer.lastServiceDate)
+                            : statusFilter === 'Verified'
+                              ? mixer.isVerified()
+                              : statusFilter === 'Not Verified'
+                                ? !mixer.isVerified() && mixer.status !== 'Retired'
+                                : statusFilter === 'Open Issues'
+                                  ? Number(mixer.openIssuesCount || 0) > 0
+                                  : false
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus
         })
@@ -813,6 +817,14 @@ function MixersView({
                                     )}
                                 >
                                     {item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status}
+                                    {item.updatedAt &&
+                                        (() => {
+                                            const days = Math.max(
+                                                1,
+                                                Math.floor((Date.now() - new Date(item.updatedAt).getTime()) / 86400000)
+                                            )
+                                            return ` (${days} day${days !== 1 ? 's' : ''})`
+                                        })()}
                                 </span>
                             </td>
                             <td style={{ ...cellStyle, width: '18%' }}>
