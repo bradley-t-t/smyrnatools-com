@@ -1002,7 +1002,7 @@ function MixersView({
                 className={`global-dashboard-container dashboard-container global-flush-top flush-top mixers-view${selectedMixer ? ' detail-open' : ''}`}
             >
                 {selectedMixer ? (
-                    <MixerDetailView mixerId={selectedMixer} onClose={() => setSelectedMixer(null)} />
+                    <MixerDetailView mixerId={selectedMixer.id} onClose={() => setSelectedMixer(null)} />
                 ) : (
                     <>
                         <TopSection
