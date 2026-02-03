@@ -84,6 +84,7 @@ function PlanView() {
             borderRadius: isMobile ? '8px' : '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             marginBottom: isMobile ? '1rem' : '2rem',
+            overflow: 'hidden',
             padding: isMobile ? '1rem' : '2rem'
         },
         titleRow: {
@@ -127,11 +128,12 @@ function PlanView() {
             color: active ? 'white' : '#64748b',
             cursor: 'pointer',
             display: 'flex',
-            fontSize: '0.875rem',
+            flex: isMobile ? '1 1 auto' : 'none',
+            fontSize: isMobile ? '0.8125rem' : '0.875rem',
             fontWeight: 500,
             gap: '0.5rem',
             outline: 'none',
-            padding: '0.5rem 1rem',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
             transition: 'all 0.2s'
         }),
         newPlanBtn: {
@@ -142,11 +144,12 @@ function PlanView() {
             color: 'white',
             cursor: 'pointer',
             display: 'flex',
-            fontSize: '0.875rem',
+            flex: isMobile ? '1 1 auto' : 'none',
+            fontSize: isMobile ? '0.8125rem' : '0.875rem',
             fontWeight: 500,
             gap: '0.5rem',
             outline: 'none',
-            padding: '0.5rem 1rem',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
             transition: 'all 0.2s'
         },
         dangerBtn: {
@@ -157,11 +160,12 @@ function PlanView() {
             color: '#ef4444',
             cursor: 'pointer',
             display: 'flex',
-            fontSize: '0.875rem',
+            flex: isMobile ? '1 1 auto' : 'none',
+            fontSize: isMobile ? '0.8125rem' : '0.875rem',
             fontWeight: 500,
             gap: '0.5rem',
             outline: 'none',
-            padding: '0.5rem 1rem',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
             transition: 'all 0.2s'
         },
         mixerCountsRow: {
