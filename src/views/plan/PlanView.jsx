@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 
-import { AIService } from '../../services/AIService'
 import { PlanService } from '../../services/PlanService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
@@ -781,6 +780,29 @@ function PlanView() {
             margin: 0,
             whiteSpace: 'pre-wrap'
         },
+        msgLoading: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            justifyContent: 'center',
+            padding: '2rem'
+        },
+        msgLoadingDots: {
+            display: 'flex',
+            gap: '0.5rem'
+        },
+        msgLoadingDot: {
+            animation: 'pulse 1.4s ease-in-out infinite',
+            background: '#1e3a5f',
+            borderRadius: '50%',
+            height: '10px',
+            width: '10px'
+        },
+        msgLoadingText: {
+            color: '#64748b',
+            fontSize: '0.875rem'
+        },
         copyBtn: (copied) => ({
             alignItems: 'center',
             background: copied ? '#dcfce7' : '#e0f2fe',
@@ -1079,11 +1101,6 @@ function PlanView() {
         setAssignments(assignments.filter((a) => a.id !== id))
     }
 
-    const getPlantName = (code) => {
-        const plant = plants.find((p) => p.plant_code === code)
-        return plant?.plant_name || code
-    }
-
     const getOperatorWarning = (assignment) => {
         if (!assignment.fromPlant || !assignment.driverCount) return null
         const available = mixerCountsByPlant[assignment.fromPlant] || 0
@@ -1133,7 +1150,7 @@ function PlanView() {
             .sort((a, b) => String(a.plantCode).localeCompare(String(b.plantCode)))
     }
 
-    const generateMessage = async () => {
+    const generateMessage = () => {
         if (assignments.length === 0) return
 
         setIsGenerating(true)
@@ -1147,134 +1164,74 @@ function PlanView() {
             return
         }
 
-        const assignmentData = validAssignments.map((a) => {
-            const travelTime = getTravelTime(a.fromPlant, a.toPlant)
-            const totalTravelTime = travelTime ? travelTime + BUFFER_MINUTES : null
-            const clockInTime = calculateClockInTime(a.time, a.fromPlant, a.toPlant)
-            const staggeredSchedule = getStaggeredSchedule(a)
+        const selectedDate = new Date(planDate + 'T00:00:00')
+        const dateStr = selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })
+        const divider = '──────────────────────────'
 
-            let individualOperatorTimes = null
-            if (a.useIndividualTimes && a.driverCount > 1 && a.operatorTimes?.length > 0) {
-                individualOperatorTimes = a.operatorTimes.map((opTime, idx) => ({
-                    arriveTime: opTime.arriveTime || '',
-                    clockInTime: opTime.arriveTime
-                        ? calculateClockInTime(opTime.arriveTime, a.fromPlant, a.toPlant)
-                        : null,
-                    leaveYardTime: opTime.arriveTime
-                        ? calculateLeaveYardTime(opTime.arriveTime, a.fromPlant, a.toPlant)
-                        : null,
-                    operatorNumber: idx + 1,
-                    returnTime: opTime.returnTime || ''
-                }))
+        let message = `Plan - ${dateStr}\n`
+
+        const hurryOffClockPlants = []
+
+        validAssignments.forEach((a, idx) => {
+            if (idx > 0) {
+                message += `\n${divider}\n`
+            }
+            message += '\n'
+
+            const operatorWord = a.driverCount === 1 ? 'operator' : 'operators'
+            const staggeredSchedule = getStaggeredSchedule(a)
+            const clockInTime = calculateClockInTime(a.time, a.fromPlant, a.toPlant)
+
+            if (a.hurryOffClock) {
+                hurryOffClockPlants.push(a.fromPlant)
             }
 
-            return {
-                clockInTime: clockInTime ? formatTime(clockInTime) : null,
-                drivers: a.driverCount,
-                from: `${a.fromPlant} (${getPlantName(a.fromPlant)})`,
-                hurryOffClock: a.hurryOffClock || false,
-                individualOperatorTimes: individualOperatorTimes,
-                returnTime: a.returnTime ? formatTime(a.returnTime) : '',
-                staggerEnabled: a.driverCount > 1 && !a.useIndividualTimes,
-                staggerMinutes: a.staggerMinutes || 10,
-                staggeredSchedule: !a.useIndividualTimes
-                    ? staggeredSchedule
-                        ? staggeredSchedule.map((s) => ({
-                              arrivalTime: formatTime(s.arrivalTime),
-                              clockInTime: formatTime(s.clockInTime),
-                              driverNumber: s.driverNumber,
-                              leaveYardTime: formatTime(s.leaveYardTime)
-                          }))
-                        : null
-                    : null,
-                time: a.time ? formatTime(a.time) : 'standard start',
-                to: `${a.toPlant} (${getPlantName(a.toPlant)})`,
-                travelMinutes: totalTravelTime,
-                useIndividualTimes: a.useIndividualTimes || false
+            if (a.useIndividualTimes && a.driverCount > 1 && a.operatorTimes?.length > 0) {
+                message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord}, custom times)\n`
+                a.operatorTimes.forEach((opTime, opIdx) => {
+                    if (opTime.arriveTime) {
+                        const opClockIn = calculateClockInTime(opTime.arriveTime, a.fromPlant, a.toPlant)
+                        const opLeaveYard = calculateLeaveYardTime(opTime.arriveTime, a.fromPlant, a.toPlant)
+                        message += `• Op ${opIdx + 1}: In ${opClockIn ? formatTime(opClockIn) : '--'} | Leave ${opLeaveYard ? formatTime(opLeaveYard) : '--'} | Arrive ${formatTime(opTime.arriveTime)}`
+                        if (opTime.returnTime) {
+                            message += ` | Return ${formatTime(opTime.returnTime)}`
+                        }
+                        message += '\n'
+                    }
+                })
+            } else if (a.driverCount > 1 && staggeredSchedule) {
+                message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord}, staggered ${a.staggerMinutes} min)\n`
+                staggeredSchedule.forEach((s) => {
+                    message += `• Op ${s.driverNumber}: In ${formatTime(s.clockInTime)} | Leave ${formatTime(s.leaveYardTime)} | Arrive ${formatTime(s.arrivalTime)}\n`
+                })
+                if (a.returnTime) {
+                    message += `• Return by: ${formatTime(a.returnTime)}\n`
+                }
+            } else {
+                message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord})\n`
+                if (clockInTime) {
+                    message += `• Clock in: ${formatTime(clockInTime)}\n`
+                }
+                if (a.time) {
+                    message += `• Arrive by: ${formatTime(a.time)}\n`
+                }
+                if (a.returnTime) {
+                    message += `• Return by: ${formatTime(a.returnTime)}\n`
+                }
             }
         })
 
-        const systemPrompt = `You are a dispatcher assistant for a concrete company. Generate a clean, professional daily operator assignment message for PLANT MANAGERS to coordinate which plants are sending/receiving help.
-
-Rules:
-- Use proper capitalization (not all caps)
-- Be concise and scannable
-- Use simple formatting that works well in text messages
-- List each assignment clearly with plant numbers
-- Show clock-in time, leave time, and arrival time on one line per operator when staggered
-- Include return times if specified
-- No bullet points or special characters - use simple dashes
-- Keep it brief - plant managers just need the essential info to coordinate
-- Do not add any closing remarks or sign-offs
-- Header must be "Plan - {Month Day}" format (e.g. "Plan - February 2")
-
-Format example for non-staggered:
-"Plan - February 2
-
-401 sending 2 to 402
-- Clock in 05:15, arrive by 06:00
-- Return by 15:00
-
-406 sending 1 to 410
-- Clock in 05:45, arrive by 07:00"
-
-Format example for staggered:
-"Plan - February 2
-
-406 sending 3 to 401 (staggered 5 min)
-- Op 1: Clock in 05:15, leave 05:30, arrive 06:00
-- Op 2: Clock in 05:20, leave 05:35, arrive 06:05
-- Op 3: Clock in 05:25, leave 05:40, arrive 06:10
-- Return by 15:00"`
-
-        const selectedDate = new Date(planDate + 'T00:00:00')
-        const dateStr = selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })
-
-        const hurryOffClockPlants = assignmentData.filter((a) => a.hurryOffClock).map((a) => a.from.split(' ')[0])
-
-        const userPrompt = `Generate an operator assignment message for:
-
-${assignmentData
-    .map((a) => {
-        let details = `${a.from.split(' ')[0]} sending ${a.drivers} to ${a.to.split(' ')[0]}`
-        if (a.useIndividualTimes && a.individualOperatorTimes) {
-            details += `\nIndividual operator schedules:`
-            a.individualOperatorTimes.forEach((op) => {
-                let opDetails = `\n  Op ${op.operatorNumber}:`
-                if (op.clockInTime) opDetails += ` Clock in ${op.clockInTime},`
-                if (op.leaveYardTime) opDetails += ` leave ${op.leaveYardTime},`
-                if (op.arriveTime) opDetails += ` arrive ${op.arriveTime}`
-                if (op.returnTime) opDetails += `, return by ${op.returnTime}`
-                details += opDetails
-            })
-        } else if (a.staggerEnabled && a.staggeredSchedule) {
-            details += `\nStaggered ${a.staggerMinutes} min apart:`
-            a.staggeredSchedule.forEach((s) => {
-                details += `\n  Op ${s.driverNumber}: Clock in ${s.clockInTime}, leave ${s.leaveYardTime}, arrive ${s.arrivalTime}`
-            })
-            if (a.returnTime) details += `\nAll return by: ${a.returnTime}`
-        } else {
-            if (a.clockInTime) details += `\nClock in: ${a.clockInTime}`
-            if (a.time && a.time !== 'standard start') details += `\nArrive by: ${a.time}`
-            if (a.returnTime) details += `\nReturn by: ${a.returnTime}`
-        }
-        return details
-    })
-    .join('\n\n')}
-
-${notes ? `Additional notes: ${notes}` : ''}
-${hurryOffClockPlants.length > 0 ? `\nIMPORTANT - Add this reminder at the END of the message: "Reminder: ${hurryOffClockPlants.join(', ')} - please remind your operators to hurry off the clock to ensure they get their 10-hour reset."` : ''}
-
-Today's date: ${dateStr}`
-
-        const result = await AIService.callAPI(systemPrompt, userPrompt, { temperature: 0.3 })
-
-        if (result?.content) {
-            setGeneratedMessage(result.content)
-        } else {
-            setGeneratedMessage('Failed to generate message. Please try again.')
+        if (notes) {
+            message += `\n${divider}\n\n`
+            message += `Notes: ${notes}\n`
         }
 
+        if (hurryOffClockPlants.length > 0) {
+            message += `\n${divider}\n\n`
+            message += `Reminder: ${hurryOffClockPlants.join(', ')} - please remind your operators to hurry off the clock to ensure they get their 10-hour reset.`
+        }
+
+        setGeneratedMessage(message.trim())
         setIsGenerating(false)
     }
 
@@ -1893,14 +1850,25 @@ Today's date: ${dateStr}`
                     <div style={styles.section}>
                         <div style={styles.sectionHeader}>
                             <span style={styles.sectionTitle}>Generated Message</span>
-                            {generatedMessage && (
+                            {generatedMessage && !isGenerating && (
                                 <button style={styles.copyBtn(copied)} onClick={copyToClipboard}>
                                     <i className={copied ? 'fas fa-check' : 'fas fa-copy'}></i>
                                     {copied ? 'Copied!' : 'Copy'}
                                 </button>
                             )}
                         </div>
-                        {generatedMessage ? (
+                        {isGenerating ? (
+                            <div style={styles.msgBox}>
+                                <div style={styles.msgLoading}>
+                                    <div style={styles.msgLoadingDots}>
+                                        <div style={{ ...styles.msgLoadingDot, animationDelay: '0s' }}></div>
+                                        <div style={{ ...styles.msgLoadingDot, animationDelay: '0.2s' }}></div>
+                                        <div style={{ ...styles.msgLoadingDot, animationDelay: '0.4s' }}></div>
+                                    </div>
+                                    <span style={styles.msgLoadingText}>Generating message...</span>
+                                </div>
+                            </div>
+                        ) : generatedMessage ? (
                             <div style={styles.msgBox}>
                                 <pre style={styles.msgText}>{generatedMessage}</pre>
                             </div>
