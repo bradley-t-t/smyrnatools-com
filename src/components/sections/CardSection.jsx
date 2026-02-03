@@ -1,5 +1,51 @@
 import React from 'react'
 
+const cardStyles = `
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .detail-value {
+        color: #1e293b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-align: right;
+    }
+    .detail-value.overdue {
+        color: #dc2626;
+        font-weight: 700;
+    }
+    .stars-container {
+        display: inline-flex;
+        gap: 2px;
+    }
+    .stars-container .filled-star {
+        color: #facc15;
+    }
+    .stars-container .empty-star {
+        color: #e5e7eb;
+    }
+    .in-yard-badge {
+        background-color: #fef2f2;
+        border-radius: 6px;
+        color: #991b1b;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 8px;
+    }
+`
+
 function CardSection({
     item,
     itemType,
@@ -103,61 +149,64 @@ function CardSection({
     }
 
     return (
-        <div
-            style={styles.card}
-            {...cardProps}
-            onMouseEnter={(e) => {
-                if (onSelect) {
-                    e.currentTarget.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.15)'
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                }
-            }}
-            onMouseLeave={(e) => {
-                if (onSelect) {
-                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                }
-            }}
-            onMouseDown={(e) => {
-                if (onSelect) {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                }
-            }}
-        >
-            <div style={styles.statusBar} />
+        <>
+            <style>{cardStyles}</style>
+            <div
+                style={styles.card}
+                {...cardProps}
+                onMouseEnter={(e) => {
+                    if (onSelect) {
+                        e.currentTarget.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.15)'
+                        e.currentTarget.style.transform = 'translateY(-2px)'
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (onSelect) {
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                    }
+                }}
+                onMouseDown={(e) => {
+                    if (onSelect) {
+                        e.currentTarget.style.transform = 'translateY(0)'
+                    }
+                }}
+            >
+                <div style={styles.statusBar} />
 
-            {isVerified !== undefined && (
-                <div
-                    style={styles.verificationFlag(isVerified)}
-                    title={isVerified ? 'Verified' : verificationTooltip || 'Not verified'}
-                >
-                    <i
-                        className={`fas ${isVerified ? 'fa-check-circle' : 'fa-flag'}`}
-                        style={{ color: isVerified ? '#16a34a' : '#dc2626' }}
-                    ></i>
+                {isVerified !== undefined && (
+                    <div
+                        style={styles.verificationFlag(isVerified)}
+                        title={isVerified ? 'Verified' : verificationTooltip || 'Not verified'}
+                    >
+                        <i
+                            className={`fas ${isVerified ? 'fa-check-circle' : 'fa-flag'}`}
+                            style={{ color: isVerified ? '#16a34a' : '#dc2626' }}
+                        ></i>
+                    </div>
+                )}
+
+                <div style={styles.cardContent}>
+                    <div style={styles.cardHeader}>
+                        <h3 style={styles.itemName}>
+                            {itemType} #{itemNumber || 'Not Assigned'}
+                        </h3>
+                        {subtitle && (
+                            <div style={styles.itemSubtitle}>
+                                {subtitle}
+                                {subtitleWarning && (
+                                    <span style={styles.warningBadge} title={subtitleWarning}>
+                                        <i className="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={styles.cardDetails}>{children}</div>
                 </div>
-            )}
-
-            <div style={styles.cardContent}>
-                <div style={styles.cardHeader}>
-                    <h3 style={styles.itemName}>
-                        {itemType} #{itemNumber || 'Not Assigned'}
-                    </h3>
-                    {subtitle && (
-                        <div style={styles.itemSubtitle}>
-                            {subtitle}
-                            {subtitleWarning && (
-                                <span style={styles.warningBadge} title={subtitleWarning}>
-                                    <i className="fas fa-exclamation-triangle"></i>
-                                </span>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div style={styles.cardDetails}>{children}</div>
             </div>
-        </div>
+        </>
     )
 }
 

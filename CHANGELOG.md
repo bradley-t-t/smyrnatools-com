@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [4.8] - 2026-02-03
+
+- Added new CSS styles in `CardSection.jsx` for detailed row layouts with classes like `detail-row`, `detail-label`, and `detail-value`
+- Introduced styling for overdue values with a distinct color and weight in `CardSection.jsx`
+- Added styles for a star rating system with `stars-container`, `filled-star`, and `empty-star` classes in `CardSection.jsx`
+- Implemented styling for an "in-yard" badge with specific colors and formatting in `CardSection.jsx`
+- Moved inline styles to a separate `cardStyles` string and injected them using a `<style>` tag in `CardSection.jsx`
+- Wrapped the main `div` content of `CardSection.jsx` in a React fragment (`<>...</>`) to include the style tag
+
 ## [4.7] - 2026-02-03
 
 - Updated status display in `MixerCard.jsx` to show "Down In Yard" instead of a separate badge when a mixer is in shop and down in the yard.
