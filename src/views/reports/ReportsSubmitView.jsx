@@ -1058,55 +1058,57 @@ function ReportsSubmitView({
                         </div>
                     )}
                 </div>
-                {plants.length > 0 && Object.keys(mixerCountsByPlant).length > 0 && (
-                    <div
-                        style={{
-                            background: 'white',
-                            borderBottom: '1px solid #e5e7eb',
-                            padding: '0.75rem 1.5rem'
-                        }}
-                    >
+                {plants.length > 0 &&
+                    Object.keys(mixerCountsByPlant).length > 0 &&
+                    report.name !== 'general_manager' && (
                         <div
                             style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '0.5rem'
+                                background: 'white',
+                                borderBottom: '1px solid #e5e7eb',
+                                padding: '0.75rem 1.5rem'
                             }}
                         >
-                            <span
+                            <div
                                 style={{
-                                    color: '#64748b',
-                                    fontSize: '0.8125rem',
-                                    fontWeight: 600,
-                                    marginRight: '0.5rem'
+                                    alignItems: 'center',
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: '0.5rem'
                                 }}
                             >
-                                <i className="fas fa-truck" style={{ marginRight: '0.375rem' }}></i>
-                                Active Mixers:
-                            </span>
-                            {plants.map((p) => (
                                 <span
-                                    key={p.plant_code}
                                     style={{
-                                        alignItems: 'center',
-                                        background: '#f1f5f9',
-                                        borderRadius: '6px',
-                                        color: '#1e293b',
-                                        display: 'inline-flex',
+                                        color: '#64748b',
                                         fontSize: '0.8125rem',
-                                        fontWeight: 500,
-                                        gap: '0.375rem',
-                                        padding: '0.375rem 0.625rem'
+                                        fontWeight: 600,
+                                        marginRight: '0.5rem'
                                     }}
                                 >
-                                    <span style={{ color: '#64748b' }}>{p.plant_code}:</span>
-                                    <span style={{ fontWeight: 600 }}>{mixerCountsByPlant[p.plant_code] || 0}</span>
+                                    <i className="fas fa-truck" style={{ marginRight: '0.375rem' }}></i>
+                                    Active Mixers:
                                 </span>
-                            ))}
+                                {plants.map((p) => (
+                                    <span
+                                        key={p.plant_code}
+                                        style={{
+                                            alignItems: 'center',
+                                            background: '#f1f5f9',
+                                            borderRadius: '6px',
+                                            color: '#1e293b',
+                                            display: 'inline-flex',
+                                            fontSize: '0.8125rem',
+                                            fontWeight: 500,
+                                            gap: '0.375rem',
+                                            padding: '0.375rem 0.625rem'
+                                        }}
+                                    >
+                                        <span style={{ color: '#64748b' }}>{p.plant_code}:</span>
+                                        <span style={{ fontWeight: 600 }}>{mixerCountsByPlant[p.plant_code] || 0}</span>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
                 {exportError && <div style={styles.error}>{exportError}</div>}
                 <form style={styles.content} onSubmit={handleSubmit}>
                     {report.name !== 'district_manager' &&

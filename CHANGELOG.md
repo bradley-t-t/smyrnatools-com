@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [4.4] - 2026-02-03
+
+- Added conditional rendering to hide the Active Mixers section in ReportsSubmitView.jsx for the 'general_manager' report type.
+- Restructured the DOM hierarchy in ReportsSubmitView.jsx by wrapping the Active Mixers content in an additional div element for better styling or layout control.
+
 ## [4.3] - 2026-02-03
 
 - Removed support for `generatedMessage` parameter in `saveUserPlan` function in `src/services/PlanService.js`
