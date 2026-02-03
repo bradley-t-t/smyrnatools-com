@@ -277,6 +277,26 @@ class ReportServiceImpl {
         }
     }
 
+    async fetchActiveMixerCountsByPlant(plantCodes = []) {
+        if (!plantCodes || plantCodes.length === 0) return {}
+        const { data, error } = await supabase
+            .from('mixers')
+            .select('assigned_plant')
+            .eq('status', 'Active')
+            .in('assigned_plant', plantCodes)
+        if (error || !Array.isArray(data)) return {}
+        const counts = {}
+        plantCodes.forEach((code) => {
+            counts[code] = 0
+        })
+        data.forEach((m) => {
+            if (m.assigned_plant && counts[m.assigned_plant] !== undefined) {
+                counts[m.assigned_plant]++
+            }
+        })
+        return counts
+    }
+
     async fetchPlantsSorted() {
         const cacheKey = 'plants:all'
         const cached = CacheUtility.get(cacheKey)

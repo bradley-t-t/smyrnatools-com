@@ -28,6 +28,7 @@ import MixersView from '../views/mixers/MixersView'
 import MyAccountView from '../views/myaccount/MyAccountView'
 import OperatorsView from '../views/operators/OperatorsView'
 import PickupTrucksView from '../views/pickup-trucks/PickupTrucksView'
+import PlanView from '../views/plan/PlanView'
 import PlantsView from '../views/plants/PlantsView'
 import RegionsView from '../views/regions/RegionsView'
 import ReportsView from '../views/reports/ReportsView'
@@ -495,6 +496,8 @@ function AppContent() {
                 const effectiveUserId = userId || sessionStorage.getItem('userId')
                 return effectiveUserId ? <MyAccountView userId={effectiveUserId} /> : <LoginView />
             }
+            case 'Plan':
+                return <PlanView title="My Plan" />
             default:
                 return (
                     <div className="coming-soon">
