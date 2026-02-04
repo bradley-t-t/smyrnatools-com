@@ -448,8 +448,28 @@ class AIInsightsServiceClass {
             parts.push(`New Hires Coming: ${plantData.pendingOperators.length} pending start`)
         if (plantData.trainingOperators?.length > 0)
             parts.push(`In Training: ${plantData.trainingOperators.length} operators`)
-        if (plantData.assetsWithMostIssues?.length > 0)
+
+        if (plantData.issueSummary) {
+            const { openIssues, resolvedIssues } = plantData.issueSummary
+            parts.push(`Issue Summary: ${openIssues} open issues, ${resolvedIssues} resolved issues`)
+            if (openIssues > 0 && plantData.assetsWithMostIssues?.length > 0) {
+                parts.push(
+                    `Assets with Most Open Issues: ${plantData.assetsWithMostIssues.length} assets need attention`
+                )
+                plantData.assetsWithMostIssues
+                    .slice(0, 3)
+                    .forEach((a) =>
+                        parts.push(
+                            `  - ${a.type} ${a.identifier}: ${a.openIssueCount} open, ${a.resolvedIssueCount} resolved`
+                        )
+                    )
+            }
+            if (resolvedIssues > 0 && openIssues === 0) {
+                parts.push(`All issues resolved - excellent maintenance responsiveness!`)
+            }
+        } else if (plantData.assetsWithMostIssues?.length > 0) {
             parts.push(`Open Issues: ${plantData.assetsWithMostIssues.length} assets have unresolved issues`)
+        }
 
         if (plantData.longTermShopAssets?.length > 0) {
             parts.push(

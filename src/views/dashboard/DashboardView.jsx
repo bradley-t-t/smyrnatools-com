@@ -72,6 +72,8 @@ export default function DashboardView() {
         overdueService: [],
         pendingOperators: [],
         shopIssue: null,
+        totalOpenIssues: 0,
+        totalResolvedIssues: 0,
         trainingOperators: [],
         unassignedOperators: [],
         unverifiedMixers: []
@@ -655,41 +657,25 @@ export default function DashboardView() {
             if (!mixerIds.length && !tractorIds.length && !trailerIds.length && !equipmentIds.length) return
             const [mMaint, mCom, tMaint, tCom, trMaint, trCom, eMaint, eCom] = await Promise.all([
                 mixerIds.length
-                    ? supabase
-                          .from('mixers_maintenance')
-                          .select('*')
-                          .in('mixer_id', mixerIds)
-                          .is('time_completed', null)
+                    ? supabase.from('mixers_maintenance').select('*').in('mixer_id', mixerIds)
                     : Promise.resolve({ data: [] }),
                 mixerIds.length
                     ? supabase.from('mixers_comments').select('id,mixer_id').in('mixer_id', mixerIds)
                     : Promise.resolve({ data: [] }),
                 tractorIds.length
-                    ? supabase
-                          .from('tractors_maintenance')
-                          .select('*')
-                          .in('tractor_id', tractorIds)
-                          .is('time_completed', null)
+                    ? supabase.from('tractors_maintenance').select('*').in('tractor_id', tractorIds)
                     : Promise.resolve({ data: [] }),
                 tractorIds.length
                     ? supabase.from('tractors_comments').select('id,tractor_id').in('tractor_id', tractorIds)
                     : Promise.resolve({ data: [] }),
                 trailerIds.length
-                    ? supabase
-                          .from('trailers_maintenance')
-                          .select('*')
-                          .in('trailer_id', trailerIds)
-                          .is('time_completed', null)
+                    ? supabase.from('trailers_maintenance').select('*').in('trailer_id', trailerIds)
                     : Promise.resolve({ data: [] }),
                 trailerIds.length
                     ? supabase.from('trailers_comments').select('id,trailer_id').in('trailer_id', trailerIds)
                     : Promise.resolve({ data: [] }),
                 equipmentIds.length
-                    ? supabase
-                          .from('heavy_equipment_maintenance')
-                          .select('*')
-                          .in('equipment_id', equipmentIds)
-                          .is('time_completed', null)
+                    ? supabase.from('heavy_equipment_maintenance').select('*').in('equipment_id', equipmentIds)
                     : Promise.resolve({ data: [] }),
                 equipmentIds.length
                     ? supabase
@@ -705,8 +691,11 @@ export default function DashboardView() {
             const trailersMap = new Map(allTrailersRef.current.map((a) => [a.id, a]))
             const equipmentMap = new Map(allEquipmentRef.current.map((a) => [a.id, a]))
             ;(mMaint.data || []).forEach((r) => {
-                counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || { comments: 0, issues: 0 }
-                counts.mixers[r.mixer_id].issues++
+                const isResolved = !!r.time_completed
+                if (!isResolved) {
+                    counts.mixers[r.mixer_id] = counts.mixers[r.mixer_id] || { comments: 0, issues: 0 }
+                    counts.mixers[r.mixer_id].issues++
+                }
                 const a = mixersMap.get(r.mixer_id)
                 const ident = a?.truckNumber || a?.vin || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
@@ -716,6 +705,7 @@ export default function DashboardView() {
                     description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
+                    resolved: isResolved,
                     type: 'Mixer'
                 })
             })
@@ -726,8 +716,11 @@ export default function DashboardView() {
             })
             const tMaintData = tMaint.data || []
             tMaintData.forEach((r) => {
-                counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || { comments: 0, issues: 0 }
-                counts.tractors[r.tractor_id].issues++
+                const isResolved = !!r.time_completed
+                if (!isResolved) {
+                    counts.tractors[r.tractor_id] = counts.tractors[r.tractor_id] || { comments: 0, issues: 0 }
+                    counts.tractors[r.tractor_id].issues++
+                }
                 const a = tractorsMap.get(r.tractor_id)
                 const ident = a?.truckNumber || a?.vin || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
@@ -737,6 +730,7 @@ export default function DashboardView() {
                     description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
+                    resolved: isResolved,
                     type: 'Tractor'
                 })
             })
@@ -747,8 +741,11 @@ export default function DashboardView() {
             })
             const trMaintData = trMaint.data || []
             trMaintData.forEach((r) => {
-                counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || { comments: 0, issues: 0 }
-                counts.trailers[r.trailer_id].issues++
+                const isResolved = !!r.time_completed
+                if (!isResolved) {
+                    counts.trailers[r.trailer_id] = counts.trailers[r.trailer_id] || { comments: 0, issues: 0 }
+                    counts.trailers[r.trailer_id].issues++
+                }
                 const a = trailersMap.get(r.trailer_id)
                 const ident = a?.identifyingNumber || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
@@ -758,6 +755,7 @@ export default function DashboardView() {
                     description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
+                    resolved: isResolved,
                     type: 'Trailer'
                 })
             })
@@ -768,8 +766,11 @@ export default function DashboardView() {
             })
             const eMaintData = eMaint.data || []
             eMaintData.forEach((r) => {
-                counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || { comments: 0, issues: 0 }
-                counts.equipment[r.equipment_id].issues++
+                const isResolved = !!r.time_completed
+                if (!isResolved) {
+                    counts.equipment[r.equipment_id] = counts.equipment[r.equipment_id] || { comments: 0, issues: 0 }
+                    counts.equipment[r.equipment_id].issues++
+                }
                 const a = equipmentMap.get(r.equipment_id)
                 const ident = a?.identifyingNumber || ''
                 const raw = r.description || r.issue || r.details || r.notes || r.note || r.text || r.comment || ''
@@ -779,6 +780,7 @@ export default function DashboardView() {
                     description: desc || 'Issue',
                     identifier: ident,
                     plant: a?.plantCode || '',
+                    resolved: isResolved,
                     type: 'Equipment'
                 })
             })
@@ -1140,13 +1142,21 @@ export default function DashboardView() {
             })
             .reduce((acc, issue) => {
                 const key = `${issue.type}-${issue.assetId}`
-                if (!acc[key]) acc[key] = { ...issue, issueCount: 0 }
-                acc[key].issueCount++
+                if (!acc[key]) acc[key] = { ...issue, openIssueCount: 0, resolvedIssueCount: 0 }
+                if (issue.resolved) {
+                    acc[key].resolvedIssueCount++
+                } else {
+                    acc[key].openIssueCount++
+                }
                 return acc
             }, {})
         const topIssueAssets = Object.values(assetsWithIssues)
-            .sort((a, b) => b.issueCount - a.issueCount)
+            .filter((a) => a.openIssueCount > 0)
+            .sort((a, b) => b.openIssueCount - a.openIssueCount)
             .slice(0, 5)
+
+        const totalOpenIssues = assetIssueDetails.filter((a) => !a.resolved && consider(a.plant)).length
+        const totalResolvedIssues = assetIssueDetails.filter((a) => a.resolved && consider(a.plant)).length
 
         const overdueAssets = [
             ...allMixersRef.current
@@ -1268,6 +1278,8 @@ export default function DashboardView() {
             overdueService: overdueAssets,
             pendingOperators: pendingOps,
             shopIssue,
+            totalOpenIssues,
+            totalResolvedIssues,
             trainingOperators: trainingOps,
             unassignedOperators: unassignedOps,
             unverifiedMixers
@@ -1556,6 +1568,10 @@ export default function DashboardView() {
                         breakdown: cleanlinessBreakdown,
                         totalActiveMixers: activeMixers.length
                     },
+                    issueSummary: {
+                        openIssues: plantNotifications.totalOpenIssues,
+                        resolvedIssues: plantNotifications.totalResolvedIssues
+                    },
                     leaderboardMetrics: plantNotifications.leaderboardMetrics,
                     longTermShopAssets: plantNotifications.longTermShopAssets,
                     overdueService: plantNotifications.overdueService,
@@ -1620,6 +1636,8 @@ export default function DashboardView() {
     }, [
         dashboardPlant,
         plantNotifications.leaderboardMetrics,
+        plantNotifications.totalOpenIssues,
+        plantNotifications.totalResolvedIssues,
         getAISummaryFromCache,
         setAISummaryToCache,
         forceRegenerateAI
@@ -2722,7 +2740,7 @@ export default function DashboardView() {
                                                                     }}
                                                                     className="text-xs font-medium text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200 hover:bg-orange-100 hover:border-orange-300 transition-colors cursor-pointer"
                                                                 >
-                                                                    {a.type} {a.identifier || ''} ({a.issueCount})
+                                                                    {a.type} {a.identifier || ''} ({a.openIssueCount})
                                                                 </button>
                                                             ))}
                                                         {plantNotifications.assetsWithMostIssues.length > 4 && (

@@ -16,11 +16,14 @@ function PlanView() {
             fromPlant: '',
             hurryOffClock: false,
             id: Date.now(),
+            jobName: '',
+            loadingForPlant: false,
             operatorTimes: [],
             returnTime: '',
             staggerMinutes: 10,
             time: '',
             toPlant: '',
+            turnToPlant: '',
             useIndividualTimes: false
         },
         {
@@ -28,11 +31,14 @@ function PlanView() {
             fromPlant: '',
             hurryOffClock: false,
             id: Date.now() + 1,
+            jobName: '',
+            loadingForPlant: false,
             operatorTimes: [],
             returnTime: '',
             staggerMinutes: 10,
             time: '',
             toPlant: '',
+            turnToPlant: '',
             useIndividualTimes: false
         }
     ])
@@ -1049,11 +1055,14 @@ function PlanView() {
                 fromPlant: '',
                 hurryOffClock: false,
                 id: Date.now(),
+                jobName: '',
+                loadingForPlant: false,
                 operatorTimes: [],
                 returnTime: '',
                 staggerMinutes: 10,
                 time: '',
                 toPlant: '',
+                turnToPlant: '',
                 useIndividualTimes: false
             }
         ])
@@ -1205,7 +1214,7 @@ function PlanView() {
 
         const selectedDate = new Date(planDate + 'T00:00:00')
         const dateStr = selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })
-        const divider = '──────────────────────────'
+        const divider = '─────────────'
 
         let message = `Plan - ${dateStr}\n`
 
@@ -1226,36 +1235,86 @@ function PlanView() {
             }
 
             if (a.useIndividualTimes && a.driverCount > 1 && a.operatorTimes?.length > 0) {
-                message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord}, custom times)\n`
-                a.operatorTimes.forEach((opTime, opIdx) => {
-                    if (opTime.arriveTime) {
-                        const opClockIn = calculateClockInTime(opTime.arriveTime, a.fromPlant, a.toPlant)
-                        const opLeaveYard = calculateLeaveYardTime(opTime.arriveTime, a.fromPlant, a.toPlant)
-                        message += `• Op ${opIdx + 1}: In ${opClockIn ? formatTime(opClockIn) : '--'} | Leave ${opLeaveYard ? formatTime(opLeaveYard) : '--'} | Arrive ${formatTime(opTime.arriveTime)}`
-                        if (opTime.returnTime) {
-                            message += ` | Return ${formatTime(opTime.returnTime)}`
-                        }
-                        message += '\n'
+                if (a.loadingForPlant) {
+                    message += `${a.fromPlant} - Loading for ${a.toPlant}  (${a.driverCount} ${operatorWord}, custom times)\n`
+                    if (a.jobName) {
+                        message += `• Job: ${a.jobName}\n`
                     }
-                })
+                    a.operatorTimes.forEach((opTime, opIdx) => {
+                        if (opTime.arriveTime) {
+                            message += `• Op ${opIdx + 1}: Load ${formatTime(opTime.arriveTime)}\n`
+                        }
+                    })
+                    if (a.turnToPlant) {
+                        message += `• After pouring, turn to ${a.turnToPlant}\n`
+                    }
+                    if (a.returnTime) {
+                        message += `• Return by: ${formatTime(a.returnTime)}\n`
+                    }
+                } else {
+                    message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord}, custom times)\n`
+                    a.operatorTimes.forEach((opTime, opIdx) => {
+                        if (opTime.arriveTime) {
+                            const opClockIn = calculateClockInTime(opTime.arriveTime, a.fromPlant, a.toPlant)
+                            const opLeaveYard = calculateLeaveYardTime(opTime.arriveTime, a.fromPlant, a.toPlant)
+                            message += `• Op ${opIdx + 1}: In ${opClockIn ? formatTime(opClockIn) : '--'} | Leave ${opLeaveYard ? formatTime(opLeaveYard) : '--'} | Arrive ${formatTime(opTime.arriveTime)}`
+                            if (opTime.returnTime) {
+                                message += ` | Return ${formatTime(opTime.returnTime)}`
+                            }
+                            message += '\n'
+                        }
+                    })
+                }
             } else if (a.driverCount > 1 && staggeredSchedule) {
-                message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord}, staggered ${a.staggerMinutes} min)\n`
-                staggeredSchedule.forEach((s) => {
-                    message += `• Op ${s.driverNumber}: In ${formatTime(s.clockInTime)} | Leave ${formatTime(s.leaveYardTime)} | Arrive ${formatTime(s.arrivalTime)}\n`
-                })
-                if (a.returnTime) {
-                    message += `• Return by: ${formatTime(a.returnTime)}\n`
+                if (a.loadingForPlant) {
+                    message += `${a.fromPlant} - Loading for ${a.toPlant}  (${a.driverCount} ${operatorWord}, staggered ${a.staggerMinutes} min)\n`
+                    if (a.jobName) {
+                        message += `• Job: ${a.jobName}\n`
+                    }
+                    staggeredSchedule.forEach((s) => {
+                        message += `• Op ${s.driverNumber}: Load ${formatTime(s.arrivalTime)}\n`
+                    })
+                    if (a.turnToPlant) {
+                        message += `• After pouring, turn to ${a.turnToPlant}\n`
+                    }
+                    if (a.returnTime) {
+                        message += `• Return by: ${formatTime(a.returnTime)}\n`
+                    }
+                } else {
+                    message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord}, staggered ${a.staggerMinutes} min)\n`
+                    staggeredSchedule.forEach((s) => {
+                        message += `• Op ${s.driverNumber}: In ${formatTime(s.clockInTime)} | Leave ${formatTime(s.leaveYardTime)} | Arrive ${formatTime(s.arrivalTime)}\n`
+                    })
+                    if (a.returnTime) {
+                        message += `• Return by: ${formatTime(a.returnTime)}\n`
+                    }
                 }
             } else {
-                message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord})\n`
-                if (clockInTime) {
-                    message += `• Clock in: ${formatTime(clockInTime)}\n`
-                }
-                if (a.time) {
-                    message += `• Arrive by: ${formatTime(a.time)}\n`
-                }
-                if (a.returnTime) {
-                    message += `• Return by: ${formatTime(a.returnTime)}\n`
+                if (a.loadingForPlant) {
+                    message += `${a.fromPlant} - Loading for ${a.toPlant}  (${a.driverCount} ${operatorWord})\n`
+                    if (a.jobName) {
+                        message += `• Job: ${a.jobName}\n`
+                    }
+                    if (a.time) {
+                        message += `• Load time: ${formatTime(a.time)}\n`
+                    }
+                    if (a.turnToPlant) {
+                        message += `• After pouring, turn to ${a.turnToPlant}\n`
+                    }
+                    if (a.returnTime) {
+                        message += `• Return by: ${formatTime(a.returnTime)}\n`
+                    }
+                } else {
+                    message += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${operatorWord})\n`
+                    if (clockInTime) {
+                        message += `• Clock in: ${formatTime(clockInTime)}\n`
+                    }
+                    if (a.time) {
+                        message += `• Arrive by: ${formatTime(a.time)}\n`
+                    }
+                    if (a.returnTime) {
+                        message += `• Return by: ${formatTime(a.returnTime)}\n`
+                    }
                 }
             }
         })
@@ -1297,11 +1356,14 @@ function PlanView() {
                 fromPlant: '',
                 hurryOffClock: false,
                 id: Date.now(),
+                jobName: '',
+                loadingForPlant: false,
                 operatorTimes: [],
                 returnTime: '',
                 staggerMinutes: 10,
                 time: '',
                 toPlant: '',
+                turnToPlant: '',
                 useIndividualTimes: false
             },
             {
@@ -1309,11 +1371,14 @@ function PlanView() {
                 fromPlant: '',
                 hurryOffClock: false,
                 id: Date.now() + 1,
+                jobName: '',
+                loadingForPlant: false,
                 operatorTimes: [],
                 returnTime: '',
                 staggerMinutes: 10,
                 time: '',
                 toPlant: '',
+                turnToPlant: '',
                 useIndividualTimes: false
             }
         ])
@@ -1675,7 +1740,9 @@ function PlanView() {
                                                 />
                                             </div>
                                             <div style={styles.field}>
-                                                <label style={styles.fieldLabel}>Arrive By</label>
+                                                <label style={styles.fieldLabel}>
+                                                    {assignment.loadingForPlant ? 'Load Time' : 'Arrive By'}
+                                                </label>
                                                 <input
                                                     type="text"
                                                     placeholder="HH:MM"
@@ -1719,6 +1786,73 @@ function PlanView() {
                                                 />
                                             </div>
                                         </div>
+                                        <div style={styles.checkboxRow}>
+                                            <label style={styles.checkboxLabel}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={assignment.loadingForPlant || false}
+                                                    onChange={(e) =>
+                                                        updateAssignment(
+                                                            assignment.id,
+                                                            'loadingForPlant',
+                                                            e.target.checked
+                                                        )
+                                                    }
+                                                    style={styles.checkbox}
+                                                />
+                                                <span>Loading for Plant</span>
+                                            </label>
+                                        </div>
+                                        {assignment.loadingForPlant && (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: isMobile ? 'column' : 'row',
+                                                    gap: '1rem',
+                                                    marginTop: '0.75rem'
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        ...styles.field,
+                                                        flex: 1,
+                                                        maxWidth: isMobile ? '100%' : '250px'
+                                                    }}
+                                                >
+                                                    <label style={styles.fieldLabel}>Job Name</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Enter job name..."
+                                                        style={styles.fieldInput}
+                                                        value={assignment.jobName || ''}
+                                                        onChange={(e) =>
+                                                            updateAssignment(assignment.id, 'jobName', e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                                <div style={{ ...styles.field, maxWidth: isMobile ? '100%' : '200px' }}>
+                                                    <label style={styles.fieldLabel}>Turn to Plant After Pouring</label>
+                                                    <select
+                                                        style={styles.fieldSelect}
+                                                        value={assignment.turnToPlant || ''}
+                                                        onChange={(e) =>
+                                                            updateAssignment(
+                                                                assignment.id,
+                                                                'turnToPlant',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    >
+                                                        <option value="">Select...</option>
+                                                        {plants.map((p) => (
+                                                            <option key={p.plant_code} value={p.plant_code}>
+                                                                {p.plant_code}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
                                         {getOperatorWarning(assignment) && (
                                             <div style={styles.warning}>
                                                 <i className="fas fa-exclamation-triangle"></i>

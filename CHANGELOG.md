@@ -2,6 +2,20 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [5.3] - 2026-02-04
+
+- Updated `CommentModalSection.jsx` to improve comment display and interaction:
+  - Added relative time formatting for comment timestamps (e.g., "Just now", "5m ago").
+  - Introduced avatar initials and gradient backgrounds for comment authors.
+  - Simplified backdrop click handling to close the modal.
+  - Optimized error handling for comment operations by removing explicit error parameters.
+  - Enhanced UI with updated styles for comments, avatars, and modal layout (styles truncated in diff).
+- Enhanced `IssueModalSection.jsx` with significant updates (exact changes not fully visible in truncated diff, but file shows substantial modifications).
+- Modified `AIService.js` with minor updates or fixes (specific changes not fully visible in diff stats).
+- Improved `DashboardView.jsx` with updates to dashboard functionality or UI (specific changes not fully visible in diff stats).
+- Updated `PlanView.jsx` with enhancements to planning features or layout (specific changes not fully visible in diff stats).
+- Removed or modified content in `ReportsSubmitView.jsx` (specific changes not fully visible, but deletions noted in diff stats).
+
 ## [5.2] - 2026-02-03
 
 - Added Vercel Analytics integration with `@vercel/analytics` package in `package.json` and `package-lock.json`, and included the `<Analytics />` component in `src/app/App.js`.
