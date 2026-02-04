@@ -605,7 +605,36 @@ function MixersView({
                 }
                 const prop = sortMappings[sortKey]
                 let aVal, bVal
-                if (sortKey === 'Verified') {
+                if (sortKey === 'Status') {
+                    const getStatusOrder = (item) => {
+                        if (item.status === 'Active') return 1
+                        if (item.status === 'Spare') return 2
+                        if (item.status === 'In Shop' && !item.downInYard) return 3
+                        if (item.status === 'In Shop' && item.downInYard) return 4
+                        if (item.status === 'Retired') return 5
+                        return 6
+                    }
+                    const aOrder = getStatusOrder(a)
+                    const bOrder = getStatusOrder(b)
+                    if (aOrder !== bOrder) {
+                        return sortDirection === 'asc' ? aOrder - bOrder : bOrder - aOrder
+                    }
+                    if (
+                        (a.status === 'In Shop' || a.status === 'Spare') &&
+                        (b.status === 'In Shop' || b.status === 'Spare')
+                    ) {
+                        const aDays = a.statusChangedAt
+                            ? Math.floor((Date.now() - new Date(a.statusChangedAt).getTime()) / 86400000)
+                            : 0
+                        const bDays = b.statusChangedAt
+                            ? Math.floor((Date.now() - new Date(b.statusChangedAt).getTime()) / 86400000)
+                            : 0
+                        if (aDays !== bDays) {
+                            return sortDirection === 'asc' ? aDays - bDays : bDays - aDays
+                        }
+                    }
+                    return 0
+                } else if (sortKey === 'Verified') {
                     aVal = a.status === 'Retired' ? 0 : a.isVerified() ? 2 : 1
                     bVal = b.status === 'Retired' ? 0 : b.isVerified() ? 2 : 1
                 } else if (sortKey === 'Operator') {
