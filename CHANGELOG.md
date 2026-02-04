@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [5.4] - 2026-02-04
+
+- Added `@vercel/speed-insights` package version 1.3.1 to project dependencies in `package.json` and `package-lock.json`
+- Integrated Vercel Speed Insights by importing and rendering the `SpeedInsights` component from `@vercel/speed-insights/react` in `src/app/App.js`
+
 ## [5.3] - 2026-02-04
 
 - Updated `CommentModalSection.jsx` to improve comment display and interaction:
