@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [5.8] - 2026-02-05
+
+- Added `showReturnTime` state property to control visibility of the return time field in `PlanView.jsx`.
+- Modified assignment loading in `fetchUserPlan` to include `showReturnTime` based on existing `returnTime` or explicitly set value.
+- Updated UI to conditionally display a button to add a return time when `showReturnTime` is false, and show the return time input field when `showReturnTime` is true.
+- Added functionality to toggle `showReturnTime` for an assignment via a button click in `PlanView.jsx`.
+
 ## [5.7] - 2026-02-05
 
 - Added functionality to fetch comment counts for various asset types in services:

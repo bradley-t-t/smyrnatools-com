@@ -20,6 +20,7 @@ function PlanView() {
             loadingForPlant: false,
             operatorTimes: [],
             returnTime: '',
+            showReturnTime: false,
             staggerMinutes: 10,
             time: '',
             toPlant: '',
@@ -35,6 +36,7 @@ function PlanView() {
             loadingForPlant: false,
             operatorTimes: [],
             returnTime: '',
+            showReturnTime: false,
             staggerMinutes: 10,
             time: '',
             toPlant: '',
@@ -904,7 +906,11 @@ function PlanView() {
                 const plan = await PlanService.fetchUserPlan(userId, planDate)
                 if (plan) {
                     if (plan.assignments && Array.isArray(plan.assignments) && plan.assignments.length > 0) {
-                        setAssignments(plan.assignments)
+                        const loadedAssignments = plan.assignments.map((a) => ({
+                            ...a,
+                            showReturnTime: a.showReturnTime || !!a.returnTime
+                        }))
+                        setAssignments(loadedAssignments)
                     }
                     if (plan.notes) setNotes(plan.notes)
                 }
@@ -1059,6 +1065,7 @@ function PlanView() {
                 loadingForPlant: false,
                 operatorTimes: [],
                 returnTime: '',
+                showReturnTime: false,
                 staggerMinutes: 10,
                 time: '',
                 toPlant: '',
@@ -1360,6 +1367,7 @@ function PlanView() {
                 loadingForPlant: false,
                 operatorTimes: [],
                 returnTime: '',
+                showReturnTime: false,
                 staggerMinutes: 10,
                 time: '',
                 toPlant: '',
@@ -1375,6 +1383,7 @@ function PlanView() {
                 loadingForPlant: false,
                 operatorTimes: [],
                 returnTime: '',
+                showReturnTime: false,
                 staggerMinutes: 10,
                 time: '',
                 toPlant: '',
@@ -1763,28 +1772,108 @@ function PlanView() {
                                                     }}
                                                 />
                                             </div>
-                                            <div style={styles.field}>
-                                                <label style={styles.fieldLabel}>Return By</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="HH:MM"
-                                                    style={styles.fieldInput}
-                                                    value={assignment.returnTime}
-                                                    onChange={(e) => {
-                                                        let val = e.target.value.replace(/[^\d:]/g, '')
-                                                        if (
-                                                            val.length === 2 &&
-                                                            !val.includes(':') &&
-                                                            e.target.value.length > assignment.returnTime.length
-                                                        ) {
-                                                            val = val + ':'
-                                                        }
-                                                        if (val.length <= 5) {
-                                                            updateAssignment(assignment.id, 'returnTime', val)
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
+                                            {assignment.fromPlant && assignment.time && (
+                                                <>
+                                                    {!assignment.showReturnTime ? (
+                                                        <div
+                                                            style={{
+                                                                ...styles.field,
+                                                                alignItems: 'center',
+                                                                display: 'flex'
+                                                            }}
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    updateAssignment(
+                                                                        assignment.id,
+                                                                        'showReturnTime',
+                                                                        true
+                                                                    )
+                                                                }
+                                                                style={{
+                                                                    alignItems: 'center',
+                                                                    background: '#f1f5f9',
+                                                                    border: '1px dashed #cbd5e1',
+                                                                    borderRadius: '6px',
+                                                                    color: '#64748b',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    fontSize: '13px',
+                                                                    gap: '6px',
+                                                                    marginTop: '20px',
+                                                                    padding: '8px 12px'
+                                                                }}
+                                                            >
+                                                                <i className="fas fa-plus"></i>
+                                                                Return Time
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div style={styles.field}>
+                                                            <div
+                                                                style={{
+                                                                    alignItems: 'center',
+                                                                    display: 'flex',
+                                                                    gap: '8px'
+                                                                }}
+                                                            >
+                                                                <label style={styles.fieldLabel}>Return By</label>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        updateAssignment(
+                                                                            assignment.id,
+                                                                            'showReturnTime',
+                                                                            false
+                                                                        )
+                                                                        updateAssignment(
+                                                                            assignment.id,
+                                                                            'returnTime',
+                                                                            ''
+                                                                        )
+                                                                    }}
+                                                                    style={{
+                                                                        background: 'none',
+                                                                        border: 'none',
+                                                                        color: '#94a3b8',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '12px',
+                                                                        padding: '0'
+                                                                    }}
+                                                                    title="Remove return time"
+                                                                >
+                                                                    <i className="fas fa-times"></i>
+                                                                </button>
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="HH:MM"
+                                                                style={styles.fieldInput}
+                                                                value={assignment.returnTime}
+                                                                onChange={(e) => {
+                                                                    let val = e.target.value.replace(/[^\d:]/g, '')
+                                                                    if (
+                                                                        val.length === 2 &&
+                                                                        !val.includes(':') &&
+                                                                        e.target.value.length >
+                                                                            assignment.returnTime.length
+                                                                    ) {
+                                                                        val = val + ':'
+                                                                    }
+                                                                    if (val.length <= 5) {
+                                                                        updateAssignment(
+                                                                            assignment.id,
+                                                                            'returnTime',
+                                                                            val
+                                                                        )
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                         <div style={styles.checkboxRow}>
                                             <label style={styles.checkboxLabel}>
