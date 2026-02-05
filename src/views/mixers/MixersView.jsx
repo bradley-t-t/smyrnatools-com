@@ -955,10 +955,33 @@ function MixersView({
                                             e.stopPropagation()
                                             onComment(item.id, item.truckNumber)
                                         }}
-                                        style={actionBtnStyle}
+                                        style={{ ...actionBtnStyle, position: 'relative' }}
                                         title="View comments"
                                     >
                                         <i className="fas fa-comments"></i>
+                                        {item.commentsCount > 0 && (
+                                            <span
+                                                style={{
+                                                    alignItems: 'center',
+                                                    backgroundColor: '#3b82f6',
+                                                    borderRadius: '10px',
+                                                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    height: '16px',
+                                                    justifyContent: 'center',
+                                                    minWidth: '16px',
+                                                    padding: '0 4px',
+                                                    position: 'absolute',
+                                                    right: '-4px',
+                                                    top: '-4px'
+                                                }}
+                                            >
+                                                {item.commentsCount > 9 ? '9+' : item.commentsCount}
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         type="button"
@@ -966,10 +989,33 @@ function MixersView({
                                             e.stopPropagation()
                                             onIssue(item.id, item.truckNumber)
                                         }}
-                                        style={actionBtnStyle}
+                                        style={{ ...actionBtnStyle, position: 'relative' }}
                                         title="View issues"
                                     >
                                         <i className="fas fa-tools"></i>
+                                        {item.openIssuesCount > 0 && (
+                                            <span
+                                                style={{
+                                                    alignItems: 'center',
+                                                    backgroundColor: '#ef4444',
+                                                    borderRadius: '10px',
+                                                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    height: '16px',
+                                                    justifyContent: 'center',
+                                                    minWidth: '16px',
+                                                    padding: '0 4px',
+                                                    position: 'absolute',
+                                                    right: '-4px',
+                                                    top: '-4px'
+                                                }}
+                                            >
+                                                {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         type="button"
