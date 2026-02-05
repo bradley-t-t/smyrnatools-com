@@ -15,8 +15,7 @@
 ## Overview
 
 SRM Tools is a comprehensive fleet management and operations platform built for SRM Concrete. It provides real-time
-tracking, verification workflows, reporting, and AI-powered insights across the entire ready-mix concrete operation
-spanning **24 states** and **100+ plants**.
+tracking, verification workflows, reporting, and AI-powered insights.
 
 ---
 

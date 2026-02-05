@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [6.0] - 2026-02-05
+
+- Updated README.md to remove specific details about the operational scope, specifically the references to "24 states" and "100+ plants", simplifying the description of SRM Tools.
+
 ## [5.9] - 2026-02-05
 
 - Added error logging for operator comments count fetch in `OperatorService.js`.
