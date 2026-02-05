@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [6.2] - 2026-02-05
+
+- Updated PlanView.jsx to display effective and base values alongside percentage in stat displays
+- Modified allocation bar in PlanView.jsx to show effective/base values with percentage in the UI
+
 ## [6.1] - 2026-02-05
 
 - Updated `Mixer.js` to replace `downInYard` property with `shopStatus` for more detailed status tracking of mixers.

@@ -1519,7 +1519,7 @@ function PlanView() {
                                             fontWeight: 700
                                         }}
                                     >
-                                        {stat.percent}%
+                                        {stat.effective}/{stat.base} {stat.percent}%
                                     </span>
                                 </div>
                             ))}
@@ -1557,7 +1557,7 @@ function PlanView() {
                                                 <div style={styles.allocationBarFill(stat.percent)}></div>
                                             </div>
                                             <span style={styles.allocationBarPercent(stat.percent)}>
-                                                {stat.percent}%
+                                                {stat.effective}/{stat.base} {stat.percent}%
                                             </span>
                                         </div>
                                     ))}
