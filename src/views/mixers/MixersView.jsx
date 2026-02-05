@@ -85,7 +85,9 @@ function MixersView({
         'Active',
         'Spare',
         'In Shop',
+        'Waiting For Shop',
         'Down In Yard',
+        'Third Party Work',
         'Retired',
         'Past Due Service',
         'Verified',
@@ -151,11 +153,11 @@ function MixersView({
                                 assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
                                 assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
-                                downInYard: updatedData.down_in_yard ?? mixer.downInYard,
                                 lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
                                 lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
                                 make: updatedData.make ?? mixer.make,
                                 model: updatedData.model ?? mixer.model,
+                                shopStatus: updatedData.shop_status ?? mixer.shopStatus,
                                 status: updatedData.status ?? mixer.status,
                                 truckNumber: updatedData.truck_number ?? mixer.truckNumber,
                                 updatedAt: updatedData.updated_at ?? mixer.updatedAt,
@@ -177,11 +179,11 @@ function MixersView({
                                 assignedOperator: updatedData.assigned_operator ?? mixer.assignedOperator,
                                 assignedPlant: updatedData.assigned_plant ?? mixer.assignedPlant,
                                 cleanlinessRating: updatedData.cleanliness_rating ?? mixer.cleanlinessRating,
-                                downInYard: updatedData.down_in_yard ?? mixer.downInYard,
                                 lastChipDate: updatedData.last_chip_date ?? mixer.lastChipDate,
                                 lastServiceDate: updatedData.last_service_date ?? mixer.lastServiceDate,
                                 make: updatedData.make ?? mixer.make,
                                 model: updatedData.model ?? mixer.model,
+                                shopStatus: updatedData.shop_status ?? mixer.shopStatus,
                                 status: updatedData.status ?? mixer.status,
                                 truckNumber: updatedData.truck_number ?? mixer.truckNumber,
                                 updatedAt: updatedData.updated_at ?? mixer.updatedAt,
@@ -203,12 +205,12 @@ function MixersView({
                     assignedPlant: newData.assigned_plant ?? '',
                     cleanlinessRating: newData.cleanliness_rating ?? 0,
                     createdAt: newData.created_at ?? new Date().toISOString(),
-                    downInYard: newData.down_in_yard ?? false,
                     id: newData.id,
                     lastChipDate: newData.last_chip_date ?? null,
                     lastServiceDate: newData.last_service_date ?? null,
                     make: newData.make ?? '',
                     model: newData.model ?? '',
+                    shopStatus: newData.shop_status ?? null,
                     status: newData.status ?? 'Active',
                     truckNumber: newData.truck_number ?? '',
                     updatedAt: newData.updated_at ?? new Date().toISOString(),
@@ -582,18 +584,24 @@ function MixersView({
             if (statusFilter && statusFilter !== 'All Statuses') {
                 matchesStatus =
                     statusFilter === 'Down In Yard'
-                        ? mixer.status === 'In Shop' && mixer.downInYard === true
-                        : ['Active', 'Spare', 'In Shop', 'Retired'].includes(statusFilter)
-                          ? mixer.status === statusFilter
-                          : statusFilter === 'Past Due Service'
-                            ? MixerUtility.isServiceOverdue(mixer.lastServiceDate)
-                            : statusFilter === 'Verified'
-                              ? mixer.isVerified()
-                              : statusFilter === 'Not Verified'
-                                ? !mixer.isVerified() && mixer.status !== 'Retired'
-                                : statusFilter === 'Open Issues'
-                                  ? Number(mixer.openIssuesCount || 0) > 0
-                                  : false
+                        ? mixer.status === 'In Shop' && mixer.shopStatus === 'down_in_yard'
+                        : statusFilter === 'Waiting For Shop'
+                          ? mixer.status === 'In Shop' && mixer.shopStatus === 'waiting_for_shop'
+                          : statusFilter === 'Third Party Work'
+                            ? mixer.status === 'In Shop' && mixer.shopStatus === 'third_party'
+                            : statusFilter === 'In Shop'
+                              ? mixer.status === 'In Shop' && (mixer.shopStatus === 'in_shop' || !mixer.shopStatus)
+                              : ['Active', 'Spare', 'Retired'].includes(statusFilter)
+                                ? mixer.status === statusFilter
+                                : statusFilter === 'Past Due Service'
+                                  ? MixerUtility.isServiceOverdue(mixer.lastServiceDate)
+                                  : statusFilter === 'Verified'
+                                    ? mixer.isVerified()
+                                    : statusFilter === 'Not Verified'
+                                      ? !mixer.isVerified() && mixer.status !== 'Retired'
+                                      : statusFilter === 'Open Issues'
+                                        ? Number(mixer.openIssuesCount || 0) > 0
+                                        : false
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus
         })
@@ -610,10 +618,14 @@ function MixersView({
                     const getStatusOrder = (item) => {
                         if (item.status === 'Active') return 1
                         if (item.status === 'Spare') return 2
-                        if (item.status === 'In Shop' && !item.downInYard) return 3
-                        if (item.status === 'In Shop' && item.downInYard) return 4
-                        if (item.status === 'Retired') return 5
-                        return 6
+                        if (item.status === 'In Shop') {
+                            if (item.shopStatus === 'in_shop' || !item.shopStatus) return 3
+                            if (item.shopStatus === 'waiting_for_shop') return 4
+                            if (item.shopStatus === 'down_in_yard') return 5
+                            if (item.shopStatus === 'third_party') return 6
+                        }
+                        if (item.status === 'Retired') return 7
+                        return 8
                     }
                     const aOrder = getStatusOrder(a)
                     const bOrder = getStatusOrder(b)
@@ -778,9 +790,15 @@ function MixersView({
                         } else if (status === 'In Shop') {
                             bg = '#fef3c7'
                             color = '#92400e'
+                        } else if (status === 'Waiting For Shop') {
+                            bg = '#fff7ed'
+                            color = '#c2410c'
                         } else if (status === 'Down In Yard') {
                             bg = '#fef2f2'
                             color = '#991b1b'
+                        } else if (status === 'Third Party Work') {
+                            bg = '#f3e8ff'
+                            color = '#7c3aed'
                         } else if (status === 'Retired') {
                             bg = '#f1f5f9'
                             color = '#64748b'
@@ -843,10 +861,36 @@ function MixersView({
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 <span
                                     style={statusBadge(
-                                        item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status
+                                        (() => {
+                                            if (item.status !== 'In Shop') return item.status
+                                            switch (item.shopStatus) {
+                                                case 'down_in_yard':
+                                                    return 'Down In Yard'
+                                                case 'waiting_for_shop':
+                                                    return 'Waiting For Shop'
+                                                case 'third_party':
+                                                    return 'Third Party Work'
+                                                case 'in_shop':
+                                                default:
+                                                    return 'In Shop'
+                                            }
+                                        })()
                                     )}
                                 >
-                                    {item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status}
+                                    {(() => {
+                                        if (item.status !== 'In Shop') return item.status
+                                        switch (item.shopStatus) {
+                                            case 'down_in_yard':
+                                                return 'Down In Yard'
+                                            case 'waiting_for_shop':
+                                                return 'Waiting For Shop'
+                                            case 'third_party':
+                                                return 'Third Party Work'
+                                            case 'in_shop':
+                                            default:
+                                                return 'In Shop'
+                                        }
+                                    })()}
                                     {item.status !== 'Retired' &&
                                         (() => {
                                             const dateToUse = item.statusChangedAt || item.createdAt

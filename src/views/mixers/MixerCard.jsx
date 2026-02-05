@@ -22,10 +22,27 @@ function MixerCard({
     let statusColor = 'var(--accent)'
     if (mixer.status === 'Active') statusColor = 'var(--status-active)'
     else if (mixer.status === 'Spare') statusColor = 'var(--status-spare)'
-    else if (mixer.status === 'In Shop' && mixer.downInYard) statusColor = 'var(--error)'
+    else if (mixer.status === 'In Shop' && mixer.shopStatus === 'down_in_yard') statusColor = 'var(--error)'
+    else if (mixer.status === 'In Shop' && mixer.shopStatus === 'waiting_for_shop') statusColor = 'var(--warning)'
+    else if (mixer.status === 'In Shop' && mixer.shopStatus === 'third_party') statusColor = '#7c3aed'
     else if (mixer.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (mixer.status === 'Retired') statusColor = 'var(--status-retired)'
     else if (MixerUtility.isServiceOverdue(mixer.lastServiceDate)) statusColor = 'var(--error)'
+
+    const getDisplayStatus = () => {
+        if (mixer.status !== 'In Shop') return mixer.status || 'Unknown'
+        switch (mixer.shopStatus) {
+            case 'down_in_yard':
+                return 'Down In Yard'
+            case 'waiting_for_shop':
+                return 'Waiting For Shop'
+            case 'third_party':
+                return 'Third Party Work'
+            case 'in_shop':
+            default:
+                return 'In Shop'
+        }
+    }
 
     const verificationTooltip =
         !mixer.updatedLast || !mixer.updatedBy
@@ -55,9 +72,7 @@ function MixerCard({
             <div className="detail-row">
                 <div className="detail-label">Status</div>
                 <div className="detail-value" style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                    <span>
-                        {mixer.status === 'In Shop' && mixer.downInYard ? 'Down In Yard' : mixer.status || 'Unknown'}
-                    </span>
+                    <span>{getDisplayStatus()}</span>
                 </div>
             </div>
             <div className="detail-row">

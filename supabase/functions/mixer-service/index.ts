@@ -203,6 +203,7 @@ Deno.serve(async (req) => {
                         return y != null && Number.isFinite(Number(y)) ? Number(y) : null;
                     })(),
                     status: mixer?.status ?? "Active",
+                    shop_status: mixer?.shopStatus ?? mixer?.shop_status ?? null,
                     created_at: now,
                     updated_at: now,
                     updated_by: userId
@@ -280,7 +281,7 @@ Deno.serve(async (req) => {
                         return y != null && Number.isFinite(Number(y)) ? Number(y) : current.year;
                     })(),
                     status,
-                    down_in_yard: "downInYard" in mixer ? (mixer.downInYard === true || mixer.downInYard === "true") : current.down_in_yard,
+                    shop_status: "shopStatus" in mixer ? mixer.shopStatus : ("shop_status" in mixer ? mixer.shop_status : current.shop_status),
                     updated_last: typeof mixer?.updatedLast === "string" ? mixer.updatedLast : current.updated_last
                 };
 
@@ -304,7 +305,7 @@ Deno.serve(async (req) => {
                     {field: "model"},
                     {field: "year"},
                     {field: "status"},
-                    {field: "down_in_yard"}
+                    {field: "shop_status"}
                 ];
                 for (const f of fields) {
                     const beforeVal = (current as any)[f.field];

@@ -59,7 +59,7 @@ function MixerDetailView({ mixerId, onClose }) {
     const [missingFields, setMissingFields] = useState([])
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
-    const [downInYard, setDownInYard] = useState(false)
+    const [shopStatus, setShopStatus] = useState(null)
 
     useEffect(() => {
         async function fetchData() {
@@ -88,18 +88,18 @@ function MixerDetailView({ mixerId, onClose }) {
                 setMake(mixerData.make || '')
                 setModel(mixerData.model || '')
                 setYear(mixerData.year || '')
-                setDownInYard(mixerData.downInYard || false)
+                setShopStatus(mixerData.shopStatus || null)
                 setOriginalValues({
                     assignedOperator: mixerData.assignedOperator || '',
                     assignedPlant: mixerData.assignedPlant || '',
                     cleanlinessRating: mixerData.cleanlinessRating || 0,
-                    downInYard: mixerData.downInYard || false,
                     lastChipDate: mixerData.lastChipDate ? DateUtility.parseLocalDate(mixerData.lastChipDate) : null,
                     lastServiceDate: mixerData.lastServiceDate
                         ? DateUtility.parseLocalDate(mixerData.lastServiceDate)
                         : null,
                     make: mixerData.make || '',
                     model: mixerData.model || '',
+                    shopStatus: mixerData.shopStatus || null,
                     status: mixerData.status || '',
                     truckNumber: mixerData.truckNumber || '',
                     vin: (mixerData.vin || '').toUpperCase(),
@@ -216,7 +216,7 @@ function MixerDetailView({ mixerId, onClose }) {
             make !== originalValues.make ||
             model !== originalValues.model ||
             year !== originalValues.year ||
-            downInYard !== originalValues.downInYard
+            shopStatus !== originalValues.shopStatus
         setHasUnsavedChanges(hasChanges)
     }, [
         truckNumber,
@@ -229,7 +229,7 @@ function MixerDetailView({ mixerId, onClose }) {
         make,
         model,
         year,
-        downInYard,
+        shopStatus,
         originalValues,
         isLoading
     ])
@@ -352,19 +352,20 @@ function MixerDetailView({ mixerId, onClose }) {
             let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1
 
-            const finalDownInYard = statusValue === 'In Shop' ? (overrideValues.downInYard ?? downInYard) : false
+            const finalShopStatus =
+                statusValue === 'In Shop' ? (overrideValues.shopStatus ?? shopStatus ?? 'in_shop') : null
 
             const updatedMixer = {
                 ...mixer,
                 assignedOperator: assignedOperatorValue || null,
                 assignedPlant: overrideValues.assignedPlant ?? assignedPlant,
                 cleanlinessRating: cleanlinessValue,
-                downInYard: finalDownInYard,
                 id: mixer.id,
                 lastChipDate: DateUtility.toDbDate(overrideValues.lastChipDate ?? lastChipDate),
                 lastServiceDate: DateUtility.toDbDate(overrideValues.lastServiceDate ?? lastServiceDate),
                 make: overrideValues.make ?? make,
                 model: overrideValues.model ?? model,
+                shopStatus: finalShopStatus,
                 status: statusValue,
                 truckNumber: overrideValues.truckNumber ?? truckNumber,
                 updatedAt: new Date().toISOString(),
@@ -403,13 +404,13 @@ function MixerDetailView({ mixerId, onClose }) {
                 assignedOperator: updatedMixer.assignedOperator,
                 assignedPlant: updatedMixer.assignedPlant,
                 cleanlinessRating: updatedMixer.cleanlinessRating,
-                downInYard: updatedMixer.downInYard,
                 lastChipDate: updatedMixer.lastChipDate ? DateUtility.parseLocalDate(updatedMixer.lastChipDate) : null,
                 lastServiceDate: updatedMixer.lastServiceDate
                     ? DateUtility.parseLocalDate(updatedMixer.lastServiceDate)
                     : null,
                 make: updatedMixer.make,
                 model: updatedMixer.model,
+                shopStatus: updatedMixer.shopStatus,
                 status: updatedMixer.status,
                 truckNumber: updatedMixer.truckNumber,
                 vin: updatedMixer.vin,
@@ -914,34 +915,50 @@ function MixerDetailView({ mixerId, onClose }) {
                             </div>
                             {status === 'Spare' && (
                                 <div className="spare-status-note">
-                                    If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with down
-                                    toggled, not as a spare
+                                    If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with the
+                                    appropriate shop status selected
                                 </div>
                             )}
                             {status === 'In Shop' && (
                                 <div className="down-in-yard-container">
-                                    <div className="down-in-yard-toggle">
-                                        <label className={`toggle-label ${!canEditMixer ? 'disabled' : ''}`}>
-                                            <input
-                                                type="checkbox"
-                                                checked={downInYard}
-                                                onChange={(e) => {
-                                                    if (canEditMixer) {
-                                                        setDownInYard(e.target.checked)
-                                                    }
-                                                }}
-                                                disabled={!canEditMixer}
-                                                className="toggle-checkbox"
-                                            />
-                                            <span className="toggle-switch">
-                                                <span className="toggle-slider"></span>
-                                            </span>
-                                            <span className="toggle-text">In Yard</span>
-                                        </label>
+                                    <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                                        <label>Shop Status</label>
+                                        <select
+                                            className="form-control"
+                                            value={shopStatus || 'in_shop'}
+                                            onChange={(e) => {
+                                                if (canEditMixer) {
+                                                    setShopStatus(e.target.value)
+                                                }
+                                            }}
+                                            disabled={!canEditMixer}
+                                            style={
+                                                !canEditMixer
+                                                    ? {
+                                                          backgroundColor: 'var(--card-bg)',
+                                                          cursor: 'not-allowed',
+                                                          opacity: 0.8
+                                                      }
+                                                    : {}
+                                            }
+                                        >
+                                            <option value="in_shop">In Shop</option>
+                                            <option value="waiting_for_shop">Waiting For Shop</option>
+                                            <option value="down_in_yard">Down In Yard</option>
+                                            <option value="third_party">Third Party Work</option>
+                                        </select>
                                     </div>
-                                    <div className="down-in-yard-note">
-                                        Trucks that are down in the yard need to have this toggled on, but also need say
-                                        &quot;In Shop&quot; as the status
+                                    <div
+                                        className="down-in-yard-note"
+                                        style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}
+                                    >
+                                        {shopStatus === 'down_in_yard' &&
+                                            'The shop has to come fix it where it is - it cannot move.'}
+                                        {shopStatus === 'waiting_for_shop' &&
+                                            'We need to move it to the shop for repairs.'}
+                                        {shopStatus === 'third_party' && 'Being painted or at a third party shop.'}
+                                        {(shopStatus === 'in_shop' || !shopStatus) &&
+                                            'Currently at the shop being worked on.'}
                                     </div>
                                 </div>
                             )}
