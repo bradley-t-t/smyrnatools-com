@@ -283,29 +283,22 @@ function OperatorsView({
     }
 
     const fetchCommentCounts = async (operatorsList) => {
-        const commentPromises = operatorsList.map(async (operator) => {
-            try {
-                const comments = await OperatorService.fetchComments(operator.employeeId).catch(() => [])
-                return {
-                    commentsCount: Array.isArray(comments) ? comments.length : 0,
-                    employeeId: operator.employeeId
-                }
-            } catch {
-                return {
-                    commentsCount: 0,
-                    employeeId: operator.employeeId
-                }
-            }
-        })
+        if (!operatorsList || operatorsList.length === 0) return
+        const operatorIds = operatorsList.map((op) => op.employeeId).filter(Boolean)
+        if (operatorIds.length === 0) return
 
-        const results = await Promise.all(commentPromises)
+        try {
+            const commentsCounts = await OperatorService.fetchAllCommentsCounts(operatorIds)
 
-        setOperators((prevOperators) => {
-            return prevOperators.map((op) => {
-                const result = results.find((r) => r.employeeId === op.employeeId)
-                return result ? { ...op, commentsCount: result.commentsCount } : op
+            setOperators((prevOperators) => {
+                return prevOperators.map((op) => ({
+                    ...op,
+                    commentsCount: commentsCounts[op.employeeId] || 0
+                }))
             })
-        })
+        } catch (e) {
+            console.error('Error loading operator comment counts:', e)
+        }
     }
 
     const fetchPlants = async (codes) => {

@@ -327,33 +327,34 @@ function MixersView({
         } catch (error) {}
     }
 
-    const loadDetailsForMixers = async (mixers) => {
-        const items = mixers.slice()
-        let index = 0
-        const concurrency = 20
+    const loadDetailsForMixers = async (mixersList) => {
+        if (!mixersList || mixersList.length === 0) return
+        const mixerIds = mixersList.map((m) => m.id).filter(Boolean)
+        if (mixerIds.length === 0) return
 
-        async function worker() {
-            while (index < items.length) {
-                const current = index++
-                const m = items[current]
-                try {
-                    const [comments, issues] = await Promise.all([
-                        MixerService.fetchComments(m.id).catch(() => []),
-                        MixerService.fetchIssues(m.id).catch(() => [])
-                    ])
-                    const openIssuesCount = Array.isArray(issues) ? issues.filter((i) => !i.time_completed).length : 0
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    m.comments = comments
-                    m.issues = issues
-                    m.openIssuesCount = openIssuesCount
-                    m.commentsCount = commentsCount
-                } catch (e) {}
-            }
+        try {
+            const [commentsCounts, issuesCounts] = await Promise.all([
+                MixerService.fetchAllCommentsCounts(mixerIds),
+                MixerService.fetchAllIssuesCounts(mixerIds)
+            ])
+
+            setMixers((prev) =>
+                prev.map((m) => ({
+                    ...m,
+                    commentsCount: commentsCounts[m.id] || 0,
+                    openIssuesCount: issuesCounts[m.id] || 0
+                }))
+            )
+            setAllMixers((prev) =>
+                prev.map((m) => ({
+                    ...m,
+                    commentsCount: commentsCounts[m.id] || 0,
+                    openIssuesCount: issuesCounts[m.id] || 0
+                }))
+            )
+        } catch (e) {
+            console.error('Error loading mixer details:', e)
         }
-
-        await Promise.all(Array.from({ length: concurrency }, () => worker()))
-        setMixers([...mixers])
-        setAllMixers([...mixers])
     }
 
     async function fetchMixersWithDetails(codes) {
@@ -848,12 +849,12 @@ function MixersView({
                                     {item.status === 'In Shop' && item.downInYard ? 'Down In Yard' : item.status}
                                     {item.status !== 'Retired' &&
                                         (() => {
-                                            const days = item.statusChangedAt
+                                            const dateToUse = item.statusChangedAt || item.createdAt
+                                            const days = dateToUse
                                                 ? Math.max(
                                                       1,
                                                       Math.floor(
-                                                          (Date.now() - new Date(item.statusChangedAt).getTime()) /
-                                                              86400000
+                                                          (Date.now() - new Date(dateToUse).getTime()) / 86400000
                                                       )
                                                   )
                                                 : 1

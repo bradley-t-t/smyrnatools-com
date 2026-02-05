@@ -7,6 +7,21 @@ import { MixerService } from './MixerService'
 import { TractorService } from './TractorService'
 
 class OperatorServiceImpl {
+    async fetchAllCommentsCounts(operatorIds) {
+        if (!operatorIds || operatorIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('operators_comments')
+            .select('operator_id')
+            .in('operator_id', operatorIds)
+        if (error) return {}
+        const counts = {}
+        operatorIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.operator_id) counts[row.operator_id] = (counts[row.operator_id] || 0) + 1
+        })
+        return counts
+    }
+
     async getAllOperators() {
         const { res, json } = await APIUtility.post('/operator-service/list')
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch operators')

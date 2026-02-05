@@ -202,6 +202,35 @@ class MixerServiceImpl {
         return (json?.data ?? []).map((mixer) => new Mixer(mixer))
     }
 
+    static async fetchAllCommentsCounts(mixerIds) {
+        if (!mixerIds || mixerIds.length === 0) return {}
+        const { data, error } = await supabase.from('mixers_comments').select('mixer_id').in('mixer_id', mixerIds)
+        if (error) return {}
+        const counts = {}
+        mixerIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.mixer_id) counts[row.mixer_id] = (counts[row.mixer_id] || 0) + 1
+        })
+        return counts
+    }
+
+    static async fetchAllIssuesCounts(mixerIds) {
+        if (!mixerIds || mixerIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('mixers_maintenance')
+            .select('mixer_id, time_completed')
+            .in('mixer_id', mixerIds)
+        if (error) return {}
+        const counts = {}
+        mixerIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.mixer_id && !row.time_completed) {
+                counts[row.mixer_id] = (counts[row.mixer_id] || 0) + 1
+            }
+        })
+        return counts
+    }
+
     static async fetchComments(mixerId) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
         const { res, json } = await APIUtility.post('/mixer-service/fetch-comments', { mixerId })

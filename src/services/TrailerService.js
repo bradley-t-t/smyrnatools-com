@@ -1,9 +1,42 @@
 import Trailer from '../models/trailers/Trailer'
 import APIUtility from '../utils/APIUtility'
 import { isValidUUID } from '../utils/UserUtility'
+import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 
 const TrailerService = {
+    async fetchAllCommentsCounts(trailerIds) {
+        if (!trailerIds || trailerIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('trailers_comments')
+            .select('trailer_id')
+            .in('trailer_id', trailerIds)
+        if (error) return {}
+        const counts = {}
+        trailerIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.trailer_id) counts[row.trailer_id] = (counts[row.trailer_id] || 0) + 1
+        })
+        return counts
+    },
+
+    async fetchAllIssuesCounts(trailerIds) {
+        if (!trailerIds || trailerIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('trailers_maintenance')
+            .select('trailer_id, time_completed')
+            .in('trailer_id', trailerIds)
+        if (error) return {}
+        const counts = {}
+        trailerIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.trailer_id && !row.time_completed) {
+                counts[row.trailer_id] = (counts[row.trailer_id] || 0) + 1
+            }
+        })
+        return counts
+    },
+
     async addComment(trailerId, commentText, userId) {
         if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
         if (!commentText?.trim()) throw new Error('Comment text is required')
@@ -119,10 +152,33 @@ const TrailerService = {
 
     async fetchTrailersWithDetails(regionCodes = null) {
         const base = await this.fetchTrailers().catch(() => [])
+
+        const statusHistoryMap = {}
+        const trailerIds = (base || []).map((t) => t.id).filter(Boolean)
+        if (trailerIds.length > 0) {
+            try {
+                const { data: statusHistory } = await supabase
+                    .from('trailers_history')
+                    .select('trailer_id, changed_at')
+                    .eq('field_name', 'status')
+                    .in('trailer_id', trailerIds)
+                    .order('changed_at', { ascending: false })
+
+                if (statusHistory) {
+                    for (const h of statusHistory) {
+                        if (!statusHistoryMap[h.trailer_id]) {
+                            statusHistoryMap[h.trailer_id] = h.changed_at
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
         const processedBase = (Array.isArray(base) ? base : []).map((t) => {
             const trailer = { ...t }
             if (typeof trailer.openIssuesCount !== 'number') trailer.openIssuesCount = 0
             if (typeof trailer.commentsCount !== 'number') trailer.commentsCount = 0
+            trailer.statusChangedAt = statusHistoryMap[trailer.id] || trailer.createdAt || null
             return trailer
         })
         if (regionCodes) {

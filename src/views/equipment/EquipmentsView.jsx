@@ -320,32 +320,27 @@ function EquipmentsView({
         } catch (error) {}
     }
 
-    const loadDetailsForEquipments = async (equipments) => {
-        const items = equipments.slice()
-        let index = 0
-        const concurrency = 20
+    const loadDetailsForEquipments = async (equipmentsList) => {
+        if (!equipmentsList || equipmentsList.length === 0) return
+        const equipmentIds = equipmentsList.map((e) => e.id).filter(Boolean)
+        if (equipmentIds.length === 0) return
 
-        async function worker() {
-            while (index < items.length) {
-                const current = index++
-                const e = items[current]
-                try {
-                    const [comments, issues] = await Promise.all([
-                        EquipmentService.fetchComments(e.id).catch(() => []),
-                        EquipmentService.fetchIssues(e.id).catch(() => [])
-                    ])
-                    const openIssuesCount = Array.isArray(issues) ? issues.filter((i) => !i.time_completed).length : 0
-                    const commentsCount = Array.isArray(comments) ? comments.length : 0
-                    e.comments = comments
-                    e.issues = issues
-                    e.openIssuesCount = openIssuesCount
-                    e.commentsCount = commentsCount
-                } catch (e) {}
-            }
+        try {
+            const [commentsCounts, issuesCounts] = await Promise.all([
+                EquipmentService.fetchAllCommentsCounts(equipmentIds),
+                EquipmentService.fetchAllIssuesCounts(equipmentIds)
+            ])
+
+            setEquipments((prev) =>
+                prev.map((e) => ({
+                    ...e,
+                    commentsCount: commentsCounts[e.id] || 0,
+                    openIssuesCount: issuesCounts[e.id] || 0
+                }))
+            )
+        } catch (e) {
+            console.error('Error loading equipment details:', e)
         }
-
-        await Promise.all(Array.from({ length: concurrency }, () => worker()))
-        setEquipments([...items])
     }
 
     function handleDetailViewSaved(updated) {
@@ -659,8 +654,6 @@ function EquipmentsView({
                 ]}
                 colWidths={['10%', '15%', '10%', '15%', '8%', '10%', '10%', '10%', '12%']}
                 renderRow={(item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
-                    const issuesCount = Number(item.openIssuesCount || 0)
-                    const commentsCount = Number(item.commentsCount || 0)
                     const isVerified =
                         typeof item.isVerified === 'function'
                             ? item.isVerified(item.latestHistoryDate)
@@ -767,7 +760,23 @@ function EquipmentsView({
                                     : '---'}
                             </td>
                             <td style={{ ...cellStyle, width: '8%' }}>
-                                <span style={statusBadge(item.status)}>{item.status || '---'}</span>
+                                <span style={statusBadge(item.status)}>
+                                    {item.status || '---'}
+                                    {item.status &&
+                                        item.status !== 'Retired' &&
+                                        (() => {
+                                            const dateToUse = item.statusChangedAt || item.createdAt
+                                            const days = dateToUse
+                                                ? Math.max(
+                                                      1,
+                                                      Math.floor(
+                                                          (Date.now() - new Date(dateToUse).getTime()) / 86400000
+                                                      )
+                                                  )
+                                                : 1
+                                            return ` (${days} day${days !== 1 ? 's' : ''})`
+                                        })()}
+                                </span>
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
                                 <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
@@ -841,10 +850,33 @@ function EquipmentsView({
                                             e.stopPropagation()
                                             onComment(item.id, item.identifyingNumber)
                                         }}
-                                        style={actionBtnStyle}
+                                        style={{ ...actionBtnStyle, position: 'relative' }}
                                         title="View comments"
                                     >
                                         <i className="fas fa-comments"></i>
+                                        {item.commentsCount > 0 && (
+                                            <span
+                                                style={{
+                                                    alignItems: 'center',
+                                                    backgroundColor: '#3b82f6',
+                                                    borderRadius: '10px',
+                                                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    height: '16px',
+                                                    justifyContent: 'center',
+                                                    minWidth: '16px',
+                                                    padding: '0 4px',
+                                                    position: 'absolute',
+                                                    right: '-4px',
+                                                    top: '-4px'
+                                                }}
+                                            >
+                                                {item.commentsCount > 9 ? '9+' : item.commentsCount}
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         type="button"
@@ -852,10 +884,33 @@ function EquipmentsView({
                                             e.stopPropagation()
                                             onIssue(item.id, item.identifyingNumber)
                                         }}
-                                        style={actionBtnStyle}
+                                        style={{ ...actionBtnStyle, position: 'relative' }}
                                         title="View issues"
                                     >
                                         <i className="fas fa-tools"></i>
+                                        {item.openIssuesCount > 0 && (
+                                            <span
+                                                style={{
+                                                    alignItems: 'center',
+                                                    backgroundColor: '#ef4444',
+                                                    borderRadius: '10px',
+                                                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    height: '16px',
+                                                    justifyContent: 'center',
+                                                    minWidth: '16px',
+                                                    padding: '0 4px',
+                                                    position: 'absolute',
+                                                    right: '-4px',
+                                                    top: '-4px'
+                                                }}
+                                            >
+                                                {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         type="button"

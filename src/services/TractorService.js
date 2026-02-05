@@ -5,6 +5,7 @@ import APIUtility from '../utils/APIUtility'
 import CleanupUtility from '../utils/CleanupUtility'
 import { TractorUtility } from '../utils/TractorUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 
 export class TractorService {
@@ -226,6 +227,38 @@ export class TractorService {
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
+    static async fetchAllCommentsCounts(tractorIds) {
+        if (!tractorIds || tractorIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('tractors_comments')
+            .select('tractor_id')
+            .in('tractor_id', tractorIds)
+        if (error) return {}
+        const counts = {}
+        tractorIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.tractor_id) counts[row.tractor_id] = (counts[row.tractor_id] || 0) + 1
+        })
+        return counts
+    }
+
+    static async fetchAllIssuesCounts(tractorIds) {
+        if (!tractorIds || tractorIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('tractors_maintenance')
+            .select('tractor_id, time_completed')
+            .in('tractor_id', tractorIds)
+        if (error) return {}
+        const counts = {}
+        tractorIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.tractor_id && !row.time_completed) {
+                counts[row.tractor_id] = (counts[row.tractor_id] || 0) + 1
+            }
+        })
+        return counts
+    }
+
     static async fetchComments(tractorId) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         const { res, json } = await APIUtility.post('/tractor-service/fetch-comments', { tractorId })
@@ -300,6 +333,28 @@ export class TractorService {
 
     static async fetchTractorsWithDetails(regionCodes = null) {
         const base = await this.getAllTractors().catch(() => [])
+
+        const statusHistoryMap = {}
+        const tractorIds = (base || []).map((t) => t.id).filter(Boolean)
+        if (tractorIds.length > 0) {
+            try {
+                const { data: statusHistory } = await supabase
+                    .from('tractors_history')
+                    .select('tractor_id, changed_at')
+                    .eq('field_name', 'status')
+                    .in('tractor_id', tractorIds)
+                    .order('changed_at', { ascending: false })
+
+                if (statusHistory) {
+                    for (const h of statusHistory) {
+                        if (!statusHistoryMap[h.tractor_id]) {
+                            statusHistoryMap[h.tractor_id] = h.changed_at
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
         const processedBase = (Array.isArray(base) ? base : []).map((t) => {
             const tractor = { ...t }
             tractor.vin = (tractor.vin || '').toUpperCase()
@@ -312,6 +367,7 @@ export class TractorService {
                 )
             if (typeof tractor.openIssuesCount !== 'number') tractor.openIssuesCount = 0
             if (typeof tractor.commentsCount !== 'number') tractor.commentsCount = 0
+            tractor.statusChangedAt = statusHistoryMap[tractor.id] || tractor.createdAt || null
             return tractor
         })
         if (regionCodes) {

@@ -4,9 +4,48 @@ import { EquipmentHistory } from '../models/equipment/EquipmentHistory'
 import APIUtility from '../utils/APIUtility'
 import EquipmentUtility from '../utils/EquipmentUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 
 class EquipmentServiceImpl {
+    static async fetchAllCommentsCounts(equipmentIds) {
+        if (!equipmentIds || equipmentIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('heavy_equipment_comments')
+            .select('equipment_id')
+            .in('equipment_id', equipmentIds)
+        if (error) {
+            console.error('Error fetching equipment comments counts:', error)
+            return {}
+        }
+        const counts = {}
+        equipmentIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.equipment_id) counts[row.equipment_id] = (counts[row.equipment_id] || 0) + 1
+        })
+        return counts
+    }
+
+    static async fetchAllIssuesCounts(equipmentIds) {
+        if (!equipmentIds || equipmentIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('heavy_equipment_maintenance')
+            .select('equipment_id, time_completed')
+            .in('equipment_id', equipmentIds)
+        if (error) {
+            console.error('Error fetching equipment issues counts:', error)
+            return {}
+        }
+        const counts = {}
+        equipmentIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.equipment_id && !row.time_completed) {
+                counts[row.equipment_id] = (counts[row.equipment_id] || 0) + 1
+            }
+        })
+        return counts
+    }
+
     static async getAllEquipments() {
         const { res, json } = await APIUtility.post('/equipment-service/fetch-all')
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch equipment')
@@ -259,10 +298,33 @@ class EquipmentServiceImpl {
 
     static async fetchEquipmentsWithDetails(regionCodes = null) {
         const base = await this.getAllEquipments().catch(() => [])
+
+        const statusHistoryMap = {}
+        const equipmentIds = (base || []).map((e) => e.id).filter(Boolean)
+        if (equipmentIds.length > 0) {
+            try {
+                const { data: statusHistory } = await supabase
+                    .from('heavy_equipment_history')
+                    .select('equipment_id, changed_at')
+                    .eq('field_name', 'status')
+                    .in('equipment_id', equipmentIds)
+                    .order('changed_at', { ascending: false })
+
+                if (statusHistory) {
+                    for (const h of statusHistory) {
+                        if (!statusHistoryMap[h.equipment_id]) {
+                            statusHistoryMap[h.equipment_id] = h.changed_at
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
         const processedBase = (Array.isArray(base) ? base : []).map((e) => {
             const equipment = { ...e }
             if (typeof equipment.openIssuesCount !== 'number') equipment.openIssuesCount = 0
             if (typeof equipment.commentsCount !== 'number') equipment.commentsCount = 0
+            equipment.statusChangedAt = statusHistoryMap[equipment.id] || equipment.createdAt || null
             return equipment
         })
         if (regionCodes) {

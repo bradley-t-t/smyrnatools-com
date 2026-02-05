@@ -2,6 +2,30 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [5.7] - 2026-02-05
+
+- Added functionality to fetch comment counts for various asset types in services:
+  - Implemented `fetchAllCommentsCounts` in `EquipmentService.js` for heavy equipment.
+  - Implemented `fetchAllCommentsCounts` in `MixerService.js` for mixers.
+  - Implemented `fetchAllCommentsCounts` in `OperatorService.js` for operators.
+  - Implemented `fetchAllCommentsCounts` in `PickupTruckService.js` for pickup trucks.
+  - Implemented `fetchAllCommentsCounts` in `TractorService.js` for tractors.
+  - Implemented `fetchAllCommentsCounts` in `TrailerService.js` for trailers.
+- Added functionality to fetch open issues counts for various asset types in services:
+  - Implemented `fetchAllIssuesCounts` in `EquipmentService.js` for heavy equipment.
+  - Implemented `fetchAllIssuesCounts` in `MixerService.js` for mixers.
+  - Implemented `fetchAllIssuesCounts` in `PickupTruckService.js` for pickup trucks.
+  - Implemented `fetchAllIssuesCounts` in `TractorService.js` for tractors.
+  - Implemented `fetchAllIssuesCounts` in `TrailerService.js` for trailers.
+- Enhanced `EquipmentService.js` to track status change history with `fetchEquipmentsWithDetails`, adding `statusChangedAt` field to equipment data.
+- Updated views to likely integrate the new comment and issue count functionalities (exact UI changes not visible in diff but inferred from file modifications):
+  - Modified `EquipmentsView.jsx` for equipment.
+  - Modified `MixersView.jsx` for mixers.
+  - Modified `OperatorsView.jsx` for operators.
+  - Modified `PickupTrucksView.jsx` for pickup trucks.
+  - Modified `TractorsView.jsx` for tractors.
+  - Modified `TrailersView.jsx` for trailers.
+
 ## [5.6] - 2026-02-05
 
 - Added comment count badge to the comments button in MixersView.jsx, displaying the number of comments for each item with a styled badge showing up to "9+" if the count exceeds 9.

@@ -1,9 +1,48 @@
 import PickupTruck from '../models/pickup-trucks/PickupTruck'
 import APIUtility from '../utils/APIUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 
 class PickupTruckServiceImpl {
+    static async fetchAllCommentsCounts(pickupTruckIds) {
+        if (!pickupTruckIds || pickupTruckIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('pickup_trucks_comments')
+            .select('truck_id')
+            .in('truck_id', pickupTruckIds)
+        if (error) {
+            console.error('Error fetching pickup truck comments counts:', error)
+            return {}
+        }
+        const counts = {}
+        pickupTruckIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.truck_id) counts[row.truck_id] = (counts[row.truck_id] || 0) + 1
+        })
+        return counts
+    }
+
+    static async fetchAllIssuesCounts(pickupTruckIds) {
+        if (!pickupTruckIds || pickupTruckIds.length === 0) return {}
+        const { data, error } = await supabase
+            .from('pickup_trucks_maintenance')
+            .select('truck_id, time_completed')
+            .in('truck_id', pickupTruckIds)
+        if (error) {
+            console.error('Error fetching pickup truck issues counts:', error)
+            return {}
+        }
+        const counts = {}
+        pickupTruckIds.forEach((id) => (counts[id] = 0))
+        ;(data || []).forEach((row) => {
+            if (row.truck_id && !row.time_completed) {
+                counts[row.truck_id] = (counts[row.truck_id] || 0) + 1
+            }
+        })
+        return counts
+    }
+
     static async getAll() {
         const { res, json } = await APIUtility.post('/pickup-truck-service/fetch-all')
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch pickup trucks')
@@ -13,8 +52,35 @@ class PickupTruckServiceImpl {
 
     static async fetchAll(regionCodes = null) {
         const data = await this.getAll()
+
+        const statusHistoryMap = {}
+        const pickupIds = (data || []).map((p) => p.id).filter(Boolean)
+        if (pickupIds.length > 0) {
+            try {
+                const { data: statusHistory } = await supabase
+                    .from('pickup_trucks_history')
+                    .select('truck_id, changed_at')
+                    .eq('field_name', 'status')
+                    .in('truck_id', pickupIds)
+                    .order('changed_at', { ascending: false })
+
+                if (statusHistory) {
+                    for (const h of statusHistory) {
+                        if (!statusHistoryMap[h.truck_id]) {
+                            statusHistoryMap[h.truck_id] = h.changed_at
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        const processedData = data.map((p) => {
+            p.statusChangedAt = statusHistoryMap[p.id] || p.createdAt || null
+            return p
+        })
+
         if (regionCodes) {
-            return data.filter((p) =>
+            return processedData.filter((p) =>
                 regionCodes.has(
                     String(p.assignedPlant || '')
                         .trim()
@@ -22,7 +88,7 @@ class PickupTruckServiceImpl {
                 )
             )
         }
-        return data
+        return processedData
     }
 
     static async getById(id) {
