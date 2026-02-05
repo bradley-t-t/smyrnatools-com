@@ -13,7 +13,10 @@ class OperatorServiceImpl {
             .from('operators_comments')
             .select('operator_id')
             .in('operator_id', operatorIds)
-        if (error) return {}
+        if (error) {
+            console.error('Error fetching operator comments counts:', error)
+            return {}
+        }
         const counts = {}
         operatorIds.forEach((id) => (counts[id] = 0))
         ;(data || []).forEach((row) => {
@@ -115,12 +118,35 @@ class OperatorServiceImpl {
         try {
             const { data, error } = await supabase.from('operators').select('*')
             if (error) throw error
+
+            const statusHistoryMap = {}
+            const operatorIds = (data || []).map((op) => op.employee_id).filter(Boolean)
+            if (operatorIds.length > 0) {
+                try {
+                    const { data: statusHistory } = await supabase
+                        .from('operators_history')
+                        .select('operator_id, changed_at')
+                        .eq('field_name', 'status')
+                        .in('operator_id', operatorIds)
+                        .order('changed_at', { ascending: false })
+
+                    if (statusHistory) {
+                        for (const h of statusHistory) {
+                            if (!statusHistoryMap[h.operator_id]) {
+                                statusHistoryMap[h.operator_id] = h.changed_at
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
             const formattedOperators = data.map((op) => {
                 const rawPending = op.pending_start_date || ''
                 const normalizedPending =
                     typeof rawPending === 'string' && rawPending.includes('T') ? rawPending.slice(0, 10) : rawPending
                 return {
                     assignedTrainer: op.assigned_trainer,
+                    createdAt: op.created_at || null,
                     employeeId: op.employee_id,
                     isTrainer: op.is_trainer,
                     name: op.name,
@@ -130,7 +156,8 @@ class OperatorServiceImpl {
                     position: op.position,
                     rating: typeof op.rating === 'number' ? op.rating : Number(op.rating) || 0,
                     smyrnaId: op.smyrna_id || '',
-                    status: op.status
+                    status: op.status,
+                    statusChangedAt: statusHistoryMap[op.employee_id] || op.created_at || null
                 }
             })
             if (regionCodes) {

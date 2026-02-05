@@ -787,6 +787,23 @@ function OperatorsView({
                                                 <td style={{ ...cellSecondaryStyle, width: '14%' }}>
                                                     <span style={statusBadgeStyle(operator.status)}>
                                                         {operator.status || '\u2014'}
+                                                        {operator.status &&
+                                                            operator.status !== 'Terminated' &&
+                                                            (() => {
+                                                                const dateToUse =
+                                                                    operator.statusChangedAt || operator.createdAt
+                                                                const days = dateToUse
+                                                                    ? Math.max(
+                                                                          1,
+                                                                          Math.floor(
+                                                                              (Date.now() -
+                                                                                  new Date(dateToUse).getTime()) /
+                                                                                  86400000
+                                                                          )
+                                                                      )
+                                                                    : 1
+                                                                return ` (${days} day${days !== 1 ? 's' : ''})`
+                                                            })()}
                                                     </span>
                                                 </td>
                                                 <td
@@ -816,7 +833,7 @@ function OperatorsView({
                                                             }}
                                                             type="button"
                                                             title="View comments"
-                                                            style={actionBtnStyle}
+                                                            style={{ ...actionBtnStyle, position: 'relative' }}
                                                             onMouseEnter={(e) => {
                                                                 e.currentTarget.style.backgroundColor = '#1e3a5f'
                                                                 e.currentTarget.style.color = 'white'
@@ -829,6 +846,31 @@ function OperatorsView({
                                                             }}
                                                         >
                                                             <i className="fas fa-comments"></i>
+                                                            {operator.commentsCount > 0 && (
+                                                                <span
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        backgroundColor: '#3b82f6',
+                                                                        borderRadius: '10px',
+                                                                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                                                                        color: 'white',
+                                                                        display: 'flex',
+                                                                        fontSize: '10px',
+                                                                        fontWeight: 700,
+                                                                        height: '16px',
+                                                                        justifyContent: 'center',
+                                                                        minWidth: '16px',
+                                                                        padding: '0 4px',
+                                                                        position: 'absolute',
+                                                                        right: '-4px',
+                                                                        top: '-4px'
+                                                                    }}
+                                                                >
+                                                                    {operator.commentsCount > 9
+                                                                        ? '9+'
+                                                                        : operator.commentsCount}
+                                                                </span>
+                                                            )}
                                                         </button>
                                                         <button
                                                             onClick={(e) => {
