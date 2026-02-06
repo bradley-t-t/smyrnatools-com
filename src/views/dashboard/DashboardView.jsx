@@ -13,6 +13,7 @@ import { ReportService } from '../../services/ReportService'
 import { TractorService } from '../../services/TractorService'
 import TrailerService from '../../services/TrailerService'
 import { UserService } from '../../services/UserService'
+import DashboardUtility from '../../utils/DashboardUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
@@ -161,263 +162,6 @@ export default function DashboardView() {
         trailers: []
     })
 
-    const slimMixer = useCallback(
-        (m) => ({
-            assignedOperator: m.assignedOperator,
-            assignedPlant: m.assignedPlant || m.plantCode,
-            cleanlinessRating: m.cleanlinessRating || m.cleanliness_rating || 0,
-            downInYard: m.downInYard || m.down_in_yard || false,
-            id: m.id,
-            lastServiceDate: m.lastServiceDate,
-            plantCode: m.assignedPlant || m.plantCode,
-            status: m.status,
-            truckNumber: m.truckNumber || m.truck_number || '',
-            updatedAt: m.updatedAt,
-            updatedBy: m.updatedBy,
-            updatedLast: m.updatedLast,
-            vin: m.vin || ''
-        }),
-        []
-    )
-    const slimTractor = useCallback(
-        (t) => ({
-            assignedOperator: t.assignedOperator,
-            assignedPlant: t.assignedPlant || t.plantCode,
-            id: t.id,
-            lastServiceDate: t.lastServiceDate,
-            plantCode: t.assignedPlant || t.plantCode,
-            status: t.status,
-            truckNumber: t.truckNumber || t.truck_number || '',
-            updatedAt: t.updatedAt,
-            updatedBy: t.updatedBy,
-            updatedLast: t.updatedLast,
-            vin: t.vin || ''
-        }),
-        []
-    )
-    const slimTrailer = useCallback(
-        (t) => ({
-            assignedPlant: t.assignedPlant || t.plantCode,
-            id: t.id,
-            identifyingNumber: t.trailerNumber || t.trailer_number || t.truck_number || t.asset_number || '',
-            lastServiceDate: t.lastServiceDate,
-            plantCode: t.assignedPlant || t.plantCode,
-            status: t.status
-        }),
-        []
-    )
-    const slimEquipment = useCallback(
-        (e) => ({
-            assignedPlant: e.assignedPlant || e.plantCode,
-            id: e.id,
-            identifyingNumber: e.identifyingNumber || e.identifying_number || e.asset_number || e.truck_number || '',
-            lastServiceDate: e.lastServiceDate,
-            plantCode: e.assignedPlant || e.plantCode,
-            status: e.status
-        }),
-        []
-    )
-    const slimPickup = useCallback(
-        (p) => ({ id: p.id, plantCode: p.assignedPlant || p.plantCode, status: p.status }),
-        []
-    )
-    const slimOperator = useCallback(
-        (o) => ({
-            employeeId: o.employeeId,
-            id: o.id,
-            plantCode: o.plantCode,
-            status: o.status
-        }),
-        []
-    )
-
-    const isServiceOverdue = (date) => {
-        if (!date) return false
-        const diff = Math.ceil((Date.now() - new Date(date).getTime()) / 86400000)
-        return diff > 180
-    }
-
-    const calculateStatusDistribution = useCallback(
-        (assets, historyRecords, filterStartDate = null, filterEndDate = null) => {
-            const statusDaysMap = {}
-            let totalDays = 0
-
-            const normalizeDate = (dateStr, endOfDay = false) => {
-                if (!dateStr) return null
-                const parts = dateStr.split('-')
-                if (endOfDay) {
-                    return new Date(
-                        Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999)
-                    )
-                }
-                return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0))
-            }
-
-            const rangeStart = filterStartDate ? normalizeDate(filterStartDate, false) : null
-            const rangeEnd = filterEndDate ? normalizeDate(filterEndDate, true) : new Date()
-
-            if (rangeEnd) {
-                let earliestDataDate = null
-
-                if (historyRecords.length > 0) {
-                    earliestDataDate = historyRecords
-                        .filter((h) => h.changed_at)
-                        .map((h) => new Date(h.changed_at))
-                        .sort((a, b) => a - b)[0]
-                }
-
-                const earliestAssetCreationDate = assets
-                    .map((a) => a.createdAt || a.created_at)
-                    .filter((d) => d)
-                    .map((d) => new Date(d))
-                    .sort((a, b) => a - b)[0]
-
-                if (earliestAssetCreationDate) {
-                    if (!earliestDataDate || earliestAssetCreationDate < earliestDataDate) {
-                        earliestDataDate = earliestAssetCreationDate
-                    }
-                }
-
-                if (earliestDataDate && rangeEnd < earliestDataDate) {
-                    return []
-                }
-            }
-
-            assets.forEach((asset) => {
-                let assetHistory = historyRecords
-                    .filter(
-                        (h) =>
-                            h.mixer_id === asset.id ||
-                            h.tractor_id === asset.id ||
-                            h.trailer_id === asset.id ||
-                            h.equipment_id === asset.id ||
-                            h.truck_id === asset.id
-                    )
-                    .filter((h) => h.field_name === 'status')
-                    .sort((a, b) => new Date(a.changed_at) - new Date(b.changed_at))
-
-                const currentStatus = asset.status || 'Unknown'
-                const createdAt = asset.createdAt || asset.created_at
-                const assetCreationDate = createdAt ? new Date(createdAt) : null
-
-                if (assetCreationDate && rangeEnd && assetCreationDate > rangeEnd) {
-                    return
-                }
-
-                const earliestAssetHistory = assetHistory.length > 0 ? new Date(assetHistory[0].changed_at) : null
-
-                if (earliestAssetHistory && rangeEnd && earliestAssetHistory > rangeEnd) {
-                    return
-                }
-
-                if (!earliestAssetHistory && rangeEnd && rangeEnd < new Date()) {
-                    return
-                }
-
-                let effectiveStart = rangeStart
-                    ? assetCreationDate && assetCreationDate > rangeStart
-                        ? assetCreationDate
-                        : rangeStart
-                    : assetCreationDate || new Date()
-
-                if (earliestAssetHistory && assetHistory.length > 0 && effectiveStart < earliestAssetHistory) {
-                    effectiveStart = earliestAssetHistory
-                }
-
-                const effectiveEnd = rangeEnd
-
-                if (effectiveStart > effectiveEnd) {
-                    return
-                }
-
-                let startingStatus = currentStatus
-                let endingStatus = currentStatus
-
-                if (assetHistory.length > 0) {
-                    if (rangeStart) {
-                        const recordsBeforeOrAtStart = assetHistory.filter((h) => new Date(h.changed_at) <= rangeStart)
-                        if (recordsBeforeOrAtStart.length > 0) {
-                            const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1]
-                            startingStatus = lastRecordBeforeStart.new_value || currentStatus
-                        } else if (assetHistory.length > 0) {
-                            startingStatus = assetHistory[0].old_value || currentStatus
-                        }
-                    }
-
-                    if (rangeEnd) {
-                        const recordsBeforeOrAtEnd = assetHistory.filter((h) => new Date(h.changed_at) <= rangeEnd)
-                        if (recordsBeforeOrAtEnd.length > 0) {
-                            const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1]
-                            endingStatus = lastRecordBeforeEnd.new_value || currentStatus
-                        } else if (assetHistory.length > 0) {
-                            endingStatus = assetHistory[0].old_value || currentStatus
-                        }
-                    }
-                }
-
-                const recordsInRange =
-                    rangeStart && rangeEnd
-                        ? assetHistory.filter((h) => {
-                              const changedAt = new Date(h.changed_at)
-                              return changedAt > rangeStart && changedAt <= rangeEnd
-                          })
-                        : assetHistory
-
-                if (recordsInRange.length === 0) {
-                    const days = Math.max(1, Math.round((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)))
-                    statusDaysMap[startingStatus] = (statusDaysMap[startingStatus] || 0) + days
-                    totalDays += days
-                } else {
-                    let previousStatus = startingStatus
-                    let previousDate = effectiveStart
-
-                    recordsInRange.forEach((historyEntry) => {
-                        const changeDate = new Date(historyEntry.changed_at)
-                        const daysDiff = Math.round((changeDate - previousDate) / (1000 * 60 * 60 * 24))
-
-                        if (daysDiff > 0) {
-                            statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + daysDiff
-                            totalDays += daysDiff
-                        }
-
-                        previousStatus = historyEntry.new_value || endingStatus
-                        previousDate = changeDate
-                    })
-
-                    const finalDays = Math.round((effectiveEnd - previousDate) / (1000 * 60 * 60 * 24))
-                    if (finalDays > 0) {
-                        statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + finalDays
-                        totalDays += finalDays
-                    }
-                }
-            })
-
-            if (totalDays === 0) totalDays = 1
-
-            const entries = Object.entries(statusDaysMap)
-                .filter(([status]) => status !== 'Retired')
-                .map(([status, days]) => ({
-                    days,
-                    percentage: ((days / totalDays) * 100).toFixed(1),
-                    status
-                }))
-                .sort((a, b) => b.days - a.days)
-
-            if (entries.length > 0) {
-                const sum = entries.reduce((acc, item) => acc + parseFloat(item.percentage), 0)
-                if (sum < 100) {
-                    const diff = (100 - sum).toFixed(1)
-                    entries[entries.length - 1].percentage = (
-                        parseFloat(entries[entries.length - 1].percentage) + parseFloat(diff)
-                    ).toFixed(1)
-                }
-            }
-
-            return entries
-        },
-        []
-    )
-
     const computeStats = useCallback(() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
         const isOffice = region?.type === 'Office'
@@ -472,7 +216,7 @@ export default function DashboardView() {
                 if (m.status === 'Active') mixersTotals.active++
                 else if (m.status === 'Spare') mixersTotals.spare++
                 else if (m.status === 'In Shop') mixersTotals.shop++
-                if (isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
+                if (DashboardUtility.isServiceOverdue(m.lastServiceDate)) mixersTotals.overdue++
                 if (m.status !== 'Retired' && VerifiedUtility.isVerified(m.updatedLast, m.updatedAt, m.updatedBy))
                     mixersTotals.verified++
                 if (m.assignedOperator) mixerAssignedIds.add(m.assignedOperator)
@@ -492,7 +236,7 @@ export default function DashboardView() {
             if (t.status === 'Active') tractorsTotals.active++
             else if (t.status === 'Spare') tractorsTotals.spare++
             else if (t.status === 'In Shop') tractorsTotals.shop++
-            if (isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
+            if (DashboardUtility.isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
             if (t.status !== 'Retired' && VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy))
                 tractorsTotals.verified++
             if (t.assignedOperator) tractorAssignedIds.add(t.assignedOperator)
@@ -511,7 +255,7 @@ export default function DashboardView() {
             if (r.status === 'Active') trailersTotals.active++
             else if (r.status === 'Spare') trailersTotals.spare++
             else if (r.status === 'In Shop') trailersTotals.shop++
-            if (isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
+            if (DashboardUtility.isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
             const rc = counts.trailers[r.id]
             if (rc) {
                 trailersTotals.issues += rc.issues || 0
@@ -527,7 +271,7 @@ export default function DashboardView() {
             if (e.status === 'Active') equipmentTotals.active++
             else if (e.status === 'Spare') equipmentTotals.spare++
             else if (e.status === 'In Shop') equipmentTotals.shop++
-            if (isServiceOverdue(e.lastServiceDate)) equipmentTotals.overdue++
+            if (DashboardUtility.isServiceOverdue(e.lastServiceDate)) equipmentTotals.overdue++
             const ec = counts.equipment[e.id]
             if (ec) {
                 equipmentTotals.issues += ec.issues || 0
@@ -920,12 +664,12 @@ export default function DashboardView() {
                     if (raw) {
                         const parsed = JSON.parse(raw)
                         if (parsed && now - (parsed.savedAt || 0) < CACHE_TTL_MS) {
-                            allMixersRef.current = (parsed.mixers || []).map(slimMixer)
-                            allTractorsRef.current = (parsed.tractors || []).map(slimTractor)
-                            allTrailersRef.current = (parsed.trailers || []).map(slimTrailer)
-                            allEquipmentRef.current = (parsed.equipment || []).map(slimEquipment)
-                            allPickupsRef.current = (parsed.pickups || []).map(slimPickup)
-                            allOperatorsRef.current = (parsed.operators || []).map(slimOperator)
+                            allMixersRef.current = (parsed.mixers || []).map(DashboardUtility.slimMixer)
+                            allTractorsRef.current = (parsed.tractors || []).map(DashboardUtility.slimTractor)
+                            allTrailersRef.current = (parsed.trailers || []).map(DashboardUtility.slimTrailer)
+                            allEquipmentRef.current = (parsed.equipment || []).map(DashboardUtility.slimEquipment)
+                            allPickupsRef.current = (parsed.pickups || []).map(DashboardUtility.slimPickup)
+                            allOperatorsRef.current = (parsed.operators || []).map(DashboardUtility.slimOperator)
                             computeStats()
                             setLastUpdated(
                                 parsed.lastUpdated ? new Date(parsed.lastUpdated) : new Date(parsed.savedAt || now)
@@ -947,13 +691,13 @@ export default function DashboardView() {
                     OperatorService.getAllOperators().catch(() => [])
                 ])
                 if (cancelled) return
-                allMixersRef.current = mix.map(slimMixer)
-                allTractorsRef.current = trac.map(slimTractor)
-                allTrailersRef.current = trail.map(slimTrailer)
-                allEquipmentRef.current = equip.map(slimEquipment)
-                allPickupsRef.current = pick.map(slimPickup)
+                allMixersRef.current = mix.map(DashboardUtility.slimMixer)
+                allTractorsRef.current = trac.map(DashboardUtility.slimTractor)
+                allTrailersRef.current = trail.map(DashboardUtility.slimTrailer)
+                allEquipmentRef.current = equip.map(DashboardUtility.slimEquipment)
+                allPickupsRef.current = pick.map(DashboardUtility.slimPickup)
                 allOperatorsFullRef.current = ops
-                allOperatorsRef.current = ops.map(slimOperator)
+                allOperatorsRef.current = ops.map(DashboardUtility.slimOperator)
                 const byId = new Map(ops.map((o) => [o.employeeId, o]))
                 const training = ops
                     .filter((o) => o.status === 'Training')
@@ -1025,7 +769,7 @@ export default function DashboardView() {
         return () => {
             cancelled = true
         }
-    }, [refreshKey, computeStats, slimMixer, slimTractor, slimTrailer, slimEquipment, slimPickup, slimOperator])
+    }, [refreshKey, computeStats])
 
     useEffect(() => {
         applyFilters()
@@ -1168,7 +912,12 @@ export default function DashboardView() {
 
         const overdueAssets = [
             ...allMixersRef.current
-                .filter((m) => m.status !== 'Retired' && consider(m.plantCode) && isServiceOverdue(m.lastServiceDate))
+                .filter(
+                    (m) =>
+                        m.status !== 'Retired' &&
+                        consider(m.plantCode) &&
+                        DashboardUtility.isServiceOverdue(m.lastServiceDate)
+                )
                 .map((m) => ({
                     id: m.id,
                     identifier: m.truckNumber,
@@ -1177,7 +926,12 @@ export default function DashboardView() {
                     type: 'Mixer'
                 })),
             ...allTractorsRef.current
-                .filter((t) => t.status !== 'Retired' && consider(t.plantCode) && isServiceOverdue(t.lastServiceDate))
+                .filter(
+                    (t) =>
+                        t.status !== 'Retired' &&
+                        consider(t.plantCode) &&
+                        DashboardUtility.isServiceOverdue(t.lastServiceDate)
+                )
                 .map((t) => ({
                     id: t.id,
                     identifier: t.truckNumber,
@@ -1186,7 +940,12 @@ export default function DashboardView() {
                     type: 'Tractor'
                 })),
             ...allTrailersRef.current
-                .filter((t) => t.status !== 'Retired' && consider(t.plantCode) && isServiceOverdue(t.lastServiceDate))
+                .filter(
+                    (t) =>
+                        t.status !== 'Retired' &&
+                        consider(t.plantCode) &&
+                        DashboardUtility.isServiceOverdue(t.lastServiceDate)
+                )
                 .map((t) => ({
                     id: t.id,
                     identifier: t.identifyingNumber,
@@ -1195,7 +954,12 @@ export default function DashboardView() {
                     type: 'Trailer'
                 })),
             ...allEquipmentRef.current
-                .filter((e) => e.status !== 'Retired' && consider(e.plantCode) && isServiceOverdue(e.lastServiceDate))
+                .filter(
+                    (e) =>
+                        e.status !== 'Retired' &&
+                        consider(e.plantCode) &&
+                        DashboardUtility.isServiceOverdue(e.lastServiceDate)
+                )
                 .map((e) => ({
                     id: e.id,
                     identifier: e.identifyingNumber,
@@ -1472,67 +1236,21 @@ export default function DashboardView() {
         }
     }, [dataReady, dashboardPlant, dashboardRegionCode])
 
-    const AI_CACHE_KEY = 'srm_plant_ai_summaries'
-    const AI_CACHE_DURATION = 24 * 60 * 60 * 1000
     const [forceRegenerateAI, setForceRegenerateAI] = useState(0)
-
-    const getAISummaryFromCache = useCallback((plantCode) => {
-        try {
-            const cached = localStorage.getItem(AI_CACHE_KEY)
-            if (!cached) return null
-            const cacheData = JSON.parse(cached)
-            const plantCache = cacheData[plantCode]
-            if (!plantCache) return null
-            if (Date.now() - plantCache.timestamp > AI_CACHE_DURATION) {
-                return null
-            }
-            return plantCache.summary
-        } catch {
-            return null
-        }
-    }, [])
-
-    const setAISummaryToCache = useCallback((plantCode, summary) => {
-        try {
-            const cached = localStorage.getItem(AI_CACHE_KEY)
-            const cacheData = cached ? JSON.parse(cached) : {}
-            cacheData[plantCode] = {
-                summary,
-                timestamp: Date.now()
-            }
-            localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cacheData))
-        } catch (err) {
-            console.error('Error caching AI summary:', err)
-        }
-    }, [])
-
-    const clearAISummaryCache = useCallback((plantCode) => {
-        try {
-            const cached = localStorage.getItem(AI_CACHE_KEY)
-            if (!cached) return
-            const cacheData = JSON.parse(cached)
-            if (cacheData[plantCode]) {
-                delete cacheData[plantCode]
-                localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cacheData))
-            }
-        } catch (err) {
-            console.error('Error clearing AI cache:', err)
-        }
-    }, [])
 
     const handleRegenerateAISummary = useCallback(() => {
         if (!dashboardPlant) return
-        clearAISummaryCache(dashboardPlant)
+        DashboardUtility.clearAISummaryCache(dashboardPlant)
         setPlantNotifications((prev) => ({ ...prev, aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false }))
         setForceRegenerateAI((prev) => prev + 1)
-    }, [dashboardPlant, clearAISummaryCache])
+    }, [dashboardPlant])
 
     useEffect(() => {
         if (!plantNotifications.leaderboardMetrics || !dashboardPlant) return
 
         const skipCache = forceRegenerateAI > 0
         if (!skipCache) {
-            const cachedSummary = getAISummaryFromCache(dashboardPlant)
+            const cachedSummary = DashboardUtility.getAISummaryFromCache(dashboardPlant)
             if (cachedSummary) {
                 setPlantNotifications((prev) => ({
                     ...prev,
@@ -1598,7 +1316,7 @@ export default function DashboardView() {
 
                 if (!cancelled) {
                     if (summary) {
-                        setAISummaryToCache(dashboardPlant, summary)
+                        DashboardUtility.setAISummaryToCache(dashboardPlant, summary)
                         setPlantNotifications((prev) => ({
                             ...prev,
                             aiSummary: summary,
@@ -1646,8 +1364,6 @@ export default function DashboardView() {
         plantNotifications.leaderboardMetrics,
         plantNotifications.totalOpenIssues,
         plantNotifications.totalResolvedIssues,
-        getAISummaryFromCache,
-        setAISummaryToCache,
         forceRegenerateAI
     ])
 
@@ -1821,31 +1537,31 @@ export default function DashboardView() {
             const startFilter = historyStartDate || oldestDateStr
             const endFilter = historyEndDate || todayStr
 
-            const mixersData = calculateStatusDistribution(
+            const mixersData = DashboardUtility.calculateStatusDistribution(
                 filteredMixers,
                 mixersHist.data || [],
                 startFilter,
                 endFilter
             )
-            const tractorsData = calculateStatusDistribution(
+            const tractorsData = DashboardUtility.calculateStatusDistribution(
                 filteredTractors,
                 tractorsHist.data || [],
                 startFilter,
                 endFilter
             )
-            const trailersData = calculateStatusDistribution(
+            const trailersData = DashboardUtility.calculateStatusDistribution(
                 filteredTrailers,
                 trailersHist.data || [],
                 startFilter,
                 endFilter
             )
-            const equipmentData = calculateStatusDistribution(
+            const equipmentData = DashboardUtility.calculateStatusDistribution(
                 filteredEquipment,
                 equipmentHist.data || [],
                 startFilter,
                 endFilter
             )
-            const pickupsData = calculateStatusDistribution(
+            const pickupsData = DashboardUtility.calculateStatusDistribution(
                 filteredPickups,
                 pickupsHist.data || [],
                 startFilter,
@@ -1861,15 +1577,7 @@ export default function DashboardView() {
             })
             setHistoryLoaded(true)
         } catch (err) {}
-    }, [
-        calculateStatusDistribution,
-        dashboardRegionCode,
-        dashboardPlant,
-        allPlants,
-        regionPlants,
-        historyStartDate,
-        historyEndDate
-    ])
+    }, [dashboardRegionCode, dashboardPlant, allPlants, regionPlants, historyStartDate, historyEndDate])
 
     useEffect(() => {
         if (!loading && dataReady && allMixersRef.current.length > 0) {
@@ -1926,31 +1634,31 @@ export default function DashboardView() {
             )
             const filteredPickups = allPickupsRef.current.filter((p) => p.status !== 'Retired' && consider(p.plantCode))
 
-            const mixersData = calculateStatusDistribution(
+            const mixersData = DashboardUtility.calculateStatusDistribution(
                 filteredMixers,
                 historyRecordsRef.current.mixers,
                 validatedStartDate,
                 validatedEndDate
             )
-            const tractorsData = calculateStatusDistribution(
+            const tractorsData = DashboardUtility.calculateStatusDistribution(
                 filteredTractors,
                 historyRecordsRef.current.tractors,
                 validatedStartDate,
                 validatedEndDate
             )
-            const trailersData = calculateStatusDistribution(
+            const trailersData = DashboardUtility.calculateStatusDistribution(
                 filteredTrailers,
                 historyRecordsRef.current.trailers,
                 validatedStartDate,
                 validatedEndDate
             )
-            const equipmentData = calculateStatusDistribution(
+            const equipmentData = DashboardUtility.calculateStatusDistribution(
                 filteredEquipment,
                 historyRecordsRef.current.equipment,
                 validatedStartDate,
                 validatedEndDate
             )
-            const pickupsData = calculateStatusDistribution(
+            const pickupsData = DashboardUtility.calculateStatusDistribution(
                 filteredPickups,
                 historyRecordsRef.current.pickups,
                 validatedStartDate,
@@ -1965,15 +1673,7 @@ export default function DashboardView() {
                 trailers: trailersData
             })
         }
-    }, [
-        historyStartDate,
-        historyEndDate,
-        calculateStatusDistribution,
-        dashboardRegionCode,
-        dashboardPlant,
-        regionPlants,
-        allPlants
-    ])
+    }, [historyStartDate, historyEndDate, dashboardRegionCode, dashboardPlant, regionPlants, allPlants])
 
     const handleQuickDateFilter = (filter) => {
         const today = new Date()
