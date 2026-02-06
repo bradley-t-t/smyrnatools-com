@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [6.7] - 2026-02-06
+
+- Added dynamic statistics display for assets, operators, and plants on the login screen in `src/views/login/LoginView.jsx`.
+- Implemented data fetching from Supabase for counts of mixers, tractors, trailers, heavy equipment, operators, and plants in `LoginView.jsx`.
+- Introduced animated number transitions for displaying statistics with a smooth easing effect over 2 seconds in `LoginView.jsx`.
+- Enhanced UI styling for input fields and labels with focus states and transitions in `LoginView.jsx`.
+- Updated layout and design of the login page with new styles for logo, text, and overall structure in `LoginView.jsx`.
+
 ## [6.6] - 2026-02-06
 
 - Simplified error handling in `setAISummaryToCache` and `clearAISummaryCache` functions by removing explicit `return` statements in catch blocks in `src/utils/DashboardUtility.js`.

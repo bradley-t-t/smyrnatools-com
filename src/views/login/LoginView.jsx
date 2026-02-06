@@ -24,6 +24,71 @@ function LoginView() {
     const timeoutRef = useRef(null)
     const [showRecovery, setShowRecovery] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [focusedField, setFocusedField] = useState(null)
+    const [animatedStats, setAnimatedStats] = useState({ assets: 0, operators: 0, plants: 0 })
+    const [targetStats, setTargetStats] = useState({ assets: 0, operators: 0, plants: 0 })
+
+    useEffect(() => {
+        async function fetchStats() {
+            try {
+                const [mixersRes, tractorsRes, trailersRes, equipmentRes, operatorsRes, plantsRes] = await Promise.all([
+                    supabase.from('mixers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
+                    supabase.from('tractors').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
+                    supabase.from('trailers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
+                    supabase
+                        .from('heavy_equipment')
+                        .select('*', { count: 'exact', head: true })
+                        .neq('status', 'Retired'),
+                    supabase
+                        .from('operators')
+                        .select('*', { count: 'exact', head: true })
+                        .in('status', ['Active', 'Training', 'Light Duty']),
+                    supabase.from('plants').select('*', { count: 'exact', head: true })
+                ])
+
+                const totalAssets =
+                    (mixersRes.count || 0) +
+                    (tractorsRes.count || 0) +
+                    (trailersRes.count || 0) +
+                    (equipmentRes.count || 0)
+                const totalOperators = operatorsRes.count || 0
+                const totalPlants = plantsRes.count || 0
+
+                setTargetStats({ assets: totalAssets, operators: totalOperators, plants: totalPlants })
+            } catch {
+                setTargetStats({ assets: 0, operators: 0, plants: 0 })
+            }
+        }
+        fetchStats()
+    }, [])
+
+    useEffect(() => {
+        if (targetStats.assets === 0 && targetStats.operators === 0 && targetStats.plants === 0) return
+
+        const duration = 2000
+        const steps = 60
+        const interval = duration / steps
+        let step = 0
+
+        const timer = setInterval(() => {
+            step++
+            const progress = step / steps
+            const eased = 1 - Math.pow(1 - progress, 3)
+
+            setAnimatedStats({
+                assets: Math.round(targetStats.assets * eased),
+                operators: Math.round(targetStats.operators * eased),
+                plants: Math.round(targetStats.plants * eased)
+            })
+
+            if (step >= steps) {
+                clearInterval(timer)
+                setAnimatedStats(targetStats)
+            }
+        }, interval)
+
+        return () => clearInterval(timer)
+    }, [targetStats])
 
     useEffect(() => {
         return () => {
@@ -192,244 +257,423 @@ function LoginView() {
         return <PasswordRecoveryView onBackToLogin={() => setShowRecovery(false)} />
     }
 
+    const inputStyle = (isFocused) => ({
+        background: '#fff',
+        border: 'none',
+        borderBottom: `2px solid ${isFocused ? '#1e3a5f' : '#e2e8f0'}`,
+        borderRadius: 0,
+        color: '#1e293b',
+        fontSize: '1rem',
+        outline: 'none',
+        padding: '1rem 0 0.75rem 0',
+        transition: 'border-color 0.2s',
+        width: '100%'
+    })
+
+    const labelStyle = (isFocused, hasValue) => ({
+        color: isFocused ? '#1e3a5f' : '#94a3b8',
+        fontSize: isFocused || hasValue ? '0.7rem' : '0.9rem',
+        fontWeight: 500,
+        left: 0,
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: isFocused || hasValue ? '0' : '1rem',
+        transition: 'all 0.2s'
+    })
+
     return (
-        <div className="min-h-screen flex relative overflow-hidden">
+        <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
             <VideoBackground />
             <VersionPopup version={version} />
 
-            <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-12">
-                <div className="max-w-lg text-center">
-                    <div className="mb-8 inline-flex items-center justify-center w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl">
-                        <img src={SrmLogo} alt="SRM" className="h-20 w-20 object-contain" />
+            <div
+                style={{
+                    alignItems: 'stretch',
+                    display: 'flex',
+                    height: '100vh',
+                    position: 'relative',
+                    width: '100%',
+                    zIndex: 10
+                }}
+            >
+                <div
+                    style={{
+                        alignItems: 'center',
+                        display: 'none',
+                        flex: 1,
+                        justifyContent: 'center',
+                        padding: '3rem',
+                        position: 'relative'
+                    }}
+                    className="lg-show"
+                >
+                    <div style={{ maxWidth: '480px', position: 'relative', zIndex: 2 }}>
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                background: 'rgba(255,255,255,0.1)',
+                                borderRadius: '16px',
+                                display: 'inline-flex',
+                                height: '72px',
+                                justifyContent: 'center',
+                                marginBottom: '2rem',
+                                width: '72px'
+                            }}
+                        >
+                            <img src={SrmLogo} alt="SRM" style={{ height: '44px', width: '44px' }} />
+                        </div>
+                        <h1
+                            style={{
+                                color: '#fff',
+                                fontSize: '3rem',
+                                fontWeight: 800,
+                                letterSpacing: '-0.03em',
+                                lineHeight: 1.1,
+                                margin: '0 0 1rem 0'
+                            }}
+                        >
+                            Smyrna
+                            <br />
+                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>Ready Mix</span>
+                        </h1>
+                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', lineHeight: 1.6, margin: 0 }}>
+                            Fleet management and operations platform for concrete delivery excellence.
+                        </p>
+                        <div
+                            style={{
+                                borderTop: '1px solid rgba(255,255,255,0.15)',
+                                display: 'flex',
+                                gap: '2rem',
+                                marginTop: '3rem',
+                                paddingTop: '2rem'
+                            }}
+                        >
+                            <div>
+                                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
+                                    {animatedStats.assets > 0 ? animatedStats.assets : '-'}
+                                </div>
+                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Fleet Assets</div>
+                            </div>
+                            <div>
+                                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
+                                    {animatedStats.plants > 0 ? animatedStats.plants : '-'}
+                                </div>
+                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Plants</div>
+                            </div>
+                            <div>
+                                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
+                                    {animatedStats.operators > 0 ? animatedStats.operators : '-'}
+                                </div>
+                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Operators</div>
+                            </div>
+                        </div>
                     </div>
-                    <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">Smyrna Tools</h1>
-                    <p className="text-xl text-white/80 leading-relaxed">Concrete Region Management System</p>
                 </div>
-            </div>
 
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 relative z-10">
-                <div className="w-full max-w-md">
-                    <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-                        <div className="lg:hidden bg-[#1e3a5f] p-6 text-center">
-                            <img src={SrmLogo} alt="SRM" className="h-14 mx-auto mb-2" />
-                            <h1 className="text-lg font-bold text-white">Smyrna Tools</h1>
+                <div
+                    style={{
+                        alignItems: 'center',
+                        background: '#fff',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        minWidth: '480px',
+                        padding: '3rem',
+                        width: '480px'
+                    }}
+                    className="login-panel"
+                >
+                    <div style={{ maxWidth: '340px', width: '100%' }}>
+                        <div className="lg-hide" style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                            <img src={SrmLogo} alt="SRM" style={{ height: '48px', marginBottom: '0.5rem' }} />
+                            <div style={{ color: '#1e3a5f', fontSize: '1.25rem', fontWeight: 700 }}>Smyrna Tools</div>
                         </div>
 
-                        <div className="p-8">
-                            <div className="text-center mb-8 hidden lg:block">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                    {isSignUp ? 'Create Account' : 'Welcome Back'}
-                                </h2>
-                                <p className="text-slate-500">
-                                    {isSignUp ? 'Join the SRM team today' : 'Sign in to access your dashboard'}
-                                </p>
-                            </div>
+                        <div style={{ marginBottom: '2.5rem' }}>
+                            <h2
+                                style={{
+                                    color: '#1e293b',
+                                    fontSize: '1.5rem',
+                                    fontWeight: 700,
+                                    margin: '0 0 0.5rem 0'
+                                }}
+                            >
+                                {isSignUp ? 'Create account' : 'Welcome back'}
+                            </h2>
+                            <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
+                                {isSignUp ? 'Join the team' : 'Enter your credentials to continue'}
+                            </p>
+                        </div>
 
-                            <div className="relative flex bg-slate-100 rounded-xl p-1.5 mb-8">
-                                <button
-                                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 z-10 ${!isSignUp ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
-                                    onClick={() => setIsSignUp(false)}
-                                    type="button"
-                                >
-                                    Sign In
-                                </button>
-                                <button
-                                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 z-10 ${isSignUp ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
-                                    onClick={() => setIsSignUp(true)}
-                                    type="button"
-                                >
-                                    Sign Up
-                                </button>
-                                <div
-                                    className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#1e3a5f] rounded-lg transition-all duration-300 ease-out shadow-lg ${isSignUp ? 'left-[calc(50%+3px)]' : 'left-1.5'}`}
+                        <form onSubmit={handleSubmit} noValidate>
+                            {isSignUp && (
+                                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ flex: 1, position: 'relative' }}>
+                                        <label style={labelStyle(focusedField === 'firstName', firstName)}>
+                                            First name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            onFocus={() => setFocusedField('firstName')}
+                                            onBlur={() => setFocusedField(null)}
+                                            style={inputStyle(focusedField === 'firstName')}
+                                            required
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1, position: 'relative' }}>
+                                        <label style={labelStyle(focusedField === 'lastName', lastName)}>
+                                            Last name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            onFocus={() => setFocusedField('lastName')}
+                                            onBlur={() => setFocusedField(null)}
+                                            style={inputStyle(focusedField === 'lastName')}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
+                                <label style={labelStyle(focusedField === 'email', email)}>Email address</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    onFocus={() => setFocusedField('email')}
+                                    onBlur={() => setFocusedField(null)}
+                                    autoComplete="username"
+                                    style={inputStyle(focusedField === 'email')}
+                                    required
                                 />
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                                {isSignUp && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                                First Name
-                                            </label>
-                                            <div className="relative">
-                                                <i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="John"
-                                                    value={firstName}
-                                                    onChange={(e) => setFirstName(e.target.value)}
-                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                                Last Name
-                                            </label>
-                                            <div className="relative">
-                                                <i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Doe"
-                                                    value={lastName}
-                                                    onChange={(e) => setLastName(e.target.value)}
-                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                        Email Address
-                                    </label>
-                                    <div className="relative">
-                                        <i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        <input
-                                            type="email"
-                                            placeholder="you@example.com"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            autoComplete="username"
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all"
-                                            required
-                                        />
-                                    </div>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <label style={labelStyle(focusedField === 'password', password)}>Password</label>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        onFocus={() => setFocusedField('password')}
+                                        onBlur={() => setFocusedField(null)}
+                                        autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                                        style={{ ...inputStyle(focusedField === 'password'), paddingRight: '2.5rem' }}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            bottom: '0.75rem',
+                                            color: '#94a3b8',
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem',
+                                            padding: 0,
+                                            position: 'absolute',
+                                            right: 0
+                                        }}
+                                    >
+                                        <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
+                                    </button>
                                 </div>
+                            </div>
 
-                                <div>
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <label className="text-sm font-medium text-slate-700">Password</label>
-                                        {!isSignUp && (
-                                            <button
-                                                type="button"
-                                                className="text-sm text-[#1e3a5f] hover:text-[#c41230] font-medium transition-colors"
-                                                onClick={() => setShowRecovery(true)}
-                                            >
-                                                Forgot?
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div className="relative">
-                                        <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        <input
-                                            type={showPassword ? 'text' : 'password'}
-                                            placeholder="Enter your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                                            className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all"
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                                            onClick={() => setShowPassword(!showPassword)}
+                            {isSignUp && password && (
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '0.5rem' }}>
+                                        <div
+                                            style={{
+                                                background: '#e2e8f0',
+                                                borderRadius: '2px',
+                                                flex: 1,
+                                                height: '3px'
+                                            }}
                                         >
-                                            <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {isSignUp && password && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                             <div
-                                                className={`h-full transition-all duration-500 rounded-full ${
-                                                    passwordStrength.value === 'Weak'
-                                                        ? 'bg-red-500 w-1/3'
-                                                        : passwordStrength.value === 'Medium'
-                                                          ? 'bg-amber-500 w-2/3'
-                                                          : passwordStrength.value === 'Strong'
-                                                            ? 'bg-green-500 w-full'
-                                                            : 'w-0'
-                                                }`}
+                                                style={{
+                                                    background: passwordStrength.color,
+                                                    borderRadius: '2px',
+                                                    height: '100%',
+                                                    transition: 'width 0.3s',
+                                                    width:
+                                                        passwordStrength.value === 'Weak'
+                                                            ? '33%'
+                                                            : passwordStrength.value === 'Medium'
+                                                              ? '66%'
+                                                              : passwordStrength.value === 'Strong'
+                                                                ? '100%'
+                                                                : '0%'
+                                                }}
                                             />
                                         </div>
                                         <span
-                                            className="text-xs font-semibold min-w-[60px]"
-                                            style={{ color: passwordStrength.color }}
+                                            style={{
+                                                color: passwordStrength.color,
+                                                fontSize: '0.7rem',
+                                                fontWeight: 600
+                                            }}
                                         >
                                             {passwordStrength.value}
                                         </span>
                                     </div>
-                                )}
+                                </div>
+                            )}
 
-                                {isSignUp && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                            Confirm Password
+                            {isSignUp && (
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <div style={{ position: 'relative' }}>
+                                        <label style={labelStyle(focusedField === 'confirmPassword', confirmPassword)}>
+                                            Confirm password
                                         </label>
-                                        <div className="relative">
-                                            <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                            <input
-                                                type={showPassword ? 'text' : 'password'}
-                                                placeholder="Confirm your password"
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                autoComplete="new-password"
-                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all"
-                                                required
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            onFocus={() => setFocusedField('confirmPassword')}
+                                            onBlur={() => setFocusedField(null)}
+                                            autoComplete="new-password"
+                                            style={inputStyle(focusedField === 'confirmPassword')}
+                                            required
+                                        />
+                                        {confirmPassword && password === confirmPassword && (
+                                            <i
+                                                className="fas fa-check"
+                                                style={{
+                                                    bottom: '0.75rem',
+                                                    color: '#22c55e',
+                                                    position: 'absolute',
+                                                    right: 0
+                                                }}
                                             />
-                                            {confirmPassword && password === confirmPassword && (
-                                                <i className="fas fa-check absolute right-4 top-1/2 -translate-y-1/2 text-green-500" />
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                            )}
 
-                                {errorMessage && (
-                                    <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
-                                        <i className="fas fa-exclamation-circle text-red-500 mt-0.5" />
-                                        <span className="text-sm text-red-700">{errorMessage}</span>
-                                    </div>
-                                )}
+                            {!isSignUp && (
+                                <div style={{ marginBottom: '1.5rem', textAlign: 'right' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRecovery(true)}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#1e3a5f',
+                                            cursor: 'pointer',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 500,
+                                            padding: 0
+                                        }}
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
+                            )}
 
-                                {successMessage && (
-                                    <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-100 rounded-xl">
-                                        <i className="fas fa-check-circle text-green-500 mt-0.5" />
-                                        <span className="text-sm text-green-700">{successMessage}</span>
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className="w-full py-3.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#1e3a5f]/25 hover:shadow-xl hover:shadow-[#1e3a5f]/30 hover:-translate-y-0.5 active:translate-y-0"
-                                    disabled={isSubmitting || loading}
+                            {errorMessage && (
+                                <div
+                                    style={{
+                                        background: '#fef2f2',
+                                        borderLeft: '3px solid #ef4444',
+                                        color: '#dc2626',
+                                        fontSize: '0.85rem',
+                                        marginBottom: '1.5rem',
+                                        padding: '0.75rem 1rem'
+                                    }}
                                 >
-                                    {isSubmitting || loading ? (
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <>
-                                            <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-                                            <i className="fas fa-arrow-right" />
-                                        </>
-                                    )}
-                                </button>
-                            </form>
+                                    {errorMessage}
+                                </div>
+                            )}
 
-                            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-                                <span className="text-sm text-slate-500">
-                                    {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-                                </span>{' '}
-                                <button
-                                    type="button"
-                                    className="text-sm text-[#1e3a5f] hover:text-[#c41230] font-semibold transition-colors"
-                                    onClick={() => setIsSignUp(!isSignUp)}
+                            {successMessage && (
+                                <div
+                                    style={{
+                                        background: '#f0fdf4',
+                                        borderLeft: '3px solid #22c55e',
+                                        color: '#16a34a',
+                                        fontSize: '0.85rem',
+                                        marginBottom: '1.5rem',
+                                        padding: '0.75rem 1rem'
+                                    }}
                                 >
-                                    {isSignUp ? 'Sign In' : 'Sign Up'}
-                                </button>
-                            </div>
+                                    {successMessage}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || loading}
+                                style={{
+                                    background: '#1e3a5f',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    cursor: isSubmitting || loading ? 'not-allowed' : 'pointer',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 600,
+                                    opacity: isSubmitting || loading ? 0.7 : 1,
+                                    padding: '0.875rem 1.5rem',
+                                    transition: 'all 0.15s',
+                                    width: '100%'
+                                }}
+                            >
+                                {isSubmitting || loading ? (
+                                    <span style={{ alignItems: 'center', display: 'inline-flex', gap: '0.5rem' }}>
+                                        <i className="fas fa-circle-notch fa-spin" />
+                                        Processing...
+                                    </span>
+                                ) : isSignUp ? (
+                                    'Create account'
+                                ) : (
+                                    'Sign in'
+                                )}
+                            </button>
+                        </form>
+
+                        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                            <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                            </span>{' '}
+                            <button
+                                type="button"
+                                onClick={() => setIsSignUp(!isSignUp)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#1e3a5f',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    padding: 0
+                                }}
+                            >
+                                {isSignUp ? 'Sign in' : 'Sign up'}
+                            </button>
                         </div>
                     </div>
-
-                    <p className="text-center text-white/50 text-xs mt-6">Version {version} - SRM Concrete</p>
                 </div>
             </div>
+
+            <style>{`
+                @media (min-width: 1024px) {
+                    .lg-show { display: flex !important; }
+                    .lg-hide { display: none !important; }
+                }
+                @media (max-width: 1023px) {
+                    .login-panel { 
+                        width: 100% !important; 
+                        min-width: unset !important;
+                    }
+                }
+                input::placeholder { color: transparent; }
+            `}</style>
         </div>
     )
 }
