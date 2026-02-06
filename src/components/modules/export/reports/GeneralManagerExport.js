@@ -1552,6 +1552,8 @@ async function createWeekSheet(
             addMergedTableHeaders(ws, r, trainingHeaders)
             r++
             allTraining.forEach((t, idx) => {
+                const trainerValue =
+                    t.trainer && typeof t.trainer === 'string' && t.trainer.trim() ? t.trainer : 'Not Assigned'
                 addDataRow(
                     ws,
                     r,
@@ -1559,7 +1561,7 @@ async function createWeekSheet(
                         { align: 'center', value: getPlantName(t.plant) },
                         t.name || '',
                         { align: 'center', value: t.type },
-                        t.trainer || ''
+                        trainerValue
                     ],
                     2,
                     idx % 2 === 1

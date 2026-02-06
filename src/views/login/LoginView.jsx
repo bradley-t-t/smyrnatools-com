@@ -684,6 +684,20 @@ function LoginView() {
                     .login-panel { 
                         width: 100% !important; 
                         min-width: unset !important;
+                        padding: 1.5rem !important;
+                    }
+                }
+                @media (max-width: 480px) {
+                    .login-panel {
+                        padding: 1rem !important;
+                    }
+                    .login-panel > div {
+                        padding: 1.5rem !important;
+                        border-radius: 12px !important;
+                    }
+                    .name-fields {
+                        flex-direction: column !important;
+                        gap: 1rem !important;
                     }
                 }
                 input::placeholder { color: transparent; }
