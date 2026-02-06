@@ -689,11 +689,7 @@ function LoginView() {
                 }
                 @media (max-width: 480px) {
                     .login-panel {
-                        padding: 1rem !important;
-                    }
-                    .login-panel > div {
-                        padding: 1.5rem !important;
-                        border-radius: 12px !important;
+                        padding: 0.75rem !important;
                     }
                     .name-fields {
                         flex-direction: column !important;

@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.0] - 2026-02-06
+
+- Updated padding for `.login-panel` class in `LoginView.jsx` to `0.75rem` at max-width of 480px.
+- Removed specific padding and border-radius styles for `.login-panel > div` at max-width of 480px in `LoginView.jsx`.
+
 ## [6.9] - 2026-02-06
 
 - Updated `GeneralManagerExport.js` to handle trainer field in `createWeekSheet` function by displaying 'Not Assigned' when the trainer value is empty or not a valid string.
