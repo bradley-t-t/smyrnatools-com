@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [6.8] - 2026-02-06
+
+- Added a grid background pattern to the login panel in `src/views/login/LoginView.jsx` using `backgroundImage` with a linear gradient for a subtle grid effect.
+- Enhanced the login panel container styling in `src/views/login/LoginView.jsx` by adding a white background, border radius, box shadow, increased max width to 380px, and padding for a more polished look.
+
 ## [6.7] - 2026-02-06
 
 - Added dynamic statistics display for assets, operators, and plants on the login screen in `src/views/login/LoginView.jsx`.

@@ -374,6 +374,11 @@ function LoginView() {
                     style={{
                         alignItems: 'center',
                         background: '#fff',
+                        backgroundImage: `
+                            linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px)
+                        `,
+                        backgroundSize: '20px 20px',
                         display: 'flex',
                         justifyContent: 'center',
                         minWidth: '480px',
@@ -382,7 +387,16 @@ function LoginView() {
                     }}
                     className="login-panel"
                 >
-                    <div style={{ maxWidth: '340px', width: '100%' }}>
+                    <div
+                        style={{
+                            background: '#fff',
+                            borderRadius: '16px',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+                            maxWidth: '380px',
+                            padding: '2.5rem',
+                            width: '100%'
+                        }}
+                    >
                         <div className="lg-hide" style={{ marginBottom: '2rem', textAlign: 'center' }}>
                             <img src={SrmLogo} alt="SRM" style={{ height: '48px', marginBottom: '0.5rem' }} />
                             <div style={{ color: '#1e3a5f', fontSize: '1.25rem', fontWeight: 700 }}>Smyrna Tools</div>
