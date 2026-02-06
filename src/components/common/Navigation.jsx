@@ -550,13 +550,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     style={{
                         alignItems: 'center',
                         backgroundColor: '#1e3a5f',
-                        backgroundImage: `
-                        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
-                    `,
-                        backgroundSize: '20px 20px',
                         borderBottom: '1px solid rgba(255,255,255,0.08)',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                         display: 'flex',
                         height: '68px',
                         justifyContent: 'space-between',

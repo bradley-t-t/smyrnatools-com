@@ -1042,6 +1042,14 @@ export default function DashboardView() {
                 0% { opacity: 1; transform: translateY(0); }
                 100% { opacity: 0; transform: translateY(-10px); height: 0; padding: 0; margin: 0; overflow: hidden; }
             }
+            @keyframes cursorBlink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+            }
+            @keyframes fadeSlideIn {
+                from { opacity: 0; transform: translateY(8px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
         `
         document.head.appendChild(style)
         return () => document.head.removeChild(style)
@@ -2217,13 +2225,6 @@ export default function DashboardView() {
                 <div
                     style={{
                         backgroundColor: 'white',
-                        backgroundImage: `
-                        linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                        radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
-                    `,
-                        backgroundPosition: '0 0, 0 0, 0 0',
-                        backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                         borderBottom: '1px solid #e2e8f0',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                         padding: '12px 16px',
@@ -2324,7 +2325,7 @@ export default function DashboardView() {
 
                             return (
                                 <div
-                                    className="mb-6 overflow-hidden rounded-2xl bg-white shadow-lg"
+                                    className="mb-6 overflow-hidden rounded-2xl bg-white shadow-md"
                                     style={{ border: '1px solid #e5e7eb' }}
                                 >
                                     <div className="relative overflow-hidden bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] px-6 py-4">
@@ -2333,7 +2334,7 @@ export default function DashboardView() {
                                         <div className="relative flex items-center justify-between">
                                             <div className="flex items-center gap-4">
                                                 <div className="relative">
-                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm">
+                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
                                                         <i className="fas fa-clipboard-check text-white text-xl"></i>
                                                     </div>
                                                     {totalAlerts > 0 && (
@@ -2512,9 +2513,9 @@ export default function DashboardView() {
                                                     <div
                                                         className={`flex items-start gap-2 rounded-lg px-3 py-2 shadow-sm transition-all duration-500 ${
                                                             plantNotifications.aiSummaryFailed
-                                                                ? 'bg-red-50 opacity-100 animate-pulse'
-                                                                : 'bg-white/80 opacity-100'
-                                                        } ${plantNotifications.aiSummaryFailed ? 'animate-fadeOut' : ''}`}
+                                                                ? 'bg-red-50'
+                                                                : 'bg-white/80'
+                                                        }`}
                                                         style={
                                                             plantNotifications.aiSummaryFailed
                                                                 ? { animation: 'fadeOut 0.5s ease-out 2.5s forwards' }
@@ -2542,7 +2543,14 @@ export default function DashboardView() {
                                                                     <>
                                                                         {aiDisplayText}
                                                                         {!isTypingComplete && (
-                                                                            <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-[#1e3a5f]/60"></span>
+                                                                            <span
+                                                                                className="ml-0.5 inline-block h-4 w-0.5 bg-[#1e3a5f]/60"
+                                                                                style={{
+                                                                                    animation:
+                                                                                        'cursorBlink 1s step-end infinite',
+                                                                                    willChange: 'opacity'
+                                                                                }}
+                                                                            ></span>
                                                                         )}
                                                                     </>
                                                                 )}
