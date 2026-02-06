@@ -2225,6 +2225,9 @@ export default function DashboardView() {
                 <div
                     style={{
                         backgroundColor: 'white',
+                        backgroundImage:
+                            'linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px)',
+                        backgroundSize: '20px 20px',
                         borderBottom: '1px solid #e2e8f0',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                         padding: '12px 16px',

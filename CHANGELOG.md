@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [6.4] - 2026-02-06
+
+- Added a grid background effect to the Navigation component in src/components/common/Navigation.jsx using a linear gradient pattern.
+- Added a subtle grid background effect to the dashboard view in src/views/dashboard/DashboardView.jsx with a linear gradient pattern.
+
 ## [6.3] - 2026-02-06
 
 - Updated styling in Navigation.jsx by removing background grid image and adjusting box shadow from '0 4px 20px' to '0 2px 8px' with reduced opacity.
