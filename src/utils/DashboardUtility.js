@@ -270,9 +270,7 @@ const setAISummaryToCache = (plantCode, summary) => {
             timestamp: Date.now()
         }
         localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cacheData))
-    } catch {
-        return
-    }
+    } catch {}
 }
 
 const clearAISummaryCache = (plantCode = null) => {
@@ -287,9 +285,7 @@ const clearAISummaryCache = (plantCode = null) => {
         } else {
             localStorage.removeItem(AI_CACHE_KEY)
         }
-    } catch {
-        return
-    }
+    } catch {}
 }
 
 const getLongTermShopAssets = (assets, history, type, identifierField, considerFn, daysThreshold = 6) => {
@@ -338,7 +334,8 @@ const buildPlantSet = (region, allPlants, regionPlants, dashboardPlant) => {
         if (dashboardPlant) {
             plantSet.add(String(dashboardPlant).trim())
         } else {
-            ;(regionPlants || []).forEach((p) => {
+            const plants = regionPlants || []
+            plants.forEach((p) => {
                 const c = p.plantCode || p.plant_code
                 if (c) plantSet.add(String(c).trim())
             })
