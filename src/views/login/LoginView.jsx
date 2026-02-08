@@ -334,7 +334,7 @@ function LoginView() {
                         >
                             Smyrna
                             <br />
-                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>Ready Mix</span>
+                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>Tools</span>
                         </h1>
                         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', lineHeight: 1.6, margin: 0 }}>
                             Fleet management and operations platform for concrete delivery excellence.

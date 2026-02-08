@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.1] - 2026-02-08
+
+- Updated branding text in LoginView.jsx from "Ready Mix" to "Tools" in the login page header.
+
 ## [7.0] - 2026-02-06
 
 - Updated padding for `.login-panel` class in `LoginView.jsx` to `0.75rem` at max-width of 480px.
