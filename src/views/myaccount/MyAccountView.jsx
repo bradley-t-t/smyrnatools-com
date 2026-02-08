@@ -305,7 +305,7 @@ function MyAccountView({ userId }) {
                     .from('users_profiles')
                     .update({
                         first_name: firstName,
-                        lastName: lastName,
+                        last_name: lastName,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', uid)

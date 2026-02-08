@@ -787,7 +787,38 @@ function TractorsView({
                             }}
                         >
                             <td style={{ ...cellStyle, width: '10%' }}>{plant?.name || item.assignedPlant}</td>
-                            <td style={{ ...cellBoldStyle, width: '12%' }}>{item.truckNumber}</td>
+                            <td style={{ ...cellBoldStyle, width: '12%' }}>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                    {item.truckNumber}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            navigator.clipboard.writeText(item.truckNumber)
+                                            const icon = e.currentTarget.querySelector('i')
+                                            icon.className = 'fas fa-check'
+                                            icon.style.color = '#22c55e'
+                                            setTimeout(() => {
+                                                icon.className = 'fas fa-copy'
+                                                icon.style.color = '#94a3b8'
+                                            }, 1500)
+                                        }}
+                                        title="Copy truck number"
+                                        style={{
+                                            alignItems: 'center',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: '#94a3b8',
+                                            cursor: 'pointer',
+                                            display: 'inline-flex',
+                                            fontSize: '12px',
+                                            padding: '2px'
+                                        }}
+                                    >
+                                        <i className="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 <span style={statusBadge(item.status)}>
                                     {item.status}
@@ -807,7 +838,38 @@ function TractorsView({
                                 </span>
                             </td>
                             <td style={{ ...cellStyle, width: '18%' }}>
-                                {operator?.name || (
+                                {operator?.name ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {operator.name}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(operator.name)
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy operator name"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                ) : (
                                     <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Assigned</span>
                                 )}
                             </td>
@@ -835,7 +897,40 @@ function TractorsView({
                                     width: '16%'
                                 }}
                             >
-                                {item.vinNumber || item.vin || '-'}
+                                {item.vinNumber || item.vin ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {item.vinNumber || item.vin}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(item.vinNumber || item.vin)
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy VIN"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    '-'
+                                )}
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
                                 {item.status === 'Retired' ? (

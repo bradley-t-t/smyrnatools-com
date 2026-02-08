@@ -748,7 +748,42 @@ function EquipmentsView({
                         >
                             <td style={{ ...cellStyle, width: '10%' }}>{item.assignedPlant || '---'}</td>
                             <td style={{ ...cellStyle, width: '15%' }}>{item.equipmentType || '---'}</td>
-                            <td style={{ ...cellBoldStyle, width: '10%' }}>{item.identifyingNumber || '---'}</td>
+                            <td style={{ ...cellBoldStyle, width: '10%' }}>
+                                {item.identifyingNumber ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {item.identifyingNumber}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(item.identifyingNumber)
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy equipment number"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    '---'
+                                )}
+                            </td>
                             <td
                                 style={{
                                     ...cellStyle,

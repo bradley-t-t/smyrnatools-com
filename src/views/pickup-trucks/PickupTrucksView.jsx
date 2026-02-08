@@ -521,11 +521,44 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                                     width: '15%'
                                 }}
                             >
-                                {item.vin || '---'}
-                                {duplicateVINs.has(vinKey) && (
-                                    <span style={warningBadge} title="Duplicate VIN">
-                                        <i className="fas fa-exclamation-triangle"></i>
-                                    </span>
+                                {item.vin ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {item.vin}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(item.vin)
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy VIN"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                        {duplicateVINs.has(vinKey) && (
+                                            <span style={warningBadge} title="Duplicate VIN">
+                                                <i className="fas fa-exclamation-triangle"></i>
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    '---'
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>

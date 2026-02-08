@@ -539,7 +539,6 @@ class AIInsightsServiceClass {
         if (ctx.operatorChanges > 0) {
             parts.push(`Operator Changes: ${ctx.operatorChanges}`)
             parts.push(`Unique Operators Assigned: ${ctx.uniqueOperators}`)
-            if (ctx.operatorChanges > 5) parts.push(`HIGH OPERATOR TURNOVER - investigate why operators keep changing`)
         }
 
         if (ctx.serviceHistory) {

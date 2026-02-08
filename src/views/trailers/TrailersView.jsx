@@ -552,7 +552,42 @@ function TrailersView({
                             }}
                         >
                             <td style={{ ...cellStyle, width: '12%' }}>{item.assignedPlant || '---'}</td>
-                            <td style={{ ...cellBoldStyle, width: '14%' }}>{item.trailerNumber || '---'}</td>
+                            <td style={{ ...cellBoldStyle, width: '14%' }}>
+                                {item.trailerNumber ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {item.trailerNumber}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(item.trailerNumber)
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy trailer number"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    '---'
+                                )}
+                            </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 <span style={statusBadge(item.status)}>
                                     {item.status || '---'}
@@ -589,25 +624,59 @@ function TrailersView({
                                 </div>
                             </td>
                             <td style={{ ...cellStyle, width: '16%' }}>
-                                {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) || '---'}
-                                {LookupUtility.isIdAssignedToMultiple(
-                                    trailers,
-                                    'assignedTractor',
-                                    item.assignedTractor
-                                ) && (
-                                    <span
-                                        style={{
-                                            backgroundColor: '#fef3c7',
-                                            borderRadius: '6px',
-                                            color: '#92400e',
-                                            fontSize: '10px',
-                                            fontWeight: 700,
-                                            marginLeft: '8px',
-                                            padding: '4px 8px'
-                                        }}
-                                    >
-                                        <i className="fas fa-exclamation-triangle"></i>
-                                    </span>
+                                {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor)}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(
+                                                    LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor)
+                                                )
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy tractor number"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                        {LookupUtility.isIdAssignedToMultiple(
+                                            trailers,
+                                            'assignedTractor',
+                                            item.assignedTractor
+                                        ) && (
+                                            <span
+                                                style={{
+                                                    backgroundColor: '#fef3c7',
+                                                    borderRadius: '6px',
+                                                    color: '#92400e',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    padding: '4px 8px'
+                                                }}
+                                            >
+                                                <i className="fas fa-exclamation-triangle"></i>
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    '---'
                                 )}
                             </td>
                             <td
@@ -619,7 +688,40 @@ function TrailersView({
                                     width: '12%'
                                 }}
                             >
-                                {item.vinNumber || item.vin || '---'}
+                                {item.vinNumber || item.vin ? (
+                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                        {item.vinNumber || item.vin}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigator.clipboard.writeText(item.vinNumber || item.vin)
+                                                const icon = e.currentTarget.querySelector('i')
+                                                icon.className = 'fas fa-check'
+                                                icon.style.color = '#22c55e'
+                                                setTimeout(() => {
+                                                    icon.className = 'fas fa-copy'
+                                                    icon.style.color = '#94a3b8'
+                                                }, 1500)
+                                            }}
+                                            title="Copy VIN"
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: '#94a3b8',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                fontSize: '12px',
+                                                padding: '2px'
+                                            }}
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    '---'
+                                )}
                             </td>
                             <td style={{ ...cellStyle, width: '10%' }}>
                                 <div style={{ alignItems: 'center', display: 'flex' }}>

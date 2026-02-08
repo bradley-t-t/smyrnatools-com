@@ -770,9 +770,38 @@ function OperatorsView({
                                                     {operator.plantCode || '\u2014'}
                                                 </td>
                                                 <td style={{ ...cellHighlightStyle, width: '24%' }}>
-                                                    <span className={duplicate ? 'duplicate' : ''}>
-                                                        {operator.name}
-                                                    </span>
+                                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                                        <span className={duplicate ? 'duplicate' : ''}>
+                                                            {operator.name}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                navigator.clipboard.writeText(operator.name)
+                                                                const icon = e.currentTarget.querySelector('i')
+                                                                icon.className = 'fas fa-check'
+                                                                icon.style.color = '#22c55e'
+                                                                setTimeout(() => {
+                                                                    icon.className = 'fas fa-copy'
+                                                                    icon.style.color = '#94a3b8'
+                                                                }, 1500)
+                                                            }}
+                                                            title="Copy name"
+                                                            style={{
+                                                                alignItems: 'center',
+                                                                background: 'transparent',
+                                                                border: 'none',
+                                                                color: '#94a3b8',
+                                                                cursor: 'pointer',
+                                                                display: 'inline-flex',
+                                                                fontSize: '12px',
+                                                                padding: '2px'
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-copy"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                                 <td
                                                     style={{

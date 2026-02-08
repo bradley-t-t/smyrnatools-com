@@ -924,10 +924,7 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
 
                 <button
-                    onClick={() => {
-                        setAiSummary(null)
-                        generateAISummary()
-                    }}
+                    onClick={handleRegenerateAISummary}
                     className="w-full py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
                 >
                     <i className="fas fa-sync-alt text-xs"></i>
