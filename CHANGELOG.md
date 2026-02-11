@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.6] - 2026-02-11
+
+- Added cleanliness rating check in MixerDetailView.jsx to block setting a mixer to "Active" status if cleanliness rating is less than 3 stars.
+- Implemented visual feedback in MixerDetailView.jsx with a warning message and icon when cleanliness rating blocks "Active" status.
+- Disabled the "Active" option in the status dropdown in MixerDetailView.jsx when cleanliness rating is less than 3 stars, with a note indicating the requirement.
+- Added restriction in MixerDetailView.jsx to prevent operator assignment if cleanliness rating is less than 3 stars.
+- Displayed a warning message in MixerDetailView.jsx when cleanliness rating blocks operator assignment, indicating the 3+ stars requirement.
+- Updated button disabled state and styling in MixerDetailView.jsx for operator selection to reflect cleanliness rating restrictions.
+
 ## [7.5] - 2026-02-11
 
 - Added sorting logic to `validAssignments` in `PlanView.jsx` to order assignments numerically by `fromPlant` and then by `toPlant`.

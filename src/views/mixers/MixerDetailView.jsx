@@ -202,6 +202,8 @@ function MixerDetailView({ mixerId, onClose }) {
         )
     }, [plants, regionPlantCodes])
 
+    const isCleanlinessBlocking = cleanlinessRating > 0 && cleanlinessRating < 3
+
     useEffect(() => {
         if (!originalValues.truckNumber || isLoading) return
         const formatDateForComparison = (date) => (date ? (date instanceof Date ? date.toISOString() : date) : '')
@@ -884,6 +886,9 @@ function MixerDetailView({ mixerId, onClose }) {
                                     value={status}
                                     onChange={async (e) => {
                                         const newStatus = e.target.value
+                                        if (isCleanlinessBlocking && newStatus === 'Active') {
+                                            return
+                                        }
                                         if (
                                             assignedOperator &&
                                             originalValues.status === 'Active' &&
@@ -907,11 +912,31 @@ function MixerDetailView({ mixerId, onClose }) {
                                     className="form-control"
                                 >
                                     <option value="">Select Status</option>
-                                    <option value="Active">Active</option>
+                                    <option value="Active" disabled={isCleanlinessBlocking}>
+                                        Active{isCleanlinessBlocking ? ' (Requires 3+ stars)' : ''}
+                                    </option>
                                     <option value="Spare">Spare</option>
                                     <option value="In Shop">In Shop</option>
                                     <option value="Retired">Retired</option>
                                 </select>
+                                {isCleanlinessBlocking && (
+                                    <div
+                                        style={{
+                                            alignItems: 'center',
+                                            background: '#fef3c7',
+                                            borderRadius: '6px',
+                                            color: '#92400e',
+                                            display: 'flex',
+                                            fontSize: '0.8125rem',
+                                            gap: '0.5rem',
+                                            marginTop: '0.5rem',
+                                            padding: '0.5rem 0.75rem'
+                                        }}
+                                    >
+                                        <i className="fas fa-exclamation-triangle"></i>
+                                        <span>Cleanliness must be 3+ stars to set Active status</span>
+                                    </div>
+                                )}
                             </div>
                             {status === 'Spare' && (
                                 <div className="spare-status-note">
@@ -996,15 +1021,15 @@ function MixerDetailView({ mixerId, onClose }) {
                                     <button
                                         className="operator-select-button form-control"
                                         onClick={async () => {
-                                            if (canEditMixer) {
+                                            if (canEditMixer && !isCleanlinessBlocking) {
                                                 await fetchOperatorsForModal()
                                                 setShowOperatorModal(true)
                                             }
                                         }}
                                         type="button"
-                                        disabled={!canEditMixer}
+                                        disabled={!canEditMixer || isCleanlinessBlocking}
                                         style={
-                                            !canEditMixer
+                                            !canEditMixer || isCleanlinessBlocking
                                                 ? {
                                                       backgroundColor: 'var(--bg-secondary)',
                                                       cursor: 'not-allowed',
@@ -1104,6 +1129,24 @@ function MixerDetailView({ mixerId, onClose }) {
                                             )
                                         ))}
                                 </div>
+                                {isCleanlinessBlocking && (
+                                    <div
+                                        style={{
+                                            alignItems: 'center',
+                                            background: '#fef3c7',
+                                            borderRadius: '6px',
+                                            color: '#92400e',
+                                            display: 'flex',
+                                            fontSize: '0.8125rem',
+                                            gap: '0.5rem',
+                                            marginTop: '0.5rem',
+                                            padding: '0.5rem 0.75rem'
+                                        }}
+                                    >
+                                        <i className="fas fa-exclamation-triangle"></i>
+                                        <span>Cleanliness must be 3+ stars to assign an operator</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="form-section maintenance-info">
