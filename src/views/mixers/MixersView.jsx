@@ -633,15 +633,13 @@ function MixersView({
                         return sortDirection === 'asc' ? aOrder - bOrder : bOrder - aOrder
                     }
                     if (
-                        (a.status === 'In Shop' || a.status === 'Spare') &&
-                        (b.status === 'In Shop' || b.status === 'Spare')
+                        (a.status === 'Active' || a.status === 'In Shop' || a.status === 'Spare') &&
+                        (b.status === 'Active' || b.status === 'In Shop' || b.status === 'Spare')
                     ) {
-                        const aDays = a.statusChangedAt
-                            ? Math.floor((Date.now() - new Date(a.statusChangedAt).getTime()) / 86400000)
-                            : 0
-                        const bDays = b.statusChangedAt
-                            ? Math.floor((Date.now() - new Date(b.statusChangedAt).getTime()) / 86400000)
-                            : 0
+                        const aDate = a.statusChangedAt || a.createdAt
+                        const bDate = b.statusChangedAt || b.createdAt
+                        const aDays = aDate ? Math.floor((Date.now() - new Date(aDate).getTime()) / 86400000) : 0
+                        const bDays = bDate ? Math.floor((Date.now() - new Date(bDate).getTime()) / 86400000) : 0
                         if (aDays !== bDays) {
                             return sortDirection === 'asc' ? aDays - bDays : bDays - aDays
                         }

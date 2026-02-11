@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.7] - 2026-02-11
+
+- Updated sorting logic in `MixersView.jsx` to include 'Active' status alongside 'In Shop' and 'Spare' for mixer status comparison.
+- Modified date calculation for sorting in `MixersView.jsx` to fallback to `createdAt` if `statusChangedAt` is not available.
+
 ## [7.6] - 2026-02-11
 
 - Added cleanliness rating check in MixerDetailView.jsx to block setting a mixer to "Active" status if cleanliness rating is less than 3 stars.
