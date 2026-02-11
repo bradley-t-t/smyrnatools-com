@@ -1211,7 +1211,16 @@ function PlanView() {
         setIsGenerating(true)
         setGeneratedMessage('')
 
-        const validAssignments = assignments.filter((a) => a.fromPlant && a.toPlant && a.driverCount > 0)
+        const validAssignments = assignments
+            .filter((a) => a.fromPlant && a.toPlant && a.driverCount > 0)
+            .sort((a, b) => {
+                const fromA = parseInt(String(a.fromPlant).replace(/\D/g, '')) || 0
+                const fromB = parseInt(String(b.fromPlant).replace(/\D/g, '')) || 0
+                if (fromA !== fromB) return fromA - fromB
+                const toA = parseInt(String(a.toPlant).replace(/\D/g, '')) || 0
+                const toB = parseInt(String(b.toPlant).replace(/\D/g, '')) || 0
+                return toA - toB
+            })
 
         if (validAssignments.length === 0) {
             setGeneratedMessage('Please add at least one complete assignment.')
