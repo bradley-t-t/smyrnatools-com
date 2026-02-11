@@ -199,7 +199,19 @@ export default function DashboardView() {
             total: 0,
             verified: 0
         }
-        let trailersTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 }
+        let trailersTotals = {
+            active: 0,
+            comments: 0,
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            trailerType: {
+                Cement: { active: 0, shop: 0, spare: 0, total: 0 },
+                'End Dump': { active: 0, shop: 0, spare: 0, total: 0 }
+            }
+        }
         let equipmentTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 }
         let pickupsTotals = { active: 0, retired: 0, shop: 0, sold: 0, spare: 0, stationary: 0, total: 0 }
         let operatorsTotals = {
@@ -271,6 +283,11 @@ export default function DashboardView() {
             if (r.status !== 'Retired') {
                 trailersTotals.total++
                 trailersAvailable++
+                const tType = r.trailerType === 'End Dump' ? 'End Dump' : 'Cement'
+                trailersTotals.trailerType[tType].total++
+                if (r.status === 'Active') trailersTotals.trailerType[tType].active++
+                else if (r.status === 'Spare') trailersTotals.trailerType[tType].spare++
+                else if (r.status === 'In Shop') trailersTotals.trailerType[tType].shop++
             }
             if (r.status === 'Active') trailersTotals.active++
             else if (r.status === 'Spare') trailersTotals.spare++
@@ -3466,6 +3483,109 @@ export default function DashboardView() {
                                                 {stats.trailers.allocationPercent}% Allocated
                                             </Pill>
                                         </div>
+                                        {stats.trailers.trailerType && (
+                                            <div
+                                                style={{
+                                                    borderTop: '1px solid #e5e7eb',
+                                                    marginTop: '12px',
+                                                    paddingTop: '12px'
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: 'grid',
+                                                        gap: '6px',
+                                                        gridTemplateColumns: 'repeat(2, 1fr)'
+                                                    }}
+                                                >
+                                                    {['Cement', 'End Dump'].map((type) => {
+                                                        const t = stats.trailers.trailerType[type]
+                                                        if (!t || t.total === 0) return null
+                                                        const icon =
+                                                            type === 'Cement' ? 'fa-industry' : 'fa-truck-loading'
+                                                        return (
+                                                            <div
+                                                                key={type}
+                                                                style={{
+                                                                    background: '#f8fafc',
+                                                                    borderRadius: '8px',
+                                                                    padding: '8px',
+                                                                    textAlign: 'center'
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        display: 'flex',
+                                                                        gap: '4px',
+                                                                        justifyContent: 'center',
+                                                                        marginBottom: '4px'
+                                                                    }}
+                                                                >
+                                                                    <i
+                                                                        className={`fas ${icon}`}
+                                                                        style={{ color: '#64748b', fontSize: '10px' }}
+                                                                    ></i>
+                                                                    <span
+                                                                        style={{
+                                                                            color: '#64748b',
+                                                                            fontSize: '10px',
+                                                                            fontWeight: 600
+                                                                        }}
+                                                                    >
+                                                                        {type}
+                                                                    </span>
+                                                                </div>
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        gap: '4px',
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        style={{
+                                                                            background: '#dcfce7',
+                                                                            borderRadius: '4px',
+                                                                            color: '#16a34a',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 600,
+                                                                            padding: '2px 6px'
+                                                                        }}
+                                                                    >
+                                                                        {t.active}
+                                                                    </span>
+                                                                    <span
+                                                                        style={{
+                                                                            background: '#f3e8ff',
+                                                                            borderRadius: '4px',
+                                                                            color: '#9333ea',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 600,
+                                                                            padding: '2px 6px'
+                                                                        }}
+                                                                    >
+                                                                        {t.spare}
+                                                                    </span>
+                                                                    <span
+                                                                        style={{
+                                                                            background: '#ffedd5',
+                                                                            borderRadius: '4px',
+                                                                            color: '#ea580c',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 600,
+                                                                            padding: '2px 6px'
+                                                                        }}
+                                                                    >
+                                                                        {t.shop}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div style={metricCardStyle}>

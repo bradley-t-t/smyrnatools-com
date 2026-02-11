@@ -39,7 +39,8 @@ const slimTrailer = (t) => ({
     identifyingNumber: t.trailerNumber || t.trailer_number || t.truck_number || t.asset_number || '',
     lastServiceDate: t.lastServiceDate,
     plantCode: t.assignedPlant || t.plantCode,
-    status: t.status
+    status: t.status,
+    trailerType: t.trailerType || t.trailer_type || 'Cement'
 })
 
 const slimEquipment = (e) => ({

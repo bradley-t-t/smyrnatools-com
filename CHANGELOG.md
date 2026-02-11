@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.0] - 2026-02-11
+
+- Added `trailerType` field to the `slimTrailer` function in `src/utils/DashboardUtility.js` with a default value of 'Cement' if not specified.
+- Enhanced trailer statistics in `src/views/dashboard/DashboardView.jsx` to track totals by `trailerType`, specifically for 'Cement' and 'End Dump' categories, including counts for active, shop, spare, and total trailers per type.
+- Updated trailer status counting logic in `src/views/dashboard/DashboardView.jsx` to categorize trailers by type ('Cement' or 'End Dump') when updating totals.
+- Added a new UI section in `src/views/dashboard/DashboardView.jsx` to display trailer type statistics for 'Cement' and 'End Dump', with custom icons and formatted counts for each category.
+
 ## [7.9] - 2026-02-11
 
 - Replaced "Verified" percentage pill with "Allocated" percentage pill for mixers in DashboardView.jsx, with conditional background and text color based on allocation percentage thresholds (80% green, 50% yellow, below 50% red).
