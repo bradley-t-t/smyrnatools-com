@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.3] - 2026-02-11
+
+- Updated PlantDropdownModal.jsx to change the onSelect value from 'All' to an empty string ('') when selecting the corresponding option.
+
 ## [7.2] - 2026-02-08
 
 - Updated AI history summary prompt in `src/app/ai/context.json` to focus on overall trends and positive patterns, only flagging excessive changes as concerns (e.g., 20+ assignment changes in under 3 months).
