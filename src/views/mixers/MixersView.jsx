@@ -571,7 +571,7 @@ function MixersView({
                     matchesSearch = truckMatch || operatorMatch || vinMatch
                 }
             }
-            const matchesPlant = !selectedPlant || mixer.assignedPlant === selectedPlant
+            const matchesPlant = !selectedPlant || selectedPlant === 'All' || mixer.assignedPlant === selectedPlant
             const matchesRegion =
                 !regionPlantCodes ||
                 regionPlantCodes.size === 0 ||

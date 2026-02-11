@@ -2,6 +2,20 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.4] - 2026-02-11
+
+- Updated plant code filtering logic in `ListService.js` to exclude 'All' option from filtering condition in `getFilteredItems`.
+- Modified plant selection logic in `FleetUtility.js` to handle 'All' option in `countUnassignedActiveOperators` for active operator counting.
+- Added support for 'All' plant selection in filtering across multiple views:
+  - `EquipmentsView.jsx` for equipment filtering.
+  - `ManagersView.jsx` for manager filtering.
+  - `MixersView.jsx` for mixer filtering.
+  - `OperatorsView.jsx` for operator filtering and equipment assignment checks.
+  - `PickupTrucksView.jsx` for pickup truck filtering.
+  - `ReportsView.jsx` for report filtering.
+  - `TractorsView.jsx` for tractor filtering.
+  - `TrailersView.jsx` for trailer filtering.
+
 ## [7.3] - 2026-02-11
 
 - Updated PlantDropdownModal.jsx to change the onSelect value from 'All' to an empty string ('') when selecting the corresponding option.

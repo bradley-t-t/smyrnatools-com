@@ -264,6 +264,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                 assignedVal.includes(q)
             const matchesPlant =
                 !selectedPlant ||
+                selectedPlant === 'All' ||
                 String(p.assignedPlant || '')
                     .trim()
                     .toUpperCase() === selectedPlant.toUpperCase()

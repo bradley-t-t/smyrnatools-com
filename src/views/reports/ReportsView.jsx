@@ -917,7 +917,7 @@ function ReportsView() {
         reviewableReports.filter(
             (report) => {
                 const reporterPlant = reporterPlantMap[report.userId] || ''
-                const matchPlant = !filterPlant || reporterPlant === filterPlant
+                const matchPlant = !filterPlant || filterPlant === 'All' || reporterPlant === filterPlant
                 const matchRegion =
                     !preferences.selectedRegion?.code ||
                     !regionPlantCodes ||

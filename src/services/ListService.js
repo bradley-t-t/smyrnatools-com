@@ -147,7 +147,7 @@ class ListServiceImpl {
 
     getFilteredItems({ plantCode, searchTerm, showCompleted, statusFilter }) {
         let items = [...this.listItems]
-        if (plantCode) items = items.filter((item) => item.plant_code === plantCode)
+        if (plantCode && plantCode !== 'All') items = items.filter((item) => item.plant_code === plantCode)
         if (searchTerm?.trim()) {
             const term = searchTerm.toLowerCase().trim()
             items = items.filter(

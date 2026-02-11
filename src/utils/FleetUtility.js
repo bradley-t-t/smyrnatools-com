@@ -41,7 +41,7 @@ export function countUnassignedActiveOperators(
     const active = (items || []).filter(
         (it) =>
             it?.status === 'Active' &&
-            (!selectedPlant || it?.[assignedPlantField] === selectedPlant) &&
+            (!selectedPlant || selectedPlant === 'All' || it?.[assignedPlantField] === selectedPlant) &&
             (!regionPlantCodes || regionPlantCodes.has(it?.[assignedPlantField]))
     )
     let count = 0

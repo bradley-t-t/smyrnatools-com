@@ -456,7 +456,7 @@ function EquipmentsView({
                         equipment.equipmentType?.toLowerCase().includes(searchText.toLowerCase())
                 }
             }
-            const matchesPlant = !selectedPlant || equipment.assignedPlant === selectedPlant
+            const matchesPlant = !selectedPlant || selectedPlant === 'All' || equipment.assignedPlant === selectedPlant
             const matchesRegion =
                 !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(equipment.assignedPlant)
             let matchesStatus = true

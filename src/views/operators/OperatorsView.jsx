@@ -351,11 +351,13 @@ function OperatorsView({
         if (positionFilter === 'Mixer') eqs = mixers
         else if (positionFilter === 'Tractor') eqs = tractors
         else eqs = mixers.concat(tractors)
-        eqs.filter((eq) => eq.status === 'Active' && (!selectedPlant || eq.assignedPlant === selectedPlant)).forEach(
-            (eq) => {
-                if (eq.assignedOperator) assigned.add(eq.assignedOperator)
-            }
-        )
+        eqs.filter(
+            (eq) =>
+                eq.status === 'Active' &&
+                (!selectedPlant || selectedPlant === 'All' || eq.assignedPlant === selectedPlant)
+        ).forEach((eq) => {
+            if (eq.assignedOperator) assigned.add(eq.assignedOperator)
+        })
         return assigned
     }, [mixers, tractors, selectedPlant, positionFilter])
 
@@ -373,7 +375,7 @@ function OperatorsView({
                         operator.employeeId.toLowerCase().includes(searchText.toLowerCase())
                 }
             }
-            const matchesPlant = selectedPlant === '' || operator.plantCode === selectedPlant
+            const matchesPlant = selectedPlant === '' || selectedPlant === 'All' || operator.plantCode === selectedPlant
             const matchesRegion =
                 !regionPlantCodes ||
                 regionPlantCodes.size === 0 ||

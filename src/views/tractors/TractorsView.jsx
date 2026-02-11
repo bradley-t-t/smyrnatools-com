@@ -498,7 +498,7 @@ function TractorsView({
                     matchesSearch = truckMatch || operatorMatch || vinMatch
                 }
             }
-            const matchesPlant = !selectedPlant || tractor.assignedPlant === selectedPlant
+            const matchesPlant = !selectedPlant || selectedPlant === 'All' || tractor.assignedPlant === selectedPlant
             const matchesRegion =
                 !regionPlantCodes ||
                 regionPlantCodes.size === 0 ||

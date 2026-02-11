@@ -356,7 +356,7 @@ function TrailersView({
                     matchesSearch = trailerMatch || tractorMatch || vinMatch
                 }
             }
-            const matchesPlant = !selectedPlant || trailer.assignedPlant === selectedPlant
+            const matchesPlant = !selectedPlant || selectedPlant === 'All' || trailer.assignedPlant === selectedPlant
             const matchesRegion =
                 !preferences.selectedRegion?.code ||
                 !regionPlantCodes ||

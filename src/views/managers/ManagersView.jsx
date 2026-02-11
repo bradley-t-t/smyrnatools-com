@@ -169,7 +169,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                 !searchText.trim() ||
                 `${manager.firstName} ${manager.lastName}`.toLowerCase().includes(searchText.toLowerCase()) ||
                 manager.email.toLowerCase().includes(searchText.toLowerCase())
-            const matchesPlant = !selectedPlant || manager.plantCode === selectedPlant
+            const matchesPlant = !selectedPlant || selectedPlant === 'All' || manager.plantCode === selectedPlant
             const matchesRole =
                 !roleFilter || (manager.roleName && manager.roleName.toLowerCase() === roleFilter.toLowerCase())
             const regionType = preferences.selectedRegion?.type
