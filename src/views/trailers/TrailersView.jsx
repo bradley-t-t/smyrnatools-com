@@ -314,9 +314,9 @@ function TrailersView({
     const debouncedSetSearchText = useCallback(
         AsyncUtility.debounce((value) => {
             setSearchText(value)
-            updatePreferences((prev) => ({ ...prev, trailerFilters: { ...prev.trailerFilters, searchText: value } }))
+            updateTrailerFilter('searchText', value)
         }, 300),
-        [updatePreferences]
+        []
     )
 
     useEffect(() => {

@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.8] - 2026-02-11
+
+- Added `freight` property to tractor data in `src/utils/DashboardUtility.js` to include freight type information.
+- Enhanced tractor statistics in `src/views/dashboard/DashboardView.jsx` to track and display freight type categories (Cement, Aggregate, Dump Truck, Other) with respective counts for active, shop, and spare statuses.
+- Added UI components in `src/views/dashboard/DashboardView.jsx` to visually represent freight type statistics for tractors with icons and formatted displays.
+- Updated tractor status tracking logic in `src/views/dashboard/DashboardView.jsx` to categorize and count tractors by freight type and status.
+
 ## [7.7] - 2026-02-11
 
 - Updated sorting logic in `MixersView.jsx` to include 'Active' status alongside 'In Shop' and 'Spare' for mixer status comparison.

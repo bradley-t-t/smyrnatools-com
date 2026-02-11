@@ -21,6 +21,7 @@ const slimMixer = (m) => ({
 const slimTractor = (t) => ({
     assignedOperator: t.assignedOperator,
     assignedPlant: t.assignedPlant || t.plantCode,
+    freight: t.freight || '',
     id: t.id,
     lastServiceDate: t.lastServiceDate,
     plantCode: t.assignedPlant || t.plantCode,

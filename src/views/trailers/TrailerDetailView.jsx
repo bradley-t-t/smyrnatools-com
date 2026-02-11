@@ -36,7 +36,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
     const [trailerNumber, setTrailerNumber] = useState('')
     const [assignedPlant, setAssignedPlant] = useState('')
     const [trailerType, setTrailerType] = useState('')
-    const [assignedTractor, setAssignedTractor] = useState('')
+    const [assignedTractor, setAssignedTractor] = useState(null)
     const [cleanlinessRating, setCleanlinessRating] = useState(0)
     const [tractorModalTractors, setTractorModalTractors] = useState([])
     const [lastUnassignedTractorId, setLastUnassignedTractorId] = useState(null)

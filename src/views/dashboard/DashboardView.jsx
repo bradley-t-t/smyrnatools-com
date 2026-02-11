@@ -183,7 +183,22 @@ export default function DashboardView() {
         plantSetRef.current = plantSet
         const filterActive = plantSet.size > 0
         let mixersTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0, verified: 0 }
-        let tractorsTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0, verified: 0 }
+        let tractorsTotals = {
+            active: 0,
+            comments: 0,
+            freight: {
+                Aggregate: { active: 0, shop: 0, spare: 0, total: 0 },
+                Cement: { active: 0, shop: 0, spare: 0, total: 0 },
+                'Dump Truck': { active: 0, shop: 0, spare: 0, total: 0 },
+                Other: { active: 0, shop: 0, spare: 0, total: 0 }
+            },
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            verified: 0
+        }
         let trailersTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 }
         let equipmentTotals = { active: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 }
         let pickupsTotals = { active: 0, retired: 0, shop: 0, sold: 0, spare: 0, stationary: 0, total: 0 }
@@ -232,6 +247,11 @@ export default function DashboardView() {
             if (t.status !== 'Retired') {
                 tractorsTotals.total++
                 tractorsAvailable++
+                const freightType = t.freight && tractorsTotals.freight[t.freight] ? t.freight : 'Other'
+                tractorsTotals.freight[freightType].total++
+                if (t.status === 'Active') tractorsTotals.freight[freightType].active++
+                else if (t.status === 'Spare') tractorsTotals.freight[freightType].spare++
+                else if (t.status === 'In Shop') tractorsTotals.freight[freightType].shop++
             }
             if (t.status === 'Active') tractorsTotals.active++
             else if (t.status === 'Spare') tractorsTotals.spare++
@@ -3246,6 +3266,113 @@ export default function DashboardView() {
                                             <Pill>In Shop {stats.tractors.shop}</Pill>
                                             <Pill>Verified {stats.tractors.verifiedPercent}%</Pill>
                                         </div>
+                                        {stats.tractors.freight && (
+                                            <div
+                                                style={{
+                                                    borderTop: '1px solid #e5e7eb',
+                                                    marginTop: '12px',
+                                                    paddingTop: '12px'
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: 'grid',
+                                                        gap: '6px',
+                                                        gridTemplateColumns: 'repeat(3, 1fr)'
+                                                    }}
+                                                >
+                                                    {['Cement', 'Aggregate', 'Dump Truck'].map((type) => {
+                                                        const f = stats.tractors.freight[type]
+                                                        if (!f || f.total === 0) return null
+                                                        const icon =
+                                                            type === 'Cement'
+                                                                ? 'fa-industry'
+                                                                : type === 'Aggregate'
+                                                                  ? 'fa-mountain'
+                                                                  : 'fa-truck-loading'
+                                                        return (
+                                                            <div
+                                                                key={type}
+                                                                style={{
+                                                                    background: '#f8fafc',
+                                                                    borderRadius: '8px',
+                                                                    padding: '8px',
+                                                                    textAlign: 'center'
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        display: 'flex',
+                                                                        gap: '4px',
+                                                                        justifyContent: 'center',
+                                                                        marginBottom: '4px'
+                                                                    }}
+                                                                >
+                                                                    <i
+                                                                        className={`fas ${icon}`}
+                                                                        style={{ color: '#64748b', fontSize: '10px' }}
+                                                                    ></i>
+                                                                    <span
+                                                                        style={{
+                                                                            color: '#64748b',
+                                                                            fontSize: '10px',
+                                                                            fontWeight: 600
+                                                                        }}
+                                                                    >
+                                                                        {type === 'Dump Truck' ? 'Dump' : type}
+                                                                    </span>
+                                                                </div>
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        gap: '4px',
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        style={{
+                                                                            background: '#dcfce7',
+                                                                            borderRadius: '4px',
+                                                                            color: '#16a34a',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 600,
+                                                                            padding: '2px 6px'
+                                                                        }}
+                                                                    >
+                                                                        {f.active}
+                                                                    </span>
+                                                                    <span
+                                                                        style={{
+                                                                            background: '#f3e8ff',
+                                                                            borderRadius: '4px',
+                                                                            color: '#9333ea',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 600,
+                                                                            padding: '2px 6px'
+                                                                        }}
+                                                                    >
+                                                                        {f.spare}
+                                                                    </span>
+                                                                    <span
+                                                                        style={{
+                                                                            background: '#ffedd5',
+                                                                            borderRadius: '4px',
+                                                                            color: '#ea580c',
+                                                                            fontSize: '11px',
+                                                                            fontWeight: 600,
+                                                                            padding: '2px 6px'
+                                                                        }}
+                                                                    >
+                                                                        {f.shop}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div style={metricCardStyle}>
