@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [7.9] - 2026-02-11
+
+- Replaced "Verified" percentage pill with "Allocated" percentage pill for mixers in DashboardView.jsx, with conditional background and text color based on allocation percentage thresholds (80% green, 50% yellow, below 50% red).
+- Replaced "Verified" percentage pill with "Allocated" percentage pill for tractors in DashboardView.jsx, with conditional background and text color based on allocation percentage thresholds (80% green, 50% yellow, below 50% red).
+- Added "Allocated" percentage pill for trailers in DashboardView.jsx, with conditional background and text color based on allocation percentage thresholds (80% green, 50% yellow, below 50% red).
+- Added "Allocated" percentage pill for equipment in DashboardView.jsx, with conditional background and text color based on allocation percentage thresholds (80% green, 50% yellow, below 50% red).
+
 ## [7.8] - 2026-02-11
 
 - Added `freight` property to tractor data in `src/utils/DashboardUtility.js` to include freight type information.

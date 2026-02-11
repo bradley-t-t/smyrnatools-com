@@ -3213,7 +3213,24 @@ export default function DashboardView() {
                                                 <Pill>Active {stats.mixers.active}</Pill>
                                                 <Pill>Spare {stats.mixers.spare}</Pill>
                                                 <Pill>In Shop {stats.mixers.shop}</Pill>
-                                                <Pill>Verified {stats.mixers.verifiedPercent}%</Pill>
+                                                <Pill
+                                                    style={{
+                                                        background:
+                                                            stats.mixers.allocationPercent >= 80
+                                                                ? '#dcfce7'
+                                                                : stats.mixers.allocationPercent >= 50
+                                                                  ? '#fef9c3'
+                                                                  : '#fee2e2',
+                                                        color:
+                                                            stats.mixers.allocationPercent >= 80
+                                                                ? '#16a34a'
+                                                                : stats.mixers.allocationPercent >= 50
+                                                                  ? '#ca8a04'
+                                                                  : '#dc2626'
+                                                    }}
+                                                >
+                                                    {stats.mixers.allocationPercent}% Allocated
+                                                </Pill>
                                             </div>
                                         </div>
                                     )}
@@ -3264,7 +3281,24 @@ export default function DashboardView() {
                                             <Pill>Active {stats.tractors.active}</Pill>
                                             <Pill>Spare {stats.tractors.spare}</Pill>
                                             <Pill>In Shop {stats.tractors.shop}</Pill>
-                                            <Pill>Verified {stats.tractors.verifiedPercent}%</Pill>
+                                            <Pill
+                                                style={{
+                                                    background:
+                                                        stats.tractors.allocationPercent >= 80
+                                                            ? '#dcfce7'
+                                                            : stats.tractors.allocationPercent >= 50
+                                                              ? '#fef9c3'
+                                                              : '#fee2e2',
+                                                    color:
+                                                        stats.tractors.allocationPercent >= 80
+                                                            ? '#16a34a'
+                                                            : stats.tractors.allocationPercent >= 50
+                                                              ? '#ca8a04'
+                                                              : '#dc2626'
+                                                }}
+                                            >
+                                                {stats.tractors.allocationPercent}% Allocated
+                                            </Pill>
                                         </div>
                                         {stats.tractors.freight && (
                                             <div
@@ -3413,6 +3447,24 @@ export default function DashboardView() {
                                             <Pill>Active {stats.trailers.active}</Pill>
                                             <Pill>Spare {stats.trailers.spare}</Pill>
                                             <Pill>In Shop {stats.trailers.shop}</Pill>
+                                            <Pill
+                                                style={{
+                                                    background:
+                                                        stats.trailers.allocationPercent >= 80
+                                                            ? '#dcfce7'
+                                                            : stats.trailers.allocationPercent >= 50
+                                                              ? '#fef9c3'
+                                                              : '#fee2e2',
+                                                    color:
+                                                        stats.trailers.allocationPercent >= 80
+                                                            ? '#16a34a'
+                                                            : stats.trailers.allocationPercent >= 50
+                                                              ? '#ca8a04'
+                                                              : '#dc2626'
+                                                }}
+                                            >
+                                                {stats.trailers.allocationPercent}% Allocated
+                                            </Pill>
                                         </div>
                                     </div>
 
@@ -3454,6 +3506,24 @@ export default function DashboardView() {
                                             <Pill>Active {stats.equipment.active}</Pill>
                                             <Pill>Spare {stats.equipment.spare}</Pill>
                                             <Pill>In Shop {stats.equipment.shop}</Pill>
+                                            <Pill
+                                                style={{
+                                                    background:
+                                                        stats.equipment.allocationPercent >= 80
+                                                            ? '#dcfce7'
+                                                            : stats.equipment.allocationPercent >= 50
+                                                              ? '#fef9c3'
+                                                              : '#fee2e2',
+                                                    color:
+                                                        stats.equipment.allocationPercent >= 80
+                                                            ? '#16a34a'
+                                                            : stats.equipment.allocationPercent >= 50
+                                                              ? '#ca8a04'
+                                                              : '#dc2626'
+                                                }}
+                                            >
+                                                {stats.equipment.allocationPercent}% Allocated
+                                            </Pill>
                                         </div>
                                     </div>
 
