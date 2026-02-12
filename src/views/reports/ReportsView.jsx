@@ -7,6 +7,8 @@ import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import { supabase } from '../../services/DatabaseService'
 import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
 import MyReportsList from './components/MyReportsList'
+import ReportsEmptyState from './components/ReportsEmptyState'
+import ReportsStatsCards from './components/ReportsStatsCards'
 import ReportsToolbar from './components/ReportsToolbar'
 import ReviewReportsList from './components/ReviewReportsList'
 import ReportsReviewView from './ReportsReviewView'
@@ -193,33 +195,43 @@ function ReportsView() {
                             regionType={regionType}
                         />
                         <div style={styles.content}>
-                            {tab === 'all' && (
-                                <MyReportsList
-                                    isLoading={isMyReportsLoading}
-                                    items={myPagination.paginatedItems}
-                                    weeksToShow={weeksToShow}
-                                    pageSize={myPagination.pageSize}
-                                    currentPage={myPagination.currentPage}
-                                    totalPages={myPagination.totalPages}
-                                    onPageSizeChange={myPagination.changePageSize}
-                                    onPageChange={myPagination.goToPage}
-                                    onShowForm={handleShowForm}
-                                />
+                            {tab === 'all' && !isMyReportsLoading && <ReportsStatsCards items={allMyItems} tab={tab} />}
+                            {tab === 'review' && !isReviewLoading && (
+                                <ReportsStatsCards items={visibleReviewReports} tab={tab} />
                             )}
-                            {tab === 'review' && (
-                                <ReviewReportsList
-                                    isLoading={isReviewLoading}
-                                    items={reviewPagination.paginatedItems}
-                                    reviewedByCurrentUser={reviewedByCurrentUser}
-                                    pageSize={reviewPagination.pageSize}
-                                    currentPage={reviewPagination.currentPage}
-                                    totalPages={reviewPagination.totalPages}
-                                    onPageSizeChange={reviewPagination.changePageSize}
-                                    onPageChange={reviewPagination.goToPage}
-                                    onReview={handleReview}
-                                    getUserName={getUserName}
-                                />
-                            )}
+                            {tab === 'all' &&
+                                (allMyItems.length === 0 && !isMyReportsLoading ? (
+                                    <ReportsEmptyState tab={tab} hasAssigned={hasAssigned} />
+                                ) : (
+                                    <MyReportsList
+                                        isLoading={isMyReportsLoading}
+                                        items={myPagination.paginatedItems}
+                                        weeksToShow={weeksToShow}
+                                        pageSize={myPagination.pageSize}
+                                        currentPage={myPagination.currentPage}
+                                        totalPages={myPagination.totalPages}
+                                        onPageSizeChange={myPagination.changePageSize}
+                                        onPageChange={myPagination.goToPage}
+                                        onShowForm={handleShowForm}
+                                    />
+                                ))}
+                            {tab === 'review' &&
+                                (visibleReviewReports.length === 0 && !isReviewLoading ? (
+                                    <ReportsEmptyState tab={tab} />
+                                ) : (
+                                    <ReviewReportsList
+                                        isLoading={isReviewLoading}
+                                        items={reviewPagination.paginatedItems}
+                                        reviewedByCurrentUser={reviewedByCurrentUser}
+                                        pageSize={reviewPagination.pageSize}
+                                        currentPage={reviewPagination.currentPage}
+                                        totalPages={reviewPagination.totalPages}
+                                        onPageSizeChange={reviewPagination.changePageSize}
+                                        onPageChange={reviewPagination.goToPage}
+                                        onReview={handleReview}
+                                        getUserName={getUserName}
+                                    />
+                                ))}
                         </div>
                     </div>
                 )}

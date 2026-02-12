@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.5] - 2026-02-12
+
+- Added `ReportsStatsCards` component in `ReportsView.jsx` to display statistics for both 'all' and 'review' tabs when data is loaded.
+- Introduced `ReportsEmptyState` component in `ReportsView.jsx` to handle empty states for 'all' and 'review' tabs when no reports are available.
+- Modified `MyReportsList.jsx` to return `null` instead of an empty state message when `weeksToShow` is empty and loading is complete.
+- Enhanced `MyReportsList.jsx` with a new `getDueDateStatus` function to calculate and display due date status with color-coded urgency indicators (Overdue, Due Today, Due Tomorrow, days left).
+- Updated `MyReportsList.jsx` to style table rows with a colored left border for urgent due dates based on the status returned by `getDueDateStatus`.
+
 ## [8.4] - 2026-02-12
 
 - Added new hook `usePagination.js` for handling pagination logic with features like page navigation and page size adjustment.

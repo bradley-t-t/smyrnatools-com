@@ -27,6 +27,7 @@ function ReportsToolbar({
             hidePlantFilter={true}
             sticky={true}
             viewMode="list"
+            searchPlaceholder="Search by name or report type"
             listLabels={
                 tab === 'review'
                     ? ['Week', 'Report Type', 'Submitted By', 'Submitted', 'Status', 'Actions']
