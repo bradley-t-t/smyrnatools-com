@@ -784,20 +784,20 @@ function MixersView({
                             bg = '#dcfce7'
                             color = '#166534'
                         } else if (status === 'Spare') {
-                            bg = '#dbeafe'
-                            color = '#1e40af'
-                        } else if (status === 'In Shop') {
-                            bg = '#fef3c7'
-                            color = '#92400e'
-                        } else if (status === 'Waiting For Shop') {
-                            bg = '#fff7ed'
-                            color = '#c2410c'
-                        } else if (status === 'Down In Yard') {
-                            bg = '#fef2f2'
-                            color = '#991b1b'
-                        } else if (status === 'Third Party Work') {
                             bg = '#f3e8ff'
                             color = '#7c3aed'
+                        } else if (status === 'In Shop') {
+                            bg = '#dbeafe'
+                            color = '#1e40af'
+                        } else if (status === 'Waiting For Shop') {
+                            bg = '#ffedd5'
+                            color = '#c2410c'
+                        } else if (status === 'Down In Yard') {
+                            bg = '#fee2e2'
+                            color = '#dc2626'
+                        } else if (status === 'Third Party Work') {
+                            bg = '#fef9c3'
+                            color = '#a16207'
                         } else if (status === 'Retired') {
                             bg = '#f1f5f9'
                             color = '#64748b'

@@ -2,6 +2,17 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.0] - 2026-02-12
+
+- Updated status color schemes in `MixersView.jsx` for multiple statuses:
+  - Changed 'Spare' background to '#f3e8ff' and color to '#7c3aed'
+  - Changed 'Waiting For Shop' background to '#ffedd5' and color to '#c2410c'
+  - Changed 'Down In Yard' background to '#fee2e2' and color to '#dc2626'
+  - Changed 'Third Party Work' background to '#fef9c3' and color to '#a16207'
+- Updated status color schemes in `TractorsView.jsx` for 'Spare' status:
+  - Changed background to '#f3e8ff' and color to '#7c3aed'
+- Reordered status checks in both `MixersView.jsx` and `TractorsView.jsx` to ensure 'In Shop' status is handled consistently
+
 ## [8.9] - 2026-02-12
 
 - Added new component `StatusHistoryBar.jsx` to display status history as a visual bar with percentage-based status durations for various item types.
