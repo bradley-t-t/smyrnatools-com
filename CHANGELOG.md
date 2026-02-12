@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.3] - 2026-02-12
+
+- Added a new "Production vs Labor" chart in `DashboardCharts.jsx` to display weekly production data with yards and hours, including a custom tooltip showing yards, hours, and YPH (Yards Per Hour) for each week.
+- Included summary statistics below the "Production vs Labor" chart in `DashboardCharts.jsx`, showing total yards, total hours, and average YPH.
+- Removed the "Fleet Uptime vs Downtime" chart from `DashboardCharts.jsx` that was previously displayed with `shopTimeData`.
+- Added grouping comments in `DashboardCharts.jsx` to organize charts into "PRODUCTION & EFFICIENCY GROUP" and "LOSS & RECOVERY GROUP" sections.
+
 ## [8.2] - 2026-02-12
 
 - Added Recharts library components (Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis) to DashboardView.jsx for data visualization.
