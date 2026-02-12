@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.4] - 2026-02-12
+
+- Added custom sorting for status percentages in `StatusHistoryBar.jsx` with a defined order for statuses (Active, In Shop, Spare).
+- Introduced loading animation with a shimmer effect for the status bar during data loading.
+- Added animation for status bar segments with fade-in and width transition effects using `animateIn` state.
+- Implemented conditional rendering for the status bar to handle loading and empty data states more explicitly.
+- Enhanced hover tooltip display to only show when not loading and data is available.
+- Added CSS keyframes for the shimmer animation directly in the component.
+
 ## [9.3] - 2026-02-12
 
 - Updated the expand/collapse button in `DashboardPlantSummary.jsx` to prevent event propagation with `e.stopPropagation()`.

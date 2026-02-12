@@ -23,6 +23,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
     const [statusPercentages, setStatusPercentages] = useState(null)
     const [loading, setLoading] = useState(true)
     const [isHovered, setIsHovered] = useState(false)
+    const [animateIn, setAnimateIn] = useState(false)
 
     useEffect(() => {
         if (!itemId || !itemType) return
@@ -104,6 +105,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                 })
 
                 const totalTrackedDays = Object.values(statusDaysMap).reduce((sum, d) => sum + d, 0) || 1
+                const statusOrder = { Active: 0, 'In Shop': 1, Spare: 2 }
                 const percentages = Object.entries(statusDaysMap)
                     .map(([status, days]) => ({
                         days,
@@ -111,7 +113,12 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                         status
                     }))
                     .filter((p) => p.percentage > 0)
-                    .sort((a, b) => b.days - a.days)
+                    .sort((a, b) => {
+                        const orderA = statusOrder[a.status] ?? 99
+                        const orderB = statusOrder[b.status] ?? 99
+                        if (orderA !== orderB) return orderA - orderB
+                        return b.days - a.days
+                    })
 
                 if (cancelled) return
                 setStatusPercentages(percentages)
@@ -128,11 +135,14 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
         }
     }, [itemId, itemType, currentStatus, createdAt])
 
-    if (loading || !statusPercentages || statusPercentages.length === 0) {
-        return null
-    }
+    useEffect(() => {
+        if (!loading && statusPercentages) {
+            const timer = setTimeout(() => setAnimateIn(true), 50)
+            return () => clearTimeout(timer)
+        }
+    }, [loading, statusPercentages])
 
-    const totalDays = statusPercentages.reduce((sum, s) => sum + s.days, 0)
+    const totalDays = statusPercentages?.reduce((sum, s) => sum + s.days, 0) || 0
 
     return (
         <div
@@ -154,20 +164,34 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                     width: '100%'
                 }}
             >
-                {statusPercentages.map((item, index) => (
+                {loading ? (
                     <div
-                        key={index}
                         style={{
-                            background: STATUS_COLORS[item.status] || '#64748b',
+                            animation: 'shimmer 1.5s infinite',
+                            background: 'linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%)',
+                            backgroundSize: '200% 100%',
                             height: '100%',
-                            minWidth: item.percentage > 0 ? '2px' : '0',
-                            transition: 'all 0.2s ease',
-                            width: `${item.percentage}%`
+                            width: '100%'
                         }}
                     />
-                ))}
+                ) : statusPercentages && statusPercentages.length > 0 ? (
+                    statusPercentages.map((item, index) => (
+                        <div
+                            key={index}
+                            style={{
+                                background: STATUS_COLORS[item.status] || '#64748b',
+                                height: '100%',
+                                minWidth: item.percentage > 0 ? '2px' : '0',
+                                opacity: animateIn ? 1 : 0,
+                                transition: 'width 0.6s ease-out, opacity 0.4s ease-out',
+                                transitionDelay: `${index * 0.1}s`,
+                                width: animateIn ? `${item.percentage}%` : '0%'
+                            }}
+                        />
+                    ))
+                ) : null}
             </div>
-            {isHovered && (
+            {isHovered && !loading && statusPercentages && statusPercentages.length > 0 && (
                 <div
                     style={{
                         background: 'white',
@@ -221,6 +245,12 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                     ))}
                 </div>
             )}
+            <style>{`
+                @keyframes shimmer {
+                    0% { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                }
+            `}</style>
         </div>
     )
 })
