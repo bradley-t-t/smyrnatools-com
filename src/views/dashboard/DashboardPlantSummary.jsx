@@ -97,15 +97,19 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                         {displayItems.map((item, i) => renderItem(item, i))}
                         {hasMore && (
                             <button
-                                onClick={() => setExpandedSections((prev) => ({ ...prev, [expandKey]: !isExpanded }))}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpandedSections((prev) => ({ ...prev, [expandKey]: !isExpanded }))
+                                }}
                                 style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#3b82f6',
+                                    background: '#f0f9ff',
+                                    border: '1px solid #bae6fd',
+                                    borderRadius: '8px',
+                                    color: '#0369a1',
                                     cursor: 'pointer',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    padding: '6px 10px'
+                                    padding: '6px 12px'
                                 }}
                             >
                                 {isExpanded ? 'Show less' : `+${items.length - maxItems} more`}

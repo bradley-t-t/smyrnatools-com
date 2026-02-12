@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.3] - 2026-02-12
+
+- Updated the expand/collapse button in `DashboardPlantSummary.jsx` to prevent event propagation with `e.stopPropagation()`.
+- Changed the styling of the expand/collapse button in `DashboardPlantSummary.jsx`, including background color to `#f0f9ff`, added a border of `1px solid #bae6fd`, set border radius to `8px`, updated text color to `#0369a1`, and adjusted padding to `6px 12px`.
+
 ## [9.2] - 2026-02-12
 
 - Added new file `DashboardPlantSummary.jsx` to handle detailed plant summary views with features like expandable alert sections, asset buttons, and metric cards.
