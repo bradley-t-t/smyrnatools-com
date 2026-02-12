@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, useTransition } from 'react'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
@@ -4078,96 +4079,217 @@ export default function DashboardView() {
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         {(() => {
-                                            const getColor = (status) => {
-                                                const colors = {
-                                                    Active: '#22c55e',
-                                                    'In Shop': '#3b82f6',
-                                                    Sold: '#6b7280',
-                                                    Spare: '#a855f7',
-                                                    Stationary: '#eab308'
-                                                }
-                                                return colors[status] || '#64748b'
+                                            const STATUS_COLORS = {
+                                                Active: '#22c55e',
+                                                'In Shop': '#3b82f6',
+                                                Sold: '#6b7280',
+                                                Spare: '#a855f7',
+                                                Stationary: '#eab308'
                                             }
-                                            const sortStatuses = (data) => {
-                                                const order = ['Active', 'Spare', 'In Shop', 'Stationary', 'Sold']
-                                                return [...data].sort(
-                                                    (a, b) => order.indexOf(a.status) - order.indexOf(b.status)
+
+                                            const chartData = [
+                                                !isAggregate &&
+                                                    statusHistoryData.mixers?.length > 0 && {
+                                                        active: parseFloat(
+                                                            statusHistoryData.mixers.find((d) => d.status === 'Active')
+                                                                ?.percentage || 0
+                                                        ),
+                                                        inShop: parseFloat(
+                                                            statusHistoryData.mixers.find((d) => d.status === 'In Shop')
+                                                                ?.percentage || 0
+                                                        ),
+                                                        name: 'Mixers',
+                                                        spare: parseFloat(
+                                                            statusHistoryData.mixers.find((d) => d.status === 'Spare')
+                                                                ?.percentage || 0
+                                                        ),
+                                                        stationary: parseFloat(
+                                                            statusHistoryData.mixers.find(
+                                                                (d) => d.status === 'Stationary'
+                                                            )?.percentage || 0
+                                                        )
+                                                    },
+                                                statusHistoryData.tractors?.length > 0 && {
+                                                    active: parseFloat(
+                                                        statusHistoryData.tractors.find((d) => d.status === 'Active')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    inShop: parseFloat(
+                                                        statusHistoryData.tractors.find((d) => d.status === 'In Shop')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    name: 'Tractors',
+                                                    spare: parseFloat(
+                                                        statusHistoryData.tractors.find((d) => d.status === 'Spare')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    stationary: parseFloat(
+                                                        statusHistoryData.tractors.find(
+                                                            (d) => d.status === 'Stationary'
+                                                        )?.percentage || 0
+                                                    )
+                                                },
+                                                statusHistoryData.trailers?.length > 0 && {
+                                                    active: parseFloat(
+                                                        statusHistoryData.trailers.find((d) => d.status === 'Active')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    inShop: parseFloat(
+                                                        statusHistoryData.trailers.find((d) => d.status === 'In Shop')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    name: 'Trailers',
+                                                    spare: parseFloat(
+                                                        statusHistoryData.trailers.find((d) => d.status === 'Spare')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    stationary: parseFloat(
+                                                        statusHistoryData.trailers.find(
+                                                            (d) => d.status === 'Stationary'
+                                                        )?.percentage || 0
+                                                    )
+                                                },
+                                                statusHistoryData.equipment?.length > 0 && {
+                                                    active: parseFloat(
+                                                        statusHistoryData.equipment.find((d) => d.status === 'Active')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    inShop: parseFloat(
+                                                        statusHistoryData.equipment.find((d) => d.status === 'In Shop')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    name: 'Equipment',
+                                                    spare: parseFloat(
+                                                        statusHistoryData.equipment.find((d) => d.status === 'Spare')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    stationary: parseFloat(
+                                                        statusHistoryData.equipment.find(
+                                                            (d) => d.status === 'Stationary'
+                                                        )?.percentage || 0
+                                                    )
+                                                },
+                                                statusHistoryData.pickups?.length > 0 && {
+                                                    active: parseFloat(
+                                                        statusHistoryData.pickups.find((d) => d.status === 'Active')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    inShop: parseFloat(
+                                                        statusHistoryData.pickups.find((d) => d.status === 'In Shop')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    name: 'Pickups',
+                                                    spare: parseFloat(
+                                                        statusHistoryData.pickups.find((d) => d.status === 'Spare')
+                                                            ?.percentage || 0
+                                                    ),
+                                                    stationary: parseFloat(
+                                                        statusHistoryData.pickups.find((d) => d.status === 'Stationary')
+                                                            ?.percentage || 0
+                                                    )
+                                                }
+                                            ].filter(Boolean)
+
+                                            const HistoryTooltip = ({ active, payload, label }) => {
+                                                if (!active || !payload?.length) return null
+                                                return (
+                                                    <div
+                                                        style={{
+                                                            backgroundColor: 'white',
+                                                            border: '1px solid #e5e7eb',
+                                                            borderRadius: '8px',
+                                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                                                            padding: '10px 14px'
+                                                        }}
+                                                    >
+                                                        <p
+                                                            style={{
+                                                                color: '#1e3a5f',
+                                                                fontSize: '13px',
+                                                                fontWeight: 600,
+                                                                margin: '0 0 6px 0'
+                                                            }}
+                                                        >
+                                                            {label}
+                                                        </p>
+                                                        {payload
+                                                            .filter((p) => p.value > 0)
+                                                            .map((entry, index) => (
+                                                                <p
+                                                                    key={index}
+                                                                    style={{
+                                                                        color: entry.color,
+                                                                        fontSize: '12px',
+                                                                        margin: '2px 0'
+                                                                    }}
+                                                                >
+                                                                    {entry.name}: {entry.value.toFixed(1)}%
+                                                                </p>
+                                                            ))}
+                                                    </div>
                                                 )
                                             }
-                                            const bars = [
-                                                { data: statusHistoryData.mixers, label: 'Mixers', show: !isAggregate },
-                                                { data: statusHistoryData.tractors, label: 'Tractors', show: true },
-                                                { data: statusHistoryData.trailers, label: 'Trailers', show: true },
-                                                { data: statusHistoryData.equipment, label: 'Equipment', show: true },
-                                                { data: statusHistoryData.pickups, label: 'Pickups', show: true }
-                                            ].filter((b) => b.show)
 
-                                            return bars.map((bar, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    style={{ alignItems: 'center', display: 'flex', gap: '12px' }}
-                                                >
+                                            if (chartData.length === 0) {
+                                                return (
                                                     <div
                                                         style={{
-                                                            color: '#475569',
-                                                            flexShrink: 0,
-                                                            fontSize: '13px',
-                                                            fontWeight: 500,
-                                                            width: '80px'
+                                                            color: '#94a3b8',
+                                                            fontSize: '14px',
+                                                            padding: '20px',
+                                                            textAlign: 'center'
                                                         }}
                                                     >
-                                                        {bar.label}
+                                                        No historical data available
                                                     </div>
-                                                    <div
-                                                        style={{
-                                                            backgroundColor: '#e2e8f0',
-                                                            borderRadius: '6px',
-                                                            display: 'flex',
-                                                            flex: 1,
-                                                            height: '28px',
-                                                            overflow: 'hidden'
-                                                        }}
-                                                    >
-                                                        {bar.data.length > 0 ? (
-                                                            sortStatuses(bar.data)
-                                                                .filter((item) => parseFloat(item.percentage) > 0)
-                                                                .map((item, i) => (
-                                                                    <div
-                                                                        key={i}
-                                                                        style={{
-                                                                            alignItems: 'center',
-                                                                            backgroundColor: getColor(item.status),
-                                                                            color: 'white',
-                                                                            display: 'flex',
-                                                                            fontSize: '11px',
-                                                                            fontWeight: 600,
-                                                                            height: '100%',
-                                                                            justifyContent: 'center',
-                                                                            width: `${item.percentage}%`
-                                                                        }}
-                                                                        title={`${item.status}: ${item.percentage}%`}
-                                                                    >
-                                                                        {parseFloat(item.percentage) > 12 &&
-                                                                            `${item.percentage}%`}
-                                                                    </div>
-                                                                ))
-                                                        ) : (
-                                                            <div
-                                                                style={{
-                                                                    alignItems: 'center',
-                                                                    color: '#94a3b8',
-                                                                    display: 'flex',
-                                                                    fontSize: '12px',
-                                                                    justifyContent: 'center',
-                                                                    width: '100%'
-                                                                }}
-                                                            >
-                                                                No data
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))
+                                                )
+                                            }
+
+                                            return (
+                                                <ResponsiveContainer width="100%" height={280}>
+                                                    <BarChart data={chartData} layout="vertical">
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                                        <XAxis
+                                                            type="number"
+                                                            domain={[0, 100]}
+                                                            unit="%"
+                                                            tick={{ fill: '#64748b', fontSize: 11 }}
+                                                        />
+                                                        <YAxis
+                                                            dataKey="name"
+                                                            type="category"
+                                                            tick={{ fill: '#64748b', fontSize: 12 }}
+                                                            width={80}
+                                                        />
+                                                        <Tooltip content={<HistoryTooltip />} />
+                                                        <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                                                        <Bar
+                                                            dataKey="active"
+                                                            stackId="a"
+                                                            fill={STATUS_COLORS.Active}
+                                                            name="Active"
+                                                        />
+                                                        <Bar
+                                                            dataKey="spare"
+                                                            stackId="a"
+                                                            fill={STATUS_COLORS.Spare}
+                                                            name="Spare"
+                                                        />
+                                                        <Bar
+                                                            dataKey="inShop"
+                                                            stackId="a"
+                                                            fill={STATUS_COLORS['In Shop']}
+                                                            name="In Shop"
+                                                        />
+                                                        <Bar
+                                                            dataKey="stationary"
+                                                            stackId="a"
+                                                            fill={STATUS_COLORS.Stationary}
+                                                            name="Stationary"
+                                                        />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            )
                                         })()}
                                     </div>
                                 </div>

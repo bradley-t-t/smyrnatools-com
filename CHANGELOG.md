@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.2] - 2026-02-12
+
+- Added Recharts library components (Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis) to DashboardView.jsx for data visualization.
+- Replaced the previous status color and sorting logic in DashboardView.jsx with a new STATUS_COLORS object for consistent color mapping.
+- Implemented a new chartData structure in DashboardView.jsx to display percentage data for different equipment types (Mixers, Tractors, Trailers, etc.) in a bar chart format.
+- Removed the previous bar mapping and sorting logic for equipment status display in DashboardView.jsx, replacing it with a structured chart data approach.
+
 ## [8.1] - 2026-02-12
 
 - Added `recharts` library version 3.7.0 to dependencies in `package.json` and `package-lock.json` for chart visualization support.
