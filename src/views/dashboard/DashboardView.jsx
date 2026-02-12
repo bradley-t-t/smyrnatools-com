@@ -24,6 +24,7 @@ import OperatorsView from '../operators/OperatorsView'
 import TractorsView from '../tractors/TractorsView'
 import TrailersView from '../trailers/TrailersView'
 import DashboardCharts from './DashboardCharts'
+import DashboardPlantSummary from './DashboardPlantSummary'
 
 export default function DashboardView() {
     const { preferences } = usePreferences()
@@ -1903,45 +1904,47 @@ export default function DashboardView() {
         </span>
     )
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
     const cardStyle = {
         backgroundColor: 'white',
         border: '1px solid #e5e7eb',
-        borderRadius: '16px',
+        borderRadius: isMobile ? '12px' : '16px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
-        padding: '24px'
+        padding: isMobile ? '16px' : '24px'
     }
 
     const metricCardStyle = {
         backgroundColor: '#f8fafc',
         border: '1px solid #e2e8f0',
-        borderRadius: '12px',
-        padding: '20px'
+        borderRadius: isMobile ? '10px' : '12px',
+        padding: isMobile ? '14px' : '20px'
     }
 
     const sectionTitleStyle = {
         color: '#1e3a5f',
-        fontSize: '18px',
+        fontSize: isMobile ? '16px' : '18px',
         fontWeight: 600,
-        marginBottom: '20px'
+        marginBottom: isMobile ? '16px' : '20px'
     }
 
     const metricLabelStyle = {
         color: '#64748b',
-        fontSize: '13px',
+        fontSize: isMobile ? '12px' : '13px',
         fontWeight: 500,
         marginBottom: '4px'
     }
 
     const metricValueStyle = {
         color: '#1e3a5f',
-        fontSize: '28px',
+        fontSize: isMobile ? '22px' : '28px',
         fontWeight: 700,
         lineHeight: 1.2
     }
 
     const metricSubStyle = {
         color: '#94a3b8',
-        fontSize: '12px',
+        fontSize: isMobile ? '11px' : '12px',
         marginTop: '4px'
     }
 
@@ -1951,6 +1954,21 @@ export default function DashboardView() {
                 .content-area:has(.dashboard-full-width) {
                     padding-left: 0 !important;
                     padding-right: 0 !important;
+                }
+                @media (max-width: 767px) {
+                    .dashboard-full-width .hidden-mobile {
+                        display: none !important;
+                    }
+                    .dashboard-full-width .sm\\:flex {
+                        display: none !important;
+                    }
+                    .dashboard-full-width .sm\\:inline {
+                        display: none !important;
+                    }
+                }
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
             `}</style>
             <div
@@ -1969,7 +1987,7 @@ export default function DashboardView() {
                         backgroundSize: '20px 20px',
                         borderBottom: '1px solid #e2e8f0',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                        padding: '12px 16px',
+                        padding: isMobile ? '10px 12px' : '12px 16px',
                         position: 'sticky',
                         top: 0,
                         zIndex: 10
@@ -1980,13 +1998,22 @@ export default function DashboardView() {
                             alignItems: 'center',
                             display: 'flex',
                             flexWrap: 'wrap',
-                            gap: '12px',
+                            gap: isMobile ? '8px' : '12px',
                             justifyContent: 'space-between',
                             margin: '0 auto',
                             maxWidth: '100%'
                         }}
                     >
-                        <h1 style={{ color: '#1e3a5f', fontSize: '20px', fontWeight: 700, margin: 0 }}>Dashboard</h1>
+                        <h1
+                            style={{
+                                color: '#1e3a5f',
+                                fontSize: isMobile ? '18px' : '20px',
+                                fontWeight: 700,
+                                margin: 0
+                            }}
+                        >
+                            Dashboard
+                        </h1>
                         <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             <button
                                 type="button"
@@ -2045,662 +2072,26 @@ export default function DashboardView() {
                     </div>
                 </div>
 
-                <div style={{ margin: '0 auto', maxWidth: '100%', padding: '24px' }}>
-                    {!showSkeleton &&
-                        (isPlantManager || dashboardPlant) &&
-                        (() => {
-                            const hasNotifications =
-                                plantNotifications.unverifiedMixers.length > 0 ||
-                                plantNotifications.pendingOperators.length > 0 ||
-                                plantNotifications.assetsWithMostIssues.length > 0 ||
-                                plantNotifications.overdueService.length > 0 ||
-                                plantNotifications.trainingOperators.length > 0
-
-                            if (!hasNotifications) return null
-
-                            const totalAlerts =
-                                plantNotifications.unverifiedMixers.length +
-                                plantNotifications.pendingOperators.length +
-                                plantNotifications.assetsWithMostIssues.length +
-                                plantNotifications.overdueService.length +
-                                plantNotifications.trainingOperators.length
-
-                            return (
-                                <div
-                                    className="mb-6 overflow-hidden rounded-2xl bg-white shadow-md"
-                                    style={{ border: '1px solid #e5e7eb' }}
-                                >
-                                    <div className="relative overflow-hidden bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] px-6 py-4">
-                                        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/5"></div>
-                                        <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-white/5"></div>
-                                        <div className="relative flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative">
-                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
-                                                        <i className="fas fa-clipboard-check text-white text-xl"></i>
-                                                    </div>
-                                                    {totalAlerts > 0 && (
-                                                        <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#c41230] text-[10px] font-bold text-white shadow-lg">
-                                                            {totalAlerts > 9 ? '9+' : totalAlerts}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-lg font-bold text-white">Plant Summary</h3>
-                                                    <p className="text-sm text-white/70">
-                                                        {dashboardPlant
-                                                            ? `Plant ${dashboardPlant}`
-                                                            : 'Your assigned plant'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="hidden items-center gap-6 sm:flex">
-                                                {plantNotifications.unverifiedMixers.length > 0 && (
-                                                    <div className="text-center">
-                                                        <div className="text-2xl font-bold text-white">
-                                                            {plantNotifications.unverifiedMixers.length}
-                                                        </div>
-                                                        <div className="text-xs text-white/60">Unverified</div>
-                                                    </div>
-                                                )}
-                                                {plantNotifications.overdueService.length > 0 && (
-                                                    <div className="text-center">
-                                                        <div className="text-2xl font-bold text-[#fbbf24]">
-                                                            {plantNotifications.overdueService.length}
-                                                        </div>
-                                                        <div className="text-xs text-white/60">Overdue</div>
-                                                    </div>
-                                                )}
-                                                {plantNotifications.pendingOperators.length > 0 && (
-                                                    <div className="text-center">
-                                                        <div className="text-2xl font-bold text-[#34d399]">
-                                                            {plantNotifications.pendingOperators.length}
-                                                        </div>
-                                                        <div className="text-xs text-white/60">New Hires</div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {plantNotifications.leaderboardMetrics && (
-                                        <div className="border-b border-gray-100 bg-gradient-to-r from-slate-50 to-gray-50 px-5 py-4">
-                                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div
-                                                            className={`flex h-14 w-14 items-center justify-center rounded-2xl font-bold text-white shadow-lg ${
-                                                                plantNotifications.leaderboardMetrics.rank === 1
-                                                                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                                                                    : plantNotifications.leaderboardMetrics.rank === 2
-                                                                      ? 'bg-gradient-to-br from-gray-400 to-slate-500'
-                                                                      : plantNotifications.leaderboardMetrics.rank === 3
-                                                                        ? 'bg-gradient-to-br from-orange-400 to-amber-600'
-                                                                        : 'bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a]'
-                                                            }`}
-                                                        >
-                                                            <span className="text-2xl">
-                                                                #{plantNotifications.leaderboardMetrics.rank}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                                                Efficiency Rank
-                                                            </div>
-                                                            <div className="text-lg font-bold text-gray-800">
-                                                                {plantNotifications.leaderboardMetrics.rank} of{' '}
-                                                                {plantNotifications.leaderboardMetrics.totalPlants}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-6">
-                                                    <div className="text-center">
-                                                        <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                                            Raw YPH
-                                                        </div>
-                                                        <div className="text-xl font-bold text-[#1e3a5f]">
-                                                            {plantNotifications.leaderboardMetrics.rawYPH?.toFixed(2) ||
-                                                                '--'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="h-8 w-px bg-gray-200"></div>
-                                                    <div className="text-center">
-                                                        <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                                            Adjusted YPH
-                                                        </div>
-                                                        <div className="text-xl font-bold text-[#1e3a5f]">
-                                                            {plantNotifications.leaderboardMetrics.adjustedYPH?.toFixed(
-                                                                2
-                                                            ) || '--'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="h-8 w-px bg-gray-200"></div>
-                                                    <div className="text-center">
-                                                        <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                                            Net Help
-                                                        </div>
-                                                        <div
-                                                            className={`text-xl font-bold ${plantNotifications.leaderboardMetrics.netHelp > 0 ? 'text-emerald-600' : plantNotifications.leaderboardMetrics.netHelp < 0 ? 'text-rose-600' : 'text-gray-600'}`}
-                                                        >
-                                                            {plantNotifications.leaderboardMetrics.netHelp > 0
-                                                                ? '+'
-                                                                : ''}
-                                                            {Math.round(
-                                                                plantNotifications.leaderboardMetrics.netHelp || 0
-                                                            )}
-                                                            h
-                                                        </div>
-                                                    </div>
-                                                    <div className="h-8 w-px bg-gray-200"></div>
-                                                    <div className="text-center">
-                                                        <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                                            Cleanliness
-                                                        </div>
-                                                        <div
-                                                            className={`text-xl font-bold ${
-                                                                (plantNotifications.leaderboardMetrics.avgCleanliness ||
-                                                                    0) >= 4
-                                                                    ? 'text-emerald-600'
-                                                                    : (plantNotifications.leaderboardMetrics
-                                                                            .avgCleanliness || 0) >= 3
-                                                                      ? 'text-amber-500'
-                                                                      : 'text-rose-600'
-                                                            }`}
-                                                        >
-                                                            {(plantNotifications.leaderboardMetrics.avgCleanliness ||
-                                                                0) > 0
-                                                                ? `${plantNotifications.leaderboardMetrics.avgCleanliness.toFixed(1)}/5`
-                                                                : '--'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="h-8 w-px bg-gray-200"></div>
-                                                    <div className="text-center">
-                                                        <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                                            Safety
-                                                        </div>
-                                                        <div
-                                                            className={`text-xl font-bold ${
-                                                                (plantNotifications.leaderboardMetrics
-                                                                    .safetyIncidents || 0) === 0
-                                                                    ? 'text-emerald-600'
-                                                                    : 'text-rose-600'
-                                                            }`}
-                                                        >
-                                                            {plantNotifications.leaderboardMetrics.safetyIncidents || 0}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {(plantNotifications.aiSummary ||
-                                                plantNotifications.aiSummaryLoading ||
-                                                plantNotifications.aiSummaryFailed) && (
-                                                <div className="mt-3">
-                                                    {userRoleName && (
-                                                        <div className="mb-1.5 flex items-center gap-1.5 text-[10px] text-gray-400">
-                                                            <i className="fas fa-user-check"></i>
-                                                            <span>
-                                                                Analysis tailored for{' '}
-                                                                <span className="font-semibold text-gray-500">
-                                                                    {userRoleName}
-                                                                </span>
-                                                                {userPlantCode &&
-                                                                isPlantManager &&
-                                                                userPlantCode === dashboardPlant
-                                                                    ? ' (your plant)'
-                                                                    : ''}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    <div
-                                                        className={`flex items-start gap-2 rounded-lg px-3 py-2 shadow-sm transition-all duration-500 ${
-                                                            plantNotifications.aiSummaryFailed
-                                                                ? 'bg-red-50'
-                                                                : 'bg-white/80'
-                                                        }`}
-                                                        style={
-                                                            plantNotifications.aiSummaryFailed
-                                                                ? { animation: 'fadeOut 0.5s ease-out 2.5s forwards' }
-                                                                : {}
-                                                        }
-                                                    >
-                                                        <i
-                                                            className={`fas ${
-                                                                plantNotifications.aiSummaryLoading
-                                                                    ? 'fa-circle-notch fa-spin text-[#1e3a5f]/60'
-                                                                    : plantNotifications.aiSummaryFailed
-                                                                      ? 'fa-exclamation-triangle text-red-400'
-                                                                      : 'fa-robot text-[#1e3a5f]/60'
-                                                            } text-sm mt-0.5`}
-                                                        ></i>
-                                                        <div className="flex-1">
-                                                            <p
-                                                                className={`text-sm italic ${plantNotifications.aiSummaryFailed ? 'text-red-500' : 'text-gray-600'}`}
-                                                            >
-                                                                {plantNotifications.aiSummaryLoading ? (
-                                                                    'Analyzing plant performance...'
-                                                                ) : plantNotifications.aiSummaryFailed ? (
-                                                                    'Failed to generate analysis'
-                                                                ) : (
-                                                                    <>
-                                                                        {aiDisplayText}
-                                                                        {!isTypingComplete && (
-                                                                            <span
-                                                                                className="ml-0.5 inline-block h-4 w-0.5 bg-[#1e3a5f]/60"
-                                                                                style={{
-                                                                                    animation:
-                                                                                        'cursorBlink 1s step-end infinite',
-                                                                                    willChange: 'opacity'
-                                                                                }}
-                                                                            ></span>
-                                                                        )}
-                                                                    </>
-                                                                )}
-                                                            </p>
-                                                            {showActionPlan && aiActionPlan.length > 0 && (
-                                                                <div className="mt-3 pt-3 border-t border-gray-200">
-                                                                    <div className="flex items-center gap-1.5 mb-2">
-                                                                        <i className="fas fa-tasks text-[#1e3a5f]/70 text-xs"></i>
-                                                                        <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                                                                            Action Plan
-                                                                        </span>
-                                                                    </div>
-                                                                    <ul className="space-y-1.5">
-                                                                        {aiActionPlan.map((item, idx) => (
-                                                                            <li
-                                                                                key={idx}
-                                                                                className="flex items-start gap-2 text-sm text-gray-700 animate-fadeIn"
-                                                                                style={{
-                                                                                    animation: `fadeSlideIn 0.4s ease-out ${idx * 0.15}s both`
-                                                                                }}
-                                                                            >
-                                                                                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center mt-0.5">
-                                                                                    <span className="text-[10px] font-bold text-[#1e3a5f]">
-                                                                                        {idx + 1}
-                                                                                    </span>
-                                                                                </span>
-                                                                                <span>{item}</span>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        {!plantNotifications.aiSummaryLoading && isTypingComplete && (
-                                                            <button
-                                                                onClick={handleRegenerateAISummary}
-                                                                className="ml-2 flex h-5 w-5 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 flex-shrink-0"
-                                                                title="Regenerate analysis"
-                                                            >
-                                                                <i className="fas fa-sync-alt text-[10px]"></i>
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="p-4 space-y-3">
-                                        {plantNotifications.unverifiedMixers.length > 0 && (
-                                            <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border-l-4 border-red-500">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
-                                                    <span className="text-white text-xs font-bold">
-                                                        {plantNotifications.unverifiedMixers.length}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-gray-900 text-sm">
-                                                            Unverified Mixers
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">
-                                                            needs weekly verification
-                                                        </span>
-                                                    </div>
-                                                    <div className="mt-1.5 flex flex-wrap gap-1">
-                                                        {plantNotifications.unverifiedMixers
-                                                            .slice(0, expandedSections.unverifiedMixers ? 999 : 6)
-                                                            .map((m, i) => (
-                                                                <button
-                                                                    key={i}
-                                                                    onClick={() => {
-                                                                        setEmbeddedView('mixers')
-                                                                        setEmbeddedViewSearch(m.truckNumber || '')
-                                                                    }}
-                                                                    className="text-xs font-medium text-red-700 bg-white px-2 py-0.5 rounded border border-red-200 hover:bg-red-100 hover:border-red-300 transition-colors cursor-pointer"
-                                                                >
-                                                                    {m.truckNumber || 'N/A'}
-                                                                </button>
-                                                            ))}
-                                                        {plantNotifications.unverifiedMixers.length > 6 && (
-                                                            <button
-                                                                onClick={() =>
-                                                                    setExpandedSections((prev) => ({
-                                                                        ...prev,
-                                                                        unverifiedMixers: !prev.unverifiedMixers
-                                                                    }))
-                                                                }
-                                                                className="text-xs font-medium text-red-600 hover:text-red-800 px-2 py-0.5"
-                                                            >
-                                                                {expandedSections.unverifiedMixers
-                                                                    ? 'less'
-                                                                    : `+${plantNotifications.unverifiedMixers.length - 6}`}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {plantNotifications.overdueService.length > 0 && (
-                                            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border-l-4 border-amber-500">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
-                                                    <span className="text-white text-xs font-bold">
-                                                        {plantNotifications.overdueService.length}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-gray-900 text-sm">
-                                                            Service Overdue
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">6+ months ago</span>
-                                                    </div>
-                                                    <div className="mt-1.5 flex flex-wrap gap-1">
-                                                        {plantNotifications.overdueService
-                                                            .slice(0, expandedSections.overdueService ? 999 : 4)
-                                                            .map((a, i) => (
-                                                                <button
-                                                                    key={i}
-                                                                    onClick={() => {
-                                                                        const viewType =
-                                                                            a.type === 'Mixer'
-                                                                                ? 'mixers'
-                                                                                : a.type === 'Tractor'
-                                                                                  ? 'tractors'
-                                                                                  : a.type === 'Trailer'
-                                                                                    ? 'trailers'
-                                                                                    : a.type === 'Equipment'
-                                                                                      ? 'equipment'
-                                                                                      : 'mixers'
-                                                                        setEmbeddedView(viewType)
-                                                                        setEmbeddedViewSearch(a.identifier || '')
-                                                                    }}
-                                                                    className="text-xs font-medium text-amber-700 bg-white px-2 py-0.5 rounded border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-colors cursor-pointer"
-                                                                >
-                                                                    {a.type} {a.identifier || ''}
-                                                                </button>
-                                                            ))}
-                                                        {plantNotifications.overdueService.length > 4 && (
-                                                            <button
-                                                                onClick={() =>
-                                                                    setExpandedSections((prev) => ({
-                                                                        ...prev,
-                                                                        overdueService: !prev.overdueService
-                                                                    }))
-                                                                }
-                                                                className="text-xs font-medium text-amber-600 hover:text-amber-800 px-2 py-0.5"
-                                                            >
-                                                                {expandedSections.overdueService
-                                                                    ? 'less'
-                                                                    : `+${plantNotifications.overdueService.length - 4}`}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {plantNotifications.assetsWithMostIssues.length > 0 && (
-                                            <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 border-l-4 border-orange-500">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
-                                                    <span className="text-white text-xs font-bold">
-                                                        {plantNotifications.assetsWithMostIssues.length}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-gray-900 text-sm">
-                                                            Open Issues
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">
-                                                            assets with issues
-                                                        </span>
-                                                    </div>
-                                                    <div className="mt-1.5 flex flex-wrap gap-1">
-                                                        {plantNotifications.assetsWithMostIssues
-                                                            .slice(0, expandedSections.assetsWithIssues ? 999 : 4)
-                                                            .map((a, i) => (
-                                                                <button
-                                                                    key={i}
-                                                                    onClick={() => {
-                                                                        const viewType =
-                                                                            a.type === 'Mixer'
-                                                                                ? 'mixers'
-                                                                                : a.type === 'Tractor'
-                                                                                  ? 'tractors'
-                                                                                  : a.type === 'Trailer'
-                                                                                    ? 'trailers'
-                                                                                    : a.type === 'Equipment'
-                                                                                      ? 'equipment'
-                                                                                      : 'mixers'
-                                                                        setEmbeddedView(viewType)
-                                                                        setEmbeddedViewSearch(a.identifier || '')
-                                                                    }}
-                                                                    className="text-xs font-medium text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200 hover:bg-orange-100 hover:border-orange-300 transition-colors cursor-pointer"
-                                                                >
-                                                                    {a.type} {a.identifier || ''} ({a.openIssueCount})
-                                                                </button>
-                                                            ))}
-                                                        {plantNotifications.assetsWithMostIssues.length > 4 && (
-                                                            <button
-                                                                onClick={() =>
-                                                                    setExpandedSections((prev) => ({
-                                                                        ...prev,
-                                                                        assetsWithIssues: !prev.assetsWithIssues
-                                                                    }))
-                                                                }
-                                                                className="text-xs font-medium text-orange-600 hover:text-orange-800 px-2 py-0.5"
-                                                            >
-                                                                {expandedSections.assetsWithIssues
-                                                                    ? 'less'
-                                                                    : `+${plantNotifications.assetsWithMostIssues.length - 4}`}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {plantNotifications.longTermShopAssets.length > 0 && (
-                                            <div className="flex items-start gap-3 p-3 rounded-lg bg-rose-50 border-l-4 border-rose-500">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center">
-                                                    <span className="text-white text-xs font-bold">
-                                                        {plantNotifications.longTermShopAssets.length}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-gray-900 text-sm">
-                                                            Long-Term Shop
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">6+ days in shop</span>
-                                                    </div>
-                                                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                                        {plantNotifications.longTermShopAssets
-                                                            .slice(0, expandedSections.longTermShop ? 999 : 4)
-                                                            .map((a, i) => (
-                                                                <button
-                                                                    key={i}
-                                                                    onClick={() => {
-                                                                        const viewType =
-                                                                            a.type === 'Mixer'
-                                                                                ? 'mixers'
-                                                                                : a.type === 'Tractor'
-                                                                                  ? 'tractors'
-                                                                                  : a.type === 'Trailer'
-                                                                                    ? 'trailers'
-                                                                                    : a.type === 'Equipment'
-                                                                                      ? 'equipment'
-                                                                                      : 'mixers'
-                                                                        setEmbeddedView(viewType)
-                                                                        setEmbeddedViewSearch(a.identifier || '')
-                                                                    }}
-                                                                    className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-700 bg-white px-2 py-1 rounded border border-rose-200 hover:bg-rose-100 hover:border-rose-300 transition-colors cursor-pointer"
-                                                                >
-                                                                    <span>{a.identifier}</span>
-                                                                    <span className="text-rose-500">
-                                                                        ({a.daysInShop}d)
-                                                                    </span>
-                                                                    {a.downInYard && (
-                                                                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-semibold">
-                                                                            <i className="fas fa-check-circle text-[8px]"></i>
-                                                                            In Yard
-                                                                        </span>
-                                                                    )}
-                                                                </button>
-                                                            ))}
-                                                        {plantNotifications.longTermShopAssets.length > 4 && (
-                                                            <button
-                                                                onClick={() =>
-                                                                    setExpandedSections((prev) => ({
-                                                                        ...prev,
-                                                                        longTermShop: !prev.longTermShop
-                                                                    }))
-                                                                }
-                                                                className="text-xs font-medium text-rose-600 hover:text-rose-800 px-2 py-0.5"
-                                                            >
-                                                                {expandedSections.longTermShop
-                                                                    ? 'less'
-                                                                    : `+${plantNotifications.longTermShopAssets.length - 4}`}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {plantNotifications.shopIssue && (
-                                            <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border-l-4 border-red-600">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
-                                                    <i className="fas fa-exclamation text-white text-xs"></i>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-gray-900 text-sm">
-                                                            Shop Alert
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">
-                                                            fleet availability concern
-                                                        </span>
-                                                    </div>
-                                                    <div className="mt-1 text-xs text-gray-600">
-                                                        <span className="font-medium text-red-600">
-                                                            {plantNotifications.shopIssue.inShopCount}
-                                                        </span>{' '}
-                                                        in shop,{' '}
-                                                        <span className="font-medium">
-                                                            {plantNotifications.shopIssue.spareCount}
-                                                        </span>{' '}
-                                                        spare available
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {(plantNotifications.unassignedOperators.length > 0 ||
-                                            plantNotifications.pendingOperators.length > 0 ||
-                                            plantNotifications.trainingOperators.length > 0) && (
-                                            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                                                {plantNotifications.unassignedOperators.length > 0 && (
-                                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-100 text-sky-700 text-xs font-medium">
-                                                        <i className="fas fa-user-slash"></i>
-                                                        <span>
-                                                            {plantNotifications.unassignedOperators.length} Unassigned:
-                                                        </span>
-                                                        <span className="flex flex-wrap gap-1">
-                                                            {plantNotifications.unassignedOperators
-                                                                .slice(0, 5)
-                                                                .map((o, i) => (
-                                                                    <button
-                                                                        key={i}
-                                                                        onClick={() => {
-                                                                            setEmbeddedView('operators')
-                                                                            setEmbeddedViewSearch(o.name || '')
-                                                                        }}
-                                                                        className="hover:bg-sky-200 px-1 rounded transition-colors"
-                                                                    >
-                                                                        {o.name}
-                                                                    </button>
-                                                                ))}
-                                                            {plantNotifications.unassignedOperators.length > 5 && (
-                                                                <span className="text-sky-500">
-                                                                    +{plantNotifications.unassignedOperators.length - 5}
-                                                                </span>
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                )}
-
-                                                {plantNotifications.pendingOperators.length > 0 && (
-                                                    <div
-                                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium cursor-pointer hover:bg-emerald-200 transition-colors"
-                                                        onClick={() =>
-                                                            setExpandedSections((prev) => ({
-                                                                ...prev,
-                                                                pendingOperators: !prev.pendingOperators
-                                                            }))
-                                                        }
-                                                    >
-                                                        <i className="fas fa-user-plus"></i>
-                                                        <span>
-                                                            {plantNotifications.pendingOperators.length} New Hire
-                                                            {plantNotifications.pendingOperators.length > 1 ? 's' : ''}
-                                                        </span>
-                                                        {expandedSections.pendingOperators && (
-                                                            <span className="text-emerald-500">
-                                                                (
-                                                                {plantNotifications.pendingOperators
-                                                                    .map((o) => o.operatorName)
-                                                                    .join(', ')}
-                                                                )
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {plantNotifications.trainingOperators.length > 0 && (
-                                                    <div
-                                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-100 text-violet-700 text-xs font-medium cursor-pointer hover:bg-violet-200 transition-colors"
-                                                        onClick={() =>
-                                                            setExpandedSections((prev) => ({
-                                                                ...prev,
-                                                                trainingOperators: !prev.trainingOperators
-                                                            }))
-                                                        }
-                                                    >
-                                                        <i className="fas fa-graduation-cap"></i>
-                                                        <span>
-                                                            {plantNotifications.trainingOperators.length} Training
-                                                        </span>
-                                                        {expandedSections.trainingOperators && (
-                                                            <span className="text-violet-500">
-                                                                (
-                                                                {plantNotifications.trainingOperators
-                                                                    .map((o) => o.operatorName)
-                                                                    .join(', ')}
-                                                                )
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })()}
+                <div style={{ margin: '0 auto', maxWidth: '100%', padding: isMobile ? '12px' : '24px' }}>
+                    {!showSkeleton && (isPlantManager || dashboardPlant) && (
+                        <DashboardPlantSummary
+                            dashboardPlant={dashboardPlant}
+                            plantNotifications={plantNotifications}
+                            expandedSections={expandedSections}
+                            setExpandedSections={setExpandedSections}
+                            setEmbeddedView={setEmbeddedView}
+                            setEmbeddedViewSearch={setEmbeddedViewSearch}
+                            aiDisplayText={aiDisplayText}
+                            aiActionPlan={aiActionPlan}
+                            isTypingComplete={isTypingComplete}
+                            showActionPlan={showActionPlan}
+                            handleRegenerateAISummary={handleRegenerateAISummary}
+                            userRoleName={userRoleName}
+                            userPlantCode={userPlantCode}
+                            isPlantManager={isPlantManager}
+                            isMobile={isMobile}
+                        />
+                    )}
 
                     <div style={{ ...cardStyle, marginBottom: '24px' }}>
                         <div style={{ marginBottom: '20px' }}>
@@ -2744,8 +2135,10 @@ export default function DashboardView() {
                         <div
                             style={{
                                 display: 'grid',
-                                gap: '16px',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+                                gap: isMobile ? '12px' : '16px',
+                                gridTemplateColumns: isMobile
+                                    ? 'repeat(2, 1fr)'
+                                    : 'repeat(auto-fit, minmax(200px, 1fr))'
                             }}
                         >
                             {showSkeleton ? (
@@ -2851,8 +2244,8 @@ export default function DashboardView() {
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gap: '16px',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'
+                                        gap: isMobile ? '12px' : '16px',
+                                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))'
                                     }}
                                 >
                                     {[1, 2, 3, 4, 5].map((i) => (
@@ -3023,9 +2416,9 @@ export default function DashboardView() {
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gap: '16px',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                                        marginBottom: '24px'
+                                        gap: isMobile ? '12px' : '16px',
+                                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
+                                        marginBottom: isMobile ? '16px' : '24px'
                                     }}
                                 >
                                     {[1, 2].map((i) => (
@@ -3096,8 +2489,10 @@ export default function DashboardView() {
                                         style={{
                                             display: 'grid',
                                             gap: '12px',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                                            marginBottom: '24px'
+                                            gridTemplateColumns: isMobile
+                                                ? 'repeat(2, 1fr)'
+                                                : 'repeat(auto-fit, minmax(140px, 1fr))',
+                                            marginBottom: isMobile ? '16px' : '24px'
                                         }}
                                     >
                                         {[1, 2, 3, 4, 5].map((i) => (
@@ -3175,14 +2570,14 @@ export default function DashboardView() {
                     )}
 
                     {!showSkeleton && (
-                        <div style={{ display: 'grid', gap: '24px' }}>
+                        <div style={{ display: 'grid', gap: isMobile ? '16px' : '24px' }}>
                             <div style={cardStyle}>
                                 <h3 style={sectionTitleStyle}>Fleet Overview</h3>
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gap: '16px',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'
+                                        gap: isMobile ? '12px' : '16px',
+                                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))'
                                     }}
                                 >
                                     {!isAggregate && (
@@ -3331,7 +2726,9 @@ export default function DashboardView() {
                                                     style={{
                                                         display: 'grid',
                                                         gap: '6px',
-                                                        gridTemplateColumns: 'repeat(3, 1fr)'
+                                                        gridTemplateColumns: isMobile
+                                                            ? 'repeat(2, 1fr)'
+                                                            : 'repeat(3, 1fr)'
                                                     }}
                                                 >
                                                     {['Cement', 'Aggregate', 'Dump Truck'].map((type) => {
@@ -3497,7 +2894,7 @@ export default function DashboardView() {
                                                     style={{
                                                         display: 'grid',
                                                         gap: '6px',
-                                                        gridTemplateColumns: 'repeat(2, 1fr)'
+                                                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)'
                                                     }}
                                                 >
                                                     {['Cement', 'End Dump'].map((type) => {
@@ -3805,9 +3202,9 @@ export default function DashboardView() {
                                 <div
                                     style={{
                                         display: 'grid',
-                                        gap: '16px',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                                        marginBottom: '24px'
+                                        gap: isMobile ? '12px' : '16px',
+                                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
+                                        marginBottom: isMobile ? '16px' : '24px'
                                     }}
                                 >
                                     <div style={metricCardStyle}>
@@ -3953,8 +3350,10 @@ export default function DashboardView() {
                                         style={{
                                             display: 'grid',
                                             gap: '12px',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                                            marginBottom: '24px'
+                                            gridTemplateColumns: isMobile
+                                                ? 'repeat(2, 1fr)'
+                                                : 'repeat(auto-fit, minmax(140px, 1fr))',
+                                            marginBottom: isMobile ? '16px' : '24px'
                                         }}
                                     >
                                         {(() => {

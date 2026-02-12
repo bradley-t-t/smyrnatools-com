@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.2] - 2026-02-12
+
+- Added new file `DashboardPlantSummary.jsx` to handle detailed plant summary views with features like expandable alert sections, asset buttons, and metric cards.
+- Implemented interactive UI components in `DashboardPlantSummary.jsx` including tab navigation, minimization toggles, and dynamic content rendering based on notifications and metrics.
+- Refactored `DashboardView.jsx` to reduce codebase by removing or consolidating 687 lines, likely extracting functionality to the new `DashboardPlantSummary.jsx` component.
+
 ## [9.1] - 2026-02-12
 
 - Updated status color coding for 'Spare' status to use a new background color '#f3e8ff' and text color '#7c3aed' in ListViewModeSection.jsx, EquipmentsView.jsx, PickupTrucksView.jsx, and TrailersView.jsx
