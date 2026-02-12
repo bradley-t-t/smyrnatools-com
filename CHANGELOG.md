@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.6] - 2026-02-12
+
+- Implemented lazy loading for view components in `src/app/App.js` to improve performance by dynamically importing components like `CalculatorView`, `DashboardView`, and others.
+- Added a `LoadingFallback` component in `src/app/App.js` to display a spinner during component loading with `Suspense`.
+- Optimized event handlers in `src/app/App.js` by wrapping `handleViewSelection`, `handleSetSelectedView`, `handleRetryConnection`, `handleReloadIfOnline`, and `handleCloseWebView` with `useCallback` to prevent unnecessary re-renders.
+- Updated import order in `src/app/App.js` to include `./index.css` after `./App.css`.
+- Added memoization to the `LoadingFallback` component in `src/app/App.js` to prevent unnecessary re-renders.
+
 ## [8.5] - 2026-02-12
 
 - Added `ReportsStatsCards` component in `ReportsView.jsx` to display statistics for both 'all' and 'review' tabs when data is loaded.

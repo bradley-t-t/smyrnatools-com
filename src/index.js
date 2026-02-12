@@ -8,7 +8,6 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './app/App.js'
 import { AuthProvider } from './app/context/AuthContext'
 import { PreferencesProvider } from './app/context/PreferencesContext'
-import vitalsUtility from './utils/VitalsUtility'
 
 document.head.appendChild(
     Object.assign(document.createElement('meta'), {
@@ -29,13 +28,27 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </React.StrictMode>
 )
 
-vitalsUtility()
+const runWhenIdle = (callback) => {
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(callback, { timeout: 2000 })
+    } else {
+        setTimeout(callback, 1)
+    }
+}
+
+runWhenIdle(() => {
+    import('./utils/VitalsUtility').then((module) => {
+        module.default()
+    })
+})
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker
-            .register('/sw.js')
-            .then((registration) => {})
-            .catch((error) => {})
+        runWhenIdle(() => {
+            navigator.serviceWorker
+                .register('/sw.js')
+                .then(() => {})
+                .catch(() => {})
+        })
     })
 }

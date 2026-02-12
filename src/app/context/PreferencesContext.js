@@ -332,30 +332,26 @@ export const PreferencesProvider = ({ children }) => {
         }
     }
 
-    return (
-        <PreferencesContext.Provider
-            value={{
-                loading,
-                preferences,
-                resetEquipmentFilters,
-                resetManagerFilters,
-                resetMixerFilters,
-                resetOperatorFilters,
-                resetTractorFilters,
-                resetTrailerFilters,
-                saveLastViewedFilters,
-                setRegionOverlayMinimized,
-                setSelectedRegion,
-                updateEquipmentFilter,
-                updateManagerFilter,
-                updateMixerFilter,
-                updateOperatorFilter,
-                updatePreferences,
-                updateTractorFilter,
-                updateTrailerFilter
-            }}
-        >
-            {!loading && children}
-        </PreferencesContext.Provider>
-    )
+    const contextValue = {
+        loading,
+        preferences,
+        resetEquipmentFilters,
+        resetManagerFilters,
+        resetMixerFilters,
+        resetOperatorFilters,
+        resetTractorFilters,
+        resetTrailerFilters,
+        saveLastViewedFilters,
+        setRegionOverlayMinimized,
+        setSelectedRegion,
+        updateEquipmentFilter,
+        updateManagerFilter,
+        updateMixerFilter,
+        updateOperatorFilter,
+        updatePreferences,
+        updateTractorFilter,
+        updateTrailerFilter
+    }
+
+    return <PreferencesContext.Provider value={contextValue}>{!loading && children}</PreferencesContext.Provider>
 }

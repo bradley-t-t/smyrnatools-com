@@ -1,11 +1,10 @@
-import './index.css'
 import './App.css'
+import './index.css'
 
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
-import React, { useEffect, useState } from 'react'
+import React, { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
 
-import AppInstallPromptModal from '../components/common/AppInstallPromptModal'
 import LockedOverlay from '../components/common/LockedOverlay'
 import Navigation from '../components/common/Navigation'
 import OfflineOverlay from '../components/common/OfflineOverlay'
@@ -14,33 +13,61 @@ import WebOverlay from '../components/common/WebOverlay'
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import { NetworkUtility } from '../utils/NetworkUtility'
-import CalculatorView from '../views/calculator/CalculatorView'
-import DashboardView from '../views/dashboard/DashboardView'
-import EquipmentsView from '../views/equipment/EquipmentsView'
-import LeaderboardsView from '../views/leaderboards/LeaderboardsView'
-import ListDetailView from '../views/list/ListDetailView'
-import ListView from '../views/list/ListView'
 import LoginView from '../views/login/LoginView'
-import MaintenanceView from '../views/maintenance/MaintenanceView'
-import ManagersView from '../views/managers/ManagersView'
-import MixerDetailView from '../views/mixers/MixerDetailView'
-import MixersView from '../views/mixers/MixersView'
-import MyAccountView from '../views/myaccount/MyAccountView'
-import OperatorsView from '../views/operators/OperatorsView'
-import PickupTrucksView from '../views/pickup-trucks/PickupTrucksView'
-import PlanView from '../views/plan/PlanView'
-import PlantsView from '../views/plants/PlantsView'
-import RegionsView from '../views/regions/RegionsView'
-import ReportsView from '../views/reports/ReportsView'
-import RolesView from '../views/roles/RolesView'
-import TractorsView from '../views/tractors/TractorsView'
-import TrailersView from '../views/trailers/TrailersView'
 import { useAuth } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
+
+const AppInstallPromptModal = lazy(() => import('../components/common/AppInstallPromptModal'))
+const CalculatorView = lazy(() => import('../views/calculator/CalculatorView'))
+const DashboardView = lazy(() => import('../views/dashboard/DashboardView'))
+const EquipmentsView = lazy(() => import('../views/equipment/EquipmentsView'))
+const LeaderboardsView = lazy(() => import('../views/leaderboards/LeaderboardsView'))
+const ListDetailView = lazy(() => import('../views/list/ListDetailView'))
+const ListView = lazy(() => import('../views/list/ListView'))
+const MaintenanceView = lazy(() => import('../views/maintenance/MaintenanceView'))
+const ManagersView = lazy(() => import('../views/managers/ManagersView'))
+const MixerDetailView = lazy(() => import('../views/mixers/MixerDetailView'))
+const MixersView = lazy(() => import('../views/mixers/MixersView'))
+const MyAccountView = lazy(() => import('../views/myaccount/MyAccountView'))
+const OperatorsView = lazy(() => import('../views/operators/OperatorsView'))
+const PickupTrucksView = lazy(() => import('../views/pickup-trucks/PickupTrucksView'))
+const PlanView = lazy(() => import('../views/plan/PlanView'))
+const PlantsView = lazy(() => import('../views/plants/PlantsView'))
+const RegionsView = lazy(() => import('../views/regions/RegionsView'))
+const ReportsView = lazy(() => import('../views/reports/ReportsView'))
+const RolesView = lazy(() => import('../views/roles/RolesView'))
+const TractorsView = lazy(() => import('../views/tractors/TractorsView'))
+const TrailersView = lazy(() => import('../views/trailers/TrailersView'))
 
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
 const AGGREGATE_HIDDEN_VIEWS = new Set(['Mixers', 'Plants', 'Regions'])
 const DEFAULT_HIDDEN_VIEWS = new Set(['Plants', 'Regions'])
+
+const LoadingFallback = memo(function LoadingFallback() {
+    return (
+        <div
+            style={{
+                alignItems: 'center',
+                display: 'flex',
+                height: '100%',
+                justifyContent: 'center',
+                minHeight: '200px',
+                width: '100%'
+            }}
+        >
+            <div
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    border: '3px solid #e5e7eb',
+                    borderRadius: '50%',
+                    borderTopColor: '#3b82f6',
+                    height: '40px',
+                    width: '40px'
+                }}
+            />
+        </div>
+    )
+})
 
 function AppContent() {
     const [userId, setUserId] = useState(null)
@@ -140,25 +167,26 @@ function AppContent() {
             })
     }, [userId])
 
-    const handleViewSelection = (viewId) => {
-        if (isGuestOnly && viewId !== 'Guest') return
-        setSelectedView({ initialStatusFilter: null, view: viewId })
-        setTitle(viewId === 'Guest' ? 'Access Pending' : viewId)
-        if (selectedMixer && viewId !== 'Mixers') setSelectedMixer(null)
-        if (selectedTractor && viewId !== 'Tractors') setSelectedTractor(null)
-        if (selectedItem && viewId !== 'List') setSelectedItem(null)
-    }
+    const handleViewSelection = useCallback(
+        (viewId) => {
+            if (isGuestOnly && viewId !== 'Guest') return
+            setSelectedView({ initialStatusFilter: null, view: viewId })
+            setTitle(viewId === 'Guest' ? 'Access Pending' : viewId)
+            setSelectedMixer((prev) => (prev && viewId !== 'Mixers' ? null : prev))
+            setSelectedTractor((prev) => (prev && viewId !== 'Tractors' ? null : prev))
+            setSelectedItem((prev) => (prev && viewId !== 'List' ? null : prev))
+        },
+        [isGuestOnly]
+    )
 
-    const handleSetSelectedView = (
-        view,
-        initialStatusFilter = null,
-        initialSelectedPlant = null,
-        initialPositionFilter = null
-    ) => {
-        setSelectedView({ initialPositionFilter, initialSelectedPlant, initialStatusFilter, view })
-    }
+    const handleSetSelectedView = useCallback(
+        (view, initialStatusFilter = null, initialSelectedPlant = null, initialPositionFilter = null) => {
+            setSelectedView({ initialPositionFilter, initialSelectedPlant, initialStatusFilter, view })
+        },
+        []
+    )
 
-    const handleRetryConnection = async () => {
+    const handleRetryConnection = useCallback(async () => {
         if (!navigator.onLine) return
         const ok = await NetworkUtility.checkConnection()
         if (ok) {
@@ -167,9 +195,9 @@ function AppContent() {
             offlineSinceRef.current = null
             setOfflineMode(false)
         }
-    }
+    }, [onlineStreakRef, offlineStreakRef, offlineSinceRef])
 
-    const handleReloadIfOnline = async () => {
+    const handleReloadIfOnline = useCallback(async () => {
         if (!navigator.onLine) return
         const ok = await NetworkUtility.checkConnection()
         if (ok) {
@@ -179,13 +207,15 @@ function AppContent() {
             setOfflineMode(false)
             window.location.reload()
         }
-    }
+    }, [onlineStreakRef, offlineStreakRef, offlineSinceRef])
+
+    const handleCloseWebView = useCallback(() => setWebViewURL(null), [])
 
     const renderCurrentView = () => {
         if (!userId) return <LoginView />
         if (!rolesLoaded) return null
         if (isGuestOnly) return <LockedOverlay reason="guest-only" />
-        if (webViewURL) return <WebOverlay url={webViewURL} onClose={() => setWebViewURL(null)} />
+        if (webViewURL) return <WebOverlay url={webViewURL} onClose={handleCloseWebView} />
 
         switch (selectedView.view) {
             case 'Dashboard':
@@ -294,7 +324,9 @@ function AppContent() {
                 userDisplayName={userDisplayName}
                 userId={userId}
             >
-                <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
+                <Suspense fallback={<LoadingFallback />}>
+                    <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
+                </Suspense>
             </Navigation>
             {offlineMode && <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline} />}
             {isGuestOnly && <LockedOverlay reason="guest-only" />}
@@ -315,7 +347,9 @@ function App() {
     return (
         <>
             <AppContent />
-            <AppInstallPromptModal />
+            <Suspense fallback={null}>
+                <AppInstallPromptModal />
+            </Suspense>
             <Analytics />
             <SpeedInsights />
         </>
