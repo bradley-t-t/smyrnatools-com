@@ -113,11 +113,20 @@ function ListViewModeSection({
                 bg = '#dcfce7'
                 textColor = '#166534'
             } else if (status === 'Spare') {
+                bg = '#f3e8ff'
+                textColor = '#7c3aed'
+            } else if (status === 'In Shop') {
                 bg = '#dbeafe'
                 textColor = '#1e40af'
-            } else if (status === 'In Shop') {
-                bg = '#fef3c7'
-                textColor = '#92400e'
+            } else if (status === 'Down In Yard') {
+                bg = '#fee2e2'
+                textColor = '#dc2626'
+            } else if (status === 'Waiting For Shop') {
+                bg = '#ffedd5'
+                textColor = '#c2410c'
+            } else if (status === 'Third Party Work') {
+                bg = '#fef9c3'
+                textColor = '#a16207'
             } else if (status === 'Retired') {
                 bg = '#f1f5f9'
                 textColor = '#64748b'

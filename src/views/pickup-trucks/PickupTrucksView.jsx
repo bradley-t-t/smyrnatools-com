@@ -416,11 +416,11 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             bg = '#dcfce7'
                             color = '#166534'
                         } else if (status === 'Spare') {
+                            bg = '#f3e8ff'
+                            color = '#7c3aed'
+                        } else if (status === 'In Shop') {
                             bg = '#dbeafe'
                             color = '#1e40af'
-                        } else if (status === 'In Shop') {
-                            bg = '#fef3c7'
-                            color = '#92400e'
                         } else if (status === 'Stationary') {
                             bg = '#e0e7ff'
                             color = '#3730a3'

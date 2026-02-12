@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.1] - 2026-02-12
+
+- Updated status color coding for 'Spare' status to use a new background color '#f3e8ff' and text color '#7c3aed' in ListViewModeSection.jsx, EquipmentsView.jsx, PickupTrucksView.jsx, and TrailersView.jsx
+- Added new status color coding for 'In Shop' with background color '#dbeafe' and text color '#1e40af' in ListViewModeSection.jsx, EquipmentsView.jsx, PickupTrucksView.jsx, and TrailersView.jsx
+- Introduced new status 'Down In Yard' with background color '#fee2e2' and text color '#dc2626' in ListViewModeSection.jsx
+- Introduced new status 'Waiting For Shop' with background color '#ffedd5' and text color '#c2410c' in ListViewModeSection.jsx
+- Introduced new status 'Third Party Work' with background color '#fef9c3' and text color '#a16207' in ListViewModeSection.jsx
+
 ## [9.0] - 2026-02-12
 
 - Updated status color schemes in `MixersView.jsx` for multiple statuses:
