@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
                     trailer_number: trailer?.trailerNumber ?? current.trailer_number,
                     assigned_plant: trailer?.assignedPlant ?? current.assigned_plant,
                     trailer_type: trailer?.trailerType ?? current.trailer_type,
-                    assigned_tractor: trailer?.assignedTractor ?? current.assigned_tractor,
+                    assigned_tractor: Object.prototype.hasOwnProperty.call(trailer || {}, 'assignedTractor') ? trailer.assignedTractor : current.assigned_tractor,
                     cleanliness_rating: typeof trailer?.cleanlinessRating === "number" ? trailer.cleanlinessRating : current.cleanliness_rating,
                     status: trailer?.status ?? current.status,
                     updated_at: nowIso(),

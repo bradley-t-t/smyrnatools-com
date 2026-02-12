@@ -2,6 +2,17 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.7] - 2026-02-12
+
+- Reworked TractorSelectModal in `src/views/trailers/TractorSelectModal.jsx` to improve UI and functionality:
+  - Replaced `searchTerm` with `searchText` and introduced `sortAvailableFirst` state for sorting tractors.
+  - Removed filter options ('all', 'available', 'samePlant') and simplified filtering logic to include search by truck number and assigned plant.
+  - Added sorting logic to prioritize available tractors when `sortAvailableFirst` is enabled.
+  - Updated modal UI with new styling, including a modern backdrop, rounded corners, and improved search input design.
+  - Added auto-focus to the search input and refined clear search functionality with a styled button.
+- Updated `src/views/trailers/TrailerDetailView.jsx` with minor changes to integrate with the revised TractorSelectModal (exact changes not fully visible in truncated diff).
+- Modified `supabase/functions/trailer-service/index.ts` with a small update (exact change not fully visible in truncated diff).
+
 ## [8.6] - 2026-02-12
 
 - Implemented lazy loading for view components in `src/app/App.js` to improve performance by dynamically importing components like `CalculatorView`, `DashboardView`, and others.

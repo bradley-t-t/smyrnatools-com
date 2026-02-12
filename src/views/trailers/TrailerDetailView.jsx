@@ -416,14 +416,18 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
     }
 
     async function fetchTractorsForModal() {
-        let dbTractors = await TractorService.fetchTractors()
-        if (lastUnassignedTractorId) {
-            const unassignedTractor = dbTractors.find((t) => t.id === lastUnassignedTractorId)
-            if (unassignedTractor) {
-                dbTractors = [...dbTractors, unassignedTractor]
+        try {
+            let dbTractors = await TractorService.fetchTractors()
+            if (lastUnassignedTractorId) {
+                const unassignedTractor = dbTractors.find((t) => t.id === lastUnassignedTractorId)
+                if (unassignedTractor) {
+                    dbTractors = [...dbTractors, unassignedTractor]
+                }
             }
+            setTractorModalTractors(dbTractors)
+        } catch (error) {
+            console.error('Error fetching tractors for modal:', error)
         }
-        setTractorModalTractors(dbTractors)
     }
 
     async function refreshTractors() {
@@ -445,7 +449,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 .from('trailers_maintenance')
                 .select('*')
                 .eq('trailer_id', id)
-                .order('created_at', { ascending: false })
+                .order('time_created', { ascending: false })
             setIssues(
                 Array.isArray(issueData) ? issueData.filter((i) => i && (i.issue || i.title || i.description)) : []
             )
@@ -553,13 +557,14 @@ ${
                         setShowTractorModal(false)
                         if (newTractor !== assignedTractor) {
                             try {
+                                const currentTrailerId = trailerId || trailer?.id
                                 await handleSave({
                                     assignedTractor: newTractor
                                 })
                                 setAssignedTractor(newTractor)
                                 setLastUnassignedTractorId(null)
                                 await refreshTractors()
-                                const updatedTrailer = await TrailerService.fetchTrailerById(trailerId)
+                                const updatedTrailer = await TrailerService.fetchTrailerById(currentTrailerId)
                                 setTrailer(updatedTrailer)
                                 setTrailerNumber(updatedTrailer.trailerNumber || '')
                                 setAssignedPlant(updatedTrailer.assignedPlant || '')
@@ -601,7 +606,9 @@ ${
                 isSaving={isSaving}
                 message={message}
                 itemAssignedPlant={trailer?.assignedPlant}
-                onCanEditChange={setCanEditTrailer}
+                onCanEditChange={(value) => {
+                    setCanEditTrailer(value)
+                }}
                 isLoading={false}
                 showDeleteConfirmation={showDeleteConfirmation}
                 onDeleteConfirm={handleDelete}
@@ -760,13 +767,14 @@ ${
                                                 onClick={async () => {
                                                     try {
                                                         const prevTractor = assignedTractor
+                                                        const currentTrailerId = trailerId || trailer?.id
                                                         await handleSave({
                                                             assignedTractor: null,
                                                             prevAssignedTractor: prevTractor,
                                                             status: 'Spare'
                                                         })
                                                         const updatedTrailer =
-                                                            await TrailerService.fetchTrailerById(trailerId)
+                                                            await TrailerService.fetchTrailerById(currentTrailerId)
                                                         setTrailer(updatedTrailer)
                                                         setTrailerNumber(updatedTrailer.trailerNumber || '')
                                                         setAssignedPlant(updatedTrailer.assignedPlant || '')
@@ -797,6 +805,7 @@ ${
                                                         setHasUnsavedChanges(false)
                                                         setTimeout(() => setHasUnsavedChanges(false), 0)
                                                     } catch (error) {
+                                                        console.error('Error unassigning tractor:', error)
                                                         setMessage('Error unassigning tractor. Please try again.')
                                                         setTimeout(() => setMessage(''), 3000)
                                                     }
@@ -812,6 +821,7 @@ ${
                                                     title="Undo Unassign"
                                                     onClick={async () => {
                                                         try {
+                                                            const currentTrailerId = trailerId || trailer?.id
                                                             await handleSave({
                                                                 assignedTractor: lastUnassignedTractorId,
                                                                 status: 'Active'
@@ -822,7 +832,7 @@ ${
                                                             await refreshTractors()
                                                             await fetchTractorsForModal()
                                                             const updatedTrailer =
-                                                                await TrailerService.fetchTrailerById(trailerId)
+                                                                await TrailerService.fetchTrailerById(currentTrailerId)
                                                             setTrailer(updatedTrailer)
                                                             setTrailerNumber(updatedTrailer.trailerNumber || '')
                                                             setAssignedPlant(updatedTrailer.assignedPlant || '')

@@ -13,23 +13,9 @@ function TractorSelectModal({
     onRefresh,
     trailerId
 }) {
-    const [searchTerm, setSearchTerm] = useState('')
-    const [filteredTractors, setFilteredTractors] = useState(tractors || [])
-    const [filter, setFilter] = useState('all')
-    const [selectedTractorId, setSelectedTractorId] = useState(currentValue || '0')
+    const [searchText, setSearchText] = useState('')
+    const [sortAvailableFirst, setSortAvailableFirst] = useState(true)
     const modalRef = useRef(null)
-
-    useEffect(() => {
-        setFilteredTractors(tractors)
-    }, [tractors])
-
-    useEffect(() => {
-        if (!isOpen) {
-            setSearchTerm('')
-            setFilter('all')
-            setSelectedTractorId(currentValue || '0')
-        }
-    }, [isOpen, currentValue])
 
     useEffect(() => {
         if (isOpen) {
@@ -50,162 +36,213 @@ function TractorSelectModal({
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [isOpen, onClose])
 
-    const handleSearch = (e) => {
-        const term = e.target.value.toLowerCase()
-        setSearchTerm(term)
-        filterTractors(term, filter)
+    function isTractorAssigned(tractorId) {
+        if (!tractorId || tractorId === '0' || !Array.isArray(trailers)) return false
+        return trailers.some((trailer) => trailer.assignedTractor === tractorId && trailer.id !== trailerId)
     }
 
-    const handleFilter = (newFilter) => {
-        setFilter(newFilter)
-        filterTractors(searchTerm, newFilter)
-    }
-
-    const filterTractors = (term, filterType) => {
-        let filtered = tractors
-        if (term) {
-            filtered = filtered.filter(
-                (tractor) =>
-                    (tractor.truckNumber && tractor.truckNumber.toLowerCase().includes(term)) ||
-                    (tractor.id && tractor.id.toLowerCase().includes(term))
-            )
-        }
-        if (filterType === 'available') {
-            filtered = filtered.filter((tractor) => {
-                const isAssigned = trailers.some(
-                    (trailer) => trailer.assignedTractor === tractor.id && trailer.id !== trailerId
-                )
-                return !isAssigned
-            })
-        } else if (filterType === 'samePlant') {
-            filtered = filtered.filter((tractor) => tractor.assignedPlant === assignedPlant)
-        }
-        setFilteredTractors(filtered)
-    }
-
-    const handleSelect = (tractorId) => {
-        if (readOnly) return
-        setSelectedTractorId(tractorId)
-        onSelect(tractorId)
-        onClose()
-    }
-
-    const handleClearSearch = () => {
-        setSearchTerm('')
-        filterTractors('', filter)
-    }
-
-    const handleShowAll = async () => {
-        setSearchTerm('')
-        setFilter('all')
-        await onRefresh()
-    }
+    const filteredTractors = (tractors || [])
+        .filter(
+            (tractor) =>
+                tractor.id === currentValue ||
+                searchText.trim() === '' ||
+                (tractor.truckNumber && tractor.truckNumber.toLowerCase().includes(searchText.toLowerCase())) ||
+                (tractor.assignedPlant && tractor.assignedPlant.toLowerCase().includes(searchText.toLowerCase()))
+        )
+        .sort((a, b) => {
+            if (sortAvailableFirst) {
+                const aAssigned = isTractorAssigned(a.id)
+                const bAssigned = isTractorAssigned(b.id)
+                if (!aAssigned && bAssigned) return -1
+                if (aAssigned && !bAssigned) return 1
+            }
+            return (a.truckNumber || '').localeCompare(b.truckNumber || '')
+        })
 
     if (!isOpen) return null
 
     return ReactDOM.createPortal(
-        <div className="tractor-modal-overlay">
-            <div className="tractor-modal-backdrop"></div>
-            <div className="tractor-modal-container" ref={modalRef} style={{ maxWidth: '500px' }}>
-                <div className="tractor-modal-header">
-                    <h2>Select Tractor</h2>
-                    <button className="tractor-modal-close-button" onClick={onClose}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
+            <div
+                ref={modalRef}
+                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden"
+            >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]">
+                    <h2 className="text-lg font-bold text-white">Select Tractor</h2>
+                    <button
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
+                        onClick={onClose}
+                    >
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-                <div className="tractor-modal-search">
-                    <div className="tractor-search-input-container">
-                        <i className="fas fa-search tractor-search-icon"></i>
+
+                <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                    <div className="relative mb-3">
+                        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input
                             type="text"
-                            className="tractor-search-input"
+                            className="w-full pl-11 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
                             placeholder="Search tractors..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            disabled={readOnly}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            autoFocus
                         />
-                        {searchTerm && (
-                            <button className="tractor-clear-search" onClick={handleClearSearch}>
-                                <i className="fas fa-times"></i>
+                        {searchText && (
+                            <button
+                                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-500"
+                                onClick={() => setSearchText('')}
+                            >
+                                <i className="fas fa-times text-xs"></i>
                             </button>
                         )}
                     </div>
-                    <div className="tractor-filter-buttons">
+                    <div className="flex items-center gap-2">
                         <button
-                            className={`tractor-filter-button${filter === 'all' ? ' active' : ''}`}
-                            onClick={() => handleFilter('all')}
-                            disabled={readOnly}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                sortAvailableFirst
+                                    ? 'bg-[#1e3a5f] text-white'
+                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                            onClick={() => setSortAvailableFirst(!sortAvailableFirst)}
                         >
-                            <i className="fas fa-list"></i> All
+                            <i className="fas fa-sort-amount-down"></i>
+                            <span>Available First</span>
                         </button>
                         <button
-                            className={`tractor-filter-button${filter === 'available' ? ' active' : ''}`}
-                            onClick={() => handleFilter('available')}
-                            disabled={readOnly}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                            onClick={() => onRefresh && onRefresh()}
                         >
-                            <i className="fas fa-check-circle"></i> Available
-                        </button>
-                        <button
-                            className={`tractor-filter-button${filter === 'samePlant' ? ' active' : ''}`}
-                            onClick={() => handleFilter('samePlant')}
-                            disabled={readOnly || !assignedPlant}
-                        >
-                            <i className="fas fa-building"></i> Same Plant
+                            <i className="fas fa-sync"></i>
+                            <span>Refresh</span>
                         </button>
                     </div>
                 </div>
-                <div className="tractor-filter-status">
-                    <span className="tractor-result-count">{filteredTractors.length} tractors</span>
-                    {searchTerm && <span className="tractor-filter-tag">Search: {searchTerm}</span>}
-                    {filter === 'available' && <span className="tractor-filter-tag">Available</span>}
-                    {filter === 'samePlant' && <span className="tractor-plant-tag">Plant: {assignedPlant}</span>}
-                </div>
-                <div className="tractor-modal-content">
+
+                <div className="flex-1 overflow-y-auto">
+                    <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-2">
+                        <span className="text-sm text-slate-600">
+                            <strong>
+                                {
+                                    filteredTractors.filter(
+                                        (t) => readOnly || !isTractorAssigned(t.id) || t.id === currentValue
+                                    ).length
+                                }
+                            </strong>{' '}
+                            tractor
+                            {filteredTractors.filter(
+                                (t) => readOnly || !isTractorAssigned(t.id) || t.id === currentValue
+                            ).length !== 1
+                                ? 's'
+                                : ''}{' '}
+                            found
+                        </span>
+                        {assignedPlant && (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
+                                <i className="fas fa-building"></i>
+                                Plant: {assignedPlant}
+                            </span>
+                        )}
+                    </div>
+
                     {filteredTractors.length === 0 ? (
-                        <div className="tractor-no-results">
-                            <i className="fas fa-tractor tractor-no-results-icon"></i>
-                            <p>No tractors found</p>
-                            <p className="tractor-no-results-hint">Try adjusting your search or filters</p>
-                            <div className="tractor-no-results-actions">
-                                <button className="tractor-show-all-button" onClick={handleShowAll}>
-                                    Show All
+                        <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                            <i className="fas fa-truck text-5xl text-slate-300 mb-4"></i>
+                            <p className="text-slate-600 font-medium mb-2">No tractors found</p>
+                            <p className="text-sm text-slate-400 mb-6">Try adjusting your search</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium transition-colors"
+                                    onClick={() => setSearchText('')}
+                                >
+                                    Reset Search
                                 </button>
-                                {!readOnly && (
-                                    <a href="/tractors/add" className="tractor-add-tractor-button">
-                                        <i className="fas fa-plus"></i> Add Tractor
-                                    </a>
-                                )}
                             </div>
                         </div>
                     ) : (
-                        <div className="tractor-list">
+                        <div className="divide-y divide-slate-100">
                             <div
-                                className={`tractor-item${selectedTractorId === '0' ? ' selected' : ''}`}
-                                onClick={() => handleSelect('0')}
+                                className={`px-6 py-4 cursor-pointer transition-colors ${
+                                    currentValue === null || currentValue === '' || currentValue === '0'
+                                        ? 'bg-[#1e3a5f]/10 border-l-4 border-l-[#1e3a5f]'
+                                        : 'hover:bg-slate-50'
+                                }`}
+                                onClick={() => {
+                                    if (!readOnly) {
+                                        onSelect('0')
+                                        onClose()
+                                    }
+                                }}
                             >
-                                <div className="tractor-main-info">
-                                    <span className="tractor-number">None</span>
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-semibold text-slate-800">None</span>
                                 </div>
-                                <div className="tractor-details">
-                                    <span className="tractor-unassigned-label">Unassigned</span>
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                    <span className="inline-flex items-center gap-1">
+                                        <i className="fas fa-times-circle"></i>
+                                        Unassign Tractor
+                                    </span>
+                                    {(currentValue === null || currentValue === '' || currentValue === '0') && (
+                                        <span className="inline-flex items-center gap-1 text-[#1e3a5f] font-medium">
+                                            <i className="fas fa-check-circle"></i>
+                                            Currently Selected
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                             {filteredTractors.map((tractor) => {
-                                const isAssigned = trailers.some(
-                                    (t) => t.assignedTractor === tractor.id && t.id !== trailerId
-                                )
+                                const isAssigned = isTractorAssigned(tractor.id)
+                                const isUnavailable = isAssigned && !readOnly
+                                const isSelected = tractor.id === currentValue
+                                if (isAssigned && !readOnly && tractor.id !== currentValue) return null
+
                                 return (
                                     <div
                                         key={tractor.id}
-                                        className={`tractor-item${selectedTractorId === tractor.id ? ' selected' : ''}${isAssigned ? ' unavailable' : ''}`}
-                                        onClick={() => !isAssigned && handleSelect(tractor.id)}
+                                        className={`px-6 py-4 cursor-pointer transition-colors ${
+                                            isSelected
+                                                ? 'bg-[#1e3a5f]/10 border-l-4 border-l-[#1e3a5f]'
+                                                : isUnavailable
+                                                  ? 'bg-slate-50 opacity-60 cursor-not-allowed'
+                                                  : 'hover:bg-slate-50'
+                                        }`}
+                                        onClick={() => {
+                                            if (readOnly || !isUnavailable) {
+                                                onSelect(tractor.id)
+                                                onClose()
+                                            }
+                                        }}
                                     >
-                                        <div className="tractor-main-info">
-                                            <span className="tractor-number">{tractor.truckNumber || 'Unknown'}</span>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-semibold text-slate-800">
+                                                Tractor #{tractor.truckNumber || 'Unknown'}
+                                            </span>
+                                            {tractor.status && tractor.status !== 'Active' && (
+                                                <span className="text-xs font-mono bg-amber-100 text-amber-600 px-2 py-0.5 rounded">
+                                                    {tractor.status}
+                                                </span>
+                                            )}
                                         </div>
-                                        <div className="tractor-details">
-                                            <span className="tractor-plant">Plant: {tractor.assignedPlant}</span>
-                                            {isAssigned && <span className="tractor-status">Assigned</span>}
+                                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                            {tractor.assignedPlant && (
+                                                <span className="inline-flex items-center gap-1">
+                                                    <i className="fas fa-building"></i>
+                                                    {tractor.assignedPlant}
+                                                </span>
+                                            )}
+                                            {isAssigned && (
+                                                <span className="inline-flex items-center gap-1 text-red-500">
+                                                    <i className="fas fa-link"></i>
+                                                    Already Assigned
+                                                </span>
+                                            )}
+                                            {isSelected && (
+                                                <span className="inline-flex items-center gap-1 text-[#1e3a5f] font-medium">
+                                                    <i className="fas fa-check-circle"></i>
+                                                    Currently Selected
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 )
@@ -213,8 +250,12 @@ function TractorSelectModal({
                         </div>
                     )}
                 </div>
-                <div className="tractor-modal-footer">
-                    <button className="tractor-cancel-button" onClick={onClose}>
+
+                <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
+                    <button
+                        className="w-full py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
+                        onClick={onClose}
+                    >
                         Cancel
                     </button>
                 </div>
