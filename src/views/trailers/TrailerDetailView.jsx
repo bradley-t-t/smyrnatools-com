@@ -804,8 +804,7 @@ ${
                                                         }
                                                         setHasUnsavedChanges(false)
                                                         setTimeout(() => setHasUnsavedChanges(false), 0)
-                                                    } catch (error) {
-                                                        console.error('Error unassigning tractor:', error)
+                                                    } catch {
                                                         setMessage('Error unassigning tractor. Please try again.')
                                                         setTimeout(() => setMessage(''), 3000)
                                                     }

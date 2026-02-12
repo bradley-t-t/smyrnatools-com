@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.8] - 2026-02-12
+
+- Optimized `VideoBackground` component in `src/components/common/VideoBackground.jsx` by wrapping it with `React.memo` to prevent unnecessary re-renders.
+- Removed video preloading and rotation logic in `VideoBackground.jsx`, simplifying the component to use a single randomly selected video without cycling.
+- Updated event handling in `VideoBackground.jsx` by replacing `onLoadedMetadata`, `onTimeUpdate`, and `onEnded` with `onCanPlay` for better video playback control.
+- Changed video behavior in `VideoBackground.jsx` to loop continuously instead of switching videos on completion.
+- Adjusted styling in `VideoBackground.jsx` by updating the fallback background to a gradient and reducing transition opacity duration from 1.5s to 1s.
+- Removed dynamic key prop from the video element in `VideoBackground.jsx` to maintain consistent rendering.
+- Added lazy loading for `VideoBackground` component in `src/views/login/LoginView.jsx` using `React.lazy` and `Suspense` for improved performance.
+
 ## [8.7] - 2026-02-12
 
 - Reworked TractorSelectModal in `src/views/trailers/TractorSelectModal.jsx` to improve UI and functionality:

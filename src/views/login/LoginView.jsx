@@ -1,13 +1,98 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '../../app/context/AuthContext'
 import { useVersion } from '../../app/hooks/useVersion'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import VersionPopup from '../../components/common/VersionPopup'
-import VideoBackground from '../../components/common/VideoBackground'
 import { supabase } from '../../services/DatabaseService'
 import { AuthUtility } from '../../utils/AuthUtility'
-import PasswordRecoveryView from './PasswordRecoveryView'
+
+const VideoBackground = lazy(() => import('../../components/common/VideoBackground'))
+const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
+
+const VideoFallback = memo(function VideoFallback() {
+    return (
+        <div
+            style={{
+                background: 'linear-gradient(135deg, #0a1929 0%, #1e3a5f 100%)',
+                height: '100%',
+                left: 0,
+                position: 'absolute',
+                top: 0,
+                width: '100%',
+                zIndex: 0
+            }}
+        />
+    )
+})
+
+const StatsDisplay = memo(function StatsDisplay({ stats }) {
+    return (
+        <div
+            style={{
+                borderTop: '1px solid rgba(255,255,255,0.15)',
+                display: 'flex',
+                gap: '2rem',
+                marginTop: '3rem',
+                paddingTop: '2rem'
+            }}
+        >
+            <div>
+                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
+                    {stats.assets > 0 ? stats.assets : '-'}
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Fleet Assets</div>
+            </div>
+            <div>
+                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
+                    {stats.plants > 0 ? stats.plants : '-'}
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Plants</div>
+            </div>
+            <div>
+                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
+                    {stats.operators > 0 ? stats.operators : '-'}
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Operators</div>
+            </div>
+        </div>
+    )
+})
+
+const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
+    if (!strength.value) return null
+    const widthMap = { Medium: '66%', Strong: '100%', Weak: '33%' }
+    return (
+        <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ alignItems: 'center', display: 'flex', gap: '0.5rem' }}>
+                <div style={{ background: '#e2e8f0', borderRadius: '2px', flex: 1, height: '3px' }}>
+                    <div
+                        style={{
+                            background: strength.color,
+                            borderRadius: '2px',
+                            height: '100%',
+                            transition: 'width 0.3s',
+                            width: widthMap[strength.value] || '0%'
+                        }}
+                    />
+                </div>
+                <span style={{ color: strength.color, fontSize: '0.7rem', fontWeight: 600 }}>{strength.value}</span>
+            </div>
+        </div>
+    )
+})
+
+const inputBaseStyle = {
+    background: '#fff',
+    border: 'none',
+    borderRadius: 0,
+    color: '#1e293b',
+    fontSize: '1rem',
+    outline: 'none',
+    padding: '1rem 0 0.75rem 0',
+    transition: 'border-color 0.2s',
+    width: '100%'
+}
 
 function LoginView() {
     const version = useVersion()
@@ -26,10 +111,20 @@ function LoginView() {
     const [showPassword, setShowPassword] = useState(false)
     const [focusedField, setFocusedField] = useState(null)
     const [animatedStats, setAnimatedStats] = useState({ assets: 0, operators: 0, plants: 0 })
-    const [targetStats, setTargetStats] = useState({ assets: 0, operators: 0, plants: 0 })
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [videoLoaded, setVideoLoaded] = useState(false)
+    const strengthCheckRef = useRef(null)
 
     useEffect(() => {
-        async function fetchStats() {
+        const timer = setTimeout(() => setVideoLoaded(true), 100)
+        return () => clearTimeout(timer)
+    }, [])
+
+    useEffect(() => {
+        let cancelled = false
+        const fetchStats = async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            if (cancelled) return
             try {
                 const [mixersRes, tractorsRes, trailersRes, equipmentRes, operatorsRes, plantsRes] = await Promise.all([
                     supabase.from('mixers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
@@ -45,122 +140,65 @@ function LoginView() {
                         .in('status', ['Active', 'Training', 'Light Duty']),
                     supabase.from('plants').select('*', { count: 'exact', head: true })
                 ])
-
+                if (cancelled) return
                 const totalAssets =
                     (mixersRes.count || 0) +
                     (tractorsRes.count || 0) +
                     (trailersRes.count || 0) +
                     (equipmentRes.count || 0)
-                const totalOperators = operatorsRes.count || 0
-                const totalPlants = plantsRes.count || 0
+                const targetStats = {
+                    assets: totalAssets,
+                    operators: operatorsRes.count || 0,
+                    plants: plantsRes.count || 0
+                }
 
-                setTargetStats({ assets: totalAssets, operators: totalOperators, plants: totalPlants })
+                const duration = 1500
+                const startTime = performance.now()
+                const animate = (currentTime) => {
+                    if (cancelled) return
+                    const elapsed = currentTime - startTime
+                    const progress = Math.min(elapsed / duration, 1)
+                    const eased = 1 - Math.pow(1 - progress, 3)
+                    setAnimatedStats({
+                        assets: Math.round(targetStats.assets * eased),
+                        operators: Math.round(targetStats.operators * eased),
+                        plants: Math.round(targetStats.plants * eased)
+                    })
+                    if (progress < 1) requestAnimationFrame(animate)
+                }
+                requestAnimationFrame(animate)
             } catch {
-                setTargetStats({ assets: 0, operators: 0, plants: 0 })
+                if (!cancelled) setAnimatedStats({ assets: 0, operators: 0, plants: 0 })
             }
         }
         fetchStats()
+        return () => {
+            cancelled = true
+        }
     }, [])
-
-    useEffect(() => {
-        if (targetStats.assets === 0 && targetStats.operators === 0 && targetStats.plants === 0) return
-
-        const duration = 2000
-        const steps = 60
-        const interval = duration / steps
-        let step = 0
-
-        const timer = setInterval(() => {
-            step++
-            const progress = step / steps
-            const eased = 1 - Math.pow(1 - progress, 3)
-
-            setAnimatedStats({
-                assets: Math.round(targetStats.assets * eased),
-                operators: Math.round(targetStats.operators * eased),
-                plants: Math.round(targetStats.plants * eased)
-            })
-
-            if (step >= steps) {
-                clearInterval(timer)
-                setAnimatedStats(targetStats)
-            }
-        }, interval)
-
-        return () => clearInterval(timer)
-    }, [targetStats])
 
     useEffect(() => {
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current)
+            if (strengthCheckRef.current) clearTimeout(strengthCheckRef.current)
         }
     }, [])
 
     useEffect(() => {
-        const updateStrength = async () => {
-            if (password && isSignUp) {
+        if (strengthCheckRef.current) clearTimeout(strengthCheckRef.current)
+        if (password && isSignUp) {
+            strengthCheckRef.current = setTimeout(async () => {
                 const strengthValue = await AuthUtility.passwordStrength(password)
-                let color = ''
-                if (strengthValue === 'weak') color = '#ef4444'
-                else if (strengthValue === 'medium') color = '#f59e0b'
-                else if (strengthValue === 'strong') color = '#22c55e'
-                const capitalizedValue = strengthValue.charAt(0).toUpperCase() + strengthValue.slice(1)
-                setPasswordStrength({ color, value: capitalizedValue })
-            } else {
-                setPasswordStrength({ color: '', value: '' })
-            }
+                const colorMap = { medium: '#f59e0b', strong: '#22c55e', weak: '#ef4444' }
+                setPasswordStrength({
+                    color: colorMap[strengthValue] || '',
+                    value: strengthValue ? strengthValue.charAt(0).toUpperCase() + strengthValue.slice(1) : ''
+                })
+            }, 300)
+        } else {
+            setPasswordStrength({ color: '', value: '' })
         }
-        updateStrength()
     }, [password, isSignUp])
-
-    const [isSubmitting, setIsSubmitting] = useState(false)
-
-    const getBrowserInfo = (userAgent) => {
-        if (userAgent.includes('Firefox')) return 'Firefox'
-        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
-        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
-        if (userAgent.includes('Edg')) return 'Edge'
-        if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera'
-        return 'Unknown Browser'
-    }
-
-    const getOSInfo = (userAgent) => {
-        if (userAgent.includes('Windows')) return 'Windows'
-        if (userAgent.includes('Mac')) return 'macOS'
-        if (userAgent.includes('Linux')) return 'Linux'
-        if (userAgent.includes('Android')) return 'Android'
-        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS'
-        return 'Unknown OS'
-    }
-
-    const getDeviceInfo = (userAgent) => {
-        if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone'))
-            return 'Mobile'
-        if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'Tablet'
-        return 'Desktop'
-    }
-
-    const createSession = async (userId) => {
-        try {
-            const userAgent = navigator.userAgent
-            const sessionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-            sessionStorage.setItem('sessionId', sessionId)
-
-            await supabase.from('users_sessions').upsert(
-                {
-                    browser: getBrowserInfo(userAgent),
-                    created_at: new Date().toISOString(),
-                    device: getDeviceInfo(userAgent),
-                    id: sessionId,
-                    last_active: new Date().toISOString(),
-                    os: getOSInfo(userAgent),
-                    user_agent: userAgent,
-                    user_id: userId
-                },
-                { onConflict: 'id' }
-            )
-        } catch (error) {}
-    }
 
     useEffect(() => {
         if (error) {
@@ -169,121 +207,201 @@ function LoginView() {
         }
     }, [error])
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (isSubmitting || loading) return
-        setErrorMessage('')
-        setSuccessMessage('')
-        setIsSubmitting(true)
-        if (timeoutRef.current) clearTimeout(timeoutRef.current)
-        timeoutRef.current = setTimeout(() => {
-            setIsSubmitting(false)
-            setErrorMessage('The operation timed out. Please try again.')
-        }, 10000)
-        try {
-            if (isSignUp) {
-                if (!email || !password || !confirmPassword || !firstName || !lastName) {
-                    setErrorMessage('Please complete all fields.')
-                    setSuccessMessage('')
-                    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                    setIsSubmitting(false)
-                    return
-                }
-                if (password !== confirmPassword) {
-                    setErrorMessage('Passwords do not match.')
-                    setSuccessMessage('')
-                    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                    setIsSubmitting(false)
-                    return
-                }
-                const normFirst = await AuthUtility.normalizeName(firstName)
-                const normLast = await AuthUtility.normalizeName(lastName)
-                if (typeof normFirst !== 'string' || typeof normLast !== 'string') {
-                    throw new Error('First and last name must be strings after normalization')
-                }
-                await signUp(email, password, normFirst, normLast)
+    const getBrowserInfo = useCallback((userAgent) => {
+        if (userAgent.includes('Firefox')) return 'Firefox'
+        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
+        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
+        if (userAgent.includes('Edg')) return 'Edge'
+        if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera'
+        return 'Unknown Browser'
+    }, [])
 
-                const userId = sessionStorage.getItem('userId')
-                if (userId) {
-                    await createSession(userId)
-                }
+    const getOSInfo = useCallback((userAgent) => {
+        if (userAgent.includes('Windows')) return 'Windows'
+        if (userAgent.includes('Mac')) return 'macOS'
+        if (userAgent.includes('Linux')) return 'Linux'
+        if (userAgent.includes('Android')) return 'Android'
+        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS'
+        return 'Unknown OS'
+    }, [])
 
-                if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                setErrorMessage('')
-                setSuccessMessage('Account created successfully. Redirecting...')
-                setTimeout(() => (window.location.href = '/'), 1000)
-            } else {
-                if (!email || !password) {
-                    setErrorMessage('Please enter your email and password.')
-                    setSuccessMessage('')
-                    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                    setIsSubmitting(false)
-                    return
-                }
+    const getDeviceInfo = useCallback((userAgent) => {
+        if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone'))
+            return 'Mobile'
+        if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'Tablet'
+        return 'Desktop'
+    }, [])
 
-                const result = await signIn(email, password)
+    const createSession = useCallback(
+        async (userId) => {
+            try {
+                const userAgent = navigator.userAgent
+                const sessionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                sessionStorage.setItem('sessionId', sessionId)
+                await supabase.from('users_sessions').upsert(
+                    {
+                        browser: getBrowserInfo(userAgent),
+                        created_at: new Date().toISOString(),
+                        device: getDeviceInfo(userAgent),
+                        id: sessionId,
+                        last_active: new Date().toISOString(),
+                        os: getOSInfo(userAgent),
+                        user_agent: userAgent,
+                        user_id: userId
+                    },
+                    { onConflict: 'id' }
+                )
+            } catch {}
+        },
+        [getBrowserInfo, getOSInfo, getDeviceInfo]
+    )
 
-                if (!result || !result.id) {
-                    throw new Error('Sign in failed - no user data returned')
-                }
-
-                const userId = sessionStorage.getItem('userId')
-                if (!userId) {
-                    throw new Error('Sign in failed - session not created')
-                }
-
-                if (userId) {
-                    await createSession(userId)
-                }
-
-                if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                setErrorMessage('')
-                setSuccessMessage('Signed in successfully. Redirecting...')
-                setTimeout(() => (window.location.href = '/'), 1000)
-            }
-        } catch (err) {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current)
-                timeoutRef.current = null
-            }
-            const errorMsg = err?.message || err?.error || 'An authentication error occurred. Please try again.'
-            setErrorMessage(errorMsg)
+    const handleSubmit = useCallback(
+        async (e) => {
+            e.preventDefault()
+            if (isSubmitting || loading) return
+            setErrorMessage('')
             setSuccessMessage('')
-            setIsSubmitting(false)
-        }
-    }
+            setIsSubmitting(true)
+            if (timeoutRef.current) clearTimeout(timeoutRef.current)
+            timeoutRef.current = setTimeout(() => {
+                setIsSubmitting(false)
+                setErrorMessage('The operation timed out. Please try again.')
+            }, 10000)
+            try {
+                if (isSignUp) {
+                    if (!email || !password || !confirmPassword || !firstName || !lastName) {
+                        setErrorMessage('Please complete all fields.')
+                        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+                        setIsSubmitting(false)
+                        return
+                    }
+                    if (password !== confirmPassword) {
+                        setErrorMessage('Passwords do not match.')
+                        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+                        setIsSubmitting(false)
+                        return
+                    }
+                    const normFirst = await AuthUtility.normalizeName(firstName)
+                    const normLast = await AuthUtility.normalizeName(lastName)
+                    await signUp(email, password, normFirst, normLast)
+                    const userId = sessionStorage.getItem('userId')
+                    if (userId) await createSession(userId)
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+                    setSuccessMessage('Account created successfully. Redirecting...')
+                    setTimeout(() => (window.location.href = '/'), 1000)
+                } else {
+                    if (!email || !password) {
+                        setErrorMessage('Please enter your email and password.')
+                        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+                        setIsSubmitting(false)
+                        return
+                    }
+                    const result = await signIn(email, password)
+                    if (!result || !result.id) throw new Error('Sign in failed - no user data returned')
+                    const userId = sessionStorage.getItem('userId')
+                    if (!userId) throw new Error('Sign in failed - session not created')
+                    await createSession(userId)
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+                    setSuccessMessage('Signed in successfully. Redirecting...')
+                    setTimeout(() => (window.location.href = '/'), 1000)
+                }
+            } catch (err) {
+                if (timeoutRef.current) clearTimeout(timeoutRef.current)
+                setErrorMessage(err?.message || 'An authentication error occurred. Please try again.')
+                setIsSubmitting(false)
+            }
+        },
+        [
+            isSubmitting,
+            loading,
+            isSignUp,
+            email,
+            password,
+            confirmPassword,
+            firstName,
+            lastName,
+            signIn,
+            signUp,
+            createSession
+        ]
+    )
+
+    const toggleSignUp = useCallback(() => setIsSignUp((prev) => !prev), [])
+    const togglePassword = useCallback(() => setShowPassword((prev) => !prev), [])
+    const openRecovery = useCallback(() => setShowRecovery(true), [])
+    const closeRecovery = useCallback(() => setShowRecovery(false), [])
+
+    const getInputStyle = useCallback(
+        (isFocused) => ({
+            ...inputBaseStyle,
+            borderBottom: `2px solid ${isFocused ? '#1e3a5f' : '#e2e8f0'}`
+        }),
+        []
+    )
+
+    const getLabelStyle = useCallback(
+        (isFocused, hasValue) => ({
+            color: isFocused ? '#1e3a5f' : '#94a3b8',
+            fontSize: isFocused || hasValue ? '0.7rem' : '0.9rem',
+            fontWeight: 500,
+            left: 0,
+            pointerEvents: 'none',
+            position: 'absolute',
+            top: isFocused || hasValue ? '0' : '1rem',
+            transition: 'all 0.2s'
+        }),
+        []
+    )
+
+    const submitButtonStyle = useMemo(
+        () => ({
+            background: '#1e3a5f',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#fff',
+            cursor: isSubmitting || loading ? 'not-allowed' : 'pointer',
+            fontSize: '0.9rem',
+            fontWeight: 600,
+            opacity: isSubmitting || loading ? 0.7 : 1,
+            padding: '0.875rem 1.5rem',
+            transition: 'all 0.15s',
+            width: '100%'
+        }),
+        [isSubmitting, loading]
+    )
 
     if (showRecovery) {
-        return <PasswordRecoveryView onBackToLogin={() => setShowRecovery(false)} />
+        return (
+            <Suspense
+                fallback={
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            background: '#fff',
+                            display: 'flex',
+                            height: '100vh',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <i className="fas fa-spinner fa-spin" style={{ color: '#1e3a5f', fontSize: '2rem' }} />
+                    </div>
+                }
+            >
+                <PasswordRecoveryView onBackToLogin={closeRecovery} />
+            </Suspense>
+        )
     }
-
-    const inputStyle = (isFocused) => ({
-        background: '#fff',
-        border: 'none',
-        borderBottom: `2px solid ${isFocused ? '#1e3a5f' : '#e2e8f0'}`,
-        borderRadius: 0,
-        color: '#1e293b',
-        fontSize: '1rem',
-        outline: 'none',
-        padding: '1rem 0 0.75rem 0',
-        transition: 'border-color 0.2s',
-        width: '100%'
-    })
-
-    const labelStyle = (isFocused, hasValue) => ({
-        color: isFocused ? '#1e3a5f' : '#94a3b8',
-        fontSize: isFocused || hasValue ? '0.7rem' : '0.9rem',
-        fontWeight: 500,
-        left: 0,
-        pointerEvents: 'none',
-        position: 'absolute',
-        top: isFocused || hasValue ? '0' : '1rem',
-        transition: 'all 0.2s'
-    })
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
-            <VideoBackground />
+            {videoLoaded ? (
+                <Suspense fallback={<VideoFallback />}>
+                    <VideoBackground />
+                </Suspense>
+            ) : (
+                <VideoFallback />
+            )}
             <VersionPopup version={version} />
 
             <div
@@ -320,7 +438,7 @@ function LoginView() {
                                 width: '72px'
                             }}
                         >
-                            <img src={SrmLogo} alt="SRM" style={{ height: '44px', width: '44px' }} />
+                            <img src={SrmLogo} alt="SRM" style={{ height: '44px', width: '44px' }} loading="eager" />
                         </div>
                         <h1
                             style={{
@@ -339,34 +457,7 @@ function LoginView() {
                         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', lineHeight: 1.6, margin: 0 }}>
                             Fleet management and operations platform for concrete delivery excellence.
                         </p>
-                        <div
-                            style={{
-                                borderTop: '1px solid rgba(255,255,255,0.15)',
-                                display: 'flex',
-                                gap: '2rem',
-                                marginTop: '3rem',
-                                paddingTop: '2rem'
-                            }}
-                        >
-                            <div>
-                                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
-                                    {animatedStats.assets > 0 ? animatedStats.assets : '-'}
-                                </div>
-                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Fleet Assets</div>
-                            </div>
-                            <div>
-                                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
-                                    {animatedStats.plants > 0 ? animatedStats.plants : '-'}
-                                </div>
-                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Plants</div>
-                            </div>
-                            <div>
-                                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
-                                    {animatedStats.operators > 0 ? animatedStats.operators : '-'}
-                                </div>
-                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Operators</div>
-                            </div>
-                        </div>
+                        <StatsDisplay stats={animatedStats} />
                     </div>
                 </div>
 
@@ -374,10 +465,8 @@ function LoginView() {
                     style={{
                         alignItems: 'center',
                         background: '#fff',
-                        backgroundImage: `
-                            linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px)
-                        `,
+                        backgroundImage:
+                            'linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px)',
                         backgroundSize: '20px 20px',
                         display: 'flex',
                         justifyContent: 'center',
@@ -398,7 +487,12 @@ function LoginView() {
                         }}
                     >
                         <div className="lg-hide" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                            <img src={SrmLogo} alt="SRM" style={{ height: '48px', marginBottom: '0.5rem' }} />
+                            <img
+                                src={SrmLogo}
+                                alt="SRM"
+                                style={{ height: '48px', marginBottom: '0.5rem' }}
+                                loading="eager"
+                            />
                             <div style={{ color: '#1e3a5f', fontSize: '1.25rem', fontWeight: 700 }}>Smyrna Tools</div>
                         </div>
 
@@ -422,7 +516,7 @@ function LoginView() {
                             {isSignUp && (
                                 <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <label style={labelStyle(focusedField === 'firstName', firstName)}>
+                                        <label style={getLabelStyle(focusedField === 'firstName', firstName)}>
                                             First name
                                         </label>
                                         <input
@@ -431,12 +525,12 @@ function LoginView() {
                                             onChange={(e) => setFirstName(e.target.value)}
                                             onFocus={() => setFocusedField('firstName')}
                                             onBlur={() => setFocusedField(null)}
-                                            style={inputStyle(focusedField === 'firstName')}
+                                            style={getInputStyle(focusedField === 'firstName')}
                                             required
                                         />
                                     </div>
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <label style={labelStyle(focusedField === 'lastName', lastName)}>
+                                        <label style={getLabelStyle(focusedField === 'lastName', lastName)}>
                                             Last name
                                         </label>
                                         <input
@@ -445,7 +539,7 @@ function LoginView() {
                                             onChange={(e) => setLastName(e.target.value)}
                                             onFocus={() => setFocusedField('lastName')}
                                             onBlur={() => setFocusedField(null)}
-                                            style={inputStyle(focusedField === 'lastName')}
+                                            style={getInputStyle(focusedField === 'lastName')}
                                             required
                                         />
                                     </div>
@@ -453,7 +547,7 @@ function LoginView() {
                             )}
 
                             <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                                <label style={labelStyle(focusedField === 'email', email)}>Email address</label>
+                                <label style={getLabelStyle(focusedField === 'email', email)}>Email address</label>
                                 <input
                                     type="email"
                                     value={email}
@@ -461,14 +555,14 @@ function LoginView() {
                                     onFocus={() => setFocusedField('email')}
                                     onBlur={() => setFocusedField(null)}
                                     autoComplete="username"
-                                    style={inputStyle(focusedField === 'email')}
+                                    style={getInputStyle(focusedField === 'email')}
                                     required
                                 />
                             </div>
 
                             <div style={{ marginBottom: '1.5rem' }}>
                                 <div style={{ position: 'relative' }}>
-                                    <label style={labelStyle(focusedField === 'password', password)}>Password</label>
+                                    <label style={getLabelStyle(focusedField === 'password', password)}>Password</label>
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={password}
@@ -476,12 +570,15 @@ function LoginView() {
                                         onFocus={() => setFocusedField('password')}
                                         onBlur={() => setFocusedField(null)}
                                         autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                                        style={{ ...inputStyle(focusedField === 'password'), paddingRight: '2.5rem' }}
+                                        style={{
+                                            ...getInputStyle(focusedField === 'password'),
+                                            paddingRight: '2.5rem'
+                                        }}
                                         required
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
+                                        onClick={togglePassword}
                                         style={{
                                             background: 'none',
                                             border: 'none',
@@ -499,51 +596,14 @@ function LoginView() {
                                 </div>
                             </div>
 
-                            {isSignUp && password && (
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '0.5rem' }}>
-                                        <div
-                                            style={{
-                                                background: '#e2e8f0',
-                                                borderRadius: '2px',
-                                                flex: 1,
-                                                height: '3px'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    background: passwordStrength.color,
-                                                    borderRadius: '2px',
-                                                    height: '100%',
-                                                    transition: 'width 0.3s',
-                                                    width:
-                                                        passwordStrength.value === 'Weak'
-                                                            ? '33%'
-                                                            : passwordStrength.value === 'Medium'
-                                                              ? '66%'
-                                                              : passwordStrength.value === 'Strong'
-                                                                ? '100%'
-                                                                : '0%'
-                                                }}
-                                            />
-                                        </div>
-                                        <span
-                                            style={{
-                                                color: passwordStrength.color,
-                                                fontSize: '0.7rem',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            {passwordStrength.value}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
+                            {isSignUp && password && <PasswordStrengthBar strength={passwordStrength} />}
 
                             {isSignUp && (
                                 <div style={{ marginBottom: '1.5rem' }}>
                                     <div style={{ position: 'relative' }}>
-                                        <label style={labelStyle(focusedField === 'confirmPassword', confirmPassword)}>
+                                        <label
+                                            style={getLabelStyle(focusedField === 'confirmPassword', confirmPassword)}
+                                        >
                                             Confirm password
                                         </label>
                                         <input
@@ -553,7 +613,7 @@ function LoginView() {
                                             onFocus={() => setFocusedField('confirmPassword')}
                                             onBlur={() => setFocusedField(null)}
                                             autoComplete="new-password"
-                                            style={inputStyle(focusedField === 'confirmPassword')}
+                                            style={getInputStyle(focusedField === 'confirmPassword')}
                                             required
                                         />
                                         {confirmPassword && password === confirmPassword && (
@@ -575,7 +635,7 @@ function LoginView() {
                                 <div style={{ marginBottom: '1.5rem', textAlign: 'right' }}>
                                     <button
                                         type="button"
-                                        onClick={() => setShowRecovery(true)}
+                                        onClick={openRecovery}
                                         style={{
                                             background: 'none',
                                             border: 'none',
@@ -605,7 +665,6 @@ function LoginView() {
                                     {errorMessage}
                                 </div>
                             )}
-
                             {successMessage && (
                                 <div
                                     style={{
@@ -621,23 +680,7 @@ function LoginView() {
                                 </div>
                             )}
 
-                            <button
-                                type="submit"
-                                disabled={isSubmitting || loading}
-                                style={{
-                                    background: '#1e3a5f',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    color: '#fff',
-                                    cursor: isSubmitting || loading ? 'not-allowed' : 'pointer',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 600,
-                                    opacity: isSubmitting || loading ? 0.7 : 1,
-                                    padding: '0.875rem 1.5rem',
-                                    transition: 'all 0.15s',
-                                    width: '100%'
-                                }}
-                            >
+                            <button type="submit" disabled={isSubmitting || loading} style={submitButtonStyle}>
                                 {isSubmitting || loading ? (
                                     <span style={{ alignItems: 'center', display: 'inline-flex', gap: '0.5rem' }}>
                                         <i className="fas fa-circle-notch fa-spin" />
@@ -657,7 +700,7 @@ function LoginView() {
                             </span>{' '}
                             <button
                                 type="button"
-                                onClick={() => setIsSignUp(!isSignUp)}
+                                onClick={toggleSignUp}
                                 style={{
                                     background: 'none',
                                     border: 'none',
@@ -676,26 +719,9 @@ function LoginView() {
             </div>
 
             <style>{`
-                @media (min-width: 1024px) {
-                    .lg-show { display: flex !important; }
-                    .lg-hide { display: none !important; }
-                }
-                @media (max-width: 1023px) {
-                    .login-panel { 
-                        width: 100% !important; 
-                        min-width: unset !important;
-                        padding: 1.5rem !important;
-                    }
-                }
-                @media (max-width: 480px) {
-                    .login-panel {
-                        padding: 0.75rem !important;
-                    }
-                    .name-fields {
-                        flex-direction: column !important;
-                        gap: 1rem !important;
-                    }
-                }
+                @media (min-width: 1024px) { .lg-show { display: flex !important; } .lg-hide { display: none !important; } }
+                @media (max-width: 1023px) { .login-panel { width: 100% !important; min-width: unset !important; padding: 1.5rem !important; } }
+                @media (max-width: 480px) { .login-panel { padding: 0.75rem !important; } }
                 input::placeholder { color: transparent; }
             `}</style>
         </div>
