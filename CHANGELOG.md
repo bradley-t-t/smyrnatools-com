@@ -2,6 +2,17 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.9] - 2026-02-12
+
+- Added new component `StatusHistoryBar.jsx` to display status history as a visual bar with percentage-based status durations for various item types.
+- Implemented status history tracking in `StatusHistoryBar.jsx` with support for multiple item types including equipment, mixers, operators, pickup trucks, tractors, and trailers.
+- Updated `EquipmentsView.jsx` to integrate the `StatusHistoryBar` component for displaying equipment status history.
+- Updated `MixersView.jsx` to include the `StatusHistoryBar` component for mixer status history visualization.
+- Updated `OperatorsView.jsx` to incorporate the `StatusHistoryBar` component for operator status history.
+- Updated `PickupTrucksView.jsx` to add the `StatusHistoryBar` component for pickup truck status history display.
+- Updated `TractorsView.jsx` to integrate the `StatusHistoryBar` component for tractor status history.
+- Updated `TrailersView.jsx` to include the `StatusHistoryBar` component for trailer status history visualization.
+
 ## [8.8] - 2026-02-12
 
 - Optimized `VideoBackground` component in `src/components/common/VideoBackground.jsx` by wrapping it with `React.memo` to prevent unnecessary re-renders.

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 import LoadingScreen from '../../components/common/LoadingScreen'
+import StatusHistoryBar from '../../components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
@@ -820,22 +821,30 @@ function TractorsView({
                                 </div>
                             </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
-                                <span style={statusBadge(item.status)}>
-                                    {item.status}
-                                    {item.status !== 'Retired' &&
-                                        (() => {
-                                            const dateToUse = item.statusChangedAt || item.createdAt
-                                            const days = dateToUse
-                                                ? Math.max(
-                                                      1,
-                                                      Math.floor(
-                                                          (Date.now() - new Date(dateToUse).getTime()) / 86400000
+                                <div>
+                                    <span style={statusBadge(item.status)}>
+                                        {item.status}
+                                        {item.status !== 'Retired' &&
+                                            (() => {
+                                                const dateToUse = item.statusChangedAt || item.createdAt
+                                                const days = dateToUse
+                                                    ? Math.max(
+                                                          1,
+                                                          Math.floor(
+                                                              (Date.now() - new Date(dateToUse).getTime()) / 86400000
+                                                          )
                                                       )
-                                                  )
-                                                : 1
-                                            return ` (${days} day${days !== 1 ? 's' : ''})`
-                                        })()}
-                                </span>
+                                                    : 1
+                                                return ` (${days} day${days !== 1 ? 's' : ''})`
+                                            })()}
+                                    </span>
+                                    <StatusHistoryBar
+                                        itemId={item.id}
+                                        itemType="tractor"
+                                        currentStatus={item.status}
+                                        createdAt={item.createdAt}
+                                    />
+                                </div>
                             </td>
                             <td style={{ ...cellStyle, width: '18%' }}>
                                 {operator?.name ? (

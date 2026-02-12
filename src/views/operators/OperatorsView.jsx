@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 import LoadingScreen from '../../components/common/LoadingScreen'
+import StatusHistoryBar from '../../components/common/StatusHistoryBar'
 import GridViewModeSection from '../../components/sections/GridViewModeSection'
 import HistoryViewSection from '../../components/sections/HistoryViewSection'
 import ListViewModeSection from '../../components/sections/ListViewModeSection'
@@ -816,26 +817,34 @@ function OperatorsView({
                                                         : '\u2014'}
                                                 </td>
                                                 <td style={{ ...cellSecondaryStyle, width: '14%' }}>
-                                                    <span style={statusBadgeStyle(operator.status)}>
-                                                        {operator.status || '\u2014'}
-                                                        {operator.status &&
-                                                            operator.status !== 'Terminated' &&
-                                                            (() => {
-                                                                const dateToUse =
-                                                                    operator.statusChangedAt || operator.createdAt
-                                                                const days = dateToUse
-                                                                    ? Math.max(
-                                                                          1,
-                                                                          Math.floor(
-                                                                              (Date.now() -
-                                                                                  new Date(dateToUse).getTime()) /
-                                                                                  86400000
+                                                    <div>
+                                                        <span style={statusBadgeStyle(operator.status)}>
+                                                            {operator.status || '\u2014'}
+                                                            {operator.status &&
+                                                                operator.status !== 'Terminated' &&
+                                                                (() => {
+                                                                    const dateToUse =
+                                                                        operator.statusChangedAt || operator.createdAt
+                                                                    const days = dateToUse
+                                                                        ? Math.max(
+                                                                              1,
+                                                                              Math.floor(
+                                                                                  (Date.now() -
+                                                                                      new Date(dateToUse).getTime()) /
+                                                                                      86400000
+                                                                              )
                                                                           )
-                                                                      )
-                                                                    : 1
-                                                                return ` (${days} day${days !== 1 ? 's' : ''})`
-                                                            })()}
-                                                    </span>
+                                                                        : 1
+                                                                    return ` (${days} day${days !== 1 ? 's' : ''})`
+                                                                })()}
+                                                        </span>
+                                                        <StatusHistoryBar
+                                                            itemId={operator.employeeId}
+                                                            itemType="operator"
+                                                            currentStatus={operator.status}
+                                                            createdAt={operator.createdAt}
+                                                        />
+                                                    </div>
                                                 </td>
                                                 <td
                                                     style={{
