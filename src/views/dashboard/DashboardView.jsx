@@ -22,6 +22,7 @@ import MixersView from '../mixers/MixersView'
 import OperatorsView from '../operators/OperatorsView'
 import TractorsView from '../tractors/TractorsView'
 import TrailersView from '../trailers/TrailersView'
+import DashboardCharts from './DashboardCharts'
 
 export default function DashboardView() {
     const { preferences } = usePreferences()
@@ -3688,6 +3689,19 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div style={cardStyle}>
+                                <h3 style={sectionTitleStyle}>Fleet Analytics</h3>
+                                <DashboardCharts
+                                    dashboardPlant={dashboardPlant}
+                                    dashboardRegionCode={dashboardRegionCode}
+                                    regionPlants={regionPlants}
+                                    allPlants={allPlants}
+                                    statusHistoryData={statusHistoryData}
+                                    isAggregate={isAggregate}
+                                    stats={stats}
+                                />
                             </div>
 
                             <div style={cardStyle}>

@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.1] - 2026-02-12
+
+- Added `recharts` library version 3.7.0 to dependencies in `package.json` and `package-lock.json` for chart visualization support.
+- Introduced `@reduxjs/toolkit` version 2.11.2 and related dependencies in `package-lock.json` for state management.
+- Added D3-related type definitions and libraries (`@types/d3-*`, `d3-array`, `d3-color`, etc.) in `package-lock.json` to support data visualization features.
+- Included `clsx` version 2.1.1 in `package-lock.json` for utility class name manipulation.
+- Created new file `src/views/dashboard/DashboardCharts.jsx` to implement chart components for the dashboard.
+- Updated `src/views/dashboard/DashboardView.jsx` with 14 lines of new code, likely integrating the new chart components.
+
 ## [8.0] - 2026-02-11
 
 - Added `trailerType` field to the `slimTrailer` function in `src/utils/DashboardUtility.js` with a default value of 'Cement' if not specified.
