@@ -2,6 +2,20 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [8.4] - 2026-02-12
+
+- Added new hook `usePagination.js` for handling pagination logic with features like page navigation and page size adjustment.
+- Introduced `useReportSubmission.js` hook for managing report submissions, including functions for building data, finding existing reports, saving reports, and handling manager edits.
+- Created `useReportsData.js` hook to manage report data fetching and processing.
+- Added `useReviewData.js` hook for handling review-related data operations.
+- Implemented `useSubmitData.js` hook to support data submission processes.
+- Developed `useSubmitForm.js` hook for managing form submission logic.
+- Refactored `ReportsReviewView.jsx` with updates to improve review functionality (significant code changes observed).
+- Overhauled `ReportsSubmitView.jsx` with extensive modifications to submission UI and logic (major reduction in lines indicating cleanup or restructuring).
+- Updated `ReportsView.jsx` with significant changes to the main reports interface (substantial code reduction suggesting optimization).
+- Added new components for reports including `ConfirmationModal.jsx`, `ErrorModal.jsx`, `MyReportsList.jsx`, `ReportsToolbar.jsx`, `ReviewReportsList.jsx`, and `SubmitHeader.jsx`.
+- Introduced new styling files for reports views: `ReportsReviewViewStyles.js`, `ReportsSubmitViewStyles.js`, and `ReportsViewStyles.js` to enhance UI consistency and design.
+
 ## [8.3] - 2026-02-12
 
 - Added a new "Production vs Labor" chart in `DashboardCharts.jsx` to display weekly production data with yards and hours, including a custom tooltip showing yards, hours, and YPH (Yards Per Hour) for each week.

@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { useReviewData } from '../../app/hooks/useReviewData'
 import { ReportService } from '../../services/ReportService'
-import { UserService } from '../../services/UserService'
 import { exportGeneralManagerReport } from '../../utils/ExportUtility'
-import { ReportUtility } from '../../utils/ReportUtility'
+import { reportsReviewViewStyles } from './styles/ReportsReviewViewStyles'
 import { DistrictManagerReviewPlugin } from './types/WeeklyDistrictManagerReport'
 import { EfficiencyReviewPlugin } from './types/WeeklyEfficiencyReport'
 import { GeneralManagerReviewPlugin } from './types/WeeklyGeneralManagerReport'
@@ -22,345 +21,42 @@ const plugins = {
 }
 
 function ReportsReviewView({ report, initialData, onBack, user, completedByUser, onManagerEdit }) {
-    const styles = {
-        backBtn: {
-            alignItems: 'center',
-            background: '#f1f5f9',
-            border: 'none',
-            borderRadius: '10px',
-            color: '#475569',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '1rem',
-            height: '40px',
-            justifyContent: 'center',
-            width: '40px'
-        },
-        container: { background: '#f8fafc', minHeight: '100vh', padding: '0', width: '100%' },
-        editBtn: {
-            alignItems: 'center',
-            background: '#1e3a5f',
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            padding: '0.625rem 1rem'
-        },
-        exportBtn: {
-            alignItems: 'center',
-            background: '#10b981',
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            padding: '0.625rem 1rem'
-        },
-        header: {
-            alignItems: 'center',
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            justifyContent: 'space-between',
-            padding: '1rem 1.5rem',
-            position: 'sticky',
-            top: 0,
-            zIndex: 40
-        },
-        headerLeft: { alignItems: 'center', display: 'flex', gap: '1rem' },
-        headerRight: { alignItems: 'center', display: 'flex', gap: '0.75rem' },
-        metaBar: {
-            alignItems: 'center',
-            background: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1.5rem',
-            padding: '1rem 1.5rem'
-        },
-        metaIcon: { color: '#94a3b8' },
-        metaItem: { alignItems: 'center', color: '#64748b', display: 'flex', fontSize: '0.875rem', gap: '0.5rem' },
-        metaStrong: { color: '#1e293b', fontWeight: 600 },
-        subtitle: { color: '#64748b', fontSize: '0.875rem', margin: 0 },
-        title: { color: '#1e293b', fontSize: '1.25rem', fontWeight: 700, margin: 0 },
-        titleSection: { display: 'flex', flexDirection: 'column', gap: '0.25rem' }
-    }
+    const styles = reportsReviewViewStyles
 
-    const [form, setForm] = useState(initialData?.data || initialData || {})
-    const [maintenanceItems, setMaintenanceItems] = useState([])
-    const [ownerName, setOwnerName] = useState('')
-    const [submittedAt, setSubmittedAt] = useState('')
+    const {
+        assignedPlant,
+        form,
+        hasManagerEditPermission,
+        isPlantShutdown,
+        isSubmitted,
+        loadingPlants,
+        lost,
+        lostGrade,
+        lostLabel,
+        maintenanceItems,
+        operatorOptions,
+        ownerName,
+        plants,
+        reportDateVerbose,
+        showManagerEditButton,
+        submittedAt,
+        weekIso,
+        weekVerbose,
+        yph,
+        yphGrade,
+        yphLabel
+    } = useReviewData({ completedByUser, initialData, report, user })
+
     const [summaryTab, setSummaryTab] = useState('summary')
-    const [operatorOptions, setOperatorOptions] = useState([])
-    const [assignedPlant, setAssignedPlant] = useState('')
-    const [hasManagerEditPermission, setHasManagerEditPermission] = useState(false)
-    const [showManagerEditButton, setShowManagerEditButton] = useState(false)
-    const [plants, setPlants] = useState([])
     const [exporting, setExporting] = useState(false)
     const [exportError, setExportError] = useState('')
-    const [isPlantShutdown, setIsPlantShutdown] = useState(false)
-    const [loadingPlants, setLoadingPlants] = useState(true)
-    const [hoursReceivedFromOtherPlants, setHoursReceivedFromOtherPlants] = useState(0)
-
-    useEffect(() => {
-        async function fetchHoursReceived() {
-            const plantCode = String(assignedPlant || form?.plant || '')
-            if (report.name !== 'plant_manager' || !report.weekIso || !plantCode) {
-                setHoursReceivedFromOtherPlants(0)
-                return
-            }
-
-            try {
-                const weekStart = report.weekIso.split('T')[0]
-                const [year, month, day] = weekStart.split('-').map(Number)
-                const normalizedWeekStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-
-                const startOfYear = new Date(year, 0, 1)
-                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-
-                const { data: allReports, error } = await supabase
-                    .from('reports')
-                    .select('*')
-                    .eq('report_name', 'plant_manager')
-                    .eq('completed', true)
-                    .gte('week', startOfYear.toISOString())
-                    .lte('week', endOfYear.toISOString())
-
-                if (error) {
-                    console.error('Error fetching reports:', error)
-                    setHoursReceivedFromOtherPlants(0)
-                    return
-                }
-
-                let totalReceived = 0
-                if (allReports && Array.isArray(allReports)) {
-                    allReports.forEach((otherReport) => {
-                        const rawWeekStr = otherReport.week.split('T')[0]
-                        const [wy, wm, wd] = rawWeekStr.split('-').map(Number)
-                        const reportWeekStr = `${wy}-${String(wm).padStart(2, '0')}-${String(wd).padStart(2, '0')}`
-
-                        if (reportWeekStr === normalizedWeekStr) {
-                            const helpEntries = otherReport.data?.operators_sent_to_help || []
-                            if (Array.isArray(helpEntries)) {
-                                helpEntries.forEach((entry) => {
-                                    const destPlant = String(entry.destination_plant || '')
-                                    if (destPlant === plantCode && entry.operators && Array.isArray(entry.operators)) {
-                                        entry.operators.forEach((op) => {
-                                            totalReceived += parseFloat(op.hours) || 0
-                                        })
-                                    }
-                                })
-                            }
-                        }
-                    })
-                }
-
-                setHoursReceivedFromOtherPlants(totalReceived)
-            } catch (err) {
-                console.error('Error fetching hours received:', err)
-                setHoursReceivedFromOtherPlants(0)
-            }
-        }
-
-        fetchHoursReceived()
-    }, [report.name, report.weekIso, assignedPlant, form?.plant])
-
-    useEffect(() => {
-        if (report.name === 'plant_production' && operatorOptions.length > 0) {
-            const rows = Array.isArray(form.rows) ? form.rows : []
-            const excludedOperators = ReportUtility.getExcludedOperators(rows, operatorOptions)
-            setIsPlantShutdown(excludedOperators.length === operatorOptions.length && operatorOptions.length > 0)
-        } else {
-            setIsPlantShutdown(false)
-        }
-    }, [report.name, form.rows, operatorOptions])
-
-    useEffect(() => {
-        async function fetchOwnerName() {
-            const ownerId = completedByUser?.id || initialData?.user_id || report?.userId || user?.id
-            if (!ownerId) {
-                setOwnerName('')
-                return
-            }
-            const name =
-                completedByUser && (completedByUser.first_name || completedByUser.last_name)
-                    ? `${completedByUser.first_name || ''} ${completedByUser.last_name || ''}`.trim()
-                    : (await UserService.getUserDisplayName(ownerId)) || ownerId.slice(0, 8)
-            setOwnerName(name)
-        }
-
-        fetchOwnerName()
-    }, [report, user, initialData, completedByUser])
-
-    useEffect(() => {
-        async function fetchMaintenanceItems() {
-            const weekIso = report.weekIso || initialData?.week
-            if (!weekIso) {
-                setMaintenanceItems([])
-                return
-            }
-            const items = await ReportService.fetchMaintenanceItems(weekIso)
-            setMaintenanceItems(items)
-        }
-
-        fetchMaintenanceItems()
-    }, [report.weekIso, initialData?.week])
-
-    useEffect(() => {
-        setSubmittedAt(initialData?.submitted_at ? ReportUtility.formatDateTime(initialData.submitted_at) : '')
-    }, [initialData])
-
-    useEffect(() => {
-        if (initialData?.data) {
-            setForm(initialData.data)
-        } else if (initialData) {
-            setForm(initialData)
-        }
-    }, [initialData])
-
-    const plantCode = useMemo(() => {
-        if (form.plant) return form.plant
-        if (Array.isArray(form.rows) && form.rows.length > 0) return form.rows[0].plant_code || ''
-        return ''
-    }, [form.plant, form.rows])
-
-    useEffect(() => {
-        async function fetchOperatorOptions() {
-            if (report.name !== 'plant_production') {
-                setOperatorOptions([])
-                return
-            }
-            if (!plantCode) {
-                setOperatorOptions([])
-                return
-            }
-            const options = await ReportService.fetchOperatorOptions(plantCode)
-            setOperatorOptions(options)
-        }
-
-        fetchOperatorOptions()
-    }, [report.name, plantCode])
-
-    useEffect(() => {
-        async function fetchAssignedPlant() {
-            if (
-                (report.name === 'plant_manager' ||
-                    report.name === 'district_manager' ||
-                    report.name === 'plant_production') &&
-                completedByUser &&
-                completedByUser.id
-            ) {
-                const plant = await UserService.getUserPlant(completedByUser.id)
-                setAssignedPlant(plant || '')
-            }
-        }
-
-        fetchAssignedPlant()
-    }, [report.name, completedByUser])
-
-    useEffect(() => {
-        async function checkPermissionAndRoleWeight() {
-            if (user && user.id) {
-                const perm = await UserService.hasPermission(user.id, 'reports.edit.others')
-                setHasManagerEditPermission(!!perm)
-                let ownerId = completedByUser?.id || initialData?.user_id || report?.userId
-                if (ownerId && ownerId !== user.id) {
-                    const userRole = await UserService.getHighestRole(user.id)
-                    const ownerRole = await UserService.getHighestRole(ownerId)
-                    if (userRole && ownerRole && userRole.weight > ownerRole.weight) {
-                        setShowManagerEditButton(true)
-                    } else {
-                        setShowManagerEditButton(false)
-                    }
-                } else {
-                    setShowManagerEditButton(false)
-                }
-            } else {
-                setHasManagerEditPermission(false)
-                setShowManagerEditButton(false)
-            }
-        }
-
-        checkPermissionAndRoleWeight()
-    }, [user, completedByUser, initialData, report])
-
-    useEffect(() => {
-        async function fetchPlants() {
-            setLoadingPlants(true)
-            if (report.name === 'general_manager' && user?.id) {
-                const list = await ReportService.fetchPlantsForUser(user.id)
-                if (list && list.length > 0) {
-                    setPlants(list)
-                } else {
-                    const allPlants = await ReportService.fetchPlantsSorted()
-                    setPlants(allPlants)
-                }
-            } else {
-                const list = await ReportService.fetchPlantsSorted()
-                setPlants(list)
-            }
-            setLoadingPlants(false)
-        }
-
-        fetchPlants()
-    }, [report.name, user?.id])
-
-    let reportTitle = report.title || 'Report Review'
-
-    const { yph, yphGrade, yphLabel, lost, lostGrade, lostLabel } = useMemo(() => {
-        const { lost, lostGrade, lostLabel } = ReportService.getYardageMetrics(form)
-
-        if (report.name === 'plant_manager') {
-            const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
-            return {
-                lost,
-                lostGrade,
-                lostLabel,
-                yph: { adjusted: metrics.adjusted, raw: metrics.raw },
-                yphGrade: { adjusted: metrics.adjustedGrade, raw: metrics.rawGrade },
-                yphLabel: { adjusted: metrics.adjustedLabel, raw: metrics.rawLabel }
-            }
-        } else {
-            const { yph, yphGrade, yphLabel } = ReportService.getYardageMetrics(form)
-            return {
-                lost,
-                lostGrade,
-                lostLabel,
-                yph: { adjusted: yph, raw: yph },
-                yphGrade: { adjusted: yphGrade, raw: yphGrade },
-                yphLabel: { adjusted: yphLabel, raw: yphLabel }
-            }
-        }
-    }, [form, report.name, hoursReceivedFromOtherPlants])
 
     ReportService.getYphColor(yphGrade.adjusted)
     ReportService.getYphColor(lostGrade)
+
     const PluginComponent = plugins[report.name]
-    const isSubmitted = !!initialData?.completed
-
-    let statusText = isSubmitted ? 'Submitted' : 'Saved (Draft)'
-
-    const tabOptions = [
-        { key: 'review', label: 'Review' },
-        { key: 'overview', label: 'Overview' }
-    ]
-    const [, setActiveTab] = useState(tabOptions[0].key)
-
-    useEffect(() => {
-        setActiveTab(tabOptions[0].key)
-    }, [report.name])
-
-    const weekVerbose = ReportUtility.getWeekVerbose(report.weekIso || initialData?.week)
-    const reportDateVerbose = form.report_date ? ReportUtility.formatVerboseDate(form.report_date) : ''
+    const reportTitle = report.title || 'Report Review'
+    const statusText = isSubmitted ? 'Submitted' : 'Saved (Draft)'
 
     async function handleExport() {
         if (exporting || loadingPlants || plants.length === 0) return
@@ -370,7 +66,7 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
             await exportGeneralManagerReport({
                 form,
                 plants,
-                weekIso: report.weekIso || initialData?.week
+                weekIso
             })
         } catch (e) {
             setExportError(e?.message || 'Export failed')
@@ -590,7 +286,7 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
                             maintenanceItems={maintenanceItems}
                             operatorOptions={operatorOptions}
                             plants={plants}
-                            weekIso={report.weekIso || initialData?.week}
+                            weekIso={weekIso}
                             user={completedByUser || user}
                             assignedPlant={assignedPlant}
                             reportUserId={initialData?.user_id}
