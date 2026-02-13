@@ -29,10 +29,12 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
     const weekIso = report.weekIso || initialData?.week
     const weekVerbose = ReportUtility.getWeekVerbose(weekIso)
     const reportDateVerbose = form.report_date ? ReportUtility.formatVerboseDate(form.report_date) : ''
+    const formPlant = form?.plant
 
     useEffect(() => {
+        let mounted = true
         async function fetchHoursReceived() {
-            const pCode = String(assignedPlant || form?.plant || '')
+            const pCode = String(assignedPlant || formPlant || '')
             if (report.name !== 'plant_manager' || !report.weekIso || !pCode) {
                 setHoursReceivedFromOtherPlants(0)
                 return
@@ -54,8 +56,8 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
 
-                if (error) {
-                    setHoursReceivedFromOtherPlants(0)
+                if (error || !mounted) {
+                    if (mounted) setHoursReceivedFromOtherPlants(0)
                     return
                 }
 
@@ -82,14 +84,17 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                     })
                 }
 
-                setHoursReceivedFromOtherPlants(totalReceived)
+                if (mounted) setHoursReceivedFromOtherPlants(totalReceived)
             } catch {
-                setHoursReceivedFromOtherPlants(0)
+                if (mounted) setHoursReceivedFromOtherPlants(0)
             }
         }
 
         fetchHoursReceived()
-    }, [report.name, report.weekIso, assignedPlant, form?.plant])
+        return () => {
+            mounted = false
+        }
+    }, [report.name, report.weekIso, assignedPlant, formPlant])
 
     useEffect(() => {
         if (report.name === 'plant_production' && operatorOptions.length > 0) {

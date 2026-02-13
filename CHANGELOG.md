@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.5] - 2026-02-13
+
+- Updated `useReviewData.js` to handle component unmounting by adding a `mounted` flag to prevent state updates after unmount, and adjusted dependency array to use `formPlant`.
+- Added CSS rules in `index.css` to remove spin buttons from number input fields across different browsers for a cleaner UI.
+- Enhanced `ReportService.js` to include caching for `fetchActiveOperatorsAndMixers` using `CacheUtility` with a short TTL, and updated return object to include `activeOperators`.
+- Significantly refactored `PlanView.jsx` with major changes including removal of initial `assignments` state data, addition of `plantYardageTargets` and `showYardage` states, and substantial UI and logic updates (specific details truncated due to diff size).
+- Modified `WeeklyPlantManagerReport.jsx` with minor updates to align with related changes in report handling (exact changes not fully detailed in provided diff excerpt).
+
 ## [9.4] - 2026-02-12
 
 - Added custom sorting for status percentages in `StatusHistoryBar.jsx` with a defined order for statuses (Active, In Shop, Spare).

@@ -990,6 +990,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
     const currentPlantCode = plantCode || user?.plant_code
 
     useEffect(() => {
+        let mounted = true
         async function fetchData() {
             if (!currentPlantCode) {
                 setLoading(false)
@@ -998,9 +999,11 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
 
             try {
                 const regions = await RegionService.fetchRegionsByPlantCode(currentPlantCode)
+                if (!mounted) return
                 if (regions && regions.length > 0) {
                     const regionCode = regions[0].regionCode || regions[0].region_code
                     const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                    if (!mounted) return
                     setPlants(regionPlants || [])
                 }
 
@@ -1012,6 +1015,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     .eq('position', 'Mixer Operator')
                     .order('name')
 
+                if (!mounted) return
                 const transformedOperators = (operatorsData || []).map((op) => ({
                     employeeId: op.employee_id,
                     name: op.name,
@@ -1024,11 +1028,14 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                 setOperators(transformedOperators)
             } catch (err) {
             } finally {
-                setLoading(false)
+                if (mounted) setLoading(false)
             }
         }
 
         fetchData()
+        return () => {
+            mounted = false
+        }
     }, [currentPlantCode])
 
     const addEntry = () => {

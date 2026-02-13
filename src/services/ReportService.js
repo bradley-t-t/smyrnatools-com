@@ -358,7 +358,10 @@ class ReportServiceImpl {
     }
 
     async fetchActiveOperatorsAndMixers(plantCode) {
-        if (!plantCode) return { mixers: [], operatorOptions: [] }
+        if (!plantCode) return { activeOperators: [], mixers: [], operatorOptions: [] }
+        const key = `activeOpsAndMixers:${plantCode}`
+        const cached = CacheUtility.get(key)
+        if (cached) return cached
         const [opsRes, mixRes] = await Promise.all([
             supabase
                 .from('operators')
@@ -373,7 +376,9 @@ class ReportServiceImpl {
                 ? opsRes.data.map((u) => ({ label: u.name, value: u.employee_id }))
                 : []
         const mixers = !mixRes.error && Array.isArray(mixRes.data) ? mixRes.data : []
-        return { activeOperators: opsRes.data || [], mixers, operatorOptions }
+        const result = { activeOperators: opsRes.data || [], mixers, operatorOptions }
+        CacheUtility.set(key, result, TTL_SHORT)
+        return result
     }
 
     async fetchMaintenanceItems(weekIso) {
