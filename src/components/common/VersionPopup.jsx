@@ -1,10 +1,15 @@
 import React from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
+
 function VersionPopup({ version }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
+
     if (!version) return null
 
     const popupStyle = {
-        backgroundColor: '#1e3a5f',
+        backgroundColor: accentColor,
         borderRadius: '10px',
         bottom: '20px',
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',

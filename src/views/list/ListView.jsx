@@ -10,6 +10,7 @@ import ListAddView from './ListAddView'
 
 function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) {
     const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const headerRef = useRef(null)
     const searchInputRef = useRef(null)
     const toolbarRef = useRef(null)
@@ -460,7 +461,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const styles = {
         addButton: {
             alignItems: 'center',
-            background: '#1e3a5f',
+            background: accentColor,
             border: 'none',
             borderRadius: '8px',
             color: 'white',
@@ -519,7 +520,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             zIndex: 1000
         },
         bulkCount: {
-            color: '#1e3a5f',
+            color: accentColor,
             fontSize: '0.9375rem',
             fontWeight: 700
         },
@@ -592,7 +593,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         },
         groupCount: {
             alignItems: 'center',
-            background: '#1e3a5f',
+            background: accentColor,
             borderRadius: '12px',
             color: 'white',
             display: 'inline-flex',
@@ -727,7 +728,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             const colors = {
                 overdue: { bg: '#fee2e2', text: '#ef4444' },
                 today: { bg: '#fef3c7', text: '#f59e0b' },
-                total: { bg: '#eff6ff', text: '#1e3a5f' }
+                total: { bg: '#eff6ff', text: accentColor }
             }
             const color = colors[type] || colors.total
             return {
@@ -760,7 +761,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         },
         mobileToggleBtn: {
             alignItems: 'center',
-            background: showMobileSidebar ? '#1e3a5f' : '#f1f5f9',
+            background: showMobileSidebar ? accentColor : '#f1f5f9',
             border: 'none',
             borderRadius: '8px',
             color: showMobileSidebar ? 'white' : '#64748b',
@@ -830,7 +831,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         },
         sidebarHeaderTitle: {
             alignItems: 'center',
-            color: '#1e3a5f',
+            color: accentColor,
             display: 'flex',
             fontSize: '1.125rem',
             fontWeight: 700,
@@ -884,10 +885,10 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 overdue: '#dc2626',
                 progress: '#2563eb',
                 today: '#d97706',
-                total: '#1e3a5f'
+                total: accentColor
             }
             return {
-                color: colors[color] || '#1e3a5f',
+                color: colors[color] || accentColor,
                 fontSize: '1.75rem',
                 fontWeight: 700,
                 lineHeight: 1
@@ -901,9 +902,9 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         viewModeBtn: (active) => ({
             alignItems: 'center',
             background: active ? '#eff6ff' : 'white',
-            border: active ? '2px solid #1e3a5f' : '1px solid #e2e8f0',
+            border: active ? `2px solid ${accentColor}` : '1px solid #e2e8f0',
             borderRadius: '8px',
-            color: active ? '#1e3a5f' : '#64748b',
+            color: active ? accentColor : '#64748b',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -990,8 +991,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         setRoleFilter(mapped)
                     }}
                     onFocus={(e) => {
-                        e.target.style.borderColor = '#1e3a5f'
-                        e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
+                        e.target.style.borderColor = accentColor
+                        e.target.style.boxShadow = `0 0 0 3px ${accentColor}20`
                     }}
                     onBlur={(e) => {
                         e.target.style.borderColor = '#e5e7eb'
@@ -1247,8 +1248,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             <button
                                 style={styles.addButton}
                                 onClick={() => setShowAddSheet(true)}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#162d4a')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = '#1e3a5f')}
+                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                             >
                                 <i className="fas fa-plus"></i>
                                 <span>Add Item</span>
@@ -1266,7 +1267,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                     <div key={key} style={styles.plannerGroup}>
                                         <div style={styles.groupHeader}>
                                             <div style={styles.groupTitle}>
-                                                <i className={`fas ${group.icon}`} style={{ color: '#1e3a5f' }}></i>
+                                                <i className={`fas ${group.icon}`} style={{ color: accentColor }}></i>
                                                 <span>{group.label}</span>
                                                 <span style={styles.groupCount}>{group.items.length}</span>
                                             </div>

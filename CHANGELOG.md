@@ -2,6 +2,22 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.8] - 2026-02-16
+
+- Updated `VersionPopup.jsx` to use dynamic accent color from user preferences instead of a hardcoded value for the popup background.
+- Modified `ListView.jsx` to apply dynamic accent color from user preferences across multiple UI elements, replacing hardcoded color `#1e3a5f` in styles for:
+  - Add button background
+  - Bulk count text color
+  - Group count background
+  - Total count text color
+  - Mobile toggle button background when active
+  - Sidebar header title text color
+  - Statistic item total color
+  - View mode button border and text color when active
+  - Search input focus border color and box shadow
+  - Planner group icon color
+- Changed hover effect for the add button in `ListView.jsx` to adjust opacity instead of changing background color.
+
 ## [9.7] - 2026-02-16
 
 - Added support for customizable accent color in RecapModalSection.jsx by integrating the usePreferences hook to fetch user preferences.
