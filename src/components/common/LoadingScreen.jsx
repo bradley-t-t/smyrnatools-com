@@ -1,8 +1,12 @@
 import React from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 
 function LoadingScreen({ message = 'Loading...', fullPage = false, inline = false }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
+
     const getContainerStyle = () => {
         const baseStyle = {
             alignItems: 'center',
@@ -41,7 +45,7 @@ function LoadingScreen({ message = 'Loading...', fullPage = false, inline = fals
 
     const contentStyle = {
         alignItems: 'center',
-        backgroundColor: '#1e3a5f',
+        backgroundColor: accentColor,
         backgroundImage: `
             linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)

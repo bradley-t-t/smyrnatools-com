@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import { PlanService } from '../../services/PlanService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
@@ -8,6 +9,8 @@ const PRE_TRIP_MINUTES = 15
 const BUFFER_MINUTES = 5
 
 function PlanView() {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [plants, setPlants] = useState([])
     const [mixerCountsByPlant, setMixerCountsByPlant] = useState({})
     const [plantYardageTargets, setPlantYardageTargets] = useState({})
@@ -248,6 +251,28 @@ function PlanView() {
             }
             if (a.returnTime) msg += `• Return by: ${a.returnTime}\n`
         })
+
+        const planStats = getStats()
+        const yardageEntries = Object.entries(plantYardageTargets).filter(([, t]) => t?.yards > 0)
+        if (yardageEntries.length > 0) {
+            msg += '\n─────────────\n\nYardage Targets\n'
+            yardageEntries
+                .sort(([a], [b]) => a.localeCompare(b))
+                .forEach(([code, t]) => {
+                    const plantStat = planStats.find((s) => s.code === code)
+                    const ops = plantStat ? plantStat.eff : mixerCountsByPlant[code] || 0
+                    const yards = t.yards
+                    if (ops > 0) {
+                        const yardsPerOp = Math.ceil(yards / ops)
+                        const loadsPerOp = Math.ceil(yardsPerOp / 10)
+                        msg += `\n${code}: ${yards} yds | ${ops} ops\n`
+                        msg += `• ${yardsPerOp} yds/op | ${loadsPerOp} loads/op\n`
+                    } else {
+                        msg += `\n${code}: ${yards} yds | 0 ops (no coverage)\n`
+                    }
+                })
+        }
+
         if (notes) msg += `\n─────────────\n\nNotes: ${notes}\n`
         setGeneratedMessage(msg.trim())
         setIsGenerating(false)
@@ -485,31 +510,12 @@ function PlanView() {
                                                         background: 'white',
                                                         border: '1px solid #e2e8f0',
                                                         borderRadius: '6px',
+                                                        flex: 1,
                                                         fontSize: '13px',
                                                         minWidth: 0,
                                                         outline: 'none',
-                                                        padding: '8px 6px',
-                                                        textAlign: 'center',
-                                                        width: '70px'
-                                                    }}
-                                                />
-                                                <input
-                                                    type="number"
-                                                    placeholder="Hrs"
-                                                    value={t.timeframe || ''}
-                                                    onChange={(e) =>
-                                                        updateYardage(p.plant_code, 'timeframe', e.target.value)
-                                                    }
-                                                    style={{
-                                                        background: 'white',
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '6px',
-                                                        fontSize: '13px',
-                                                        minWidth: 0,
-                                                        outline: 'none',
-                                                        padding: '8px 6px',
-                                                        textAlign: 'center',
-                                                        width: '50px'
+                                                        padding: '8px 10px',
+                                                        textAlign: 'center'
                                                     }}
                                                 />
                                                 {y && !y.err && (
@@ -570,11 +576,16 @@ function PlanView() {
                                     value={newTravelTime.from}
                                     onChange={(e) => setNewTravelTime({ ...newTravelTime, from: e.target.value })}
                                     style={{
-                                        background: '#f8fafc',
+                                        appearance: 'none',
+                                        background: `#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
                                         border: '1px solid #e2e8f0',
-                                        borderRadius: '6px',
+                                        borderRadius: '8px',
+                                        color: newTravelTime.from ? '#1e293b' : '#94a3b8',
+                                        cursor: 'pointer',
                                         fontSize: '14px',
-                                        padding: '8px 12px'
+                                        fontWeight: 500,
+                                        outline: 'none',
+                                        padding: '10px 32px 10px 14px'
                                     }}
                                 >
                                     <option value="">From</option>
@@ -589,11 +600,16 @@ function PlanView() {
                                     value={newTravelTime.to}
                                     onChange={(e) => setNewTravelTime({ ...newTravelTime, to: e.target.value })}
                                     style={{
-                                        background: '#f8fafc',
+                                        appearance: 'none',
+                                        background: `#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
                                         border: '1px solid #e2e8f0',
-                                        borderRadius: '6px',
+                                        borderRadius: '8px',
+                                        color: newTravelTime.to ? '#1e293b' : '#94a3b8',
+                                        cursor: 'pointer',
                                         fontSize: '14px',
-                                        padding: '8px 12px'
+                                        fontWeight: 500,
+                                        outline: 'none',
+                                        padding: '10px 32px 10px 14px'
                                     }}
                                 >
                                     <option value="">To</option>
@@ -622,7 +638,7 @@ function PlanView() {
                                     onClick={addTravelTime}
                                     disabled={isSaving}
                                     style={{
-                                        background: '#1e3a5f',
+                                        background: accentColor,
                                         border: 'none',
                                         borderRadius: '6px',
                                         color: 'white',
@@ -728,7 +744,7 @@ function PlanView() {
                             <button
                                 onClick={addAssignment}
                                 style={{
-                                    background: '#1e3a5f',
+                                    background: accentColor,
                                     border: 'none',
                                     borderRadius: '8px',
                                     color: 'white',
@@ -773,7 +789,7 @@ function PlanView() {
                                             >
                                                 <span
                                                     style={{
-                                                        background: '#1e3a5f',
+                                                        background: accentColor,
                                                         borderRadius: '6px',
                                                         color: 'white',
                                                         fontSize: '12px',
@@ -789,11 +805,16 @@ function PlanView() {
                                                         updateAssignment(a.id, 'fromPlant', e.target.value)
                                                     }
                                                     style={{
-                                                        background: 'white',
+                                                        appearance: 'none',
+                                                        background: `white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
                                                         border: '1px solid #e2e8f0',
                                                         borderRadius: '8px',
+                                                        color: a.fromPlant ? '#1e293b' : '#94a3b8',
+                                                        cursor: 'pointer',
                                                         fontSize: '14px',
-                                                        padding: '8px 12px'
+                                                        fontWeight: 500,
+                                                        outline: 'none',
+                                                        padding: '10px 32px 10px 14px'
                                                     }}
                                                 >
                                                     <option value="">From</option>
@@ -813,11 +834,16 @@ function PlanView() {
                                                     value={a.toPlant}
                                                     onChange={(e) => updateAssignment(a.id, 'toPlant', e.target.value)}
                                                     style={{
-                                                        background: 'white',
+                                                        appearance: 'none',
+                                                        background: `white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
                                                         border: '1px solid #e2e8f0',
                                                         borderRadius: '8px',
+                                                        color: a.toPlant ? '#1e293b' : '#94a3b8',
+                                                        cursor: 'pointer',
                                                         fontSize: '14px',
-                                                        padding: '8px 12px'
+                                                        fontWeight: 500,
+                                                        outline: 'none',
+                                                        padding: '10px 32px 10px 14px'
                                                     }}
                                                 >
                                                     <option value="">To</option>
@@ -854,32 +880,62 @@ function PlanView() {
                                                     <span style={{ color: '#64748b', fontSize: '13px' }}>ops</span>
                                                 </div>
                                                 <input
-                                                    type="time"
+                                                    type="text"
+                                                    placeholder="HH:MM"
                                                     value={a.time}
-                                                    onChange={(e) => updateAssignment(a.id, 'time', e.target.value)}
+                                                    onChange={(e) => {
+                                                        const v = e.target.value.replace(/[^0-9:]/g, '')
+                                                        if (v.length <= 5) updateAssignment(a.id, 'time', v)
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const v = e.target.value
+                                                        if (v && !v.includes(':') && v.length >= 3) {
+                                                            const h = v.slice(0, -2)
+                                                            const m = v.slice(-2)
+                                                            updateAssignment(a.id, 'time', `${h.padStart(2, '0')}:${m}`)
+                                                        }
+                                                    }}
                                                     style={{
                                                         background: 'white',
                                                         border: '1px solid #e2e8f0',
                                                         borderRadius: '8px',
                                                         fontSize: '14px',
-                                                        padding: '8px 10px'
+                                                        padding: '8px 10px',
+                                                        textAlign: 'center',
+                                                        width: '75px'
                                                     }}
-                                                    title="Arrive by"
+                                                    title="Arrive by (24hr)"
                                                 />
                                                 <input
-                                                    type="time"
+                                                    type="text"
+                                                    placeholder="HH:MM"
                                                     value={a.returnTime}
-                                                    onChange={(e) =>
-                                                        updateAssignment(a.id, 'returnTime', e.target.value)
-                                                    }
+                                                    onChange={(e) => {
+                                                        const v = e.target.value.replace(/[^0-9:]/g, '')
+                                                        if (v.length <= 5) updateAssignment(a.id, 'returnTime', v)
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const v = e.target.value
+                                                        if (v && !v.includes(':') && v.length >= 3) {
+                                                            const h = v.slice(0, -2)
+                                                            const m = v.slice(-2)
+                                                            updateAssignment(
+                                                                a.id,
+                                                                'returnTime',
+                                                                `${h.padStart(2, '0')}:${m}`
+                                                            )
+                                                        }
+                                                    }}
                                                     style={{
                                                         background: 'white',
                                                         border: '1px solid #e2e8f0',
                                                         borderRadius: '8px',
                                                         fontSize: '14px',
-                                                        padding: '8px 10px'
+                                                        padding: '8px 10px',
+                                                        textAlign: 'center',
+                                                        width: '75px'
                                                     }}
-                                                    title="Return by"
+                                                    title="Return by (24hr)"
                                                 />
                                                 <button
                                                     onClick={() => removeAssignment(a.id)}
@@ -1108,7 +1164,7 @@ function PlanView() {
                                     onClick={generate}
                                     disabled={isGenerating || validCount === 0}
                                     style={{
-                                        background: validCount === 0 ? '#e2e8f0' : '#1e3a5f',
+                                        background: validCount === 0 ? '#e2e8f0' : accentColor,
                                         border: 'none',
                                         borderRadius: '8px',
                                         color: validCount === 0 ? '#94a3b8' : 'white',

@@ -78,6 +78,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const dropdownRef = useRef(null)
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const { count: notificationsCount } = useNotifications(userId, preferences?.selectedRegion)
 
     useEffect(() => {
@@ -334,7 +335,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     style={{
                         alignItems: 'center',
                         backgroundColor: badgeColor,
-                        border: '2px solid #1e3a5f',
+                        border: `2px solid ${accentColor}`,
                         borderRadius: '10px',
                         boxShadow: `0 2px 8px ${badgeColor}66`,
                         color: 'white',
@@ -363,7 +364,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     <div
                         style={{
                             alignItems: 'center',
-                            backgroundColor: '#1e3a5f',
+                            backgroundColor: accentColor,
                             backgroundImage: `
                             linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
                             linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
@@ -549,7 +550,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 <header
                     style={{
                         alignItems: 'center',
-                        backgroundColor: '#1e3a5f',
+                        backgroundColor: accentColor,
                         backgroundImage:
                             'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
                         backgroundSize: '20px 20px',

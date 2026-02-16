@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
+
 function OperatorSelectModal({
     isOpen,
     onClose,
@@ -12,6 +14,8 @@ function OperatorSelectModal({
     operators,
     onRefresh
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [searchText, setSearchText] = useState('')
     const [isLoading] = useState(false)
     const [, setFilterPlant] = useState(assignedPlant)
@@ -77,7 +81,10 @@ function OperatorSelectModal({
                 ref={modalRef}
                 className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden"
             >
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]">
+                <div
+                    className="flex items-center justify-between px-6 py-4 border-b border-slate-200"
+                    style={{ backgroundColor: accentColor }}
+                >
                     <h2 className="text-lg font-bold text-white">Select Operator</h2>
                     <button
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
@@ -92,7 +99,7 @@ function OperatorSelectModal({
                         <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input
                             type="text"
-                            className="w-full pl-11 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+                            className="w-full pl-11 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
                             placeholder="Search operators..."
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
@@ -111,9 +118,10 @@ function OperatorSelectModal({
                         <button
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                                 sortAvailableFirst
-                                    ? 'bg-[#1e3a5f] text-white'
+                                    ? 'text-white'
                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                             }`}
+                            style={sortAvailableFirst ? { backgroundColor: accentColor } : {}}
                             onClick={() => setSortAvailableFirst(!sortAvailableFirst)}
                         >
                             <i className="fas fa-sort-amount-down"></i>
@@ -191,7 +199,8 @@ function OperatorSelectModal({
                                 </button>
                                 <a
                                     href="/operators/add"
-                                    className="px-4 py-2 bg-[#1e3a5f] hover:bg-[#152d4a] text-white rounded-lg text-sm font-medium transition-colors"
+                                    className="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors"
+                                    style={{ backgroundColor: accentColor }}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -214,11 +223,16 @@ function OperatorSelectModal({
                                         key={operator.employeeId}
                                         className={`px-6 py-4 cursor-pointer transition-colors ${
                                             isSelected
-                                                ? 'bg-[#1e3a5f]/10 border-l-4 border-l-[#1e3a5f]'
+                                                ? 'border-l-4'
                                                 : isUnavailable
                                                   ? 'bg-slate-50 opacity-60 cursor-not-allowed'
                                                   : 'hover:bg-slate-50'
                                         }`}
+                                        style={
+                                            isSelected
+                                                ? { backgroundColor: `${accentColor}15`, borderLeftColor: accentColor }
+                                                : {}
+                                        }
                                         onClick={() => {
                                             if (readOnly || !isUnavailable) {
                                                 onSelect(operator.employeeId)
@@ -258,7 +272,10 @@ function OperatorSelectModal({
                                                 </span>
                                             )}
                                             {isSelected && (
-                                                <span className="inline-flex items-center gap-1 text-[#1e3a5f] font-medium">
+                                                <span
+                                                    className="inline-flex items-center gap-1 font-medium"
+                                                    style={{ color: accentColor }}
+                                                >
                                                     <i className="fas fa-check-circle"></i>
                                                     Currently Selected
                                                 </span>

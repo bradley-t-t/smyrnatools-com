@@ -12,6 +12,7 @@ import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 
 export default function LeaderboardsView() {
     const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [loading, setLoading] = useState(true)
     const [plantMetrics, setPlantMetrics] = useState([])
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
@@ -29,10 +30,10 @@ export default function LeaderboardsView() {
             gap: '0.5rem'
         },
         categoryButton: (active) => ({
-            background: active ? '#f0f7ff' : 'white',
-            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            background: active ? `${accentColor}15` : 'white',
+            border: active ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
             borderRadius: '8px',
-            color: active ? '#1e3a5f' : '#64748b',
+            color: active ? accentColor : '#64748b',
             cursor: 'pointer',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: active ? 600 : 500,
@@ -216,7 +217,7 @@ export default function LeaderboardsView() {
             gap: isMobile ? '0.75rem' : '1rem'
         },
         metricValue: {
-            color: '#1e3a5f',
+            color: accentColor,
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700,
             textAlign: isMobile ? 'left' : 'center'

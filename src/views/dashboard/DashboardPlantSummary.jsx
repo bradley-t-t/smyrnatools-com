@@ -1,5 +1,7 @@
 import React, { memo, useState } from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
+
 const DashboardPlantSummary = memo(function DashboardPlantSummary({
     dashboardPlant,
     plantNotifications,
@@ -17,6 +19,8 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     isPlantManager,
     isMobile
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [activeTab, setActiveTab] = useState('alerts')
     const [isMinimized, setIsMinimized] = useState(false)
 
@@ -163,7 +167,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
             )}
             <div
                 style={{
-                    color: color || '#1e3a5f',
+                    color: color || accentColor,
                     fontSize: isMobile ? '22px' : '26px',
                     fontWeight: 700,
                     lineHeight: 1
@@ -200,7 +204,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                 onClick={() => setIsMinimized(!isMinimized)}
                 style={{
                     alignItems: 'center',
-                    background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8a 100%)',
+                    background: accentColor,
                     cursor: 'pointer',
                     display: 'flex',
                     gap: isMobile ? '12px' : '24px',
@@ -460,7 +464,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                                         <span
                                                             style={{
                                                                 alignItems: 'center',
-                                                                background: '#1e3a5f',
+                                                                background: accentColor,
                                                                 borderRadius: '50%',
                                                                 color: '#fff',
                                                                 display: 'flex',
@@ -521,7 +525,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 <button
                                     onClick={() => setActiveTab('alerts')}
                                     style={{
-                                        background: activeTab === 'alerts' ? '#1e3a5f' : 'transparent',
+                                        background: activeTab === 'alerts' ? accentColor : 'transparent',
                                         border: 'none',
                                         borderRadius: '8px 8px 0 0',
                                         color: activeTab === 'alerts' ? '#fff' : '#64748b',
@@ -553,7 +557,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 <button
                                     onClick={() => setActiveTab('operators')}
                                     style={{
-                                        background: activeTab === 'operators' ? '#1e3a5f' : 'transparent',
+                                        background: activeTab === 'operators' ? accentColor : 'transparent',
                                         border: 'none',
                                         borderRadius: '8px 8px 0 0',
                                         color: activeTab === 'operators' ? '#fff' : '#64748b',

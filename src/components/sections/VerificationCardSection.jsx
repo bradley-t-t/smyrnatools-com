@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
+
 function VerificationCardSection({
     isVerified,
     verificationLabel,
@@ -9,6 +11,9 @@ function VerificationCardSection({
     verificationDisabled = false,
     noticeText = null
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
+
     return (
         <div className="space-y-4">
             <div
@@ -53,7 +58,8 @@ function VerificationCardSection({
             </div>
 
             <button
-                className="w-full py-2.5 px-4 bg-[#1e3a5f] hover:bg-[#15304f] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ backgroundColor: accentColor }}
                 onClick={onVerify}
                 disabled={!canEdit || verificationDisabled}
                 data-verify-trigger="true"

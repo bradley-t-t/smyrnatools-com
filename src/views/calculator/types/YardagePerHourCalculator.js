@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { usePreferences } from '../../../app/context/PreferencesContext'
+
 const YardagePerHourCalculator = () => {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [values, setValues] = useState({
         completionTime: '',
         firstLoadTime: '',
@@ -130,7 +134,7 @@ const YardagePerHourCalculator = () => {
             fontSize: isMobile ? '0.8125rem' : '0.9375rem'
         },
         equals: {
-            color: '#1e3a5f',
+            color: accentColor,
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700
         },
@@ -155,7 +159,7 @@ const YardagePerHourCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         },
         fractionBar: {
-            background: '#1e3a5f',
+            background: accentColor,
             height: '3px',
             margin: '0.5rem 0',
             width: '100%'
@@ -226,9 +230,9 @@ const YardagePerHourCalculator = () => {
         mainLayout: {
             marginBottom: isMobile ? '1.5rem' : '2rem'
         },
-        modeButton: (active, isLive) => ({
+        modeButton: (active, _isLive) => ({
             alignItems: 'center',
-            background: active ? '#1e3a5f' : 'transparent',
+            background: active ? accentColor : 'transparent',
             border: 'none',
             borderRadius: '6px',
             color: active ? 'white' : '#64748b',
@@ -307,7 +311,7 @@ const YardagePerHourCalculator = () => {
             marginTop: '0.5rem'
         },
         resultValue: {
-            color: '#1e3a5f',
+            color: accentColor,
             fontSize: isMobile ? '2rem' : '3rem',
             fontWeight: 700,
             lineHeight: 1
@@ -342,7 +346,7 @@ const YardagePerHourCalculator = () => {
             textTransform: 'uppercase'
         },
         statValue: {
-            color: '#1e3a5f',
+            color: accentColor,
             fontSize: isMobile ? '1.125rem' : '1.5rem',
             fontWeight: 700
         },
@@ -409,7 +413,7 @@ const YardagePerHourCalculator = () => {
             </style>
             <div style={styles.sectionHeader}>
                 <div style={styles.headerTitle}>
-                    <i className="fas fa-tachometer-alt" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-tachometer-alt" style={{ color: accentColor }}></i>
                     <span>Yardage Per Hour</span>
                 </div>
                 <div style={styles.modeToggle}>
@@ -457,8 +461,8 @@ const YardagePerHourCalculator = () => {
                                         placeholder="0"
                                         style={styles.input}
                                         onFocus={(e) => {
-                                            e.target.style.borderColor = '#1e3a5f'
-                                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
+                                            e.target.style.borderColor = accentColor
+                                            e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
                                         }}
                                         onBlur={(e) => {
                                             e.target.style.borderColor = '#e5e7eb'
@@ -481,8 +485,8 @@ const YardagePerHourCalculator = () => {
                                             onChange={(e) => handleChange('firstLoadTime', e.target.value)}
                                             style={styles.input}
                                             onFocus={(e) => {
-                                                e.target.style.borderColor = '#1e3a5f'
-                                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
+                                                e.target.style.borderColor = accentColor
+                                                e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
                                             }}
                                             onBlur={(e) => {
                                                 e.target.style.borderColor = '#e5e7eb'
@@ -507,8 +511,8 @@ const YardagePerHourCalculator = () => {
                                                 onChange={(e) => handleChange('completionTime', e.target.value)}
                                                 style={styles.input}
                                                 onFocus={(e) => {
-                                                    e.target.style.borderColor = '#1e3a5f'
-                                                    e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
+                                                    e.target.style.borderColor = accentColor
+                                                    e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
                                                 }}
                                                 onBlur={(e) => {
                                                     e.target.style.borderColor = '#e5e7eb'

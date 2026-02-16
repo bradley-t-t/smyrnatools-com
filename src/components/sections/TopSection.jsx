@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../common/PlantDropdownModal'
 
 function TopSection({
@@ -72,6 +73,8 @@ function TopSection({
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [showMobileFilters, setShowMobileFilters] = useState(false)
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const selectedPlantObj = safePlants.find((p) => (p.plantCode || p.plant_code) === selectedPlant)
     const plantDisplayText =
         selectedPlant && selectedPlantObj
@@ -114,7 +117,7 @@ function TopSection({
             transition: 'all 0.15s ease'
         },
         actionButtonPrimary: {
-            backgroundColor: '#1e3a5f',
+            backgroundColor: accentColor,
             color: 'white'
         },
         actionButtonSubtle: {
@@ -129,10 +132,10 @@ function TopSection({
         },
         badge: {
             alignItems: 'center',
-            backgroundColor: '#f0f7ff',
+            backgroundColor: `${accentColor}15`,
             border: 'none',
             borderRadius: '10px',
-            color: '#1e3a5f',
+            color: accentColor,
             cursor: onBadgeClick ? 'pointer' : 'default',
             display: 'inline-flex',
             fontSize: '14px',
@@ -188,7 +191,7 @@ function TopSection({
             userSelect: 'none'
         },
         headerCellHover: {
-            color: '#1e3a5f'
+            color: accentColor
         },
         headerRow: {
             alignItems: 'center',
@@ -224,7 +227,7 @@ function TopSection({
             gap: '10px'
         },
         mobileAddBtn: {
-            backgroundColor: '#1e3a5f',
+            backgroundColor: accentColor,
             color: 'white'
         },
         mobileFilterItem: {
@@ -244,10 +247,10 @@ function TopSection({
         },
         mobileFilterToggle: (isActive) => ({
             alignItems: 'center',
-            backgroundColor: isActive ? '#f0f7ff' : '#f8fafc',
-            border: isActive ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            backgroundColor: isActive ? `${accentColor}15` : '#f8fafc',
+            border: isActive ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
             borderRadius: '12px',
-            color: isActive ? '#1e3a5f' : '#64748b',
+            color: isActive ? accentColor : '#64748b',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '18px',
@@ -348,10 +351,10 @@ function TopSection({
         },
         mobileViewBtn: (isActive) => ({
             alignItems: 'center',
-            backgroundColor: isActive ? '#f0f7ff' : 'white',
-            border: isActive ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            backgroundColor: isActive ? `${accentColor}15` : 'white',
+            border: isActive ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
             borderRadius: '10px',
-            color: isActive ? '#1e3a5f' : '#64748b',
+            color: isActive ? accentColor : '#64748b',
             cursor: 'pointer',
             display: 'flex',
             flex: 1,
@@ -457,7 +460,7 @@ function TopSection({
             fontSize: '10px'
         },
         sortIconActive: {
-            color: '#1e3a5f'
+            color: accentColor
         },
         title: {
             color: '#1e293b',
@@ -476,7 +479,7 @@ function TopSection({
         },
         viewToggleBtn: (isActive) => ({
             alignItems: 'center',
-            backgroundColor: isActive ? '#1e3a5f' : 'transparent',
+            backgroundColor: isActive ? accentColor : 'transparent',
             border: 'none',
             borderRadius: '8px',
             color: isActive ? 'white' : '#64748b',
@@ -512,19 +515,19 @@ function TopSection({
                                         <button style={styles.badge} onClick={onBadgeClick}>
                                             <i
                                                 className="fas fa-user-clock"
-                                                style={{ color: '#1e3a5f' }}
+                                                style={{ color: accentColor }}
                                                 aria-hidden="true"
                                             ></i>
-                                            <span style={{ color: '#1e3a5f' }}>{badge}</span>
+                                            <span style={{ color: accentColor }}>{badge}</span>
                                         </button>
                                     ) : (
                                         <span style={styles.badge}>
                                             <i
                                                 className="fas fa-user-clock"
-                                                style={{ color: '#1e3a5f' }}
+                                                style={{ color: accentColor }}
                                                 aria-hidden="true"
                                             ></i>
-                                            <span style={{ color: '#1e3a5f' }}>{badge}</span>
+                                            <span style={{ color: accentColor }}>{badge}</span>
                                         </span>
                                     ))}
                             </div>
@@ -758,19 +761,19 @@ function TopSection({
                                     <button style={styles.badge} onClick={onBadgeClick}>
                                         <i
                                             className="fas fa-user-clock"
-                                            style={{ color: '#1e3a5f' }}
+                                            style={{ color: accentColor }}
                                             aria-hidden="true"
                                         ></i>
-                                        <span style={{ color: '#1e3a5f' }}>{badge}</span>
+                                        <span style={{ color: accentColor }}>{badge}</span>
                                     </button>
                                 ) : (
                                     <span style={styles.badge}>
                                         <i
                                             className="fas fa-user-clock"
-                                            style={{ color: '#1e3a5f' }}
+                                            style={{ color: accentColor }}
                                             aria-hidden="true"
                                         ></i>
-                                        <span style={{ color: '#1e3a5f' }}>{badge}</span>
+                                        <span style={{ color: accentColor }}>{badge}</span>
                                     </span>
                                 )}
                             </div>

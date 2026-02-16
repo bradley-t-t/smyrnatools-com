@@ -28,6 +28,7 @@ import DashboardPlantSummary from './DashboardPlantSummary'
 
 export default function DashboardView() {
     const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [loading, setLoading] = useState(true)
     const [dataReady, setDataReady] = useState(false)
     const [historyLoaded, setHistoryLoaded] = useState(false)
@@ -47,6 +48,8 @@ export default function DashboardView() {
     const [lastUpdated, setLastUpdated] = useState(null)
     const [refreshKey, setRefreshKey] = useState(0)
     const [plantModalOpen, setPlantModalOpen] = useState(false)
+    const [animatedStats, setAnimatedStats] = useState(null)
+    const [regionPlantsLoaded, setRegionPlantsLoaded] = useState(false)
     const [isPlantManager, setIsPlantManager] = useState(false)
     const [userRoleWeight, setUserRoleWeight] = useState(0)
     const [userRoleName, setUserRoleName] = useState('')
@@ -164,6 +167,88 @@ export default function DashboardView() {
         tractors: [],
         trailers: []
     })
+    const animationRef = useRef(null)
+    const animationStateRef = useRef({ hasAnimated: false, isAnimating: false, region: '' })
+    const statsRef = useRef(stats)
+
+    useEffect(() => {
+        statsRef.current = stats
+    }, [stats])
+
+    useEffect(() => {
+        const state = animationStateRef.current
+
+        if (!regionPlantsLoaded) {
+            setAnimatedStats(null)
+            state.hasAnimated = false
+            state.isAnimating = false
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current)
+                animationRef.current = null
+            }
+            return
+        }
+
+        if (state.region !== dashboardRegionCode) {
+            state.hasAnimated = false
+            state.isAnimating = false
+            state.region = dashboardRegionCode
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current)
+                animationRef.current = null
+            }
+        }
+
+        if (state.isAnimating) {
+            return
+        }
+
+        if (state.hasAnimated) {
+            setAnimatedStats(stats)
+            return
+        }
+
+        state.isAnimating = true
+
+        const duration = 1200
+        const startTime = performance.now()
+
+        const animate = (currentTime) => {
+            const currentStats = statsRef.current
+            const elapsed = currentTime - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3)
+
+            const animateFromZero = (target) => {
+                if (target === null || target === undefined) return target
+                if (typeof target !== 'object') {
+                    if (typeof target === 'number') {
+                        return Math.round(target * eased)
+                    }
+                    return target
+                }
+                if (Array.isArray(target)) return target
+                const result = {}
+                for (const key in target) {
+                    result[key] = animateFromZero(target[key])
+                }
+                return result
+            }
+
+            setAnimatedStats(animateFromZero(currentStats))
+
+            if (progress < 1) {
+                animationRef.current = requestAnimationFrame(animate)
+            } else {
+                state.hasAnimated = true
+                state.isAnimating = false
+                animationRef.current = null
+                setAnimatedStats(statsRef.current)
+            }
+        }
+
+        animationRef.current = requestAnimationFrame(animate)
+    }, [regionPlantsLoaded, stats, dashboardRegionCode])
 
     const computeStats = useCallback(() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
@@ -672,13 +757,16 @@ export default function DashboardView() {
         async function fetchRegionPlants() {
             if (!dashboardRegionCode) {
                 setRegionPlants([])
+                setRegionPlantsLoaded(false)
                 return
             }
+            setRegionPlantsLoaded(false)
             setRefreshing(true)
             try {
                 const list = await RegionService.fetchRegionPlants(dashboardRegionCode).catch(() => [])
                 if (cancelled) return
                 setRegionPlants(list)
+                setRegionPlantsLoaded(true)
             } finally {
                 if (!cancelled) setRefreshing(false)
             }
@@ -1922,7 +2010,7 @@ export default function DashboardView() {
     }
 
     const sectionTitleStyle = {
-        color: '#1e3a5f',
+        color: accentColor,
         fontSize: isMobile ? '16px' : '18px',
         fontWeight: 600,
         marginBottom: isMobile ? '16px' : '20px'
@@ -1936,7 +2024,7 @@ export default function DashboardView() {
     }
 
     const metricValueStyle = {
-        color: '#1e3a5f',
+        color: accentColor,
         fontSize: isMobile ? '22px' : '28px',
         fontWeight: 700,
         lineHeight: 1.2
@@ -1947,6 +2035,63 @@ export default function DashboardView() {
         fontSize: isMobile ? '11px' : '12px',
         marginTop: '4px'
     }
+
+    const zeroStats = {
+        equipment: { active: 0, allocationPercent: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 },
+        fleetTotal: 0,
+        mixers: {
+            active: 0,
+            allocationPercent: 0,
+            comments: 0,
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            verified: 0,
+            verifiedPercent: 0
+        },
+        openIssuesTotal: 0,
+        operators: {
+            active: 0,
+            assigned: 0,
+            lightDuty: 0,
+            mixerAssigned: 0,
+            pending: 0,
+            total: 0,
+            tractorAssigned: 0,
+            unassigned: 0
+        },
+        overallAllocationPercent: 0,
+        overdueTotal: 0,
+        pickups: { active: 0, allocationPercent: 0, retired: 0, shop: 0, sold: 0, spare: 0, stationary: 0, total: 0 },
+        tractors: {
+            active: 0,
+            allocationPercent: 0,
+            comments: 0,
+            freight: stats.tractors?.freight,
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            verified: 0,
+            verifiedPercent: 0
+        },
+        trailers: {
+            active: 0,
+            allocationPercent: 0,
+            comments: 0,
+            issues: 0,
+            overdue: 0,
+            shop: 0,
+            spare: 0,
+            total: 0,
+            trailerType: stats.trailers?.trailerType
+        },
+        verificationAverage: 0
+    }
+    const displayStats = animatedStats || zeroStats
 
     return (
         <>
@@ -2006,7 +2151,7 @@ export default function DashboardView() {
                     >
                         <h1
                             style={{
-                                color: '#1e3a5f',
+                                color: accentColor,
                                 fontSize: isMobile ? '18px' : '20px',
                                 fontWeight: 700,
                                 margin: 0
@@ -2021,7 +2166,7 @@ export default function DashboardView() {
                                 disabled={refreshing}
                                 style={{
                                     alignItems: 'center',
-                                    backgroundColor: '#1e3a5f',
+                                    backgroundColor: accentColor,
                                     border: 'none',
                                     borderRadius: '8px',
                                     color: 'white',
@@ -2119,7 +2264,7 @@ export default function DashboardView() {
                                 <>
                                     <h2
                                         style={{
-                                            color: '#1e3a5f',
+                                            color: accentColor,
                                             fontSize: '22px',
                                             fontWeight: 600,
                                             margin: '0 0 4px 0'
@@ -2176,22 +2321,22 @@ export default function DashboardView() {
                                 <>
                                     <div style={metricCardStyle}>
                                         <div style={metricLabelStyle}>Fleet Total</div>
-                                        <div style={metricValueStyle}>{stats.fleetTotal}</div>
+                                        <div style={metricValueStyle}>{displayStats.fleetTotal}</div>
                                         <div style={metricSubStyle}>Total Assets</div>
                                     </div>
                                     <div style={metricCardStyle}>
                                         <div style={metricLabelStyle}>Asset Allocation</div>
-                                        <div style={metricValueStyle}>{stats.overallAllocationPercent}%</div>
+                                        <div style={metricValueStyle}>{displayStats.overallAllocationPercent}%</div>
                                         <div style={metricSubStyle}>Overall Allocation</div>
                                     </div>
                                     <div style={metricCardStyle}>
                                         <div style={metricLabelStyle}>Service Overdue</div>
-                                        <div style={metricValueStyle}>{stats.overdueTotal}</div>
+                                        <div style={metricValueStyle}>{displayStats.overdueTotal}</div>
                                         <div style={metricSubStyle}>Need Attention</div>
                                     </div>
                                     <div style={metricCardStyle}>
                                         <div style={metricLabelStyle}>Verification</div>
-                                        <div style={metricValueStyle}>{stats.verificationAverage}%</div>
+                                        <div style={metricValueStyle}>{displayStats.verificationAverage}%</div>
                                         <div style={metricSubStyle}>Overall Verified</div>
                                     </div>
                                 </>
@@ -2586,7 +2731,7 @@ export default function DashboardView() {
                                                 ...metricCardStyle,
                                                 border:
                                                     selectedRegion?.type === 'Concrete'
-                                                        ? '2px solid #1e3a5f'
+                                                        ? `2px solid ${accentColor}`
                                                         : '1px solid #e2e8f0'
                                             }}
                                         >
@@ -2602,12 +2747,12 @@ export default function DashboardView() {
                                                     <div style={metricLabelStyle}>Mixers</div>
                                                     <div
                                                         style={{
-                                                            color: '#1e3a5f',
+                                                            color: accentColor,
                                                             fontSize: '32px',
                                                             fontWeight: 700
                                                         }}
                                                     >
-                                                        {stats.mixers.total}
+                                                        {displayStats.mixers.total}
                                                     </div>
                                                 </div>
                                                 <div
@@ -2624,26 +2769,26 @@ export default function DashboardView() {
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                                <Pill>Active {stats.mixers.active}</Pill>
-                                                <Pill>Spare {stats.mixers.spare}</Pill>
-                                                <Pill>In Shop {stats.mixers.shop}</Pill>
+                                                <Pill>Active {displayStats.mixers.active}</Pill>
+                                                <Pill>Spare {displayStats.mixers.spare}</Pill>
+                                                <Pill>In Shop {displayStats.mixers.shop}</Pill>
                                                 <Pill
                                                     style={{
                                                         background:
-                                                            stats.mixers.allocationPercent >= 80
+                                                            displayStats.mixers.allocationPercent >= 80
                                                                 ? '#dcfce7'
-                                                                : stats.mixers.allocationPercent >= 50
+                                                                : displayStats.mixers.allocationPercent >= 50
                                                                   ? '#fef9c3'
                                                                   : '#fee2e2',
                                                         color:
-                                                            stats.mixers.allocationPercent >= 80
+                                                            displayStats.mixers.allocationPercent >= 80
                                                                 ? '#16a34a'
-                                                                : stats.mixers.allocationPercent >= 50
+                                                                : displayStats.mixers.allocationPercent >= 50
                                                                   ? '#ca8a04'
                                                                   : '#dc2626'
                                                     }}
                                                 >
-                                                    {stats.mixers.allocationPercent}% Allocated
+                                                    {displayStats.mixers.allocationPercent}% Allocated
                                                 </Pill>
                                             </div>
                                         </div>
@@ -2654,7 +2799,7 @@ export default function DashboardView() {
                                             ...metricCardStyle,
                                             border:
                                                 selectedRegion?.type === 'Aggregate'
-                                                    ? '2px solid #1e3a5f'
+                                                    ? `2px solid ${accentColor}`
                                                     : '1px solid #e2e8f0'
                                         }}
                                     >
@@ -2670,12 +2815,12 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Tractors</div>
                                                 <div
                                                     style={{
-                                                        color: '#1e3a5f',
+                                                        color: accentColor,
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
                                                 >
-                                                    {stats.tractors.total}
+                                                    {displayStats.tractors.total}
                                                 </div>
                                             </div>
                                             <div
@@ -2692,29 +2837,29 @@ export default function DashboardView() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                            <Pill>Active {stats.tractors.active}</Pill>
-                                            <Pill>Spare {stats.tractors.spare}</Pill>
-                                            <Pill>In Shop {stats.tractors.shop}</Pill>
+                                            <Pill>Active {displayStats.tractors.active}</Pill>
+                                            <Pill>Spare {displayStats.tractors.spare}</Pill>
+                                            <Pill>In Shop {displayStats.tractors.shop}</Pill>
                                             <Pill
                                                 style={{
                                                     background:
-                                                        stats.tractors.allocationPercent >= 80
+                                                        displayStats.tractors.allocationPercent >= 80
                                                             ? '#dcfce7'
-                                                            : stats.tractors.allocationPercent >= 50
+                                                            : displayStats.tractors.allocationPercent >= 50
                                                               ? '#fef9c3'
                                                               : '#fee2e2',
                                                     color:
-                                                        stats.tractors.allocationPercent >= 80
+                                                        displayStats.tractors.allocationPercent >= 80
                                                             ? '#16a34a'
-                                                            : stats.tractors.allocationPercent >= 50
+                                                            : displayStats.tractors.allocationPercent >= 50
                                                               ? '#ca8a04'
                                                               : '#dc2626'
                                                 }}
                                             >
-                                                {stats.tractors.allocationPercent}% Allocated
+                                                {displayStats.tractors.allocationPercent}% Allocated
                                             </Pill>
                                         </div>
-                                        {stats.tractors.freight && (
+                                        {displayStats.tractors.freight && (
                                             <div
                                                 style={{
                                                     borderTop: '1px solid #e5e7eb',
@@ -2732,7 +2877,7 @@ export default function DashboardView() {
                                                     }}
                                                 >
                                                     {['Cement', 'Aggregate', 'Dump Truck'].map((type) => {
-                                                        const f = stats.tractors.freight[type]
+                                                        const f = displayStats.tractors.freight[type]
                                                         if (!f || f.total === 0) return null
                                                         const icon =
                                                             type === 'Cement'
@@ -2838,12 +2983,12 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Trailers</div>
                                                 <div
                                                     style={{
-                                                        color: '#1e3a5f',
+                                                        color: accentColor,
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
                                                 >
-                                                    {stats.trailers.total}
+                                                    {displayStats.trailers.total}
                                                 </div>
                                             </div>
                                             <div
@@ -2860,29 +3005,29 @@ export default function DashboardView() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                            <Pill>Active {stats.trailers.active}</Pill>
-                                            <Pill>Spare {stats.trailers.spare}</Pill>
-                                            <Pill>In Shop {stats.trailers.shop}</Pill>
+                                            <Pill>Active {displayStats.trailers.active}</Pill>
+                                            <Pill>Spare {displayStats.trailers.spare}</Pill>
+                                            <Pill>In Shop {displayStats.trailers.shop}</Pill>
                                             <Pill
                                                 style={{
                                                     background:
-                                                        stats.trailers.allocationPercent >= 80
+                                                        displayStats.trailers.allocationPercent >= 80
                                                             ? '#dcfce7'
-                                                            : stats.trailers.allocationPercent >= 50
+                                                            : displayStats.trailers.allocationPercent >= 50
                                                               ? '#fef9c3'
                                                               : '#fee2e2',
                                                     color:
-                                                        stats.trailers.allocationPercent >= 80
+                                                        displayStats.trailers.allocationPercent >= 80
                                                             ? '#16a34a'
-                                                            : stats.trailers.allocationPercent >= 50
+                                                            : displayStats.trailers.allocationPercent >= 50
                                                               ? '#ca8a04'
                                                               : '#dc2626'
                                                 }}
                                             >
-                                                {stats.trailers.allocationPercent}% Allocated
+                                                {displayStats.trailers.allocationPercent}% Allocated
                                             </Pill>
                                         </div>
-                                        {stats.trailers.trailerType && (
+                                        {displayStats.trailers.trailerType && (
                                             <div
                                                 style={{
                                                     borderTop: '1px solid #e5e7eb',
@@ -2898,7 +3043,7 @@ export default function DashboardView() {
                                                     }}
                                                 >
                                                     {['Cement', 'End Dump'].map((type) => {
-                                                        const t = stats.trailers.trailerType[type]
+                                                        const t = displayStats.trailers.trailerType[type]
                                                         if (!t || t.total === 0) return null
                                                         const icon =
                                                             type === 'Cement' ? 'fa-industry' : 'fa-truck-loading'
@@ -3000,12 +3145,12 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Equipment</div>
                                                 <div
                                                     style={{
-                                                        color: '#1e3a5f',
+                                                        color: accentColor,
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
                                                 >
-                                                    {stats.equipment.total}
+                                                    {displayStats.equipment.total}
                                                 </div>
                                             </div>
                                             <div
@@ -3022,26 +3167,26 @@ export default function DashboardView() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                            <Pill>Active {stats.equipment.active}</Pill>
-                                            <Pill>Spare {stats.equipment.spare}</Pill>
-                                            <Pill>In Shop {stats.equipment.shop}</Pill>
+                                            <Pill>Active {displayStats.equipment.active}</Pill>
+                                            <Pill>Spare {displayStats.equipment.spare}</Pill>
+                                            <Pill>In Shop {displayStats.equipment.shop}</Pill>
                                             <Pill
                                                 style={{
                                                     background:
-                                                        stats.equipment.allocationPercent >= 80
+                                                        displayStats.equipment.allocationPercent >= 80
                                                             ? '#dcfce7'
-                                                            : stats.equipment.allocationPercent >= 50
+                                                            : displayStats.equipment.allocationPercent >= 50
                                                               ? '#fef9c3'
                                                               : '#fee2e2',
                                                     color:
-                                                        stats.equipment.allocationPercent >= 80
+                                                        displayStats.equipment.allocationPercent >= 80
                                                             ? '#16a34a'
-                                                            : stats.equipment.allocationPercent >= 50
+                                                            : displayStats.equipment.allocationPercent >= 50
                                                               ? '#ca8a04'
                                                               : '#dc2626'
                                                 }}
                                             >
-                                                {stats.equipment.allocationPercent}% Allocated
+                                                {displayStats.equipment.allocationPercent}% Allocated
                                             </Pill>
                                         </div>
                                     </div>
@@ -3059,7 +3204,7 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Pickup Trucks</div>
                                                 <div
                                                     style={{
-                                                        color: '#1e3a5f',
+                                                        color: accentColor,
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
@@ -3117,12 +3262,12 @@ export default function DashboardView() {
                                             <div style={metricLabelStyle}>Operators</div>
                                             <div
                                                 style={{
-                                                    color: '#1e3a5f',
+                                                    color: accentColor,
                                                     fontSize: '32px',
                                                     fontWeight: 700
                                                 }}
                                             >
-                                                {stats.operators.total}
+                                                {displayStats.operators.total}
                                             </div>
                                         </div>
                                         <div
@@ -3135,12 +3280,12 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                        <Pill>Active {stats.operators.active}</Pill>
-                                        <Pill>Light Duty {stats.operators.lightDuty}</Pill>
-                                        <Pill>Assigned {stats.operators.assigned}</Pill>
-                                        {!isAggregate && <Pill>Mixers {stats.operators.mixerAssigned}</Pill>}
-                                        <Pill>Tractors {stats.operators.tractorAssigned}</Pill>
-                                        <Pill>Unassigned {stats.operators.unassigned}</Pill>
+                                        <Pill>Active {displayStats.operators.active}</Pill>
+                                        <Pill>Light Duty {displayStats.operators.lightDuty}</Pill>
+                                        <Pill>Assigned {displayStats.operators.assigned}</Pill>
+                                        {!isAggregate && <Pill>Mixers {displayStats.operators.mixerAssigned}</Pill>}
+                                        <Pill>Tractors {displayStats.operators.tractorAssigned}</Pill>
+                                        <Pill>Unassigned {displayStats.operators.unassigned}</Pill>
                                     </div>
                                 </div>
 
@@ -3225,7 +3370,7 @@ export default function DashboardView() {
                                                         fontWeight: 700
                                                     }}
                                                 >
-                                                    {stats.overdueTotal}
+                                                    {displayStats.overdueTotal}
                                                 </div>
                                             </div>
                                             <div
@@ -3242,10 +3387,10 @@ export default function DashboardView() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                            {!isAggregate && <Pill>Mixers {stats.mixers.overdue}</Pill>}
-                                            <Pill>Tractors {stats.tractors.overdue}</Pill>
-                                            <Pill>Trailers {stats.trailers.overdue}</Pill>
-                                            <Pill>Equipment {stats.equipment.overdue}</Pill>
+                                            {!isAggregate && <Pill>Mixers {displayStats.mixers.overdue}</Pill>}
+                                            <Pill>Tractors {displayStats.tractors.overdue}</Pill>
+                                            <Pill>Trailers {displayStats.trailers.overdue}</Pill>
+                                            <Pill>Equipment {displayStats.equipment.overdue}</Pill>
                                         </div>
                                     </div>
                                     <div style={metricCardStyle}>
@@ -3266,7 +3411,7 @@ export default function DashboardView() {
                                                         fontWeight: 700
                                                     }}
                                                 >
-                                                    {stats.openIssuesTotal}
+                                                    {displayStats.openIssuesTotal}
                                                 </div>
                                             </div>
                                             <div
@@ -3283,10 +3428,10 @@ export default function DashboardView() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                            {!isAggregate && <Pill>Mixers {stats.mixers.issues}</Pill>}
-                                            <Pill>Tractors {stats.tractors.issues}</Pill>
-                                            <Pill>Trailers {stats.trailers.issues}</Pill>
-                                            <Pill>Equipment {stats.equipment.issues}</Pill>
+                                            {!isAggregate && <Pill>Mixers {displayStats.mixers.issues}</Pill>}
+                                            <Pill>Tractors {displayStats.tractors.issues}</Pill>
+                                            <Pill>Trailers {displayStats.trailers.issues}</Pill>
+                                            <Pill>Equipment {displayStats.equipment.issues}</Pill>
                                         </div>
                                     </div>
                                 </div>
@@ -3304,7 +3449,7 @@ export default function DashboardView() {
                                     >
                                         <h4
                                             style={{
-                                                color: '#1e3a5f',
+                                                color: accentColor,
                                                 fontSize: '16px',
                                                 fontWeight: 600,
                                                 margin: 0
@@ -3603,7 +3748,7 @@ export default function DashboardView() {
                                                     >
                                                         <p
                                                             style={{
-                                                                color: '#1e3a5f',
+                                                                color: accentColor,
                                                                 fontSize: '13px',
                                                                 fontWeight: 600,
                                                                 margin: '0 0 6px 0'
@@ -3708,7 +3853,10 @@ export default function DashboardView() {
                 {embeddedView && (
                     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                         <div className="relative w-full max-w-6xl h-[85vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-                            <div className="flex items-center justify-between px-5 py-3 bg-[#1e3a5f] text-white flex-shrink-0">
+                            <div
+                                className="flex items-center justify-between px-5 py-3 text-white flex-shrink-0"
+                                style={{ backgroundColor: accentColor }}
+                            >
                                 <div className="flex items-center gap-3">
                                     <i
                                         className={`fas ${embeddedView === 'mixers' ? 'fa-truck-moving' : embeddedView === 'tractors' ? 'fa-truck-front' : embeddedView === 'equipment' ? 'fa-snowplow' : embeddedView === 'operators' ? 'fa-users' : 'fa-truck'} text-lg`}
@@ -3802,7 +3950,7 @@ export default function DashboardView() {
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: disabled ? '#9ca3af' : '#1e3a5f',
+                            color: disabled ? '#9ca3af' : accentColor,
                             cursor: disabled ? 'default' : 'pointer',
                             fontSize: '13px',
                             fontWeight: 500

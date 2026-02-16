@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import { UserService } from '../../services/UserService'
 import LoadingScreen from '../common/LoadingScreen'
 
-const detailViewStyles = `
+const getDetailViewStyles = (accentColor) => `
 .detail-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1rem; }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
 .card-header h2 { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
 .form-sections { display: flex; flex-direction: column; gap: 1.5rem; }
 .form-section { }
-.form-section h3 { font-size: 0.9375rem; font-weight: 600; color: #1e3a5f; margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #1e3a5f; }
+.form-section h3 { font-size: 0.9375rem; font-weight: 600; color: ${accentColor}; margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid ${accentColor}; }
 .form-group { margin-bottom: 1rem; }
 .form-group label { display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
 .form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; transition: all 0.15s; }
-.form-control:focus { outline: none; border-color: #1e3a5f; box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1); }
+.form-control:focus { outline: none; border-color: ${accentColor}; box-shadow: 0 0 0 3px ${accentColor}1a; }
 .form-control:disabled, .form-control[readonly] { background: #f8fafc; color: #64748b; cursor: not-allowed; }
 select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.5rem; }
 textarea.form-control { min-height: 100px; resize: vertical; }
 .operator-select-button { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; text-align: left; cursor: pointer; transition: all 0.15s; }
-.operator-select-button:hover:not(:disabled) { border-color: #1e3a5f; }
+.operator-select-button:hover:not(:disabled) { border-color: ${accentColor}; }
 .operator-select-button:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
 .operator-select-container { display: flex; gap: 0.5rem; }
 .operator-select-container .operator-select-button { flex: 1; }
@@ -27,8 +28,8 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .unassign-operator-button:hover { background: #fecaca; }
 .assign-operator-button { padding: 0.75rem; background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
 .assign-operator-button:hover { background: #a7f3d0; }
-.primary-button { width: 100%; padding: 0.75rem 1.5rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.primary-button:hover { background: #15304f; }
+.primary-button { width: 100%; padding: 0.75rem 1.5rem; background: ${accentColor}; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.primary-button:hover { filter: brightness(0.9); }
 .primary-button:disabled { background: #94a3b8; cursor: not-allowed; }
 .danger-button { width: 100%; padding: 0.75rem 1.5rem; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
 .danger-button:hover { background: #b91c1c; }
@@ -52,7 +53,7 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .toggle-label.disabled { opacity: 0.6; cursor: not-allowed; }
 .toggle-checkbox { display: none; }
 .toggle-switch { position: relative; width: 44px; height: 24px; background: #cbd5e1; border-radius: 12px; transition: all 0.2s; }
-.toggle-checkbox:checked + .toggle-switch { background: #1e3a5f; }
+.toggle-checkbox:checked + .toggle-switch { background: ${accentColor}; }
 .toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .toggle-checkbox:checked + .toggle-switch .toggle-slider { left: 22px; }
 .toggle-text { font-size: 0.9375rem; font-weight: 500; color: #1e293b; }
@@ -142,6 +143,8 @@ function DetailViewSection({
     assetType = null,
     onRegionTransfer = null
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [_internalCanEdit, setInternalCanEdit] = useState(itemAssignedPlant !== undefined ? false : canEdit)
     const [internalRestrictionWarning, setInternalRestrictionWarning] = useState(restrictionWarning)
     const [showRegionTransferModal, setShowRegionTransferModal] = useState(false)
@@ -321,7 +324,7 @@ function DetailViewSection({
     if (notFound) {
         return (
             <>
-                <style>{detailViewStyles}</style>
+                <style>{getDetailViewStyles(accentColor)}</style>
                 <div
                     className={`fixed left-0 right-0 bottom-0 bg-white z-40 flex flex-col ${className}`}
                     style={{ top: '64px' }}
@@ -346,7 +349,8 @@ function DetailViewSection({
                             </div>
                             <p className="text-slate-600 mb-4">{notFoundDescription}</p>
                             <button
-                                className="px-6 py-2.5 bg-[#1e3a5f] text-white font-semibold rounded-lg hover:bg-[#15304f] transition-colors"
+                                className="px-6 py-2.5 text-white font-semibold rounded-lg transition-colors"
+                                style={{ backgroundColor: accentColor }}
                                 onClick={onClose || onBack}
                             >
                                 Go Back
@@ -360,14 +364,17 @@ function DetailViewSection({
 
     return (
         <>
-            <style>{detailViewStyles}</style>
+            <style>{getDetailViewStyles(accentColor)}</style>
             <div
                 className={`fixed left-0 right-0 bottom-0 bg-slate-50 z-40 ${className}`}
                 style={{ display: 'flex', flexDirection: 'column', top: '64px' }}
             >
                 {isSaving && (
                     <div className="absolute inset-0 bg-white/80 z-[100] flex items-center justify-center">
-                        <div className="w-8 h-8 border-3 border-slate-200 border-t-[#1e3a5f] rounded-full animate-spin"></div>
+                        <div
+                            className="w-8 h-8 border-3 border-slate-200 rounded-full animate-spin"
+                            style={{ borderTopColor: accentColor }}
+                        ></div>
                     </div>
                 )}
                 <header
@@ -515,7 +522,10 @@ function DetailViewSection({
                         }}
                     >
                         <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]">
+                            <div
+                                className="flex items-center justify-between px-6 py-4 border-b border-slate-200"
+                                style={{ backgroundColor: accentColor }}
+                            >
                                 <div className="flex items-center gap-3">
                                     <i className="fas fa-exchange-alt text-white"></i>
                                     <div>
@@ -548,7 +558,8 @@ function DetailViewSection({
                                     </label>
                                     <select
                                         id="region-select"
-                                        className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                        className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white focus:outline-none"
+                                        style={{ '--tw-ring-color': accentColor }}
                                         value={selectedRegion}
                                         onChange={(e) => setSelectedRegion(e.target.value)}
                                         disabled={transferLoading}
@@ -576,7 +587,7 @@ function DetailViewSection({
                                         </label>
                                         <select
                                             id="plant-select"
-                                            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 disabled:bg-slate-50 disabled:text-slate-400"
+                                            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 bg-white focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                                             value={selectedPlant}
                                             onChange={(e) => setSelectedPlant(e.target.value)}
                                             disabled={transferLoading || availablePlants.length === 0}
@@ -616,7 +627,8 @@ function DetailViewSection({
                                         Cancel
                                     </button>
                                     <button
-                                        className="px-4 py-2.5 bg-[#1e3a5f] hover:bg-[#15304f] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="px-4 py-2.5 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        style={{ backgroundColor: accentColor }}
                                         onClick={handleRegionTransferConfirm}
                                         disabled={transferLoading || !selectedRegion || !selectedPlant}
                                     >

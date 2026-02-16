@@ -200,12 +200,16 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                                             onClick={() => toggleCategory(category.key)}
                                         >
                                             <i
-                                                className={`${category.icon} text-sm text-[#1e3a5f] w-5 text-center`}
+                                                className={`${category.icon} text-sm w-5 text-center`}
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
                                             ></i>
                                             <span className="flex-1 text-sm font-semibold text-slate-700">
                                                 {category.label}
                                             </span>
-                                            <span className="px-2 py-0.5 bg-[#1e3a5f] text-white text-xs font-semibold rounded-full min-w-[22px] text-center">
+                                            <span
+                                                className="px-2 py-0.5 text-white text-xs font-semibold rounded-full min-w-[22px] text-center"
+                                                style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
+                                            >
                                                 {category.items.length}
                                             </span>
                                             <button className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600">

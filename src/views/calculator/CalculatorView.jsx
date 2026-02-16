@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import ProportionsCalculator from './types/ProportionsCalculator'
 import SetTimeCalculator from './types/SetTimeCalculator'
 import SlumpAdjustmentCalculator from './types/SlumpAdjustmentCalculator'
@@ -15,6 +16,8 @@ const CALCULATOR_TYPES = [
 ]
 
 const CalculatorView = () => {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [selectedCalculator, setSelectedCalculator] = useState('yardage-hour')
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
@@ -63,10 +66,10 @@ const CalculatorView = () => {
         },
         tab: (active) => ({
             alignItems: 'center',
-            background: active ? '#f0f7ff' : 'white',
-            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            background: active ? `${accentColor}15` : 'white',
+            border: active ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
             borderRadius: '8px',
-            color: active ? '#1e3a5f' : '#64748b',
+            color: active ? accentColor : '#64748b',
             cursor: 'pointer',
             display: 'flex',
             fontSize: isMobile ? '0.75rem' : '0.9375rem',

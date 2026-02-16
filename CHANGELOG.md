@@ -2,6 +2,19 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.6] - 2026-02-16
+
+- Added support for customizable accent color in user preferences in `PreferencesContext.js`, allowing users to set a preferred color theme.
+- Applied dynamic accent color from user preferences to UI elements in `LoadingScreen.jsx`, `Navigation.jsx`, and `NotificationsModal.jsx` for consistent theming.
+- Updated styling in `DetailViewSection.jsx` to use dynamic accent color for form section headers and other elements.
+- Enhanced `DashboardView.jsx` with significant updates, including UI improvements and new content (304 lines added, 112 removed).
+- Improved `MyAccountView.jsx` with expanded functionality or UI enhancements (156 lines added, 14 removed).
+- Updated `PlanView.jsx` with notable changes to layout or features (148 lines added, 62 removed).
+- Modified `TopSection.jsx` with UI or content adjustments (45 lines modified).
+- Revised `YardagePerHourCalculator.js` in the calculator module with functional updates (30 lines modified).
+- Made minor updates to `CalculatorView.jsx`, `LeaderboardsView.jsx`, `VerificationCardSection.jsx`, and `DashboardPlantSummary.jsx` for consistency or small fixes.
+- Adjusted `OperatorSelectModal.jsx` in the mixers view with UI or logic changes (29 lines modified).
+
 ## [9.5] - 2026-02-13
 
 - Updated `useReviewData.js` to handle component unmounting by adding a `mounted` flag to prevent state updates after unmount, and adjusted dependency array to use `formPlant`.

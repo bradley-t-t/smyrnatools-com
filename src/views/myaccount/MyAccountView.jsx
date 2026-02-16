@@ -515,7 +515,12 @@ function MyAccountView({ userId }) {
                     <div className="lg:col-span-1">
                         <div className="sticky top-8 space-y-6">
                             <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-                                <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] px-6 pb-16 pt-8">
+                                <div
+                                    className="px-6 pb-16 pt-8"
+                                    style={{
+                                        background: `linear-gradient(to bottom right, ${preferences.accentColor || '#1e3a5f'}, ${preferences.accentColor || '#1e3a5f'}dd)`
+                                    }}
+                                >
                                     <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-2xl font-bold text-white backdrop-blur-sm">
                                         {getInitials() || <i className="fas fa-user"></i>}
                                     </div>
@@ -543,17 +548,51 @@ function MyAccountView({ userId }) {
                                 <nav className="flex flex-col">
                                     <button
                                         onClick={() => setActiveTab('profile')}
-                                        className={`flex items-center gap-3 px-5 py-4 text-left transition-all ${activeTab === 'profile' ? 'border-l-4 border-[#1e3a5f] bg-blue-50 text-[#1e3a5f]' : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'}`}
+                                        className={`flex items-center gap-3 px-5 py-4 text-left transition-all ${activeTab === 'profile' ? 'border-l-4' : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'}`}
+                                        style={
+                                            activeTab === 'profile'
+                                                ? {
+                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
+                                                      backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
+                                                      color: preferences.accentColor || '#1e3a5f'
+                                                  }
+                                                : {}
+                                        }
                                     >
                                         <i className="fas fa-user w-5 text-center"></i>
                                         <span className="font-medium">Profile</span>
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('security')}
-                                        className={`flex items-center gap-3 px-5 py-4 text-left transition-all ${activeTab === 'security' ? 'border-l-4 border-[#1e3a5f] bg-blue-50 text-[#1e3a5f]' : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'}`}
+                                        className={`flex items-center gap-3 px-5 py-4 text-left transition-all ${activeTab === 'security' ? 'border-l-4' : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'}`}
+                                        style={
+                                            activeTab === 'security'
+                                                ? {
+                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
+                                                      backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
+                                                      color: preferences.accentColor || '#1e3a5f'
+                                                  }
+                                                : {}
+                                        }
                                     >
                                         <i className="fas fa-shield-alt w-5 text-center"></i>
                                         <span className="font-medium">Security</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('preferences')}
+                                        className={`flex items-center gap-3 px-5 py-4 text-left transition-all ${activeTab === 'preferences' ? 'border-l-4' : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'}`}
+                                        style={
+                                            activeTab === 'preferences'
+                                                ? {
+                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
+                                                      backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
+                                                      color: preferences.accentColor || '#1e3a5f'
+                                                  }
+                                                : {}
+                                        }
+                                    >
+                                        <i className="fas fa-cog w-5 text-center"></i>
+                                        <span className="font-medium">Preferences</span>
                                     </button>
                                     <div className="mx-4 my-2 border-t border-gray-100"></div>
                                     <button
@@ -615,7 +654,8 @@ function MyAccountView({ userId }) {
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="inline-flex items-center gap-2 rounded-xl bg-[#1e3a5f] px-6 py-3 font-semibold text-white transition-all hover:bg-[#163352] disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                                            style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
                                         >
                                             <i className="fas fa-save"></i>
                                             Save Changes
@@ -706,7 +746,8 @@ function MyAccountView({ userId }) {
                                     </div>
                                     <button
                                         onClick={() => setShowPasswordModal(true)}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-[#1e3a5f] px-6 py-3 font-semibold text-white transition-all hover:bg-[#163352]"
+                                        className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-all"
+                                        style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
                                     >
                                         <i className="fas fa-lock"></i>
                                         Change Password
@@ -796,6 +837,108 @@ function MyAccountView({ userId }) {
                                         >
                                             Sign Out
                                         </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'preferences' && (
+                            <>
+                                <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
+                                    <div className="mb-6 flex items-center gap-3">
+                                        <div
+                                            className="flex h-10 w-10 items-center justify-center rounded-xl"
+                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                        >
+                                            <i
+                                                className="fas fa-palette"
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                            ></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">Appearance</h3>
+                                            <p className="text-sm text-gray-500">
+                                                Customize the look of the application
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <div className="mb-4">
+                                                <div className="font-medium text-gray-900">Accent Color</div>
+                                                <div className="text-sm text-gray-500">
+                                                    Choose an accent color for the navigation and buttons
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                {[
+                                                    { color: '#1e3a5f', name: 'Navy' },
+                                                    { color: '#134e4a', name: 'Teal' },
+                                                    { color: '#14532d', name: 'Emerald' },
+                                                    { color: '#1e3a8a', name: 'Blue' },
+                                                    { color: '#4c1d95', name: 'Violet' },
+                                                    { color: '#701a75', name: 'Fuchsia' },
+                                                    { color: '#7f1d1d', name: 'Red' },
+                                                    { color: '#7c2d12', name: 'Orange' },
+                                                    { color: '#713f12', name: 'Yellow' },
+                                                    { color: '#1f2937', name: 'Gray' },
+                                                    { color: '#0a0a0a', name: 'Black' }
+                                                ].map(({ color, name }) => (
+                                                    <button
+                                                        key={color}
+                                                        onClick={() => updatePreferences('accentColor', color)}
+                                                        className={`group relative h-10 w-10 rounded-xl transition-all hover:scale-110 ${(preferences.accentColor || '#1e3a5f') === color ? 'ring-2 ring-offset-2' : ''}`}
+                                                        style={{
+                                                            backgroundColor: color,
+                                                            ringColor: color
+                                                        }}
+                                                        title={name}
+                                                    >
+                                                        {(preferences.accentColor || '#1e3a5f') === color && (
+                                                            <i className="fas fa-check text-white text-sm"></i>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                                <div className="relative">
+                                                    <input
+                                                        type="color"
+                                                        value={preferences.accentColor || '#1e3a5f'}
+                                                        onChange={(e) =>
+                                                            updatePreferences('accentColor', e.target.value)
+                                                        }
+                                                        className="absolute inset-0 h-10 w-10 cursor-pointer opacity-0"
+                                                    />
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 transition-all hover:border-gray-400 hover:bg-gray-100">
+                                                        <i className="fas fa-eyedropper text-gray-400"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 flex items-center gap-4">
+                                                <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
+                                                    <div
+                                                        className="h-8 w-8 rounded-lg shadow-sm"
+                                                        style={{
+                                                            backgroundColor: preferences.accentColor || '#1e3a5f'
+                                                        }}
+                                                    ></div>
+                                                    <div>
+                                                        <div className="text-xs font-medium text-gray-500">Current</div>
+                                                        <div className="font-mono text-sm font-semibold text-gray-900">
+                                                            {(preferences.accentColor || '#1e3a5f').toUpperCase()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {preferences.accentColor && preferences.accentColor !== '#1e3a5f' && (
+                                                    <button
+                                                        onClick={() => updatePreferences('accentColor', '#1e3a5f')}
+                                                        className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition-all hover:bg-gray-200"
+                                                    >
+                                                        <i className="fas fa-undo text-xs"></i>
+                                                        Reset to Default
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </>
@@ -891,7 +1034,8 @@ function MyAccountView({ userId }) {
                                         newPassword !== confirmPassword ||
                                         newPassword.length < 8
                                     }
-                                    className="flex-1 rounded-xl bg-[#1e3a5f] py-3 font-semibold text-white transition-all hover:bg-[#163352] disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="flex-1 rounded-xl py-3 font-semibold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                                    style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
                                 >
                                     Update Password
                                 </button>
