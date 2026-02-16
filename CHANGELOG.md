@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.9] - 2026-02-16
+
+- Reduced the number of color options in MyAccountView.jsx from 10 to 3 (Navy, Red, Black).
+- Updated the color code for 'Gray' from '#1f2937' to '#374151' in MyAccountView.jsx.
+
 ## [9.8] - 2026-02-16
 
 - Updated `VersionPopup.jsx` to use dynamic accent color from user preferences instead of a hardcoded value for the popup background.

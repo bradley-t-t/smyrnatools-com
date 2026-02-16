@@ -873,15 +873,8 @@ function MyAccountView({ userId }) {
                                             <div className="flex flex-wrap items-center gap-3">
                                                 {[
                                                     { color: '#1e3a5f', name: 'Navy' },
-                                                    { color: '#134e4a', name: 'Teal' },
-                                                    { color: '#14532d', name: 'Emerald' },
-                                                    { color: '#1e3a8a', name: 'Blue' },
-                                                    { color: '#4c1d95', name: 'Violet' },
-                                                    { color: '#701a75', name: 'Fuchsia' },
                                                     { color: '#7f1d1d', name: 'Red' },
-                                                    { color: '#7c2d12', name: 'Orange' },
-                                                    { color: '#713f12', name: 'Yellow' },
-                                                    { color: '#1f2937', name: 'Gray' },
+                                                    { color: '#374151', name: 'Gray' },
                                                     { color: '#0a0a0a', name: 'Black' }
                                                 ].map(({ color, name }) => (
                                                     <button
