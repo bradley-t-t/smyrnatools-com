@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
 import { OperatorService } from '../../services/OperatorService'
 import { UserService } from '../../services/UserService'
@@ -14,6 +15,8 @@ function RecapModalSection({
     mixersLoaded = true,
     isLoading: externalLoading = false
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [mixerHistory, setMixerHistory] = useState([])
@@ -507,7 +510,8 @@ function RecapModalSection({
 
     const tab = (
         <div
-            className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 bg-[#1e3a5f] text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
+            className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
+            style={{ backgroundColor: accentColor }}
             onClick={handleToggle}
         >
             <i className="fa-solid fa-clock-rotate-left text-sm"></i>
@@ -524,7 +528,10 @@ function RecapModalSection({
                 className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden ml-0 mt-16"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between px-5 py-4 bg-[#1e3a5f] flex-shrink-0">
+                <div
+                    className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+                    style={{ backgroundColor: accentColor }}
+                >
                     <div className="flex items-center gap-3">
                         <i className="fa-solid fa-clock-rotate-left text-white text-lg"></i>
                         <div>
@@ -543,25 +550,45 @@ function RecapModalSection({
                 <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
                     <div className="flex gap-1">
                         <button
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'day' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+                            style={{
+                                backgroundColor: dateFilter === 'day' ? accentColor : 'white',
+                                border: dateFilter === 'day' ? 'none' : '1px solid #e2e8f0',
+                                color: dateFilter === 'day' ? 'white' : '#475569'
+                            }}
                             onClick={() => setDateFilter('day')}
                         >
                             24h
                         </button>
                         <button
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'week' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+                            style={{
+                                backgroundColor: dateFilter === 'week' ? accentColor : 'white',
+                                border: dateFilter === 'week' ? 'none' : '1px solid #e2e8f0',
+                                color: dateFilter === 'week' ? 'white' : '#475569'
+                            }}
                             onClick={() => setDateFilter('week')}
                         >
                             7 Days
                         </button>
                         <button
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'month' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+                            style={{
+                                backgroundColor: dateFilter === 'month' ? accentColor : 'white',
+                                border: dateFilter === 'month' ? 'none' : '1px solid #e2e8f0',
+                                color: dateFilter === 'month' ? 'white' : '#475569'
+                            }}
                             onClick={() => setDateFilter('month')}
                         >
                             30 Days
                         </button>
                         <button
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateFilter === 'all' ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+                            style={{
+                                backgroundColor: dateFilter === 'all' ? accentColor : 'white',
+                                border: dateFilter === 'all' ? 'none' : '1px solid #e2e8f0',
+                                color: dateFilter === 'all' ? 'white' : '#475569'
+                            }}
                             onClick={() => setDateFilter('all')}
                         >
                             All

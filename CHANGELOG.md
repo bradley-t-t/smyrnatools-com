@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [9.7] - 2026-02-16
+
+- Added support for customizable accent color in RecapModalSection.jsx by integrating the usePreferences hook to fetch user preferences.
+- Replaced hardcoded background color '#1e3a5f' with dynamic accentColor from user preferences for the tab and modal header in RecapModalSection.jsx.
+- Updated date filter buttons in RecapModalSection.jsx to use dynamic styling based on accentColor for active and inactive states, replacing hardcoded color values.
+
 ## [9.6] - 2026-02-16
 
 - Added support for customizable accent color in user preferences in `PreferencesContext.js`, allowing users to set a preferred color theme.
