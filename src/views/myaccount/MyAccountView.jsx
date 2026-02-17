@@ -8,7 +8,7 @@ import { UserService } from '../../services/UserService'
 
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
-    const { triggerTutorial } = useTutorial()
+    const { isMobile, triggerTutorial } = useTutorial()
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState('')
     const [firstName, setFirstName] = useState('')
@@ -942,60 +942,66 @@ function MyAccountView({ userId }) {
                                     </div>
                                 </div>
 
-                                <div className="rounded-2xl border border-gray-100 bg-white p-6">
-                                    <div className="mb-6 flex items-center gap-3">
-                                        <div
-                                            className="flex h-10 w-10 items-center justify-center rounded-xl"
-                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
-                                        >
-                                            <i
-                                                className="fas fa-graduation-cap"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
-                                            ></i>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900">Tutorials</h3>
-                                            <p className="text-sm text-gray-500">Manage tutorial hints and guides</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-                                            <div>
-                                                <div className="font-medium text-gray-900">Enable Tutorials</div>
-                                                <div className="text-sm text-gray-500">
-                                                    Show helpful tips and guides throughout the app
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => updatePreferences('tutorials', !preferences.tutorials)}
-                                                className="relative h-7 w-12 rounded-full transition-colors"
-                                                style={{
-                                                    backgroundColor: preferences.tutorials
-                                                        ? preferences.accentColor || '#1e3a5f'
-                                                        : '#d1d5db'
-                                                }}
+                                {!isMobile && (
+                                    <div className="rounded-2xl border border-gray-100 bg-white p-6">
+                                        <div className="mb-6 flex items-center gap-3">
+                                            <div
+                                                className="flex h-10 w-10 items-center justify-center rounded-xl"
+                                                style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
                                             >
-                                                <div
-                                                    className="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all"
-                                                    style={{ left: preferences.tutorials ? '26px' : '4px' }}
-                                                ></div>
+                                                <i
+                                                    className="fas fa-graduation-cap"
+                                                    style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                ></i>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900">Tutorials</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    Manage tutorial hints and guides
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
+                                                <div>
+                                                    <div className="font-medium text-gray-900">Enable Tutorials</div>
+                                                    <div className="text-sm text-gray-500">
+                                                        Show helpful tips and guides throughout the app
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() =>
+                                                        updatePreferences('tutorials', !preferences.tutorials)
+                                                    }
+                                                    className="relative h-7 w-12 rounded-full transition-colors"
+                                                    style={{
+                                                        backgroundColor: preferences.tutorials
+                                                            ? preferences.accentColor || '#1e3a5f'
+                                                            : '#d1d5db'
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all"
+                                                        style={{ left: preferences.tutorials ? '26px' : '4px' }}
+                                                    ></div>
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                onClick={() => {
+                                                    localStorage.removeItem('dismissed_tutorials')
+                                                    setMessage('Tutorials reset! Refresh the page to see them again.')
+                                                    setTimeout(() => setMessage(''), 3000)
+                                                }}
+                                                className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition-all hover:bg-gray-200"
+                                            >
+                                                <i className="fas fa-redo text-xs"></i>
+                                                Reset All Tutorials
                                             </button>
                                         </div>
-
-                                        <button
-                                            onClick={() => {
-                                                localStorage.removeItem('dismissed_tutorials')
-                                                setMessage('Tutorials reset! Refresh the page to see them again.')
-                                                setTimeout(() => setMessage(''), 3000)
-                                            }}
-                                            className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition-all hover:bg-gray-200"
-                                        >
-                                            <i className="fas fa-redo text-xs"></i>
-                                            Reset All Tutorials
-                                        </button>
                                     </div>
-                                </div>
+                                )}
                             </>
                         )}
                     </div>

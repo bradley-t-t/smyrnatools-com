@@ -6,6 +6,7 @@ const TutorialContext = createContext({
     activeTutorial: null,
     dismissedTutorials: [],
     dismissTutorial: () => {},
+    isMobile: false,
     isTutorialDismissed: () => false,
     resetAllTutorials: () => {},
     resetTutorial: () => {},

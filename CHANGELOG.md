@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.6] - 2026-02-17
+
+- Added `isMobile` property to `TutorialContext` in `src/app/context/TutorialContext.jsx` with a default value of `false`.
+- Updated `MyAccountView.jsx` to destructure `isMobile` from `useTutorial` hook and conditionally render the Tutorials section based on `!isMobile`, hiding it on mobile devices.
+- Removed database migration files `20260202_create_plant_travel_times.sql` and `20260217_create_user_tutorials.sql` from the `supabase/migrations` directory.
+
 ## [10.5] - 2026-02-17
 
 - Updated mobile navigation styling in `DetailViewSection.jsx` with increased padding, adjusted button sizes, larger icon sizes, and modified content padding for better mobile responsiveness.
