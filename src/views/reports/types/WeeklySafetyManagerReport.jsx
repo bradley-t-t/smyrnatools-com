@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import ReactDOM from 'react-dom'
 
 import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
 import { ReportUtility } from '../../../utils/ReportUtility'
@@ -37,25 +38,10 @@ const safetyReportStyles = `
 .safety-select-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
 .safety-select-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
 .safety-select-btn i { color: #64748b; font-size: 0.75rem; }
-.safety-tag-picker { position: relative; width: 100%; z-index: 50; }
+.safety-tag-picker { position: relative; width: 100%; }
 .safety-tag-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
 .safety-tag-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
 .safety-tag-placeholder { display: flex; align-items: center; }
-.safety-tag-menu { position: fixed; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 10000; overflow: hidden; width: 320px; max-width: 90vw; }
-.safety-tag-menu-header { display: flex; gap: 0.5rem; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; background: #f8fafc; }
-.safety-tag-action { padding: 0.375rem 0.75rem; background: white; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.75rem; font-weight: 500; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 0.375rem; }
-.safety-tag-action:hover { background: #f1f5f9; }
-.safety-tag-search-wrap { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; }
-.safety-tag-search-wrap i { color: #94a3b8; font-size: 0.875rem; }
-.safety-tag-search { flex: 1; border: none; outline: none; font-size: 0.875rem; color: #1e293b; background: transparent; }
-.safety-tag-options { max-height: 240px; overflow-y: auto; padding: 0.5rem; }
-.safety-tag-option { display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.75rem; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
-.safety-tag-option:hover { background: #f8fafc; }
-.safety-tag-option.selected { background: #eff6ff; }
-.safety-tag-option-checkbox { width: 18px; height: 18px; border: 2px solid #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: white; }
-.safety-tag-option.selected .safety-tag-option-checkbox { background: #1e3a5f; border-color: #1e3a5f; }
-.safety-tag-option-content { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #1e293b; }
-.safety-tag-empty { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; }
 .safety-tags-display { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
 .safety-tag-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.625rem; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
 .safety-chip-remove { background: none; border: none; padding: 0; margin-left: 0.25rem; cursor: pointer; opacity: 0.7; font-size: 0.6875rem; }
@@ -99,34 +85,7 @@ const TAG_COLORS = {
 function TagPicker({ value, options, disabled, placeholder, onChange }) {
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState('')
-    const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 })
-    const ref = useRef(null)
     const btnRef = useRef(null)
-
-    useEffect(() => {
-        function onDocClick(e) {
-            if (!ref.current) return
-            if (!ref.current.contains(e.target)) setOpen(false)
-        }
-
-        document.addEventListener('mousedown', onDocClick)
-        return () => document.removeEventListener('mousedown', onDocClick)
-    }, [])
-
-    useEffect(() => {
-        if (open && btnRef.current) {
-            const rect = btnRef.current.getBoundingClientRect()
-            const menuHeight = 350
-            const spaceBelow = window.innerHeight - rect.bottom
-            const showAbove = spaceBelow < menuHeight && rect.top > menuHeight
-
-            setMenuPosition({
-                left: rect.left,
-                top: showAbove ? rect.top - menuHeight - 4 : rect.bottom + 4,
-                width: Math.max(rect.width, 280)
-            })
-        }
-    }, [open])
 
     const lower = query.toLowerCase()
     const filtered = options.filter((o) => o.toLowerCase().includes(lower))
@@ -148,15 +107,220 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
         onChange([])
     }
 
+    const modalContent = open ? (
+        <div
+            style={{
+                alignItems: 'center',
+                background: 'rgba(0,0,0,0.5)',
+                bottom: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                left: 0,
+                padding: 16,
+                position: 'fixed',
+                right: 0,
+                top: 0,
+                zIndex: 10000
+            }}
+            onClick={() => setOpen(false)}
+        >
+            <div
+                style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    maxHeight: '80vh',
+                    maxWidth: 400,
+                    overflow: 'hidden',
+                    width: '100%'
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div
+                    style={{
+                        alignItems: 'center',
+                        background: '#f8fafc',
+                        borderBottom: '1px solid #e5e7eb',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '16px 20px'
+                    }}
+                >
+                    <h3 style={{ color: '#1e293b', fontSize: 18, fontWeight: 600, margin: 0 }}>Select Categories</h3>
+                    <button
+                        type="button"
+                        onClick={() => setOpen(false)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#64748b',
+                            cursor: 'pointer',
+                            fontSize: 16,
+                            padding: 8
+                        }}
+                    >
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+                <div style={{ borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 8, padding: 12 }}>
+                    <button
+                        type="button"
+                        onClick={selectAll}
+                        style={{
+                            alignItems: 'center',
+                            background: '#f1f5f9',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: 6,
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            fontSize: 13,
+                            fontWeight: 500,
+                            gap: 6,
+                            padding: '8px 12px'
+                        }}
+                    >
+                        <i className="fas fa-check-double"></i> Select All
+                    </button>
+                    <button
+                        type="button"
+                        onClick={clearAll}
+                        style={{
+                            alignItems: 'center',
+                            background: '#f1f5f9',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: 6,
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            fontSize: 13,
+                            fontWeight: 500,
+                            gap: 6,
+                            padding: '8px 12px'
+                        }}
+                    >
+                        <i className="fas fa-times"></i> Clear All
+                    </button>
+                </div>
+                <div style={{ borderBottom: '1px solid #e5e7eb', padding: 12 }}>
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            background: '#f8fafc',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: 8,
+                            display: 'flex',
+                            gap: 10,
+                            padding: '10px 12px'
+                        }}
+                    >
+                        <i className="fas fa-search" style={{ color: '#94a3b8', fontSize: 14 }}></i>
+                        <input
+                            type="text"
+                            placeholder="Search tags..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#1e293b',
+                                flex: 1,
+                                fontSize: 14,
+                                outline: 'none'
+                            }}
+                        />
+                    </div>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+                    {filtered.map((opt) => {
+                        const tagStyle = TAG_COLORS[opt] || { bg: '#f1f5f9', color: '#64748b', icon: 'fas fa-tag' }
+                        const isSelected = value.includes(opt)
+                        return (
+                            <div
+                                key={opt}
+                                onClick={() => toggle(opt)}
+                                style={{
+                                    alignItems: 'center',
+                                    background: isSelected ? '#eff6ff' : 'transparent',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    gap: 12,
+                                    marginBottom: 4,
+                                    padding: '12px 14px'
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        alignItems: 'center',
+                                        background: isSelected ? '#1e3a5f' : 'white',
+                                        border: isSelected ? 'none' : '2px solid #e5e7eb',
+                                        borderRadius: 6,
+                                        color: 'white',
+                                        display: 'flex',
+                                        fontSize: 11,
+                                        height: 22,
+                                        justifyContent: 'center',
+                                        width: 22
+                                    }}
+                                >
+                                    {isSelected && <i className="fas fa-check"></i>}
+                                </div>
+                                <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
+                                    <i className={tagStyle.icon} style={{ color: tagStyle.color, fontSize: 14 }}></i>
+                                    <span
+                                        style={{ color: '#1e293b', fontSize: 15, fontWeight: isSelected ? 600 : 400 }}
+                                    >
+                                        {opt}
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    })}
+                    {filtered.length === 0 && (
+                        <div style={{ color: '#94a3b8', padding: 32, textAlign: 'center' }}>
+                            <i
+                                className="fas fa-search"
+                                style={{ display: 'block', fontSize: 24, marginBottom: 8 }}
+                            ></i>
+                            <span>No matching tags</span>
+                        </div>
+                    )}
+                </div>
+                <div style={{ background: '#f8fafc', borderTop: '1px solid #e5e7eb', padding: 16 }}>
+                    <button
+                        type="button"
+                        onClick={() => setOpen(false)}
+                        style={{
+                            background: '#1e3a5f',
+                            border: 'none',
+                            borderRadius: 8,
+                            color: 'white',
+                            cursor: 'pointer',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            padding: '12px 20px',
+                            width: '100%'
+                        }}
+                    >
+                        Done ({value.length} selected)
+                    </button>
+                </div>
+            </div>
+        </div>
+    ) : null
+
     return (
-        <div className="safety-tag-picker" ref={ref}>
+        <div className="safety-tag-picker">
             <button
                 type="button"
                 className="safety-tag-btn"
                 ref={btnRef}
                 disabled={disabled}
                 aria-expanded={open}
-                onClick={() => setOpen((o) => !o)}
+                onClick={() => setOpen(true)}
             >
                 <span className="safety-tag-placeholder">
                     <i className="fas fa-tags" style={{ marginRight: '8px', opacity: 0.6 }}></i>
@@ -164,65 +328,9 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         ? `${value.length} tag${value.length > 1 ? 's' : ''} selected`
                         : placeholder || 'Select tags'}
                 </span>
-                <i className={`fas fa-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: '0.75rem' }}></i>
+                <i className="fas fa-chevron-down" style={{ fontSize: '0.75rem' }}></i>
             </button>
-            {open && (
-                <div
-                    className="safety-tag-menu"
-                    role="listbox"
-                    style={{ left: menuPosition.left, top: menuPosition.top, width: menuPosition.width }}
-                >
-                    <div className="safety-tag-menu-header">
-                        <button type="button" className="safety-tag-action" onClick={selectAll}>
-                            <i className="fas fa-check-double"></i> All
-                        </button>
-                        <button type="button" className="safety-tag-action" onClick={clearAll}>
-                            <i className="fas fa-times"></i> Clear
-                        </button>
-                    </div>
-                    <div className="safety-tag-search-wrap">
-                        <i className="fas fa-search"></i>
-                        <input
-                            className="safety-tag-search"
-                            placeholder="Search tags..."
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                    </div>
-                    <div className="safety-tag-options">
-                        {filtered.map((opt) => {
-                            const tagStyle = TAG_COLORS[opt] || {
-                                bg: 'var(--background)',
-                                color: 'var(--text-primary)',
-                                icon: 'fas fa-tag'
-                            }
-                            return (
-                                <div
-                                    key={opt}
-                                    className={`safety-tag-option ${value.includes(opt) ? 'selected' : ''}`}
-                                    role="option"
-                                    aria-selected={value.includes(opt)}
-                                    onClick={() => toggle(opt)}
-                                >
-                                    <div className="safety-tag-option-checkbox">
-                                        {value.includes(opt) && <i className="fas fa-check"></i>}
-                                    </div>
-                                    <div className="safety-tag-option-content">
-                                        <i className={tagStyle.icon} style={{ color: tagStyle.color }}></i>
-                                        <span>{opt}</span>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                        {filtered.length === 0 && (
-                            <div className="safety-tag-empty">
-                                <i className="fas fa-search"></i>
-                                <span>No matching tags</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            {typeof document !== 'undefined' && ReactDOM.createPortal(modalContent, document.body)}
         </div>
     )
 }

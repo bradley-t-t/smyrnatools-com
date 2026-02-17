@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.5] - 2026-02-17
+
+- Added ReactDOM import in WeeklySafetyManagerReport.jsx for rendering modal content.
+- Removed z-index from .safety-tag-picker CSS class in WeeklySafetyManagerReport.jsx.
+- Removed multiple CSS classes related to tag menu styling (.safety-tag-menu, .safety-tag-menu-header, .safety-tag-action, etc.) from WeeklySafetyManagerReport.jsx as they are no longer used.
+- Replaced fixed positioning logic for tag picker menu with a modal-based approach in WeeklySafetyManagerReport.jsx.
+- Implemented a new modal UI for tag selection in TagPicker component with inline styles for layout, background, and interaction.
+- Added modal content structure in TagPicker with header, close button, and select all functionality in WeeklySafetyManagerReport.jsx.
+- Removed event listener for document click and menu position calculation logic from TagPicker component in WeeklySafetyManagerReport.jsx.
+
 ## [11.4] - 2026-02-17
 
 - Updated `PlantDropdownModal.jsx` to change the default selection text from an empty string to 'All' when selecting the default option.
