@@ -9,11 +9,13 @@ import LockedOverlay from '../components/common/LockedOverlay'
 import Navigation from '../components/common/Navigation'
 import OfflineOverlay from '../components/common/OfflineOverlay'
 import TerminatedOverlay from '../components/common/TerminatedOverlay'
+import TutorialManager from '../components/common/TutorialPopup'
 import WebOverlay from '../components/common/WebOverlay'
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import { NetworkUtility } from '../utils/NetworkUtility'
 import LoginView from '../views/login/LoginView'
+import { useTutorial } from './context/TutorialContext'
 import { useAuth } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
 
@@ -86,6 +88,13 @@ function AppContent() {
 
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
     useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView)
+    const { triggerTutorial } = useTutorial()
+
+    useEffect(() => {
+        if (userId && rolesLoaded) {
+            triggerTutorial('account-nav-hint', 2000)
+        }
+    }, [userId, rolesLoaded, triggerTutorial])
 
     useEffect(() => {
         UserService.getCurrentUser().catch(() => {})
@@ -350,6 +359,7 @@ function App() {
             <Suspense fallback={null}>
                 <AppInstallPromptModal />
             </Suspense>
+            <TutorialManager />
             <Analytics />
             <SpeedInsights />
         </>

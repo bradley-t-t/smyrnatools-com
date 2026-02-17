@@ -2010,7 +2010,7 @@ export default function DashboardView() {
     }
 
     const sectionTitleStyle = {
-        color: accentColor,
+        color: '#1e293b',
         fontSize: isMobile ? '16px' : '18px',
         fontWeight: 600,
         marginBottom: isMobile ? '16px' : '20px'
@@ -2024,7 +2024,7 @@ export default function DashboardView() {
     }
 
     const metricValueStyle = {
-        color: accentColor,
+        color: '#1e293b',
         fontSize: isMobile ? '22px' : '28px',
         fontWeight: 700,
         lineHeight: 1.2
@@ -2151,7 +2151,7 @@ export default function DashboardView() {
                     >
                         <h1
                             style={{
-                                color: accentColor,
+                                color: '#1e293b',
                                 fontSize: isMobile ? '18px' : '20px',
                                 fontWeight: 700,
                                 margin: 0
@@ -2264,7 +2264,7 @@ export default function DashboardView() {
                                 <>
                                     <h2
                                         style={{
-                                            color: accentColor,
+                                            color: '#1e293b',
                                             fontSize: '22px',
                                             fontWeight: 600,
                                             margin: '0 0 4px 0'
@@ -2747,7 +2747,7 @@ export default function DashboardView() {
                                                     <div style={metricLabelStyle}>Mixers</div>
                                                     <div
                                                         style={{
-                                                            color: accentColor,
+                                                            color: '#1e293b',
                                                             fontSize: '32px',
                                                             fontWeight: 700
                                                         }}
@@ -2815,7 +2815,7 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Tractors</div>
                                                 <div
                                                     style={{
-                                                        color: accentColor,
+                                                        color: '#1e293b',
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
@@ -2983,7 +2983,7 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Trailers</div>
                                                 <div
                                                     style={{
-                                                        color: accentColor,
+                                                        color: '#1e293b',
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
@@ -3145,7 +3145,7 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Equipment</div>
                                                 <div
                                                     style={{
-                                                        color: accentColor,
+                                                        color: '#1e293b',
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
@@ -3204,7 +3204,7 @@ export default function DashboardView() {
                                                 <div style={metricLabelStyle}>Pickup Trucks</div>
                                                 <div
                                                     style={{
-                                                        color: accentColor,
+                                                        color: '#1e293b',
                                                         fontSize: '32px',
                                                         fontWeight: 700
                                                     }}
@@ -3262,7 +3262,7 @@ export default function DashboardView() {
                                             <div style={metricLabelStyle}>Operators</div>
                                             <div
                                                 style={{
-                                                    color: accentColor,
+                                                    color: '#1e293b',
                                                     fontSize: '32px',
                                                     fontWeight: 700
                                                 }}
@@ -3449,7 +3449,7 @@ export default function DashboardView() {
                                     >
                                         <h4
                                             style={{
-                                                color: accentColor,
+                                                color: '#1e293b',
                                                 fontSize: '16px',
                                                 fontWeight: 600,
                                                 margin: 0
@@ -3748,7 +3748,7 @@ export default function DashboardView() {
                                                     >
                                                         <p
                                                             style={{
-                                                                color: accentColor,
+                                                                color: '#1e293b',
                                                                 fontSize: '13px',
                                                                 fontWeight: 600,
                                                                 margin: '0 0 6px 0'

@@ -56,7 +56,8 @@ const defaultPreferences = {
         selectedPlant: '',
         typeFilter: '',
         viewMode: 'list'
-    }
+    },
+    tutorials: true
 }
 
 export const PreferencesProvider = ({ children }) => {
@@ -71,8 +72,20 @@ export const PreferencesProvider = ({ children }) => {
             let updatedPreferences
             if (typeof keyOrObject === 'string') {
                 updatedPreferences = { ...preferences, [keyOrObject]: value }
+                if (keyOrObject === 'tutorials') {
+                    window.dispatchEvent(
+                        new CustomEvent('preferences-updated', { detail: { key: 'tutorials', value } })
+                    )
+                }
             } else {
                 updatedPreferences = { ...preferences, ...keyOrObject }
+                if (keyOrObject.tutorials !== undefined) {
+                    window.dispatchEvent(
+                        new CustomEvent('preferences-updated', {
+                            detail: { key: 'tutorials', value: keyOrObject.tutorials }
+                        })
+                    )
+                }
             }
             setPreferences(updatedPreferences)
             if (userId) {
@@ -89,6 +102,7 @@ export const PreferencesProvider = ({ children }) => {
                     selected_region: updatedPreferences.selectedRegion,
                     tractor_filters: updatedPreferences.tractorFilters,
                     trailer_filters: updatedPreferences.trailerFilters,
+                    tutorials: updatedPreferences.tutorials,
                     updated_at: now,
                     user_id: userId
                 }
@@ -182,7 +196,8 @@ export const PreferencesProvider = ({ children }) => {
                                       ...data.trailer_filters,
                                       viewMode: data.trailer_filters.viewMode || 'list'
                                   }
-                                : { ...defaultPreferences.trailerFilters }
+                                : { ...defaultPreferences.trailerFilters },
+                            tutorials: data.tutorials === undefined ? true : data.tutorials
                         }
                     }
                 } catch {

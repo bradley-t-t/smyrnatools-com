@@ -302,7 +302,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         )
     }
 
-    const renderIconButton = (icon, title, onClick, isActive = false, badge = null, badgeColor = '#ef4444') => (
+    const renderIconButton = (
+        icon,
+        title,
+        onClick,
+        isActive = false,
+        badge = null,
+        badgeColor = '#ef4444',
+        tutorialTarget = null
+    ) => (
         <div
             style={{
                 alignItems: 'center',
@@ -320,6 +328,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             }}
             onClick={onClick}
             title={title}
+            data-tutorial-target={tutorialTarget}
             onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'
                 e.currentTarget.style.transform = 'translateY(-1px)'
@@ -672,7 +681,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             ICONS.MyAccount,
                             userName ? `My Account - ${userName}` : 'My Account',
                             () => handleMenuClick('MyAccount'),
-                            selectedView === 'MyAccount'
+                            selectedView === 'MyAccount',
+                            null,
+                            '#ef4444',
+                            'account-nav'
                         )}
                         {renderIconButton(
                             'fa-bell',

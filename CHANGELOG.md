@@ -2,6 +2,19 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.4] - 2026-02-17
+
+- Updated version in `public/turl.json` from 10.2 to 10.3.
+- Introduced a new tutorial system with the addition of `TutorialContext.jsx` for managing tutorial states and interactions.
+- Added `TutorialPopup.jsx` component to display tutorial content to users.
+- Created `TutorialService.js` to handle tutorial-related operations such as dismissing and retrieving tutorial data.
+- Added a database migration script `20260217_create_user_tutorials.sql` to support user tutorial tracking in Supabase.
+- Integrated tutorial functionality in `App.js` by adding `TutorialManager` component and triggering initial tutorial 'account-nav-hint' on user login.
+- Updated `PreferencesContext.js` to include a `tutorials` preference setting, with event dispatching for preference updates.
+- Modified `Navigation.jsx` to likely support tutorial hints or navigation-related tutorial content.
+- Enhanced `DashboardView.jsx` and `MyAccountView.jsx` to incorporate tutorial triggers or displays specific to these views.
+- Adjusted `index.js` to potentially include tutorial-related initialization or context providers.
+
 ## [10.2] - 2026-02-17
 
 - Added support for dynamic accent color in `VerificationRequirementsModal.jsx` using user preferences from `PreferencesContext`.

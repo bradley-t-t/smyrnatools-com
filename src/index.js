@@ -8,6 +8,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './app/App.js'
 import { AuthProvider } from './app/context/AuthContext'
 import { PreferencesProvider } from './app/context/PreferencesContext'
+import { TutorialProvider } from './app/context/TutorialContext'
 
 document.head.appendChild(
     Object.assign(document.createElement('meta'), {
@@ -21,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <BrowserRouter>
             <AuthProvider>
                 <PreferencesProvider>
-                    <App />
+                    <TutorialProvider>
+                        <App />
+                    </TutorialProvider>
                 </PreferencesProvider>
             </AuthProvider>
         </BrowserRouter>
