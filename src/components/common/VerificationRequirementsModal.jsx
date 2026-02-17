@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
 import DateUtility from '../../utils/DateUtility'
@@ -32,6 +33,8 @@ export default function VerificationRequirementsModal({
     service,
     status
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
     const [operatorData, setOperatorData] = useState(null)
     const [operatorPhone, setOperatorPhone] = useState('')
     const [operatorRating, setOperatorRating] = useState(0)
@@ -472,7 +475,7 @@ export default function VerificationRequirementsModal({
         },
         header: {
             alignItems: 'center',
-            backgroundColor: '#1e3a5f',
+            backgroundColor: accentColor,
             borderRadius: '16px 16px 0 0',
             color: 'white',
             display: 'flex',
@@ -637,7 +640,7 @@ export default function VerificationRequirementsModal({
         },
         primaryButton: {
             alignItems: 'center',
-            backgroundColor: '#1e3a5f',
+            backgroundColor: accentColor,
             border: 'none',
             borderRadius: '10px',
             color: 'white',
@@ -679,7 +682,7 @@ export default function VerificationRequirementsModal({
             marginLeft: '6px'
         },
         savePhoneButton: {
-            backgroundColor: '#1e3a5f',
+            backgroundColor: accentColor,
             border: 'none',
             borderRadius: '8px',
             color: 'white',
@@ -711,7 +714,7 @@ export default function VerificationRequirementsModal({
         },
         sectionTitle: {
             alignItems: 'center',
-            color: '#1e3a5f',
+            color: accentColor,
             display: 'flex',
             fontSize: '14px',
             fontWeight: 600,
@@ -749,7 +752,7 @@ export default function VerificationRequirementsModal({
         tableLabel: {
             backgroundColor: '#f8fafc',
             borderBottom: '1px solid #e5e7eb',
-            color: '#1e3a5f',
+            color: accentColor,
             fontSize: '13px',
             fontWeight: 600,
             padding: '10px 12px',

@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.2] - 2026-02-17
+
+- Added support for dynamic accent color in `VerificationRequirementsModal.jsx` using user preferences from `PreferencesContext`.
+- Updated the `header` background color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Changed the `primaryButton` background color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Modified the `savePhoneButton` background color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Updated the `sectionTitle` text color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Adjusted the `tableLabel` text color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+
 ## [10.1] - 2026-02-17
 
 - Refactored asynchronous logic in `DetailViewSection.jsx` by extracting inline async functions into named functions for better readability and maintainability.
