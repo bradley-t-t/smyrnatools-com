@@ -2,6 +2,17 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.6] - 2026-02-17
+
+- Added tablet-specific responsive design support in Navigation.jsx with a new `isTablet` state variable to detect screen widths between 768px and 1024px.
+- Updated resize event handler in Navigation.jsx to set both `isMobile` and `isTablet` states based on window width.
+- Adjusted styling for navigation items in Navigation.jsx to use smaller dimensions and spacing on tablet devices, including border radius, font size, padding, and gaps.
+- Modified dropdown navigation items in Navigation.jsx to hide labels on tablet devices and adjust icon sizes and spacing.
+- Updated icon button styles in Navigation.jsx for tablet view with reduced height, width, and font sizes, along with smaller badge dimensions.
+- Adjusted header styling in Navigation.jsx for tablet screens, reducing height, padding, and gaps between elements.
+- Changed logo image height in Navigation.jsx to be smaller on tablet devices.
+- Added a title attribute to the Dashboard navigation item in Navigation.jsx for better accessibility.
+
 ## [11.5] - 2026-02-17
 
 - Added ReactDOM import in WeeklySafetyManagerReport.jsx for rendering modal content.

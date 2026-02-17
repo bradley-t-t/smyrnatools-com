@@ -73,6 +73,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState(null)
     const [onlineUsersCount, setOnlineUsersCount] = useState(0)
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+    const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     const dropdownRef = useRef(null)
@@ -111,7 +112,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     }, [])
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768)
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768)
+            setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
+        }
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
     }, [])
@@ -215,14 +219,14 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         alignItems: 'center',
         backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
         border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
-        borderRadius: '10px',
+        borderRadius: isTablet ? '8px' : '10px',
         color: 'white',
         cursor: 'pointer',
         display: 'flex',
-        fontSize: '14px',
+        fontSize: isTablet ? '13px' : '14px',
         fontWeight: isActive ? 600 : 500,
-        gap: '8px',
-        padding: '10px 16px',
+        gap: isTablet ? '6px' : '8px',
+        padding: isTablet ? '8px 10px' : '10px 16px',
         transition: 'all 0.2s ease',
         whiteSpace: 'nowrap'
     })
@@ -247,14 +251,14 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         return (
             <div style={{ position: 'relative' }} ref={isOpen ? dropdownRef : null}>
                 <div
-                    style={{ ...navItemStyle(isActive), gap: '6px' }}
+                    style={{ ...navItemStyle(isActive), gap: isTablet ? '4px' : '6px' }}
                     onClick={() => setOpenDropdown(isOpen ? null : dropdownId)}
                 >
-                    <i className={`fas ${icon}`} style={{ fontSize: '14px' }}></i>
-                    <span>{label}</span>
+                    <i className={`fas ${icon}`} style={{ fontSize: isTablet ? '13px' : '14px' }}></i>
+                    {!isTablet && <span>{label}</span>}
                     <i
                         className={`fas fa-chevron-${isOpen ? 'up' : 'down'}`}
-                        style={{ fontSize: '10px', marginLeft: '2px' }}
+                        style={{ fontSize: isTablet ? '9px' : '10px', marginLeft: isTablet ? '0' : '2px' }}
                     ></i>
                 </div>
                 {isOpen && (
@@ -316,15 +320,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 alignItems: 'center',
                 backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
                 border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '12px',
+                borderRadius: isTablet ? '10px' : '12px',
                 color: 'white',
                 cursor: 'pointer',
                 display: 'flex',
-                height: '42px',
+                height: isTablet ? '36px' : '42px',
                 justifyContent: 'center',
                 position: 'relative',
                 transition: 'all 0.2s ease',
-                width: '42px'
+                width: isTablet ? '36px' : '42px'
             }}
             onClick={onClick}
             title={title}
@@ -338,7 +342,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 e.currentTarget.style.transform = 'translateY(0)'
             }}
         >
-            <i className={`fas ${icon}`} style={{ fontSize: '16px' }}></i>
+            <i className={`fas ${icon}`} style={{ fontSize: isTablet ? '14px' : '16px' }}></i>
             {badge > 0 && (
                 <span
                     style={{
@@ -349,12 +353,12 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         boxShadow: `0 2px 8px ${badgeColor}66`,
                         color: 'white',
                         display: 'flex',
-                        fontSize: '11px',
+                        fontSize: isTablet ? '10px' : '11px',
                         fontWeight: 700,
-                        height: '20px',
+                        height: isTablet ? '18px' : '20px',
                         justifyContent: 'center',
-                        minWidth: '20px',
-                        padding: '0 6px',
+                        minWidth: isTablet ? '18px' : '20px',
+                        padding: '0 5px',
                         position: 'absolute',
                         right: '-2px',
                         top: '-2px'
@@ -566,31 +570,37 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         borderBottom: '1px solid rgba(255,255,255,0.08)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                         display: 'flex',
-                        height: '68px',
+                        height: isTablet ? '60px' : '68px',
                         justifyContent: 'space-between',
-                        padding: '0 24px',
+                        padding: isTablet ? '0 16px' : '0 24px',
                         position: 'sticky',
                         top: 0,
                         zIndex: 100
                     }}
                 >
-                    <div style={{ alignItems: 'center', display: 'flex', gap: '28px' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: isTablet ? '16px' : '28px' }}>
                         <div
                             style={{
                                 alignItems: 'center',
                                 borderRight: '1px solid rgba(255,255,255,0.1)',
                                 display: 'flex',
-                                paddingRight: '24px'
+                                paddingRight: isTablet ? '16px' : '24px'
                             }}
                         >
-                            <img src={SrmLogo} alt="Smyrna Ready Mix" style={{ height: '40px' }} draggable={false} />
+                            <img
+                                src={SrmLogo}
+                                alt="Smyrna Ready Mix"
+                                style={{ height: isTablet ? '32px' : '40px' }}
+                                draggable={false}
+                            />
                         </div>
 
-                        <nav style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                        <nav style={{ alignItems: 'center', display: 'flex', gap: isTablet ? '4px' : '6px' }}>
                             {standaloneItems.find((i) => i.id === 'Dashboard') && (
                                 <div
                                     style={navItemStyle(selectedView === 'Dashboard')}
                                     onClick={() => handleMenuClick('Dashboard')}
+                                    title="Dashboard"
                                     onMouseEnter={(e) => {
                                         if (selectedView !== 'Dashboard')
                                             e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
@@ -600,8 +610,11 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                             e.currentTarget.style.backgroundColor = 'transparent'
                                     }}
                                 >
-                                    <i className={`fas ${ICONS.Dashboard}`} style={{ fontSize: '14px' }}></i>
-                                    <span>Dashboard</span>
+                                    <i
+                                        className={`fas ${ICONS.Dashboard}`}
+                                        style={{ fontSize: isTablet ? '13px' : '14px' }}
+                                    ></i>
+                                    {!isTablet && <span>Dashboard</span>}
                                 </div>
                             )}
 
@@ -629,6 +642,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         key={item.id}
                                         style={navItemStyle(selectedView === item.id)}
                                         onClick={() => handleMenuClick(item.id)}
+                                        title={item.text}
                                         onMouseEnter={(e) => {
                                             if (selectedView !== item.id)
                                                 e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
@@ -638,14 +652,17 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                                 e.currentTarget.style.backgroundColor = 'transparent'
                                         }}
                                     >
-                                        <i className={`fas ${ICONS[item.id]}`} style={{ fontSize: '14px' }}></i>
-                                        <span>{item.text}</span>
+                                        <i
+                                            className={`fas ${ICONS[item.id]}`}
+                                            style={{ fontSize: isTablet ? '13px' : '14px' }}
+                                        ></i>
+                                        {!isTablet && <span>{item.text}</span>}
                                     </div>
                                 ))}
                         </nav>
                     </div>
 
-                    <div style={{ alignItems: 'center', display: 'flex', gap: '16px' }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: isTablet ? '10px' : '16px' }}>
                         <select
                             value={regionCode || ''}
                             onChange={handleRegionChange}
@@ -653,16 +670,17 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 appearance: 'none',
                                 backgroundColor: 'rgba(255,255,255,0.08)',
                                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                backgroundPosition: 'right 12px center',
+                                backgroundPosition: 'right 10px center',
                                 backgroundRepeat: 'no-repeat',
-                                backgroundSize: '16px',
+                                backgroundSize: isTablet ? '14px' : '16px',
                                 border: '1px solid rgba(255,255,255,0.15)',
-                                borderRadius: '12px',
+                                borderRadius: isTablet ? '10px' : '12px',
                                 color: 'white',
                                 cursor: 'pointer',
-                                fontSize: '14px',
+                                fontSize: isTablet ? '13px' : '14px',
                                 fontWeight: 600,
-                                padding: '10px 36px 10px 16px',
+                                maxWidth: isTablet ? '140px' : 'none',
+                                padding: isTablet ? '8px 28px 8px 12px' : '10px 36px 10px 16px',
                                 transition: 'all 0.2s ease'
                             }}
                         >
