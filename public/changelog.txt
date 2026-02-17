@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.8] - 2026-02-17
+
+- Updated `PRODUCTIVITY_ITEMS` in `src/components/common/Navigation.jsx` to include new items: 'Plan', 'Calculators', and 'Leaderboards'.
+- Modified the mobile view in `Navigation.jsx` to display all `PRODUCTIVITY_ITEMS`, removing the filter that excluded 'Reports'.
+- Adjusted the filter for standalone items in `Navigation.jsx` to include 'Reports' in the mobile menu by removing it from the exclusion list.
+
 ## [11.7] - 2026-02-17
 
 - Adjusted styling for navigation items in `Navigation.jsx` for tablet view: reduced border radius from 8px to 6px, font size from 13px to 12px, gap from 6px to 4px, and padding from 8px 10px to 6px 8px.

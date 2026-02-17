@@ -60,7 +60,7 @@ const menuItems = [
 
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
 const PEOPLE_ITEMS = ['Operators', 'Managers']
-const PRODUCTIVITY_ITEMS = ['List', 'Reports']
+const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards']
 
 export default function Navigation({ selectedView, onSelectView, children, userName = '', userId = null, ..._rest }) {
     const { preferences, updatePreferences } = usePreferences()
@@ -516,7 +516,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
 
                                 {hasProductivity && (
                                     <MobileSection title="Productivity">
-                                        {PRODUCTIVITY_ITEMS.filter((id) => id !== 'Reports').map((id) => {
+                                        {PRODUCTIVITY_ITEMS.map((id) => {
                                             const item = visibleMenuItems.find((i) => i.id === id)
                                             if (!item) return null
                                             return (
@@ -532,7 +532,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 )}
 
                                 {standaloneItems
-                                    .filter((i) => i.id !== 'Dashboard' && i.id !== 'Reports')
+                                    .filter((i) => i.id !== 'Dashboard')
                                     .map((item) => (
                                         <MobileMenuItem
                                             key={item.id}
