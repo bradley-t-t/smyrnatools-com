@@ -29,8 +29,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const [viewMode, setViewMode] = useState('date')
     const [roleFilter, setRoleFilter] = useState('')
     const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768)
-    const [showMobileSidebar, setShowMobileSidebar] = useState(false)
-    const [sidebarExpanded, setSidebarExpanded] = useState(false)
 
     const baseFilteredItems = ListService.getFilteredItems({
         filterType: '',
@@ -704,7 +702,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         mainContent: {
             display: 'flex',
             flex: 1,
-            flexDirection: isMobile ? 'column' : 'row',
+            flexDirection: 'column',
             height: 'calc(100vh - 120px)',
             maxHeight: 'calc(100vh - 120px)',
             overflow: 'hidden',
@@ -723,54 +721,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 return { ...baseStyle, color: '#ef4444', fontWeight: 700 }
             }
             return baseStyle
-        },
-        mobileStatBadge: (type) => {
-            const colors = {
-                overdue: { bg: '#fee2e2', text: '#ef4444' },
-                today: { bg: '#fef3c7', text: '#f59e0b' },
-                total: { bg: '#eff6ff', text: accentColor }
-            }
-            const color = colors[type] || colors.total
-            return {
-                alignItems: 'center',
-                background: color.bg,
-                borderRadius: '6px',
-                color: color.text,
-                display: 'flex',
-                fontSize: '12px',
-                fontWeight: 600,
-                gap: '4px',
-                padding: '6px 10px'
-            }
-        },
-        mobileStatsRow: {
-            alignItems: 'center',
-            display: 'flex',
-            flex: 1,
-            gap: '12px',
-            justifyContent: 'flex-end'
-        },
-        mobileToggleBar: {
-            alignItems: 'center',
-            background: 'white',
-            borderBottom: '1px solid #e2e8f0',
-            display: isMobile ? 'flex' : 'none',
-            gap: '12px',
-            justifyContent: 'space-between',
-            padding: '12px 16px'
-        },
-        mobileToggleBtn: {
-            alignItems: 'center',
-            background: showMobileSidebar ? accentColor : '#f1f5f9',
-            border: 'none',
-            borderRadius: '8px',
-            color: showMobileSidebar ? 'white' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '13px',
-            fontWeight: 600,
-            gap: '8px',
-            padding: '10px 16px'
         },
         plannerGroup: {
             background: 'white',
@@ -797,81 +747,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
             transition: 'all 0.2s'
         }),
-        sidebar: {
-            background: 'white',
-            borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
-            display: isMobile ? (showMobileSidebar ? 'flex' : 'none') : 'flex',
-            flexDirection: 'column',
-            flexShrink: 0,
-            height: isMobile ? 'auto' : 'calc(100vh - 120px)',
-            maxHeight: isMobile ? 'auto' : 'calc(100vh - 120px)',
-            minWidth: isMobile ? '100%' : sidebarExpanded ? '300px' : '60px',
-            overflow: 'hidden',
-            position: isMobile ? 'relative' : 'sticky',
-            top: 0,
-            transition: 'width 0.2s ease, min-width 0.2s ease',
-            width: isMobile ? '100%' : sidebarExpanded ? '300px' : '60px'
-        },
-        sidebarBody: {
-            flex: 1,
-            minHeight: 0,
-            overflowX: 'hidden',
-            overflowY: 'auto',
-            padding: '1rem'
-        },
-        sidebarHeader: {
-            background: '#f8fafc',
-            borderBottom: '1px solid #e2e8f0',
-            padding: '1.5rem'
-        },
-        sidebarHeaderSubtitle: {
-            color: '#64748b',
-            fontSize: '0.8125rem',
-            marginTop: '0.25rem'
-        },
-        sidebarHeaderTitle: {
-            alignItems: 'center',
-            color: accentColor,
-            display: 'flex',
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            gap: '0.75rem',
-            margin: 0
-        },
-        sidebarSection: {
-            marginBottom: '1.25rem'
-        },
-        sidebarTitle: {
-            alignItems: 'center',
-            color: '#94a3b8',
-            display: 'flex',
-            fontSize: '0.6875rem',
-            fontWeight: 700,
-            gap: '0.5rem',
-            letterSpacing: '1px',
-            marginBottom: '0.75rem',
-            textTransform: 'uppercase'
-        },
-        statCard: (color) => {
-            const colors = {
-                overdue: { bg: '#fef2f2', border: '#fecaca' },
-                progress: { bg: '#eff6ff', border: '#bfdbfe' },
-                today: { bg: '#fffbeb', border: '#fde68a' },
-                total: { bg: '#f0f7ff', border: '#bfdbfe' }
-            }
-            const colorSet = colors[color] || colors.total
-            return {
-                alignItems: 'center',
-                background: colorSet.bg,
-                border: `1px solid ${colorSet.border}`,
-                borderRadius: '10px',
-                cursor: 'default',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-                padding: '0.875rem 0.5rem'
-            }
-        },
         statLabel: {
             color: '#64748b',
             fontSize: '0.625rem',
@@ -880,134 +755,12 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             textAlign: 'center',
             textTransform: 'uppercase'
         },
-        statValue: (color) => {
-            const colors = {
-                overdue: '#dc2626',
-                progress: '#2563eb',
-                today: '#d97706',
-                total: accentColor
-            }
-            return {
-                color: colors[color] || accentColor,
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                lineHeight: 1
-            }
-        },
         statsGrid: {
             display: 'grid',
             gap: '0.5rem',
             gridTemplateColumns: '1fr 1fr'
-        },
-        viewModeBtn: (active) => ({
-            alignItems: 'center',
-            background: active ? '#eff6ff' : 'white',
-            border: active ? `2px solid ${accentColor}` : '1px solid #e2e8f0',
-            borderRadius: '8px',
-            color: active ? accentColor : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            gap: '0.75rem',
-            outline: 'none',
-            padding: '0.75rem 1rem',
-            textAlign: 'left',
-            transition: 'all 0.15s ease'
-        }),
-        viewModeToggle: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.375rem'
         }
     }
-
-    const listViewFilterBar = (
-        <div ref={toolbarRef} style={styles.filterBar}>
-            <div style={styles.viewModeToggle}>
-                <button
-                    style={styles.viewModeBtn(viewMode === 'date')}
-                    onClick={() => setViewMode('date')}
-                    onMouseEnter={(e) => {
-                        if (viewMode !== 'date') {
-                            e.currentTarget.style.background = '#f1f5f9'
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (viewMode !== 'date') {
-                            e.currentTarget.style.background = 'transparent'
-                        }
-                    }}
-                >
-                    <i className="fas fa-calendar-alt"></i>
-                    <span>By Date</span>
-                </button>
-                <button
-                    style={styles.viewModeBtn(viewMode === 'status')}
-                    onClick={() => setViewMode('status')}
-                    onMouseEnter={(e) => {
-                        if (viewMode !== 'status') {
-                            e.currentTarget.style.background = '#f1f5f9'
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (viewMode !== 'status') {
-                            e.currentTarget.style.background = 'transparent'
-                        }
-                    }}
-                >
-                    <i className="fas fa-tasks"></i>
-                    <span>By Status</span>
-                </button>
-                <button
-                    style={styles.viewModeBtn(viewMode === 'role')}
-                    onClick={() => setViewMode('role')}
-                    onMouseEnter={(e) => {
-                        if (viewMode !== 'role') {
-                            e.currentTarget.style.background = '#f1f5f9'
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (viewMode !== 'role') {
-                            e.currentTarget.style.background = 'transparent'
-                        }
-                    }}
-                >
-                    <i className="fas fa-user-tag"></i>
-                    <span>By Assigned</span>
-                </button>
-            </div>
-            <div style={styles.filters}>
-                <select
-                    style={styles.roleFilterSelect}
-                    value={derivedRoleValueForTop}
-                    onChange={(e) => {
-                        const v = e.target.value
-                        let mapped = ''
-                        if (v === 'Maintenance') mapped = 'maintenance'
-                        else if (v === 'Plant Manager') mapped = 'plant_manager'
-                        else if (v === 'District Manager') mapped = 'district_manager'
-                        else if (v === 'Unassigned') mapped = 'unassigned'
-                        setRoleFilter(mapped)
-                    }}
-                    onFocus={(e) => {
-                        e.target.style.borderColor = accentColor
-                        e.target.style.boxShadow = `0 0 0 3px ${accentColor}20`
-                    }}
-                    onBlur={(e) => {
-                        e.target.style.borderColor = '#e5e7eb'
-                        e.target.style.boxShadow = 'none'
-                    }}
-                >
-                    {derivedRoleOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                            {opt}
-                        </option>
-                    ))}
-                </select>
-            </div>
-        </div>
-    )
 
     return (
         <div style={styles.container}>
@@ -1045,187 +798,219 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             />
 
             <div style={styles.mainContent}>
-                {isMobile && (
-                    <div style={styles.mobileToggleBar}>
-                        <button style={styles.mobileToggleBtn} onClick={() => setShowMobileSidebar(!showMobileSidebar)}>
-                            <i className={`fas ${showMobileSidebar ? 'fa-times' : 'fa-sliders-h'}`}></i>
-                            <span>{showMobileSidebar ? 'Close' : 'Filters'}</span>
-                        </button>
-                        <div style={styles.mobileStatsRow}>
-                            <div style={styles.mobileStatBadge('total')}>
-                                <span>{summaryStats.total}</span>
-                                <span>Total</span>
-                            </div>
-                            <div style={styles.mobileStatBadge('overdue')}>
-                                <span>{summaryStats.overdue}</span>
-                                <span>Overdue</span>
-                            </div>
-                            <div style={styles.mobileStatBadge('today')}>
-                                <span>{summaryStats.dueToday}</span>
-                                <span>Today</span>
-                            </div>
-                        </div>
+                <div
+                    style={{
+                        alignItems: 'center',
+                        background: '#ffffff',
+                        borderBottom: '1px solid #e5e7eb',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        padding: '12px 16px',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 20
+                    }}
+                >
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                        {[
+                            { id: 'date', icon: 'fa-calendar-alt', label: 'Date' },
+                            { id: 'status', icon: 'fa-layer-group', label: 'Status' },
+                            { id: 'role', icon: 'fa-user', label: 'Role' }
+                        ].map((mode) => (
+                            <button
+                                key={mode.id}
+                                onClick={() => setViewMode(mode.id)}
+                                style={{
+                                    alignItems: 'center',
+                                    background: viewMode === mode.id ? '#111827' : 'transparent',
+                                    border: viewMode === mode.id ? 'none' : '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    color: viewMode === mode.id ? '#ffffff' : '#6b7280',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    gap: '6px',
+                                    padding: '6px 12px'
+                                }}
+                            >
+                                <i className={`fas ${mode.icon}`} style={{ fontSize: '11px' }}></i>
+                                {mode.label}
+                            </button>
+                        ))}
                     </div>
-                )}
-                <div style={styles.sidebar}>
-                    {!isMobile && (
+
+                    <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }}></div>
+
+                    {statusFilter && (
                         <button
-                            onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                            onClick={() => {
+                                setStatusFilter('')
+                                if (onStatusFilterChange) onStatusFilterChange('')
+                            }}
                             style={{
                                 alignItems: 'center',
-                                background: 'white',
-                                border: '1px solid #e2e8f0',
+                                background: `${accentColor}10`,
+                                border: `1px solid ${accentColor}30`,
                                 borderRadius: '6px',
+                                color: accentColor,
                                 cursor: 'pointer',
                                 display: 'flex',
-                                height: '32px',
-                                justifyContent: 'center',
-                                position: 'absolute',
-                                right: sidebarExpanded ? '1rem' : '50%',
-                                top: '1rem',
-                                transform: sidebarExpanded ? 'none' : 'translateX(50%)',
-                                transition: 'all 0.2s ease',
-                                width: '32px',
-                                zIndex: 10
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                gap: '6px',
+                                padding: '6px 10px'
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
                         >
-                            <i
-                                className={`fas fa-chevron-${sidebarExpanded ? 'left' : 'right'}`}
-                                style={{ color: '#64748b', fontSize: '12px' }}
-                            ></i>
+                            {derivedStatusValueForTop}
+                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }}></i>
                         </button>
                     )}
-                    {(isMobile || sidebarExpanded) && (
-                        <>
-                            <div style={styles.sidebarHeader}>
-                                <h2 style={styles.sidebarHeaderTitle}>
-                                    <i className="fas fa-clipboard-list"></i>
-                                    Task Manager
-                                </h2>
-                                <p style={styles.sidebarHeaderSubtitle}>{summaryStats.total} total tasks</p>
-                            </div>
 
-                            <div style={styles.sidebarBody}>
-                                <div style={styles.sidebarSection}>
-                                    <div style={styles.sidebarTitle}>Overview</div>
-                                    <div style={styles.statsGrid}>
-                                        <div style={styles.statCard('total')}>
-                                            <span style={styles.statValue('total')}>{summaryStats.total}</span>
-                                            <span style={styles.statLabel}>Total</span>
-                                        </div>
-                                        <div style={styles.statCard('overdue')}>
-                                            <span style={styles.statValue('overdue')}>{summaryStats.overdue}</span>
-                                            <span style={styles.statLabel}>Overdue</span>
-                                        </div>
-                                        <div style={styles.statCard('today')}>
-                                            <span style={styles.statValue('today')}>{summaryStats.dueToday}</span>
-                                            <span style={styles.statLabel}>Due Today</span>
-                                        </div>
-                                        <div style={styles.statCard('progress')}>
-                                            <span style={styles.statValue('progress')}>{summaryStats.inProgress}</span>
-                                            <span style={styles.statLabel}>In Progress</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style={styles.sidebarSection}>
-                                    <div style={styles.sidebarTitle}>View Mode</div>
-                                    <div style={styles.viewModeToggle}>
-                                        <button
-                                            style={styles.viewModeBtn(viewMode === 'date')}
-                                            onClick={() => setViewMode('date')}
-                                            onMouseEnter={(e) => {
-                                                if (viewMode !== 'date') e.currentTarget.style.background = '#f8fafc'
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (viewMode !== 'date') e.currentTarget.style.background = 'white'
-                                            }}
-                                        >
-                                            <i className="fas fa-calendar-alt"></i>
-                                            <span>By Date</span>
-                                        </button>
-                                        <button
-                                            style={styles.viewModeBtn(viewMode === 'status')}
-                                            onClick={() => setViewMode('status')}
-                                            onMouseEnter={(e) => {
-                                                if (viewMode !== 'status') e.currentTarget.style.background = '#f8fafc'
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (viewMode !== 'status') e.currentTarget.style.background = 'white'
-                                            }}
-                                        >
-                                            <i className="fas fa-tasks"></i>
-                                            <span>By Status</span>
-                                        </button>
-                                        <button
-                                            style={styles.viewModeBtn(viewMode === 'role')}
-                                            onClick={() => setViewMode('role')}
-                                            onMouseEnter={(e) => {
-                                                if (viewMode !== 'role') e.currentTarget.style.background = '#f8fafc'
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (viewMode !== 'role') e.currentTarget.style.background = 'white'
-                                            }}
-                                        >
-                                            <i className="fas fa-user-tag"></i>
-                                            <span>By Assigned</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div style={styles.sidebarSection}>
-                                    <div style={styles.sidebarTitle}>Filters</div>
-                                    <div style={styles.filtersGroup}>
-                                        <select
-                                            style={styles.filterSelect}
-                                            value={derivedStatusValueForTop}
-                                            onChange={(e) => {
-                                                const v = e.target.value
-                                                let mapped = ''
-                                                if (v === 'Pending') mapped = 'pending'
-                                                else if (v === 'Completed') mapped = 'completed'
-                                                else if (v === 'Overdue') mapped = 'overdue'
-                                                else if (v === 'Ordered Materials') mapped = 'ordered_materials'
-                                                else if (v === 'In Progress') mapped = 'in_progress'
-                                                else if (v === 'Blocked') mapped = 'blocked'
-                                                else if (v === 'Waiting') mapped = 'waiting'
-                                                setStatusFilter(mapped)
-                                                if (onStatusFilterChange) onStatusFilterChange(mapped)
-                                            }}
-                                        >
-                                            {derivedStatusOptions.map((opt) => (
-                                                <option key={opt} value={opt}>
-                                                    {opt}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <select
-                                            style={styles.filterSelect}
-                                            value={derivedRoleValueForTop}
-                                            onChange={(e) => {
-                                                const v = e.target.value
-                                                let mapped = ''
-                                                if (v === 'Maintenance') mapped = 'maintenance'
-                                                else if (v === 'Plant Manager') mapped = 'plant_manager'
-                                                else if (v === 'District Manager') mapped = 'district_manager'
-                                                else if (v === 'Unassigned') mapped = 'unassigned'
-                                                setRoleFilter(mapped)
-                                            }}
-                                        >
-                                            {derivedRoleOptions.map((opt) => (
-                                                <option key={opt} value={opt}>
-                                                    {opt}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
+                    {roleFilter && (
+                        <button
+                            onClick={() => setRoleFilter('')}
+                            style={{
+                                alignItems: 'center',
+                                background: `${accentColor}10`,
+                                border: `1px solid ${accentColor}30`,
+                                borderRadius: '6px',
+                                color: accentColor,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                gap: '6px',
+                                padding: '6px 10px'
+                            }}
+                        >
+                            {derivedRoleValueForTop}
+                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }}></i>
+                        </button>
                     )}
+
+                    {!statusFilter && (
+                        <select
+                            value=""
+                            onChange={(e) => {
+                                const v = e.target.value
+                                let mapped = ''
+                                if (v === 'Pending') mapped = 'pending'
+                                else if (v === 'Completed') mapped = 'completed'
+                                else if (v === 'Overdue') mapped = 'overdue'
+                                else if (v === 'Ordered Materials') mapped = 'ordered_materials'
+                                else if (v === 'In Progress') mapped = 'in_progress'
+                                else if (v === 'Blocked') mapped = 'blocked'
+                                else if (v === 'Waiting') mapped = 'waiting'
+                                if (mapped) {
+                                    setStatusFilter(mapped)
+                                    if (onStatusFilterChange) onStatusFilterChange(mapped)
+                                }
+                            }}
+                            style={{
+                                appearance: 'none',
+                                background: '#f9fafb',
+                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                backgroundPosition: 'right 8px center',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundSize: '14px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px',
+                                color: '#6b7280',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                outline: 'none',
+                                padding: '6px 28px 6px 10px'
+                            }}
+                        >
+                            <option value="">+ Status</option>
+                            {derivedStatusOptions
+                                .filter((o) => o !== 'All Statuses')
+                                .map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                        </select>
+                    )}
+
+                    {!roleFilter && (
+                        <select
+                            value=""
+                            onChange={(e) => {
+                                const v = e.target.value
+                                let mapped = ''
+                                if (v === 'Maintenance') mapped = 'maintenance'
+                                else if (v === 'Plant Manager') mapped = 'plant_manager'
+                                else if (v === 'District Manager') mapped = 'district_manager'
+                                else if (v === 'Unassigned') mapped = 'unassigned'
+                                if (mapped) setRoleFilter(mapped)
+                            }}
+                            style={{
+                                appearance: 'none',
+                                background: '#f9fafb',
+                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                backgroundPosition: 'right 8px center',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundSize: '14px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px',
+                                color: '#6b7280',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                outline: 'none',
+                                padding: '6px 28px 6px 10px'
+                            }}
+                        >
+                            <option value="">+ Assigned</option>
+                            {derivedRoleOptions
+                                .filter((o) => o !== 'All Roles')
+                                .map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                        </select>
+                    )}
+
+                    <div style={{ flex: 1 }}></div>
+
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '12px' }}>
+                        {summaryStats.overdue > 0 && (
+                            <div
+                                style={{
+                                    alignItems: 'center',
+                                    animation: 'pulse 2s infinite',
+                                    background: '#fef2f2',
+                                    borderRadius: '6px',
+                                    color: '#dc2626',
+                                    display: 'flex',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    gap: '6px',
+                                    padding: '6px 10px'
+                                }}
+                            >
+                                <i className="fas fa-exclamation-circle" style={{ fontSize: '11px' }}></i>
+                                {summaryStats.overdue} overdue
+                            </div>
+                        )}
+                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>
+                            <span style={{ color: '#111827', fontWeight: '600' }}>{roleFilteredItems.length}</span>{' '}
+                            tasks
+                        </span>
+                    </div>
                 </div>
+
+                <style>{`
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.7; }
+                    }
+                `}</style>
 
                 <div style={styles.contentArea}>
                     {isLoading ? (

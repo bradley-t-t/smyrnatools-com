@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.7] - 2026-02-17
+
+- Removed mobile-specific sidebar functionality and related state variables `showMobileSidebar` and `sidebarExpanded` from `ListView.jsx`.
+- Deleted styles and components related to the sidebar, including `sidebar`, `sidebarBody`, `sidebarHeader`, `sidebarHeaderSubtitle`, `sidebarHeaderTitle`, `sidebarSection`, and `sidebarTitle` in `ListView.jsx`.
+- Removed mobile-specific UI elements and styles such as `mobileStatBadge`, `mobileStatsRow`, `mobileToggleBar`, and `mobileToggleBtn` from `ListView.jsx`.
+- Eliminated stat card styles and related components like `statCard` and `statValue` from `ListView.jsx`.
+- Changed `mainContent` style in `ListView.jsx` to always use `flexDirection: 'column'` regardless of device type.
+- Removed `viewModeToggle` and associated `viewModeBtn` styles and components from `ListView.jsx`.
+- Removed `listViewFilterBar` component and related rendering logic from `ListView.jsx`.
+
 ## [10.6] - 2026-02-17
 
 - Added `isMobile` property to `TutorialContext` in `src/app/context/TutorialContext.jsx` with a default value of `false`.
