@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.9] - 2026-02-17
+
+- Removed dependency on UserService and introduced a new `getUserId` function to retrieve user ID from localStorage or sessionStorage in `TutorialService.js`.
+- Added user existence check before performing database operations in `dismissTutorial` function in `TutorialService.js`.
+- Reordered and restructured `getDismissedTutorials` function to use the new `getUserId` method in `TutorialService.js`.
+- Updated `resetTutorial` and `resetAllTutorials` functions to use the new `getUserId` method instead of UserService in `TutorialService.js`.
+- Removed error handling for insertion in `dismissTutorial` to simplify error management in `TutorialService.js`.
+
 ## [10.8] - 2026-02-17
 
 - Updated `DashboardPlantSummary.jsx` to persist the minimized state of the dashboard plant summary using `localStorage`.
