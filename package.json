@@ -30,7 +30,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "sync-changelog": "cp CHANGELOG.md public/changelog.txt",
+    "prestart": "npm run sync-changelog",
     "start": "react-app-rewired start",
+    "prebuild": "npm run sync-changelog",
     "build": "CI=false react-app-rewired build",
     "test": "react-app-rewired test",
     "lint": "eslint src/",

@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.2] - 2026-02-17
+
+- Added new script "sync-changelog" in package.json to copy CHANGELOG.md to public/changelog.txt
+- Added "prestart" script in package.json to run "sync-changelog" before starting the application
+- Added "prebuild" script in package.json to run "sync-changelog" before building the application
+
 ## [11.1] - 2026-02-17
 
 - Updated `LoginView.jsx` to conditionally render the logo and title based on screen size, hiding them on mobile devices (window width < 768px).
