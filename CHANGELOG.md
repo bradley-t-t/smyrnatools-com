@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.0] - 2026-02-17
+
+- Updated `DetailViewSection.jsx` to introduce a new `DetailViewContext` for managing active sections and sidebar state, including functionality for collapsing/expanding the sidebar with local storage persistence.
+- Enhanced UI styling in `DetailViewSection.jsx` with updated CSS for form controls, buttons, and layout elements, including improved focus states, border radius, and typography.
+- Added new props and state management in `DetailViewSection.jsx` for region transfer functionality, including permissions checking, region/plant selection, and transfer error handling.
+- Refactored multiple detail view components (`EquipmentDetailView.jsx`, `ListDetailView.jsx`, `ManagerDetailView.jsx`, `MixerDetailView.jsx`, `OperatorDetailView.jsx`, `PickupTrucksDetailView.jsx`, `TractorDetailView.jsx`, `TrailerDetailView.jsx`) to integrate with the updated `DetailViewSection` component and context.
+- Updated `VerificationCardSection.jsx` with potential UI or functional improvements to align with the new detail view structure and styling.
+
 ## [9.9] - 2026-02-16
 
 - Reduced the number of color options in MyAccountView.jsx from 10 to 3 (Navy, Red, Black).

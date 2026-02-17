@@ -637,22 +637,26 @@ ${
                         {canEditTrailer && (
                             <>
                                 <button
-                                    className="primary-button save-button"
+                                    className="global-button-secondary"
                                     onClick={async () => {
                                         await handleSave()
                                         setHasUnsavedChanges(false)
                                     }}
                                     disabled={isSaving}
+                                    style={{ flex: 1, justifyContent: 'center' }}
                                 >
-                                    {isSaving ? 'Saving...' : 'Save Changes'}
+                                    <i className="fas fa-save"></i>
+                                    <span>{isSaving ? 'Saving...' : 'Save'}</span>
                                 </button>
                                 {canDeleteTrailer && (
                                     <button
-                                        className="danger-button"
+                                        className="global-button-secondary"
                                         onClick={() => setShowDeleteConfirmation(true)}
                                         disabled={isSaving}
+                                        style={{ flex: 1, justifyContent: 'center' }}
                                     >
-                                        Delete Trailer
+                                        <i className="fas fa-trash-alt"></i>
+                                        <span>Delete</span>
                                     </button>
                                 )}
                             </>
@@ -660,119 +664,169 @@ ${
                     </>
                 }
             >
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Trailer Information</h2>
-                    </div>
-
-                    <div className="form-sections">
-                        <div className="form-section basic-info">
-                            <h3>Basic Information</h3>
-                            <div className="form-group">
-                                <label>Trailer Number</label>
-                                <input
-                                    type="text"
-                                    value={trailerNumber}
-                                    onChange={(e) => setTrailerNumber(e.target.value)}
-                                    className="form-control"
-                                    readOnly={!canEditTrailer}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Trailer Type</label>
-                                <select
-                                    value={trailerType}
-                                    onChange={(e) => setTrailerType(e.target.value)}
-                                    disabled={!canEditTrailer}
-                                    className="form-control"
+                <DetailViewSection.Section id="basic" title="Basic Information" icon="fas fa-truck-loading">
+                    <DetailViewSection.Card title="Trailer Details" icon="fas fa-info-circle">
+                        <div className="form-group">
+                            <label>Trailer Number</label>
+                            <input
+                                type="text"
+                                value={trailerNumber}
+                                onChange={(e) => setTrailerNumber(e.target.value)}
+                                className="form-control"
+                                readOnly={!canEditTrailer}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Trailer Type</label>
+                            <select
+                                value={trailerType}
+                                onChange={(e) => setTrailerType(e.target.value)}
+                                disabled={!canEditTrailer}
+                                className="form-control"
+                            >
+                                <option value="">Select Trailer Type</option>
+                                <option value="Cement">Cement</option>
+                                <option value="End Dump">End Dump</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Assigned Plant</label>
+                            <button
+                                className="operator-select-button form-control"
+                                onClick={() => canEditTrailer && setShowPlantModal(true)}
+                                type="button"
+                                disabled={!canEditTrailer}
+                                style={
+                                    !canEditTrailer
+                                        ? {
+                                              backgroundColor: 'var(--card-bg)',
+                                              cursor: 'not-allowed',
+                                              opacity: 0.8
+                                          }
+                                        : {}
+                                }
+                            >
+                                <span
+                                    style={{
+                                        display: 'block',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}
                                 >
-                                    <option value="">Select Trailer Type</option>
-                                    <option value="Cement">Cement</option>
-                                    <option value="End Dump">End Dump</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Assigned Plant</label>
+                                    {plantDisplayText}
+                                </span>
+                            </button>
+                        </div>
+                        <div className="form-group">
+                            <label>Active Status</label>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                disabled={!canEditTrailer}
+                                className="form-control"
+                            >
+                                <option value="">Select Status</option>
+                                <option value="Active" disabled={!assignedTractor}>
+                                    Active{!assignedTractor ? ' (Cannot set without a tractor assigned)' : ''}
+                                </option>
+                                <option value="Spare">Spare</option>
+                                <option value="In Shop">In Shop</option>
+                                <option value="Retired">Retired</option>
+                            </select>
+                        </div>
+                    </DetailViewSection.Card>
+
+                    <DetailViewSection.Card title="Assignment" icon="fas fa-link">
+                        <div className="form-group">
+                            <label>Assigned Tractor</label>
+                            <div className="operator-select-container">
                                 <button
                                     className="operator-select-button form-control"
-                                    onClick={() => canEditTrailer && setShowPlantModal(true)}
+                                    onClick={async () => {
+                                        if (canEditTrailer) {
+                                            await fetchTractorsForModal()
+                                            setShowTractorModal(true)
+                                        }
+                                    }}
                                     type="button"
                                     disabled={!canEditTrailer}
-                                    style={
-                                        !canEditTrailer
-                                            ? {
-                                                  backgroundColor: 'var(--card-bg)',
-                                                  cursor: 'not-allowed',
-                                                  opacity: 0.8
-                                              }
-                                            : {}
-                                    }
+                                    style={!canEditTrailer ? { cursor: 'not-allowed', opacity: 0.8 } : {}}
                                 >
-                                    <span
-                                        style={{
-                                            display: 'block',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}
-                                    >
-                                        {plantDisplayText}
+                                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {assignedTractor ? getTractorName(assignedTractor) : 'None (Click to select)'}
                                     </span>
                                 </button>
-                            </div>
-                            <div className="form-group">
-                                <label>Active Status</label>
-                                <select
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                    disabled={!canEditTrailer}
-                                    className="form-control"
-                                >
-                                    <option value="">Select Status</option>
-                                    <option value="Active" disabled={!assignedTractor}>
-                                        Active{!assignedTractor ? ' (Cannot set without a tractor assigned)' : ''}
-                                    </option>
-                                    <option value="Spare">Spare</option>
-                                    <option value="In Shop">In Shop</option>
-                                    <option value="Retired">Retired</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Assigned Tractor</label>
-                                <div className="operator-select-container">
-                                    <button
-                                        className="operator-select-button form-control"
-                                        onClick={async () => {
-                                            if (canEditTrailer) {
-                                                await fetchTractorsForModal()
-                                                setShowTractorModal(true)
-                                            }
-                                        }}
-                                        type="button"
-                                        disabled={!canEditTrailer}
-                                        style={!canEditTrailer ? { cursor: 'not-allowed', opacity: 0.8 } : {}}
-                                    >
-                                        <span
-                                            style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                {canEditTrailer &&
+                                    (assignedTractor ? (
+                                        <button
+                                            className="unassign-operator-button"
+                                            title="Unassign Tractor"
+                                            onClick={async () => {
+                                                try {
+                                                    const prevTractor = assignedTractor
+                                                    const currentTrailerId = trailerId || trailer?.id
+                                                    await handleSave({
+                                                        assignedTractor: null,
+                                                        prevAssignedTractor: prevTractor,
+                                                        status: 'Spare'
+                                                    })
+                                                    const updatedTrailer =
+                                                        await TrailerService.fetchTrailerById(currentTrailerId)
+                                                    setTrailer(updatedTrailer)
+                                                    setTrailerNumber(updatedTrailer.trailerNumber || '')
+                                                    setAssignedPlant(updatedTrailer.assignedPlant || '')
+                                                    setTrailerType(updatedTrailer.trailerType || '')
+                                                    setCleanlinessRating(updatedTrailer.cleanlinessRating || 0)
+                                                    setStatus(updatedTrailer.status || '')
+                                                    setOriginalValues({
+                                                        assignedPlant: updatedTrailer.assignedPlant,
+                                                        assignedTractor: updatedTrailer.assignedTractor,
+                                                        cleanlinessRating: updatedTrailer.cleanlinessRating,
+                                                        status: updatedTrailer.status,
+                                                        trailerNumber: updatedTrailer.trailerNumber,
+                                                        trailerType: updatedTrailer.trailerType
+                                                    })
+                                                    setAssignedTractor(null)
+                                                    setStatus('Spare')
+                                                    setLastUnassignedTractorId(prevTractor)
+                                                    await refreshTractors()
+                                                    await fetchTractorsForModal()
+                                                    setMessage('Tractor unassigned and status set to Spare')
+                                                    setTimeout(() => setMessage(''), 3000)
+                                                    if (showTractorModal) {
+                                                        setShowTractorModal(false)
+                                                        setTimeout(() => {
+                                                            setShowTractorModal(true)
+                                                        }, 0)
+                                                    }
+                                                    setHasUnsavedChanges(false)
+                                                    setTimeout(() => setHasUnsavedChanges(false), 0)
+                                                } catch {
+                                                    setMessage('Error unassigning tractor. Please try again.')
+                                                    setTimeout(() => setMessage(''), 3000)
+                                                }
+                                            }}
+                                            type="button"
                                         >
-                                            {assignedTractor
-                                                ? getTractorName(assignedTractor)
-                                                : 'None (Click to select)'}
-                                        </span>
-                                    </button>
-                                    {canEditTrailer &&
-                                        (assignedTractor ? (
+                                            Unassign Tractor
+                                        </button>
+                                    ) : (
+                                        lastUnassignedTractorId && (
                                             <button
-                                                className="unassign-operator-button"
-                                                title="Unassign Tractor"
+                                                className="undo-operator-button unassign-operator-button"
+                                                title="Undo Unassign"
                                                 onClick={async () => {
                                                     try {
-                                                        const prevTractor = assignedTractor
                                                         const currentTrailerId = trailerId || trailer?.id
                                                         await handleSave({
-                                                            assignedTractor: null,
-                                                            prevAssignedTractor: prevTractor,
-                                                            status: 'Spare'
+                                                            assignedTractor: lastUnassignedTractorId,
+                                                            status: 'Active'
                                                         })
+                                                        setAssignedTractor(lastUnassignedTractorId)
+                                                        setStatus('Active')
+                                                        setLastUnassignedTractorId(null)
+                                                        await refreshTractors()
+                                                        await fetchTractorsForModal()
                                                         const updatedTrailer =
                                                             await TrailerService.fetchTrailerById(currentTrailerId)
                                                         setTrailer(updatedTrailer)
@@ -789,121 +843,65 @@ ${
                                                             trailerNumber: updatedTrailer.trailerNumber,
                                                             trailerType: updatedTrailer.trailerType
                                                         })
-                                                        setAssignedTractor(null)
-                                                        setStatus('Spare')
-                                                        setLastUnassignedTractorId(prevTractor)
-                                                        await refreshTractors()
-                                                        await fetchTractorsForModal()
-                                                        setMessage('Tractor unassigned and status set to Spare')
-                                                        setTimeout(() => setMessage(''), 3000)
-                                                        if (showTractorModal) {
-                                                            setShowTractorModal(false)
-                                                            setTimeout(() => {
-                                                                setShowTractorModal(true)
-                                                            }, 0)
-                                                        }
                                                         setHasUnsavedChanges(false)
-                                                        setTimeout(() => setHasUnsavedChanges(false), 0)
-                                                    } catch {
-                                                        setMessage('Error unassigning tractor. Please try again.')
+                                                        setMessage('Tractor re-assigned and status set to Active')
+                                                        setTimeout(() => setMessage(''), 3000)
+                                                    } catch (error) {
+                                                        setMessage('Error undoing unassign. Please try again.')
                                                         setTimeout(() => setMessage(''), 3000)
                                                     }
                                                 }}
                                                 type="button"
                                             >
-                                                Unassign Tractor
+                                                Undo
                                             </button>
-                                        ) : (
-                                            lastUnassignedTractorId && (
-                                                <button
-                                                    className="undo-operator-button unassign-operator-button"
-                                                    title="Undo Unassign"
-                                                    onClick={async () => {
-                                                        try {
-                                                            const currentTrailerId = trailerId || trailer?.id
-                                                            await handleSave({
-                                                                assignedTractor: lastUnassignedTractorId,
-                                                                status: 'Active'
-                                                            })
-                                                            setAssignedTractor(lastUnassignedTractorId)
-                                                            setStatus('Active')
-                                                            setLastUnassignedTractorId(null)
-                                                            await refreshTractors()
-                                                            await fetchTractorsForModal()
-                                                            const updatedTrailer =
-                                                                await TrailerService.fetchTrailerById(currentTrailerId)
-                                                            setTrailer(updatedTrailer)
-                                                            setTrailerNumber(updatedTrailer.trailerNumber || '')
-                                                            setAssignedPlant(updatedTrailer.assignedPlant || '')
-                                                            setTrailerType(updatedTrailer.trailerType || '')
-                                                            setCleanlinessRating(updatedTrailer.cleanlinessRating || 0)
-                                                            setStatus(updatedTrailer.status || '')
-                                                            setOriginalValues({
-                                                                assignedPlant: updatedTrailer.assignedPlant,
-                                                                assignedTractor: updatedTrailer.assignedTractor,
-                                                                cleanlinessRating: updatedTrailer.cleanlinessRating,
-                                                                status: updatedTrailer.status,
-                                                                trailerNumber: updatedTrailer.trailerNumber,
-                                                                trailerType: updatedTrailer.trailerType
-                                                            })
-                                                            setHasUnsavedChanges(false)
-                                                            setMessage('Tractor re-assigned and status set to Active')
-                                                            setTimeout(() => setMessage(''), 3000)
-                                                        } catch (error) {
-                                                            setMessage('Error undoing unassign. Please try again.')
-                                                            setTimeout(() => setMessage(''), 3000)
-                                                        }
-                                                    }}
-                                                    type="button"
-                                                >
-                                                    Undo
-                                                </button>
-                                            )
-                                        ))}
-                                </div>
+                                        )
+                                    ))}
                             </div>
                         </div>
-                        <div className="form-section maintenance-info">
-                            <h3>Maintenance Information</h3>
-                            <div className="form-group">
-                                <label>Cleanliness Rating</label>
-                                <div className="cleanliness-rating-editor">
-                                    <div className="star-input">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                type="button"
-                                                className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditTrailer ? 'disabled' : ''}`}
-                                                onClick={() =>
-                                                    canEditTrailer &&
-                                                    setCleanlinessRating(star === cleanlinessRating ? 0 : star)
-                                                }
-                                                aria-label={`Rate ${star} of 5 stars`}
-                                                disabled={!canEditTrailer}
-                                            >
-                                                <i
-                                                    className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                    style={star <= cleanlinessRating ? { color: '#f59e0b' } : {}}
-                                                ></i>
-                                            </button>
-                                        ))}
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
+
+                <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
+                    <DetailViewSection.Card title="Cleanliness Rating" icon="fas fa-broom">
+                        <div className="form-group">
+                            <label>Cleanliness Rating</label>
+                            <div className="cleanliness-rating-editor">
+                                <div className="star-input">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditTrailer ? 'disabled' : ''}`}
+                                            onClick={() =>
+                                                canEditTrailer &&
+                                                setCleanlinessRating(star === cleanlinessRating ? 0 : star)
+                                            }
+                                            aria-label={`Rate ${star} of 5 stars`}
+                                            disabled={!canEditTrailer}
+                                        >
+                                            <i
+                                                className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
+                                                style={star <= cleanlinessRating ? { color: '#f59e0b' } : {}}
+                                            ></i>
+                                        </button>
+                                    ))}
+                                </div>
+                                {cleanlinessRating > 0 && (
+                                    <div className="rating-value-display">
+                                        <span className="rating-label">
+                                            {
+                                                [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
+                                                    cleanlinessRating
+                                                ]
+                                            }
+                                        </span>
                                     </div>
-                                    {cleanlinessRating > 0 && (
-                                        <div className="rating-value-display">
-                                            <span className="rating-label">
-                                                {
-                                                    [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
-                                                        cleanlinessRating
-                                                    ]
-                                                }
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
             </DetailViewSection>
         </>
     )

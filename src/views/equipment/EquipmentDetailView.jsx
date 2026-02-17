@@ -4,8 +4,6 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import VerificationRequirementsModal from '../../components/common/VerificationRequirementsModal'
 import DetailViewSection from '../../components/sections/DetailViewSection'
-import VerificationCardSection from '../../components/sections/VerificationCardSection'
-import { Equipment } from '../../models/equipment/Equipment'
 import { supabase } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'
 import { PlantService } from '../../services/PlantService'
@@ -663,301 +661,125 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                         </button>
                     </>
                 }
-                verificationCard={
-                    <VerificationCardSection
-                        isVerified={Equipment.ensureInstance(equipment).isVerified()}
-                        verificationLabel={
-                            !equipment.updatedLast || !equipment.updatedBy
-                                ? 'Needs Verification'
-                                : 'Verification Outdated'
-                        }
-                        verificationItems={[
-                            {
-                                icon: 'fas fa-calendar-check',
-                                iconStyle: {
-                                    color: equipment.updatedLast
-                                        ? Equipment.ensureInstance(equipment).isVerified()
-                                            ? 'var(--success)'
-                                            : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
-                                              ? 'var(--error)'
-                                              : 'var(--warning)'
-                                        : 'var(--error)'
-                                },
-                                label: 'Verified',
-                                style: {
-                                    color: equipment.updatedLast
-                                        ? Equipment.ensureInstance(equipment).isVerified()
-                                            ? 'var(--success)'
-                                            : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
-                                              ? 'var(--error)'
-                                              : 'var(--warning)'
-                                        : 'var(--error)'
-                                },
-                                value: equipment.updatedLast
-                                    ? `${new Date(equipment.updatedLast).toLocaleString()}${!Equipment.ensureInstance(equipment).isVerified() ? (new Date(equipment.updatedAt) > new Date(equipment.updatedLast) ? ' (Changes have been made)' : ' (It is a new week)') : ''}`
-                                    : 'Never verified',
-                                valueStyle: {
-                                    color: equipment.updatedLast
-                                        ? Equipment.ensureInstance(equipment).isVerified()
-                                            ? 'inherit'
-                                            : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
-                                              ? 'var(--error)'
-                                              : 'var(--warning)'
-                                        : 'var(--error)'
-                                }
-                            },
-                            {
-                                icon: 'fas fa-user-check',
-                                iconStyle: {
-                                    color: equipment.updatedBy ? 'var(--success)' : 'var(--error)'
-                                },
-                                label: 'Verified By',
-                                title: `Last Updated: ${new Date(equipment.updatedAt).toLocaleString()}`,
-                                value: equipment.updatedBy
-                                    ? updatedByEmail || 'Unknown User'
-                                    : 'No verification record',
-                                valueStyle: {
-                                    color: equipment.updatedBy ? 'inherit' : 'var(--error)'
-                                }
-                            }
-                        ]}
-                        onVerify={handleVerifyEquipment}
-                        canEdit={canEditEquipment}
-                        noticeText="Assets require verification after any changes are made and are reset weekly. <strong>Due: Every Friday at 10:00 AM.</strong> Resets on Mondays at 5pm."
-                    />
-                }
                 footerActions={
                     canEditEquipment && (
                         <>
                             <button
-                                className="primary-button save-button"
+                                className="global-button-secondary"
                                 onClick={() => handleSave()}
                                 disabled={isSaving}
+                                style={{ flex: 1, justifyContent: 'center' }}
                             >
-                                {isSaving ? 'Saving...' : 'Save Changes'}
+                                <i className="fas fa-save"></i>
+                                <span>{isSaving ? 'Saving...' : 'Save'}</span>
                             </button>
                             {canDeleteEquipment && (
                                 <button
-                                    className="danger-button"
+                                    className="global-button-secondary"
                                     onClick={() => setShowDeleteConfirmation(true)}
                                     disabled={isSaving}
+                                    style={{ flex: 1, justifyContent: 'center' }}
                                 >
-                                    Delete Equipment
+                                    <i className="fas fa-trash-alt"></i>
+                                    <span>Delete</span>
                                 </button>
                             )}
                         </>
                     )
                 }
             >
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Equipment Information</h2>
-                    </div>
-
-                    <div className="form-sections">
-                        <div className="form-section basic-info">
-                            <h3>Basic Information</h3>
-                            <div className="form-group">
-                                <label>Identifying Number</label>
-                                <input
-                                    type="text"
-                                    value={identifyingNumber}
-                                    onChange={(e) => setIdentifyingNumber(e.target.value)}
-                                    className="form-control"
-                                    readOnly={!canEditEquipment}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Status</label>
-                                <select
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                    disabled={!canEditEquipment}
-                                    className="form-control"
-                                >
-                                    <option value="">Select Status</option>
-                                    <option value="Active">Active</option>
-                                    <option value="Spare">Spare</option>
-                                    <option value="In Shop">In Shop</option>
-                                    <option value="Retired">Retired</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Assigned Plant</label>
-                                <button
-                                    className="operator-select-button form-control"
-                                    onClick={() => canEditEquipment && setShowPlantModal(true)}
-                                    type="button"
-                                    disabled={!canEditEquipment}
-                                    style={
-                                        !canEditEquipment
-                                            ? {
-                                                  backgroundColor: 'var(--card-bg)',
-                                                  cursor: 'not-allowed',
-                                                  opacity: 0.8
-                                              }
-                                            : {}
-                                    }
-                                >
-                                    <span
-                                        style={{
-                                            display: 'block',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}
-                                    >
-                                        {plantDisplayText}
-                                    </span>
-                                </button>
-                            </div>
-                            <div className="form-group">
-                                <label>Equipment Type</label>
-                                <select
-                                    value={equipmentType}
-                                    onChange={(e) => setEquipmentType(e.target.value)}
-                                    disabled={!canEditEquipment}
-                                    className="form-control"
-                                >
-                                    <option value="">Select Type</option>
-                                    <option value="Front-End Loader">Front-End Loader</option>
-                                    <option value="Excavator">Excavator</option>
-                                    <option value="Mini-Excavator">Mini-Excavator</option>
-                                    <option value="Backhoe">Backhoe</option>
-                                    <option value="Skid Steer">Skid Steer</option>
-                                    <option value="Forklift">Forklift</option>
-                                    <option value="Manlift">Manlift</option>
-                                    <option value="Dozer">Dozer</option>
-                                    <option value="Off-Road Dump Truck">Off-Road Dump Truck</option>
-                                    <option value="Water/Trash Pump">Water/Trash Pump</option>
-                                    <option value="Water Truck">Water Truck</option>
-                                    <option value="Trailer">Trailer</option>
-                                    <option value="Portable Compressor">Portable Compressor</option>
-                                    <option value="Portable Conveyor">Portable Conveyor</option>
-                                    <option value="Crusher">Crusher</option>
-                                    <option value="Ice Conveyor">Ice Conveyor</option>
-                                    <option value="Rotary Mixer">Rotary Mixer</option>
-                                    <option value="Road Reclaimer">Road Reclaimer</option>
-                                    <option value="Roller">Roller</option>
-                                    <option value="Maintainer">Maintainer</option>
-                                    <option value="Sweeper">Sweeper</option>
-                                    <option value="Other">Other</option>
-                                    <option value="Unknown">Unknown</option>
-                                </select>
-                            </div>
+                <DetailViewSection.Section id="basic" title="Basic Information" icon="fas fa-cog">
+                    <DetailViewSection.Card title="Equipment Details" icon="fas fa-info-circle">
+                        <div className="form-group">
+                            <label>Identifying Number</label>
+                            <input
+                                type="text"
+                                value={identifyingNumber}
+                                onChange={(e) => setIdentifyingNumber(e.target.value)}
+                                className="form-control"
+                                readOnly={!canEditEquipment}
+                            />
                         </div>
-                        <div className="form-section maintenance-info">
-                            <h3>Maintenance Information</h3>
-                            <div className="form-group">
-                                <label>Last Service Date</label>
-                                <input
-                                    type="date"
-                                    value={lastServiceDate ? formatDate(lastServiceDate) : ''}
-                                    onChange={(e) =>
-                                        setLastServiceDate(
-                                            e.target.value ? DateUtility.parseLocalDate(e.target.value) : null
-                                        )
-                                    }
-                                    className="form-control"
-                                    readOnly={!canEditEquipment}
-                                />
-                                {lastServiceDate && EquipmentUtility.isServiceOverdue(lastServiceDate) && (
-                                    <div className="warning-text">Service overdue</div>
-                                )}
-                                <div
-                                    style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}
-                                >
-                                    Service will show as overdue if it has been more than 6 months since last serviced.
-                                    Service is determined by hours on the asset - check hours of service.
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Hours/Mileage</label>
-                                <input
-                                    type="number"
-                                    value={hoursMileage}
-                                    onChange={(e) => setHoursMileage(e.target.value)}
-                                    className="form-control"
-                                    readOnly={!canEditEquipment}
-                                    min="0"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Cleanliness Rating</label>
-                                <div className="cleanliness-rating-editor">
-                                    <div className="star-input">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                type="button"
-                                                className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditEquipment ? 'disabled' : ''}`}
-                                                onClick={() =>
-                                                    canEditEquipment &&
-                                                    setCleanlinessRating(star === cleanlinessRating ? 0 : star)
-                                                }
-                                                aria-label={`Rate ${star} of 5 stars`}
-                                                disabled={!canEditEquipment}
-                                            >
-                                                <i
-                                                    className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                    style={star <= cleanlinessRating ? { color: '#f59e0b' } : {}}
-                                                ></i>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {cleanlinessRating > 0 && (
-                                        <div className="rating-value-display">
-                                            <span className="rating-label">
-                                                {
-                                                    [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
-                                                        cleanlinessRating
-                                                    ]
-                                                }
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Condition Rating</label>
-                                <div className="condition-rating-editor">
-                                    <div className="star-input">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                type="button"
-                                                className={`star-button ${star <= conditionRating ? 'active' : ''} ${!canEditEquipment ? 'disabled' : ''}`}
-                                                onClick={() =>
-                                                    canEditEquipment &&
-                                                    setConditionRating(star === conditionRating ? 0 : star)
-                                                }
-                                                aria-label={`Rate ${star} of 5 stars`}
-                                                disabled={!canEditEquipment}
-                                            >
-                                                <i
-                                                    className={`fas fa-star ${star <= conditionRating ? 'filled' : ''}`}
-                                                    style={star <= conditionRating ? { color: '#f59e0b' } : {}}
-                                                ></i>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {conditionRating > 0 && (
-                                        <div className="rating-value-display">
-                                            <span className="rating-label">
-                                                {
-                                                    [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
-                                                        conditionRating
-                                                    ]
-                                                }
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="form-group">
+                            <label>Status</label>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                disabled={!canEditEquipment}
+                                className="form-control"
+                            >
+                                <option value="">Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Spare">Spare</option>
+                                <option value="In Shop">In Shop</option>
+                                <option value="Retired">Retired</option>
+                            </select>
                         </div>
-                    </div>
-                    <div className="form-sections">
-                        <div className="form-section vehicle-info">
-                            <h3>Asset Details</h3>
+                        <div className="form-group">
+                            <label>Assigned Plant</label>
+                            <button
+                                className="operator-select-button form-control"
+                                onClick={() => canEditEquipment && setShowPlantModal(true)}
+                                type="button"
+                                disabled={!canEditEquipment}
+                                style={
+                                    !canEditEquipment
+                                        ? {
+                                              backgroundColor: 'var(--card-bg)',
+                                              cursor: 'not-allowed',
+                                              opacity: 0.8
+                                          }
+                                        : {}
+                                }
+                            >
+                                <span
+                                    style={{
+                                        display: 'block',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}
+                                >
+                                    {plantDisplayText}
+                                </span>
+                            </button>
+                        </div>
+                        <div className="form-group">
+                            <label>Equipment Type</label>
+                            <select
+                                value={equipmentType}
+                                onChange={(e) => setEquipmentType(e.target.value)}
+                                disabled={!canEditEquipment}
+                                className="form-control"
+                            >
+                                <option value="">Select Type</option>
+                                <option value="Front-End Loader">Front-End Loader</option>
+                                <option value="Excavator">Excavator</option>
+                                <option value="Mini-Excavator">Mini-Excavator</option>
+                                <option value="Backhoe">Backhoe</option>
+                                <option value="Skid Steer">Skid Steer</option>
+                                <option value="Forklift">Forklift</option>
+                                <option value="Manlift">Manlift</option>
+                                <option value="Dozer">Dozer</option>
+                                <option value="Off-Road Dump Truck">Off-Road Dump Truck</option>
+                                <option value="Water/Trash Pump">Water/Trash Pump</option>
+                                <option value="Water Truck">Water Truck</option>
+                                <option value="Trailer">Trailer</option>
+                                <option value="Portable Compressor">Portable Compressor</option>
+                                <option value="Portable Conveyor">Portable Conveyor</option>
+                                <option value="Crusher">Crusher</option>
+                                <option value="Ice Conveyor">Ice Conveyor</option>
+                                <option value="Rotary Mixer">Rotary Mixer</option>
+                                <option value="Road Reclaimer">Road Reclaimer</option>
+                                <option value="Roller">Roller</option>
+                                <option value="Maintainer">Maintainer</option>
+                                <option value="Sweeper">Sweeper</option>
+                                <option value="Other">Other</option>
+                                <option value="Unknown">Unknown</option>
+                            </select>
+                        </div>
+                    </DetailViewSection.Card>
+                    <DetailViewSection.Card title="Equipment Specifications" icon="fas fa-clipboard-list">
+                        <div className="form-row-2">
                             <div className="form-group">
                                 <label>Make</label>
                                 <input
@@ -978,21 +800,129 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                     readOnly={!canEditEquipment}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Year</label>
-                                <input
-                                    type="number"
-                                    value={year}
-                                    onChange={(e) => setYear(e.target.value)}
-                                    className="form-control"
-                                    readOnly={!canEditEquipment}
-                                    min="1900"
-                                    max={new Date().getFullYear()}
-                                />
+                        </div>
+                        <div className="form-group">
+                            <label>Year</label>
+                            <input
+                                type="number"
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                className="form-control"
+                                readOnly={!canEditEquipment}
+                                min="1900"
+                                max={new Date().getFullYear()}
+                            />
+                        </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
+
+                <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
+                    <DetailViewSection.Card title="Service Information" icon="fas fa-calendar-alt">
+                        <div className="form-group">
+                            <label>Last Service Date</label>
+                            <input
+                                type="date"
+                                value={lastServiceDate ? formatDate(lastServiceDate) : ''}
+                                onChange={(e) =>
+                                    setLastServiceDate(
+                                        e.target.value ? DateUtility.parseLocalDate(e.target.value) : null
+                                    )
+                                }
+                                className="form-control"
+                                readOnly={!canEditEquipment}
+                            />
+                            {lastServiceDate && EquipmentUtility.isServiceOverdue(lastServiceDate) && (
+                                <div className="warning-text">Service overdue</div>
+                            )}
+                            <div style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}>
+                                Service will show as overdue if it has been more than 6 months since last serviced.
+                                Service is determined by hours on the asset - check hours of service.
                             </div>
                         </div>
-                    </div>
-                </div>
+                        <div className="form-group">
+                            <label>Hours/Mileage</label>
+                            <input
+                                type="number"
+                                value={hoursMileage}
+                                onChange={(e) => setHoursMileage(e.target.value)}
+                                className="form-control"
+                                readOnly={!canEditEquipment}
+                                min="0"
+                            />
+                        </div>
+                    </DetailViewSection.Card>
+
+                    <DetailViewSection.Card title="Ratings" icon="fas fa-star">
+                        <div className="form-group">
+                            <label>Cleanliness Rating</label>
+                            <div className="cleanliness-rating-editor">
+                                <div className="star-input">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditEquipment ? 'disabled' : ''}`}
+                                            onClick={() =>
+                                                canEditEquipment &&
+                                                setCleanlinessRating(star === cleanlinessRating ? 0 : star)
+                                            }
+                                            aria-label={`Rate ${star} of 5 stars`}
+                                            disabled={!canEditEquipment}
+                                        >
+                                            <i
+                                                className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
+                                                style={star <= cleanlinessRating ? { color: '#f59e0b' } : {}}
+                                            ></i>
+                                        </button>
+                                    ))}
+                                </div>
+                                {cleanlinessRating > 0 && (
+                                    <div className="rating-value-display">
+                                        <span className="rating-label">
+                                            {
+                                                [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
+                                                    cleanlinessRating
+                                                ]
+                                            }
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Condition Rating</label>
+                            <div className="cleanliness-rating-editor">
+                                <div className="star-input">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            className={`star-button ${star <= conditionRating ? 'active' : ''} ${!canEditEquipment ? 'disabled' : ''}`}
+                                            onClick={() =>
+                                                canEditEquipment &&
+                                                setConditionRating(star === conditionRating ? 0 : star)
+                                            }
+                                            aria-label={`Rate ${star} of 5 stars`}
+                                            disabled={!canEditEquipment}
+                                        >
+                                            <i
+                                                className={`fas fa-star ${star <= conditionRating ? 'filled' : ''}`}
+                                                style={star <= conditionRating ? { color: '#f59e0b' } : {}}
+                                            ></i>
+                                        </button>
+                                    ))}
+                                </div>
+                                {conditionRating > 0 && (
+                                    <div className="rating-value-display">
+                                        <span className="rating-label">
+                                            {[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][conditionRating]}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
             </DetailViewSection>
         </>
     )

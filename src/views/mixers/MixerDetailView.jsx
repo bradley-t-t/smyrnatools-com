@@ -762,31 +762,27 @@ function MixerDetailView({ mixerId, onClose }) {
                         </button>
                     </>
                 }
-                verificationCard={
-                    <VerificationCardSection
-                        isVerified={Mixer.ensureInstance(mixer).isVerified()}
-                        verificationLabel={
-                            !mixer.updatedLast || !mixer.updatedBy ? 'Needs Verification' : 'Verification Outdated'
-                        }
-                        verificationItems={verificationItems}
-                        onVerify={handleVerifyMixer}
-                        canEdit={canEditMixer}
-                        noticeText="Assets require verification after any changes are made and are reset weekly. <strong>Due: Every Friday at 10:00 AM.</strong> Resets on Mondays at 5pm."
-                    />
-                }
                 footerActions={
                     canEditMixer && (
                         <>
-                            <button className="primary-button save-button" onClick={handleSave} disabled={isSaving}>
-                                {isSaving ? 'Saving...' : 'Save Changes'}
+                            <button
+                                className="global-button-secondary"
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                style={{ flex: 1, justifyContent: 'center' }}
+                            >
+                                <i className="fas fa-save"></i>
+                                <span>{isSaving ? 'Saving...' : 'Save'}</span>
                             </button>
                             {canDeleteMixer && (
                                 <button
-                                    className="danger-button"
+                                    className="global-button-secondary"
                                     onClick={() => setShowDeleteConfirmation(true)}
                                     disabled={isSaving}
+                                    style={{ flex: 1, justifyContent: 'center' }}
                                 >
-                                    Delete Mixer
+                                    <i className="fas fa-trash-alt"></i>
+                                    <span>Delete</span>
                                 </button>
                             )}
                         </>
@@ -862,387 +858,299 @@ function MixerDetailView({ mixerId, onClose }) {
                     </>
                 }
             >
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Mixer Information</h2>
-                    </div>
-
-                    <div className="form-sections">
-                        <div className="form-section basic-info">
-                            <h3>Basic Information</h3>
-                            <div className="form-group">
-                                <label>Truck Number</label>
-                                <input
-                                    type="text"
-                                    value={truckNumber}
-                                    onChange={(e) => setTruckNumber(e.target.value)}
-                                    className="form-control"
-                                    readOnly={!canEditMixer}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Status</label>
-                                <select
-                                    value={status}
-                                    onChange={async (e) => {
-                                        const newStatus = e.target.value
-                                        if (isCleanlinessBlocking && newStatus === 'Active') {
-                                            return
-                                        }
-                                        if (
-                                            assignedOperator &&
-                                            originalValues.status === 'Active' &&
-                                            newStatus !== 'Active'
-                                        ) {
-                                            await handleSave({ assignedOperator: null, status: newStatus })
-                                            setStatus(newStatus)
-                                            setAssignedOperator(null)
-                                            setLastUnassignedOperatorId(assignedOperator)
-                                            setMessage('Status changed and operator unassigned')
-                                            setTimeout(() => setMessage(''), 3000)
-                                            await refreshOperators()
-                                            await fetchOperatorsForModal()
-                                            const updatedMixer = await MixerService.fetchMixerById(mixerId)
-                                            setMixer(updatedMixer)
-                                        } else {
-                                            setStatus(newStatus)
-                                        }
-                                    }}
-                                    disabled={!canEditMixer}
-                                    className="form-control"
-                                >
-                                    <option value="">Select Status</option>
-                                    <option value="Active" disabled={isCleanlinessBlocking}>
-                                        Active{isCleanlinessBlocking ? ' (Requires 3+ stars)' : ''}
-                                    </option>
-                                    <option value="Spare">Spare</option>
-                                    <option value="In Shop">In Shop</option>
-                                    <option value="Retired">Retired</option>
-                                </select>
-                                {isCleanlinessBlocking && (
-                                    <div
-                                        style={{
-                                            alignItems: 'center',
-                                            background: '#fef3c7',
-                                            borderRadius: '6px',
-                                            color: '#92400e',
-                                            display: 'flex',
-                                            fontSize: '0.8125rem',
-                                            gap: '0.5rem',
-                                            marginTop: '0.5rem',
-                                            padding: '0.5rem 0.75rem'
-                                        }}
-                                    >
-                                        <i className="fas fa-exclamation-triangle"></i>
-                                        <span>Cleanliness must be 3+ stars to set Active status</span>
-                                    </div>
-                                )}
-                            </div>
-                            {status === 'Spare' && (
-                                <div className="spare-status-note">
-                                    If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with the
-                                    appropriate shop status selected
-                                </div>
-                            )}
-                            {status === 'In Shop' && (
-                                <div className="down-in-yard-container">
-                                    <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-                                        <label>Shop Status</label>
-                                        <select
-                                            className="form-control"
-                                            value={shopStatus || 'in_shop'}
-                                            onChange={(e) => {
-                                                if (canEditMixer) {
-                                                    setShopStatus(e.target.value)
-                                                }
-                                            }}
-                                            disabled={!canEditMixer}
-                                            style={
-                                                !canEditMixer
-                                                    ? {
-                                                          backgroundColor: 'var(--card-bg)',
-                                                          cursor: 'not-allowed',
-                                                          opacity: 0.8
-                                                      }
-                                                    : {}
-                                            }
-                                        >
-                                            <option value="in_shop">In Shop</option>
-                                            <option value="waiting_for_shop">Waiting For Shop</option>
-                                            <option value="down_in_yard">Down In Yard</option>
-                                            <option value="third_party">Third Party Work</option>
-                                        </select>
-                                    </div>
-                                    <div
-                                        className="down-in-yard-note"
-                                        style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}
-                                    >
-                                        {shopStatus === 'down_in_yard' &&
-                                            'The shop has to come fix it where it is - it cannot move.'}
-                                        {shopStatus === 'waiting_for_shop' &&
-                                            'We need to move it to the shop for repairs.'}
-                                        {shopStatus === 'third_party' && 'Being painted or at a third party shop.'}
-                                        {(shopStatus === 'in_shop' || !shopStatus) &&
-                                            'Currently at the shop being worked on.'}
-                                    </div>
-                                </div>
-                            )}
-                            <div className="form-group">
-                                <label>Assigned Plant</label>
-                                <button
-                                    className="operator-select-button form-control"
-                                    onClick={() => canEditMixer && setShowPlantModal(true)}
-                                    type="button"
-                                    disabled={!canEditMixer}
-                                    style={
-                                        !canEditMixer
-                                            ? {
-                                                  backgroundColor: 'var(--card-bg)',
-                                                  cursor: 'not-allowed',
-                                                  opacity: 0.8
-                                              }
-                                            : {}
+                <DetailViewSection.Section id="basic" title="Basic Information" icon="fas fa-truck">
+                    <DetailViewSection.Card title="Truck Details" icon="fas fa-info-circle">
+                        <div className="form-group">
+                            <label>Truck Number</label>
+                            <input
+                                type="text"
+                                value={truckNumber}
+                                onChange={(e) => setTruckNumber(e.target.value)}
+                                className="form-control"
+                                readOnly={!canEditMixer}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Status</label>
+                            <select
+                                value={status}
+                                onChange={async (e) => {
+                                    const newStatus = e.target.value
+                                    if (isCleanlinessBlocking && newStatus === 'Active') {
+                                        return
                                     }
+                                    if (
+                                        assignedOperator &&
+                                        originalValues.status === 'Active' &&
+                                        newStatus !== 'Active'
+                                    ) {
+                                        await handleSave({ assignedOperator: null, status: newStatus })
+                                        setStatus(newStatus)
+                                        setAssignedOperator(null)
+                                        setLastUnassignedOperatorId(assignedOperator)
+                                        setMessage('Status changed and operator unassigned')
+                                        setTimeout(() => setMessage(''), 3000)
+                                        await refreshOperators()
+                                        await fetchOperatorsForModal()
+                                        const updatedMixer = await MixerService.fetchMixerById(mixerId)
+                                        setMixer(updatedMixer)
+                                    } else {
+                                        setStatus(newStatus)
+                                    }
+                                }}
+                                disabled={!canEditMixer}
+                                className="form-control"
+                            >
+                                <option value="">Select Status</option>
+                                <option value="Active" disabled={isCleanlinessBlocking}>
+                                    Active{isCleanlinessBlocking ? ' (Requires 3+ stars)' : ''}
+                                </option>
+                                <option value="Spare">Spare</option>
+                                <option value="In Shop">In Shop</option>
+                                <option value="Retired">Retired</option>
+                            </select>
+                            {isCleanlinessBlocking && (
+                                <div
+                                    style={{
+                                        alignItems: 'center',
+                                        background: '#fef3c7',
+                                        borderRadius: '6px',
+                                        color: '#92400e',
+                                        display: 'flex',
+                                        fontSize: '0.8125rem',
+                                        gap: '0.5rem',
+                                        marginTop: '0.5rem',
+                                        padding: '0.5rem 0.75rem'
+                                    }}
                                 >
-                                    <span
-                                        style={{
-                                            display: 'block',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}
-                                    >
-                                        {plantDisplayText}
-                                    </span>
-                                </button>
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                    <span>Cleanliness must be 3+ stars to set Active status</span>
+                                </div>
+                            )}
+                        </div>
+                        {status === 'Spare' && (
+                            <div className="spare-status-note">
+                                If this truck is not runnable, it needs to be set as &quot;In Shop&quot; with the
+                                appropriate shop status selected
                             </div>
-                            <div className="form-group">
-                                <label>Assigned Operator</label>
-                                <div className="operator-select-container">
-                                    <button
-                                        className="operator-select-button form-control"
-                                        onClick={async () => {
-                                            if (canEditMixer && !isCleanlinessBlocking) {
-                                                await fetchOperatorsForModal()
-                                                setShowOperatorModal(true)
+                        )}
+                        {status === 'In Shop' && (
+                            <div className="down-in-yard-container">
+                                <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                                    <label>Shop Status</label>
+                                    <select
+                                        className="form-control"
+                                        value={shopStatus || 'in_shop'}
+                                        onChange={(e) => {
+                                            if (canEditMixer) {
+                                                setShopStatus(e.target.value)
                                             }
                                         }}
-                                        type="button"
-                                        disabled={!canEditMixer || isCleanlinessBlocking}
+                                        disabled={!canEditMixer}
                                         style={
-                                            !canEditMixer || isCleanlinessBlocking
+                                            !canEditMixer
                                                 ? {
-                                                      backgroundColor: 'var(--bg-secondary)',
+                                                      backgroundColor: 'var(--card-bg)',
                                                       cursor: 'not-allowed',
                                                       opacity: 0.8
                                                   }
                                                 : {}
                                         }
                                     >
-                                        <span
-                                            style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                        <option value="in_shop">In Shop</option>
+                                        <option value="waiting_for_shop">Waiting For Shop</option>
+                                        <option value="down_in_yard">Down In Yard</option>
+                                        <option value="third_party">Third Party Work</option>
+                                    </select>
+                                </div>
+                                <div
+                                    className="down-in-yard-note"
+                                    style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}
+                                >
+                                    {shopStatus === 'down_in_yard' &&
+                                        'The shop has to come fix it where it is - it cannot move.'}
+                                    {shopStatus === 'waiting_for_shop' && 'We need to move it to the shop for repairs.'}
+                                    {shopStatus === 'third_party' && 'Being painted or at a third party shop.'}
+                                    {(shopStatus === 'in_shop' || !shopStatus) &&
+                                        'Currently at the shop being worked on.'}
+                                </div>
+                            </div>
+                        )}
+                    </DetailViewSection.Card>
+
+                    <DetailViewSection.Card title="Assignment" icon="fas fa-user-tag">
+                        <div className="form-group">
+                            <label>Assigned Plant</label>
+                            <button
+                                className="operator-select-button form-control"
+                                onClick={() => canEditMixer && setShowPlantModal(true)}
+                                type="button"
+                                disabled={!canEditMixer}
+                                style={
+                                    !canEditMixer
+                                        ? {
+                                              backgroundColor: 'var(--card-bg)',
+                                              cursor: 'not-allowed',
+                                              opacity: 0.8
+                                          }
+                                        : {}
+                                }
+                            >
+                                <span
+                                    style={{
+                                        display: 'block',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}
+                                >
+                                    {plantDisplayText}
+                                </span>
+                            </button>
+                        </div>
+                        <div className="form-group">
+                            <label>Assigned Operator</label>
+                            <div className="operator-select-container">
+                                <button
+                                    className="operator-select-button form-control"
+                                    onClick={async () => {
+                                        if (canEditMixer && !isCleanlinessBlocking) {
+                                            await fetchOperatorsForModal()
+                                            setShowOperatorModal(true)
+                                        }
+                                    }}
+                                    type="button"
+                                    disabled={!canEditMixer || isCleanlinessBlocking}
+                                    style={
+                                        !canEditMixer || isCleanlinessBlocking
+                                            ? {
+                                                  backgroundColor: 'var(--bg-secondary)',
+                                                  cursor: 'not-allowed',
+                                                  opacity: 0.8
+                                              }
+                                            : {}
+                                    }
+                                >
+                                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {assignedOperator
+                                            ? getOperatorName(assignedOperator)
+                                            : 'None (Click to select)'}
+                                    </span>
+                                </button>
+                                {canEditMixer &&
+                                    (assignedOperator ? (
+                                        <button
+                                            className="unassign-operator-button"
+                                            title="Unassign Operator"
+                                            onClick={async () => {
+                                                try {
+                                                    const prevOperator = assignedOperator
+                                                    await handleSave({
+                                                        assignedOperator: null,
+                                                        prevAssignedOperator: prevOperator,
+                                                        status: 'Spare'
+                                                    })
+                                                    setAssignedOperator(null)
+                                                    setStatus('Spare')
+                                                    setLastUnassignedOperatorId(prevOperator)
+                                                    await refreshOperators()
+                                                    await fetchOperatorsForModal()
+                                                    const updatedMixer = await MixerService.fetchMixerById(mixerId)
+                                                    setMixer(updatedMixer)
+                                                    setMessage('Operator unassigned and status set to Spare')
+                                                    setTimeout(() => setMessage(''), 3000)
+                                                    if (showOperatorModal) {
+                                                        setShowOperatorModal(false)
+                                                        setTimeout(() => {
+                                                            setShowOperatorModal(true)
+                                                        }, 0)
+                                                    }
+                                                } catch (error) {
+                                                    setMessage('Error unassigning operator. Please try again.')
+                                                    setTimeout(() => setMessage(''), 3000)
+                                                }
+                                            }}
+                                            type="button"
                                         >
-                                            {assignedOperator
-                                                ? getOperatorName(assignedOperator)
-                                                : 'None (Click to select)'}
-                                        </span>
-                                    </button>
-                                    {canEditMixer &&
-                                        (assignedOperator ? (
+                                            Unassign Operator
+                                        </button>
+                                    ) : (
+                                        lastUnassignedOperatorId && (
                                             <button
-                                                className="unassign-operator-button"
-                                                title="Unassign Operator"
+                                                className="undo-operator-button unassign-operator-button"
+                                                title="Undo Unassign"
                                                 onClick={async () => {
                                                     try {
-                                                        const prevOperator = assignedOperator
                                                         await handleSave({
-                                                            assignedOperator: null,
-                                                            prevAssignedOperator: prevOperator,
-                                                            status: 'Spare'
+                                                            assignedOperator: lastUnassignedOperatorId,
+                                                            status: 'Active'
                                                         })
-                                                        setAssignedOperator(null)
-                                                        setStatus('Spare')
-                                                        setLastUnassignedOperatorId(prevOperator)
+                                                        setAssignedOperator(lastUnassignedOperatorId)
+                                                        setStatus('Active')
+                                                        setLastUnassignedOperatorId(null)
                                                         await refreshOperators()
                                                         await fetchOperatorsForModal()
                                                         const updatedMixer = await MixerService.fetchMixerById(mixerId)
                                                         setMixer(updatedMixer)
-                                                        setMessage('Operator unassigned and status set to Spare')
+                                                        setMessage('Operator re-assigned and status set to Active')
                                                         setTimeout(() => setMessage(''), 3000)
-                                                        if (showOperatorModal) {
-                                                            setShowOperatorModal(false)
-                                                            setTimeout(() => {
-                                                                setShowOperatorModal(true)
-                                                            }, 0)
-                                                        }
                                                     } catch (error) {
-                                                        setMessage('Error unassigning operator. Please try again.')
+                                                        setMessage('Error undoing unassign. Please try again.')
                                                         setTimeout(() => setMessage(''), 3000)
                                                     }
                                                 }}
                                                 type="button"
+                                                style={{
+                                                    backgroundColor: 'var(--success)',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    boxSizing: 'border-box',
+                                                    color: 'var(--text-light)',
+                                                    cursor: 'pointer',
+                                                    fontSize: '1rem',
+                                                    height: '38px',
+                                                    marginLeft: '8px',
+                                                    minWidth: '140px',
+                                                    padding: '0 16px'
+                                                }}
                                             >
-                                                Unassign Operator
+                                                Undo
                                             </button>
-                                        ) : (
-                                            lastUnassignedOperatorId && (
-                                                <button
-                                                    className="undo-operator-button unassign-operator-button"
-                                                    title="Undo Unassign"
-                                                    onClick={async () => {
-                                                        try {
-                                                            await handleSave({
-                                                                assignedOperator: lastUnassignedOperatorId,
-                                                                status: 'Active'
-                                                            })
-                                                            setAssignedOperator(lastUnassignedOperatorId)
-                                                            setStatus('Active')
-                                                            setLastUnassignedOperatorId(null)
-                                                            await refreshOperators()
-                                                            await fetchOperatorsForModal()
-                                                            const updatedMixer =
-                                                                await MixerService.fetchMixerById(mixerId)
-                                                            setMixer(updatedMixer)
-                                                            setMessage('Operator re-assigned and status set to Active')
-                                                            setTimeout(() => setMessage(''), 3000)
-                                                        } catch (error) {
-                                                            setMessage('Error undoing unassign. Please try again.')
-                                                            setTimeout(() => setMessage(''), 3000)
-                                                        }
-                                                    }}
-                                                    type="button"
-                                                    style={{
-                                                        backgroundColor: 'var(--success)',
-                                                        border: 'none',
-                                                        borderRadius: '4px',
-                                                        boxSizing: 'border-box',
-                                                        color: 'var(--text-light)',
-                                                        cursor: 'pointer',
-                                                        fontSize: '1rem',
-                                                        height: '38px',
-                                                        marginLeft: '8px',
-                                                        minWidth: '140px',
-                                                        padding: '0 16px'
-                                                    }}
-                                                >
-                                                    Undo
-                                                </button>
-                                            )
-                                        ))}
-                                </div>
-                                {isCleanlinessBlocking && (
-                                    <div
-                                        style={{
-                                            alignItems: 'center',
-                                            background: '#fef3c7',
-                                            borderRadius: '6px',
-                                            color: '#92400e',
-                                            display: 'flex',
-                                            fontSize: '0.8125rem',
-                                            gap: '0.5rem',
-                                            marginTop: '0.5rem',
-                                            padding: '0.5rem 0.75rem'
-                                        }}
-                                    >
-                                        <i className="fas fa-exclamation-triangle"></i>
-                                        <span>Cleanliness must be 3+ stars to assign an operator</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className="form-section maintenance-info">
-                            <h3>Maintenance Information</h3>
-                            <div className="form-group">
-                                <label>Last Service Date</label>
-                                <input
-                                    type="date"
-                                    value={lastServiceDate ? formatDate(lastServiceDate) : ''}
-                                    onChange={(e) =>
-                                        setLastServiceDate(
-                                            e.target.value ? DateUtility.parseLocalDate(e.target.value) : null
                                         )
-                                    }
-                                    className="form-control"
-                                    readOnly={!canEditMixer}
-                                />
-                                {lastServiceDate && MixerUtility.isServiceOverdue(lastServiceDate) && (
-                                    <div className="warning-text">Service overdue</div>
-                                )}
+                                    ))}
+                            </div>
+                            {isCleanlinessBlocking && (
                                 <div
-                                    style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}
+                                    style={{
+                                        alignItems: 'center',
+                                        background: '#fef3c7',
+                                        borderRadius: '6px',
+                                        color: '#92400e',
+                                        display: 'flex',
+                                        fontSize: '0.8125rem',
+                                        gap: '0.5rem',
+                                        marginTop: '0.5rem',
+                                        padding: '0.5rem 0.75rem'
+                                    }}
                                 >
-                                    Service will show as overdue if it has been more than 6 months since last serviced.
-                                    Service is determined by hours on the asset - check hours of service.
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                    <span>Cleanliness must be 3+ stars to assign an operator</span>
                                 </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Last Chip Date</label>
-                                <input
-                                    type="date"
-                                    value={lastChipDate ? formatDate(lastChipDate) : ''}
-                                    onChange={(e) =>
-                                        setLastChipDate(
-                                            e.target.value ? DateUtility.parseLocalDate(e.target.value) : null
-                                        )
-                                    }
-                                    className="form-control"
-                                    readOnly={!canEditMixer}
-                                />
-                                {lastChipDate && MixerUtility.isChipOverdue(lastChipDate) && (
-                                    <div className="warning-text">Chip overdue</div>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label>Cleanliness Rating</label>
-                                <div className="cleanliness-rating-editor">
-                                    <div className="star-input">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                type="button"
-                                                className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditMixer ? 'disabled' : ''}`}
-                                                onClick={() =>
-                                                    canEditMixer &&
-                                                    setCleanlinessRating(star === cleanlinessRating ? 0 : star)
-                                                }
-                                                aria-label={`Rate ${star} of 5 stars`}
-                                                disabled={!canEditMixer}
-                                            >
-                                                <i
-                                                    className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
-                                                    style={star <= cleanlinessRating ? { color: '#f59e0b' } : {}}
-                                                ></i>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {cleanlinessRating > 0 && (
-                                        <div className="rating-value-display">
-                                            <span className="rating-label">
-                                                {
-                                                    [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
-                                                        cleanlinessRating
-                                                    ]
-                                                }
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            )}
                         </div>
-                    </div>
-                    <div className="form-sections">
-                        <div className="form-section vehicle-info">
-                            <h3>Asset Details</h3>
-                            <div className="form-group">
-                                <label>VIN</label>
-                                <input
-                                    type="text"
-                                    value={vin}
-                                    placeholder="VIN (no I, O, Q)"
-                                    onChange={(e) => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
-                                    className="form-control"
-                                    readOnly={!canEditMixer}
-                                />
-                            </div>
+                    </DetailViewSection.Card>
+                    <DetailViewSection.Card title="Vehicle Information" icon="fas fa-car">
+                        <div className="form-group">
+                            <label>VIN</label>
+                            <input
+                                type="text"
+                                value={vin}
+                                placeholder="VIN (no I, O, Q)"
+                                onChange={(e) => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
+                                className="form-control"
+                                readOnly={!canEditMixer}
+                            />
+                        </div>
+                        <div className="form-row-2">
                             <div className="form-group">
                                 <label>Make</label>
                                 <input
@@ -1263,19 +1171,117 @@ function MixerDetailView({ mixerId, onClose }) {
                                     readOnly={!canEditMixer}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Year</label>
-                                <input
-                                    type="text"
-                                    value={year}
-                                    onChange={(e) => setYear(e.target.value)}
-                                    className="form-control"
-                                    readOnly={!canEditMixer}
-                                />
+                        </div>
+                        <div className="form-group">
+                            <label>Year</label>
+                            <input
+                                type="text"
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                className="form-control"
+                                readOnly={!canEditMixer}
+                            />
+                        </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
+
+                <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
+                    <DetailViewSection.Card title="Service Information" icon="fas fa-calendar-alt">
+                        <div className="form-group">
+                            <label>Last Service Date</label>
+                            <input
+                                type="date"
+                                value={lastServiceDate ? formatDate(lastServiceDate) : ''}
+                                onChange={(e) =>
+                                    setLastServiceDate(
+                                        e.target.value ? DateUtility.parseLocalDate(e.target.value) : null
+                                    )
+                                }
+                                className="form-control"
+                                readOnly={!canEditMixer}
+                            />
+                            {lastServiceDate && MixerUtility.isServiceOverdue(lastServiceDate) && (
+                                <div className="warning-text">Service overdue</div>
+                            )}
+                            <div style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}>
+                                Service will show as overdue if it has been more than 6 months since last serviced.
+                                Service is determined by hours on the asset - check hours of service.
                             </div>
                         </div>
-                    </div>
-                </div>
+                        <div className="form-group">
+                            <label>Last Chip Date</label>
+                            <input
+                                type="date"
+                                value={lastChipDate ? formatDate(lastChipDate) : ''}
+                                onChange={(e) =>
+                                    setLastChipDate(e.target.value ? DateUtility.parseLocalDate(e.target.value) : null)
+                                }
+                                className="form-control"
+                                readOnly={!canEditMixer}
+                            />
+                            {lastChipDate && MixerUtility.isChipOverdue(lastChipDate) && (
+                                <div className="warning-text">Chip overdue</div>
+                            )}
+                        </div>
+                    </DetailViewSection.Card>
+
+                    <DetailViewSection.Card title="Cleanliness Rating" icon="fas fa-broom">
+                        <div className="form-group">
+                            <label>Cleanliness Rating</label>
+                            <div className="cleanliness-rating-editor">
+                                <div className="star-input">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            className={`star-button ${star <= cleanlinessRating ? 'active' : ''} ${!canEditMixer ? 'disabled' : ''}`}
+                                            onClick={() =>
+                                                canEditMixer &&
+                                                setCleanlinessRating(star === cleanlinessRating ? 0 : star)
+                                            }
+                                            aria-label={`Rate ${star} of 5 stars`}
+                                            disabled={!canEditMixer}
+                                        >
+                                            <i
+                                                className={`fas fa-star ${star <= cleanlinessRating ? 'filled' : ''}`}
+                                                style={star <= cleanlinessRating ? { color: '#f59e0b' } : {}}
+                                            ></i>
+                                        </button>
+                                    ))}
+                                </div>
+                                {cleanlinessRating > 0 && (
+                                    <div className="rating-value-display">
+                                        <span className="rating-label">
+                                            {
+                                                [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
+                                                    cleanlinessRating
+                                                ]
+                                            }
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
+
+                <DetailViewSection.Section id="verification" title="Verification" icon="fas fa-clipboard-check">
+                    <DetailViewSection.Card>
+                        <VerificationCardSection
+                            isVerified={Mixer.ensureInstance(mixer).isVerified()}
+                            verificationLabel={
+                                !mixer.updatedLast || !mixer.updatedBy ? 'Needs Verification' : 'Verification Outdated'
+                            }
+                            verificationItems={verificationItems}
+                            onVerify={handleVerifyMixer}
+                            canEdit={canEditMixer}
+                            lastVerifiedDate={mixer.updatedLast}
+                            lastChangedDate={mixer.updatedAt}
+                            assetId={mixerId}
+                            assetType="mixer"
+                        />
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
             </DetailViewSection>
         </>
     )
