@@ -424,24 +424,25 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                     .dv-mobile-nav { display: none; }
                     @media (max-width: 768px) {
                         .dv-sidebar { display: none !important; }
-                        .dv-mobile-nav { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 8px; gap: 4px; z-index: 50; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+                        .dv-mobile-nav { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 12px 10px; gap: 6px; z-index: 50; overflow-x: auto; -webkit-overflow-scrolling: touch; min-height: 72px; }
                         .dv-mobile-nav::-webkit-scrollbar { display: none; }
-                        .dv-mobile-nav-btn { flex: 0 0 auto; padding: 10px 16px; border: none; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 70px; transition: all 0.15s; }
-                        .dv-mobile-nav-btn i { font-size: 16px; }
-                        .dv-main-content { padding: 16px !important; padding-bottom: 80px !important; }
+                        .dv-mobile-nav-btn { flex: 0 0 auto; padding: 12px 18px; border: none; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; transition: all 0.15s; }
+                        .dv-mobile-nav-btn i { font-size: 18px; }
+                        .dv-main-content { padding: 16px !important; padding-bottom: 90px !important; }
                         .dv-header { padding: 12px 16px !important; }
                         .dv-header-title { font-size: 18px !important; }
                         .dv-header-actions { gap: 4px !important; }
-                        .dv-header-actions .global-button-secondary { padding: 8px !important; }
+                        .dv-header-actions .global-button-secondary { padding: 10px !important; min-width: 40px; justify-content: center; }
                         .dv-header-actions .global-button-secondary span { display: none; }
                         .dv-section-grid { grid-template-columns: 1fr !important; }
                         .dv-section-header h2 { font-size: 18px !important; }
                         .form-row-2, .form-row-3 { grid-template-columns: 1fr !important; }
                     }
                     @media (max-width: 480px) {
-                        .dv-mobile-nav-btn { min-width: 60px; padding: 8px 12px; font-size: 11px; }
-                        .dv-mobile-nav-btn i { font-size: 14px; }
-                        .dv-main-content { padding: 12px !important; padding-bottom: 75px !important; }
+                        .dv-mobile-nav { padding: 10px 8px; min-height: 68px; }
+                        .dv-mobile-nav-btn { min-width: 64px; padding: 10px 14px; font-size: 11px; }
+                        .dv-mobile-nav-btn i { font-size: 16px; }
+                        .dv-main-content { padding: 12px !important; padding-bottom: 85px !important; }
                     }
                     ${legacyStyles}
                 `}</style>

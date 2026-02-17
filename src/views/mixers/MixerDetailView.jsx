@@ -751,10 +751,12 @@ function MixerDetailView({ mixerId, onClose }) {
                 headerActions={
                     <>
                         <button className="global-button-secondary" onClick={() => setShowIssues(true)}>
-                            <i className="fas fa-tools"></i> Issues
+                            <i className="fas fa-tools"></i>
+                            <span>Issues</span>
                         </button>
                         <button className="global-button-secondary" onClick={() => setShowComments(true)}>
-                            <i className="fas fa-comments"></i> Comments
+                            <i className="fas fa-comments"></i>
+                            <span>Comments</span>
                         </button>
                         <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
                             <i className="fas fa-history"></i>

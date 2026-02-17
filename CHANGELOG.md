@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.5] - 2026-02-17
+
+- Updated mobile navigation styling in `DetailViewSection.jsx` with increased padding, adjusted button sizes, larger icon sizes, and modified content padding for better mobile responsiveness.
+- Adjusted mobile view breakpoints in `DetailViewSection.jsx` for screens smaller than 480px, refining navigation and button dimensions.
+- Added visible text labels within buttons for "Issues" and "Comments" in header actions across detail view components including `EquipmentDetailView.jsx`, `MixerDetailView.jsx`, `PickupTrucksDetailView.jsx`, `TractorDetailView.jsx`, and `TrailerDetailView.jsx`.
+
 ## [10.4] - 2026-02-17
 
 - Updated version in `public/turl.json` from 10.2 to 10.3.
