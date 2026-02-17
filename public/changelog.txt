@@ -2,6 +2,18 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.3] - 2026-02-17
+
+- Adjusted mobile responsiveness in `PlanView.jsx` by reducing padding and font sizes for mobile devices.
+- Updated main container padding from 16 to 12 for mobile in `PlanView.jsx`.
+- Modified header layout to support flex wrapping and adjusted title font size from 22 to 18 on mobile in `PlanView.jsx`.
+- Changed date input styling for mobile with reduced font size and padding in `PlanView.jsx`.
+- Adjusted button padding for settings and add assignment buttons on mobile in `PlanView.jsx`.
+- Updated font sizes for assignment stats display, reducing text size on mobile in `PlanView.jsx`.
+- Modified send/receive value font sizes for mobile visibility in `PlanView.jsx`.
+- Reduced padding for assignment container on mobile from 20 to 12 in `PlanView.jsx`.
+- Adjusted empty state styling for assignments, reducing padding and icon size on mobile in `PlanView.jsx`.
+
 ## [11.2] - 2026-02-17
 
 - Added new script "sync-changelog" in package.json to copy CHANGELOG.md to public/changelog.txt

@@ -297,15 +297,39 @@ function PlanView() {
     }
 
     return (
-        <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: isMobile ? 16 : 24 }}>
+        <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: isMobile ? 12 : 24 }}>
             <div style={{ margin: '0 auto', maxWidth: 900 }}>
-                <div style={{ alignItems: 'center', display: 'flex', gap: 12, marginBottom: 20 }}>
-                    <h1 style={{ color: '#1e293b', flex: 1, fontSize: 22, fontWeight: 700, margin: 0 }}>Daily Plan</h1>
+                <div
+                    style={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: isMobile ? 8 : 12,
+                        marginBottom: 20
+                    }}
+                >
+                    <h1
+                        style={{
+                            color: '#1e293b',
+                            flex: isMobile ? '1 1 100%' : 1,
+                            fontSize: isMobile ? 18 : 22,
+                            fontWeight: 700,
+                            margin: 0
+                        }}
+                    >
+                        Daily Plan
+                    </h1>
                     <input
                         type="date"
                         value={planDate}
                         onChange={(e) => setPlanDate(e.target.value)}
-                        style={{ ...inputStyle, fontWeight: 600 }}
+                        style={{
+                            ...inputStyle,
+                            flex: isMobile ? 1 : 'none',
+                            fontSize: isMobile ? 13 : 14,
+                            fontWeight: 600,
+                            padding: isMobile ? '8px 10px' : '10px 12px'
+                        }}
                     />
                     <button
                         onClick={() => setShowSettings(!showSettings)}
@@ -313,7 +337,7 @@ function PlanView() {
                             ...btnStyle,
                             background: showSettings ? accentColor : '#e2e8f0',
                             color: showSettings ? '#fff' : '#64748b',
-                            padding: '10px 12px'
+                            padding: isMobile ? '8px 10px' : '10px 12px'
                         }}
                     >
                         <i className="fas fa-cog"></i>
@@ -447,18 +471,30 @@ function PlanView() {
                                     padding: '8px 12px'
                                 }}
                             >
-                                <span style={{ color: '#334155', fontWeight: 600 }}>{s.code}</span>
-                                <span style={{ color: s.eff !== s.base ? accentColor : '#64748b', fontWeight: 600 }}>
+                                <span style={{ color: '#334155', fontSize: isMobile ? 12 : 14, fontWeight: 600 }}>
+                                    {s.code}
+                                </span>
+                                <span
+                                    style={{
+                                        color: s.eff !== s.base ? accentColor : '#64748b',
+                                        fontSize: isMobile ? 12 : 14,
+                                        fontWeight: 600
+                                    }}
+                                >
                                     {s.eff}
                                 </span>
-                                {s.send > 0 && <span style={{ color: '#dc2626', fontSize: 12 }}>-{s.send}</span>}
-                                {s.recv > 0 && <span style={{ color: '#16a34a', fontSize: 12 }}>+{s.recv}</span>}
+                                {s.send > 0 && (
+                                    <span style={{ color: '#dc2626', fontSize: isMobile ? 10 : 12 }}>-{s.send}</span>
+                                )}
+                                {s.recv > 0 && (
+                                    <span style={{ color: '#16a34a', fontSize: isMobile ? 10 : 12 }}>+{s.recv}</span>
+                                )}
                             </div>
                         ))}
                     </div>
                 )}
 
-                <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: 20 }}>
+                <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: isMobile ? 12 : 20 }}>
                     <div
                         style={{
                             alignItems: 'center',
@@ -467,17 +503,38 @@ function PlanView() {
                             marginBottom: 16
                         }}
                     >
-                        <span style={{ color: '#1e293b', fontSize: 16, fontWeight: 600 }}>Assignments</span>
-                        <button onClick={addAssignment} style={btnStyle}>
+                        <span style={{ color: '#1e293b', fontSize: isMobile ? 14 : 16, fontWeight: 600 }}>
+                            Assignments
+                        </span>
+                        <button
+                            onClick={addAssignment}
+                            style={{
+                                ...btnStyle,
+                                fontSize: isMobile ? 13 : 14,
+                                padding: isMobile ? '8px 12px' : '10px 16px'
+                            }}
+                        >
                             <i className="fas fa-plus" style={{ marginRight: 6 }}></i>Add
                         </button>
                     </div>
 
                     {assignments.length === 0 ? (
-                        <div style={{ color: '#94a3b8', padding: 40, textAlign: 'center' }}>
+                        <div
+                            style={{
+                                color: '#94a3b8',
+                                fontSize: isMobile ? 13 : 14,
+                                padding: isMobile ? 30 : 40,
+                                textAlign: 'center'
+                            }}
+                        >
                             <i
                                 className="fas fa-truck"
-                                style={{ display: 'block', fontSize: 32, marginBottom: 12, opacity: 0.5 }}
+                                style={{
+                                    display: 'block',
+                                    fontSize: isMobile ? 28 : 32,
+                                    marginBottom: 12,
+                                    opacity: 0.5
+                                }}
                             ></i>
                             No assignments yet
                         </div>
