@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.0] - 2026-02-17
+
+- Added new `changelog.txt` file in the `public` directory to document all notable changes to SmyrnaTools, including detailed version history from 9.7 to 10.9.
+- Added new `changelog_ai.txt` file in the `public` directory, likely containing AI-related changelog entries or summaries.
+- Introduced a new `ChangelogView.jsx` component in `src/views/login` to display changelog information to users.
+- Updated `LoginView.jsx` in `src/views/login` with minor changes, potentially integrating changelog display or related UI elements.
+- Refactored `PlanView.jsx` in `src/views/plan` with significant updates, including restructuring or rewriting large portions of the code for improved functionality or UI.
+
 ## [10.9] - 2026-02-17
 
 - Removed dependency on UserService and introduced a new `getUserId` function to retrieve user ID from localStorage or sessionStorage in `TutorialService.js`.

@@ -7,8 +7,9 @@ import VersionPopup from '../../components/common/VersionPopup'
 import { supabase } from '../../services/DatabaseService'
 import { AuthUtility } from '../../utils/AuthUtility'
 
-const VideoBackground = lazy(() => import('../../components/common/VideoBackground'))
+const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
+const VideoBackground = lazy(() => import('../../components/common/VideoBackground'))
 
 const VideoFallback = memo(function VideoFallback() {
     return (
@@ -108,6 +109,7 @@ function LoginView() {
     const { signIn, signUp, loading, error } = useAuth()
     const timeoutRef = useRef(null)
     const [showRecovery, setShowRecovery] = useState(false)
+    const [showChangelog, setShowChangelog] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [focusedField, setFocusedField] = useState(null)
     const [animatedStats, setAnimatedStats] = useState({ assets: 0, operators: 0, plants: 0 })
@@ -331,6 +333,8 @@ function LoginView() {
     const togglePassword = useCallback(() => setShowPassword((prev) => !prev), [])
     const openRecovery = useCallback(() => setShowRecovery(true), [])
     const closeRecovery = useCallback(() => setShowRecovery(false), [])
+    const openChangelog = useCallback(() => setShowChangelog(true), [])
+    const closeChangelog = useCallback(() => setShowChangelog(false), [])
 
     const getInputStyle = useCallback(
         (isFocused) => ({
@@ -370,6 +374,28 @@ function LoginView() {
         }),
         [isSubmitting, loading]
     )
+
+    if (showChangelog) {
+        return (
+            <Suspense
+                fallback={
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            background: '#fff',
+                            display: 'flex',
+                            height: '100vh',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <i className="fas fa-spinner fa-spin" style={{ color: '#1e3a5f', fontSize: '2rem' }} />
+                    </div>
+                }
+            >
+                <ChangelogView onBack={closeChangelog} />
+            </Suspense>
+        )
+    }
 
     if (showRecovery) {
         return (
@@ -712,6 +738,27 @@ function LoginView() {
                                 }}
                             >
                                 {isSignUp ? 'Sign in' : 'Sign up'}
+                            </button>
+                        </div>
+
+                        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                            <button
+                                type="button"
+                                onClick={openChangelog}
+                                style={{
+                                    alignItems: 'center',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#94a3b8',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    fontSize: '0.8rem',
+                                    gap: '0.5rem',
+                                    padding: 0
+                                }}
+                            >
+                                <i className="fas fa-history"></i>
+                                View Changelog
                             </button>
                         </div>
                     </div>

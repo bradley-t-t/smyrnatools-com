@@ -13,10 +13,8 @@ function PlanView() {
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [plants, setPlants] = useState([])
     const [mixerCountsByPlant, setMixerCountsByPlant] = useState({})
-    const [plantYardageTargets, setPlantYardageTargets] = useState({})
     const [assignments, setAssignments] = useState([])
     const [generatedMessage, setGeneratedMessage] = useState('')
-    const [isGenerating, setIsGenerating] = useState(false)
     const [copied, setCopied] = useState(false)
     const [notes, setNotes] = useState('')
     const [planDate, setPlanDate] = useState(() => {
@@ -24,15 +22,11 @@ function PlanView() {
         tomorrow.setDate(tomorrow.getDate() + 1)
         return tomorrow.toISOString().split('T')[0]
     })
-    const [canEditTravelTimes, setCanEditTravelTimes] = useState(false)
-    const [showTravelConfig, setShowTravelConfig] = useState(false)
     const [travelTimes, setTravelTimes] = useState({})
-    const [editingTravelTime, setEditingTravelTime] = useState(null)
-    const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
-    const [isSaving, setIsSaving] = useState(false)
     const [userId, setUserId] = useState(null)
-    const [isLoadingPlan, setIsLoadingPlan] = useState(true)
-    const [showYardage, setShowYardage] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [showSettings, setShowSettings] = useState(false)
+    const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
@@ -43,8 +37,6 @@ function PlanView() {
             if (user?.id) {
                 setUserId(user.id)
                 plantList = await ReportService.fetchPlantsForUser(user.id)
-                const hasEditPerm = await UserService.hasPermission(user.id, 'plan.edit').catch(() => false)
-                setCanEditTravelTimes(hasEditPerm)
             }
             if (plantList.length === 0) plantList = await ReportService.fetchPlantsSorted()
             const sorted = plantList
@@ -56,87 +48,38 @@ function PlanView() {
                 const counts = await ReportService.fetchActiveMixerCountsByPlant(plantCodes)
                 setMixerCountsByPlant(counts)
             }
-            await loadTravelTimes()
-            setIsLoadingPlan(false)
+            await PlanService.fetchTravelTimes()
+            setTravelTimes(PlanService.getTravelTimesMap())
+            setIsLoading(false)
         }
         loadData()
     }, [])
 
     useEffect(() => {
-        if (!userId || !planDate || isLoadingPlan) return
-        const loadUserPlan = async () => {
+        if (!userId || !planDate || isLoading) return
+        const load = async () => {
             try {
                 const plan = await PlanService.fetchUserPlan(userId, planDate)
                 if (plan) {
                     if (plan.assignments?.length > 0) setAssignments(plan.assignments)
                     if (plan.notes) setNotes(plan.notes)
                 }
-            } catch (e) {}
+            } catch {}
         }
-        loadUserPlan()
-    }, [userId, planDate, isLoadingPlan])
+        load()
+    }, [userId, planDate, isLoading])
 
     useEffect(() => {
-        if (!userId || !planDate || isLoadingPlan) return
-        const saveTimeout = setTimeout(async () => {
+        if (!userId || !planDate || isLoading) return
+        const t = setTimeout(async () => {
             try {
                 await PlanService.saveUserPlan(userId, planDate, assignments, notes)
-            } catch (e) {}
+            } catch {}
         }, 1000)
-        return () => clearTimeout(saveTimeout)
-    }, [userId, planDate, assignments, notes, isLoadingPlan])
-
-    const loadTravelTimes = async () => {
-        try {
-            await PlanService.fetchTravelTimes()
-            setTravelTimes(PlanService.getTravelTimesMap())
-        } catch (e) {
-            setTravelTimes({})
-        }
-    }
+        return () => clearTimeout(t)
+    }, [userId, planDate, assignments, notes, isLoading])
 
     const getTravelTime = (from, to) => travelTimes[`${from}->${to}`] || null
-
-    const addTravelTime = async () => {
-        if (
-            !newTravelTime.from ||
-            !newTravelTime.to ||
-            !newTravelTime.minutes ||
-            newTravelTime.from === newTravelTime.to
-        )
-            return
-        setIsSaving(true)
-        try {
-            await PlanService.upsertTravelTime(newTravelTime.from, newTravelTime.to, parseInt(newTravelTime.minutes))
-            await PlanService.upsertTravelTime(newTravelTime.to, newTravelTime.from, parseInt(newTravelTime.minutes))
-            await loadTravelTimes()
-            setNewTravelTime({ from: '', minutes: '', to: '' })
-        } catch (e) {}
-        setIsSaving(false)
-    }
-
-    const removeTravelTime = async (key) => {
-        const [from, to] = key.split('->')
-        setIsSaving(true)
-        try {
-            await PlanService.deleteTravelTime(from, to)
-            await PlanService.deleteTravelTime(to, from)
-            await loadTravelTimes()
-        } catch (e) {}
-        setIsSaving(false)
-    }
-
-    const updateTravelTimeValue = async (key, minutes) => {
-        const [from, to] = key.split('->')
-        setIsSaving(true)
-        try {
-            await PlanService.upsertTravelTime(from, to, parseInt(minutes))
-            await PlanService.upsertTravelTime(to, from, parseInt(minutes))
-            await loadTravelTimes()
-        } catch (e) {}
-        setIsSaving(false)
-        setEditingTravelTime(null)
-    }
 
     const calcClockIn = (arrivalTime, fromPlant, toPlant) => {
         if (!arrivalTime || !fromPlant || !toPlant) return null
@@ -158,23 +101,55 @@ function PlanView() {
         return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     }
 
-    const getStaggered = (a) => {
-        if (!a.time || !a.fromPlant || !a.toPlant || a.driverCount <= 1) return null
-        if (getTravelTime(a.fromPlant, a.toPlant) === null) return null
-        return Array.from({ length: a.driverCount }, (_, i) => {
-            const arr = addMins(a.time, i * (a.staggerMinutes || 10))
-            return { arr, clockIn: calcClockIn(arr, a.fromPlant, a.toPlant), num: i + 1 }
-        })
+    const addAssignment = () => {
+        setAssignments((prev) => [
+            ...prev,
+            {
+                customTimes: [],
+                driverCount: 1,
+                fromPlant: '',
+                id: Date.now(),
+                leaveTime: '',
+                staggerMinutes: 10,
+                time: '',
+                timeMode: 'stagger',
+                toPlant: ''
+            }
+        ])
     }
 
-    const addAssignment = () =>
-        setAssignments([
-            ...assignments,
-            { driverCount: 1, fromPlant: '', id: Date.now(), returnTime: '', staggerMinutes: 10, time: '', toPlant: '' }
-        ])
-    const updateAssignment = (id, field, value) =>
-        setAssignments(assignments.map((a) => (a.id === id ? { ...a, [field]: value } : a)))
-    const removeAssignment = (id) => setAssignments(assignments.filter((a) => a.id !== id))
+    const updateAssignment = (id, field, value) => {
+        setAssignments((prev) => prev.map((a) => (a.id === id ? { ...a, [field]: value } : a)))
+    }
+
+    const removeAssignment = (id) => {
+        setAssignments((prev) => prev.filter((a) => a.id !== id))
+    }
+
+    const updateCustomTime = (assignmentId, idx, field, value) => {
+        setAssignments((prev) =>
+            prev.map((a) => {
+                if (a.id !== assignmentId) return a
+                const customTimes = [...(a.customTimes || [])]
+                while (customTimes.length <= idx) customTimes.push({ leaveTime: '', time: '' })
+                customTimes[idx] = { ...customTimes[idx], [field]: value }
+                return { ...a, customTimes }
+            })
+        )
+    }
+
+    const switchToCustom = (id) => {
+        setAssignments((prev) =>
+            prev.map((a) => {
+                if (a.id !== id) return a
+                const customTimes = Array.from({ length: a.driverCount }, (_, i) => ({
+                    leaveTime: a.leaveTime || '',
+                    time: a.time ? addMins(a.time, i * (a.staggerMinutes || 10)) || '' : ''
+                }))
+                return { ...a, customTimes, timeMode: 'custom' }
+            })
+        )
+    }
 
     const getStats = () => {
         const s = {}
@@ -194,41 +169,10 @@ function PlanView() {
             .sort((a, b) => a.code.localeCompare(b.code))
     }
 
-    const getOpsForPlant = (code) => {
-        const x = getStats().find((s) => s.code === code)
-        return x ? x.eff : mixerCountsByPlant[code] || 0
-    }
-
-    const calcYards = (code) => {
-        const t = plantYardageTargets[code]
-        if (!t?.yards || t.yards <= 0) return null
-        const ops = getOpsForPlant(code)
-        if (ops <= 0) return { err: true }
-        return { perOp: Math.ceil(t.yards / ops) }
-    }
-
-    const updateYardage = (code, field, val) =>
-        setPlantYardageTargets((p) => ({
-            ...p,
-            [code]: { ...p[code], [field]: val === '' ? '' : parseFloat(val) || 0 }
-        }))
-
     const generate = () => {
-        if (assignments.length === 0) return
-        setIsGenerating(true)
-        const valid = assignments
-            .filter((a) => a.fromPlant && a.toPlant && a.driverCount > 0)
-            .sort((a, b) => {
-                const fa = parseInt(String(a.fromPlant).replace(/\D/g, '')) || 0
-                const fb = parseInt(String(b.fromPlant).replace(/\D/g, '')) || 0
-                return fa !== fb
-                    ? fa - fb
-                    : (parseInt(String(a.toPlant).replace(/\D/g, '')) || 0) -
-                          (parseInt(String(b.toPlant).replace(/\D/g, '')) || 0)
-            })
+        const valid = assignments.filter((a) => a.fromPlant && a.toPlant && a.driverCount > 0)
         if (valid.length === 0) {
-            setGeneratedMessage('Add at least one complete assignment.')
-            setIsGenerating(false)
+            setGeneratedMessage('Add at least one assignment.')
             return
         }
         const dateStr = new Date(planDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'long' })
@@ -237,45 +181,34 @@ function PlanView() {
             if (i > 0) msg += '\n─────────────\n'
             msg += '\n'
             const opWord = a.driverCount === 1 ? 'operator' : 'operators'
-            const stag = getStaggered(a)
-            const clockIn = calcClockIn(a.time, a.fromPlant, a.toPlant)
-            if (a.driverCount > 1 && stag) {
-                msg += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${opWord}, staggered ${a.staggerMinutes} min)\n`
-                stag.forEach((s) => {
-                    msg += `• Op ${s.num}: In ${s.clockIn || '--'} | Arrive ${s.arr}\n`
+            if (a.driverCount > 1 && a.timeMode === 'custom' && a.customTimes?.length > 0) {
+                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord})\n`
+                a.customTimes.slice(0, a.driverCount).forEach((ct, idx) => {
+                    const clockIn = ct.time ? calcClockIn(ct.time, a.fromPlant, a.toPlant) : null
+                    let line = `  Op ${idx + 1}:`
+                    if (clockIn) line += ` In ${clockIn}`
+                    if (ct.time) line += ` | Arrive ${ct.time}`
+                    if (ct.leaveTime) line += ` | Leave ${ct.leaveTime}`
+                    msg += line + '\n'
                 })
+            } else if (a.driverCount > 1) {
+                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord}, ${a.staggerMinutes}min stagger)\n`
+                for (let j = 0; j < a.driverCount; j++) {
+                    const arr = a.time ? addMins(a.time, j * (a.staggerMinutes || 10)) : null
+                    const clockIn = arr ? calcClockIn(arr, a.fromPlant, a.toPlant) : null
+                    msg += `  Op ${j + 1}: In ${clockIn || '--:--'} | Arrive ${arr || '--:--'}\n`
+                }
+                if (a.leaveTime) msg += `  Leave by: ${a.leaveTime}\n`
             } else {
-                msg += `${a.fromPlant} → ${a.toPlant}  (${a.driverCount} ${opWord})\n`
-                if (clockIn) msg += `• Clock in: ${clockIn}\n`
-                if (a.time) msg += `• Arrive by: ${a.time}\n`
+                const clockIn = a.time ? calcClockIn(a.time, a.fromPlant, a.toPlant) : null
+                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord})\n`
+                if (clockIn) msg += `  Clock in: ${clockIn}\n`
+                if (a.time) msg += `  Arrive: ${a.time}\n`
+                if (a.leaveTime) msg += `  Leave: ${a.leaveTime}\n`
             }
-            if (a.returnTime) msg += `• Return by: ${a.returnTime}\n`
         })
-
-        const planStats = getStats()
-        const yardageEntries = Object.entries(plantYardageTargets).filter(([, t]) => t?.yards > 0)
-        if (yardageEntries.length > 0) {
-            msg += '\n─────────────\n\nYardage Targets\n'
-            yardageEntries
-                .sort(([a], [b]) => a.localeCompare(b))
-                .forEach(([code, t]) => {
-                    const plantStat = planStats.find((s) => s.code === code)
-                    const ops = plantStat ? plantStat.eff : mixerCountsByPlant[code] || 0
-                    const yards = t.yards
-                    if (ops > 0) {
-                        const yardsPerOp = Math.ceil(yards / ops)
-                        const loadsPerOp = Math.ceil(yardsPerOp / 10)
-                        msg += `\n${code}: ${yards} yds | ${ops} ops\n`
-                        msg += `• ${yardsPerOp} yds/op | ${loadsPerOp} loads/op\n`
-                    } else {
-                        msg += `\n${code}: ${yards} yds | 0 ops (no coverage)\n`
-                    }
-                })
-        }
-
         if (notes) msg += `\n─────────────\n\nNotes: ${notes}\n`
         setGeneratedMessage(msg.trim())
-        setIsGenerating(false)
     }
 
     const copy = async () => {
@@ -285,761 +218,518 @@ function PlanView() {
         setTimeout(() => setCopied(false), 2000)
     }
 
-    const newPlan = () => {
-        const tomorrow = new Date()
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        setPlanDate(tomorrow.toISOString().split('T')[0])
-        setAssignments([])
-        setGeneratedMessage('')
-        setNotes('')
+    const addTravelTime = async () => {
+        if (
+            !newTravelTime.from ||
+            !newTravelTime.to ||
+            !newTravelTime.minutes ||
+            newTravelTime.from === newTravelTime.to
+        )
+            return
+        await PlanService.upsertTravelTime(newTravelTime.from, newTravelTime.to, parseInt(newTravelTime.minutes))
+        await PlanService.upsertTravelTime(newTravelTime.to, newTravelTime.from, parseInt(newTravelTime.minutes))
+        await PlanService.fetchTravelTimes()
+        setTravelTimes(PlanService.getTravelTimesMap())
+        setNewTravelTime({ from: '', minutes: '', to: '' })
+    }
+
+    const removeTravelTime = async (key) => {
+        const [from, to] = key.split('->')
+        await PlanService.deleteTravelTime(from, to)
+        await PlanService.deleteTravelTime(to, from)
+        await PlanService.fetchTravelTimes()
+        setTravelTimes(PlanService.getTravelTimesMap())
     }
 
     const stats = getStats()
-    const validCount = assignments.filter((a) => a.fromPlant && a.toPlant && a.driverCount > 0).length
+
+    const formatTimeInput = (value) => {
+        const clean = value.replace(/[^0-9]/g, '')
+        if (clean.length <= 2) return clean
+        if (clean.length <= 4) return `${clean.slice(0, 2)}:${clean.slice(2)}`
+        return `${clean.slice(0, 2)}:${clean.slice(2, 4)}`
+    }
+
+    const inputStyle = {
+        background: '#fff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 8,
+        fontSize: 14,
+        outline: 'none',
+        padding: '10px 12px'
+    }
+
+    const timeInputStyle = {
+        ...inputStyle,
+        fontFamily: 'monospace',
+        textAlign: 'center',
+        width: 80
+    }
+
+    const selectStyle = {
+        ...inputStyle,
+        appearance: 'none',
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+        backgroundPosition: 'right 12px center',
+        backgroundRepeat: 'no-repeat',
+        cursor: 'pointer',
+        paddingRight: 32
+    }
+
+    const btnStyle = {
+        background: accentColor,
+        border: 'none',
+        borderRadius: 8,
+        color: '#fff',
+        cursor: 'pointer',
+        fontSize: 14,
+        fontWeight: 500,
+        padding: '10px 16px'
+    }
+
+    if (isLoading) {
+        return (
+            <div style={{ alignItems: 'center', display: 'flex', height: '100vh', justifyContent: 'center' }}>
+                <i className="fas fa-spinner fa-spin" style={{ color: accentColor, fontSize: 24 }}></i>
+            </div>
+        )
+    }
 
     return (
-        <div style={{ background: '#f8fafc', minHeight: '100vh', padding: isMobile ? '16px' : '24px' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    gap: '24px',
-                    margin: '0 auto',
-                    maxWidth: '1400px'
-                }}
-            >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
+        <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: isMobile ? 16 : 24 }}>
+            <div style={{ margin: '0 auto', maxWidth: 900 }}>
+                <div style={{ alignItems: 'center', display: 'flex', gap: 12, marginBottom: 20 }}>
+                    <h1 style={{ color: '#1e293b', flex: 1, fontSize: 22, fontWeight: 700, margin: 0 }}>Daily Plan</h1>
+                    <input
+                        type="date"
+                        value={planDate}
+                        onChange={(e) => setPlanDate(e.target.value)}
+                        style={{ ...inputStyle, fontWeight: 600 }}
+                    />
+                    <button
+                        onClick={() => setShowSettings(!showSettings)}
                         style={{
-                            alignItems: 'center',
-                            background: 'white',
-                            borderRadius: '12px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '12px',
-                            justifyContent: 'space-between',
-                            marginBottom: '16px',
-                            padding: '16px 20px'
+                            ...btnStyle,
+                            background: showSettings ? accentColor : '#e2e8f0',
+                            color: showSettings ? '#fff' : '#64748b',
+                            padding: '10px 12px'
                         }}
                     >
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '12px' }}>
-                            <i className="fas fa-calendar-alt" style={{ color: '#1e3a5f', fontSize: '18px' }}></i>
-                            <input
-                                type="date"
-                                value={planDate}
-                                onChange={(e) => setPlanDate(e.target.value)}
-                                style={{
-                                    background: '#f1f5f9',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    color: '#1e3a5f',
-                                    fontSize: '15px',
-                                    fontWeight: 600,
-                                    outline: 'none',
-                                    padding: '10px 14px'
-                                }}
-                            />
-                        </div>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                            <button
-                                onClick={newPlan}
-                                style={{
-                                    background: '#f1f5f9',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    color: '#475569',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    padding: '10px 14px'
-                                }}
-                            >
-                                <i className="fas fa-plus" style={{ marginRight: '6px' }}></i>New
-                            </button>
-                            {canEditTravelTimes && (
-                                <button
-                                    onClick={() => setShowTravelConfig(!showTravelConfig)}
-                                    style={{
-                                        background: showTravelConfig ? '#1e3a5f' : '#f1f5f9',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        color: showTravelConfig ? 'white' : '#475569',
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                        padding: '10px 14px'
-                                    }}
-                                >
-                                    <i className="fas fa-cog"></i>
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                        <i className="fas fa-cog"></i>
+                    </button>
+                </div>
 
-                    {stats.length > 0 && (
+                {showSettings && (
+                    <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: 20 }}>
+                        <div
+                            style={{
+                                color: '#64748b',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                letterSpacing: 0.5,
+                                marginBottom: 12,
+                                textTransform: 'uppercase'
+                            }}
+                        >
+                            Travel Times
+                        </div>
                         <div
                             style={{
                                 alignItems: 'center',
-                                background: 'white',
-                                borderRadius: '12px',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                                 display: 'flex',
                                 flexWrap: 'wrap',
-                                gap: '8px',
-                                marginBottom: '16px',
-                                padding: '14px 16px'
+                                gap: 8,
+                                marginBottom: 16
                             }}
                         >
-                            {stats.map((s) => (
-                                <div
-                                    key={s.code}
-                                    style={{
-                                        alignItems: 'center',
-                                        background: '#f8fafc',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        gap: '8px',
-                                        padding: '8px 12px'
-                                    }}
-                                >
-                                    <span style={{ color: '#1e3a5f', fontSize: '13px', fontWeight: 700 }}>
-                                        {s.code}
-                                    </span>
-                                    <span style={{ color: '#64748b', fontSize: '13px' }}>
-                                        {s.eff}/{s.base}
-                                    </span>
-                                    {s.send > 0 && (
-                                        <span style={{ color: '#dc2626', fontSize: '12px', fontWeight: 600 }}>
-                                            -{s.send}
-                                        </span>
-                                    )}
-                                    {s.recv > 0 && (
-                                        <span style={{ color: '#16a34a', fontSize: '12px', fontWeight: 600 }}>
-                                            +{s.recv}
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
-                            <button
-                                onClick={() => setShowYardage(!showYardage)}
+                            <select
+                                value={newTravelTime.from}
+                                onChange={(e) => setNewTravelTime({ ...newTravelTime, from: e.target.value })}
+                                style={{ ...selectStyle, flex: 1, minWidth: 80 }}
+                            >
+                                <option value="">From</option>
+                                {plants.map((p) => (
+                                    <option key={p.plant_code} value={p.plant_code}>
+                                        {p.plant_code}
+                                    </option>
+                                ))}
+                            </select>
+                            <i className="fas fa-arrow-right" style={{ color: '#94a3b8' }}></i>
+                            <select
+                                value={newTravelTime.to}
+                                onChange={(e) => setNewTravelTime({ ...newTravelTime, to: e.target.value })}
+                                style={{ ...selectStyle, flex: 1, minWidth: 80 }}
+                            >
+                                <option value="">To</option>
+                                {plants.map((p) => (
+                                    <option key={p.plant_code} value={p.plant_code}>
+                                        {p.plant_code}
+                                    </option>
+                                ))}
+                            </select>
+                            <input
+                                type="number"
+                                placeholder="min"
+                                value={newTravelTime.minutes}
+                                onChange={(e) => setNewTravelTime({ ...newTravelTime, minutes: e.target.value })}
+                                style={{ ...inputStyle, textAlign: 'center', width: 70 }}
+                            />
+                            <button onClick={addTravelTime} style={btnStyle}>
+                                Add
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {Object.entries(travelTimes)
+                                .filter(([k]) => {
+                                    const [f, t] = k.split('->')
+                                    return f < t
+                                })
+                                .map(([k, v]) => {
+                                    const [f, t] = k.split('->')
+                                    return (
+                                        <div
+                                            key={k}
+                                            style={{
+                                                alignItems: 'center',
+                                                background: '#f8fafc',
+                                                borderRadius: 6,
+                                                display: 'flex',
+                                                fontSize: 13,
+                                                gap: 8,
+                                                padding: '6px 10px'
+                                            }}
+                                        >
+                                            <span style={{ color: '#334155', fontWeight: 500 }}>
+                                                {f} ↔ {t}
+                                            </span>
+                                            <span style={{ color: accentColor, fontWeight: 600 }}>{v}m</span>
+                                            <button
+                                                onClick={() => removeTravelTime(k)}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#94a3b8',
+                                                    cursor: 'pointer',
+                                                    padding: 2
+                                                }}
+                                            >
+                                                <i className="fas fa-times" style={{ fontSize: 10 }}></i>
+                                            </button>
+                                        </div>
+                                    )
+                                })}
+                        </div>
+                    </div>
+                )}
+
+                {stats.length > 0 && (
+                    <div
+                        style={{
+                            background: '#fff',
+                            borderRadius: 12,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 8,
+                            marginBottom: 20,
+                            padding: 16
+                        }}
+                    >
+                        {stats.map((s) => (
+                            <div
+                                key={s.code}
                                 style={{
                                     alignItems: 'center',
-                                    background: showYardage ? '#dcfce7' : '#f1f5f9',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    color: showYardage ? '#16a34a' : '#64748b',
-                                    cursor: 'pointer',
+                                    background: s.send > 0 || s.recv > 0 ? '#f0f9ff' : '#f8fafc',
+                                    borderRadius: 8,
                                     display: 'flex',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    gap: '6px',
-                                    marginLeft: 'auto',
+                                    gap: 8,
                                     padding: '8px 12px'
                                 }}
                             >
-                                <i className="fas fa-bullseye"></i>Yardage
-                            </button>
-                        </div>
-                    )}
+                                <span style={{ color: '#334155', fontWeight: 600 }}>{s.code}</span>
+                                <span style={{ color: s.eff !== s.base ? accentColor : '#64748b', fontWeight: 600 }}>
+                                    {s.eff}
+                                </span>
+                                {s.send > 0 && <span style={{ color: '#dc2626', fontSize: 12 }}>-{s.send}</span>}
+                                {s.recv > 0 && <span style={{ color: '#16a34a', fontSize: 12 }}>+{s.recv}</span>}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-                    {showYardage && (
-                        <div
-                            style={{
-                                background: 'white',
-                                borderRadius: '12px',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                                marginBottom: '16px',
-                                overflow: 'hidden',
-                                padding: '16px'
-                            }}
-                        >
-                            <div
-                                style={{
-                                    color: '#475569',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    letterSpacing: '0.5px',
-                                    marginBottom: '12px',
-                                    textTransform: 'uppercase'
-                                }}
-                            >
-                                Yardage Targets
-                            </div>
-                            <div
-                                style={{
-                                    display: 'grid',
-                                    gap: '10px',
-                                    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))'
-                                }}
-                            >
-                                {plants
-                                    .filter((p) => p.plant_code)
-                                    .map((p) => {
-                                        const y = calcYards(p.plant_code)
-                                        const t = plantYardageTargets[p.plant_code] || {}
-                                        return (
-                                            <div
-                                                key={p.plant_code}
-                                                style={{
-                                                    alignItems: 'center',
-                                                    background: '#f8fafc',
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    gap: '8px',
-                                                    padding: '10px 12px'
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        color: '#1e3a5f',
-                                                        fontSize: '13px',
-                                                        fontWeight: 700,
-                                                        flexShrink: 0
-                                                    }}
-                                                >
-                                                    {p.plant_code}
-                                                </span>
-                                                <input
-                                                    type="number"
-                                                    placeholder="Yards"
-                                                    value={t.yards || ''}
-                                                    onChange={(e) =>
-                                                        updateYardage(p.plant_code, 'yards', e.target.value)
-                                                    }
-                                                    style={{
-                                                        background: 'white',
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '6px',
-                                                        flex: 1,
-                                                        fontSize: '13px',
-                                                        minWidth: 0,
-                                                        outline: 'none',
-                                                        padding: '8px 10px',
-                                                        textAlign: 'center'
-                                                    }}
-                                                />
-                                                {y && !y.err && (
-                                                    <span
-                                                        style={{
-                                                            background: '#dcfce7',
-                                                            borderRadius: '4px',
-                                                            color: '#059669',
-                                                            flexShrink: 0,
-                                                            fontSize: '12px',
-                                                            fontWeight: 600,
-                                                            padding: '4px 8px',
-                                                            whiteSpace: 'nowrap'
-                                                        }}
-                                                    >
-                                                        {y.perOp}/op
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )
-                                    })}
-                            </div>
-                        </div>
-                    )}
-
-                    {showTravelConfig && (
-                        <div
-                            style={{
-                                background: 'white',
-                                borderRadius: '12px',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                                marginBottom: '16px',
-                                padding: '16px'
-                            }}
-                        >
-                            <div
-                                style={{
-                                    color: '#475569',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    letterSpacing: '0.5px',
-                                    marginBottom: '12px',
-                                    textTransform: 'uppercase'
-                                }}
-                            >
-                                Travel Times
-                            </div>
-                            <div
-                                style={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: '10px',
-                                    marginBottom: '14px'
-                                }}
-                            >
-                                <select
-                                    value={newTravelTime.from}
-                                    onChange={(e) => setNewTravelTime({ ...newTravelTime, from: e.target.value })}
-                                    style={{
-                                        appearance: 'none',
-                                        background: `#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
-                                        border: '1px solid #e2e8f0',
-                                        borderRadius: '8px',
-                                        color: newTravelTime.from ? '#1e293b' : '#94a3b8',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        fontWeight: 500,
-                                        outline: 'none',
-                                        padding: '10px 32px 10px 14px'
-                                    }}
-                                >
-                                    <option value="">From</option>
-                                    {plants.map((p) => (
-                                        <option key={p.plant_code} value={p.plant_code}>
-                                            {p.plant_code}
-                                        </option>
-                                    ))}
-                                </select>
-                                <i className="fas fa-arrow-right" style={{ color: '#94a3b8', fontSize: '12px' }}></i>
-                                <select
-                                    value={newTravelTime.to}
-                                    onChange={(e) => setNewTravelTime({ ...newTravelTime, to: e.target.value })}
-                                    style={{
-                                        appearance: 'none',
-                                        background: `#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
-                                        border: '1px solid #e2e8f0',
-                                        borderRadius: '8px',
-                                        color: newTravelTime.to ? '#1e293b' : '#94a3b8',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        fontWeight: 500,
-                                        outline: 'none',
-                                        padding: '10px 32px 10px 14px'
-                                    }}
-                                >
-                                    <option value="">To</option>
-                                    {plants.map((p) => (
-                                        <option key={p.plant_code} value={p.plant_code}>
-                                            {p.plant_code}
-                                        </option>
-                                    ))}
-                                </select>
-                                <input
-                                    type="number"
-                                    placeholder="min"
-                                    value={newTravelTime.minutes}
-                                    onChange={(e) => setNewTravelTime({ ...newTravelTime, minutes: e.target.value })}
-                                    style={{
-                                        background: '#f8fafc',
-                                        border: '1px solid #e2e8f0',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        padding: '8px 12px',
-                                        textAlign: 'center',
-                                        width: '70px'
-                                    }}
-                                />
-                                <button
-                                    onClick={addTravelTime}
-                                    disabled={isSaving}
-                                    style={{
-                                        background: accentColor,
-                                        border: 'none',
-                                        borderRadius: '6px',
-                                        color: 'white',
-                                        cursor: 'pointer',
-                                        padding: '8px 14px'
-                                    }}
-                                >
-                                    <i
-                                        className={isSaving ? 'fas fa-spinner fa-spin' : 'fas fa-plus'}
-                                        style={{ fontSize: '13px' }}
-                                    ></i>
-                                </button>
-                            </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                {Object.entries(travelTimes)
-                                    .filter(([k]) => {
-                                        const [f, t] = k.split('->')
-                                        return f < t
-                                    })
-                                    .map(([k, m]) => {
-                                        const [f, t] = k.split('->')
-                                        return (
-                                            <div
-                                                key={k}
-                                                style={{
-                                                    alignItems: 'center',
-                                                    background: '#f8fafc',
-                                                    borderRadius: '6px',
-                                                    display: 'flex',
-                                                    fontSize: '13px',
-                                                    gap: '8px',
-                                                    padding: '6px 10px'
-                                                }}
-                                            >
-                                                <span style={{ color: '#475569' }}>
-                                                    {f}↔{t}
-                                                </span>
-                                                {editingTravelTime === k ? (
-                                                    <input
-                                                        type="number"
-                                                        defaultValue={m}
-                                                        onBlur={(e) => updateTravelTimeValue(k, e.target.value)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter')
-                                                                updateTravelTimeValue(k, e.target.value)
-                                                            if (e.key === 'Escape') setEditingTravelTime(null)
-                                                        }}
-                                                        autoFocus
-                                                        style={{
-                                                            border: '1px solid #1e3a5f',
-                                                            borderRadius: '4px',
-                                                            fontSize: '12px',
-                                                            padding: '4px 6px',
-                                                            textAlign: 'center',
-                                                            width: '45px'
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        onClick={() => setEditingTravelTime(k)}
-                                                        style={{ color: '#1e3a5f', cursor: 'pointer', fontWeight: 600 }}
-                                                    >
-                                                        {m}m
-                                                    </span>
-                                                )}
-                                                <button
-                                                    onClick={() => removeTravelTime(k)}
-                                                    style={{
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        color: '#94a3b8',
-                                                        cursor: 'pointer',
-                                                        fontSize: '11px',
-                                                        padding: '2px'
-                                                    }}
-                                                >
-                                                    <i className="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                        )
-                                    })}
-                            </div>
-                        </div>
-                    )}
-
+                <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: 20 }}>
                     <div
                         style={{
-                            background: 'white',
-                            borderRadius: '12px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                            padding: '16px'
+                            alignItems: 'center',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: 16
                         }}
                     >
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                marginBottom: '14px'
-                            }}
-                        >
-                            <span style={{ color: '#1e293b', fontSize: '15px', fontWeight: 600 }}>Assignments</span>
-                            <button
-                                onClick={addAssignment}
-                                style={{
-                                    background: accentColor,
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    padding: '8px 14px'
-                                }}
-                            >
-                                <i className="fas fa-plus" style={{ marginRight: '6px' }}></i>Add
-                            </button>
+                        <span style={{ color: '#1e293b', fontSize: 16, fontWeight: 600 }}>Assignments</span>
+                        <button onClick={addAssignment} style={btnStyle}>
+                            <i className="fas fa-plus" style={{ marginRight: 6 }}></i>Add
+                        </button>
+                    </div>
+
+                    {assignments.length === 0 ? (
+                        <div style={{ color: '#94a3b8', padding: 40, textAlign: 'center' }}>
+                            <i
+                                className="fas fa-truck"
+                                style={{ display: 'block', fontSize: 32, marginBottom: 12, opacity: 0.5 }}
+                            ></i>
+                            No assignments yet
                         </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            {assignments.map((a, idx) => {
+                                const tt = a.fromPlant && a.toPlant ? getTravelTime(a.fromPlant, a.toPlant) : null
+                                const clockIn =
+                                    a.time && tt !== null ? calcClockIn(a.time, a.fromPlant, a.toPlant) : null
+                                const warn = a.fromPlant && a.driverCount > (mixerCountsByPlant[a.fromPlant] || 0)
 
-                        {assignments.length === 0 ? (
-                            <div style={{ color: '#94a3b8', fontSize: '14px', padding: '32px', textAlign: 'center' }}>
-                                <i
-                                    className="fas fa-truck"
-                                    style={{ display: 'block', fontSize: '28px', marginBottom: '10px' }}
-                                ></i>
-                                No assignments yet
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                {assignments.map((a, i) => {
-                                    const tt = a.fromPlant && a.toPlant ? getTravelTime(a.fromPlant, a.toPlant) : null
-                                    const clockIn = a.time ? calcClockIn(a.time, a.fromPlant, a.toPlant) : null
-                                    const stag = getStaggered(a)
-                                    const warn = a.fromPlant && a.driverCount > (mixerCountsByPlant[a.fromPlant] || 0)
-
-                                    return (
+                                return (
+                                    <div key={a.id} style={{ background: '#f8fafc', borderRadius: 12, padding: 16 }}>
                                         <div
-                                            key={a.id}
-                                            style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px' }}
+                                            style={{ alignItems: 'center', display: 'flex', gap: 10, marginBottom: 12 }}
                                         >
-                                            <div
+                                            <span
                                                 style={{
-                                                    alignItems: 'center',
-                                                    display: 'flex',
-                                                    flexWrap: 'wrap',
-                                                    gap: '10px'
+                                                    background: accentColor,
+                                                    borderRadius: 6,
+                                                    color: '#fff',
+                                                    fontSize: 12,
+                                                    fontWeight: 700,
+                                                    padding: '4px 10px'
                                                 }}
                                             >
-                                                <span
-                                                    style={{
-                                                        background: accentColor,
-                                                        borderRadius: '6px',
-                                                        color: 'white',
-                                                        fontSize: '12px',
-                                                        fontWeight: 700,
-                                                        padding: '4px 10px'
-                                                    }}
-                                                >
-                                                    {i + 1}
-                                                </span>
-                                                <select
-                                                    value={a.fromPlant}
-                                                    onChange={(e) =>
-                                                        updateAssignment(a.id, 'fromPlant', e.target.value)
-                                                    }
-                                                    style={{
-                                                        appearance: 'none',
-                                                        background: `white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '8px',
-                                                        color: a.fromPlant ? '#1e293b' : '#94a3b8',
-                                                        cursor: 'pointer',
-                                                        fontSize: '14px',
-                                                        fontWeight: 500,
-                                                        outline: 'none',
-                                                        padding: '10px 32px 10px 14px'
-                                                    }}
-                                                >
-                                                    <option value="">From</option>
-                                                    {plants
-                                                        .filter((p) => p.plant_code !== a.toPlant)
-                                                        .map((p) => (
-                                                            <option key={p.plant_code} value={p.plant_code}>
-                                                                {p.plant_code}
-                                                            </option>
-                                                        ))}
-                                                </select>
-                                                <i
-                                                    className="fas fa-arrow-right"
-                                                    style={{ color: '#94a3b8', fontSize: '12px' }}
-                                                ></i>
-                                                <select
-                                                    value={a.toPlant}
-                                                    onChange={(e) => updateAssignment(a.id, 'toPlant', e.target.value)}
-                                                    style={{
-                                                        appearance: 'none',
-                                                        background: `white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center`,
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '8px',
-                                                        color: a.toPlant ? '#1e293b' : '#94a3b8',
-                                                        cursor: 'pointer',
-                                                        fontSize: '14px',
-                                                        fontWeight: 500,
-                                                        outline: 'none',
-                                                        padding: '10px 32px 10px 14px'
-                                                    }}
-                                                >
-                                                    <option value="">To</option>
-                                                    {plants
-                                                        .filter((p) => p.plant_code !== a.fromPlant)
-                                                        .map((p) => (
-                                                            <option key={p.plant_code} value={p.plant_code}>
-                                                                {p.plant_code}
-                                                            </option>
-                                                        ))}
-                                                </select>
-                                                <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={a.driverCount}
-                                                        onChange={(e) =>
-                                                            updateAssignment(
-                                                                a.id,
-                                                                'driverCount',
-                                                                parseInt(e.target.value) || 1
-                                                            )
-                                                        }
-                                                        style={{
-                                                            background: 'white',
-                                                            border: '1px solid #e2e8f0',
-                                                            borderRadius: '8px',
-                                                            fontSize: '14px',
-                                                            padding: '8px',
-                                                            textAlign: 'center',
-                                                            width: '50px'
-                                                        }}
-                                                    />
-                                                    <span style={{ color: '#64748b', fontSize: '13px' }}>ops</span>
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    placeholder="HH:MM"
-                                                    value={a.time}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value.replace(/[^0-9:]/g, '')
-                                                        if (v.length <= 5) updateAssignment(a.id, 'time', v)
-                                                    }}
-                                                    onBlur={(e) => {
-                                                        const v = e.target.value
-                                                        if (v && !v.includes(':') && v.length >= 3) {
-                                                            const h = v.slice(0, -2)
-                                                            const m = v.slice(-2)
-                                                            updateAssignment(a.id, 'time', `${h.padStart(2, '0')}:${m}`)
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        background: 'white',
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '8px',
-                                                        fontSize: '14px',
-                                                        padding: '8px 10px',
-                                                        textAlign: 'center',
-                                                        width: '75px'
-                                                    }}
-                                                    title="Arrive by (24hr)"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="HH:MM"
-                                                    value={a.returnTime}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value.replace(/[^0-9:]/g, '')
-                                                        if (v.length <= 5) updateAssignment(a.id, 'returnTime', v)
-                                                    }}
-                                                    onBlur={(e) => {
-                                                        const v = e.target.value
-                                                        if (v && !v.includes(':') && v.length >= 3) {
-                                                            const h = v.slice(0, -2)
-                                                            const m = v.slice(-2)
-                                                            updateAssignment(
-                                                                a.id,
-                                                                'returnTime',
-                                                                `${h.padStart(2, '0')}:${m}`
-                                                            )
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        background: 'white',
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '8px',
-                                                        fontSize: '14px',
-                                                        padding: '8px 10px',
-                                                        textAlign: 'center',
-                                                        width: '75px'
-                                                    }}
-                                                    title="Return by (24hr)"
-                                                />
-                                                <button
-                                                    onClick={() => removeAssignment(a.id)}
-                                                    style={{
-                                                        background: '#fee2e2',
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        color: '#dc2626',
-                                                        cursor: 'pointer',
-                                                        fontSize: '12px',
-                                                        marginLeft: 'auto',
-                                                        padding: '8px 10px'
-                                                    }}
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </button>
-                                            </div>
+                                                {idx + 1}
+                                            </span>
+                                            <select
+                                                value={a.fromPlant}
+                                                onChange={(e) => updateAssignment(a.id, 'fromPlant', e.target.value)}
+                                                style={{ ...selectStyle, flex: 1 }}
+                                            >
+                                                <option value="">From Plant</option>
+                                                {plants
+                                                    .filter((p) => p.plant_code !== a.toPlant)
+                                                    .map((p) => (
+                                                        <option key={p.plant_code} value={p.plant_code}>
+                                                            {p.plant_code}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                            <i className="fas fa-arrow-right" style={{ color: '#94a3b8' }}></i>
+                                            <select
+                                                value={a.toPlant}
+                                                onChange={(e) => updateAssignment(a.id, 'toPlant', e.target.value)}
+                                                style={{ ...selectStyle, flex: 1 }}
+                                            >
+                                                <option value="">To Plant</option>
+                                                {plants
+                                                    .filter((p) => p.plant_code !== a.fromPlant)
+                                                    .map((p) => (
+                                                        <option key={p.plant_code} value={p.plant_code}>
+                                                            {p.plant_code}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                            <button
+                                                onClick={() => removeAssignment(a.id)}
+                                                style={{
+                                                    background: '#fee2e2',
+                                                    border: 'none',
+                                                    borderRadius: 6,
+                                                    color: '#dc2626',
+                                                    cursor: 'pointer',
+                                                    padding: '8px 10px'
+                                                }}
+                                            >
+                                                <i className="fas fa-trash" style={{ fontSize: 12 }}></i>
+                                            </button>
+                                        </div>
 
-                                            {(warn ||
-                                                clockIn ||
-                                                (tt === null && a.fromPlant && a.toPlant) ||
-                                                a.driverCount > 1) && (
+                                        <div
+                                            style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 12 }}
+                                        >
+                                            <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
+                                                <span style={{ color: '#64748b', fontSize: 12 }}>Operators</span>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    value={a.driverCount || ''}
+                                                    onChange={(e) =>
+                                                        updateAssignment(
+                                                            a.id,
+                                                            'driverCount',
+                                                            e.target.value === ''
+                                                                ? ''
+                                                                : Math.max(1, parseInt(e.target.value) || 1)
+                                                        )
+                                                    }
+                                                    style={{ ...inputStyle, textAlign: 'center', width: 60 }}
+                                                />
+                                            </div>
+                                            <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
+                                                <span style={{ color: '#64748b', fontSize: 12 }}>Arrive</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="HH:MM"
+                                                    maxLength={5}
+                                                    value={a.time || ''}
+                                                    onChange={(e) =>
+                                                        updateAssignment(a.id, 'time', formatTimeInput(e.target.value))
+                                                    }
+                                                    style={timeInputStyle}
+                                                />
+                                            </div>
+                                            <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
+                                                <span style={{ color: '#64748b', fontSize: 12 }}>Leave</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="HH:MM"
+                                                    maxLength={5}
+                                                    value={a.leaveTime || ''}
+                                                    onChange={(e) =>
+                                                        updateAssignment(
+                                                            a.id,
+                                                            'leaveTime',
+                                                            formatTimeInput(e.target.value)
+                                                        )
+                                                    }
+                                                    style={timeInputStyle}
+                                                />
+                                            </div>
+                                            {clockIn && (
+                                                <div
+                                                    style={{
+                                                        background: '#dcfce7',
+                                                        borderRadius: 6,
+                                                        color: '#16a34a',
+                                                        fontSize: 12,
+                                                        fontWeight: 600,
+                                                        padding: '6px 10px'
+                                                    }}
+                                                >
+                                                    Clock in: {clockIn}
+                                                </div>
+                                            )}
+                                            {tt !== null && (
+                                                <div
+                                                    style={{
+                                                        background: '#f1f5f9',
+                                                        borderRadius: 6,
+                                                        color: '#64748b',
+                                                        fontSize: 12,
+                                                        padding: '6px 10px'
+                                                    }}
+                                                >
+                                                    {tt + BUFFER_MINUTES}min travel
+                                                </div>
+                                            )}
+                                            {warn && (
+                                                <div
+                                                    style={{
+                                                        background: '#fef3c7',
+                                                        borderRadius: 6,
+                                                        color: '#92400e',
+                                                        fontSize: 12,
+                                                        padding: '6px 10px'
+                                                    }}
+                                                >
+                                                    <i
+                                                        className="fas fa-exclamation-triangle"
+                                                        style={{ marginRight: 4 }}
+                                                    ></i>
+                                                    Only {mixerCountsByPlant[a.fromPlant] || 0} available
+                                                </div>
+                                            )}
+                                            {tt === null && a.fromPlant && a.toPlant && (
+                                                <div
+                                                    style={{
+                                                        background: '#fef3c7',
+                                                        borderRadius: 6,
+                                                        color: '#92400e',
+                                                        fontSize: 12,
+                                                        padding: '6px 10px'
+                                                    }}
+                                                >
+                                                    No travel time set
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {a.driverCount > 1 && (
+                                            <div
+                                                style={{
+                                                    borderTop: '1px solid #e2e8f0',
+                                                    marginTop: 16,
+                                                    paddingTop: 16
+                                                }}
+                                            >
                                                 <div
                                                     style={{
                                                         alignItems: 'center',
                                                         display: 'flex',
-                                                        flexWrap: 'wrap',
-                                                        gap: '10px',
-                                                        marginTop: '12px'
+                                                        gap: 12,
+                                                        marginBottom: 12
                                                     }}
                                                 >
-                                                    {warn && (
-                                                        <span
+                                                    <div
+                                                        style={{
+                                                            background: '#e2e8f0',
+                                                            borderRadius: 6,
+                                                            display: 'flex',
+                                                            overflow: 'hidden'
+                                                        }}
+                                                    >
+                                                        <button
+                                                            onClick={() =>
+                                                                updateAssignment(a.id, 'timeMode', 'stagger')
+                                                            }
                                                             style={{
-                                                                background: '#fef3c7',
-                                                                borderRadius: '6px',
-                                                                color: '#92400e',
-                                                                fontSize: '12px',
-                                                                padding: '6px 10px'
-                                                            }}
-                                                        >
-                                                            <i
-                                                                className="fas fa-exclamation-triangle"
-                                                                style={{ marginRight: '5px' }}
-                                                            ></i>
-                                                            Only {mixerCountsByPlant[a.fromPlant] || 0} available
-                                                        </span>
-                                                    )}
-                                                    {tt === null && a.fromPlant && a.toPlant && (
-                                                        <span
-                                                            style={{
-                                                                background: '#fef3c7',
-                                                                borderRadius: '6px',
-                                                                color: '#92400e',
-                                                                fontSize: '12px',
-                                                                padding: '6px 10px'
-                                                            }}
-                                                        >
-                                                            No travel time
-                                                        </span>
-                                                    )}
-                                                    {clockIn && (
-                                                        <span
-                                                            style={{
-                                                                background: '#dcfce7',
-                                                                borderRadius: '6px',
-                                                                color: '#16a34a',
-                                                                fontSize: '12px',
+                                                                background:
+                                                                    a.timeMode !== 'custom'
+                                                                        ? accentColor
+                                                                        : 'transparent',
+                                                                border: 'none',
+                                                                color: a.timeMode !== 'custom' ? '#fff' : '#64748b',
+                                                                cursor: 'pointer',
+                                                                fontSize: 12,
                                                                 fontWeight: 500,
-                                                                padding: '6px 10px'
+                                                                padding: '8px 14px'
                                                             }}
                                                         >
-                                                            Clock in: {clockIn}
-                                                        </span>
-                                                    )}
-                                                    {tt !== null && (
-                                                        <span
+                                                            Stagger
+                                                        </button>
+                                                        <button
+                                                            onClick={() => switchToCustom(a.id)}
                                                             style={{
-                                                                background: '#f1f5f9',
-                                                                borderRadius: '6px',
-                                                                color: '#64748b',
-                                                                fontSize: '12px',
-                                                                padding: '6px 10px'
+                                                                background:
+                                                                    a.timeMode === 'custom'
+                                                                        ? accentColor
+                                                                        : 'transparent',
+                                                                border: 'none',
+                                                                color: a.timeMode === 'custom' ? '#fff' : '#64748b',
+                                                                cursor: 'pointer',
+                                                                fontSize: 12,
+                                                                fontWeight: 500,
+                                                                padding: '8px 14px'
                                                             }}
                                                         >
-                                                            {tt + BUFFER_MINUTES} min travel
-                                                        </span>
-                                                    )}
-                                                    {a.driverCount > 1 && (
-                                                        <div
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                display: 'flex',
-                                                                gap: '6px'
-                                                            }}
-                                                        >
-                                                            <span style={{ color: '#64748b', fontSize: '12px' }}>
-                                                                Stagger:
+                                                            Custom
+                                                        </button>
+                                                    </div>
+                                                    {a.timeMode !== 'custom' && (
+                                                        <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
+                                                            <span style={{ color: '#64748b', fontSize: 12 }}>
+                                                                Every
                                                             </span>
                                                             <input
                                                                 type="number"
                                                                 min="5"
                                                                 step="5"
-                                                                value={a.staggerMinutes}
+                                                                value={a.staggerMinutes || 10}
                                                                 onChange={(e) =>
                                                                     updateAssignment(
                                                                         a.id,
@@ -1048,177 +738,231 @@ function PlanView() {
                                                                     )
                                                                 }
                                                                 style={{
-                                                                    background: 'white',
-                                                                    border: '1px solid #e2e8f0',
-                                                                    borderRadius: '6px',
-                                                                    fontSize: '12px',
-                                                                    padding: '4px 8px',
+                                                                    ...inputStyle,
                                                                     textAlign: 'center',
-                                                                    width: '50px'
+                                                                    width: 60
                                                                 }}
                                                             />
-                                                            <span style={{ color: '#64748b', fontSize: '12px' }}>
-                                                                min
-                                                            </span>
+                                                            <span style={{ color: '#64748b', fontSize: 12 }}>min</span>
                                                         </div>
                                                     )}
                                                 </div>
-                                            )}
 
-                                            {stag && (
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        flexWrap: 'wrap',
-                                                        gap: '8px',
-                                                        marginTop: '10px'
-                                                    }}
-                                                >
-                                                    {stag.map((s) => (
-                                                        <span
-                                                            key={s.num}
-                                                            style={{
-                                                                background: 'white',
-                                                                border: '1px solid #e2e8f0',
-                                                                borderRadius: '6px',
-                                                                color: '#475569',
-                                                                fontSize: '12px',
-                                                                padding: '6px 10px'
-                                                            }}
-                                                        >
-                                                            Op {s.num}: {s.clockIn || '--'} → {s.arr}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
+                                                {a.timeMode === 'custom' ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                        {Array.from({ length: a.driverCount }, (_, i) => {
+                                                            const ct = a.customTimes?.[i] || {}
+                                                            const opClockIn = ct.time
+                                                                ? calcClockIn(ct.time, a.fromPlant, a.toPlant)
+                                                                : null
+                                                            return (
+                                                                <div
+                                                                    key={i}
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        background: '#fff',
+                                                                        borderRadius: 8,
+                                                                        display: 'flex',
+                                                                        gap: 10,
+                                                                        padding: 10
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        style={{
+                                                                            background: accentColor,
+                                                                            borderRadius: 4,
+                                                                            color: '#fff',
+                                                                            fontSize: 11,
+                                                                            fontWeight: 600,
+                                                                            minWidth: 28,
+                                                                            padding: '4px 0',
+                                                                            textAlign: 'center'
+                                                                        }}
+                                                                    >
+                                                                        {i + 1}
+                                                                    </span>
+                                                                    <div
+                                                                        style={{
+                                                                            alignItems: 'center',
+                                                                            display: 'flex',
+                                                                            flex: 1,
+                                                                            gap: 8
+                                                                        }}
+                                                                    >
+                                                                        <span
+                                                                            style={{ color: '#94a3b8', fontSize: 11 }}
+                                                                        >
+                                                                            Arrive
+                                                                        </span>
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="HH:MM"
+                                                                            maxLength={5}
+                                                                            value={ct.time || ''}
+                                                                            onChange={(e) =>
+                                                                                updateCustomTime(
+                                                                                    a.id,
+                                                                                    i,
+                                                                                    'time',
+                                                                                    formatTimeInput(e.target.value)
+                                                                                )
+                                                                            }
+                                                                            style={{
+                                                                                ...timeInputStyle,
+                                                                                flex: 1,
+                                                                                padding: '6px 8px'
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            alignItems: 'center',
+                                                                            display: 'flex',
+                                                                            flex: 1,
+                                                                            gap: 8
+                                                                        }}
+                                                                    >
+                                                                        <span
+                                                                            style={{ color: '#94a3b8', fontSize: 11 }}
+                                                                        >
+                                                                            Leave
+                                                                        </span>
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="HH:MM"
+                                                                            maxLength={5}
+                                                                            value={ct.leaveTime || ''}
+                                                                            onChange={(e) =>
+                                                                                updateCustomTime(
+                                                                                    a.id,
+                                                                                    i,
+                                                                                    'leaveTime',
+                                                                                    formatTimeInput(e.target.value)
+                                                                                )
+                                                                            }
+                                                                            style={{
+                                                                                ...timeInputStyle,
+                                                                                flex: 1,
+                                                                                padding: '6px 8px'
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            background: opClockIn
+                                                                                ? '#dcfce7'
+                                                                                : '#f1f5f9',
+                                                                            borderRadius: 6,
+                                                                            color: opClockIn ? '#16a34a' : '#94a3b8',
+                                                                            fontSize: 11,
+                                                                            fontWeight: 600,
+                                                                            minWidth: 60,
+                                                                            padding: '6px 8px',
+                                                                            textAlign: 'center'
+                                                                        }}
+                                                                    >
+                                                                        {opClockIn || '--:--'}
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                                        {Array.from({ length: a.driverCount }, (_, i) => {
+                                                            const arr = a.time
+                                                                ? addMins(a.time, i * (a.staggerMinutes || 10))
+                                                                : null
+                                                            const opClockIn = arr
+                                                                ? calcClockIn(arr, a.fromPlant, a.toPlant)
+                                                                : null
+                                                            return (
+                                                                <div
+                                                                    key={i}
+                                                                    style={{
+                                                                        background: '#fff',
+                                                                        borderRadius: 6,
+                                                                        fontSize: 12,
+                                                                        padding: '8px 12px'
+                                                                    }}
+                                                                >
+                                                                    <span style={{ color: '#64748b' }}>
+                                                                        Op {i + 1}:
+                                                                    </span>{' '}
+                                                                    <span style={{ color: '#16a34a', fontWeight: 500 }}>
+                                                                        {opClockIn || '--'}
+                                                                    </span>
+                                                                    <span style={{ color: '#94a3b8' }}> → </span>
+                                                                    <span style={{ color: '#334155', fontWeight: 500 }}>
+                                                                        {arr || '--'}
+                                                                    </span>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
 
-                        {assignments.length > 0 && (
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Notes..."
-                                style={{
-                                    background: '#f8fafc',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    marginTop: '14px',
-                                    minHeight: '60px',
-                                    outline: 'none',
-                                    padding: '12px',
-                                    resize: 'vertical',
-                                    width: '100%'
-                                }}
-                            />
-                        )}
-                    </div>
+                    {assignments.length > 0 && (
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Notes (optional)..."
+                            style={{ ...inputStyle, marginTop: 16, minHeight: 80, resize: 'vertical', width: '100%' }}
+                        />
+                    )}
                 </div>
 
-                <div style={{ flex: isMobile ? 'none' : '0 0 340px', width: isMobile ? '100%' : '340px' }}>
-                    <div
-                        style={{
-                            background: 'white',
-                            borderRadius: '12px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                            padding: '16px',
-                            position: isMobile ? 'relative' : 'sticky',
-                            top: '24px'
-                        }}
-                    >
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                marginBottom: '14px'
-                            }}
-                        >
-                            <span style={{ color: '#1e293b', fontSize: '15px', fontWeight: 600 }}>Message</span>
-                            <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                                {generatedMessage && (
-                                    <button
-                                        onClick={copy}
-                                        style={{
-                                            background: copied ? '#dcfce7' : '#f1f5f9',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            color: copied ? '#16a34a' : '#64748b',
-                                            cursor: 'pointer',
-                                            fontSize: '13px',
-                                            padding: '8px 12px'
-                                        }}
-                                    >
-                                        <i
-                                            className={copied ? 'fas fa-check' : 'fas fa-copy'}
-                                            style={{ marginRight: '5px' }}
-                                        ></i>
-                                        {copied ? 'Copied' : 'Copy'}
-                                    </button>
-                                )}
-                                <button
-                                    onClick={generate}
-                                    disabled={isGenerating || validCount === 0}
-                                    style={{
-                                        background: validCount === 0 ? '#e2e8f0' : accentColor,
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        color: validCount === 0 ? '#94a3b8' : 'white',
-                                        cursor: validCount === 0 ? 'not-allowed' : 'pointer',
-                                        fontSize: '13px',
-                                        fontWeight: 500,
-                                        padding: '8px 14px'
-                                    }}
-                                >
-                                    {isGenerating ? (
-                                        <i className="fas fa-spinner fa-spin"></i>
-                                    ) : (
-                                        <>
-                                            <i className="fas fa-magic" style={{ marginRight: '5px' }}></i>Generate
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        {generatedMessage ? (
-                            <pre
+                <div style={{ background: '#fff', borderRadius: 12, padding: 20 }}>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: 12, marginBottom: 16 }}>
+                        <span style={{ color: '#1e293b', flex: 1, fontSize: 16, fontWeight: 600 }}>
+                            Generated Message
+                        </span>
+                        <button onClick={generate} style={btnStyle}>
+                            <i className="fas fa-sync-alt" style={{ marginRight: 6 }}></i>Generate
+                        </button>
+                        {generatedMessage && (
+                            <button
+                                onClick={copy}
                                 style={{
-                                    background: '#f8fafc',
-                                    borderRadius: '8px',
-                                    color: '#1e293b',
-                                    fontSize: '13px',
-                                    lineHeight: 1.6,
-                                    margin: 0,
-                                    maxHeight: '60vh',
-                                    overflow: 'auto',
-                                    padding: '14px',
-                                    whiteSpace: 'pre-wrap'
+                                    ...btnStyle,
+                                    background: copied ? '#16a34a' : '#e2e8f0',
+                                    color: copied ? '#fff' : '#334155'
                                 }}
                             >
-                                {generatedMessage}
-                            </pre>
-                        ) : (
-                            <div
-                                style={{
-                                    background: '#f8fafc',
-                                    borderRadius: '8px',
-                                    color: '#94a3b8',
-                                    fontSize: '13px',
-                                    padding: '32px 16px',
-                                    textAlign: 'center'
-                                }}
-                            >
-                                {validCount === 0
-                                    ? 'Add assignments to generate message'
-                                    : 'Click Generate to create message'}
-                            </div>
+                                <i className={`fas fa-${copied ? 'check' : 'copy'}`} style={{ marginRight: 6 }}></i>
+                                {copied ? 'Copied' : 'Copy'}
+                            </button>
                         )}
                     </div>
+                    {generatedMessage ? (
+                        <pre
+                            style={{
+                                background: '#f8fafc',
+                                borderRadius: 8,
+                                color: '#334155',
+                                fontFamily: 'monospace',
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                margin: 0,
+                                overflow: 'auto',
+                                padding: 16,
+                                whiteSpace: 'pre-wrap'
+                            }}
+                        >
+                            {generatedMessage}
+                        </pre>
+                    ) : (
+                        <div style={{ color: '#94a3b8', padding: 32, textAlign: 'center' }}>
+                            Click Generate to create the plan message
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

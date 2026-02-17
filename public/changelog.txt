@@ -1,0 +1,548 @@
+# Changelog
+
+All notable changes to SmyrnaTools will be documented in this file.
+
+## [10.9] - 2026-02-17
+
+- Removed dependency on UserService and introduced a new `getUserId` function to retrieve user ID from localStorage or sessionStorage in `TutorialService.js`.
+- Added user existence check before performing database operations in `dismissTutorial` function in `TutorialService.js`.
+- Reordered and restructured `getDismissedTutorials` function to use the new `getUserId` method in `TutorialService.js`.
+- Updated `resetTutorial` and `resetAllTutorials` functions to use the new `getUserId` method instead of UserService in `TutorialService.js`.
+- Removed error handling for insertion in `dismissTutorial` to simplify error management in `TutorialService.js`.
+
+## [10.8] - 2026-02-17
+
+- Updated `DashboardPlantSummary.jsx` to persist the minimized state of the dashboard plant summary using `localStorage`.
+- Added initialization of `isMinimized` state based on saved value in `localStorage`, defaulting to `true` if no value is found or if not in a browser environment.
+- Implemented `useEffect` hook to save the `isMinimized` state to `localStorage` whenever it changes.
+
+## [10.7] - 2026-02-17
+
+- Removed mobile-specific sidebar functionality and related state variables `showMobileSidebar` and `sidebarExpanded` from `ListView.jsx`.
+- Deleted styles and components related to the sidebar, including `sidebar`, `sidebarBody`, `sidebarHeader`, `sidebarHeaderSubtitle`, `sidebarHeaderTitle`, `sidebarSection`, and `sidebarTitle` in `ListView.jsx`.
+- Removed mobile-specific UI elements and styles such as `mobileStatBadge`, `mobileStatsRow`, `mobileToggleBar`, and `mobileToggleBtn` from `ListView.jsx`.
+- Eliminated stat card styles and related components like `statCard` and `statValue` from `ListView.jsx`.
+- Changed `mainContent` style in `ListView.jsx` to always use `flexDirection: 'column'` regardless of device type.
+- Removed `viewModeToggle` and associated `viewModeBtn` styles and components from `ListView.jsx`.
+- Removed `listViewFilterBar` component and related rendering logic from `ListView.jsx`.
+
+## [10.6] - 2026-02-17
+
+- Added `isMobile` property to `TutorialContext` in `src/app/context/TutorialContext.jsx` with a default value of `false`.
+- Updated `MyAccountView.jsx` to destructure `isMobile` from `useTutorial` hook and conditionally render the Tutorials section based on `!isMobile`, hiding it on mobile devices.
+- Removed database migration files `20260202_create_plant_travel_times.sql` and `20260217_create_user_tutorials.sql` from the `supabase/migrations` directory.
+
+## [10.5] - 2026-02-17
+
+- Updated mobile navigation styling in `DetailViewSection.jsx` with increased padding, adjusted button sizes, larger icon sizes, and modified content padding for better mobile responsiveness.
+- Adjusted mobile view breakpoints in `DetailViewSection.jsx` for screens smaller than 480px, refining navigation and button dimensions.
+- Added visible text labels within buttons for "Issues" and "Comments" in header actions across detail view components including `EquipmentDetailView.jsx`, `MixerDetailView.jsx`, `PickupTrucksDetailView.jsx`, `TractorDetailView.jsx`, and `TrailerDetailView.jsx`.
+
+## [10.4] - 2026-02-17
+
+- Updated version in `public/turl.json` from 10.2 to 10.3.
+- Introduced a new tutorial system with the addition of `TutorialContext.jsx` for managing tutorial states and interactions.
+- Added `TutorialPopup.jsx` component to display tutorial content to users.
+- Created `TutorialService.js` to handle tutorial-related operations such as dismissing and retrieving tutorial data.
+- Added a database migration script `20260217_create_user_tutorials.sql` to support user tutorial tracking in Supabase.
+- Integrated tutorial functionality in `App.js` by adding `TutorialManager` component and triggering initial tutorial 'account-nav-hint' on user login.
+- Updated `PreferencesContext.js` to include a `tutorials` preference setting, with event dispatching for preference updates.
+- Modified `Navigation.jsx` to likely support tutorial hints or navigation-related tutorial content.
+- Enhanced `DashboardView.jsx` and `MyAccountView.jsx` to incorporate tutorial triggers or displays specific to these views.
+- Adjusted `index.js` to potentially include tutorial-related initialization or context providers.
+
+## [10.2] - 2026-02-17
+
+- Added support for dynamic accent color in `VerificationRequirementsModal.jsx` using user preferences from `PreferencesContext`.
+- Updated the `header` background color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Changed the `primaryButton` background color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Modified the `savePhoneButton` background color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Updated the `sectionTitle` text color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+- Adjusted the `tableLabel` text color to use the dynamic `accentColor` instead of the static value `#1e3a5f`.
+
+## [10.1] - 2026-02-17
+
+- Refactored asynchronous logic in `DetailViewSection.jsx` by extracting inline async functions into named functions for better readability and maintainability.
+- Renamed async operations in `DetailViewSection.jsx` as follows: plant permission check to `checkPlantPermission`, transfer permission check to `checkTransferPerm`, regions loading to `loadRegions`, and plants loading to `loadPlants`.
+- Updated invocation of asynchronous functions in `DetailViewSection.jsx` to use explicit function calls instead of immediately invoked async expressions.
+
+## [10.0] - 2026-02-17
+
+- Updated `DetailViewSection.jsx` to introduce a new `DetailViewContext` for managing active sections and sidebar state, including functionality for collapsing/expanding the sidebar with local storage persistence.
+- Enhanced UI styling in `DetailViewSection.jsx` with updated CSS for form controls, buttons, and layout elements, including improved focus states, border radius, and typography.
+- Added new props and state management in `DetailViewSection.jsx` for region transfer functionality, including permissions checking, region/plant selection, and transfer error handling.
+- Refactored multiple detail view components (`EquipmentDetailView.jsx`, `ListDetailView.jsx`, `ManagerDetailView.jsx`, `MixerDetailView.jsx`, `OperatorDetailView.jsx`, `PickupTrucksDetailView.jsx`, `TractorDetailView.jsx`, `TrailerDetailView.jsx`) to integrate with the updated `DetailViewSection` component and context.
+- Updated `VerificationCardSection.jsx` with potential UI or functional improvements to align with the new detail view structure and styling.
+
+## [9.9] - 2026-02-16
+
+- Reduced the number of color options in MyAccountView.jsx from 10 to 3 (Navy, Red, Black).
+- Updated the color code for 'Gray' from '#1f2937' to '#374151' in MyAccountView.jsx.
+
+## [9.8] - 2026-02-16
+
+- Updated `VersionPopup.jsx` to use dynamic accent color from user preferences instead of a hardcoded value for the popup background.
+- Modified `ListView.jsx` to apply dynamic accent color from user preferences across multiple UI elements.
+- Changed hover effect for the add button in `ListView.jsx` to adjust opacity instead of changing background color.
+
+## [9.7] - 2026-02-16
+
+- Added support for customizable accent color in RecapModalSection.jsx by integrating the usePreferences hook to fetch user preferences.
+- Replaced hardcoded background color '#1e3a5f' with dynamic accentColor from user preferences for the tab and modal header in RecapModalSection.jsx.
+- Updated date filter buttons in RecapModalSection.jsx to use dynamic styling based on accentColor for active and inactive states.
+
+## [9.6] - 2026-02-16
+
+- Added support for customizable accent color in user preferences in `PreferencesContext.js`, allowing users to set a preferred color theme.
+- Applied dynamic accent color from user preferences to UI elements in `LoadingScreen.jsx`, `Navigation.jsx`, and `NotificationsModal.jsx` for consistent theming.
+- Updated styling in `DetailViewSection.jsx` to use dynamic accent color for form section headers and other elements.
+
+## [9.5] - 2026-02-13
+
+- Updated `useReviewData.js` to handle component unmounting by adding a `mounted` flag to prevent state updates after unmount.
+- Added CSS rules in `index.css` to remove spin buttons from number input fields across different browsers for a cleaner UI.
+- Enhanced `ReportService.js` to include caching for `fetchActiveOperatorsAndMixers` using `CacheUtility` with a short TTL.
+- Significantly refactored `PlanView.jsx` with major changes including removal of initial `assignments` state data, addition of `plantYardageTargets` and `showYardage` states.
+
+## [9.4] - 2026-02-12
+
+- Added custom sorting for status percentages in `StatusHistoryBar.jsx` with a defined order for statuses (Active, In Shop, Spare).
+- Introduced loading animation with a shimmer effect for the status bar during data loading.
+- Added animation for status bar segments with fade-in and width transition effects using `animateIn` state.
+
+## [9.3] - 2026-02-12
+
+- Updated the expand/collapse button in `DashboardPlantSummary.jsx` to prevent event propagation with `e.stopPropagation()`.
+- Changed the styling of the expand/collapse button in `DashboardPlantSummary.jsx`.
+
+## [9.2] - 2026-02-12
+
+- Added new file `DashboardPlantSummary.jsx` to handle detailed plant summary views with features like expandable alert sections, asset buttons, and metric cards.
+- Implemented interactive UI components in `DashboardPlantSummary.jsx` including tab navigation, minimization toggles, and dynamic content rendering.
+- Refactored `DashboardView.jsx` to reduce codebase by removing or consolidating 687 lines.
+
+## [9.1] - 2026-02-12
+
+- Updated status color coding for 'Spare' status to use a new background color '#f3e8ff' and text color '#7c3aed'.
+- Added new status color coding for 'In Shop' with background color '#dbeafe' and text color '#1e40af'.
+- Introduced new status 'Down In Yard' with background color '#fee2e2' and text color '#dc2626'.
+- Introduced new status 'Waiting For Shop' with background color '#ffedd5' and text color '#c2410c'.
+- Introduced new status 'Third Party Work' with background color '#fef9c3' and text color '#a16207'.
+
+## [9.0] - 2026-02-12
+
+- Updated status color schemes in `MixersView.jsx` for multiple statuses.
+- Updated status color schemes in `TractorsView.jsx` for 'Spare' status.
+- Reordered status checks in both `MixersView.jsx` and `TractorsView.jsx`.
+
+## [8.9] - 2026-02-12
+
+- Added new component `StatusHistoryBar.jsx` to display status history as a visual bar with percentage-based status durations.
+- Implemented status history tracking in `StatusHistoryBar.jsx` with support for multiple item types.
+- Updated multiple views to integrate the `StatusHistoryBar` component.
+
+## [8.8] - 2026-02-12
+
+- Optimized `VideoBackground` component by wrapping it with `React.memo` to prevent unnecessary re-renders.
+- Removed video preloading and rotation logic in `VideoBackground.jsx`, simplifying the component.
+- Added lazy loading for `VideoBackground` component in `LoginView.jsx` using `React.lazy` and `Suspense`.
+
+## [8.7] - 2026-02-12
+
+- Reworked TractorSelectModal to improve UI and functionality.
+- Updated `TrailerDetailView.jsx` with minor changes to integrate with the revised TractorSelectModal.
+
+## [8.6] - 2026-02-12
+
+- Implemented lazy loading for view components in `App.js` to improve performance.
+- Added a `LoadingFallback` component in `App.js` to display a spinner during component loading.
+- Optimized event handlers in `App.js` by wrapping with `useCallback` to prevent unnecessary re-renders.
+
+## [8.5] - 2026-02-12
+
+- Added `ReportsStatsCards` component in `ReportsView.jsx` to display statistics for both 'all' and 'review' tabs.
+- Introduced `ReportsEmptyState` component in `ReportsView.jsx` to handle empty states.
+- Enhanced `MyReportsList.jsx` with a new `getDueDateStatus` function to calculate and display due date status with color-coded urgency indicators.
+
+## [8.4] - 2026-02-12
+
+- Added new hooks for handling pagination, report submissions, reports data, review data, submit data, and submit forms.
+- Refactored `ReportsReviewView.jsx` with updates to improve review functionality.
+- Overhauled `ReportsSubmitView.jsx` with extensive modifications to submission UI and logic.
+- Added new components for reports including confirmation and error modals, reports lists, and toolbars.
+
+## [8.3] - 2026-02-12
+
+- Added a new "Production vs Labor" chart in `DashboardCharts.jsx` to display weekly production data.
+- Removed the "Fleet Uptime vs Downtime" chart from `DashboardCharts.jsx`.
+- Added grouping comments to organize charts into sections.
+
+## [8.2] - 2026-02-12
+
+- Added Recharts library components to DashboardView.jsx for data visualization.
+- Replaced the previous status color and sorting logic with a new STATUS_COLORS object.
+- Implemented a new chartData structure for displaying percentage data for different equipment types.
+
+## [8.1] - 2026-02-12
+
+- Added `recharts` library version 3.7.0 to dependencies for chart visualization support.
+- Introduced `@reduxjs/toolkit` version 2.11.2 and related dependencies for state management.
+- Created new file `DashboardCharts.jsx` to implement chart components for the dashboard.
+
+## [8.0] - 2026-02-11
+
+- Added `trailerType` field to the `slimTrailer` function in `DashboardUtility.js`.
+- Enhanced trailer statistics in `DashboardView.jsx` to track totals by `trailerType`.
+- Added a new UI section in `DashboardView.jsx` to display trailer type statistics.
+
+## [7.9] - 2026-02-11
+
+- Replaced "Verified" percentage pill with "Allocated" percentage pill for mixers, tractors, trailers, and equipment in DashboardView.jsx.
+- Added conditional background and text color based on allocation percentage thresholds.
+
+## [7.8] - 2026-02-11
+
+- Added `freight` property to tractor data in `DashboardUtility.js`.
+- Enhanced tractor statistics in `DashboardView.jsx` to track and display freight type categories.
+
+## [7.7] - 2026-02-11
+
+- Updated sorting logic in `MixersView.jsx` to include 'Active' status alongside 'In Shop' and 'Spare'.
+- Modified date calculation for sorting in `MixersView.jsx` to fallback to `createdAt`.
+
+## [7.6] - 2026-02-11
+
+- Added cleanliness rating check in MixerDetailView.jsx to block setting a mixer to "Active" status if cleanliness rating is less than 3 stars.
+- Added restriction to prevent operator assignment if cleanliness rating is less than 3 stars.
+
+## [7.5] - 2026-02-11
+
+- Added sorting logic to `validAssignments` in `PlanView.jsx` to order assignments numerically.
+
+## [7.4] - 2026-02-11
+
+- Updated plant code filtering logic in `ListService.js` to exclude 'All' option.
+- Modified plant selection logic in `FleetUtility.js` to handle 'All' option.
+- Added support for 'All' plant selection in filtering across multiple views.
+
+## [7.3] - 2026-02-11
+
+- Updated PlantDropdownModal.jsx to change the onSelect value from 'All' to an empty string.
+
+## [7.2] - 2026-02-08
+
+- Updated AI history summary prompt in `context.json` to focus on overall trends and positive patterns.
+- Modified `HistoryViewSection.jsx` to use `handleRegenerateAISummary` for regenerating AI summaries.
+- Removed operator turnover warning logic from `AIService.js`.
+- Added copy-to-clipboard functionality for identifying numbers in multiple views.
+
+## [7.1] - 2026-02-08
+
+- Updated branding text in LoginView.jsx from "Ready Mix" to "Tools" in the login page header.
+
+## [7.0] - 2026-02-06
+
+- Updated padding for `.login-panel` class in `LoginView.jsx` to `0.75rem` at max-width of 480px.
+- Removed specific padding and border-radius styles for `.login-panel > div` at max-width of 480px in `LoginView.jsx`.
+
+## [6.9] - 2026-02-06
+
+- Updated `GeneralManagerExport.js` to handle trainer field in `createWeekSheet` function by displaying 'Not Assigned' when the trainer value is empty or not a valid string.
+- Enhanced responsive design in `LoginView.jsx` by adjusting padding and layout for the login panel at different screen sizes, including specific styles for screens smaller than 480px.
+
+## [6.8] - 2026-02-06
+
+- Added a grid background pattern to the login panel in `src/views/login/LoginView.jsx` using `backgroundImage` with a linear gradient for a subtle grid effect.
+- Enhanced the login panel container styling in `src/views/login/LoginView.jsx` by adding a white background, border radius, box shadow, increased max width to 380px, and padding for a more polished look.
+
+## [6.7] - 2026-02-06
+
+- Added dynamic statistics display for assets, operators, and plants on the login screen in `src/views/login/LoginView.jsx`.
+- Implemented data fetching from Supabase for counts of mixers, tractors, trailers, heavy equipment, operators, and plants in `LoginView.jsx`.
+- Introduced animated number transitions for displaying statistics with a smooth easing effect over 2 seconds in `LoginView.jsx`.
+- Enhanced UI styling for input fields and labels with focus states and transitions in `LoginView.jsx`.
+- Updated layout and design of the login page with new styles for logo, text, and overall structure in `LoginView.jsx`.
+
+## [6.6] - 2026-02-06
+
+- Simplified error handling in `setAISummaryToCache` and `clearAISummaryCache` functions by removing explicit `return` statements in catch blocks in `src/utils/DashboardUtility.js`.
+- Refactored `buildPlantSet` function in `src/utils/DashboardUtility.js` to improve readability by assigning `regionPlants || []` to a variable before iteration.
+
+## [6.5] - 2026-02-06
+
+- Added new file `src/utils/DashboardUtility.js` with utility functions for dashboard data processing, including `slimMixer`, `slimTractor`, `slimTrailer`, `slimEquipment`, `slimPickup`, and `slimOperator` for data normalization.
+- Implemented `isServiceOverdue` and `normalizeDate` functions in `DashboardUtility.js` to handle service overdue checks and date normalization.
+- Introduced `calculateStatusDistribution` function in `DashboardUtility.js` to compute status distribution of assets over a specified date range.
+- Updated `src/views/dashboard/DashboardView.jsx` with significant refactoring, though specific changes are not detailed in the provided diff excerpt.
+
+## [6.4] - 2026-02-06
+
+- Added a grid background effect to the Navigation component in src/components/common/Navigation.jsx using a linear gradient pattern.
+- Added a subtle grid background effect to the dashboard view in src/views/dashboard/DashboardView.jsx with a linear gradient pattern.
+
+## [6.3] - 2026-02-06
+
+- Updated styling in Navigation.jsx by removing background grid image and adjusting box shadow from '0 4px 20px' to '0 2px 8px' with reduced opacity.
+- Removed background grid and radial gradient image from DashboardView.jsx in the dashboard container styling.
+- Adjusted card shadow in DashboardView.jsx from 'shadow-lg' to 'shadow-md' for a subtler effect.
+- Changed icon background opacity in DashboardView.jsx from 'bg-white/10' with backdrop blur to 'bg-white/15'.
+- Removed 'animate-pulse' and 'animate-fadeOut' effects from notification styling in DashboardView.jsx for failed AI summaries.
+- Added new CSS animations in DashboardView.jsx: 'cursorBlink' for a blinking cursor effect and 'fadeSlideIn' for a smooth entry animation.
+- Applied 'cursorBlink' animation to the typing cursor in DashboardView.jsx with a 1-second step-end infinite loop.
+
+## [6.2] - 2026-02-05
+
+- Updated PlanView.jsx to display effective and base values alongside percentage in stat displays
+- Modified allocation bar in PlanView.jsx to show effective/base values with percentage in the UI
+
+## [6.1] - 2026-02-05
+
+- Updated `Mixer.js` to replace `downInYard` property with `shopStatus` for more detailed status tracking of mixers.
+- Modified `MixerCard.jsx` to handle multiple shop statuses (`down_in_yard`, `waiting_for_shop`, `third_party`) with corresponding color coding and display text.
+- Enhanced `MixerDetailView.jsx` to support the new `shopStatus` field instead of `downInYard`, including UI updates and data handling for different shop status values.
+- Adjusted related views and components in `MixersView.jsx` to reflect the change from `downInYard` to `shopStatus` for consistency in status representation.
+- Updated backend logic in `supabase/functions/mixer-service/index.ts` to accommodate the new `shopStatus` field in mixer data processing.
+
+## [6.0] - 2026-02-05
+
+- Updated README.md to remove specific details about the operational scope, specifically the references to "24 states" and "100+ plants", simplifying the description of SRM Tools.
+
+## [5.9] - 2026-02-05
+
+- Added error logging for operator comments count fetch in `OperatorService.js`.
+- Implemented status change history tracking in `OperatorService.js` by fetching data from `operators_history` table and mapping the latest `changed_at` date for each operator's status change.
+- Added `createdAt` and `statusChangedAt` fields to operator data in `OperatorService.js`, with `statusChangedAt` falling back to `created_at` if no history is available.
+- Enhanced `OperatorsView.jsx` to display the duration of an operator's current status in days next to the status badge (excluding 'Terminated' status), using either `statusChangedAt` or `createdAt`.
+- Added a visual comment count badge in `OperatorsView.jsx` on the comments action button, displaying the number of comments (showing '9+' if count exceeds 9), with specific styling for positioning and appearance.
+- Adjusted styling of the comments action button in `OperatorsView.jsx` to include `position: 'relative'` for proper badge placement.
+
+## [5.8] - 2026-02-05
+
+- Added `showReturnTime` state property to control visibility of the return time field in `PlanView.jsx`.
+- Modified assignment loading in `fetchUserPlan` to include `showReturnTime` based on existing `returnTime` or explicitly set value.
+- Updated UI to conditionally display a button to add a return time when `showReturnTime` is false, and show the return time input field when `showReturnTime` is true.
+- Added functionality to toggle `showReturnTime` for an assignment via a button click in `PlanView.jsx`.
+
+## [5.7] - 2026-02-05
+
+- Added functionality to fetch comment counts for various asset types in services.
+- Added functionality to fetch open issues counts for various asset types in services.
+- Enhanced `EquipmentService.js` to track status change history with `fetchEquipmentsWithDetails`, adding `statusChangedAt` field to equipment data.
+- Updated views to integrate the new comment and issue count functionalities.
+
+## [5.6] - 2026-02-05
+
+- Added comment count badge to the comments button in MixersView.jsx, displaying the number of comments for each item with a styled badge showing up to "9+" if the count exceeds 9.
+- Added open issues count badge to the issues button in MixersView.jsx, displaying the number of open issues for each item with a styled badge showing up to "9+" if the count exceeds 9.
+- Updated button styles in MixersView.jsx for both comments and issues buttons to include `position: 'relative'` to support badge positioning.
+
+## [5.5] - 2026-02-04
+
+- Updated sorting logic in MixersView.jsx for the 'Status' column to prioritize different statuses with a specific order: Active (1), Spare (2), In Shop without downInYard (3), In Shop with downInYard (4), Retired (5), and others (6).
+- Added secondary sorting by days since status change for 'Spare' and 'In Shop' statuses in MixersView.jsx, using the statusChangedAt field to calculate elapsed days.
+
+## [5.4] - 2026-02-04
+
+- Added `@vercel/speed-insights` package version 1.3.1 to project dependencies in `package.json` and `package-lock.json`
+- Integrated Vercel Speed Insights by importing and rendering the `SpeedInsights` component from `@vercel/speed-insights/react` in `src/app/App.js`
+
+## [5.3] - 2026-02-04
+
+- Updated `CommentModalSection.jsx` to improve comment display and interaction.
+- Enhanced `IssueModalSection.jsx` with significant updates.
+- Modified `AIService.js` with minor updates or fixes.
+- Improved `DashboardView.jsx` with updates to dashboard functionality or UI.
+- Updated `PlanView.jsx` with enhancements to planning features or layout.
+
+## [5.2] - 2026-02-03
+
+- Added Vercel Analytics integration with `@vercel/analytics` package in `package.json` and `package-lock.json`, and included the `<Analytics />` component in `src/app/App.js`.
+- Enhanced Mixer model in `src/models/mixers/Mixer.js` to include `statusChangedAt` property for tracking status change timestamps.
+- Updated `MixerService.js` to fetch and map status change history from `mixers_history` table in Supabase, associating `statusChangedAt` with each mixer during data processing in `fetchMixersWithDetails`.
+- Modified `MixersView.jsx` to display the duration of a mixer's status based on `statusChangedAt` instead of `updatedAt` for non-retired mixers, improving accuracy of status duration display.
+
+## [5.1] - 2026-02-03
+
+- Removed PropTypes import and related prop type definitions from src/app/App.js
+- Removed VideoBackground component import and usage from src/app/App.js
+- Removed useVersionPolling hook import from src/app/App.js
+- Removed VersionPopup component and its associated code from src/app/App.js
+- Removed UpdateLoadingScreen component and its associated code from src/app/App.js
+- Removed UpdateWarningPopup component and its associated code from src/app/App.js
+- Removed ScheduledUpdateBanner component and its associated code from src/app/App.js
+
+## [5.0] - 2026-02-03
+
+- Added `overflow: 'hidden'` to the card style in `PlanView.jsx` to prevent content overflow.
+- Updated button styles in `PlanView.jsx` for mobile responsiveness.
+
+## [4.9] - 2026-02-03
+
+- Enhanced mobile responsiveness in `PlanView.jsx` by adjusting layout styles for mobile devices.
+- Added a mobile-specific allocation card in `PlanView.jsx` to display allocation statistics with a grid layout for better visibility on smaller screens.
+- Modified grid layout in `PlanView.jsx` to display a single column on mobile devices instead of multiple columns for card rows.
+
+## [4.8] - 2026-02-03
+
+- Added new CSS styles in `CardSection.jsx` for detailed row layouts.
+- Introduced styling for overdue values with a distinct color and weight in `CardSection.jsx`.
+- Added styles for a star rating system in `CardSection.jsx`.
+
+## [4.7] - 2026-02-03
+
+- Updated status display in `MixerCard.jsx` to show "Down In Yard" instead of a separate badge when a mixer is in shop and down in the yard.
+- Added specific color coding for "Down In Yard" status in `MixerCard.jsx`.
+- Modified status display in `MixersView.jsx` to combine "In Shop" and "downInYard" into a single "Down In Yard" status label.
+
+## [4.6] - 2026-02-03
+
+- Updated `MixerDetailView` in `MixersView.jsx` to pass `selectedMixer.id` instead of `selectedMixer` as the `mixerId` prop.
+
+## [4.5] - 2026-02-03
+
+- Updated `MixerDetailView` in `MixersView.jsx` to pass `selectedMixer.id` instead of `selectedMixer` as the `mixerId` prop.
+
+## [4.4] - 2026-02-03
+
+- Added conditional rendering to hide the Active Mixers section in ReportsSubmitView.jsx for the 'general_manager' report type.
+
+## [4.3] - 2026-02-03
+
+- Removed support for `generatedMessage` parameter in `saveUserPlan` function in `src/services/PlanService.js`
+- Updated `PlanView.jsx` to remove references to `generatedMessage` in state and function calls
+
+## [4.2] - 2026-02-03
+
+- Removed the `user_plans` table and associated indexes from `sql/users_plans.sql`
+- Removed row-level security configuration and access policy for the `user_plans` table
+
+## [4.1] - 2026-02-03
+
+- Added a new `pulse` animation keyframe in `src/app/index.css` for visual effects.
+- Introduced loading indicator styles in `src/views/plan/PlanView.jsx` for displaying a loading state during message generation.
+- Refactored `generateMessage` function in `src/views/plan/PlanView.jsx` to handle message formatting directly within the component.
+
+## [4.0] - 2026-02-03
+
+- Added new Plan feature with a dedicated view in `src/views/plan/PlanView.jsx` for managing user plans and assignments.
+- Integrated Plan navigation item in `src/components/common/Navigation.jsx` with a calendar icon.
+- Introduced `PlanService.js` in `src/services/` to handle plan-related operations.
+
+## [3.9] - 2026-02-02
+
+- Added new CSS styles for report cards in ReportsReviewView.jsx and ReportsSubmitView.jsx.
+- Introduced styling for form layouts in both ReportsReviewView.jsx and ReportsSubmitView.jsx.
+- Implemented table styling for plant summaries and aggregated data.
+
+## [3.8] - 2026-02-02
+
+- Added 'Unscreened White Sand' as a new material option in the General Manager Export report.
+
+## [3.7] - 2026-02-02
+
+- Updated AI comment validation logic in `src/services/AIService.js` to be more lenient.
+- Improved error messaging for comment validation in `src/utils/ReportUtility.js`.
+- Enhanced error handling in `src/views/reports/ReportsSubmitView.jsx` by introducing a modal for displaying errors.
+
+## [3.6] - 2026-02-02
+
+- Added new dependency `turl-release` from GitHub repository.
+- Updated `release` script in `package.json` to use `turl-release`.
+- Replaced `version.json` with `turl.json` in the `public` directory.
+
+## [3.5] - 2026-02-02
+
+- Updated dependency versions for improved performance and security.
+- Enhanced release and cleanup scripts for smoother deployment processes.
+
+## [3.0] - 2026-01-30
+
+- Replaced the browser's native confirm dialog for AI validation warnings with a custom modal dialog in the report submission view.
+- Added state management for displaying AI warning modal with concerns and suggestions when potential issues are detected in reports.
+
+## [2.9] - 2026-01-30
+
+- Added AI validation for Plant Manager reports during submission
+- Implemented progress tracking for AI validation process
+- Display AI-detected issues and suggestions in a confirmation dialog
+
+## [2.8] - 2026-01-30
+
+- Code formatting and cleanup
+
+## [2.7] - 2026-01-30
+
+- Added new method `validatePlantManagerMetrics` in AIService.js to validate weekly plant manager reports.
+- Implemented validation logic to flag obvious data entry errors in metrics.
+
+## [2.6] - 2026-01-30
+
+- Added AI validation feature for plant production reports to analyze efficiency and operator performance.
+- Implemented new state variables for tracking AI validation status and progress.
+
+## [2.5] - 2026-01-30
+
+- Updated the styling of the AI validation warning message in the Weekly Efficiency Report.
+- Added an icon (fa-robot) to the AI validation warning message for visual emphasis.
+
+## [2.4] - 2026-01-30
+
+- Added AI-powered validation for weekly plant efficiency report comments in AIService.js.
+- Enhanced validation logic to identify performance issues like delayed starts, low loads, and excessive hours.
+
+## [2.3] - 2026-01-29
+
+- Updated eslint-plugin-react-hooks from version 7.0.1 to 5.0.0
+- Downgraded TypeScript from version 5.9.3 to 4.9.5
+
+## [2.2] - 2026-01-29
+
+- Removed SonarJS plugin and its associated rules from ESLint configuration
+
+## [2.1] - 2026-01-29
+
+- Updated ESLint configuration with new plugins for React hooks, SonarJS, and security checks.
+- Comprehensive refactoring across application components, services, and utilities for improved maintainability.
+
+## [2.0] - 2026-01-29
+
+- Enhanced ESLint configuration with additional plugins for React hooks, security, and code organization.
+- Comprehensive refactoring across application components, services, and utilities for improved maintainability.
+
+## [1.9] - 2026-01-29
+
+- Simplified README.md by removing detailed sections on Getting Started, Environment, and Scripts.
+
+## [1.8] - 2026-01-29
+
+- Updated the 'plantSummary' prompt in context.json to improve formatting and clarity of the analysis output.
+
+## [1.7] - 2026-01-29
+
+- Code formatting and cleanup
+
+## [1.6] - 2026-01-29
+
+- Version update
+
+## [1.5] - 2026-01-29
+
+- Updated README.md with improved formatting and layout for better readability
+
+## [1.4] - 2026-01-29
+
+- Updated CI workflow to trigger on the 'core' branch instead of 'main' and 'master'
+- Updated the footer in README.md to credit Trenton Taylor for building the project for SRM Concrete
+
+## [1.3] - 2026-01-29
+
+- Added new AI module with initial configuration files and service implementations
+- Introduced context.json for AI context management
+
+## [1.2] - 2026-01-29
+
+- Renamed AIInsightsService.js to AIService.js for consistency in naming conventions
+
+## [1.1] - 2026-01-29
+
+- Initial release

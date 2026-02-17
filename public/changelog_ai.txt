@@ -1,0 +1,152 @@
+# Changelog (User-Friendly)
+
+This file contains AI-generated, user-friendly summaries of each version's changes.
+
+## [10.9]
+- Improved how the app remembers your tutorial progress across sessions
+- Fixed an issue where dismissed tutorials could reappear unexpectedly
+
+## [10.8]
+- The plant summary section on the dashboard now remembers if you collapsed it
+- Your preference is saved and applied automatically when you return
+
+## [10.7]
+- Simplified the task list view with a cleaner layout
+- Removed cluttered sidebar elements for a more focused experience
+- Improved mobile responsiveness throughout the list view
+
+## [10.6]
+- Tutorial hints are now hidden on mobile devices for a cleaner experience
+- Updated account settings to reflect mobile-specific options
+
+## [10.5]
+- Improved button visibility on mobile with clearer labels for Issues and Comments
+- Better touch targets and spacing on smaller screens
+
+## [10.4]
+- Added a new tutorial system to help you learn app features
+- Tutorials can be dismissed and won't show again once completed
+- Manage tutorial preferences in your account settings
+
+## [10.2]
+- Your chosen accent color now applies to more areas of the app
+- Verification screens and buttons now match your color preference
+
+## [10.1]
+- Performance improvements for detail pages
+- Faster loading of asset information
+
+## [10.0]
+- Redesigned detail view with collapsible sidebar
+- New region transfer feature for moving assets between regions
+- Improved form styling and button interactions
+
+## [9.9]
+- Simplified color theme options to three choices: Navy, Red, and Black
+
+## [9.8]
+- Your accent color preference now applies to more UI elements
+- Version popup and list views now respect your color choice
+
+## [9.7]
+- Recap modal now uses your chosen accent color for better consistency
+
+## [9.6]
+- Added customizable accent color in preferences
+- Your color choice now applies across navigation, dashboard, and notifications
+
+## [9.5]
+- Fixed an issue where report data could update after leaving the page
+- Cleaner number inputs without spinner buttons
+- Faster loading of operator and mixer data for reports
+
+## [9.4]
+- Added loading animation for status history bars
+- Smoother transitions when viewing asset status over time
+
+## [9.3]
+- Fixed expand/collapse button behavior on plant summary cards
+
+## [9.2]
+- New plant summary component with expandable alert sections
+- Quick access buttons for assets needing attention
+- Performance metrics displayed in easy-to-read cards
+
+## [9.1]
+- Updated status colors for better visibility
+- New color coding for Spare, In Shop, Down In Yard, Waiting For Shop, and Third Party Work statuses
+
+## [9.0]
+- Consistent status colors across mixer and tractor views
+- Easier to identify equipment status at a glance
+
+## [8.9]
+- New status history bar shows how long equipment has been in each status
+- Visual breakdown of Active, In Shop, and Spare time percentages
+
+## [8.8]
+- Faster video loading on the login screen
+- Reduced memory usage for background animations
+
+## [8.7]
+- Improved tractor selection when assigning to trailers
+- Better search and sorting options in the selection modal
+
+## [8.6]
+- Faster app startup with optimized page loading
+- Smoother transitions between different views
+
+## [8.5]
+- New statistics cards on the reports page
+- Better empty state messages when no reports are available
+- Color-coded due date indicators for upcoming reports
+
+## [8.4]
+- Reorganized reports interface for easier navigation
+- New confirmation and error modals for clearer feedback
+- Improved report submission workflow
+
+## [8.3]
+- New Production vs Labor chart on the dashboard
+- See weekly yards, hours, and efficiency at a glance
+
+## [8.2]
+- Added visual charts to the dashboard
+- Equipment status now displayed in easy-to-read bar charts
+
+## [8.1]
+- Added charting capabilities for better data visualization
+- New dashboard charts coming soon
+
+## [8.0]
+- Trailer statistics now broken down by type (Cement vs End Dump)
+- Easier to track different trailer categories
+
+## [7.9]
+- New allocation percentage indicators for mixers, tractors, trailers, and equipment
+- Color-coded badges show allocation health at a glance
+
+## [7.8]
+- Tractor statistics now show freight type breakdown
+- Track Cement, Aggregate, Dump Truck, and other categories separately
+
+## [7.7]
+- Improved sorting for mixers by status and time in current status
+
+## [7.6]
+- Mixers must have 3+ star cleanliness rating before being set to Active
+- Operators cannot be assigned to mixers below 3 stars
+
+## [7.5]
+- Plant assignments now sorted numerically for easier reading
+
+## [7.4]
+- Added "All Plants" option for viewing data across all locations
+- Filter by all plants or select a specific one
+
+## [7.3]
+- Fixed plant dropdown selection behavior
+
+## [7.2]
+- AI history summaries now focus on positive trends
+- Copy equipment numbers to clipboard with one click
