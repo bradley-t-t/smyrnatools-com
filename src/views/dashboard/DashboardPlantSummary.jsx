@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 
@@ -22,7 +22,15 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [activeTab, setActiveTab] = useState('alerts')
-    const [isMinimized, setIsMinimized] = useState(false)
+    const [isMinimized, setIsMinimized] = useState(() => {
+        if (typeof window === 'undefined') return true
+        const saved = localStorage.getItem('dashboard-plant-summary-minimized')
+        return saved === null ? true : saved === 'true'
+    })
+
+    useEffect(() => {
+        localStorage.setItem('dashboard-plant-summary-minimized', String(isMinimized))
+    }, [isMinimized])
 
     const hasNotifications =
         plantNotifications.unverifiedMixers.length > 0 ||

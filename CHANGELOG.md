@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.8] - 2026-02-17
+
+- Updated `DashboardPlantSummary.jsx` to persist the minimized state of the dashboard plant summary using `localStorage`.
+- Added initialization of `isMinimized` state based on saved value in `localStorage`, defaulting to `true` if no value is found or if not in a browser environment.
+- Implemented `useEffect` hook to save the `isMinimized` state to `localStorage` whenever it changes.
+
 ## [10.7] - 2026-02-17
 
 - Removed mobile-specific sidebar functionality and related state variables `showMobileSidebar` and `sidebarExpanded` from `ListView.jsx`.
