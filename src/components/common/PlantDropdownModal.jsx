@@ -194,7 +194,7 @@ function PlantDropdownModal({
                         <div
                             style={optionStyle(false)}
                             onClick={() => {
-                                onSelect('')
+                                onSelect('All')
                                 onClose()
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}

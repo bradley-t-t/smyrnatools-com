@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.4] - 2026-02-17
+
+- Updated `PlantDropdownModal.jsx` to change the default selection text from an empty string to 'All' when selecting the default option.
+- Enhanced `WeeklySafetyManagerReport.jsx` by adding dynamic positioning for the tag picker menu to ensure it displays correctly above or below the button based on available screen space.
+- Modified CSS in `WeeklySafetyManagerReport.jsx` to use `position: fixed` for the `.safety-tag-menu` class, adjusting its `z-index` to 10000 and setting explicit width constraints.
+- Added `z-index: 50` to the `.safety-tag-picker` class in `WeeklySafetyManagerReport.jsx` to manage layering.
+- Updated the tag picker menu styling in `WeeklySafetyManagerReport.jsx` to increase box-shadow intensity and define a specific width of 320px with a max-width of 90vw.
+
 ## [11.3] - 2026-02-17
 
 - Adjusted mobile responsiveness in `PlanView.jsx` by reducing padding and font sizes for mobile devices.

@@ -37,11 +37,11 @@ const safetyReportStyles = `
 .safety-select-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
 .safety-select-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
 .safety-select-btn i { color: #64748b; font-size: 0.75rem; }
-.safety-tag-picker { position: relative; width: 100%; }
+.safety-tag-picker { position: relative; width: 100%; z-index: 50; }
 .safety-tag-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
 .safety-tag-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
 .safety-tag-placeholder { display: flex; align-items: center; }
-.safety-tag-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); z-index: 100; overflow: hidden; }
+.safety-tag-menu { position: fixed; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 10000; overflow: hidden; width: 320px; max-width: 90vw; }
 .safety-tag-menu-header { display: flex; gap: 0.5rem; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; background: #f8fafc; }
 .safety-tag-action { padding: 0.375rem 0.75rem; background: white; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.75rem; font-weight: 500; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 0.375rem; }
 .safety-tag-action:hover { background: #f1f5f9; }
@@ -99,7 +99,10 @@ const TAG_COLORS = {
 function TagPicker({ value, options, disabled, placeholder, onChange }) {
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState('')
+    const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 })
     const ref = useRef(null)
+    const btnRef = useRef(null)
+
     useEffect(() => {
         function onDocClick(e) {
             if (!ref.current) return
@@ -109,6 +112,22 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
         document.addEventListener('mousedown', onDocClick)
         return () => document.removeEventListener('mousedown', onDocClick)
     }, [])
+
+    useEffect(() => {
+        if (open && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect()
+            const menuHeight = 350
+            const spaceBelow = window.innerHeight - rect.bottom
+            const showAbove = spaceBelow < menuHeight && rect.top > menuHeight
+
+            setMenuPosition({
+                left: rect.left,
+                top: showAbove ? rect.top - menuHeight - 4 : rect.bottom + 4,
+                width: Math.max(rect.width, 280)
+            })
+        }
+    }, [open])
+
     const lower = query.toLowerCase()
     const filtered = options.filter((o) => o.toLowerCase().includes(lower))
 
@@ -134,6 +153,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
             <button
                 type="button"
                 className="safety-tag-btn"
+                ref={btnRef}
                 disabled={disabled}
                 aria-expanded={open}
                 onClick={() => setOpen((o) => !o)}
@@ -147,7 +167,11 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                 <i className={`fas fa-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: '0.75rem' }}></i>
             </button>
             {open && (
-                <div className="safety-tag-menu" role="listbox">
+                <div
+                    className="safety-tag-menu"
+                    role="listbox"
+                    style={{ left: menuPosition.left, top: menuPosition.top, width: menuPosition.width }}
+                >
                     <div className="safety-tag-menu-header">
                         <button type="button" className="safety-tag-action" onClick={selectAll}>
                             <i className="fas fa-check-double"></i> All
