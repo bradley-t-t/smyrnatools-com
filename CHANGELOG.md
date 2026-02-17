@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [10.1] - 2026-02-17
+
+- Refactored asynchronous logic in `DetailViewSection.jsx` by extracting inline async functions into named functions for better readability and maintainability.
+- Renamed async operations in `DetailViewSection.jsx` as follows: plant permission check to `checkPlantPermission`, transfer permission check to `checkTransferPerm`, regions loading to `loadRegions`, and plants loading to `loadPlants`.
+- Updated invocation of asynchronous functions in `DetailViewSection.jsx` to use explicit function calls instead of immediately invoked async expressions.
+
 ## [10.0] - 2026-02-17
 
 - Updated `DetailViewSection.jsx` to introduce a new `DetailViewContext` for managing active sections and sidebar state, including functionality for collapsing/expanding the sidebar with local storage persistence.

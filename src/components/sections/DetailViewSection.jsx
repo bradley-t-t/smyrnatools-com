@@ -208,7 +208,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
             onCanEditChange?.(canEdit)
             return
         }
-        ;(async () => {
+        const checkPlantPermission = async () => {
             try {
                 const user = await UserService.getCurrentUser()
                 const uid = user?.id || user
@@ -242,11 +242,12 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                 setWarning(null)
                 onCanEditChange?.(true)
             }
-        })()
+        }
+        checkPlantPermission()
     }, [itemAssignedPlant, canEdit, restrictionWarning, onCanEditChange])
 
     useEffect(() => {
-        ;(async () => {
+        const checkTransferPerm = async () => {
             try {
                 const user = await UserService.getCurrentUser()
                 const uid = user?.id || user
@@ -256,19 +257,21 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
             } catch {
                 setHasTransferPerm(false)
             }
-        })()
+        }
+        checkTransferPerm()
     }, [])
 
     useEffect(() => {
         if (!showTransfer || !hasTransferPerm) return
-        ;(async () => {
+        const loadRegions = async () => {
             try {
                 const { RegionService } = await import('../../services/RegionService')
                 setRegions((await RegionService.fetchRegions()) || [])
             } catch {
                 setTransferErr('Failed to load regions')
             }
-        })()
+        }
+        loadRegions()
     }, [showTransfer, hasTransferPerm])
 
     useEffect(() => {
@@ -276,7 +279,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
             setPlants([])
             return
         }
-        ;(async () => {
+        const loadPlants = async () => {
             try {
                 const { RegionService } = await import('../../services/RegionService')
                 setPlants((await RegionService.fetchRegionPlants(targetRegion)) || [])
@@ -284,7 +287,8 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
             } catch {
                 setPlants([])
             }
-        })()
+        }
+        loadPlants()
     }, [targetRegion])
 
     const openTransfer = () => {
