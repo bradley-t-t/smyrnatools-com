@@ -219,14 +219,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         alignItems: 'center',
         backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
         border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
-        borderRadius: isTablet ? '8px' : '10px',
+        borderRadius: isTablet ? '6px' : '10px',
         color: 'white',
         cursor: 'pointer',
         display: 'flex',
-        fontSize: isTablet ? '13px' : '14px',
+        flexShrink: 0,
+        fontSize: isTablet ? '12px' : '14px',
         fontWeight: isActive ? 600 : 500,
-        gap: isTablet ? '6px' : '8px',
-        padding: isTablet ? '8px 10px' : '10px 16px',
+        gap: isTablet ? '4px' : '8px',
+        padding: isTablet ? '6px 8px' : '10px 16px',
         transition: 'all 0.2s ease',
         whiteSpace: 'nowrap'
     })
@@ -320,15 +321,16 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 alignItems: 'center',
                 backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
                 border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.08)',
-                borderRadius: isTablet ? '10px' : '12px',
+                borderRadius: isTablet ? '8px' : '12px',
                 color: 'white',
                 cursor: 'pointer',
                 display: 'flex',
-                height: isTablet ? '36px' : '42px',
+                flexShrink: 0,
+                height: isTablet ? '32px' : '42px',
                 justifyContent: 'center',
                 position: 'relative',
                 transition: 'all 0.2s ease',
-                width: isTablet ? '36px' : '42px'
+                width: isTablet ? '32px' : '42px'
             }}
             onClick={onClick}
             title={title}
@@ -342,7 +344,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 e.currentTarget.style.transform = 'translateY(0)'
             }}
         >
-            <i className={`fas ${icon}`} style={{ fontSize: isTablet ? '14px' : '16px' }}></i>
+            <i className={`fas ${icon}`} style={{ fontSize: isTablet ? '13px' : '16px' }}></i>
             {badge > 0 && (
                 <span
                     style={{
@@ -353,15 +355,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         boxShadow: `0 2px 8px ${badgeColor}66`,
                         color: 'white',
                         display: 'flex',
-                        fontSize: isTablet ? '10px' : '11px',
+                        fontSize: isTablet ? '9px' : '11px',
                         fontWeight: 700,
-                        height: isTablet ? '18px' : '20px',
+                        height: isTablet ? '16px' : '20px',
                         justifyContent: 'center',
-                        minWidth: isTablet ? '18px' : '20px',
-                        padding: '0 5px',
+                        minWidth: isTablet ? '16px' : '20px',
+                        padding: '0 4px',
                         position: 'absolute',
-                        right: '-2px',
-                        top: '-2px'
+                        right: '-4px',
+                        top: '-4px'
                     }}
                 >
                     {badge}
@@ -559,7 +561,9 @@ export default function Navigation({ selectedView, onSelectView, children, userN
 
     return (
         <>
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+            <div
+                style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', width: '100%' }}
+            >
                 <header
                     style={{
                         alignItems: 'center',
@@ -570,32 +574,50 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         borderBottom: '1px solid rgba(255,255,255,0.08)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                         display: 'flex',
-                        height: isTablet ? '60px' : '68px',
+                        flexShrink: 0,
+                        height: isTablet ? '56px' : '68px',
                         justifyContent: 'space-between',
-                        padding: isTablet ? '0 16px' : '0 24px',
+                        padding: isTablet ? '0 12px' : '0 24px',
                         position: 'sticky',
                         top: 0,
                         zIndex: 100
                     }}
                 >
-                    <div style={{ alignItems: 'center', display: 'flex', gap: isTablet ? '16px' : '28px' }}>
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            display: 'flex',
+                            flex: 1,
+                            gap: isTablet ? '10px' : '28px',
+                            minWidth: 0
+                        }}
+                    >
                         <div
                             style={{
                                 alignItems: 'center',
                                 borderRight: '1px solid rgba(255,255,255,0.1)',
                                 display: 'flex',
-                                paddingRight: isTablet ? '16px' : '24px'
+                                flexShrink: 0,
+                                paddingRight: isTablet ? '10px' : '24px'
                             }}
                         >
                             <img
                                 src={SrmLogo}
                                 alt="Smyrna Ready Mix"
-                                style={{ height: isTablet ? '32px' : '40px' }}
+                                style={{ height: isTablet ? '28px' : '40px' }}
                                 draggable={false}
                             />
                         </div>
 
-                        <nav style={{ alignItems: 'center', display: 'flex', gap: isTablet ? '4px' : '6px' }}>
+                        <nav
+                            style={{
+                                alignItems: 'center',
+                                display: 'flex',
+                                flex: 1,
+                                gap: isTablet ? '2px' : '6px',
+                                minWidth: 0
+                            }}
+                        >
                             {standaloneItems.find((i) => i.id === 'Dashboard') && (
                                 <div
                                     style={navItemStyle(selectedView === 'Dashboard')}
@@ -662,7 +684,9 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         </nav>
                     </div>
 
-                    <div style={{ alignItems: 'center', display: 'flex', gap: isTablet ? '10px' : '16px' }}>
+                    <div
+                        style={{ alignItems: 'center', display: 'flex', flexShrink: 0, gap: isTablet ? '8px' : '16px' }}
+                    >
                         <select
                             value={regionCode || ''}
                             onChange={handleRegionChange}
@@ -670,18 +694,21 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 appearance: 'none',
                                 backgroundColor: 'rgba(255,255,255,0.08)',
                                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                backgroundPosition: 'right 10px center',
+                                backgroundPosition: 'right 8px center',
                                 backgroundRepeat: 'no-repeat',
-                                backgroundSize: isTablet ? '14px' : '16px',
+                                backgroundSize: isTablet ? '12px' : '16px',
                                 border: '1px solid rgba(255,255,255,0.15)',
-                                borderRadius: isTablet ? '10px' : '12px',
+                                borderRadius: isTablet ? '8px' : '12px',
                                 color: 'white',
                                 cursor: 'pointer',
-                                fontSize: isTablet ? '13px' : '14px',
+                                fontSize: isTablet ? '12px' : '14px',
                                 fontWeight: 600,
-                                maxWidth: isTablet ? '140px' : 'none',
-                                padding: isTablet ? '8px 28px 8px 12px' : '10px 36px 10px 16px',
-                                transition: 'all 0.2s ease'
+                                maxWidth: isTablet ? '120px' : 'none',
+                                overflow: 'hidden',
+                                padding: isTablet ? '6px 24px 6px 10px' : '10px 36px 10px 16px',
+                                textOverflow: 'ellipsis',
+                                transition: 'all 0.2s ease',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             {permittedRegions.length === 0 ? (

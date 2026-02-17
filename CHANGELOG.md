@@ -2,6 +2,17 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.7] - 2026-02-17
+
+- Adjusted styling for navigation items in `Navigation.jsx` for tablet view: reduced border radius from 8px to 6px, font size from 13px to 12px, gap from 6px to 4px, and padding from 8px 10px to 6px 8px.
+- Updated icon button styling in `Navigation.jsx` for tablet view: reduced border radius from 10px to 8px, height and width from 36px to 32px, and icon font size from 14px to 13px.
+- Modified badge styling in `Navigation.jsx` for tablet view: reduced font size from 10px to 9px, height and minWidth from 18px to 16px, padding from 0 5px to 0 4px, and adjusted position with right and top offsets from -2px to -4px.
+- Updated header styling in `Navigation.jsx`: added `overflow: hidden` to the main container, reduced header height for tablet view from 60px to 56px, and adjusted padding from 0 16px to 0 12px.
+- Adjusted logo container styling in `Navigation.jsx`: reduced logo height for tablet view from 32px to 28px and padding-right from 16px to 10px.
+- Refined navigation and layout spacing in `Navigation.jsx`: reduced gap in navigation container for tablet view from 16px to 10px, nav items gap from 4px to 2px, and right-side elements gap from 10px to 8px.
+- Added `flexShrink: 0` to multiple elements in `Navigation.jsx` including navigation items, icon buttons, header, logo container, and right-side container to prevent shrinking.
+- Added flexible layout properties in `Navigation.jsx`: introduced `flex: 1` and `minWidth: 0` to navigation and left-side container for better responsiveness.
+
 ## [11.6] - 2026-02-17
 
 - Added tablet-specific responsive design support in Navigation.jsx with a new `isTablet` state variable to detect screen widths between 768px and 1024px.
