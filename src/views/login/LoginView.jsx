@@ -419,6 +419,8 @@ function LoginView() {
         )
     }
 
+    const isMobile = window.innerWidth < 768
+
     return (
         <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
             {videoLoaded ? (
@@ -512,15 +514,19 @@ function LoginView() {
                             width: '100%'
                         }}
                     >
-                        <div className="lg-hide" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                            <img
-                                src={SrmLogo}
-                                alt="SRM"
-                                style={{ height: '48px', marginBottom: '0.5rem' }}
-                                loading="eager"
-                            />
-                            <div style={{ color: '#1e3a5f', fontSize: '1.25rem', fontWeight: 700 }}>Smyrna Tools</div>
-                        </div>
+                        {!isMobile && (
+                            <div className="lg-hide" style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                                <img
+                                    src={SrmLogo}
+                                    alt="SRM"
+                                    style={{ height: '48px', marginBottom: '0.5rem' }}
+                                    loading="eager"
+                                />
+                                <div style={{ color: '#1e3a5f', fontSize: '1.25rem', fontWeight: 700 }}>
+                                    Smyrna Tools
+                                </div>
+                            </div>
+                        )}
 
                         <div style={{ marginBottom: '2.5rem' }}>
                             <h2

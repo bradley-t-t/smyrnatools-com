@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.1] - 2026-02-17
+
+- Updated `LoginView.jsx` to conditionally render the logo and title based on screen size, hiding them on mobile devices (window width < 768px).
+- Enhanced `PlanView.jsx` to add a "Load from Plant" checkbox for assignments, allowing users to mark if loading is from a plant.
+- Modified `PlanView.jsx` to display a "[Load from Plant]" note in the assignment message text when the option is enabled.
+
 ## [11.0] - 2026-02-17
 
 - Added new `changelog.txt` file in the `public` directory to document all notable changes to SmyrnaTools, including detailed version history from 9.7 to 10.9.

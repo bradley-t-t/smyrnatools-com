@@ -181,8 +181,9 @@ function PlanView() {
             if (i > 0) msg += '\n─────────────\n'
             msg += '\n'
             const opWord = a.driverCount === 1 ? 'operator' : 'operators'
+            const loadNote = a.loadFromPlant ? ' [Load from Plant]' : ''
             if (a.driverCount > 1 && a.timeMode === 'custom' && a.customTimes?.length > 0) {
-                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord})\n`
+                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord})${loadNote}\n`
                 a.customTimes.slice(0, a.driverCount).forEach((ct, idx) => {
                     const clockIn = ct.time ? calcClockIn(ct.time, a.fromPlant, a.toPlant) : null
                     let line = `  Op ${idx + 1}:`
@@ -192,7 +193,7 @@ function PlanView() {
                     msg += line + '\n'
                 })
             } else if (a.driverCount > 1) {
-                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord}, ${a.staggerMinutes}min stagger)\n`
+                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord}, ${a.staggerMinutes}min stagger)${loadNote}\n`
                 for (let j = 0; j < a.driverCount; j++) {
                     const arr = a.time ? addMins(a.time, j * (a.staggerMinutes || 10)) : null
                     const clockIn = arr ? calcClockIn(arr, a.fromPlant, a.toPlant) : null
@@ -201,7 +202,7 @@ function PlanView() {
                 if (a.leaveTime) msg += `  Leave by: ${a.leaveTime}\n`
             } else {
                 const clockIn = a.time ? calcClockIn(a.time, a.fromPlant, a.toPlant) : null
-                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord})\n`
+                msg += `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${opWord})${loadNote}\n`
                 if (clockIn) msg += `  Clock in: ${clockIn}\n`
                 if (a.time) msg += `  Arrive: ${a.time}\n`
                 if (a.leaveTime) msg += `  Leave: ${a.leaveTime}\n`
@@ -600,6 +601,29 @@ function PlanView() {
                                                     style={timeInputStyle}
                                                 />
                                             </div>
+                                            <label
+                                                style={{
+                                                    alignItems: 'center',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    gap: 6
+                                                }}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={a.loadFromPlant || false}
+                                                    onChange={(e) =>
+                                                        updateAssignment(a.id, 'loadFromPlant', e.target.checked)
+                                                    }
+                                                    style={{
+                                                        accentColor: accentColor,
+                                                        cursor: 'pointer',
+                                                        height: 16,
+                                                        width: 16
+                                                    }}
+                                                />
+                                                <span style={{ color: '#64748b', fontSize: 12 }}>Load from Plant</span>
+                                            </label>
                                             {clockIn && (
                                                 <div
                                                     style={{
