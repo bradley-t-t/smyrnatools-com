@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [11.9] - 2026-02-18
+
+- Updated `TutorialService.js` to improve tutorial reset functionality in `resetAllTutorials` and `resetTutorial` methods by adding error handling, querying existing records before deletion, and returning `false` on failure instead of defaulting to `true`.
+- Enhanced responsiveness in `ListView.jsx` by adjusting dropdown styling for mobile devices, including smaller font sizes, padding, background image positioning, and icon sizes.
+- Modified `ListView.jsx` dropdown placeholder text for mobile view to use shorter labels (`+Status` and `+Role`) compared to desktop (`+ Status` and `+ Assigned`).
+- Adjusted layout in `ListView.jsx` by adding mobile-specific spacing and alignment for filter controls and summary stats, including reduced gaps and font sizes on mobile.
+- Updated `MyAccountView.jsx` with minor changes to improve user account display or functionality (specific details not fully visible in the provided diff snippet).
+
 ## [11.8] - 2026-02-17
 
 - Updated `PRODUCTIVITY_ITEMS` in `src/components/common/Navigation.jsx` to include new items: 'Plan', 'Calculators', and 'Leaderboards'.

@@ -912,20 +912,20 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 appearance: 'none',
                                 background: '#f9fafb',
                                 backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                backgroundPosition: 'right 8px center',
+                                backgroundPosition: 'right 6px center',
                                 backgroundRepeat: 'no-repeat',
-                                backgroundSize: '14px',
+                                backgroundSize: isMobile ? '12px' : '14px',
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '6px',
                                 color: '#6b7280',
                                 cursor: 'pointer',
-                                fontSize: '12px',
+                                fontSize: isMobile ? '11px' : '12px',
                                 fontWeight: '500',
                                 outline: 'none',
-                                padding: '6px 28px 6px 10px'
+                                padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
                             }}
                         >
-                            <option value="">+ Status</option>
+                            <option value="">{isMobile ? '+Status' : '+ Status'}</option>
                             {derivedStatusOptions
                                 .filter((o) => o !== 'All Statuses')
                                 .map((opt) => (
@@ -952,20 +952,20 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 appearance: 'none',
                                 background: '#f9fafb',
                                 backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                backgroundPosition: 'right 8px center',
+                                backgroundPosition: 'right 6px center',
                                 backgroundRepeat: 'no-repeat',
-                                backgroundSize: '14px',
+                                backgroundSize: isMobile ? '12px' : '14px',
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '6px',
                                 color: '#6b7280',
                                 cursor: 'pointer',
-                                fontSize: '12px',
+                                fontSize: isMobile ? '11px' : '12px',
                                 fontWeight: '500',
                                 outline: 'none',
-                                padding: '6px 28px 6px 10px'
+                                padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
                             }}
                         >
-                            <option value="">+ Assigned</option>
+                            <option value="">{isMobile ? '+Role' : '+ Assigned'}</option>
                             {derivedRoleOptions
                                 .filter((o) => o !== 'All Roles')
                                 .map((opt) => (
@@ -976,9 +976,16 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         </select>
                     )}
 
-                    <div style={{ flex: 1 }}></div>
+                    {!isMobile && <div style={{ flex: 1 }}></div>}
 
-                    <div style={{ alignItems: 'center', display: 'flex', gap: '12px' }}>
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            display: 'flex',
+                            gap: isMobile ? '8px' : '12px',
+                            marginLeft: isMobile ? 'auto' : 0
+                        }}
+                    >
                         {summaryStats.overdue > 0 && (
                             <div
                                 style={{
@@ -988,19 +995,23 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                     borderRadius: '6px',
                                     color: '#dc2626',
                                     display: 'flex',
-                                    fontSize: '12px',
+                                    fontSize: isMobile ? '10px' : '12px',
                                     fontWeight: '600',
-                                    gap: '6px',
-                                    padding: '6px 10px'
+                                    gap: isMobile ? '4px' : '6px',
+                                    padding: isMobile ? '4px 6px' : '6px 10px'
                                 }}
                             >
-                                <i className="fas fa-exclamation-circle" style={{ fontSize: '11px' }}></i>
-                                {summaryStats.overdue} overdue
+                                <i
+                                    className="fas fa-exclamation-circle"
+                                    style={{ fontSize: isMobile ? '9px' : '11px' }}
+                                ></i>
+                                {summaryStats.overdue}
+                                {isMobile ? '' : ' overdue'}
                             </div>
                         )}
-                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>
+                        <span style={{ color: '#9ca3af', fontSize: isMobile ? '10px' : '12px' }}>
                             <span style={{ color: '#111827', fontWeight: '600' }}>{roleFilteredItems.length}</span>{' '}
-                            tasks
+                            {isMobile ? '' : 'tasks'}
                         </span>
                     </div>
                 </div>

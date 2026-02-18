@@ -8,7 +8,7 @@ import { UserService } from '../../services/UserService'
 
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
-    const { isMobile, triggerTutorial } = useTutorial()
+    const { isMobile, resetAllTutorials, triggerTutorial } = useTutorial()
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState('')
     const [firstName, setFirstName] = useState('')
@@ -989,8 +989,8 @@ function MyAccountView({ userId }) {
                                             </div>
 
                                             <button
-                                                onClick={() => {
-                                                    localStorage.removeItem('dismissed_tutorials')
+                                                onClick={async () => {
+                                                    await resetAllTutorials()
                                                     setMessage('Tutorials reset! Refresh the page to see them again.')
                                                     setTimeout(() => setMessage(''), 3000)
                                                 }}

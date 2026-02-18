@@ -72,13 +72,31 @@ export const TutorialService = {
 
         try {
             const userId = getUserId()
-            if (!userId) return true
+            if (!userId) {
+                return true
+            }
 
-            await supabase.from('users_tutorials').delete().eq('user_id', userId)
+            const { data: existing } = await supabase
+                .from('users_tutorials')
+                .select('id, tutorial_id')
+                .eq('user_id', userId)
+
+            if (!existing || existing.length === 0) {
+                return true
+            }
+
+            const ids = existing.map((row) => row.id)
+            const { error } = await supabase.from('users_tutorials').delete().in('id', ids)
+
+            if (error) {
+                console.error('Error deleting tutorials:', error)
+                return false
+            }
 
             return true
-        } catch {
-            return true
+        } catch (err) {
+            console.error('Exception in resetAllTutorials:', err)
+            return false
         }
     },
 
@@ -90,13 +108,32 @@ export const TutorialService = {
 
         try {
             const userId = getUserId()
-            if (!userId) return true
+            if (!userId) {
+                return true
+            }
 
-            await supabase.from('users_tutorials').delete().eq('user_id', userId).eq('tutorial_id', tutorialId)
+            const { data: existing } = await supabase
+                .from('users_tutorials')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('tutorial_id', tutorialId)
+                .maybeSingle()
+
+            if (!existing) {
+                return true
+            }
+
+            const { error } = await supabase.from('users_tutorials').delete().eq('id', existing.id)
+
+            if (error) {
+                console.error('Error deleting tutorial:', error)
+                return false
+            }
 
             return true
-        } catch {
-            return true
+        } catch (err) {
+            console.error('Exception in resetTutorial:', err)
+            return false
         }
     }
 }
