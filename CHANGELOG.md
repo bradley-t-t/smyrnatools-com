@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.7] - 2026-02-18
+
+- Reordered import statements for consistency in `LoadingScreen.jsx`, moving `usePreferences` import below `SrmLogo`.
+- Reordered import statements for consistency in `Navigation.jsx`, moving `usePreferences` and `useNotifications` imports below service imports.
+- Reordered import statements for consistency in `NotificationsModal.jsx`, moving `UserService` import above context and hook imports.
+- Reordered import statements for consistency in `TerminatedOverlay.jsx`, moving `useAuth` import below `SmyrnaLogo`.
+- Reordered import statements for consistency in `DetailViewSection.jsx`, moving `usePreferences` import below `UserService`.
+
 ## [12.6] - 2026-02-18
 
 - Refactored asynchronous code in `src/views/list/ListView.jsx` by extracting inline async functions into named functions `loadData` and `fetchRegionCodes` for better readability and maintenance.

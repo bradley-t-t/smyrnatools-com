@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { usePreferences } from '../../context/PreferencesContext'
 import SrmLogo from '../../../assets/images/srm-logo.svg'
+import { usePreferences } from '../../context/PreferencesContext'
 
 function LoadingScreen({ message = 'Loading...', fullPage = false, inline = false }) {
     const { preferences } = usePreferences()

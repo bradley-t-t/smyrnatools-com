@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useNotifications } from '../../hooks/useNotifications'
-import { UserService } from '../../../services/UserService'
 
 function NotificationsModal({ isOpen, onClose, anchorRect }) {
     const { preferences } = usePreferences()

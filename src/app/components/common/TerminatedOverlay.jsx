@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { useAuth } from '../../context/AuthContext'
 import SmyrnaLogo from '../../../assets/images/SmyrnaLogo.png'
+import { useAuth } from '../../context/AuthContext'
 
 function TerminatedOverlay() {
     const { signOut } = useAuth()

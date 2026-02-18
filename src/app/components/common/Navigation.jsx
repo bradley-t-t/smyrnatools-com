@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import { usePreferences } from '../../context/PreferencesContext'
-import { useNotifications } from '../../hooks/useNotifications'
 import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
+import { usePreferences } from '../../context/PreferencesContext'
+import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
 
