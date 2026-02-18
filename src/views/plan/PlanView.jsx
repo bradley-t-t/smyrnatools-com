@@ -133,7 +133,7 @@ function PlanView() {
         await PlanService.fetchTravelTimes()
         setTravelTimes(PlanService.getTravelTimesMap())
     }
-
+    // Removed semi-colon...
     useEffect(() => {
         ;(async () => {
             const user = await UserService.getCurrentUser()

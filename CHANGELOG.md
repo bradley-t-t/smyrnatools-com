@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.3] - 2026-02-18
+
+- Updated src/views/plan/PlanView.jsx to include a comment about removing a semi-colon in the code structure.
+
 ## [12.2] - 2026-02-18
 
 - Updated import statement in `src/views/reports/ReportsView.jsx` to rename `reportsViewStyles` to `styles` and removed separate `styles` variable declaration.
