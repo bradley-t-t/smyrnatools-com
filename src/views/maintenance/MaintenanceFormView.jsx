@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import LoadingScreen from '../../components/common/LoadingScreen'
+import LoadingScreen from '../../app/components/common/LoadingScreen'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { UserService } from '../../services/UserService'
 import { formatMaintenanceDateShort, getFieldTypeIcon } from '../../utils/MaintenanceUtility'

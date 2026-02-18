@@ -1,6 +1,6 @@
 import React from 'react'
 
-import HistoryViewSection from '../../components/sections/HistoryViewSection'
+import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 
 function EquipmentHistoryView({ equipment, onClose }) {
     return <HistoryViewSection item={equipment} type="equipment" onClose={onClose} />

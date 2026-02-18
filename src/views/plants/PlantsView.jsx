@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import LoadingScreen from '../../components/common/LoadingScreen'
-import TopSection from '../../components/sections/TopSection'
+import LoadingScreen from '../../app/components/common/LoadingScreen'
+import TopSection from '../../app/components/sections/TopSection'
 import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
 import PlantsAddView from './PlantsAddView'

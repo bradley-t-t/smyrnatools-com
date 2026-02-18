@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { ReportUtility } from '../../../utils/ReportUtility'
 
 const safetyReportStyles = `
@@ -685,21 +685,104 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
     )
 }
 
-export function SafetyManagerReviewPlugin({ form }) {
-    const issues = Array.isArray(form.issues)
-        ? form.issues
-        : typeof form.issues === 'string' && form.issues
-          ? [
-                {
-                    date: '',
-                    description: form.issues,
-                    id: 0,
-                    plant: '',
-                    tag: '',
-                    tags: []
+function normalizeIssues(formIssues) {
+    if (Array.isArray(formIssues)) return formIssues
+    if (typeof formIssues === 'string' && formIssues) {
+        return [{ affectsEfficiency: false, date: '', description: formIssues, id: 0, plant: '', tag: '', tags: [] }]
+    }
+    return []
+}
+
+function getIssueTags(issue) {
+    return Array.isArray(issue.tags) ? issue.tags : issue.tag ? [issue.tag] : []
+}
+
+function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
+    return (
+        <div className="safety-issue-header">
+            <div className="safety-issue-number">
+                <span>{idx + 1}</span>
+            </div>
+            <div className="safety-issue-badges">
+                {issue.plant && (
+                    <span className="safety-badge safety-badge-plant">
+                        <i className="fas fa-industry"></i>
+                        {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
+                    </span>
+                )}
+                {issue.date && (
+                    <span className="safety-badge safety-badge-date">
+                        <i className="fas fa-calendar"></i>
+                        {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
+                            day: 'numeric',
+                            month: 'short',
+                            weekday: readOnly ? 'short' : undefined
+                        })}
+                    </span>
+                )}
+                {readOnly && issue.affectsEfficiency && (
+                    <span className="safety-badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                        <i className="fas fa-chart-line"></i>Affects Efficiency
+                    </span>
+                )}
+            </div>
+            {!readOnly && onRemove && (
+                <button type="button" onClick={onRemove} className="safety-remove-btn" title="Remove Issue">
+                    <i className="fas fa-trash-alt"></i>
+                </button>
+            )}
+        </div>
+    )
+}
+
+function TagsDisplay({ tags, onRemoveTag, readOnly }) {
+    if (!tags?.length) return null
+    return (
+        <div className="safety-tags-display">
+            {tags.map((t) => {
+                const tagStyle = TAG_COLORS[t] || {
+                    bg: 'var(--background)',
+                    color: 'var(--text-primary)',
+                    icon: 'fas fa-tag'
                 }
-            ]
-          : []
+                return (
+                    <span
+                        key={t}
+                        className="safety-tag-chip"
+                        style={{ background: tagStyle.bg, color: tagStyle.color }}
+                    >
+                        <i className={tagStyle.icon}></i>
+                        {t}
+                        {!readOnly && onRemoveTag && (
+                            <button type="button" className="safety-chip-remove" onClick={() => onRemoveTag(t)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        )}
+                    </span>
+                )
+            })}
+        </div>
+    )
+}
+
+function SafetyEmptyState({ success }) {
+    return (
+        <div className={`safety-empty-state ${success ? 'safety-empty-state-success' : ''}`}>
+            <div className="safety-empty-icon">
+                <i className={`fas ${success ? 'fa-check-circle' : 'fa-shield-alt'}`}></i>
+            </div>
+            <h4>{success ? 'All Clear' : 'No Issues Reported'}</h4>
+            <p>
+                {success
+                    ? 'No safety issues were reported during this reporting period'
+                    : 'Click Add Issue to document any safety incidents'}
+            </p>
+        </div>
+    )
+}
+
+export function SafetyManagerReviewPlugin({ form }) {
+    const issues = normalizeIssues(form.issues)
 
     if (issues.length === 0) {
         return (
@@ -717,13 +800,7 @@ export function SafetyManagerReviewPlugin({ form }) {
                             </div>
                         </div>
                     </div>
-                    <div className="safety-empty-state safety-empty-state-success">
-                        <div className="safety-empty-icon">
-                            <i className="fas fa-check-circle"></i>
-                        </div>
-                        <h4>All Clear</h4>
-                        <p>No safety issues were reported during this reporting period</p>
-                    </div>
+                    <SafetyEmptyState success />
                 </div>
             </>
         )
@@ -753,7 +830,7 @@ export function SafetyManagerReviewPlugin({ form }) {
 
                 <div className="safety-issues-grid">
                     {issues.map((issue, idx) => {
-                        const tags = Array.isArray(issue.tags) ? issue.tags : issue.tag ? [issue.tag] : []
+                        const tags = getIssueTags(issue)
                         const tagColors = tags.map((t) => TAG_COLORS[t]).filter(Boolean)
                         const primaryColor = tagColors[0]?.color || 'var(--accent)'
 
@@ -763,66 +840,12 @@ export function SafetyManagerReviewPlugin({ form }) {
                                 className="safety-issue-card safety-issue-card-review"
                                 style={{ '--issue-accent': primaryColor }}
                             >
-                                <div className="safety-issue-header">
-                                    <div className="safety-issue-number">
-                                        <span>{idx + 1}</span>
-                                    </div>
-                                    <div className="safety-issue-badges">
-                                        {issue.plant && (
-                                            <span className="safety-badge safety-badge-plant">
-                                                <i className="fas fa-industry"></i>
-                                                {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
-                                            </span>
-                                        )}
-                                        {issue.date && (
-                                            <span className="safety-badge safety-badge-date">
-                                                <i className="fas fa-calendar"></i>
-                                                {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    weekday: 'short'
-                                                })}
-                                            </span>
-                                        )}
-                                        {issue.affectsEfficiency && (
-                                            <span
-                                                className="safety-badge"
-                                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}
-                                            >
-                                                <i className="fas fa-chart-line"></i>
-                                                Affects Efficiency
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
+                                <IssueCardHeader issue={issue} idx={idx} readOnly />
                                 <div className="safety-issue-content">
-                                    {tags.length > 0 && (
-                                        <div className="safety-tags-display">
-                                            {tags.map((t) => {
-                                                const tagStyle = TAG_COLORS[t] || {
-                                                    bg: 'var(--background)',
-                                                    color: 'var(--text-primary)',
-                                                    icon: 'fas fa-tag'
-                                                }
-                                                return (
-                                                    <span
-                                                        key={t}
-                                                        className="safety-tag-chip"
-                                                        style={{ background: tagStyle.bg, color: tagStyle.color }}
-                                                    >
-                                                        <i className={tagStyle.icon}></i>
-                                                        {t}
-                                                    </span>
-                                                )
-                                            })}
-                                        </div>
-                                    )}
-
+                                    <TagsDisplay tags={tags} readOnly />
                                     <div className="safety-description-box">
                                         <div className="safety-description-label">
-                                            <i className="fas fa-file-alt"></i>
-                                            Description
+                                            <i className="fas fa-file-alt"></i>Description
                                         </div>
                                         <div className="safety-description-text">
                                             {issue.description || 'No description provided'}

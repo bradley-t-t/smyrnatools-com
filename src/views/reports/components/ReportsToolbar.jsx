@@ -1,8 +1,48 @@
 import React from 'react'
 
-import TopSection from '../../../components/sections/TopSection'
+import { usePreferences } from '../../../app/context/PreferencesContext'
+import TopSection from '../../../app/components/sections/TopSection'
 import { reportTypes } from '../../../types/ReportTypes'
-import { reportsViewStyles } from '../styles/ReportsViewStyles'
+import { reportsViewStyles as styles } from '../styles/ReportsViewStyles'
+
+const TAB_LABELS = { all: 'My Reports', review: 'Review' }
+
+const LIST_LABELS = {
+    all: ['Week', 'Report Type', 'Status', 'Due Date', 'Actions'],
+    review: ['Week', 'Report Type', 'Submitted By', 'Submitted', 'Status', 'Actions']
+}
+
+const COL_WIDTHS = {
+    all: ['auto', 'auto', '120px', '120px', '100px'],
+    review: ['auto', 'auto', 'auto', '120px', '120px', '100px']
+}
+
+const RefreshButton = ({ accentColor, isRefreshing, onClick }) => (
+    <button style={{ ...styles.refreshBtn, background: accentColor }} onClick={onClick} type="button">
+        <i className={`fas fa-sync ${isRefreshing ? 'fa-spin' : ''}`} /> Refresh
+    </button>
+)
+
+const ReportTypeFilter = ({ value, onChange, options }) => (
+    <select value={value} onChange={(e) => onChange(e.target.value)} style={styles.selectControl}>
+        <option value="">All Report Types</option>
+        {options.map((rt) => (
+            <option key={rt.name} value={rt.name}>
+                {rt.title}
+            </option>
+        ))}
+    </select>
+)
+
+const TabButton = ({ isActive, accentColor, label, onClick }) => (
+    <button
+        style={{ ...styles.tab(false), ...(isActive && { background: accentColor, color: 'white', fontWeight: 600 }) }}
+        onClick={onClick}
+        type="button"
+    >
+        {label}
+    </button>
+)
 
 function ReportsToolbar({
     tab,
@@ -18,70 +58,50 @@ function ReportsToolbar({
     hasAnyReviewPermission,
     regionType
 }) {
-    const styles = reportsViewStyles
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
+
+    const filteredReportTypes = reportTypes.filter(
+        (rt) =>
+            (tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]) &&
+            (regionType !== 'office' || rt.name === 'general_manager')
+    )
 
     return (
         <TopSection
             title="Reports"
-            hideViewModeToggle={true}
-            hidePlantFilter={true}
-            sticky={true}
+            hideViewModeToggle
+            hidePlantFilter
+            sticky
             viewMode="list"
             searchPlaceholder="Search by name or report type"
-            listLabels={
-                tab === 'review'
-                    ? ['Week', 'Report Type', 'Submitted By', 'Submitted', 'Status', 'Actions']
-                    : ['Week', 'Report Type', 'Status', 'Due Date', 'Actions']
-            }
-            colWidths={
-                tab === 'review'
-                    ? ['auto', 'auto', 'auto', '120px', '120px', '100px']
-                    : ['auto', 'auto', '120px', '120px', '100px']
-            }
+            listLabels={LIST_LABELS[tab]}
+            colWidths={COL_WIDTHS[tab]}
             customFilters={
                 <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                    <button
-                        style={styles.refreshBtn}
-                        onClick={onRefresh}
-                        type="button"
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#162d4a')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = '#1e3a5f')}
-                    >
-                        <i className={`fas fa-sync ${isRefreshing ? 'fa-spin' : ''}`}></i> Refresh
-                    </button>
-                    <select
+                    <RefreshButton accentColor={accentColor} isRefreshing={isRefreshing} onClick={onRefresh} />
+                    <ReportTypeFilter
                         value={filterReportType}
-                        onChange={(e) => onFilterReportTypeChange(e.target.value)}
-                        style={styles.selectControl}
-                    >
-                        <option value="">All Report Types</option>
-                        {reportTypes
-                            .filter(
-                                (rt) =>
-                                    (tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]) &&
-                                    (regionType !== 'office' || rt.name === 'general_manager')
-                            )
-                            .map((rt) => (
-                                <option key={rt.name} value={rt.name}>
-                                    {rt.title}
-                                </option>
-                            ))}
-                    </select>
+                        onChange={onFilterReportTypeChange}
+                        options={filteredReportTypes}
+                    />
                     <button style={styles.selectControl} onClick={onPlantModalOpen} type="button">
                         {plantDisplayText}
                     </button>
                     <div style={styles.tabs}>
-                        <button style={styles.tab(tab === 'all')} onClick={() => onTabChange('all')} type="button">
-                            My Reports
-                        </button>
+                        <TabButton
+                            isActive={tab === 'all'}
+                            accentColor={accentColor}
+                            label={TAB_LABELS.all}
+                            onClick={() => onTabChange('all')}
+                        />
                         {hasAnyReviewPermission && (
-                            <button
-                                style={styles.tab(tab === 'review')}
+                            <TabButton
+                                isActive={tab === 'review'}
+                                accentColor={accentColor}
+                                label={TAB_LABELS.review}
                                 onClick={() => onTabChange('review')}
-                                type="button"
-                            >
-                                Review
-                            </button>
+                            />
                         )}
                     </div>
                 </div>

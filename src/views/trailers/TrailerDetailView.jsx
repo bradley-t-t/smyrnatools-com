@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import DetailViewSection from '../../app/components/sections/DetailViewSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import DetailViewSection from '../../components/sections/DetailViewSection'
 import Trailer from '../../models/trailers/Trailer'
 import { supabase } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'

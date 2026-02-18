@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import AddViewSection from '../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import AddViewSection from '../../components/sections/AddViewSection'
 import { Mixer } from '../../models/mixers/Mixer'
 import { AuthService } from '../../services/AuthService'
 import { MixerService } from '../../services/MixerService'

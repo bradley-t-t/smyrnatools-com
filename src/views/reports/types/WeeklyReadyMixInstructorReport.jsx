@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { OperatorService } from '../../../services/OperatorService'
 
 const rmiReportStyles = `
@@ -119,6 +119,372 @@ const rmiReportStyles = `
 .rmi-goals-display { font-weight: 600; color: #1e293b; }
 `
 
+const POSITIONS = {
+    MIXER: 'Mixer Operator',
+    TRACTOR: 'Tractor Operator'
+}
+
+const CATEGORY_STYLES = {
+    [POSITIONS.MIXER]: { className: 'rmi-mixer-header', icon: 'fa-truck-loading' },
+    [POSITIONS.TRACTOR]: { className: 'rmi-tractor-header', icon: 'fa-tractor' }
+}
+
+function getPlantNameFromList(plantCode, plants) {
+    const plant = plants?.find((p) => (p.plant_code || p.code) === plantCode)
+    return plant?.name || plantCode || '—'
+}
+
+function RMIEmptyState({ icon = 'fa-user-slash', message }) {
+    return (
+        <div className="rmi-empty-state">
+            <i className={`fas ${icon}`}></i>
+            <p>{message}</p>
+        </div>
+    )
+}
+
+function RMICategoryHeader({ position, label, count, actions }) {
+    const style = CATEGORY_STYLES[position] || CATEGORY_STYLES[POSITIONS.MIXER]
+    return (
+        <div className={`rmi-category-header ${style.className}`}>
+            <i className={`fas ${style.icon}`}></i>
+            <span>{label}</span>
+            <span className="rmi-count-badge">{count}</span>
+            {actions && <div className="rmi-category-actions">{actions}</div>}
+        </div>
+    )
+}
+
+function RMIDataTable({ headers, data, renderRow, emptyMessage, emptyIcon = 'fa-check-circle' }) {
+    if (!data?.length) return <RMIEmptyState icon={emptyIcon} message={emptyMessage} />
+    return (
+        <div className="rmi-table-wrapper">
+            <table className="rmi-table">
+                <thead>
+                    <tr>
+                        {headers.map((h, i) => (
+                            <th key={i}>{h}</th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>{data.map(renderRow)}</tbody>
+            </table>
+        </div>
+    )
+}
+
+function TrainerTable({ trainers, plants, position, onRemove, readOnly }) {
+    const headers = readOnly ? ['Trainer Name', 'Plant', 'Status'] : ['Trainer Name', 'Plant', 'Status', 'Action']
+    return (
+        <RMIDataTable
+            headers={headers}
+            data={trainers}
+            emptyMessage={`No ${position === POSITIONS.MIXER ? 'mixer' : 'tractor'} trainers ${readOnly ? 'recorded' : '- pull live data or add manually'}`}
+            emptyIcon="fa-user-slash"
+            renderRow={(trainer) => (
+                <tr key={trainer.id}>
+                    <td className="rmi-name-cell">
+                        <i className="fas fa-user-tie rmi-icon-small"></i>
+                        {trainer.name}
+                    </td>
+                    <td>{getPlantNameFromList(trainer.plant, plants)}</td>
+                    <td>
+                        <span className="rmi-status-badge rmi-status-active">{trainer.status}</span>
+                    </td>
+                    {!readOnly && (
+                        <td>
+                            <button
+                                type="button"
+                                className="rmi-delete-btn"
+                                onClick={() => onRemove(position, trainer.id)}
+                                title="Remove trainer"
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </td>
+                    )}
+                </tr>
+            )}
+        />
+    )
+}
+
+function PendingTable({ pending, plants, position, onRemove, readOnly }) {
+    const headers = readOnly
+        ? ['Operator Name', 'Plant', 'Start Date']
+        : ['Operator Name', 'Plant', 'Start Date', 'Action']
+    return (
+        <RMIDataTable
+            headers={headers}
+            data={pending}
+            emptyMessage={`No pending ${position === POSITIONS.MIXER ? 'mixer' : 'tractor'} operators`}
+            renderRow={(op) => (
+                <tr key={op.id}>
+                    <td className="rmi-name-cell">
+                        <i className="fas fa-user rmi-icon-small"></i>
+                        {op.name}
+                    </td>
+                    <td>{getPlantNameFromList(op.plant, plants)}</td>
+                    <td>
+                        <span className="rmi-date-badge">{op.startDate}</span>
+                    </td>
+                    {!readOnly && (
+                        <td>
+                            <button
+                                type="button"
+                                className="rmi-delete-btn"
+                                onClick={() => onRemove(position, op.id)}
+                                title="Remove pending operator"
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </td>
+                    )}
+                </tr>
+            )}
+        />
+    )
+}
+
+function TrainingTable({ training, plants, position, onRemove, readOnly }) {
+    const headers = readOnly ? ['Operator Name', 'Plant', 'Trainer'] : ['Operator Name', 'Plant', 'Trainer', 'Action']
+    return (
+        <RMIDataTable
+            headers={headers}
+            data={training}
+            emptyMessage={`No ${position === POSITIONS.MIXER ? 'mixer' : 'tractor'} operators in training`}
+            renderRow={(op) => (
+                <tr key={op.id}>
+                    <td className="rmi-name-cell">
+                        <i className="fas fa-user rmi-icon-small"></i>
+                        {op.name}
+                    </td>
+                    <td>{getPlantNameFromList(op.plant, plants)}</td>
+                    <td>{op.trainer || '—'}</td>
+                    {!readOnly && (
+                        <td>
+                            <button
+                                type="button"
+                                className="rmi-delete-btn"
+                                onClick={() => onRemove(position, op.id)}
+                                title="Remove training operator"
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </td>
+                    )}
+                </tr>
+            )}
+        />
+    )
+}
+
+function HiringGoalsTable({ plants, hiringGoals, onChange, readOnly }) {
+    return (
+        <div className="rmi-goals-table-container">
+            <table className="rmi-goals-table">
+                <thead>
+                    <tr>
+                        <th className="rmi-goals-th-plant">Plant Name</th>
+                        <th className="rmi-goals-th-code">Code</th>
+                        <th className="rmi-goals-th-goal">Hiring Goal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {plants?.map((plant) => {
+                        const plantCode = plant.plant_code || plant.code
+                        const plantName = plant.name || plant.plant_name || plantCode
+                        return (
+                            <tr key={plantCode}>
+                                <td className="rmi-goals-td-plant">
+                                    <div className="rmi-goals-plant-cell">
+                                        <i className="fas fa-industry"></i>
+                                        <span>{plantName}</span>
+                                    </div>
+                                </td>
+                                <td className="rmi-goals-td-code">
+                                    <span className="rmi-goals-code-badge">{plantCode}</span>
+                                </td>
+                                <td className="rmi-goals-td-goal">
+                                    {readOnly ? (
+                                        <div className="rmi-goals-display">{hiringGoals[plantCode] || '0'}</div>
+                                    ) : (
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            className="rmi-goals-input"
+                                            value={hiringGoals[plantCode] || ''}
+                                            onChange={(e) => onChange(plantCode, e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    )}
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function TrainersSection({ mixerTrainers, tractorTrainers, plants, readOnly, onRemove, actions }) {
+    return (
+        <div className="rmi-section">
+            <div className="rmi-section-header">
+                <div>
+                    <h3 className="rmi-section-title">
+                        <i className="fas fa-chalkboard-teacher"></i>Active Trainers by Position
+                    </h3>
+                    <p className="rmi-section-subtitle">Current instructors assigned to train new operators</p>
+                </div>
+            </div>
+            <div className="rmi-trainers-grid">
+                <div className="rmi-trainer-category">
+                    <RMICategoryHeader
+                        position={POSITIONS.MIXER}
+                        label="Mixer Trainers"
+                        count={mixerTrainers.length}
+                        actions={actions?.mixer}
+                    />
+                    <TrainerTable
+                        trainers={mixerTrainers}
+                        plants={plants}
+                        position={POSITIONS.MIXER}
+                        onRemove={onRemove}
+                        readOnly={readOnly}
+                    />
+                </div>
+                <div className="rmi-trainer-category">
+                    <RMICategoryHeader
+                        position={POSITIONS.TRACTOR}
+                        label="Tractor Trainers"
+                        count={tractorTrainers.length}
+                        actions={actions?.tractor}
+                    />
+                    <TrainerTable
+                        trainers={tractorTrainers}
+                        plants={plants}
+                        position={POSITIONS.TRACTOR}
+                        onRemove={onRemove}
+                        readOnly={readOnly}
+                    />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function PendingSection({ mixerPending, tractorPending, plants, readOnly, onRemove, actions }) {
+    return (
+        <div className="rmi-section">
+            <div className="rmi-section-header">
+                <div>
+                    <h3 className="rmi-section-title">
+                        <i className="fas fa-user-clock"></i>Pending Start Operators
+                    </h3>
+                    <p className="rmi-section-subtitle">New operators awaiting start date with assigned trainers</p>
+                </div>
+            </div>
+            <div className="rmi-pending-grid">
+                <div className="rmi-pending-category">
+                    <RMICategoryHeader
+                        position={POSITIONS.MIXER}
+                        label="Mixer Operators"
+                        count={mixerPending.length}
+                        actions={actions?.mixer}
+                    />
+                    <PendingTable
+                        pending={mixerPending}
+                        plants={plants}
+                        position={POSITIONS.MIXER}
+                        onRemove={onRemove}
+                        readOnly={readOnly}
+                    />
+                </div>
+                <div className="rmi-pending-category">
+                    <RMICategoryHeader
+                        position={POSITIONS.TRACTOR}
+                        label="Tractor Operators"
+                        count={tractorPending.length}
+                        actions={actions?.tractor}
+                    />
+                    <PendingTable
+                        pending={tractorPending}
+                        plants={plants}
+                        position={POSITIONS.TRACTOR}
+                        onRemove={onRemove}
+                        readOnly={readOnly}
+                    />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function TrainingSection({ mixerTraining, tractorTraining, plants, readOnly, onRemove, actions }) {
+    return (
+        <div className="rmi-section">
+            <div className="rmi-section-header">
+                <div>
+                    <h3 className="rmi-section-title">
+                        <i className="fas fa-graduation-cap"></i>Training Operators
+                    </h3>
+                    <p className="rmi-section-subtitle">Operators currently in training with assigned trainers</p>
+                </div>
+            </div>
+            <div className="rmi-pending-grid">
+                <div className="rmi-pending-category">
+                    <RMICategoryHeader
+                        position={POSITIONS.MIXER}
+                        label="Mixer Operators"
+                        count={mixerTraining.length}
+                        actions={actions?.mixer}
+                    />
+                    <TrainingTable
+                        training={mixerTraining}
+                        plants={plants}
+                        position={POSITIONS.MIXER}
+                        onRemove={onRemove}
+                        readOnly={readOnly}
+                    />
+                </div>
+                <div className="rmi-pending-category">
+                    <RMICategoryHeader
+                        position={POSITIONS.TRACTOR}
+                        label="Tractor Operators"
+                        count={tractorTraining.length}
+                        actions={actions?.tractor}
+                    />
+                    <TrainingTable
+                        training={tractorTraining}
+                        plants={plants}
+                        position={POSITIONS.TRACTOR}
+                        onRemove={onRemove}
+                        readOnly={readOnly}
+                    />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function HiringGoalsSection({ plants, hiringGoals, onChange, readOnly }) {
+    return (
+        <div className="rmi-section">
+            <div className="rmi-section-header">
+                <h3 className="rmi-section-title">
+                    <i className="fas fa-bullseye"></i>Weekly Hiring Goals
+                </h3>
+                <p className="rmi-section-subtitle">
+                    {readOnly ? 'Hiring targets for each plant location' : 'Set hiring targets for each plant location'}
+                </p>
+            </div>
+            <HiringGoalsTable plants={plants} hiringGoals={hiringGoals} onChange={onChange} readOnly={readOnly} />
+        </div>
+    )
+}
+
 export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants }) {
     const [liveOperators, setLiveOperators] = useState([])
     const [isLoading, setIsLoading] = useState(false)
@@ -224,6 +590,10 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         }
     }
 
+    function updateSnapshotData(key, value) {
+        setForm((prev) => ({ ...prev, snapshot_data: { ...prev.snapshot_data, [key]: value } }))
+    }
+
     function pullMixerTrainers() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -232,19 +602,10 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const trainers = liveOperators.filter(
             (op) => op.isTrainer && op.status !== 'Terminated' && op.position === 'Mixer Operator'
         )
-        const mixerTrainersData = trainers.map((op) => ({
-            id: op.employeeId,
-            name: op.name,
-            plant: op.plantCode,
-            status: op.status
-        }))
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                mixer_trainers: mixerTrainersData
-            }
-        }))
+        updateSnapshotData(
+            'mixer_trainers',
+            trainers.map((op) => ({ id: op.employeeId, name: op.name, plant: op.plantCode, status: op.status }))
+        )
     }
 
     function pullTractorTrainers() {
@@ -255,19 +616,10 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const trainers = liveOperators.filter(
             (op) => op.isTrainer && op.status !== 'Terminated' && op.position === 'Tractor Operator'
         )
-        const tractorTrainersData = trainers.map((op) => ({
-            id: op.employeeId,
-            name: op.name,
-            plant: op.plantCode,
-            status: op.status
-        }))
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                tractor_trainers: tractorTrainersData
-            }
-        }))
+        updateSnapshotData(
+            'tractor_trainers',
+            trainers.map((op) => ({ id: op.employeeId, name: op.name, plant: op.plantCode, status: op.status }))
+        )
     }
 
     function pullMixerPending() {
@@ -276,26 +628,18 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             return
         }
         const pending = liveOperators.filter(
-            (op) =>
-                op.status === 'Pending Start' &&
-                op.pendingStartDate &&
-                op.pendingStartDate.trim() !== '' &&
-                op.position === 'Mixer Operator'
+            (op) => op.status === 'Pending Start' && op.pendingStartDate?.trim() && op.position === 'Mixer Operator'
         )
-        const mixerPendingData = pending.map((op) => ({
-            id: op.employeeId,
-            name: op.name,
-            plant: op.plantCode,
-            startDate: op.pendingStartDate,
-            trainer: op.assignedTrainer
-        }))
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                mixer_pending: mixerPendingData
-            }
-        }))
+        updateSnapshotData(
+            'mixer_pending',
+            pending.map((op) => ({
+                id: op.employeeId,
+                name: op.name,
+                plant: op.plantCode,
+                startDate: op.pendingStartDate,
+                trainer: op.assignedTrainer
+            }))
+        )
     }
 
     function pullTractorPending() {
@@ -304,26 +648,18 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             return
         }
         const pending = liveOperators.filter(
-            (op) =>
-                op.status === 'Pending Start' &&
-                op.pendingStartDate &&
-                op.pendingStartDate.trim() !== '' &&
-                op.position === 'Tractor Operator'
+            (op) => op.status === 'Pending Start' && op.pendingStartDate?.trim() && op.position === 'Tractor Operator'
         )
-        const tractorPendingData = pending.map((op) => ({
-            id: op.employeeId,
-            name: op.name,
-            plant: op.plantCode,
-            startDate: op.pendingStartDate,
-            trainer: op.assignedTrainer
-        }))
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                tractor_pending: tractorPendingData
-            }
-        }))
+        updateSnapshotData(
+            'tractor_pending',
+            pending.map((op) => ({
+                id: op.employeeId,
+                name: op.name,
+                plant: op.plantCode,
+                startDate: op.pendingStartDate,
+                trainer: op.assignedTrainer
+            }))
+        )
     }
 
     function pullMixerTraining() {
@@ -332,22 +668,18 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             return
         }
         const training = liveOperators.filter((op) => op.status === 'Training' && op.position === 'Mixer Operator')
-        const mixerTrainingData = training.map((op) => {
-            const trainer = liveOperators.find((t) => t.employeeId === op.assignedTrainer)
-            return {
-                id: op.employeeId,
-                name: op.name,
-                plant: op.plantCode,
-                trainer: trainer?.name || op.assignedTrainer || '—'
-            }
-        })
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                mixer_training: mixerTrainingData
-            }
-        }))
+        updateSnapshotData(
+            'mixer_training',
+            training.map((op) => {
+                const trainer = liveOperators.find((t) => t.employeeId === op.assignedTrainer)
+                return {
+                    id: op.employeeId,
+                    name: op.name,
+                    plant: op.plantCode,
+                    trainer: trainer?.name || op.assignedTrainer || '—'
+                }
+            })
+        )
     }
 
     function pullTractorTraining() {
@@ -356,55 +688,47 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             return
         }
         const training = liveOperators.filter((op) => op.status === 'Training' && op.position === 'Tractor Operator')
-        const tractorTrainingData = training.map((op) => {
-            const trainer = liveOperators.find((t) => t.employeeId === op.assignedTrainer)
-            return {
-                id: op.employeeId,
-                name: op.name,
-                plant: op.plantCode,
-                trainer: trainer?.name || op.assignedTrainer || '—'
-            }
-        })
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                tractor_training: tractorTrainingData
-            }
-        }))
+        updateSnapshotData(
+            'tractor_training',
+            training.map((op) => {
+                const trainer = liveOperators.find((t) => t.employeeId === op.assignedTrainer)
+                return {
+                    id: op.employeeId,
+                    name: op.name,
+                    plant: op.plantCode,
+                    trainer: trainer?.name || op.assignedTrainer || '—'
+                }
+            })
+        )
     }
 
     function removeTrainer(position, id) {
-        const key = position === 'Mixer Operator' ? 'mixer_trainers' : 'tractor_trainers'
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                [key]: (prev.snapshot_data?.[key] || []).filter((t) => t.id !== id)
-            }
-        }))
+        const key = position === POSITIONS.MIXER ? 'mixer_trainers' : 'tractor_trainers'
+        updateSnapshotData(
+            key,
+            (snapshotData[key] || []).filter((t) => t.id !== id)
+        )
     }
 
     function removePending(position, id) {
-        const key = position === 'Mixer Operator' ? 'mixer_pending' : 'tractor_pending'
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                [key]: (prev.snapshot_data?.[key] || []).filter((t) => t.id !== id)
-            }
-        }))
+        const key = position === POSITIONS.MIXER ? 'mixer_pending' : 'tractor_pending'
+        updateSnapshotData(
+            key,
+            (snapshotData[key] || []).filter((t) => t.id !== id)
+        )
     }
 
     function removeTraining(position, id) {
-        const key = position === 'Mixer Operator' ? 'mixer_training' : 'tractor_training'
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                [key]: (prev.snapshot_data?.[key] || []).filter((t) => t.id !== id)
-            }
-        }))
+        const key = position === POSITIONS.MIXER ? 'mixer_training' : 'tractor_training'
+        updateSnapshotData(
+            key,
+            (snapshotData[key] || []).filter((t) => t.id !== id)
+        )
+    }
+
+    function clearData(key) {
+        if (!confirm(`Are you sure you want to clear all ${key.replace(/_/g, ' ')} data?`)) return
+        updateSnapshotData(key, [])
     }
 
     function addTrainer() {
@@ -412,27 +736,19 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             alert('Please select a trainer and plant')
             return
         }
-
         const selectedOperator = liveOperators.find((op) => op.employeeId === newTrainer.trainerId)
         if (!selectedOperator) {
             alert('Selected trainer not found')
             return
         }
-
-        const key = newTrainer.position === 'Mixer Operator' ? 'mixer_trainers' : 'tractor_trainers'
+        const key = newTrainer.position === POSITIONS.MIXER ? 'mixer_trainers' : 'tractor_trainers'
         const trainer = {
             id: selectedOperator.employeeId,
             name: selectedOperator.name,
             plant: newTrainer.plant,
             status: selectedOperator.status || 'Active'
         }
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                [key]: [...(prev.snapshot_data?.[key] || []), trainer]
-            }
-        }))
+        updateSnapshotData(key, [...(snapshotData[key] || []), trainer])
         setNewTrainer({ plant: '', position: 'Mixer Operator', trainerId: '' })
         setShowAddTrainerModal(false)
     }
@@ -442,7 +758,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             alert('Please fill in all required fields')
             return
         }
-        const key = newPending.position === 'Mixer Operator' ? 'mixer_pending' : 'tractor_pending'
+        const key = newPending.position === POSITIONS.MIXER ? 'mixer_pending' : 'tractor_pending'
         const pending = {
             id: `manual-${Date.now()}`,
             name: newPending.name,
@@ -450,790 +766,164 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             startDate: newPending.startDate,
             trainer: newPending.trainer
         }
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                [key]: [...(prev.snapshot_data?.[key] || []), pending]
-            }
-        }))
+        updateSnapshotData(key, [...(snapshotData[key] || []), pending])
         setNewPending({ name: '', plant: '', position: 'Mixer Operator', startDate: '', trainer: '' })
         setShowAddPendingModal(false)
     }
 
     function getPlantName(plantCode) {
-        const plant = plants?.find((p) => (p.plant_code || p.code) === plantCode)
-        return plant?.name || plantCode || '—'
+        return getPlantNameFromList(plantCode, plants)
     }
-
     function getAvailableTrainers(position) {
         return liveOperators.filter((op) => op.isTrainer && op.status !== 'Terminated' && op.position === position)
     }
-
     function handleHiringGoalChange(plantCode, value) {
-        if (!setForm) return
-        setForm((prev) => ({
-            ...prev,
-            hiring_goals: {
-                ...(prev.hiring_goals || {}),
-                [plantCode]: value
-            }
-        }))
+        if (setForm)
+            setForm((prev) => ({ ...prev, hiring_goals: { ...(prev.hiring_goals || {}), [plantCode]: value } }))
     }
 
     useEffect(() => {
         loadLiveData()
     }, [plants])
 
-    function clearMixerTrainers() {
-        if (!confirm('Are you sure you want to clear all Mixer Trainers data?')) return
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                mixer_trainers: []
-            }
-        }))
+    const createActionButtons = (pullFn, addFn, clearFn, isAccurate, dataLength) => (
+        <>
+            <button
+                type="button"
+                className="rmi-category-btn-new rmi-btn-pull"
+                onClick={pullFn}
+                disabled={isLoading || readOnly || isAccurate}
+                title={isAccurate ? 'Data is up to date' : 'Pull live data'}
+            >
+                <i className="fas fa-sync-alt"></i>
+                <span>Pull</span>
+            </button>
+            <button
+                type="button"
+                className="rmi-category-btn-new rmi-btn-add-new"
+                onClick={addFn}
+                disabled={readOnly}
+                title="Add"
+            >
+                <i className="fas fa-plus"></i>
+                <span>Add</span>
+            </button>
+            <button
+                type="button"
+                className="rmi-category-btn-new rmi-btn-clear"
+                onClick={clearFn}
+                disabled={readOnly || dataLength === 0}
+                title="Clear all"
+            >
+                <i className="fas fa-trash-alt"></i>
+                <span>Clear</span>
+            </button>
+        </>
+    )
+
+    const trainerActions = {
+        mixer: createActionButtons(
+            pullMixerTrainers,
+            () => {
+                setNewTrainer({ plant: '', position: POSITIONS.MIXER, trainerId: '' })
+                setShowAddTrainerModal(true)
+            },
+            () => clearData('mixer_trainers'),
+            isMixerTrainersAccurate,
+            mixerTrainers.length
+        ),
+        tractor: createActionButtons(
+            pullTractorTrainers,
+            () => {
+                setNewTrainer({ plant: '', position: POSITIONS.TRACTOR, trainerId: '' })
+                setShowAddTrainerModal(true)
+            },
+            () => clearData('tractor_trainers'),
+            isTractorTrainersAccurate,
+            tractorTrainers.length
+        )
     }
 
-    function clearTractorTrainers() {
-        if (!confirm('Are you sure you want to clear all Tractor Trainers data?')) return
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                tractor_trainers: []
-            }
-        }))
+    const pendingActions = {
+        mixer: createActionButtons(
+            pullMixerPending,
+            () => {
+                setNewPending({ name: '', plant: '', position: POSITIONS.MIXER, startDate: '', trainer: '' })
+                setShowAddPendingModal(true)
+            },
+            () => clearData('mixer_pending'),
+            isMixerPendingAccurate,
+            mixerPending.length
+        ),
+        tractor: createActionButtons(
+            pullTractorPending,
+            () => {
+                setNewPending({ name: '', plant: '', position: POSITIONS.TRACTOR, startDate: '', trainer: '' })
+                setShowAddPendingModal(true)
+            },
+            () => clearData('tractor_pending'),
+            isTractorPendingAccurate,
+            tractorPending.length
+        )
     }
 
-    function clearMixerPending() {
-        if (!confirm('Are you sure you want to clear all Mixer Pending data?')) return
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                mixer_pending: []
-            }
-        }))
-    }
-
-    function clearTractorPending() {
-        if (!confirm('Are you sure you want to clear all Tractor Pending data?')) return
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                tractor_pending: []
-            }
-        }))
-    }
-
-    function clearMixerTraining() {
-        if (!confirm('Are you sure you want to clear all Mixer Training data?')) return
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                mixer_training: []
-            }
-        }))
-    }
-
-    function clearTractorTraining() {
-        if (!confirm('Are you sure you want to clear all Tractor Training data?')) return
-        setForm((prev) => ({
-            ...prev,
-            snapshot_data: {
-                ...prev.snapshot_data,
-                tractor_training: []
-            }
-        }))
+    const trainingActions = {
+        mixer: createActionButtons(
+            pullMixerTraining,
+            () => {
+                setNewPending({ name: '', plant: '', position: POSITIONS.MIXER, startDate: '', trainer: '' })
+                setShowAddPendingModal(true)
+            },
+            () => clearData('mixer_training'),
+            isMixerTrainingAccurate,
+            mixerTraining.length
+        ),
+        tractor: createActionButtons(
+            pullTractorTraining,
+            () => {
+                setNewPending({ name: '', plant: '', position: POSITIONS.TRACTOR, startDate: '', trainer: '' })
+                setShowAddPendingModal(true)
+            },
+            () => clearData('tractor_training'),
+            isTractorTrainingAccurate,
+            tractorTraining.length
+        )
     }
 
     return (
         <>
             <style>{rmiReportStyles}</style>
             <div className="rmi-report-plugin">
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <div>
-                            <h3 className="rmi-section-title">
-                                <i className="fas fa-chalkboard-teacher"></i>
-                                Active Trainers by Position
-                            </h3>
-                            <p className="rmi-section-subtitle">Current instructors assigned to train new operators</p>
-                        </div>
-                    </div>
-
-                    <div className="rmi-trainers-grid">
-                        <div className="rmi-trainer-category">
-                            <div className="rmi-category-header rmi-mixer-header">
-                                <i className="fas fa-truck-loading"></i>
-                                <span>Mixer Trainers</span>
-                                <span className="rmi-count-badge">{mixerTrainers.length}</span>
-                                <div className="rmi-category-actions">
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-pull"
-                                        onClick={pullMixerTrainers}
-                                        disabled={isLoading || readOnly || isMixerTrainersAccurate}
-                                        title={
-                                            isMixerTrainersAccurate
-                                                ? 'Data is up to date'
-                                                : 'Pull live mixer trainer data'
-                                        }
-                                    >
-                                        <i className="fas fa-sync-alt"></i>
-                                        <span>Pull</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-add-new"
-                                        onClick={() => {
-                                            setNewTrainer({ plant: '', position: 'Mixer Operator', trainerId: '' })
-                                            setShowAddTrainerModal(true)
-                                        }}
-                                        disabled={readOnly}
-                                        title="Add mixer trainer"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-clear"
-                                        onClick={clearMixerTrainers}
-                                        disabled={readOnly || mixerTrainers.length === 0}
-                                        title="Clear all mixer trainers"
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
-                            </div>
-                            {mixerTrainers.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Trainer Name</th>
-                                                <th>Plant</th>
-                                                <th>Status</th>
-                                                {!readOnly && <th>Action</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mixerTrainers.map((trainer) => (
-                                                <tr key={trainer.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                        {trainer.name}
-                                                    </td>
-                                                    <td>{getPlantName(trainer.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-status-badge rmi-status-active">
-                                                            {trainer.status}
-                                                        </span>
-                                                    </td>
-                                                    {!readOnly && (
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="rmi-delete-btn"
-                                                                onClick={() =>
-                                                                    removeTrainer('Mixer Operator', trainer.id)
-                                                                }
-                                                                title="Remove trainer"
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-user-slash"></i>
-                                    <p>No mixer trainers - pull live data or add manually</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rmi-trainer-category">
-                            <div className="rmi-category-header rmi-tractor-header">
-                                <i className="fas fa-tractor"></i>
-                                <span>Tractor Trainers</span>
-                                <span className="rmi-count-badge">{tractorTrainers.length}</span>
-                                <div className="rmi-category-actions">
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-pull"
-                                        onClick={pullTractorTrainers}
-                                        disabled={isLoading || readOnly || isTractorTrainersAccurate}
-                                        title={
-                                            isTractorTrainersAccurate
-                                                ? 'Data is up to date'
-                                                : 'Pull live tractor trainer data'
-                                        }
-                                    >
-                                        <i className="fas fa-sync-alt"></i>
-                                        <span>Pull</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-add-new"
-                                        onClick={() => {
-                                            setNewTrainer({ plant: '', position: 'Tractor Operator', trainerId: '' })
-                                            setShowAddTrainerModal(true)
-                                        }}
-                                        disabled={readOnly}
-                                        title="Add tractor trainer"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-clear"
-                                        onClick={clearTractorTrainers}
-                                        disabled={readOnly || tractorTrainers.length === 0}
-                                        title="Clear all tractor trainers"
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
-                            </div>
-                            {tractorTrainers.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Trainer Name</th>
-                                                <th>Plant</th>
-                                                <th>Status</th>
-                                                {!readOnly && <th>Action</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tractorTrainers.map((trainer) => (
-                                                <tr key={trainer.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                        {trainer.name}
-                                                    </td>
-                                                    <td>{getPlantName(trainer.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-status-badge rmi-status-active">
-                                                            {trainer.status}
-                                                        </span>
-                                                    </td>
-                                                    {!readOnly && (
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="rmi-delete-btn"
-                                                                onClick={() =>
-                                                                    removeTrainer('Tractor Operator', trainer.id)
-                                                                }
-                                                                title="Remove trainer"
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-user-slash"></i>
-                                    <p>No tractor trainers - pull live data or add manually</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <div>
-                            <h3 className="rmi-section-title">
-                                <i className="fas fa-user-clock"></i>
-                                Pending Start Operators
-                            </h3>
-                            <p className="rmi-section-subtitle">
-                                New operators awaiting start date with assigned trainers
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="rmi-pending-grid">
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-mixer-header">
-                                <i className="fas fa-truck-loading"></i>
-                                <span>Mixer Operators</span>
-                                <span className="rmi-count-badge">{mixerPending.length}</span>
-                                <div className="rmi-category-actions">
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-pull"
-                                        onClick={pullMixerPending}
-                                        disabled={isLoading || readOnly || isMixerPendingAccurate}
-                                        title={
-                                            isMixerPendingAccurate
-                                                ? 'Data is up to date'
-                                                : 'Pull live mixer pending data'
-                                        }
-                                    >
-                                        <i className="fas fa-sync-alt"></i>
-                                        <span>Pull</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-add-new"
-                                        onClick={() => {
-                                            setNewPending({
-                                                name: '',
-                                                plant: '',
-                                                position: 'Mixer Operator',
-                                                startDate: '',
-                                                trainer: ''
-                                            })
-                                            setShowAddPendingModal(true)
-                                        }}
-                                        disabled={readOnly}
-                                        title="Add pending mixer operator"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-clear"
-                                        onClick={clearMixerPending}
-                                        disabled={readOnly || mixerPending.length === 0}
-                                        title="Clear all mixer pending"
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
-                            </div>
-                            {mixerPending.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Start Date</th>
-                                                {!readOnly && <th>Action</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mixerPending.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-date-badge">{op.startDate}</span>
-                                                    </td>
-                                                    {!readOnly && (
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="rmi-delete-btn"
-                                                                onClick={() => removePending('Mixer Operator', op.id)}
-                                                                title="Remove pending operator"
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No pending mixer operators</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-tractor-header">
-                                <i className="fas fa-tractor"></i>
-                                <span>Tractor Operators</span>
-                                <span className="rmi-count-badge">{tractorPending.length}</span>
-                                <div className="rmi-category-actions">
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-pull"
-                                        onClick={pullTractorPending}
-                                        disabled={isLoading || readOnly || isTractorPendingAccurate}
-                                        title={
-                                            isTractorPendingAccurate
-                                                ? 'Data is up to date'
-                                                : 'Pull live tractor pending data'
-                                        }
-                                    >
-                                        <i className="fas fa-sync-alt"></i>
-                                        <span>Pull</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-add-new"
-                                        onClick={() => {
-                                            setNewPending({
-                                                name: '',
-                                                plant: '',
-                                                position: 'Tractor Operator',
-                                                startDate: '',
-                                                trainer: ''
-                                            })
-                                            setShowAddPendingModal(true)
-                                        }}
-                                        disabled={readOnly}
-                                        title="Add pending tractor operator"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-clear"
-                                        onClick={clearTractorPending}
-                                        disabled={readOnly || tractorPending.length === 0}
-                                        title="Clear all tractor pending"
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
-                            </div>
-                            {tractorPending.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Start Date</th>
-                                                {!readOnly && <th>Action</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tractorPending.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-date-badge">{op.startDate}</span>
-                                                    </td>
-                                                    {!readOnly && (
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="rmi-delete-btn"
-                                                                onClick={() => removePending('Tractor Operator', op.id)}
-                                                                title="Remove pending operator"
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No pending tractor operators</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <div>
-                            <h3 className="rmi-section-title">
-                                <i className="fas fa-graduation-cap"></i>
-                                Training Operators
-                            </h3>
-                            <p className="rmi-section-subtitle">
-                                Operators currently in training with assigned trainers
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="rmi-pending-grid">
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-mixer-header">
-                                <i className="fas fa-truck-loading"></i>
-                                <span>Mixer Operators</span>
-                                <span className="rmi-count-badge">{mixerTraining.length}</span>
-                                <div className="rmi-category-actions">
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-pull"
-                                        onClick={pullMixerTraining}
-                                        disabled={isLoading || readOnly || isMixerTrainingAccurate}
-                                        title={
-                                            isMixerTrainingAccurate
-                                                ? 'Data is up to date'
-                                                : 'Pull live mixer training data'
-                                        }
-                                    >
-                                        <i className="fas fa-sync-alt"></i>
-                                        <span>Pull</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-add-new"
-                                        onClick={() => {
-                                            setNewPending({
-                                                name: '',
-                                                plant: '',
-                                                position: 'Mixer Operator',
-                                                startDate: '',
-                                                trainer: ''
-                                            })
-                                            setShowAddPendingModal(true)
-                                        }}
-                                        disabled={readOnly}
-                                        title="Add training mixer operator"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-clear"
-                                        onClick={clearMixerTraining}
-                                        disabled={readOnly || mixerTraining.length === 0}
-                                        title="Clear all mixer training"
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
-                            </div>
-                            {mixerTraining.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Trainer</th>
-                                                {!readOnly && <th>Action</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mixerTraining.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>{op.trainer || '—'}</td>
-                                                    {!readOnly && (
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="rmi-delete-btn"
-                                                                onClick={() => removeTraining('Mixer Operator', op.id)}
-                                                                title="Remove training operator"
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No mixer operators in training</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-tractor-header">
-                                <i className="fas fa-tractor"></i>
-                                <span>Tractor Operators</span>
-                                <span className="rmi-count-badge">{tractorTraining.length}</span>
-                                <div className="rmi-category-actions">
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-pull"
-                                        onClick={pullTractorTraining}
-                                        disabled={isLoading || readOnly || isTractorTrainingAccurate}
-                                        title={
-                                            isTractorTrainingAccurate
-                                                ? 'Data is up to date'
-                                                : 'Pull live tractor training data'
-                                        }
-                                    >
-                                        <i className="fas fa-sync-alt"></i>
-                                        <span>Pull</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-add-new"
-                                        onClick={() => {
-                                            setNewPending({
-                                                name: '',
-                                                plant: '',
-                                                position: 'Tractor Operator',
-                                                startDate: '',
-                                                trainer: ''
-                                            })
-                                            setShowAddPendingModal(true)
-                                        }}
-                                        disabled={readOnly}
-                                        title="Add training tractor operator"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="rmi-category-btn-new rmi-btn-clear"
-                                        onClick={clearTractorTraining}
-                                        disabled={readOnly || tractorTraining.length === 0}
-                                        title="Clear all tractor training"
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
-                            </div>
-                            {tractorTraining.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Trainer</th>
-                                                {!readOnly && <th>Action</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tractorTraining.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>{op.trainer || '—'}</td>
-                                                    {!readOnly && (
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="rmi-delete-btn"
-                                                                onClick={() =>
-                                                                    removeTraining('Tractor Operator', op.id)
-                                                                }
-                                                                title="Remove training operator"
-                                                            >
-                                                                <i className="fas fa-times"></i>
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No tractor operators in training</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <h3 className="rmi-section-title">
-                            <i className="fas fa-bullseye"></i>
-                            Weekly Hiring Goals
-                        </h3>
-                        <p className="rmi-section-subtitle">Set hiring targets for each plant location</p>
-                    </div>
-
-                    <div className="rmi-goals-table-container">
-                        <table className="rmi-goals-table">
-                            <thead>
-                                <tr>
-                                    <th className="rmi-goals-th-plant">Plant Name</th>
-                                    <th className="rmi-goals-th-code">Code</th>
-                                    <th className="rmi-goals-th-goal">Hiring Goal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {plants?.map((plant) => {
-                                    const plantCode = plant.plant_code || plant.code
-                                    const plantName = plant.name || plant.plant_name || plantCode
-                                    return (
-                                        <tr key={plantCode}>
-                                            <td className="rmi-goals-td-plant">
-                                                <div className="rmi-goals-plant-cell">
-                                                    <i className="fas fa-industry"></i>
-                                                    <span>{plantName}</span>
-                                                </div>
-                                            </td>
-                                            <td className="rmi-goals-td-code">
-                                                <span className="rmi-goals-code-badge">{plantCode}</span>
-                                            </td>
-                                            <td className="rmi-goals-td-goal">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    className="rmi-goals-input"
-                                                    value={hiringGoals[plantCode] || ''}
-                                                    onChange={(e) => handleHiringGoalChange(plantCode, e.target.value)}
-                                                    placeholder="0"
-                                                    disabled={readOnly}
-                                                />
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <TrainersSection
+                    mixerTrainers={mixerTrainers}
+                    tractorTrainers={tractorTrainers}
+                    plants={plants}
+                    readOnly={readOnly}
+                    onRemove={removeTrainer}
+                    actions={trainerActions}
+                />
+                <PendingSection
+                    mixerPending={mixerPending}
+                    tractorPending={tractorPending}
+                    plants={plants}
+                    readOnly={readOnly}
+                    onRemove={removePending}
+                    actions={pendingActions}
+                />
+                <TrainingSection
+                    mixerTraining={mixerTraining}
+                    tractorTraining={tractorTraining}
+                    plants={plants}
+                    readOnly={readOnly}
+                    onRemove={removeTraining}
+                    actions={trainingActions}
+                />
+                <HiringGoalsSection
+                    plants={plants}
+                    hiringGoals={hiringGoals}
+                    onChange={handleHiringGoalChange}
+                    readOnly={readOnly}
+                />
 
                 {showAddTrainerModal &&
                     ReactDOM.createPortal(
@@ -1271,8 +961,8 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                                             }
                                             className="rmi-form-select-modern"
                                         >
-                                            <option value="Mixer Operator">Mixer Operator</option>
-                                            <option value="Tractor Operator">Tractor Operator</option>
+                                            <option value={POSITIONS.MIXER}>Mixer Operator</option>
+                                            <option value={POSITIONS.TRACTOR}>Tractor Operator</option>
                                         </select>
                                     </div>
                                     <div className="rmi-form-group-modern">
@@ -1328,8 +1018,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                                         className="rmi-modal-btn-modern rmi-btn-save-modern"
                                         onClick={addTrainer}
                                     >
-                                        <i className="fas fa-plus"></i>
-                                        Add Trainer
+                                        <i className="fas fa-plus"></i>Add Trainer
                                     </button>
                                 </div>
                             </div>
@@ -1367,8 +1056,8 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                                             onChange={(e) => setNewPending({ ...newPending, position: e.target.value })}
                                             className="rmi-form-select-modern"
                                         >
-                                            <option value="Mixer Operator">Mixer Operator</option>
-                                            <option value="Tractor Operator">Tractor Operator</option>
+                                            <option value={POSITIONS.MIXER}>Mixer Operator</option>
+                                            <option value={POSITIONS.TRACTOR}>Tractor Operator</option>
                                         </select>
                                     </div>
                                     <div className="rmi-form-group-modern">
@@ -1433,8 +1122,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                                         className="rmi-modal-btn-modern rmi-btn-save-modern"
                                         onClick={addPending}
                                     >
-                                        <i className="fas fa-plus"></i>
-                                        Add Operator
+                                        <i className="fas fa-plus"></i>Add Operator
                                     </button>
                                 </div>
                             </div>
@@ -1445,18 +1133,10 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                 <PlantDropdownModal
                     isOpen={showPlantModal}
                     onClose={() => setShowPlantModal(false)}
-                    plants={
-                        plants?.map((p) => ({
-                            plantCode: p.plant_code || p.code,
-                            plantName: p.name
-                        })) || []
-                    }
+                    plants={plants?.map((p) => ({ plantCode: p.plant_code || p.code, plantName: p.name })) || []}
                     onSelect={(plantCode) => {
-                        if (plantModalTarget === 'trainer') {
-                            setNewTrainer({ ...newTrainer, plant: plantCode })
-                        } else if (plantModalTarget === 'pending') {
-                            setNewPending({ ...newPending, plant: plantCode })
-                        }
+                        if (plantModalTarget === 'trainer') setNewTrainer({ ...newTrainer, plant: plantCode })
+                        else if (plantModalTarget === 'pending') setNewPending({ ...newPending, plant: plantCode })
                         setShowPlantModal(false)
                     }}
                     searchPlaceholder="Search plants..."
@@ -1476,344 +1156,24 @@ export function ReadyMixInstructorReviewPlugin({ form, plants }) {
     const tractorTraining = snapshotData.tractor_training || []
     const hiringGoals = form?.hiring_goals || {}
 
-    function getPlantName(plantCode) {
-        const plant = plants?.find((p) => (p.plant_code || p.code) === plantCode)
-        return plant?.name || plantCode || '—'
-    }
-
     return (
         <>
             <style>{rmiReportStyles}</style>
             <div className="rmi-report-plugin">
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <div>
-                            <h3 className="rmi-section-title">
-                                <i className="fas fa-chalkboard-teacher"></i>
-                                Active Trainers by Position
-                            </h3>
-                            <p className="rmi-section-subtitle">Current instructors assigned to train new operators</p>
-                        </div>
-                    </div>
-
-                    <div className="rmi-trainers-grid">
-                        <div className="rmi-trainer-category">
-                            <div className="rmi-category-header rmi-mixer-header">
-                                <i className="fas fa-truck-loading"></i>
-                                <span>Mixer Trainers</span>
-                                <span className="rmi-count-badge">{mixerTrainers.length}</span>
-                            </div>
-                            {mixerTrainers.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Trainer Name</th>
-                                                <th>Plant</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mixerTrainers.map((trainer) => (
-                                                <tr key={trainer.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                        {trainer.name}
-                                                    </td>
-                                                    <td>{getPlantName(trainer.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-status-badge rmi-status-active">
-                                                            {trainer.status}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-user-slash"></i>
-                                    <p>No mixer trainers recorded</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rmi-trainer-category">
-                            <div className="rmi-category-header rmi-tractor-header">
-                                <i className="fas fa-tractor"></i>
-                                <span>Tractor Trainers</span>
-                                <span className="rmi-count-badge">{tractorTrainers.length}</span>
-                            </div>
-                            {tractorTrainers.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Trainer Name</th>
-                                                <th>Plant</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tractorTrainers.map((trainer) => (
-                                                <tr key={trainer.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user-tie rmi-icon-small"></i>
-                                                        {trainer.name}
-                                                    </td>
-                                                    <td>{getPlantName(trainer.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-status-badge rmi-status-active">
-                                                            {trainer.status}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-user-slash"></i>
-                                    <p>No tractor trainers recorded</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <div>
-                            <h3 className="rmi-section-title">
-                                <i className="fas fa-user-clock"></i>
-                                Pending Start Operators
-                            </h3>
-                            <p className="rmi-section-subtitle">
-                                New operators awaiting start date with assigned trainers
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="rmi-pending-grid">
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-mixer-header">
-                                <i className="fas fa-truck-loading"></i>
-                                <span>Mixer Operators</span>
-                                <span className="rmi-count-badge">{mixerPending.length}</span>
-                            </div>
-                            {mixerPending.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Start Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mixerPending.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-date-badge">{op.startDate}</span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No pending mixer operators</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-tractor-header">
-                                <i className="fas fa-tractor"></i>
-                                <span>Tractor Operators</span>
-                                <span className="rmi-count-badge">{tractorPending.length}</span>
-                            </div>
-                            {tractorPending.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Start Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tractorPending.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>
-                                                        <span className="rmi-date-badge">{op.startDate}</span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No pending tractor operators</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <div>
-                            <h3 className="rmi-section-title">
-                                <i className="fas fa-graduation-cap"></i>
-                                Training Operators
-                            </h3>
-                            <p className="rmi-section-subtitle">
-                                Operators currently in training with assigned trainers
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="rmi-pending-grid">
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-mixer-header">
-                                <i className="fas fa-truck-loading"></i>
-                                <span>Mixer Operators</span>
-                                <span className="rmi-count-badge">{mixerTraining.length}</span>
-                            </div>
-                            {mixerTraining.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Trainer</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mixerTraining.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>{op.trainer || '—'}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No mixer operators in training</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="rmi-pending-category">
-                            <div className="rmi-category-header rmi-tractor-header">
-                                <i className="fas fa-tractor"></i>
-                                <span>Tractor Operators</span>
-                                <span className="rmi-count-badge">{tractorTraining.length}</span>
-                            </div>
-                            {tractorTraining.length > 0 ? (
-                                <div className="rmi-table-wrapper">
-                                    <table className="rmi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Operator Name</th>
-                                                <th>Plant</th>
-                                                <th>Trainer</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tractorTraining.map((op) => (
-                                                <tr key={op.id}>
-                                                    <td className="rmi-name-cell">
-                                                        <i className="fas fa-user rmi-icon-small"></i>
-                                                        {op.name}
-                                                    </td>
-                                                    <td>{getPlantName(op.plant)}</td>
-                                                    <td>{op.trainer || '—'}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="rmi-empty-state">
-                                    <i className="fas fa-check-circle"></i>
-                                    <p>No tractor operators in training</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rmi-section">
-                    <div className="rmi-section-header">
-                        <h3 className="rmi-section-title">
-                            <i className="fas fa-bullseye"></i>
-                            Weekly Hiring Goals
-                        </h3>
-                        <p className="rmi-section-subtitle">Hiring targets for each plant location</p>
-                    </div>
-
-                    <div className="rmi-goals-table-container">
-                        <table className="rmi-goals-table">
-                            <thead>
-                                <tr>
-                                    <th className="rmi-goals-th-plant">Plant Name</th>
-                                    <th className="rmi-goals-th-code">Code</th>
-                                    <th className="rmi-goals-th-goal">Hiring Goal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {plants?.map((plant) => {
-                                    const plantCode = plant.plant_code || plant.code
-                                    const plantName = plant.name || plant.plant_name || plantCode
-                                    return (
-                                        <tr key={plantCode}>
-                                            <td className="rmi-goals-td-plant">
-                                                <div className="rmi-goals-plant-cell">
-                                                    <i className="fas fa-industry"></i>
-                                                    <span>{plantName}</span>
-                                                </div>
-                                            </td>
-                                            <td className="rmi-goals-td-code">
-                                                <span className="rmi-goals-code-badge">{plantCode}</span>
-                                            </td>
-                                            <td className="rmi-goals-td-goal">
-                                                <div className="rmi-goals-display">{hiringGoals[plantCode] || '0'}</div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <TrainersSection
+                    mixerTrainers={mixerTrainers}
+                    tractorTrainers={tractorTrainers}
+                    plants={plants}
+                    readOnly
+                />
+                <PendingSection mixerPending={mixerPending} tractorPending={tractorPending} plants={plants} readOnly />
+                <TrainingSection
+                    mixerTraining={mixerTraining}
+                    tractorTraining={tractorTraining}
+                    plants={plants}
+                    readOnly
+                />
+                <HiringGoalsSection plants={plants} hiringGoals={hiringGoals} readOnly />
             </div>
         </>
     )

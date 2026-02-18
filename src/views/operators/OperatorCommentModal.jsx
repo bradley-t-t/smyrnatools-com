@@ -1,6 +1,6 @@
 import React from 'react'
 
-import CommentModalSection from '../../components/sections/CommentModalSection'
+import CommentModalSection from '../../app/components/sections/CommentModalSection'
 import { OperatorService } from '../../services/OperatorService'
 
 function OperatorCommentModal({ operatorId, operatorName, onClose }) {

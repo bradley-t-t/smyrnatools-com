@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import AddViewSection from '../../components/sections/AddViewSection'
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import AddViewSection from '../../app/components/sections/AddViewSection'
 import Trailer from '../../models/trailers/Trailer'
 import { AuthService } from '../../services/AuthService'
 import { TrailerService } from '../../services/TrailerService'

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../../components/common/PlantDropdownModal'
+import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { supabase } from '../../../services/DatabaseService'
 import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
@@ -143,6 +143,135 @@ const reportStyles = `
 .pm-card-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; }
 .pm-empty-state { text-align: center; padding: 2rem; color: #64748b; }
 `
+
+const YPH_GRADES = ['excellent', 'good', 'average', 'poor']
+
+function formatYphValue(v) {
+    const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
+    return Number.isFinite(n) ? n.toFixed(2) : '--'
+}
+
+function GradeScale({ grade }) {
+    return (
+        <div className="pm-metric-scale">
+            {YPH_GRADES.map((g) => (
+                <span key={g} className={grade === g ? `active ${g}` : ''}>
+                    {g.charAt(0).toUpperCase() + g.slice(1)}
+                </span>
+            ))}
+        </div>
+    )
+}
+
+function YphMetricCard({ yph, grade, label, isDark }) {
+    const textClass = isDark ? 'pm-performance-text-dark' : 'pm-performance-text'
+    return (
+        <div className="pm-metric-card">
+            <div className="pm-metric-header">
+                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
+                <span className="pm-metric-title">Yards per Man-Hour</span>
+            </div>
+            <div
+                className={`pm-metric-value pm-yph-dual ${textClass}`}
+                title="Left: Raw YPH / Right: Adjusted for help sent"
+            >
+                <span className="pm-yph-raw">{formatYphValue(yph?.raw ?? yph)}</span>
+                <span className="pm-yph-separator">/</span>
+                <span className="pm-yph-adjusted">{formatYphValue(yph?.adjusted ?? yph)}</span>
+            </div>
+            <div className="pm-yph-labels">
+                <span className="pm-yph-label-item">Raw</span>
+                <span className="pm-yph-label-item">Adjusted</span>
+            </div>
+            <div className={`pm-metric-grade ${textClass}`}>{label?.adjusted ?? label}</div>
+            <GradeScale grade={grade?.adjusted ?? grade} />
+        </div>
+    )
+}
+
+function LostMetricCard({ lost, grade, label, isDark }) {
+    const textClass = isDark ? 'pm-performance-text-dark' : 'pm-performance-text'
+    return (
+        <div className="pm-metric-card">
+            <div className="pm-metric-header">
+                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
+                <span className="pm-metric-title">Yardage Lost</span>
+            </div>
+            <div className={`pm-metric-value ${textClass}`}>{lost !== null ? lost : '--'}</div>
+            <div className={`pm-metric-grade ${textClass}`}>{label}</div>
+            <GradeScale grade={grade} />
+        </div>
+    )
+}
+
+function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, isDark }) {
+    return (
+        <div className="pm-metrics-section">
+            <div className="pm-metrics-header">
+                <h3 className="pm-metrics-title">
+                    <i className="fas fa-chart-bar"></i>Weekly Performance Metrics
+                </h3>
+                <p className="pm-metrics-subtitle">Key performance indicators for this reporting period</p>
+            </div>
+            <div className="pm-metrics-grid">
+                <YphMetricCard yph={yph} grade={yphGrade} label={yphLabel} isDark={isDark} />
+                <LostMetricCard lost={lost} grade={lostGrade} label={lostLabel} isDark={isDark} />
+            </div>
+        </div>
+    )
+}
+
+function useYphCalculation(weekIso, plantCode, form) {
+    const [yph, setYph] = useState({ adjusted: 0, raw: 0 })
+    const [grade, setGrade] = useState({ adjusted: '', raw: '' })
+    const [label, setLabel] = useState({ adjusted: '', raw: '' })
+
+    useEffect(() => {
+        async function calculate() {
+            if (!weekIso || !plantCode) {
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
+                return
+            }
+
+            try {
+                const weekStart = weekIso.split('T')[0]
+                const [year] = weekStart.split('-').map(Number)
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
+
+                const { data: allReports } = await supabase
+                    .from('reports')
+                    .select('*')
+                    .eq('report_name', 'plant_manager')
+                    .eq('completed', true)
+                    .gte('week', startOfYear.toISOString())
+                    .lte('week', endOfYear.toISOString())
+
+                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
+                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
+                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
+
+                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
+                setYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
+            } catch (err) {
+                console.error('Error calculating YPH:', err)
+                const metrics = ReportUtility.getFullYphMetrics(form, 0)
+                setYph({ adjusted: metrics.adjusted, raw: metrics.raw })
+                setGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
+                setLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
+            }
+        }
+
+        calculate()
+    }, [weekIso, plantCode, form])
+
+    return { grade, label, yph }
+}
 
 function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
     const [historicalData, setHistoricalData] = useState([])
@@ -1413,97 +1542,23 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
 }
 
 export function PlantManagerSubmitPlugin({
-    yph,
-    yphGrade,
-    yphLabel,
+    yph: propYph,
+    yphGrade: propYphGrade,
+    yphLabel: propYphLabel,
     lost,
     lostGrade,
     lostLabel,
     form,
+    setForm,
     weekIso,
-    user,
-    setForm
+    user
 }) {
     const { preferences: _preferences } = usePreferences()
     const isDark = false
-    const [userPlantCode, setUserPlantCode] = useState(user?.plant_code || '')
-    const [calculatedYph, setCalculatedYph] = useState({ adjusted: 0, raw: 0 })
-    const [calculatedGrade, setCalculatedGrade] = useState({ adjusted: '', raw: '' })
-    const [calculatedLabel, setCalculatedLabel] = useState({ adjusted: '', raw: '' })
+    const userPlantCode = user?.plant_code || ''
+    const plantCode = form?.plant || userPlantCode
 
-    useEffect(() => {
-        async function fetchUserPlant() {
-            if (!user?.id || user?.plant_code) return
-
-            try {
-                const { data, error } = await supabase
-                    .from('users_profiles')
-                    .select('plant_code')
-                    .eq('id', user.id)
-                    .single()
-
-                if (error) throw error
-                if (data?.plant_code) {
-                    setUserPlantCode(data.plant_code)
-                }
-            } catch (err) {
-                console.error('Error fetching user plant:', err)
-            }
-        }
-
-        fetchUserPlant()
-    }, [user?.id, user?.plant_code])
-
-    const plantCode = form?.plant || userPlantCode || ''
-
-    useEffect(() => {
-        async function calculateYph() {
-            if (!weekIso || !plantCode) {
-                const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
-                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
-                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
-                return
-            }
-
-            try {
-                const weekStart = weekIso.split('T')[0]
-                const [year] = weekStart.split('-').map(Number)
-                const startOfYear = new Date(year, 0, 1)
-                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-
-                const { data: allReports } = await supabase
-                    .from('reports')
-                    .select('*')
-                    .eq('report_name', 'plant_manager')
-                    .eq('completed', true)
-                    .gte('week', startOfYear.toISOString())
-                    .lte('week', endOfYear.toISOString())
-
-                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
-                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
-                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
-
-                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
-                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
-                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
-                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
-            } catch (err) {
-                console.error('Error calculating YPH:', err)
-                const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
-                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
-                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
-            }
-        }
-
-        calculateYph()
-    }, [weekIso, plantCode, form])
-
-    const formatYph = (v) => {
-        const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
-        return Number.isFinite(n) ? n.toFixed(2) : '--'
-    }
+    const { yph, grade: yphGrade, label: yphLabel } = useYphCalculation(weekIso, plantCode, form)
 
     const handleOperatorsUpdate = (entries) => {
         setForm({ ...form, operators_sent_to_help: entries })
@@ -1521,86 +1576,15 @@ export function PlantManagerSubmitPlugin({
                     user={user}
                     plantCode={plantCode}
                 />
-
-                <div className="pm-metrics-section">
-                    <div className="pm-metrics-header">
-                        <h3 className="pm-metrics-title">
-                            <i className="fas fa-chart-bar"></i>
-                            Weekly Performance Metrics
-                        </h3>
-                        <p className="pm-metrics-subtitle">Key performance indicators for this reporting period</p>
-                    </div>
-
-                    <div className="pm-metrics-grid">
-                        <div className="pm-metric-card">
-                            <div className="pm-metric-header">
-                                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
-                                <span className="pm-metric-title">Yards per Man-Hour</span>
-                            </div>
-                            <div
-                                className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                                title="Left: Raw YPH / Right: Adjusted for help sent"
-                            >
-                                <span className="pm-yph-raw">{formatYph(yph?.raw ?? yph)}</span>
-                                <span className="pm-yph-separator">/</span>
-                                <span className="pm-yph-adjusted">{formatYph(yph?.adjusted ?? yph)}</span>
-                            </div>
-                            <div className="pm-yph-labels">
-                                <span className="pm-yph-label-item">Raw</span>
-                                <span className="pm-yph-label-item">Adjusted</span>
-                            </div>
-                            <div
-                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            >
-                                {yphLabel?.adjusted ?? yphLabel}
-                            </div>
-                            <div className="pm-metric-scale">
-                                <span
-                                    className={
-                                        (yphGrade?.adjusted ?? yphGrade) === 'excellent' ? 'active excellent' : ''
-                                    }
-                                >
-                                    Excellent
-                                </span>
-                                <span className={(yphGrade?.adjusted ?? yphGrade) === 'good' ? 'active good' : ''}>
-                                    Good
-                                </span>
-                                <span
-                                    className={(yphGrade?.adjusted ?? yphGrade) === 'average' ? 'active average' : ''}
-                                >
-                                    Average
-                                </span>
-                                <span className={(yphGrade?.adjusted ?? yphGrade) === 'poor' ? 'active poor' : ''}>
-                                    Poor
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="pm-metric-card">
-                            <div className="pm-metric-header">
-                                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
-                                <span className="pm-metric-title">Yardage Lost</span>
-                            </div>
-                            <div
-                                className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            >
-                                {lost !== null ? lost : '--'}
-                            </div>
-                            <div
-                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            >
-                                {lostLabel}
-                            </div>
-                            <div className="pm-metric-scale">
-                                <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                                <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
-                                <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
-                                <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <MetricsSection
+                    yph={propYph ?? yph}
+                    yphGrade={propYphGrade ?? yphGrade}
+                    yphLabel={propYphLabel ?? yphLabel}
+                    lost={lost}
+                    lostGrade={lostGrade}
+                    lostLabel={lostLabel}
+                    isDark={isDark}
+                />
                 <WeeklyTrendsSection
                     currentWeekIso={weekIso}
                     plantCode={plantCode || userPlantCode || ''}
@@ -1612,9 +1596,9 @@ export function PlantManagerSubmitPlugin({
 }
 
 export function PlantManagerReviewPlugin({
-    yph,
-    yphGrade,
-    yphLabel,
+    yph: _propYph,
+    yphGrade: _propYphGrade,
+    yphLabel: _propYphLabel,
     lost,
     lostGrade,
     lostLabel,
@@ -1622,65 +1606,14 @@ export function PlantManagerReviewPlugin({
     weekIso,
     user,
     assignedPlant,
-    reportUserId
+    reportUserId: _reportUserId
 }) {
     const { preferences: _preferences } = usePreferences()
     const isDark = false
-    const [calculatedYph, setCalculatedYph] = useState({ adjusted: 0, raw: 0 })
-    const [calculatedGrade, setCalculatedGrade] = useState({ adjusted: '', raw: '' })
-    const [calculatedLabel, setCalculatedLabel] = useState({ adjusted: '', raw: '' })
-
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
     const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
 
-    useEffect(() => {
-        async function calculateYph() {
-            if (!weekIso || !plantCode) {
-                const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
-                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
-                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
-                return
-            }
-
-            try {
-                const weekStart = weekIso.split('T')[0]
-                const [year] = weekStart.split('-').map(Number)
-                const startOfYear = new Date(year, 0, 1)
-                const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-
-                const { data: allReports } = await supabase
-                    .from('reports')
-                    .select('*')
-                    .eq('report_name', 'plant_manager')
-                    .eq('completed', true)
-                    .gte('week', startOfYear.toISOString())
-                    .lte('week', endOfYear.toISOString())
-
-                const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
-                const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
-                const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
-
-                const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
-                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
-                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
-                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
-            } catch (err) {
-                console.error('Error calculating YPH:', err)
-                const metrics = ReportUtility.getFullYphMetrics(form, 0)
-                setCalculatedYph({ adjusted: metrics.adjusted, raw: metrics.raw })
-                setCalculatedGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
-                setCalculatedLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
-            }
-        }
-
-        calculateYph()
-    }, [weekIso, plantCode, form])
-
-    const formatYph = (v) => {
-        const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
-        return Number.isFinite(n) ? n.toFixed(2) : '--'
-    }
+    const { yph, grade: yphGrade, label: yphLabel } = useYphCalculation(weekIso, plantCode, form)
 
     return (
         <>
@@ -1694,76 +1627,15 @@ export function PlantManagerReviewPlugin({
                     user={user}
                     plantCode={plantCode}
                 />
-
-                <div className="pm-metrics-section">
-                    <div className="pm-metrics-header">
-                        <h3 className="pm-metrics-title">
-                            <i className="fas fa-chart-bar"></i>
-                            Weekly Performance Metrics
-                        </h3>
-                        <p className="pm-metrics-subtitle">Key performance indicators for this reporting period</p>
-                    </div>
-
-                    <div className="pm-metrics-grid">
-                        <div className="pm-metric-card">
-                            <div className="pm-metric-header">
-                                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
-                                <span className="pm-metric-title">Yards per Man-Hour</span>
-                            </div>
-                            <div
-                                className={`pm-metric-value pm-yph-dual ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                                title="Left: Raw YPH / Right: Adjusted for help sent"
-                            >
-                                <span className="pm-yph-raw">{formatYph(calculatedYph.raw)}</span>
-                                <span className="pm-yph-separator">/</span>
-                                <span className="pm-yph-adjusted">{formatYph(calculatedYph.adjusted)}</span>
-                            </div>
-                            <div className="pm-yph-labels">
-                                <span className="pm-yph-label-item">Raw</span>
-                                <span className="pm-yph-label-item">Adjusted</span>
-                            </div>
-                            <div
-                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            >
-                                {calculatedLabel.adjusted}
-                            </div>
-                            <div className="pm-metric-scale">
-                                <span className={calculatedGrade.adjusted === 'excellent' ? 'active excellent' : ''}>
-                                    Excellent
-                                </span>
-                                <span className={calculatedGrade.adjusted === 'good' ? 'active good' : ''}>Good</span>
-                                <span className={calculatedGrade.adjusted === 'average' ? 'active average' : ''}>
-                                    Average
-                                </span>
-                                <span className={calculatedGrade.adjusted === 'poor' ? 'active poor' : ''}>Poor</span>
-                            </div>
-                        </div>
-
-                        <div className="pm-metric-card">
-                            <div className="pm-metric-header">
-                                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
-                                <span className="pm-metric-title">Yardage Lost</span>
-                            </div>
-                            <div
-                                className={`pm-metric-value ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            >
-                                {lost !== null ? lost : '--'}
-                            </div>
-                            <div
-                                className={`pm-metric-grade ${isDark ? 'pm-performance-text-dark' : 'pm-performance-text'}`}
-                            >
-                                {lostLabel}
-                            </div>
-                            <div className="pm-metric-scale">
-                                <span className={lostGrade === 'excellent' ? 'active excellent' : ''}>Excellent</span>
-                                <span className={lostGrade === 'good' ? 'active good' : ''}>Good</span>
-                                <span className={lostGrade === 'average' ? 'active average' : ''}>Average</span>
-                                <span className={lostGrade === 'poor' ? 'active poor' : ''}>Poor</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <MetricsSection
+                    yph={yph}
+                    yphGrade={yphGrade}
+                    yphLabel={yphLabel}
+                    lost={lost}
+                    lostGrade={lostGrade}
+                    lostLabel={lostLabel}
+                    isDark={isDark}
+                />
                 <WeeklyTrendsSection
                     currentWeekIso={weekIso}
                     plantCode={timelinePlantCode || user?.plant_code || ''}

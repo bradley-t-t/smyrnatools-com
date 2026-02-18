@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import { AIService } from '../../services/AIService'
 import { supabase } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'

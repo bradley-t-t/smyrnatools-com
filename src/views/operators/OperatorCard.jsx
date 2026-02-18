@@ -1,6 +1,6 @@
 import React from 'react'
 
-import CardSection from '../../components/sections/CardSection'
+import CardSection from '../../app/components/sections/CardSection'
 import formatUtility from '../../utils/FormatUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 

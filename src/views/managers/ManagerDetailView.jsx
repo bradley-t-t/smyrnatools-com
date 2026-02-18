@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import DetailViewSection from '../../app/components/sections/DetailViewSection'
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import DetailViewSection from '../../components/sections/DetailViewSection'
 import { DatabaseService, supabase } from '../../services/DatabaseService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'

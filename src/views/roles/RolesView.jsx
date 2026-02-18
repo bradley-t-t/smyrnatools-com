@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import LoadingScreen from '../../components/common/LoadingScreen'
+import LoadingScreen from '../../app/components/common/LoadingScreen'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
 

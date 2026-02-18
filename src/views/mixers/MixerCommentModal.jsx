@@ -1,6 +1,6 @@
 import React from 'react'
 
-import CommentModalSection from '../../components/sections/CommentModalSection'
+import CommentModalSection from '../../app/components/sections/CommentModalSection'
 import { MixerService } from '../../services/MixerService'
 
 function MixerCommentModal({ mixerId, mixerNumber, onClose }) {

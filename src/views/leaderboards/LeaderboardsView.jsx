@@ -1,1094 +1,184 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
+import HelpDetailsModal from '../../app/components/leaderboards/HelpDetailsModal'
+import LeaderboardItem, { LeaderboardSkeleton } from '../../app/components/leaderboards/LeaderboardItem'
+import { LEADERBOARD_CATEGORIES } from '../../app/constants/leaderboardConstants'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { supabase } from '../../services/DatabaseService'
-import { EquipmentService } from '../../services/EquipmentService'
-import { MixerService } from '../../services/MixerService'
-import { OperatorService } from '../../services/OperatorService'
-import { RegionService } from '../../services/RegionService'
-import { TractorService } from '../../services/TractorService'
-import { TrailerService } from '../../services/TrailerService'
+import { useIsMobile } from '../../app/hooks/useIsMobile'
+import { useLeaderboardData } from '../../app/hooks/useLeaderboardData'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
+
+const CURRENT_YEAR = new Date().getFullYear()
+const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 2024 }, (_, i) => 2025 + i)
+const SKELETON_COUNT = 8
+
+const FORMULA_PARTS = [
+    'YPH Score',
+    '×',
+    'Load Efficiency',
+    '×',
+    'Cleanliness Score',
+    '+',
+    'Help Impact',
+    '-',
+    'Report Penalty',
+    '-',
+    'Safety Penalty'
+]
+
+function CategoryButton({ active, label, onClick }) {
+    return (
+        <button
+            className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-medium outline-none transition-all md:px-5 md:py-2.5 md:text-sm ${
+                active
+                    ? 'border-2 border-accent bg-accent/10 font-semibold text-accent'
+                    : 'border border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+            }`}
+            onClick={onClick}
+        >
+            {label}
+        </button>
+    )
+}
+
+function YearSelector({ selectedYear, onYearChange }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold uppercase tracking-wide text-gray-500">YTD</span>
+            <select
+                value={selectedYear}
+                onChange={(e) => onYearChange(parseInt(e.target.value))}
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-2 text-[0.9375rem] font-semibold text-[#1e3a5f] outline-none transition-all focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            >
+                {YEAR_OPTIONS.map((year) => (
+                    <option key={year} value={year}>
+                        {year}
+                    </option>
+                ))}
+            </select>
+        </div>
+    )
+}
+
+function EfficiencyInfoCard() {
+    const isMobile = useIsMobile()
+
+    return (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 md:mb-8 md:rounded-xl md:p-6">
+            <div className="mb-4 flex items-center gap-3 text-sm font-semibold text-[#1e3a5f] md:text-base">
+                <i className="fas fa-info-circle" />
+                <span>How Efficiency is Calculated</span>
+            </div>
+            <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg bg-white p-3 text-xs md:p-4 md:text-sm">
+                {FORMULA_PARTS.map((part, idx) =>
+                    ['×', '+', '-'].includes(part) ? (
+                        <span key={idx} className="text-sm font-bold text-[#1e3a5f] md:text-base">
+                            {part}
+                        </span>
+                    ) : (
+                        <span
+                            key={idx}
+                            className="rounded-md bg-gray-50 px-2 py-1 font-medium text-gray-600 md:px-3 md:py-1.5"
+                        >
+                            {part}
+                        </span>
+                    )
+                )}
+            </div>
+            {!isMobile && (
+                <div className="flex gap-3 text-[0.8125rem] leading-relaxed text-gray-500">
+                    <i className="fas fa-lightbulb" />
+                    <span>
+                        Higher efficiency indicates better plant performance across production, quality, fleet
+                        cleanliness, and reporting compliance. Help Impact: Hours sent to help other plants are
+                        subtracted from your total hours (benefiting your YPH), while hours received from other plants
+                        are added to your total hours (reducing your YPH). This ensures fair comparison across plants
+                        with different collaboration patterns.
+                    </span>
+                </div>
+            )}
+        </div>
+    )
+}
+
+function EmptyState() {
+    return (
+        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center md:p-16">
+            <div className="mb-4 text-5xl text-gray-300">
+                <i className="fas fa-inbox" />
+            </div>
+            <p className="m-0 mb-2 text-lg font-semibold text-gray-500">No data available</p>
+            <span className="text-sm text-gray-400">Check back later as more reports are submitted</span>
+        </div>
+    )
+}
 
 export default function LeaderboardsView() {
     const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
-    const [loading, setLoading] = useState(true)
-    const [plantMetrics, setPlantMetrics] = useState([])
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-    const [helpDetailsModal, setHelpDetailsModal] = useState({ details: null, isOpen: false, plant: null })
-    const [hoursAdjustmentsData, setHoursAdjustmentsData] = useState({})
+    const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
+    const [helpModal, setHelpModal] = useState({ details: null, plant: null })
 
     const selectedRegionCode = preferences.selectedRegion?.code || null
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
-    const styles = {
-        categories: {
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.5rem'
-        },
-        categoryButton: (active) => ({
-            background: active ? `${accentColor}15` : 'white',
-            border: active ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
-            borderRadius: '8px',
-            color: active ? accentColor : '#64748b',
-            cursor: 'pointer',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: active ? 600 : 500,
-            outline: 'none',
-            padding: isMobile ? '0.5rem 0.875rem' : '0.625rem 1.25rem',
-            transition: 'all 0.2s'
-        }),
-        closeButton: {
-            background: 'none',
-            border: 'none',
-            borderRadius: '6px',
-            color: '#94a3b8',
-            cursor: 'pointer',
-            fontSize: '1.25rem',
-            padding: '0.5rem',
-            transition: 'all 0.2s'
-        },
-        content: {
-            margin: '0 auto',
-            maxWidth: '1400px'
-        },
-        empty: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            padding: '4rem 2rem',
-            textAlign: 'center'
-        },
-        emptyIcon: {
-            color: '#cbd5e1',
-            fontSize: '3rem',
-            marginBottom: '1rem'
-        },
-        emptySubtext: {
-            color: '#94a3b8',
-            fontSize: '0.875rem'
-        },
-        emptyText: {
-            color: '#64748b',
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            marginBottom: '0.5rem'
-        },
-        formula: {
-            alignItems: 'center',
-            background: 'white',
-            borderRadius: '8px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            padding: isMobile ? '0.75rem' : '1rem'
-        },
-        formulaOperator: {
-            color: '#1e3a5f',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 700
-        },
-        formulaPart: {
-            background: '#f8fafc',
-            borderRadius: '6px',
-            color: '#475569',
-            fontWeight: 500,
-            padding: isMobile ? '0.25rem 0.5rem' : '0.375rem 0.75rem'
-        },
-        header: {
-            background: 'white',
-            backgroundImage: `
-                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
-            `,
-            backgroundPosition: '0 0, 0 0, 0 0',
-            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
-            border: '1px solid #e5e7eb',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            margin: isMobile ? '0 auto 1rem' : '0 auto 2rem',
-            maxWidth: '1400px',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        helpEntry: (type) => ({
-            background: type === 'sent' ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${type === 'sent' ? '#dcfce7' : '#fee2e2'}`,
-            borderRadius: '8px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            marginBottom: isMobile ? '0.5rem' : '0.75rem',
-            padding: isMobile ? '0.75rem' : '1rem'
-        }),
-        helpEntryDetails: {
-            color: '#64748b',
-            display: 'flex',
-            flexWrap: 'wrap',
-            fontSize: isMobile ? '0.6875rem' : '0.8125rem',
-            gap: isMobile ? '0.75rem' : '1.5rem',
-            paddingLeft: isMobile ? '2rem' : '3rem'
-        },
-        helpEntryHours: {
-            color: '#1e3a5f',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 700
-        },
-        helpEntryIndicator: (type) => ({
-            alignItems: 'center',
-            background: type === 'sent' ? '#16a34a' : '#ef4444',
-            borderRadius: '50%',
-            color: 'white',
-            display: 'flex',
-            flexShrink: 0,
-            fontSize: isMobile ? '0.875rem' : '1.125rem',
-            fontWeight: 700,
-            height: isMobile ? '24px' : '32px',
-            justifyContent: 'center',
-            width: isMobile ? '24px' : '32px'
-        }),
-        helpEntryMain: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: isMobile ? '0.5rem' : '1rem'
-        },
-        helpEntryPlant: {
-            color: '#1e293b',
-            flex: 1,
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600
-        },
-        infoCard: {
-            background: '#eff6ff',
-            border: '1px solid #dbeafe',
-            borderRadius: isMobile ? '8px' : '12px',
-            marginBottom: isMobile ? '1rem' : '2rem',
-            padding: isMobile ? '1rem' : '1.5rem'
-        },
-        infoFooter: {
-            color: '#64748b',
-            display: isMobile ? 'none' : 'flex',
-            fontSize: '0.8125rem',
-            gap: '0.75rem',
-            lineHeight: 1.6
-        },
-        infoHeader: {
-            alignItems: 'center',
-            color: '#1e3a5f',
-            display: 'flex',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            gap: '0.75rem',
-            marginBottom: '1rem'
-        },
-        item: (rank) => ({
-            alignItems: isMobile ? 'stretch' : 'center',
-            background: 'white',
-            border:
-                rank === 1
-                    ? '2px solid #fbbf24'
-                    : rank === 2
-                      ? '2px solid #94a3b8'
-                      : rank === 3
-                        ? '2px solid #f97316'
-                        : '1px solid #e5e7eb',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.08)' : '0 2px 6px rgba(0,0,0,0.04)',
-            display: isMobile ? 'flex' : 'grid',
-            flexDirection: isMobile ? 'column' : undefined,
-            gap: isMobile ? '0.75rem' : '1.5rem',
-            gridTemplateColumns: isMobile ? undefined : '60px 1fr auto 1fr',
-            padding: isMobile ? '1rem' : '1.5rem',
-            transition: 'all 0.2s'
-        }),
-        itemMobileHeader: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '0.75rem'
-        },
-        list: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: isMobile ? '0.75rem' : '1rem'
-        },
-        metricValue: {
-            color: accentColor,
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700,
-            textAlign: isMobile ? 'left' : 'center'
-        },
-        modal: {
-            alignItems: 'center',
-            backdropFilter: 'blur(4px)',
-            background: 'rgba(0, 0, 0, 0.5)',
-            bottom: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            left: 0,
-            padding: '2rem',
-            position: 'fixed',
-            right: 0,
-            top: 0,
-            zIndex: 1000
-        },
-        modalBody: {
-            flex: 1,
-            overflowY: 'auto',
-            padding: isMobile ? '1rem' : '1.5rem 2rem'
-        },
-        modalContent: {
-            background: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            maxHeight: '90vh',
-            maxWidth: '800px',
-            width: '100%'
-        },
-        modalHeader: {
-            alignItems: 'center',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '1.5rem 2rem'
-        },
-        modalSummary: {
-            background: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            padding: '1.5rem 2rem'
-        },
-        modalTitle: {
-            alignItems: 'center',
-            color: '#1e293b',
-            display: 'flex',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            gap: '0.75rem',
-            margin: 0
-        },
-        plantCode: {
-            color: '#1e293b',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700
-        },
-        plantInfo: {
-            display: 'flex',
-            flex: isMobile ? 1 : undefined,
-            flexDirection: 'column',
-            gap: '0.25rem'
-        },
-        plantName: {
-            color: '#64748b',
-            fontSize: isMobile ? '0.75rem' : '0.875rem'
-        },
-        rankBadge: (rank) => ({
-            alignItems: 'center',
-            background:
-                rank === 1
-                    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
-                    : rank === 2
-                      ? 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)'
-                      : rank === 3
-                        ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
-                        : '#f1f5f9',
-            borderRadius: '50%',
-            boxShadow: rank <= 3 ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-            color: rank <= 3 ? 'white' : '#64748b',
-            display: 'flex',
-            flexShrink: 0,
-            fontSize: isMobile ? '1rem' : rank <= 3 ? '1.5rem' : '1.25rem',
-            fontWeight: 700,
-            height: isMobile ? '40px' : '60px',
-            justifyContent: 'center',
-            width: isMobile ? '40px' : '60px'
-        }),
-        skeleton: {
-            animation: 'shimmer 2s infinite',
-            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
-            backgroundSize: '200% 100%',
-            borderRadius: '8px'
-        },
-        statItem: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.125rem'
-        },
-        statLabel: {
-            color: '#64748b',
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 500,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        statValue: {
-            color: '#1e293b',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600
-        },
-        stats: {
-            display: 'grid',
-            gap: isMobile ? '0.5rem' : '1rem',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(150px, 1fr))'
-        },
-        summaryItem: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            padding: '1rem'
-        },
-        summaryLabel: {
-            color: '#64748b',
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        summaryValue: {
-            color: '#1e3a5f',
-            fontSize: isMobile ? '1.125rem' : '1.5rem',
-            fontWeight: 700
-        },
-        title: {
-            color: '#1e293b',
-            fontSize: isMobile ? '1.25rem' : '1.75rem',
-            fontWeight: 700,
-            margin: 0
-        },
-        titleRow: {
-            alignItems: isMobile ? 'flex-start' : 'center',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '1rem' : '0',
-            justifyContent: 'space-between',
-            marginBottom: '1.5rem'
-        },
-        view: {
-            background: '#f8fafc',
-            height: '100%',
-            overflowY: 'auto',
-            padding: isMobile ? '1rem' : '2rem',
-            width: '100%'
-        },
-        yearLabel: {
-            color: '#64748b',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        yearSelect: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            color: '#1e3a5f',
-            cursor: 'pointer',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            outline: 'none',
-            padding: '0.5rem 1rem',
-            transition: 'all 0.2s'
-        },
-        yearSelector: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '0.75rem'
-        }
-    }
-
-    useEffect(() => {
-        const styleSheet = document.createElement('style')
-        styleSheet.textContent = `
-            @keyframes shimmer {
-                0% { background-position: 200% 0; }
-                100% { background-position: -200% 0; }
-            }
-        `
-        document.head.appendChild(styleSheet)
-        return () => document.head.removeChild(styleSheet)
-    }, [])
-
-    useEffect(() => {
-        let mounted = true
-
-        async function fetchLeaderboardData() {
-            setLoading(true)
-            try {
-                if (!selectedRegionCode) {
-                    if (mounted) {
-                        setPlantMetrics([])
-                        setLoading(false)
-                    }
-                    return
-                }
-
-                const selectedRegion = RegionService.getRegionByCode(selectedRegionCode)
-                if (selectedRegion?.type !== 'Concrete') {
-                    if (mounted) {
-                        setPlantMetrics([])
-                        setLoading(false)
-                    }
-                    return
-                }
-
-                const plantsInRegion = await RegionService.fetchRegionPlants(selectedRegionCode)
-
-                if (!plantsInRegion || plantsInRegion.length === 0) {
-                    if (mounted) {
-                        setPlantMetrics([])
-                        setLoading(false)
-                    }
-                    return
-                }
-
-                const plantCodesInRegion = plantsInRegion.map((p) => p.plantCode)
-                const plantNames = {}
-                plantsInRegion.forEach((p) => {
-                    plantNames[p.plantCode] = p.plantName
-                })
-
-                const extendedStartDate = new Date(selectedYear - 1, 11, 25)
-                const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
-
-                const { data: profilesData, error: profilesError } = await supabase
-                    .from('users_profiles')
-                    .select('id, plant_code')
-                    .in('plant_code', plantCodesInRegion)
-                    .not('plant_code', 'is', null)
-
-                if (profilesError) throw profilesError
-
-                const userIdsByPlant = {}
-                profilesData.forEach((p) => {
-                    if (!userIdsByPlant[p.plant_code]) {
-                        userIdsByPlant[p.plant_code] = []
-                    }
-                    userIdsByPlant[p.plant_code].push(p.id)
-                })
-
-                const allUserIds = profilesData.map((p) => p.id)
-
-                if (allUserIds.length === 0) {
-                    if (mounted) {
-                        setPlantMetrics([])
-                        setLoading(false)
-                    }
-                    return
-                }
-
-                const [{ data: reports, error: reportsError }, { data: safetyReports }] = await Promise.all([
-                    supabase
-                        .from('reports')
-                        .select('*')
-                        .eq('report_name', 'plant_manager')
-                        .in('user_id', allUserIds)
-                        .gte('week', extendedStartDate.toISOString())
-                        .lte('week', extendedEndDate.toISOString()),
-                    supabase
-                        .from('reports')
-                        .select('*')
-                        .eq('report_name', 'safety_manager')
-                        .gte('week', extendedStartDate.toISOString())
-                        .lte('week', extendedEndDate.toISOString())
-                ])
-
-                if (reportsError) throw reportsError
-
-                if (!mounted) return
-
-                const hoursAdjustmentsByPlant = LeaderboardsUtility.calculateHoursAdjustments(
-                    reports,
-                    profilesData,
-                    plantCodesInRegion
-                )
-                setHoursAdjustmentsData(hoursAdjustmentsByPlant)
-
-                const safetyByPlant = LeaderboardsUtility.calculateSafetyIncidents(
-                    safetyReports || [],
-                    plantCodesInRegion
-                )
-
-                if (!reports || reports.length === 0) {
-                    if (mounted) {
-                        setPlantMetrics([])
-                        setLoading(false)
-                    }
-                    return
-                }
-
-                const now = new Date()
-                const currentWeekStart = new Date(now)
-                currentWeekStart.setDate(now.getDate() - now.getDay())
-                currentWeekStart.setHours(0, 0, 0, 0)
-
-                const filteredReports = reports.filter((report) => {
-                    const reportDate = new Date(report.week)
-                    return reportDate < currentWeekStart
-                })
-
-                if (filteredReports.length === 0) {
-                    if (mounted) {
-                        setPlantMetrics([])
-                        setLoading(false)
-                    }
-                    return
-                }
-
-                const [mixersData, tractorsData, trailersData, equipmentData, operatorsData] = await Promise.all([
-                    MixerService.getAllMixers().catch(() => []),
-                    TractorService.getAllTractors().catch(() => []),
-                    TrailerService.fetchTrailers().catch(() => []),
-                    EquipmentService.getAllEquipments().catch(() => []),
-                    OperatorService.getAllOperators().catch(() => [])
-                ])
-
-                const fleetCountsByPlant = LeaderboardsUtility.calculateFleetCounts(
-                    plantCodesInRegion,
-                    mixersData,
-                    tractorsData,
-                    trailersData,
-                    equipmentData,
-                    operatorsData
-                )
-
-                const plantMetricsArray = []
-
-                Object.keys(userIdsByPlant).forEach((plantCode) => {
-                    const plantReports = filteredReports.filter((r) => userIdsByPlant[plantCode].includes(r.user_id))
-                    const fleetData = fleetCountsByPlant[plantCode] || {
-                        avgFleetCleanliness: 0,
-                        avgFleetCleanlinessForEfficiency: 0,
-                        equipment: 0,
-                        mixers: 0,
-                        operators: 0,
-                        totalAssets: 0,
-                        tractors: 0,
-                        trailers: 0
-                    }
-
-                    const avgCleanlinessActual = fleetData.avgFleetCleanliness || 0
-                    const mixerOperatorCount = fleetData.mixerOperators || 1
-                    const hoursAdjustments = hoursAdjustmentsByPlant[plantCode] || null
-                    const safetyIncidents = safetyByPlant[plantCode] || null
-
-                    const metrics = LeaderboardsUtility.calculateMetrics(
-                        plantReports,
-                        avgCleanlinessActual,
-                        mixerOperatorCount,
-                        currentWeekStart,
-                        hoursAdjustments,
-                        safetyIncidents
-                    )
-
-                    if (metrics) {
-                        plantMetricsArray.push({
-                            plantCode,
-                            plantName: plantNames[plantCode] || plantCode,
-                            ...metrics,
-                            ...fleetData,
-                            helpDetails: hoursAdjustments || null,
-                            helpGiven: hoursAdjustments?.hoursSubtracted || 0,
-                            helpReceived: hoursAdjustments?.hoursAdded || 0,
-                            safetyReportsCount: safetyIncidents?.count || 0
-                        })
-                    }
-                })
-
-                if (mounted) {
-                    setPlantMetrics(plantMetricsArray)
-                }
-            } catch (error) {
-                console.error('Error fetching leaderboard data:', error)
-                if (mounted) {
-                    setPlantMetrics([])
-                }
-            } finally {
-                if (mounted) setLoading(false)
-            }
-        }
-
-        fetchLeaderboardData()
-
-        return () => {
-            mounted = false
-        }
-    }, [selectedRegionCode, selectedYear])
-
+    const { hoursAdjustmentsData, loading, plantMetrics } = useLeaderboardData(selectedRegionCode, selectedYear)
     const categoryData = LeaderboardsUtility.getCategoryData(plantMetrics, selectedCategory)
 
-    const renderValue = (plant, category) => {
-        switch (category) {
-            case 'efficiency':
-                return (
-                    <span style={{ color: LeaderboardsUtility.getEfficiencyColor(plant.avgEfficiency) }}>
-                        {plant.avgEfficiency.toFixed(1)}%
-                    </span>
-                )
-            case 'yph':
-                return plant.avgYPH.toFixed(2)
-            case 'production':
-                return Math.round(plant.totalYardage).toLocaleString()
-            case 'weekly-yardage':
-                return Math.round(plant.avgYardageWeekly).toLocaleString()
-            case 'daily-yardage':
-                return Math.round(plant.avgYardageDaily).toLocaleString()
-            case 'monthly-yardage':
-                return Math.round(plant.avgMonthlyYards).toLocaleString()
-            case 'weekly-hours':
-                return Math.round(plant.avgWeeklyHours).toLocaleString()
-            case 'daily-hours':
-                return Math.round(plant.avgHoursDaily).toLocaleString()
-            case 'monthly-hours':
-                return Math.round(plant.avgMonthlyHours).toLocaleString()
-            case 'help-given':
-                return `${Math.round(plant.helpGiven)} hours`
-            case 'help-received':
-                return `${Math.round(plant.helpReceived)} hours`
-            default:
-                return '--'
+    const openHelpModal = (plant) => {
+        const details = hoursAdjustmentsData[plant.plantCode]
+        if (details && (details.hoursAdded > 0 || details.hoursSubtracted > 0)) {
+            setHelpModal({ details, plant })
         }
     }
 
-    const renderSkeletonItems = () => {
-        return Array.from({ length: 8 }).map((_, index) => (
-            <div key={`skeleton-${index}`} style={styles.item(0)}>
-                <div style={styles.rankBadge(0)}>
-                    <div style={{ ...styles.skeleton, borderRadius: '50%', height: '24px', width: '24px' }} />
-                </div>
-                <div style={styles.plantInfo}>
-                    <div style={{ ...styles.skeleton, height: '20px', marginBottom: '6px', width: '40%' }} />
-                    <div style={{ ...styles.skeleton, height: '16px', width: '60%' }} />
-                </div>
-                <div style={styles.metricValue}>
-                    <div style={{ ...styles.skeleton, height: '28px', width: '80px' }} />
-                </div>
-                <div style={styles.stats}>
-                    <div style={{ ...styles.skeleton, height: '16px', marginBottom: '4px', width: '60%' }} />
-                    <div style={{ ...styles.skeleton, height: '16px', width: '40%' }} />
-                </div>
-            </div>
-        ))
-    }
+    const closeHelpModal = () => setHelpModal({ details: null, plant: null })
 
     return (
-        <div style={styles.view}>
-            <div style={styles.header}>
-                <div style={styles.titleRow}>
-                    <h1 style={styles.title}>Performance Leaderboards</h1>
-                    <div style={styles.yearSelector}>
-                        <span style={styles.yearLabel}>YTD</span>
-                        <select
-                            value={selectedYear}
-                            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                            style={styles.yearSelect}
-                            onFocus={(e) => {
-                                e.target.style.borderColor = '#1e3a5f'
-                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                            }}
-                            onBlur={(e) => {
-                                e.target.style.borderColor = '#e5e7eb'
-                                e.target.style.boxShadow = 'none'
-                            }}
-                        >
-                            {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => 2025 + i).map((year) => (
-                                <option key={year} value={year}>
-                                    {year}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+        <div className="h-full w-full overflow-y-auto bg-gray-50 p-4 md:p-8">
+            <header className="mx-auto mb-4 max-w-[1400px] rounded-lg border border-gray-200 bg-white p-4 shadow-card md:mb-8 md:rounded-xl md:p-8">
+                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-0">
+                    <h1 className="m-0 text-xl font-bold text-gray-900 md:text-[1.75rem]">Performance Leaderboards</h1>
+                    <YearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
                 </div>
-                <div style={styles.categories}>
-                    {[
-                        { id: 'efficiency', label: 'Efficiency' },
-                        { id: 'yph', label: 'YPH' },
-                        { id: 'production', label: 'Total Yards' },
-                        { id: 'monthly-yardage', label: 'Monthly Yards' },
-                        { id: 'weekly-yardage', label: 'Weekly Yards' },
-                        { id: 'daily-yardage', label: 'Daily Yards' },
-                        { id: 'monthly-hours', label: 'Monthly Hours' },
-                        { id: 'weekly-hours', label: 'Weekly Hours' },
-                        { id: 'daily-hours', label: 'Daily Hours' },
-                        { id: 'help-given', label: 'Help Given' },
-                        { id: 'help-received', label: 'Help Received' }
-                    ].map((cat) => (
-                        <button
+                <div className="flex flex-wrap gap-2">
+                    {LEADERBOARD_CATEGORIES.map((cat) => (
+                        <CategoryButton
                             key={cat.id}
-                            style={styles.categoryButton(selectedCategory === cat.id)}
+                            active={selectedCategory === cat.id}
+                            label={cat.label}
                             onClick={() => setSelectedCategory(cat.id)}
-                            onMouseEnter={(e) => {
-                                if (selectedCategory !== cat.id) {
-                                    e.currentTarget.style.borderColor = '#cbd5e1'
-                                    e.currentTarget.style.background = '#f8fafc'
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (selectedCategory !== cat.id) {
-                                    e.currentTarget.style.borderColor = '#e5e7eb'
-                                    e.currentTarget.style.background = 'white'
-                                }
-                            }}
-                        >
-                            {cat.label}
-                        </button>
+                        />
                     ))}
                 </div>
-            </div>
+            </header>
 
-            <div style={styles.content}>
-                {selectedCategory === 'efficiency' && (
-                    <div style={styles.infoCard}>
-                        <div style={styles.infoHeader}>
-                            <i className="fas fa-info-circle"></i>
-                            <span>How Efficiency is Calculated</span>
-                        </div>
-                        <div>
-                            <div style={styles.formula}>
-                                <span style={styles.formulaPart}>YPH Score</span>
-                                <span style={styles.formulaOperator}>×</span>
-                                <span style={styles.formulaPart}>Load Efficiency</span>
-                                <span style={styles.formulaOperator}>×</span>
-                                <span style={styles.formulaPart}>Cleanliness Score</span>
-                                <span style={styles.formulaOperator}>+</span>
-                                <span style={styles.formulaPart}>Help Impact</span>
-                                <span style={styles.formulaOperator}>-</span>
-                                <span style={styles.formulaPart}>Report Penalty</span>
-                                <span style={styles.formulaOperator}>-</span>
-                                <span style={styles.formulaPart}>Safety Penalty</span>
-                            </div>
-                        </div>
-                        <div style={styles.infoFooter}>
-                            <i className="fas fa-lightbulb"></i>
-                            <span>
-                                Higher efficiency indicates better plant performance across production, quality, fleet
-                                cleanliness, and reporting compliance. Help Impact: Hours sent to help other plants are
-                                subtracted from your total hours (benefiting your YPH), while hours received from other
-                                plants are added to your total hours (reducing your YPH). This ensures fair comparison
-                                across plants with different collaboration patterns.
-                            </span>
-                        </div>
-                    </div>
-                )}
+            <main className="mx-auto max-w-[1400px]">
+                {selectedCategory === 'efficiency' && <EfficiencyInfoCard />}
 
                 {loading ? (
-                    <div style={styles.list}>{renderSkeletonItems()}</div>
-                ) : categoryData.length === 0 ? (
-                    <div style={styles.empty}>
-                        <div style={styles.emptyIcon}>
-                            <i className="fas fa-inbox"></i>
-                        </div>
-                        <p style={{ ...styles.emptyText, margin: 0 }}>No data available</p>
-                        <span style={styles.emptySubtext}>Check back later as more reports are submitted</span>
+                    <div className="flex flex-col gap-3 md:gap-4">
+                        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                            <LeaderboardSkeleton key={i} />
+                        ))}
                     </div>
+                ) : categoryData.length === 0 ? (
+                    <EmptyState />
                 ) : (
-                    <div style={styles.list}>
-                        {categoryData.map((plant, index) => {
-                            const rank = index + 1
-
-                            return (
-                                <div key={plant.plantCode} style={styles.item(rank)}>
-                                    <div style={styles.rankBadge(rank)}>
-                                        {rank <= 3 ? (
-                                            <i
-                                                className={`fas ${rank === 1 ? 'fa-trophy' : rank === 2 ? 'fa-medal' : 'fa-award'}`}
-                                            ></i>
-                                        ) : (
-                                            <span>{rank}</span>
-                                        )}
-                                    </div>
-
-                                    <div style={styles.plantInfo}>
-                                        <div style={styles.plantCode}>Plant {plant.plantCode}</div>
-                                        <div style={styles.plantName}>{plant.plantName}</div>
-                                    </div>
-
-                                    <div style={styles.metricValue}>{renderValue(plant, selectedCategory)}</div>
-
-                                    <div style={styles.stats}>
-                                        {selectedCategory === 'efficiency' && (
-                                            <>
-                                                <div style={styles.statItem}>
-                                                    <span style={styles.statLabel}>Avg. YPH</span>
-                                                    <span
-                                                        style={{
-                                                            ...styles.statValue,
-                                                            alignItems: 'center',
-                                                            display: 'flex',
-                                                            gap: '0.25rem'
-                                                        }}
-                                                        title="Left: YPH before help adjustment / Right: YPH after help adjustment"
-                                                    >
-                                                        <em
-                                                            style={{
-                                                                color: '#64748b',
-                                                                fontStyle: 'italic'
-                                                            }}
-                                                        >
-                                                            {(plant.rawYPH ?? plant.avgYPH).toFixed(2)}
-                                                        </em>
-                                                        <span style={{ color: '#94a3b8' }}>/</span>
-                                                        <strong>{plant.avgYPH.toFixed(2)}</strong>
-                                                    </span>
-                                                </div>
-                                                <div style={styles.statItem}>
-                                                    <span style={styles.statLabel}>Load Efficiency</span>
-                                                    <span style={styles.statValue}>
-                                                        {plant.loadsEfficiency.toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                                <div style={styles.statItem}>
-                                                    <span
-                                                        style={{
-                                                            ...styles.statLabel,
-                                                            color: '#1e3a5f',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                        onClick={() => {
-                                                            const details = hoursAdjustmentsData[plant.plantCode]
-                                                            if (
-                                                                details &&
-                                                                (details.hoursAdded > 0 || details.hoursSubtracted > 0)
-                                                            ) {
-                                                                setHelpDetailsModal({ details, isOpen: true, plant })
-                                                            }
-                                                        }}
-                                                        title="Click for details"
-                                                    >
-                                                        Help Net Balance
-                                                        {(plant.helpGiven > 0 || plant.helpReceived > 0) && (
-                                                            <i
-                                                                className="fas fa-info-circle"
-                                                                style={{ marginLeft: '0.25rem' }}
-                                                            ></i>
-                                                        )}
-                                                    </span>
-                                                    <span
-                                                        style={{
-                                                            ...styles.statValue,
-                                                            color:
-                                                                plant.helpGiven > plant.helpReceived
-                                                                    ? '#16a34a'
-                                                                    : plant.helpGiven < plant.helpReceived
-                                                                      ? '#ef4444'
-                                                                      : '#1e293b'
-                                                        }}
-                                                    >
-                                                        {plant.helpGiven > 0 || plant.helpReceived > 0
-                                                            ? `${plant.helpGiven > plant.helpReceived ? '+' : ''}${Math.round(plant.helpGiven - plant.helpReceived)}h`
-                                                            : 'N/A'}
-                                                    </span>
-                                                </div>
-                                                <div style={styles.statItem}>
-                                                    <span style={styles.statLabel}>Missing Reports</span>
-                                                    <span
-                                                        style={{
-                                                            ...styles.statValue,
-                                                            color:
-                                                                (plant.missingReports || 0) +
-                                                                    (plant.incompleteReports || 0) >
-                                                                0
-                                                                    ? '#ef4444'
-                                                                    : '#16a34a'
-                                                        }}
-                                                    >
-                                                        {(plant.missingReports || 0) + (plant.incompleteReports || 0)}
-                                                    </span>
-                                                </div>
-                                                <div style={styles.statItem}>
-                                                    <span style={styles.statLabel}>Avg. Cleanliness</span>
-                                                    <span
-                                                        style={{
-                                                            ...styles.statValue,
-                                                            color:
-                                                                (plant.avgFleetCleanliness || 0) >= 4
-                                                                    ? '#16a34a'
-                                                                    : (plant.avgFleetCleanliness || 0) >= 3
-                                                                      ? '#f59e0b'
-                                                                      : '#ef4444'
-                                                        }}
-                                                    >
-                                                        {(plant.avgFleetCleanliness || 0) > 0
-                                                            ? `${plant.avgFleetCleanliness.toFixed(1)}/5`
-                                                            : 'N/A'}
-                                                    </span>
-                                                </div>
-                                                <div style={styles.statItem}>
-                                                    <span style={styles.statLabel}>Safety Incidents</span>
-                                                    <span
-                                                        style={{
-                                                            ...styles.statValue,
-                                                            color:
-                                                                (plant.safetyReportsCount || 0) > 0
-                                                                    ? '#ef4444'
-                                                                    : '#16a34a'
-                                                        }}
-                                                    >
-                                                        {plant.safetyReportsCount || 0}
-                                                    </span>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })}
+                    <div className="flex flex-col gap-3 md:gap-4">
+                        {categoryData.map((plant, index) => (
+                            <LeaderboardItem
+                                key={plant.plantCode}
+                                plant={plant}
+                                rank={index + 1}
+                                selectedCategory={selectedCategory}
+                                onHelpClick={() => openHelpModal(plant)}
+                            />
+                        ))}
                     </div>
                 )}
-            </div>
+            </main>
 
-            {helpDetailsModal.isOpen && helpDetailsModal.details && (
-                <div
-                    style={styles.modal}
-                    onClick={() => setHelpDetailsModal({ details: null, isOpen: false, plant: null })}
-                >
-                    <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <div style={styles.modalHeader}>
-                            <h3 style={styles.modalTitle}>
-                                <i className="fas fa-exchange-alt"></i>
-                                Help Details - Plant {helpDetailsModal.plant?.plantCode}
-                            </h3>
-                            <button
-                                style={styles.closeButton}
-                                onClick={() => setHelpDetailsModal({ details: null, isOpen: false, plant: null })}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = '#f1f5f9'
-                                    e.currentTarget.style.color = '#1e293b'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'none'
-                                    e.currentTarget.style.color = '#94a3b8'
-                                }}
-                            >
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </div>
-
-                        <div style={styles.modalSummary}>
-                            <div style={styles.summaryItem}>
-                                <span style={styles.summaryLabel}>Total Help Given</span>
-                                <span style={styles.summaryValue}>
-                                    {Math.round(helpDetailsModal.details.hoursSubtracted)} hours
-                                </span>
-                            </div>
-                            <div style={styles.summaryItem}>
-                                <span style={styles.summaryLabel}>Total Help Received</span>
-                                <span style={styles.summaryValue}>
-                                    {Math.round(helpDetailsModal.details.hoursAdded)} hours
-                                </span>
-                            </div>
-                            <div style={styles.summaryItem}>
-                                <span style={styles.summaryLabel}>Net Balance</span>
-                                <span
-                                    style={{
-                                        ...styles.summaryValue,
-                                        color:
-                                            helpDetailsModal.details.hoursSubtracted >
-                                            helpDetailsModal.details.hoursAdded
-                                                ? '#16a34a'
-                                                : helpDetailsModal.details.hoursSubtracted <
-                                                    helpDetailsModal.details.hoursAdded
-                                                  ? '#ef4444'
-                                                  : '#1e3a5f'
-                                    }}
-                                >
-                                    {helpDetailsModal.details.hoursSubtracted > helpDetailsModal.details.hoursAdded
-                                        ? '+'
-                                        : ''}
-                                    {Math.round(
-                                        helpDetailsModal.details.hoursSubtracted - helpDetailsModal.details.hoursAdded
-                                    )}{' '}
-                                    hours
-                                </span>
-                            </div>
-                        </div>
-
-                        <div style={styles.modalBody}>
-                            {helpDetailsModal.details.details &&
-                            helpDetailsModal.details.details.filter((e) => e.hours > 0 && e.operatorCount > 0).length >
-                                0 ? (
-                                <div>
-                                    {helpDetailsModal.details.details
-                                        .filter((entry) => entry.hours > 0 && entry.operatorCount > 0)
-                                        .sort((a, b) => new Date(b.week) - new Date(a.week))
-                                        .map((entry, idx) => {
-                                            const isSent = entry.type === 'sent'
-                                            return (
-                                                <div
-                                                    key={`entry-${idx}`}
-                                                    style={styles.helpEntry(isSent ? 'sent' : 'received')}
-                                                >
-                                                    <div style={styles.helpEntryMain}>
-                                                        <span
-                                                            style={styles.helpEntryIndicator(
-                                                                isSent ? 'sent' : 'received'
-                                                            )}
-                                                        >
-                                                            {isSent ? '+' : '-'}
-                                                        </span>
-                                                        <span style={styles.helpEntryPlant}>
-                                                            {isSent
-                                                                ? `To Plant ${entry.to}`
-                                                                : `From Plant ${entry.from}`}
-                                                        </span>
-                                                        <span style={styles.helpEntryHours}>
-                                                            {Math.round(entry.hours)} hours
-                                                        </span>
-                                                    </div>
-                                                    <div style={styles.helpEntryDetails}>
-                                                        <span
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                display: 'flex',
-                                                                gap: '0.375rem'
-                                                            }}
-                                                        >
-                                                            <i className="fas fa-calendar"></i>
-                                                            {new Date(entry.week).toLocaleDateString('en-US', {
-                                                                day: 'numeric',
-                                                                month: 'short',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </span>
-                                                        <span
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                display: 'flex',
-                                                                gap: '0.375rem'
-                                                            }}
-                                                        >
-                                                            <i className="fas fa-users"></i>
-                                                            {entry.operatorCount} operator
-                                                            {entry.operatorCount !== 1 ? 's' : ''}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                </div>
-                            ) : (
-                                <div style={{ ...styles.empty, padding: '2rem' }}>
-                                    <div style={{ ...styles.emptyIcon, fontSize: '2rem' }}>
-                                        <i className="fas fa-info-circle"></i>
-                                    </div>
-                                    <p style={{ ...styles.emptyText, fontSize: '1rem', margin: 0 }}>
-                                        No detailed help records available
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+            {helpModal.details && (
+                <HelpDetailsModal details={helpModal.details} plant={helpModal.plant} onClose={closeHelpModal} />
             )}
         </div>
     )

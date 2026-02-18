@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { usePagination } from '../../app/hooks/usePagination'
 import { useReportsData } from '../../app/hooks/useReportsData'
 import { useReportSubmission } from '../../app/hooks/useReportSubmission'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import { supabase } from '../../services/DatabaseService'
 import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
 import MyReportsList from './components/MyReportsList'
@@ -232,7 +232,13 @@ function ReportsView() {
             />
             <div style={styles.content}>
                 {tab === 'all' && !isMyReportsLoading && <ReportsStatsCards items={allMyItems} tab={tab} />}
-                {tab === 'review' && !isReviewLoading && <ReportsStatsCards items={visibleReviewReports} tab={tab} />}
+                {tab === 'review' && !isReviewLoading && (
+                    <ReportsStatsCards
+                        items={visibleReviewReports}
+                        tab={tab}
+                        reviewedByCurrentUser={reviewedByCurrentUser}
+                    />
+                )}
 
                 {tab === 'all' &&
                     (allMyItems.length === 0 && !isMyReportsLoading ? (

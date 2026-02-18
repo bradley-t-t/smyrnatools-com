@@ -5,6 +5,7 @@ import { supabase } from '../../../services/DatabaseService'
 import { ReportService } from '../../../services/ReportService'
 import { reportTypeMap } from '../../../types/ReportTypes'
 import { ReportUtility } from '../../../utils/ReportUtility'
+import { useReportForWeek } from './shared'
 import { ReadyMixInstructorReviewPlugin } from './WeeklyReadyMixInstructorReport'
 
 const gmReportStyles = `
@@ -1167,227 +1168,12 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
     )
 }
 
-export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
-    const [rmiReport, setRmiReport] = React.useState(null)
-    const [loading, setLoading] = React.useState(true)
-
-    React.useEffect(() => {
-        async function fetchRMIReport() {
-            if (!weekIso || !plants?.length) {
-                setRmiReport(null)
-                setLoading(false)
-                return
-            }
-
-            const targetMondayIso = ReportUtility.getMondayISO(weekIso)
-            if (!targetMondayIso) {
-                setRmiReport(null)
-                setLoading(false)
-                return
-            }
-
-            const targetMondayDate = new Date(targetMondayIso + 'T00:00:00Z')
-            const prevSunday = new Date(targetMondayDate)
-            prevSunday.setUTCDate(prevSunday.getUTCDate() - 1)
-            const windowEnd = new Date(targetMondayDate)
-            windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
-            const qStart = prevSunday.toISOString()
-            const qEnd = windowEnd.toISOString()
-
-            try {
-                let { data: reports } = await supabase
-                    .from('reports')
-                    .select('id,data,week,submitted_at,completed')
-                    .eq('report_name', 'ready_mix_instructor')
-                    .gte('week', qStart)
-                    .lt('week', qEnd)
-
-                if (!Array.isArray(reports)) reports = []
-
-                const filtered = reports.filter((r) => {
-                    const weekField = r.week
-                    const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
-                    return mondayIso === targetMondayIso
-                })
-
-                if (filtered.length > 0) {
-                    const sorted = filtered.sort((a, b) => {
-                        if (a.completed !== b.completed) return b.completed ? 1 : -1
-                        return (b.submitted_at || '') > (a.submitted_at || '') ? 1 : -1
-                    })
-                    setRmiReport(sorted[0].data)
-                } else {
-                    setRmiReport(null)
-                }
-            } catch (error) {
-                setRmiReport(null)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchRMIReport()
-    }, [weekIso, plants])
-
-    React.useEffect(() => {
-        let cancelled = false
-
-        async function generateAnalysis() {
-            if (!plants.length || !weekIso || !form) return
-            if (aiAnalysis) return
-
-            setAiLoading(true)
-            setAiError(false)
-
-            try {
-                const plantSummaries = plants.map((p) => {
-                    const code = p.plant_code
-                    return {
-                        downTrucks: form[`down_trucks_${code}`],
-                        hours: form[`total_hours_${code}`],
-                        notes: form[`notes_${code}`],
-                        operators: form[`active_operators_${code}`],
-                        operatorsLeaving: form[`operators_leaving_${code}`],
-                        operatorsStarting: form[`operators_starting_${code}`],
-                        operatorsTraining: form[`new_operators_training_${code}`],
-                        plantCode: code,
-                        plantName: p.plant_name || code,
-                        runnableTrucks: form[`runnable_trucks_${code}`],
-                        yardage: form[`total_yardage_${code}`]
-                    }
-                })
-
-                const reportContext = {
-                    plantSummaries,
-                    plants,
-                    rmiReport: rmiReport,
-                    weekIso
-                }
-
-                const analysis = await AIService.generateGMReportAnalysis(reportContext)
-
-                if (!cancelled) {
-                    if (analysis) {
-                        setAiAnalysis(analysis)
-                    } else {
-                        setAiError(true)
-                    }
-                }
-            } catch (err) {
-                console.error('Error generating AI analysis:', err)
-                if (!cancelled) setAiError(true)
-            } finally {
-                if (!cancelled) setAiLoading(false)
-            }
-        }
-
-        if (!loading) {
-            generateAnalysis()
-        }
-
-        return () => {
-            cancelled = true
-        }
-    }, [plants, weekIso, form, rmiReport, loading, aiAnalysis])
-
-    const handleRegenerateAI = React.useCallback(async () => {
-        setAiAnalysis(null)
-        setAiLoading(true)
-        setAiError(false)
-
-        try {
-            const plantSummaries = plants.map((p) => {
-                const code = p.plant_code
-                return {
-                    downTrucks: form[`down_trucks_${code}`],
-                    hours: form[`total_hours_${code}`],
-                    notes: form[`notes_${code}`],
-                    operators: form[`active_operators_${code}`],
-                    operatorsLeaving: form[`operators_leaving_${code}`],
-                    operatorsStarting: form[`operators_starting_${code}`],
-                    operatorsTraining: form[`new_operators_training_${code}`],
-                    plantCode: code,
-                    plantName: p.plant_name || code,
-                    runnableTrucks: form[`runnable_trucks_${code}`],
-                    yardage: form[`total_yardage_${code}`]
-                }
-            })
-
-            const reportContext = {
-                plantSummaries,
-                plants,
-                rmiReport: rmiReport,
-                weekIso
-            }
-
-            const analysis = await AIService.generateGMReportAnalysis(reportContext)
-            if (analysis) {
-                setAiAnalysis(analysis)
-            } else {
-                setAiError(true)
-            }
-        } catch (err) {
-            console.error('Error regenerating AI analysis:', err)
-            setAiError(true)
-        } finally {
-            setAiLoading(false)
-        }
-    }, [plants, weekIso, form, rmiReport])
+export function GeneralManagerReviewPlugin({ form: _form, plants = [], weekIso }) {
+    const { report: rmiReport, loading } = useReportForWeek(weekIso, 'ready_mix_instructor')
 
     return (
         <>
             <style>{gmReportStyles}</style>
-
-            {aiLoading && (
-                <div className="rpt-ai-analysis">
-                    <div className="rpt-ai-loading">
-                        <i className="fas fa-circle-notch fa-spin"></i>
-                        <span>Generating AI Analysis...</span>
-                    </div>
-                </div>
-            )}
-
-            {aiError && !aiLoading && (
-                <div className="rpt-ai-error">
-                    <i className="fas fa-exclamation-triangle" style={{ marginRight: '0.5rem' }}></i>
-                    Failed to generate AI analysis.
-                    <button
-                        onClick={handleRegenerateAI}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'inherit',
-                            cursor: 'pointer',
-                            marginLeft: '0.5rem',
-                            textDecoration: 'underline'
-                        }}
-                    >
-                        Try again
-                    </button>
-                </div>
-            )}
-
-            {aiAnalysis && !aiLoading && (
-                <div className="rpt-ai-analysis">
-                    <div className="rpt-ai-header">
-                        <div className="rpt-ai-icon">
-                            <i className="fas fa-robot"></i>
-                        </div>
-                        <div>
-                            <div className="rpt-ai-title">AI Regional Analysis</div>
-                            <div className="rpt-ai-subtitle">
-                                Based on report data for {plants.length} plant{plants.length !== 1 ? 's' : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="rpt-ai-content">{aiAnalysis}</div>
-                    <button className="rpt-ai-regenerate" onClick={handleRegenerateAI}>
-                        <i className="fas fa-sync-alt" style={{ marginRight: '0.375rem' }}></i>
-                        Regenerate Analysis
-                    </button>
-                </div>
-            )}
-
             <div className="rpt-card">
                 <div className="rpt-card-header">
                     <div className="rpt-card-title">General Manager Report</div>
@@ -1400,8 +1186,8 @@ export function GeneralManagerReviewPlugin({ form, plants = [], weekIso }) {
                     </div>
                     {loading ? (
                         <div className="rpt-empty">Loading RMI report data...</div>
-                    ) : rmiReport ? (
-                        <ReadyMixInstructorReviewPlugin form={rmiReport} plants={plants} />
+                    ) : rmiReport?.data ? (
+                        <ReadyMixInstructorReviewPlugin form={rmiReport.data} plants={plants} />
                     ) : (
                         <div className="rpt-empty">No Ready Mix Instructor report found for this week.</div>
                     )}

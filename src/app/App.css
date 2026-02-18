@@ -76,15 +76,6 @@
     cursor: pointer;
 }
 
-.btn-primary {
-    background-color: var(--accent);
-    color: var(--text-light);
-}
-
-.btn-primary:hover {
-    background-color: var(--accent-dark);
-}
-
 .btn-secondary {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);

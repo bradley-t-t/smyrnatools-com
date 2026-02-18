@@ -1,15 +1,15 @@
 import React, { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import VersionPopup from '../../app/components/common/VersionPopup'
 import { useAuth } from '../../app/context/AuthContext'
 import { useVersion } from '../../app/hooks/useVersion'
 import SrmLogo from '../../assets/images/srm-logo.svg'
-import VersionPopup from '../../components/common/VersionPopup'
 import { supabase } from '../../services/DatabaseService'
 import { AuthUtility } from '../../utils/AuthUtility'
 
 const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
-const VideoBackground = lazy(() => import('../../components/common/VideoBackground'))
+const VideoBackground = lazy(() => import('../../app/components/common/VideoBackground'))
 
 const VideoFallback = memo(function VideoFallback() {
     return (

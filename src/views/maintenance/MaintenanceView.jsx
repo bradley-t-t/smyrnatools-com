@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
-import LoadingScreen from '../../components/common/LoadingScreen'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
+import LoadingScreen from '../../app/components/common/LoadingScreen'
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { UserService } from '../../services/UserService'
 import { formatFrequency, formatMaintenanceDate, getStatusBadgeClass } from '../../utils/MaintenanceUtility'

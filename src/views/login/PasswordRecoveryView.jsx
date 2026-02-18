@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
+import VideoBackground from '../../app/components/common/VideoBackground'
 import SrmLogo from '../../assets/images/srm-logo.svg'
-import VideoBackground from '../../components/common/VideoBackground'
 import APIUtility from '../../utils/APIUtility'
 
 function PasswordRecoveryView({ onBackToLogin }) {

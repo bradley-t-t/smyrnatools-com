@@ -1,8 +1,46 @@
 import React from 'react'
 
-import { reportsSubmitViewStyles } from '../styles/ReportsSubmitViewStyles'
+import { reportsSubmitViewStyles as styles } from '../styles/ReportsSubmitViewStyles'
 
-const styles = reportsSubmitViewStyles
+const ManagerEditBanner = ({ editingUserName }) => (
+    <div style={styles.managerEditBanner}>
+        <i className="fas fa-edit" />
+        {`Editing ${editingUserName}'s Report`}
+    </div>
+)
+
+const StatusBadge = ({ isCompleted, readOnly }) => {
+    const completed = isCompleted
+    const bgColor = completed ? '#d1fae5' : '#fef3c7'
+    const textColor = completed ? '#059669' : '#d97706'
+    const icon = completed ? 'fa-check-circle' : 'fa-edit'
+    const label = readOnly ? 'View Only' : completed ? 'Submitted' : 'Editing'
+
+    return (
+        <div style={{ ...styles.statusBadge, background: bgColor, color: textColor }}>
+            <i className={`fas ${icon}`} />
+            {label}
+        </div>
+    )
+}
+
+const ExportButton = ({ exporting, loadingPlants, onClick }) => {
+    const label = loadingPlants ? 'Loading...' : exporting ? 'Exporting...' : 'Export'
+    return (
+        <button type="button" style={styles.exportBtn} onClick={onClick} disabled={exporting || loadingPlants}>
+            <i className="fas fa-file-export" />
+            {label}
+        </button>
+    )
+}
+
+const MetaItem = ({ icon, label, value }) => (
+    <div style={styles.metaItem}>
+        <i className={icon} style={styles.metaIcon} />
+        <span>{label}</span>
+        <strong style={styles.metaStrong}>{value}</strong>
+    </div>
+)
 
 function SubmitHeader({
     report,
@@ -22,76 +60,28 @@ function SubmitHeader({
 }) {
     return (
         <div>
-            {managerEditUser && (
-                <div
-                    style={{
-                        alignItems: 'center',
-                        background: '#fef3c7',
-                        color: '#92400e',
-                        display: 'flex',
-                        fontWeight: 500,
-                        gap: '0.5rem',
-                        padding: '0.75rem 1.5rem'
-                    }}
-                >
-                    <i className="fas fa-edit"></i>
-                    {`Editing ${editingUserName}'s Report`}
-                </div>
-            )}
+            {managerEditUser && <ManagerEditBanner editingUserName={editingUserName} />}
             <div style={styles.header}>
                 <div style={styles.headerLeft}>
                     <button style={styles.backBtn} onClick={onBack} type="button">
-                        <i className="fas fa-arrow-left"></i>
+                        <i className="fas fa-arrow-left" />
                     </button>
                     <div style={styles.titleSection}>
-                        <h1 style={styles.title}>{report.title || ''}</h1>
+                        <h1 style={styles.title}>{report.title ?? ''}</h1>
                         <p style={styles.subtitle}>{weekVerbose}</p>
                     </div>
                 </div>
                 <div style={styles.headerRight}>
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: isCompleted ? '#d1fae5' : '#fef3c7',
-                            borderRadius: '8px',
-                            color: isCompleted ? '#059669' : '#d97706',
-                            display: 'flex',
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            gap: '0.5rem',
-                            padding: '0.5rem 1rem'
-                        }}
-                    >
-                        <i className={`fas ${isCompleted ? 'fa-check-circle' : 'fa-edit'}`}></i>
-                        {readOnly ? 'View Only' : isCompleted ? 'Submitted' : 'Editing'}
-                    </div>
-                    {isGM && (
-                        <button
-                            type="button"
-                            style={styles.exportBtn}
-                            onClick={onExport}
-                            disabled={exporting || loadingPlants}
-                        >
-                            <i className="fas fa-file-export"></i>
-                            {loadingPlants ? 'Loading...' : exporting ? 'Exporting...' : 'Export'}
-                        </button>
-                    )}
+                    <StatusBadge isCompleted={isCompleted} readOnly={readOnly} />
+                    {isGM && <ExportButton exporting={exporting} loadingPlants={loadingPlants} onClick={onExport} />}
                 </div>
             </div>
             <div style={styles.metaBar}>
                 {reportDateVerbose && (
-                    <div style={styles.metaItem}>
-                        <i className="far fa-calendar-check" style={styles.metaIcon}></i>
-                        <span>Report Date:</span>
-                        <strong style={styles.metaStrong}>{reportDateVerbose}</strong>
-                    </div>
+                    <MetaItem icon="far fa-calendar-check" label="Report Date:" value={reportDateVerbose} />
                 )}
                 {report.name === 'plant_production' && formPlant && (
-                    <div style={styles.metaItem}>
-                        <i className="fas fa-industry" style={styles.metaIcon}></i>
-                        <span>Plant:</span>
-                        <strong style={styles.metaStrong}>{formPlant}</strong>
-                    </div>
+                    <MetaItem icon="fas fa-industry" label="Plant:" value={formPlant} />
                 )}
             </div>
             {exportError && <div style={styles.error}>{exportError}</div>}

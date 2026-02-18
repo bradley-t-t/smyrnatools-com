@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import AddViewSection from '../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
-import AddViewSection from '../../components/sections/AddViewSection'
 import { AIService } from '../../services/AIService'
 import { ListService } from '../../services/ListService'
 import { PlantService } from '../../services/PlantService'

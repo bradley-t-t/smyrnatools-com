@@ -2,88 +2,40 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
+import { reportPluginStyles, StatsBar } from './shared'
 
-const effReportStyles = `
-.rpt-mt-20 { margin-top: 1.25rem; }
-.rpt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; }
-.rpt-stat-card { text-align: center; padding: 0.75rem; background: white; border-radius: 6px; border: 1px solid #e5e7eb; }
-.rpt-stat-label { font-size: 0.6875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
-.rpt-stat-value { font-size: 1.125rem; font-weight: 700; color: #1e3a5f; }
-.rpt-warnings { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-.rpt-warning-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.75rem; background: #fef3c7; color: #92400e; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
-.rpt-warning-icon { font-size: 0.875rem; }
-.rpt-toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; }
-.rpt-filter-input { flex: 1; min-width: 200px; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; }
-.rpt-filter-input:focus { outline: none; border-color: #1e3a5f; box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1); }
-.rpt-toolbar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.rpt-btn { padding: 0.5rem 0.875rem; background: white; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.15s; }
-.rpt-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-.rpt-table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; background: white; }
-.rpt-table { width: 100%; border-collapse: collapse; min-width: 700px; }
-.rpt-col-operator { width: 25%; }
-.rpt-col-truck { width: 10%; }
-.rpt-col-start { width: 20%; }
-.rpt-col-end { width: 20%; }
-.rpt-col-lph { width: 15%; }
-.rpt-col-actions { width: 10%; }
-.rpt-th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background: #f8fafc; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
-.rpt-th.right { text-align: right; }
-.rpt-row { transition: background 0.15s; }
-.rpt-row:hover { background: #f8fafc; }
-.rpt-td { padding: 0.75rem 1rem; font-size: 0.9375rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-.rpt-td.emphasis { font-weight: 600; color: #1e293b; }
-.rpt-td.secondary { color: #64748b; }
-.rpt-td.warn { color: #d97706; font-weight: 500; }
-.rpt-td.right { text-align: right; }
-.rpt-icon-btn { padding: 0.375rem 0.5rem; background: transparent; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; font-size: 0.875rem; color: #64748b; transition: all 0.15s; }
-.rpt-icon-btn:hover { background: #f1f5f9; color: #1e293b; }
-.rpt-detail-row { padding: 0 !important; background: #f8fafc; }
-.rpt-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; padding: 1rem 1.5rem; }
-.rpt-detail-grid-full { grid-column: 1 / -1; }
-.rpt-field-label { font-size: 0.6875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
-.rpt-field-value { font-size: 0.9375rem; color: #1e293b; }
-.rpt-field-value.emphasis { font-weight: 600; }
-.rpt-error-text { color: #dc2626; }
-.rpt-comment-text { font-size: 0.875rem; color: #475569; font-style: italic; }
+const effReportStyles =
+    reportPluginStyles +
+    `
+.rpt-validation-alert { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; border-radius: 6px; color: #92400e; font-size: 0.8125rem; margin-top: 8px; padding: 12px; }
+.rpt-validation-header { display: flex; align-items: center; font-weight: 600; gap: 8px; margin-bottom: 8px; }
+.rpt-validation-examples { background: rgba(255,255,255,0.5); border-radius: 4px; font-size: 0.75rem; padding: 8px; }
+.rpt-example-good { color: #166534; margin-bottom: 4px; }
+.rpt-example-bad { color: #991b1b; }
 `
 
-function getRows(form) {
-    return Array.isArray(form.rows) ? form.rows : []
-}
+const getRows = (form) => (Array.isArray(form.rows) ? form.rows : [])
 
-function StatsBar({ insights }) {
-    const items = [
-        { label: 'Total Loads', value: insights.totalLoads },
-        { label: 'Total Hours', value: insights.totalHours !== null ? insights.totalHours.toFixed(2) : '--' },
-        { label: 'Avg Loads', value: insights.avgLoads !== null ? insights.avgLoads.toFixed(2) : '--' },
-        { label: 'Avg Hours', value: insights.avgHours !== null ? insights.avgHours.toFixed(2) : '--' },
-        {
-            label: 'Avg Loads/Hour',
-            value: insights.avgLoadsPerHour !== null ? insights.avgLoadsPerHour.toFixed(2) : '--'
-        },
-        {
-            label: 'Avg Punch In -> 1st Load',
-            value: insights.avgElapsedStart !== null ? `${insights.avgElapsedStart.toFixed(1)} min` : '--'
-        },
-        {
-            label: 'Avg Washout -> Punch Out',
-            value: insights.avgElapsedEnd !== null ? `${insights.avgElapsedEnd.toFixed(1)} min` : '--'
-        }
-    ]
-    return (
-        <div className="rpt-stats">
-            {items.map((it, i) => (
-                <div key={i} className="rpt-stat-card">
-                    <div className="rpt-stat-label">{it.label}</div>
-                    <div className="rpt-stat-value">{it.value}</div>
-                </div>
-            ))}
-        </div>
-    )
-}
+const STAT_ITEMS = [
+    { format: (v) => v, key: 'totalLoads', label: 'Total Loads' },
+    { format: (v) => v?.toFixed(2) ?? '--', key: 'totalHours', label: 'Total Hours' },
+    { format: (v) => v?.toFixed(2) ?? '--', key: 'avgLoads', label: 'Avg Loads' },
+    { format: (v) => v?.toFixed(2) ?? '--', key: 'avgHours', label: 'Avg Hours' },
+    { format: (v) => v?.toFixed(2) ?? '--', key: 'avgLoadsPerHour', label: 'Avg Loads/Hour' },
+    {
+        format: (v) => (v !== null ? `${v.toFixed(1)} min` : '--'),
+        key: 'avgElapsedStart',
+        label: 'Avg Punch In -> 1st Load'
+    },
+    {
+        format: (v) => (v !== null ? `${v.toFixed(1)} min` : '--'),
+        key: 'avgElapsedEnd',
+        label: 'Avg Washout -> Punch Out'
+    }
+]
 
 function WarningsBar({ messages }) {
-    if (!messages || messages.length === 0) return null
+    if (!messages?.length) return null
     return (
         <div className="rpt-warnings">
             {messages.map((msg, i) => (
@@ -97,13 +49,14 @@ function WarningsBar({ messages }) {
 }
 
 function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpandAll, onCollapseAll }) {
-    function toggleSort(key) {
-        if (sortKey === key) {
-            setSort(key, sortDir === 'asc' ? 'desc' : 'asc')
-        } else {
-            setSort(key, 'asc')
-        }
-    }
+    const toggleSort = (key) => setSort(key, sortKey === key && sortDir === 'asc' ? 'desc' : 'asc')
+
+    const sortButtons = [
+        { key: 'operator', label: 'Name' },
+        { key: 'loads', label: 'Loads' },
+        { key: 'hours', label: 'Hours' },
+        { key: 'lph', label: 'L/H' }
+    ]
 
     return (
         <div className="rpt-toolbar">
@@ -121,18 +74,40 @@ function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpan
                 <button type="button" onClick={onCollapseAll} className="rpt-btn">
                     Collapse All
                 </button>
-                <button type="button" onClick={() => toggleSort('operator')} className="rpt-btn">
-                    Sort Name {sortKey === 'operator' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
-                </button>
-                <button type="button" onClick={() => toggleSort('loads')} className="rpt-btn">
-                    Sort Loads {sortKey === 'loads' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
-                </button>
-                <button type="button" onClick={() => toggleSort('hours')} className="rpt-btn">
-                    Sort Hours {sortKey === 'hours' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
-                </button>
-                <button type="button" onClick={() => toggleSort('lph')} className="rpt-btn">
-                    Sort L/H {sortKey === 'lph' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
-                </button>
+                {sortButtons.map(({ key, label }) => (
+                    <button key={key} type="button" onClick={() => toggleSort(key)} className="rpt-btn">
+                        Sort {label} {sortKey === key ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function ValidationAlert({ show }) {
+    if (!show) return null
+    return (
+        <div className="rpt-validation-alert">
+            <div className="rpt-validation-header">
+                <i className="fas fa-robot" style={{ color: '#f59e0b', fontSize: '1rem' }}></i>
+                <span>AI Validation Required</span>
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+                Your explanation must provide a <strong>specific reason</strong> for the timing issues. Generic or vague
+                answers will be rejected.
+            </div>
+            <div className="rpt-validation-examples">
+                <div className="rpt-example-good">
+                    <i className="fas fa-check" style={{ marginRight: '4px' }}></i>
+                    <strong>Good:</strong>{' '}
+                    {
+                        '"Sent to plant 402 for afternoon deliveries" or "Truck breakdown - waited for mechanic" or "Training new driver on route"'
+                    }
+                </div>
+                <div className="rpt-example-bad">
+                    <i className="fas fa-times" style={{ marginRight: '4px' }}></i>
+                    <strong>Bad:</strong> {'"N/A" or "mixer" or "truck issues" or unrelated explanations'}
+                </div>
             </div>
         </div>
     )
@@ -140,10 +115,7 @@ function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpan
 
 function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expandAllSeq, collapseAllSeq }) {
     const [expanded, setExpanded] = useState(new Set())
-
-    function minutes(timeStr) {
-        return ReportUtility.parseTimeToMinutes(timeStr)
-    }
+    const minutes = (timeStr) => ReportUtility.parseTimeToMinutes(timeStr)
 
     const processed = useMemo(() => {
         const lower = (filterText || '').toLowerCase().trim()
@@ -153,58 +125,49 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
             const truck = String(r.truck_number || '').toLowerCase()
             return name.includes(lower) || truck.includes(lower)
         })
-        const withCalcs = filtered.map((r, idx) => {
-            const start = minutes(r.start_time)
-            const first = minutes(r.first_load)
-            const eod = minutes(r.eod_in_yard)
-            const punch = minutes(r.punch_out)
-            const dStart = start !== null && first !== null ? first - start : null
-            const dEnd = eod !== null && punch !== null ? punch - eod : null
-            const hours = start !== null && punch !== null ? (punch - start) / 60 : null
-            const lph = r.loads && hours && hours > 0 ? r.loads / hours : null
-            const key = r.name || `idx:${idx}`
-            return { dEnd, dStart, eod, first, hours, key, lph, punch, r, start }
-        })
-        const dir = sortDir === 'desc' ? -1 : 1
 
-        function cmp(a, b) {
-            const A = a.r
-            const B = b.r
-            if (sortKey === 'operator')
-                return (
-                    ReportService.getOperatorName(A, operatorOptions).localeCompare(
-                        ReportService.getOperatorName(B, operatorOptions)
-                    ) * dir
-                )
-            if (sortKey === 'loads') return ((Number(A.loads) || 0) - (Number(B.loads) || 0)) * dir
-            if (sortKey === 'hours') return ((a.hours ?? -Infinity) - (b.hours ?? -Infinity)) * dir
-            if (sortKey === 'lph') return ((a.lph ?? -Infinity) - (b.lph ?? -Infinity)) * dir
-            if (sortKey === 'start') return ((a.start ?? -1) - (b.start ?? -1)) * dir
-            return 0
-        }
-
-        return sortKey ? [...withCalcs].sort(cmp) : withCalcs
+        return filtered
+            .map((r, idx) => {
+                const start = minutes(r.start_time)
+                const first = minutes(r.first_load)
+                const eod = minutes(r.eod_in_yard)
+                const punch = minutes(r.punch_out)
+                const dStart = start !== null && first !== null ? first - start : null
+                const dEnd = eod !== null && punch !== null ? punch - eod : null
+                const hours = start !== null && punch !== null ? (punch - start) / 60 : null
+                const lph = r.loads && hours && hours > 0 ? r.loads / hours : null
+                return { dEnd, dStart, hours, key: r.name || `idx:${idx}`, lph, r }
+            })
+            .sort((a, b) => {
+                if (!sortKey) return 0
+                const dir = sortDir === 'desc' ? -1 : 1
+                if (sortKey === 'operator')
+                    return (
+                        ReportService.getOperatorName(a.r, operatorOptions).localeCompare(
+                            ReportService.getOperatorName(b.r, operatorOptions)
+                        ) * dir
+                    )
+                if (sortKey === 'loads') return ((Number(a.r.loads) || 0) - (Number(b.r.loads) || 0)) * dir
+                if (sortKey === 'hours') return ((a.hours ?? -Infinity) - (b.hours ?? -Infinity)) * dir
+                if (sortKey === 'lph') return ((a.lph ?? -Infinity) - (b.lph ?? -Infinity)) * dir
+                return 0
+            })
     }, [rows, operatorOptions, sortKey, sortDir, filterText])
 
     useEffect(() => {
-        if (!expandAllSeq) return
-        const keys = processed.map((p) => p.key)
-        setExpanded(new Set(keys))
+        if (expandAllSeq) setExpanded(new Set(processed.map((p) => p.key)))
     }, [expandAllSeq, processed])
 
     useEffect(() => {
-        if (!collapseAllSeq) return
-        setExpanded(new Set())
+        if (collapseAllSeq) setExpanded(new Set())
     }, [collapseAllSeq])
 
-    function toggleExpand(key) {
+    const toggleExpand = (key) =>
         setExpanded((prev) => {
             const next = new Set(prev)
-            if (next.has(key)) next.delete(key)
-            else next.add(key)
+            next.has(key) ? next.delete(key) : next.add(key)
             return next
         })
-    }
 
     const headers = ['Operator', 'Truck #', 'Punch In -> 1st Load', 'Washout -> Punch Out', 'L/H', '']
 
@@ -212,17 +175,21 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
         <div className="rpt-table-wrapper">
             <table className="rpt-table">
                 <colgroup>
-                    <col className="rpt-col-operator" />
-                    <col className="rpt-col-truck" />
-                    <col className="rpt-col-start" />
-                    <col className="rpt-col-end" />
-                    <col className="rpt-col-lph" />
-                    <col className="rpt-col-actions" />
+                    {[
+                        'rpt-col-operator',
+                        'rpt-col-truck',
+                        'rpt-col-start',
+                        'rpt-col-end',
+                        'rpt-col-lph',
+                        'rpt-col-actions'
+                    ].map((c, i) => (
+                        <col key={i} className={c} />
+                    ))}
                 </colgroup>
                 <thead>
                     <tr>
                         {headers.map((h, i) => (
-                            <th key={i} className={`rpt-th ${i === 4 || i === 5 ? 'right' : ''}`}>
+                            <th key={i} className={`rpt-th ${i >= 4 ? 'right' : ''}`}>
                                 {h}
                             </th>
                         ))}
@@ -232,7 +199,12 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                     {processed.map(({ r, dStart, dEnd, hours, lph, key }) => {
                         const warnStart = dStart !== null && dStart > 15
                         const warnEnd = dEnd !== null && dEnd > 20
+                        const lowLoads = r.loads !== undefined && r.loads !== '' && Number(r.loads) < 3
+                        const longHours = hours !== null && hours > 14
+                        const needsComment = warnStart || warnEnd || lowLoads || longHours
+                        const hasComment = r.comments?.trim()
                         const isOpen = expanded.has(key)
+
                         return (
                             <React.Fragment key={key}>
                                 <tr className="rpt-row">
@@ -249,11 +221,7 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                     <td className={`rpt-td ${warnEnd ? 'warn' : ''}`}>
                                         {dEnd !== null ? `${dEnd} min` : '--'}
                                     </td>
-                                    <td className="rpt-td right">
-                                        {lph !== null && lph !== undefined && lph !== ''
-                                            ? Number(lph).toFixed(2)
-                                            : '--'}
-                                    </td>
+                                    <td className="rpt-td right">{lph !== null ? Number(lph).toFixed(2) : '--'}</td>
                                     <td className="rpt-td right">
                                         <button
                                             type="button"
@@ -270,26 +238,21 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                     <tr>
                                         <td colSpan={6} className="rpt-detail-row">
                                             <div className="rpt-detail-grid">
-                                                <div>
-                                                    <div className="rpt-field-label">Start</div>
-                                                    <div className="rpt-field-value">{r.start_time || '--'}</div>
-                                                </div>
-                                                <div>
-                                                    <div className="rpt-field-label">1st Load</div>
-                                                    <div className="rpt-field-value">{r.first_load || '--'}</div>
-                                                </div>
-                                                <div>
-                                                    <div className="rpt-field-label">EOD In Yard</div>
-                                                    <div className="rpt-field-value">{r.eod_in_yard || '--'}</div>
-                                                </div>
-                                                <div>
-                                                    <div className="rpt-field-label">Punch Out</div>
-                                                    <div className="rpt-field-value">{r.punch_out || '--'}</div>
-                                                </div>
+                                                {[
+                                                    { label: 'Start', value: r.start_time },
+                                                    { label: '1st Load', value: r.first_load },
+                                                    { label: 'EOD In Yard', value: r.eod_in_yard },
+                                                    { label: 'Punch Out', value: r.punch_out }
+                                                ].map(({ label, value }) => (
+                                                    <div key={label}>
+                                                        <div className="rpt-field-label">{label}</div>
+                                                        <div className="rpt-field-value">{value || '--'}</div>
+                                                    </div>
+                                                ))}
                                                 <div>
                                                     <div className="rpt-field-label">Total Loads</div>
                                                     <div
-                                                        className={`rpt-field-value emphasis ${r.loads !== undefined && r.loads !== '' && Number(r.loads) < 3 ? 'rpt-error-text' : ''}`}
+                                                        className={`rpt-field-value emphasis ${lowLoads ? 'rpt-error-text' : ''}`}
                                                     >
                                                         {r.loads || '--'}
                                                     </div>
@@ -305,12 +268,7 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                                 <div className="rpt-detail-grid-full">
                                                     <div className="rpt-field-label">
                                                         Comments
-                                                        {(warnStart ||
-                                                            warnEnd ||
-                                                            (r.loads !== undefined &&
-                                                                r.loads !== '' &&
-                                                                Number(r.loads) < 3) ||
-                                                            (hours !== null && hours > 14)) && (
+                                                        {needsComment && (
                                                             <span
                                                                 style={{
                                                                     color: '#dc2626',
@@ -323,85 +281,7 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                                         )}
                                                     </div>
                                                     <div className="rpt-comment-text">{r.comments || ''}</div>
-                                                    {(warnStart ||
-                                                        warnEnd ||
-                                                        (r.loads !== undefined &&
-                                                            r.loads !== '' &&
-                                                            Number(r.loads) < 3) ||
-                                                        (hours !== null && hours > 14)) &&
-                                                        (!r.comments || !r.comments.trim()) && (
-                                                            <div
-                                                                style={{
-                                                                    background:
-                                                                        'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                                                                    border: '1px solid #f59e0b',
-                                                                    borderLeft: '4px solid #f59e0b',
-                                                                    borderRadius: '6px',
-                                                                    color: '#92400e',
-                                                                    fontSize: '0.8125rem',
-                                                                    marginTop: '8px',
-                                                                    padding: '12px'
-                                                                }}
-                                                            >
-                                                                <div
-                                                                    style={{
-                                                                        alignItems: 'center',
-                                                                        display: 'flex',
-                                                                        fontWeight: 600,
-                                                                        gap: '8px',
-                                                                        marginBottom: '8px'
-                                                                    }}
-                                                                >
-                                                                    <i
-                                                                        className="fas fa-robot"
-                                                                        style={{
-                                                                            color: '#f59e0b',
-                                                                            fontSize: '1rem'
-                                                                        }}
-                                                                    ></i>
-                                                                    <span>AI Validation Required</span>
-                                                                </div>
-                                                                <div style={{ marginBottom: '8px' }}>
-                                                                    Your explanation must provide a{' '}
-                                                                    <strong>specific reason</strong> for the timing
-                                                                    issues. Generic or vague answers will be rejected.
-                                                                </div>
-                                                                <div
-                                                                    style={{
-                                                                        background: 'rgba(255,255,255,0.5)',
-                                                                        borderRadius: '4px',
-                                                                        fontSize: '0.75rem',
-                                                                        padding: '8px'
-                                                                    }}
-                                                                >
-                                                                    <div
-                                                                        style={{
-                                                                            color: '#166534',
-                                                                            marginBottom: '4px'
-                                                                        }}
-                                                                    >
-                                                                        <i
-                                                                            className="fas fa-check"
-                                                                            style={{ marginRight: '4px' }}
-                                                                        ></i>
-                                                                        <strong>Good:</strong>{' '}
-                                                                        {
-                                                                            '"Sent to plant 402 for afternoon deliveries" or "Truck breakdown - waited for mechanic" or "Training new driver on route"'
-                                                                        }
-                                                                    </div>
-                                                                    <div style={{ color: '#991b1b' }}>
-                                                                        <i
-                                                                            className="fas fa-times"
-                                                                            style={{ marginRight: '4px' }}
-                                                                        ></i>
-                                                                        <strong>Bad:</strong>{' '}
-                                                                        {
-                                                                            '"N/A" or "mixer" or "truck issues" or unrelated explanations'
-                                                                        }
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                    <ValidationAlert show={needsComment && !hasComment} />
                                                 </div>
                                             </div>
                                         </td>
@@ -422,15 +302,21 @@ function EfficiencyPluginBody({ form, operatorOptions }) {
     const [sortDir, setSortDir] = useState('asc')
     const [expandAllSeq, setExpandAllSeq] = useState(0)
     const [collapseAllSeq, setCollapseAllSeq] = useState(0)
+
     const rows = getRows(form)
     const insights = ReportService.getPlantProductionInsights(rows)
-
-    function setSort(k, d) {
+    const setSort = (k, d) => {
         setSortKey(k)
         setSortDir(d)
     }
 
     if (!rows.length) return null
+
+    const statsItems = STAT_ITEMS.map(({ key, label, format }) => ({
+        label,
+        value: format(insights[key])
+    }))
+
     return (
         <>
             <style>{effReportStyles}</style>
@@ -454,7 +340,7 @@ function EfficiencyPluginBody({ form, operatorOptions }) {
                     expandAllSeq={expandAllSeq}
                     collapseAllSeq={collapseAllSeq}
                 />
-                <StatsBar insights={insights} />
+                <StatsBar items={statsItems} />
             </div>
         </>
     )

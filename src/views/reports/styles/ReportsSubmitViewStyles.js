@@ -155,6 +155,15 @@ export const reportsSubmitViewStyles = {
         transition: 'all 0.2s',
         width: '100%'
     },
+    managerEditBanner: {
+        alignItems: 'center',
+        background: '#fef3c7',
+        color: '#92400e',
+        display: 'flex',
+        fontWeight: 500,
+        gap: '0.5rem',
+        padding: '0.75rem 1.5rem'
+    },
     metaBar: {
         alignItems: 'center',
         background: '#f8fafc',
@@ -255,6 +264,15 @@ export const reportsSubmitViewStyles = {
         fontWeight: 600,
         gap: '0.75rem',
         margin: 0
+    },
+    statusBadge: {
+        alignItems: 'center',
+        borderRadius: '8px',
+        display: 'flex',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        gap: '0.5rem',
+        padding: '0.5rem 1rem'
     },
     select: {
         appearance: 'none',

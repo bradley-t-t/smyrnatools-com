@@ -2,6 +2,22 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.5] - 2026-02-18
+
+- Removed CSS styles for `.btn-primary` and its hover state from `src/app/App.css`.
+- Updated import paths in `src/app/App.js` to reference components from the new `src/app/components` directory structure.
+- Renamed multiple component files from `src/components/common/` to `src/app/components/common/` with minor path updates in related files.
+- Added a new `Modal.jsx` component in `src/app/components/common/` with sub-components `ModalSummary`, `ModalSummaryItem`, and `ModalBody` for creating modal dialogs.
+- Introduced new leaderboard components `HelpDetailsModal.jsx` and `LeaderboardItem.jsx` in `src/app/components/leaderboards/`.
+- Added new hooks `useIsMobile.js` and `useLeaderboardData.js` in `src/app/hooks/` for mobile detection and leaderboard data management.
+- Created `leaderboardConstants.js` in `src/app/constants/` to store leaderboard-related constants.
+- Refactored `LeaderboardsView.jsx` in `src/views/leaderboards/` with significant code reduction and introduced a refactored version in `LeaderboardsView.refactored.jsx`.
+- Enhanced reports functionality in `src/views/reports/` with updates to `ReportsReviewView.jsx`, `ReportsSubmitView.jsx`, and related components like `MyReportsList.jsx`, `ReportsStatsCards.jsx`, and `ReviewReportsList.jsx`.
+- Added shared report utilities in `src/views/reports/types/shared/` including `ReportComponents.jsx`, `reportPluginStyles.js`, `useReportData.js`, and `useReportVariance.js`.
+- Updated various view components across modules like `equipment`, `mixers`, `operators`, `pickup-trucks`, `tractors`, and `trailers` with minor import path corrections and structural updates.
+- Revised `ListView.jsx` in `src/views/list/` with significant code changes for improved functionality.
+- Made minor updates to export functionalities in `src/utils/ExportUtility.js` and `src/app/components/modules/export/reports/GeneralManagerExport.js`.
+
 ## [12.4] - 2026-02-18
 
 - Refactored asynchronous code in `PlanView.jsx` by replacing immediately invoked async functions with named async functions `loadInitialData` and `loadPlan`, improving readability and maintainability.

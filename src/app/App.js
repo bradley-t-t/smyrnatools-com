@@ -5,21 +5,21 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import React, { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
 
-import LockedOverlay from '../components/common/LockedOverlay'
-import Navigation from '../components/common/Navigation'
-import OfflineOverlay from '../components/common/OfflineOverlay'
-import TerminatedOverlay from '../components/common/TerminatedOverlay'
-import TutorialManager from '../components/common/TutorialPopup'
-import WebOverlay from '../components/common/WebOverlay'
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import { NetworkUtility } from '../utils/NetworkUtility'
 import LoginView from '../views/login/LoginView'
+import LockedOverlay from './components/common/LockedOverlay'
+import Navigation from './components/common/Navigation'
+import OfflineOverlay from './components/common/OfflineOverlay'
+import TerminatedOverlay from './components/common/TerminatedOverlay'
+import TutorialManager from './components/common/TutorialPopup'
+import WebOverlay from './components/common/WebOverlay'
 import { useTutorial } from './context/TutorialContext'
 import { useAuth } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
 
-const AppInstallPromptModal = lazy(() => import('../components/common/AppInstallPromptModal'))
+const AppInstallPromptModal = lazy(() => import('./components/common/AppInstallPromptModal'))
 const CalculatorView = lazy(() => import('../views/calculator/CalculatorView'))
 const DashboardView = lazy(() => import('../views/dashboard/DashboardView'))
 const EquipmentsView = lazy(() => import('../views/equipment/EquipmentsView'))

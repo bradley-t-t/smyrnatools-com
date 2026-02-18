@@ -1,7 +1,7 @@
 import { supabase } from '../services/DatabaseService'
 import { ReportUtility } from './ReportUtility'
 
-export { exportGeneralManagerReport } from '../components/modules/export/ExportModule'
+export { exportGeneralManagerReport } from '../app/components/modules/export/ExportModule'
 
 export function normUpper(code) {
     return String(code || '')

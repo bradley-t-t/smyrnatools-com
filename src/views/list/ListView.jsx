@@ -1,20 +1,75 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
-import LoadingScreen from '../../components/common/LoadingScreen'
-import TopSection from '../../components/sections/TopSection'
+import LoadingScreen from '../../app/components/common/LoadingScreen'
+import TopSection from '../../app/components/sections/TopSection'
 import { ListService } from '../../services/ListService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import ListAddView from './ListAddView'
+
+const STATUS_MAP = {
+    blocked: 'Blocked',
+    completed: 'Completed',
+    in_progress: 'In Progress',
+    ordered_materials: 'Ordered Materials',
+    overdue: 'Overdue',
+    pending: 'Pending',
+    waiting: 'Waiting'
+}
+
+const STATUS_OPTIONS = ['Pending', 'In Progress', 'Ordered Materials', 'Blocked', 'Waiting', 'Overdue', 'Completed']
+
+const ROLE_MAP = {
+    district_manager: 'District Manager',
+    maintenance: 'Maintenance',
+    plant_manager: 'Plant Manager',
+    unassigned: 'Unassigned'
+}
+
+const ROLE_OPTIONS = ['Maintenance', 'Plant Manager', 'District Manager', 'Unassigned']
+
+const VIEW_MODES = [
+    { icon: 'fa-layer-group', id: 'status', label: 'Status' },
+    { icon: 'fa-calendar-alt', id: 'date', label: 'Date' },
+    { icon: 'fa-user', id: 'role', label: 'Role' }
+]
+
+const STATUS_COLORS = {
+    blocked: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
+    completed: { bg: '#dcfce7', border: '#16a34a', text: '#16a34a' },
+    in_progress: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
+    ordered_materials: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
+    overdue: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
+    pending: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' },
+    waiting: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' }
+}
+
+const BULK_ACTION_COLORS = {
+    cancel: { bg: '#f1f5f9', hover: '#e2e8f0', text: '#64748b' },
+    complete: { bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a' },
+    delete: { bg: '#fee2e2', hover: '#fecaca', text: '#ef4444' }
+}
+
+const mapStatusValue = (value) => {
+    const lower = value?.toLowerCase()
+    return Object.entries(STATUS_MAP).find(([_k, v]) => v.toLowerCase() === lower)?.[0] || ''
+}
+
+const mapRoleValue = (value) => Object.entries(ROLE_MAP).find(([_k, v]) => v === value)?.[0] || ''
+
+const normalizeToUpperCase = (str) =>
+    String(str || '')
+        .trim()
+        .toUpperCase()
 
 function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const headerRef = useRef(null)
     const searchInputRef = useRef(null)
-    const toolbarRef = useRef(null)
     const plannerGroupsRef = useRef(null)
+
     const [plants, setPlants] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchText, setSearchText] = useState('')
@@ -24,9 +79,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [selectedIds, setSelectedIds] = useState(new Set())
-    const [sortKey, setSortKey] = useState('')
-    const [sortDirection, setSortDirection] = useState('asc')
-    const [viewMode, setViewMode] = useState('date')
+    const [viewMode, setViewMode] = useState('status')
     const [roleFilter, setRoleFilter] = useState('')
     const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768)
 
@@ -38,20 +91,15 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         statusFilter
     })
 
-    const filteredItems =
-        regionPlantCodes && regionPlantCodes.size > 0
-            ? baseFilteredItems.filter((item) =>
-                  regionPlantCodes.has(
-                      String(item.plant_code || '')
-                          .trim()
-                          .toUpperCase()
-                  )
-              )
-            : baseFilteredItems
+    const filteredItems = useMemo(() => {
+        if (!regionPlantCodes?.size) return baseFilteredItems
+        return baseFilteredItems.filter((item) => regionPlantCodes.has(normalizeToUpperCase(item.plant_code)))
+    }, [baseFilteredItems, regionPlantCodes])
 
-    const roleFilteredItems = roleFilter
-        ? filteredItems.filter((item) => item.responsible_role === roleFilter)
-        : filteredItems
+    const roleFilteredItems = useMemo(
+        () => (roleFilter ? filteredItems.filter((item) => item.responsible_role === roleFilter) : filteredItems),
+        [filteredItems, roleFilter]
+    )
 
     const groupedByDate = useMemo(() => {
         const groups = {
@@ -65,10 +113,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
 
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-
         const tomorrow = new Date(today)
         tomorrow.setDate(tomorrow.getDate() + 1)
-
         const endOfWeek = new Date(today)
         endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
 
@@ -81,23 +127,14 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             const deadline = new Date(item.deadline)
             deadline.setHours(0, 0, 0, 0)
 
-            if (deadline < today || item.status === 'overdue') {
-                groups.overdue.items.push(item)
-            } else if (deadline.getTime() === today.getTime()) {
-                groups.today.items.push(item)
-            } else if (deadline.getTime() === tomorrow.getTime()) {
-                groups.tomorrow.items.push(item)
-            } else if (deadline <= endOfWeek) {
-                groups.thisWeek.items.push(item)
-            } else {
-                groups.later.items.push(item)
-            }
+            if (deadline < today || item.status === 'overdue') groups.overdue.items.push(item)
+            else if (deadline.getTime() === today.getTime()) groups.today.items.push(item)
+            else if (deadline.getTime() === tomorrow.getTime()) groups.tomorrow.items.push(item)
+            else if (deadline <= endOfWeek) groups.thisWeek.items.push(item)
+            else groups.later.items.push(item)
         })
 
-        Object.values(groups).forEach((group) => {
-            group.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-        })
-
+        Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
 
@@ -120,6 +157,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
 
         const today = new Date()
         today.setHours(0, 0, 0, 0)
+        const activeStatuses = ['in_progress', 'blocked', 'waiting', 'ordered_materials']
 
         roleFilteredItems.forEach((item) => {
             if (item.completed || item.status === 'completed') {
@@ -129,33 +167,14 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
 
             const deadline = new Date(item.deadline)
             deadline.setHours(0, 0, 0, 0)
-            const isOverdue = deadline < today
+            const isOverdue = deadline < today && !activeStatuses.includes(item.status)
 
-            if (
-                isOverdue &&
-                item.status !== 'in_progress' &&
-                item.status !== 'blocked' &&
-                item.status !== 'waiting' &&
-                item.status !== 'ordered_materials'
-            ) {
-                groups.overdue.items.push(item)
-            } else if (item.status === 'in_progress') {
-                groups.in_progress.items.push(item)
-            } else if (item.status === 'blocked') {
-                groups.blocked.items.push(item)
-            } else if (item.status === 'waiting') {
-                groups.waiting.items.push(item)
-            } else if (item.status === 'ordered_materials') {
-                groups.ordered_materials.items.push(item)
-            } else {
-                groups.pending.items.push(item)
-            }
+            if (isOverdue) groups.overdue.items.push(item)
+            else if (groups[item.status]) groups[item.status].items.push(item)
+            else groups.pending.items.push(item)
         })
 
-        Object.values(groups).forEach((group) => {
-            group.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-        })
-
+        Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
 
@@ -177,61 +196,33 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             .filter((item) => !item.completed && item.status !== 'completed')
             .forEach((item) => {
                 const role = item.responsible_role || 'unassigned'
-                if (groups[role]) {
-                    groups[role].items.push(item)
-                } else {
-                    groups.unassigned.items.push(item)
-                }
+                ;(groups[role] ?? groups.unassigned).items.push(item)
             })
 
-        Object.values(groups).forEach((group) => {
-            group.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-        })
-
+        Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
 
     const groupedItems = viewMode === 'date' ? groupedByDate : viewMode === 'status' ? groupedByStatus : groupedByRole
 
-    const summaryStats = useMemo(() => {
-        const total = roleFilteredItems.length
-        const completed = roleFilteredItems.filter((i) => i.completed || i.status === 'completed').length
-        const overdue = groupedByDate.overdue?.items?.length || 0
-        const dueToday = groupedByDate.today?.items?.length || 0
-        const inProgress = roleFilteredItems.filter((i) => i.status === 'in_progress').length
-        const blocked = roleFilteredItems.filter((i) => i.status === 'blocked').length
-        const pending = total - completed
-        return { blocked, completed, dueToday, inProgress, overdue, pending, total }
-    }, [roleFilteredItems, groupedByDate])
-
-    const urgentItems = useMemo(() => {
-        return [...(groupedByDate.overdue?.items || []), ...(groupedByDate.today?.items || [])].slice(0, 5)
-    }, [groupedByDate])
-
-    const recentlyCompleted = useMemo(() => {
-        return roleFilteredItems
-            .filter((i) => i.completed || i.status === 'completed')
-            .sort((a, b) => new Date(b.completed_at || b.deadline) - new Date(a.completed_at || a.deadline))
-            .slice(0, 3)
-    }, [roleFilteredItems])
+    const summaryStats = useMemo(
+        () => ({
+            overdue: groupedByDate.overdue?.items?.length || 0,
+            total: roleFilteredItems.length
+        }),
+        [roleFilteredItems, groupedByDate]
+    )
 
     const handleScroll = useCallback(() => {
         if (!headerRef.current || !plannerGroupsRef.current) return
-        const headerRect = headerRef.current.getBoundingClientRect()
-        const clipTop = headerRect.bottom
-        const items = plannerGroupsRef.current.querySelectorAll('.planner-group, .planner-item')
-        items.forEach((item) => {
-            const itemRect = item.getBoundingClientRect()
-            if (itemRect.top < clipTop) {
-                const overlap = clipTop - itemRect.top
-                if (overlap >= itemRect.height) {
-                    item.style.opacity = '0'
-                    item.style.pointerEvents = 'none'
-                } else {
-                    item.style.clipPath = `inset(${overlap}px 0 0 0)`
-                    item.style.opacity = '1'
-                    item.style.pointerEvents = 'auto'
-                }
+        const clipTop = headerRef.current.getBoundingClientRect().bottom
+        plannerGroupsRef.current.querySelectorAll('.planner-group, .planner-item').forEach((item) => {
+            const { top, height } = item.getBoundingClientRect()
+            if (top < clipTop) {
+                const overlap = clipTop - top
+                item.style.opacity = overlap >= height ? '0' : '1'
+                item.style.pointerEvents = overlap >= height ? 'none' : 'auto'
+                item.style.clipPath = overlap < height ? `inset(${overlap}px 0 0 0)` : 'none'
             } else {
                 item.style.clipPath = 'none'
                 item.style.opacity = '1'
@@ -242,131 +233,54 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
 
     useEffect(() => {
         const contentArea = document.querySelector('.content-area')
-        if (contentArea) {
-            contentArea.addEventListener('scroll', handleScroll)
-            handleScroll()
-        }
-        return () => {
-            if (contentArea) {
-                contentArea.removeEventListener('scroll', handleScroll)
-            }
-        }
+        if (!contentArea) return
+        contentArea.addEventListener('scroll', handleScroll)
+        handleScroll()
+        return () => contentArea.removeEventListener('scroll', handleScroll)
     }, [handleScroll])
 
     useEffect(() => {
-        fetchAllData()
+        ;(async () => {
+            setIsLoading(true)
+            try {
+                await Promise.all([ListService.fetchListItems(), ListService.fetchPlants()])
+                setPlants(ListService.plants)
+            } finally {
+                setIsLoading(false)
+            }
+        })()
     }, [])
 
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768)
-        }
+        const handleResize = () => setIsMobile(window.innerWidth < 768)
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
     useEffect(() => {
         let cancelled = false
-
-        async function loadRegionPlants() {
+        ;(async () => {
             try {
                 const codes = await RegionService.getAllowedPlantCodes(preferences?.selectedRegion?.code || '')
                 if (cancelled) return
                 setRegionPlantCodes(codes)
-                const sel = String(selectedPlant || '')
-                    .trim()
-                    .toUpperCase()
-                if (sel && codes && !codes.has(sel)) {
-                    setSelectedPlant('')
-                }
+                if (selectedPlant && codes && !codes.has(normalizeToUpperCase(selectedPlant))) setSelectedPlant('')
             } catch {
                 if (!cancelled) setRegionPlantCodes(null)
             }
-        }
-
-        loadRegionPlants()
+        })()
         return () => {
             cancelled = true
         }
-    }, [preferences?.selectedRegion?.code])
+    }, [preferences?.selectedRegion?.code, selectedPlant])
 
     useEffect(() => {
-        if (!selectedPlant) return
-        if (!regionPlantCodes || regionPlantCodes.size === 0) return
-        const sel = String(selectedPlant || '')
-            .trim()
-            .toUpperCase()
-        if (sel && !regionPlantCodes.has(sel)) {
-            setSelectedPlant('')
-        }
+        if (!selectedPlant || !regionPlantCodes?.size) return
+        if (!regionPlantCodes.has(normalizeToUpperCase(selectedPlant))) setSelectedPlant('')
     }, [regionPlantCodes, selectedPlant])
 
-    async function fetchAllData() {
-        setIsLoading(true)
-        try {
-            await Promise.all([ListService.fetchListItems(), ListService.fetchPlants()])
-            setPlants(ListService.plants)
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    const getPlantName = (plantCode) => ListService.getPlantName(plantCode)
-    const truncateText = (text, maxLength, byWords = false) => ListService.truncateText(text, maxLength, byWords)
-
-    const handleSelectItem = (item) => {
-        onSelectItem(item.id)
-    }
-
-    function toggleSelect(id) {
-        const next = new Set(selectedIds)
-        if (next.has(id)) next.delete(id)
-        else next.add(id)
-        setSelectedIds(next)
-    }
-
-    function handleHeaderClick(label) {
-        if (!label || label === '') return
-        if (sortKey === label) {
-            setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-        } else {
-            setSortKey(label)
-            setSortDirection('asc')
-        }
-    }
-
-    async function bulkToggleCompletion(markComplete) {
-        if (selectedIds.size === 0) return
-        const user = await UserService.getCurrentUser()
-        const userId = user?.id
-        if (!userId) return
-        const itemsById = new Map(ListService.listItems.map((i) => [i.id, i]))
-        for (const id of selectedIds) {
-            const it = itemsById.get(id)
-            if (!it) continue
-            const needs = markComplete ? !it.completed : it.completed
-            if (!needs) continue
-            try {
-                await ListService.toggleCompletion(it, userId)
-            } catch {}
-        }
-        setSelectedIds(new Set())
-    }
-
-    async function bulkDelete() {
-        if (selectedIds.size === 0) return
-        const ok = window.confirm('Delete selected items?')
-        if (!ok) return
-        for (const id of selectedIds) {
-            try {
-                await ListService.deleteListItem(id)
-            } catch {}
-        }
-        setSelectedIds(new Set())
-    }
-
     useEffect(() => {
-        function onKeyDown(e) {
+        const onKeyDown = (e) => {
             if (e.metaKey && e.key.toLowerCase() === 'k') {
                 e.preventDefault()
                 searchInputRef.current?.focus()
@@ -376,386 +290,132 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 setShowAddSheet(true)
             }
         }
-
         window.addEventListener('keydown', onKeyDown)
         return () => window.removeEventListener('keydown', onKeyDown)
     }, [])
 
     useEffect(() => {
-        function updateStickyCoverHeight() {
-            const el = headerRef.current
-            const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0
-            if (h) {
-                document.documentElement.style.setProperty('--top-section-height', h + 'px')
-            }
+        const updateHeight = () => {
+            const h = headerRef.current ? Math.ceil(headerRef.current.getBoundingClientRect().height) : 0
+            if (h) document.documentElement.style.setProperty('--top-section-height', `${h}px`)
         }
-
-        updateStickyCoverHeight()
-        window.addEventListener('resize', updateStickyCoverHeight)
-        return () => window.removeEventListener('resize', updateStickyCoverHeight)
+        updateHeight()
+        window.addEventListener('resize', updateHeight)
+        return () => window.removeEventListener('resize', updateHeight)
     }, [searchInput, selectedPlant, statusFilter])
 
-    const derivedVisiblePlants = (() => {
+    const visiblePlants = useMemo(() => {
         if (!Array.isArray(plants)) return []
-        if (regionPlantCodes && regionPlantCodes.size > 0)
-            return plants.filter((p) =>
-                regionPlantCodes.has(
-                    String(p.plant_code || '')
-                        .trim()
-                        .toUpperCase()
-                )
-            )
-        return plants
-    })()
+        return regionPlantCodes?.size
+            ? plants.filter((p) => regionPlantCodes.has(normalizeToUpperCase(p.plant_code)))
+            : plants
+    }, [plants, regionPlantCodes])
 
-    const derivedStatusOptions = [
-        'All Statuses',
-        'Pending',
-        'In Progress',
-        'Ordered Materials',
-        'Blocked',
-        'Waiting',
-        'Overdue',
-        'Completed'
-    ]
+    const toggleSelect = (id) =>
+        setSelectedIds((prev) => {
+            const next = new Set(prev)
+            next.has(id) ? next.delete(id) : next.add(id)
+            return next
+        })
 
-    const derivedRoleOptions = ['All Roles', 'Maintenance', 'Plant Manager', 'District Manager', 'Unassigned']
+    const bulkToggleCompletion = async (markComplete) => {
+        if (!selectedIds.size) return
+        const user = await UserService.getCurrentUser()
+        if (!user?.id) return
+        const itemsById = new Map(ListService.listItems.map((i) => [i.id, i]))
+        for (const id of selectedIds) {
+            const item = itemsById.get(id)
+            if (!item || (markComplete ? item.completed : !item.completed)) continue
+            try {
+                await ListService.toggleCompletion(item, user.id)
+            } catch {}
+        }
+        setSelectedIds(new Set())
+    }
 
-    const derivedStatusValueForTop = (() => {
-        if (!statusFilter) return 'All Statuses'
-        const v = String(statusFilter).toLowerCase()
-        if (v === 'completed') return 'Completed'
-        if (v === 'overdue') return 'Overdue'
-        if (v === 'pending') return 'Pending'
-        if (v === 'in_progress') return 'In Progress'
-        if (v === 'ordered_materials') return 'Ordered Materials'
-        if (v === 'blocked') return 'Blocked'
-        if (v === 'waiting') return 'Waiting'
-        return 'All Statuses'
-    })()
+    const bulkDelete = async () => {
+        if (!selectedIds.size || !window.confirm('Delete selected items?')) return
+        for (const id of selectedIds) {
+            try {
+                await ListService.deleteListItem(id)
+            } catch {}
+        }
+        setSelectedIds(new Set())
+    }
 
-    const derivedRoleValueForTop = (() => {
-        if (!roleFilter) return 'All Roles'
-        if (roleFilter === 'maintenance') return 'Maintenance'
-        if (roleFilter === 'plant_manager') return 'Plant Manager'
-        if (roleFilter === 'district_manager') return 'District Manager'
-        if (roleFilter === 'unassigned') return 'Unassigned'
-        return 'All Roles'
-    })()
+    const resetFilters = () => {
+        setSearchText('')
+        setSearchInput('')
+        setSelectedPlant('')
+        setStatusFilter('')
+        setRoleFilter('')
+    }
 
-    const derivedListHeaderLabels =
-        statusFilter === 'completed'
-            ? ['', 'Description', 'Plant', 'Deadline', 'Completed', 'Creator', 'Status']
-            : ['', 'Description', 'Plant', 'Deadline', 'Creator', 'Status']
-
-    const derivedColWidths =
-        statusFilter === 'completed'
-            ? ['2%', '37%', '14%', '12%', '16%', '11%', '8%']
-            : ['2%', '42%', '16%', '14%', '16%', '10%']
-
-    const derivedShowReset = !!(searchText || selectedPlant || statusFilter || roleFilter)
-
-    const hasBulkPopup = selectedIds.size > 0
-
-    const styles = {
-        addButton: {
-            alignItems: 'center',
-            background: accentColor,
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            outline: 'none',
-            padding: '0.625rem 1.25rem',
-            transition: 'all 0.2s'
-        },
-        bulkActionButton: (type) => {
-            const colors = {
-                cancel: { bg: '#f1f5f9', hover: '#e2e8f0', text: '#64748b' },
-                complete: { bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a' },
-                delete: { bg: '#fee2e2', hover: '#fecaca', text: '#ef4444' }
-            }
-            const color = colors[type] || colors.cancel
-            return {
-                alignItems: 'center',
-                background: color.bg,
-                border: 'none',
-                borderRadius: '8px',
-                color: color.text,
-                cursor: 'pointer',
-                display: 'flex',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                gap: '0.5rem',
-                outline: 'none',
-                padding: '0.5rem 1rem',
-                transition: 'all 0.2s'
-            }
-        },
-        bulkActionsContent: {
-            display: 'flex',
-            gap: '0.5rem'
-        },
-        bulkActionsPopup: {
-            alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            bottom: isMobile ? '1rem' : '2rem',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-            display: 'flex',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            gap: isMobile ? '0.5rem' : '1rem',
-            justifyContent: isMobile ? 'center' : 'flex-start',
-            left: '50%',
-            maxWidth: isMobile ? 'calc(100% - 2rem)' : 'auto',
-            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
-            position: 'fixed',
-            transform: 'translateX(-50%)',
-            zIndex: 1000
-        },
-        bulkCount: {
-            color: accentColor,
-            fontSize: '0.9375rem',
-            fontWeight: 700
-        },
-        container: {
-            background: '#f1f5f9',
-            minHeight: '100%',
-            position: 'relative',
-            width: '100%'
-        },
-        contentArea: {
-            padding: isMobile ? '1rem' : '1.5rem 2rem',
-            paddingBottom: isMobile ? '2rem' : '2rem'
-        },
-        emptyIcon: {
-            color: '#cbd5e1',
-            fontSize: '4rem',
-            marginBottom: '1.5rem'
-        },
-        emptyState: {
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            margin: '0 auto',
-            maxWidth: '600px',
-            padding: '4rem 2rem',
-            textAlign: 'center'
-        },
-        emptyText: {
-            color: '#64748b',
-            fontSize: '0.9375rem',
-            marginBottom: '1.5rem'
-        },
-        emptyTitle: {
-            color: '#1e293b',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            marginBottom: '0.5rem'
-        },
-        filterSelect: {
-            MozAppearance: 'none',
-            WebkitAppearance: 'none',
-            appearance: 'none',
-            backgroundColor: 'white',
-            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-            backgroundPosition: 'right 0.75rem center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '1.25em 1.25em',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            color: '#1e293b',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            outline: 'none',
-            padding: '0.75rem 2.5rem 0.75rem 1rem',
-            transition: 'all 0.15s ease',
-            width: '100%'
-        },
-        filtersGroup: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        groupCount: {
-            alignItems: 'center',
-            background: accentColor,
-            borderRadius: '12px',
-            color: 'white',
-            display: 'inline-flex',
-            fontSize: isMobile ? '0.6875rem' : '0.75rem',
-            fontWeight: 700,
-            height: isMobile ? '20px' : '24px',
-            justifyContent: 'center',
-            minWidth: isMobile ? '20px' : '24px',
-            padding: '0 0.5rem'
-        },
-        groupHeader: {
-            background: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
-        },
-        groupItems: {
-            display: 'flex',
-            flexDirection: 'column'
-        },
-        groupTitle: {
-            alignItems: 'center',
-            color: '#1e293b',
-            display: 'flex',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 700,
-            gap: isMobile ? '0.5rem' : '0.75rem'
-        },
-        itemAction: {
-            alignItems: 'center',
-            color: '#cbd5e1',
-            display: 'flex',
-            fontSize: '0.875rem',
-            justifyContent: 'center'
-        },
-        itemCheckbox: {
-            alignItems: 'center',
-            display: 'flex',
-            flexShrink: 0,
-            justifyContent: 'center'
-        },
-        itemComments: {
-            color: '#64748b',
-            fontSize: isMobile ? '0.75rem' : '0.8125rem',
-            margin: 0
-        },
-        itemContent: {
-            display: 'flex',
-            flex: 1,
-            flexDirection: 'column',
-            gap: isMobile ? '0.375rem' : '0.5rem',
-            minWidth: 0
-        },
-        itemHeader: {
-            alignItems: isMobile ? 'flex-start' : 'flex-start',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '0.5rem' : '1rem',
-            justifyContent: 'space-between'
-        },
-        itemMainContent: {
-            display: 'flex',
-            flex: 1,
-            flexDirection: 'column',
-            gap: '0.25rem',
-            minWidth: 0
-        },
-        itemMeta: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: isMobile ? '0.5rem' : '0.75rem'
-        },
-        itemStatus: (statusType) => {
-            const colors = {
-                blocked: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
-                completed: { bg: '#dcfce7', border: '#16a34a', text: '#16a34a' },
-                in_progress: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
-                ordered_materials: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
-                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
-                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' },
-                waiting: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' }
-            }
-            const color = colors[statusType] || colors.pending
-            return {
-                alignItems: 'center',
-                background: color.bg,
-                border: `1px solid ${color.border}`,
-                borderRadius: '6px',
-                color: color.text,
-                display: 'flex',
-                flexShrink: 0,
-                fontSize: isMobile ? '0.625rem' : '0.75rem',
-                fontWeight: 700,
-                gap: '0.375rem',
-                letterSpacing: '0.5px',
-                padding: isMobile ? '0.25rem 0.5rem' : '0.375rem 0.75rem',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap'
-            }
-        },
-        itemTitle: {
-            color: '#1e293b',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
-            margin: 0,
-            wordBreak: 'break-word'
-        },
-        mainContent: {
-            position: 'relative'
-        },
-        metaTag: (type) => {
-            const baseStyle = {
-                alignItems: 'center',
-                color: '#64748b',
-                display: 'flex',
-                fontSize: isMobile ? '0.6875rem' : '0.8125rem',
-                fontWeight: 500,
-                gap: '0.375rem'
-            }
-            if (type === 'overdue') {
-                return { ...baseStyle, color: '#ef4444', fontWeight: 700 }
-            }
-            return baseStyle
-        },
-        plannerGroup: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            overflow: 'hidden'
-        },
-        plannerGroups: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-            paddingBottom: isMobile ? '1.5rem' : '2rem',
-            width: '100%'
-        },
-        plannerItem: (completed, selected) => ({
-            alignItems: isMobile ? 'flex-start' : 'center',
-            background: selected ? '#f0f7ff' : completed ? '#f8fafc' : 'white',
-            borderBottom: '1px solid #f1f5f9',
-            cursor: 'pointer',
-            display: 'flex',
-            flexDirection: isMobile ? 'row' : 'row',
-            gap: isMobile ? '0.75rem' : '1rem',
-            opacity: completed ? 0.7 : 1,
-            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
-            transition: 'all 0.2s'
-        }),
-        statLabel: {
-            color: '#64748b',
-            fontSize: '0.625rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textAlign: 'center',
-            textTransform: 'uppercase'
-        },
-        statsGrid: {
-            display: 'grid',
-            gap: '0.5rem',
-            gridTemplateColumns: '1fr 1fr'
+    const handleStatusFilterChange = (value) => {
+        const mapped = mapStatusValue(value)
+        if (mapped) {
+            setStatusFilter(mapped)
+            onStatusFilterChange?.(mapped)
         }
     }
+
+    const clearStatusFilter = () => {
+        setStatusFilter('')
+        onStatusFilterChange?.('')
+    }
+
+    const handleRoleFilterChange = (value) => {
+        const mapped = mapRoleValue(value)
+        if (mapped) setRoleFilter(mapped)
+    }
+
+    const getItemStatusStyle = (statusType, mobile) => {
+        const color = STATUS_COLORS[statusType] || STATUS_COLORS.pending
+        return {
+            alignItems: 'center',
+            background: color.bg,
+            border: `1px solid ${color.border}`,
+            borderRadius: '6px',
+            color: color.text,
+            display: 'flex',
+            flexShrink: 0,
+            fontSize: mobile ? '0.625rem' : '0.75rem',
+            fontWeight: 700,
+            gap: '0.375rem',
+            letterSpacing: '0.5px',
+            padding: mobile ? '0.25rem 0.5rem' : '0.375rem 0.75rem',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap'
+        }
+    }
+
+    const getBulkButtonStyle = (type) => {
+        const color = BULK_ACTION_COLORS[type] || BULK_ACTION_COLORS.cancel
+        return {
+            alignItems: 'center',
+            background: color.bg,
+            border: 'none',
+            borderRadius: '8px',
+            color: color.text,
+            cursor: 'pointer',
+            display: 'flex',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            gap: '0.5rem',
+            outline: 'none',
+            padding: '0.5rem 1rem',
+            transition: 'all 0.2s'
+        }
+    }
+
+    const showReset = !!(searchText || selectedPlant || statusFilter || roleFilter)
+    const statusDisplayValue = STATUS_MAP[statusFilter] || 'All Statuses'
+    const roleDisplayValue = ROLE_MAP[roleFilter] || 'All Roles'
 
     return (
         <div
             className="global-dashboard-container dashboard-container global-flush-top flush-top list-view"
-            style={styles.container}
+            style={{ background: '#f1f5f9', minHeight: '100%', position: 'relative', width: '100%' }}
         >
             <TopSection
                 title={title}
@@ -771,26 +431,18 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     setSearchText('')
                 }}
                 searchPlaceholder="Search by description or comments..."
-                plants={derivedVisiblePlants.map((p) => ({ plantCode: p.plant_code, plantName: p.plant_name }))}
+                plants={visiblePlants.map((p) => ({ plantCode: p.plant_code, plantName: p.plant_name }))}
                 regionPlantCodes={regionPlantCodes}
                 selectedPlant={selectedPlant}
-                onSelectedPlantChange={(v) => {
-                    setSelectedPlant(v)
-                }}
-                showReset={derivedShowReset}
-                onReset={() => {
-                    setSearchText('')
-                    setSearchInput('')
-                    setSelectedPlant('')
-                    setStatusFilter('')
-                    setRoleFilter('')
-                }}
+                onSelectedPlantChange={setSelectedPlant}
+                showReset={showReset}
+                onReset={resetFilters}
                 forwardedRef={headerRef}
                 sticky={true}
                 hideViewModeToggle={true}
             />
 
-            <div style={styles.mainContent}>
+            <div style={{ position: 'relative' }}>
                 <div
                     style={{
                         alignItems: 'center',
@@ -807,11 +459,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     }}
                 >
                     <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                        {[
-                            { id: 'date', icon: 'fa-calendar-alt', label: 'Date' },
-                            { id: 'status', icon: 'fa-layer-group', label: 'Status' },
-                            { id: 'role', icon: 'fa-user', label: 'Role' }
-                        ].map((mode) => (
+                        {VIEW_MODES.map((mode) => (
                             <button
                                 key={mode.id}
                                 onClick={() => setViewMode(mode.id)}
@@ -829,20 +477,17 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                     padding: '6px 12px'
                                 }}
                             >
-                                <i className={`fas ${mode.icon}`} style={{ fontSize: '11px' }}></i>
+                                <i className={`fas ${mode.icon}`} style={{ fontSize: '11px' }} />
                                 {mode.label}
                             </button>
                         ))}
                     </div>
 
-                    <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }}></div>
+                    <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }} />
 
-                    {statusFilter && (
+                    {statusFilter ? (
                         <button
-                            onClick={() => {
-                                setStatusFilter('')
-                                if (onStatusFilterChange) onStatusFilterChange('')
-                            }}
+                            onClick={clearStatusFilter}
                             style={{
                                 alignItems: 'center',
                                 background: `${accentColor}10`,
@@ -857,51 +502,13 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 padding: '6px 10px'
                             }}
                         >
-                            {derivedStatusValueForTop}
-                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }}></i>
+                            {statusDisplayValue}
+                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
                         </button>
-                    )}
-
-                    {roleFilter && (
-                        <button
-                            onClick={() => setRoleFilter('')}
-                            style={{
-                                alignItems: 'center',
-                                background: `${accentColor}10`,
-                                border: `1px solid ${accentColor}30`,
-                                borderRadius: '6px',
-                                color: accentColor,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                gap: '6px',
-                                padding: '6px 10px'
-                            }}
-                        >
-                            {derivedRoleValueForTop}
-                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }}></i>
-                        </button>
-                    )}
-
-                    {!statusFilter && (
+                    ) : (
                         <select
                             value=""
-                            onChange={(e) => {
-                                const v = e.target.value
-                                let mapped = ''
-                                if (v === 'Pending') mapped = 'pending'
-                                else if (v === 'Completed') mapped = 'completed'
-                                else if (v === 'Overdue') mapped = 'overdue'
-                                else if (v === 'Ordered Materials') mapped = 'ordered_materials'
-                                else if (v === 'In Progress') mapped = 'in_progress'
-                                else if (v === 'Blocked') mapped = 'blocked'
-                                else if (v === 'Waiting') mapped = 'waiting'
-                                if (mapped) {
-                                    setStatusFilter(mapped)
-                                    if (onStatusFilterChange) onStatusFilterChange(mapped)
-                                }
-                            }}
+                            onChange={(e) => handleStatusFilterChange(e.target.value)}
                             style={{
                                 appearance: 'none',
                                 background: '#f9fafb',
@@ -920,28 +527,38 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             }}
                         >
                             <option value="">{isMobile ? '+Status' : '+ Status'}</option>
-                            {derivedStatusOptions
-                                .filter((o) => o !== 'All Statuses')
-                                .map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
+                            {STATUS_OPTIONS.map((opt) => (
+                                <option key={opt} value={opt}>
+                                    {opt}
+                                </option>
+                            ))}
                         </select>
                     )}
 
-                    {!roleFilter && (
+                    {roleFilter ? (
+                        <button
+                            onClick={() => setRoleFilter('')}
+                            style={{
+                                alignItems: 'center',
+                                background: `${accentColor}10`,
+                                border: `1px solid ${accentColor}30`,
+                                borderRadius: '6px',
+                                color: accentColor,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                gap: '6px',
+                                padding: '6px 10px'
+                            }}
+                        >
+                            {roleDisplayValue}
+                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
+                        </button>
+                    ) : (
                         <select
                             value=""
-                            onChange={(e) => {
-                                const v = e.target.value
-                                let mapped = ''
-                                if (v === 'Maintenance') mapped = 'maintenance'
-                                else if (v === 'Plant Manager') mapped = 'plant_manager'
-                                else if (v === 'District Manager') mapped = 'district_manager'
-                                else if (v === 'Unassigned') mapped = 'unassigned'
-                                if (mapped) setRoleFilter(mapped)
-                            }}
+                            onChange={(e) => handleRoleFilterChange(e.target.value)}
                             style={{
                                 appearance: 'none',
                                 background: '#f9fafb',
@@ -960,17 +577,15 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             }}
                         >
                             <option value="">{isMobile ? '+Role' : '+ Assigned'}</option>
-                            {derivedRoleOptions
-                                .filter((o) => o !== 'All Roles')
-                                .map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
+                            {ROLE_OPTIONS.map((opt) => (
+                                <option key={opt} value={opt}>
+                                    {opt}
+                                </option>
+                            ))}
                         </select>
                     )}
 
-                    {!isMobile && <div style={{ flex: 1 }}></div>}
+                    {!isMobile && <div style={{ flex: 1 }} />}
 
                     <div
                         style={{
@@ -998,41 +613,53 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 <i
                                     className="fas fa-exclamation-circle"
                                     style={{ fontSize: isMobile ? '9px' : '11px' }}
-                                ></i>
+                                />
                                 {summaryStats.overdue}
                                 {isMobile ? '' : ' overdue'}
                             </div>
                         )}
                         <span style={{ color: '#9ca3af', fontSize: isMobile ? '10px' : '12px' }}>
-                            <span style={{ color: '#111827', fontWeight: '600' }}>{roleFilteredItems.length}</span>{' '}
+                            <span style={{ color: '#111827', fontWeight: '600' }}>{summaryStats.total}</span>{' '}
                             {isMobile ? '' : 'tasks'}
                         </span>
                     </div>
                 </div>
 
-                <style>{`
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: 0.7; }
-                    }
-                    .list-content-area {
-                        overscroll-behavior: contain;
-                        -webkit-overflow-scrolling: touch;
-                    }
-                `}</style>
+                <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } } .list-content-area { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }`}</style>
 
-                <div className="content-area list-content-area" style={styles.contentArea}>
+                <div
+                    className="content-area list-content-area"
+                    style={{ padding: isMobile ? '1rem' : '1.5rem 2rem', paddingBottom: isMobile ? '2rem' : '2rem' }}
+                >
                     {isLoading ? (
                         <LoadingScreen message="Loading list items..." inline={true} />
                     ) : filteredItems.length === 0 ? (
-                        <div style={styles.emptyState}>
-                            <div style={styles.emptyIcon}>
-                                <i className="fas fa-clipboard-list"></i>
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                margin: '0 auto',
+                                maxWidth: '600px',
+                                padding: '4rem 2rem',
+                                textAlign: 'center'
+                            }}
+                        >
+                            <div style={{ color: '#cbd5e1', fontSize: '4rem', marginBottom: '1.5rem' }}>
+                                <i className="fas fa-clipboard-list" />
                             </div>
-                            <h3 style={styles.emptyTitle}>
+                            <h3
+                                style={{
+                                    color: '#1e293b',
+                                    fontSize: '1.25rem',
+                                    fontWeight: 700,
+                                    marginBottom: '0.5rem'
+                                }}
+                            >
                                 {statusFilter === 'completed' ? 'No Completed Items Found' : 'No List Items Found'}
                             </h3>
-                            <p style={styles.emptyText}>
+                            <p style={{ color: '#64748b', fontSize: '0.9375rem', marginBottom: '1.5rem' }}>
                                 {searchText || selectedPlant
                                     ? 'No items match your search criteria.'
                                     : statusFilter === 'completed'
@@ -1040,135 +667,302 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                       : 'There are no items in the list yet.'}
                             </p>
                             <button
-                                style={styles.addButton}
                                 onClick={() => setShowAddSheet(true)}
-                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                                style={{
+                                    alignItems: 'center',
+                                    background: accentColor,
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    gap: '0.5rem',
+                                    outline: 'none',
+                                    padding: '0.625rem 1.25rem',
+                                    transition: 'all 0.2s'
+                                }}
                             >
-                                <i className="fas fa-plus"></i>
+                                <i className="fas fa-plus" />
                                 <span>Add Item</span>
                             </button>
                         </div>
                     ) : (
-                        <div style={styles.plannerGroups}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1.25rem',
+                                paddingBottom: isMobile ? '1.5rem' : '2rem',
+                                width: '100%'
+                            }}
+                        >
                             {Object.entries(groupedItems).map(([key, group]) => {
-                                if (group.items.length === 0) return null
+                                if (!group.items.length) return null
                                 if (statusFilter === 'completed' && key !== 'completed') return null
                                 if (statusFilter === 'pending' && key === 'completed') return null
                                 if (statusFilter === 'overdue' && key !== 'overdue') return null
 
                                 return (
-                                    <div key={key} style={styles.plannerGroup}>
-                                        <div style={styles.groupHeader}>
-                                            <div style={styles.groupTitle}>
-                                                <i className={`fas ${group.icon}`} style={{ color: accentColor }}></i>
+                                    <div
+                                        key={key}
+                                        style={{
+                                            background: 'white',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: isMobile ? '8px' : '12px',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                            overflow: 'hidden'
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                background: '#f8fafc',
+                                                borderBottom: '1px solid #e5e7eb',
+                                                padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    alignItems: 'center',
+                                                    color: '#1e293b',
+                                                    display: 'flex',
+                                                    fontSize: isMobile ? '0.875rem' : '1rem',
+                                                    fontWeight: 700,
+                                                    gap: isMobile ? '0.5rem' : '0.75rem'
+                                                }}
+                                            >
+                                                <i className={`fas ${group.icon}`} style={{ color: accentColor }} />
                                                 <span>{group.label}</span>
-                                                <span style={styles.groupCount}>{group.items.length}</span>
-                                            </div>
-                                        </div>
-                                        <div style={styles.groupItems}>
-                                            {group.items.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    style={styles.plannerItem(item.completed, selectedIds.has(item.id))}
-                                                    onClick={() => handleSelectItem(item)}
-                                                    onMouseEnter={(e) => {
-                                                        if (!selectedIds.has(item.id) && !item.completed) {
-                                                            e.currentTarget.style.background = '#f8fafc'
-                                                        }
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        if (!selectedIds.has(item.id) && !item.completed) {
-                                                            e.currentTarget.style.background = 'white'
-                                                        }
+                                                <span
+                                                    style={{
+                                                        alignItems: 'center',
+                                                        background: accentColor,
+                                                        borderRadius: '12px',
+                                                        color: 'white',
+                                                        display: 'inline-flex',
+                                                        fontSize: isMobile ? '0.6875rem' : '0.75rem',
+                                                        fontWeight: 700,
+                                                        height: isMobile ? '20px' : '24px',
+                                                        justifyContent: 'center',
+                                                        minWidth: isMobile ? '20px' : '24px',
+                                                        padding: '0 0.5rem'
                                                     }}
                                                 >
+                                                    {group.items.length}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            {group.items.map((item) => {
+                                                const isSelected = selectedIds.has(item.id)
+                                                const itemStatus = item.completed
+                                                    ? 'completed'
+                                                    : item.status || 'pending'
+                                                const isItemOverdue =
+                                                    (ListService.isOverdue(item) || item.status === 'overdue') &&
+                                                    !item.completed
+
+                                                return (
                                                     <div
-                                                        style={styles.itemCheckbox}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            toggleSelect(item.id)
+                                                        key={item.id}
+                                                        onClick={() => onSelectItem(item.id)}
+                                                        onMouseEnter={(e) => {
+                                                            if (!isSelected && !item.completed)
+                                                                e.currentTarget.style.background = '#f8fafc'
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (!isSelected && !item.completed)
+                                                                e.currentTarget.style.background = 'white'
+                                                        }}
+                                                        style={{
+                                                            alignItems: isMobile ? 'flex-start' : 'center',
+                                                            background: isSelected
+                                                                ? '#f0f7ff'
+                                                                : item.completed
+                                                                  ? '#f8fafc'
+                                                                  : 'white',
+                                                            borderBottom: '1px solid #f1f5f9',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            gap: isMobile ? '0.75rem' : '1rem',
+                                                            opacity: item.completed ? 0.7 : 1,
+                                                            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
+                                                            transition: 'all 0.2s'
                                                         }}
                                                     >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedIds.has(item.id)}
-                                                            onChange={() => {}}
-                                                        />
-                                                    </div>
-                                                    <div style={styles.itemContent}>
-                                                        <div style={styles.itemHeader}>
-                                                            <div style={styles.itemMainContent}>
-                                                                <h4 style={styles.itemTitle}>
-                                                                    {truncateText(item.description, 80)}
-                                                                </h4>
-                                                                {item.comments && (
-                                                                    <p style={styles.itemComments}>
-                                                                        {truncateText(item.comments, 60)}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                            <span
-                                                                style={styles.itemStatus(
-                                                                    item.completed
-                                                                        ? 'completed'
-                                                                        : item.status || 'pending'
-                                                                )}
-                                                            >
-                                                                <i
-                                                                    className={`fas ${ListService.getStatusIcon(item.completed ? 'completed' : item.status || 'pending')}`}
-                                                                ></i>
-                                                                {ListService.getStatusLabel(
-                                                                    item.completed
-                                                                        ? 'completed'
-                                                                        : item.status || 'pending'
-                                                                )}
-                                                            </span>
+                                                        <div
+                                                            style={{
+                                                                alignItems: 'center',
+                                                                display: 'flex',
+                                                                flexShrink: 0,
+                                                                justifyContent: 'center'
+                                                            }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                toggleSelect(item.id)
+                                                            }}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isSelected}
+                                                                onChange={() => {}}
+                                                            />
                                                         </div>
-                                                        <div style={styles.itemMeta}>
-                                                            <span style={styles.metaTag('plant')}>
-                                                                <i className="fas fa-building"></i>
-                                                                {getPlantName(item.plant_code)}
-                                                            </span>
-                                                            <span
-                                                                style={styles.metaTag(
-                                                                    (ListService.isOverdue(item) ||
-                                                                        item.status === 'overdue') &&
-                                                                        !item.completed
-                                                                        ? 'overdue'
-                                                                        : ''
-                                                                )}
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                flex: 1,
+                                                                flexDirection: 'column',
+                                                                gap: isMobile ? '0.375rem' : '0.5rem',
+                                                                minWidth: 0
+                                                            }}
+                                                        >
+                                                            <div
+                                                                style={{
+                                                                    alignItems: isMobile ? 'flex-start' : 'flex-start',
+                                                                    display: 'flex',
+                                                                    flexDirection: isMobile ? 'column' : 'row',
+                                                                    gap: isMobile ? '0.5rem' : '1rem',
+                                                                    justifyContent: 'space-between'
+                                                                }}
                                                             >
-                                                                <i className="fas fa-calendar"></i>
-                                                                {new Date(item.deadline).toLocaleDateString('en-US', {
-                                                                    day: 'numeric',
-                                                                    month: 'short'
-                                                                })}
-                                                            </span>
-                                                            {item.responsible_role && (
-                                                                <span style={styles.metaTag(item.responsible_role)}>
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        flex: 1,
+                                                                        flexDirection: 'column',
+                                                                        gap: '0.25rem',
+                                                                        minWidth: 0
+                                                                    }}
+                                                                >
+                                                                    <h4
+                                                                        style={{
+                                                                            color: '#1e293b',
+                                                                            fontSize: isMobile
+                                                                                ? '0.8125rem'
+                                                                                : '0.9375rem',
+                                                                            fontWeight: 600,
+                                                                            margin: 0,
+                                                                            wordBreak: 'break-word'
+                                                                        }}
+                                                                    >
+                                                                        {ListService.truncateText(item.description, 80)}
+                                                                    </h4>
+                                                                    {item.comments && (
+                                                                        <p
+                                                                            style={{
+                                                                                color: '#64748b',
+                                                                                fontSize: isMobile
+                                                                                    ? '0.75rem'
+                                                                                    : '0.8125rem',
+                                                                                margin: 0
+                                                                            }}
+                                                                        >
+                                                                            {ListService.truncateText(
+                                                                                item.comments,
+                                                                                60
+                                                                            )}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                                <span style={getItemStatusStyle(itemStatus, isMobile)}>
                                                                     <i
-                                                                        className={`fas ${ListService.getResponsibleRoleIcon(item.responsible_role)}`}
-                                                                    ></i>
-                                                                    {ListService.getResponsibleRoleLabel(
-                                                                        item.responsible_role
+                                                                        className={`fas ${ListService.getStatusIcon(itemStatus)}`}
+                                                                    />
+                                                                    {ListService.getStatusLabel(itemStatus)}
+                                                                </span>
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    alignItems: 'center',
+                                                                    display: 'flex',
+                                                                    flexWrap: 'wrap',
+                                                                    gap: isMobile ? '0.5rem' : '0.75rem'
+                                                                }}
+                                                            >
+                                                                <span
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        color: '#64748b',
+                                                                        display: 'flex',
+                                                                        fontSize: isMobile ? '0.6875rem' : '0.8125rem',
+                                                                        fontWeight: 500,
+                                                                        gap: '0.375rem'
+                                                                    }}
+                                                                >
+                                                                    <i className="fas fa-building" />
+                                                                    {ListService.getPlantName(item.plant_code)}
+                                                                </span>
+                                                                <span
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        color: isItemOverdue ? '#ef4444' : '#64748b',
+                                                                        display: 'flex',
+                                                                        fontSize: isMobile ? '0.6875rem' : '0.8125rem',
+                                                                        fontWeight: isItemOverdue ? 700 : 500,
+                                                                        gap: '0.375rem'
+                                                                    }}
+                                                                >
+                                                                    <i className="fas fa-calendar" />
+                                                                    {new Date(item.deadline).toLocaleDateString(
+                                                                        'en-US',
+                                                                        { day: 'numeric', month: 'short' }
                                                                     )}
                                                                 </span>
-                                                            )}
-                                                            <span style={styles.metaTag('creator')}>
-                                                                <i className="fas fa-user"></i>
-                                                                {truncateText(
-                                                                    ListService.getCreatorName(item.user_id),
-                                                                    15
+                                                                {item.responsible_role && (
+                                                                    <span
+                                                                        style={{
+                                                                            alignItems: 'center',
+                                                                            color: '#64748b',
+                                                                            display: 'flex',
+                                                                            fontSize: isMobile
+                                                                                ? '0.6875rem'
+                                                                                : '0.8125rem',
+                                                                            fontWeight: 500,
+                                                                            gap: '0.375rem'
+                                                                        }}
+                                                                    >
+                                                                        <i
+                                                                            className={`fas ${ListService.getResponsibleRoleIcon(item.responsible_role)}`}
+                                                                        />
+                                                                        {ListService.getResponsibleRoleLabel(
+                                                                            item.responsible_role
+                                                                        )}
+                                                                    </span>
                                                                 )}
-                                                            </span>
+                                                                <span
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        color: '#64748b',
+                                                                        display: 'flex',
+                                                                        fontSize: isMobile ? '0.6875rem' : '0.8125rem',
+                                                                        fontWeight: 500,
+                                                                        gap: '0.375rem'
+                                                                    }}
+                                                                >
+                                                                    <i className="fas fa-user" />
+                                                                    {ListService.truncateText(
+                                                                        ListService.getCreatorName(item.user_id),
+                                                                        15
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                alignItems: 'center',
+                                                                color: '#cbd5e1',
+                                                                display: 'flex',
+                                                                fontSize: '0.875rem',
+                                                                justifyContent: 'center'
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-chevron-right" />
                                                         </div>
                                                     </div>
-                                                    <div style={styles.itemAction}>
-                                                        <i className="fas fa-chevron-right"></i>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 )
@@ -1178,42 +972,73 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 </div>
             </div>
 
-            {hasBulkPopup && (
-                <div style={styles.bulkActionsPopup}>
-                    <div style={styles.bulkCount}>{selectedIds.size} selected</div>
-                    <div style={styles.bulkActionsContent}>
+            {selectedIds.size > 0 && (
+                <div
+                    style={{
+                        alignItems: 'center',
+                        background: 'white',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        bottom: isMobile ? '1rem' : '2rem',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                        display: 'flex',
+                        flexWrap: isMobile ? 'wrap' : 'nowrap',
+                        gap: isMobile ? '0.5rem' : '1rem',
+                        justifyContent: isMobile ? 'center' : 'flex-start',
+                        left: '50%',
+                        maxWidth: isMobile ? 'calc(100% - 2rem)' : 'auto',
+                        padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
+                        position: 'fixed',
+                        transform: 'translateX(-50%)',
+                        zIndex: 1000
+                    }}
+                >
+                    <div style={{ color: accentColor, fontSize: '0.9375rem', fontWeight: 700 }}>
+                        {selectedIds.size} selected
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            style={styles.bulkActionButton('complete')}
                             onClick={() => bulkToggleCompletion(true)}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#bbf7d0')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#dcfce7')}
+                            style={getBulkButtonStyle('complete')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.complete.hover)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.complete.bg)}
                         >
-                            <i className="fas fa-check"></i>
+                            <i className="fas fa-check" />
                             <span>Complete</span>
                         </button>
                         <button
-                            style={styles.bulkActionButton('delete')}
                             onClick={bulkDelete}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#fecaca')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#fee2e2')}
+                            style={getBulkButtonStyle('delete')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.delete.hover)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.delete.bg)}
                         >
-                            <i className="fas fa-trash"></i>
+                            <i className="fas fa-trash" />
                             <span>Delete</span>
                         </button>
                         <button
-                            style={styles.bulkActionButton('cancel')}
                             onClick={() => setSelectedIds(new Set())}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#e2e8f0')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                            style={getBulkButtonStyle('cancel')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.cancel.hover)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.cancel.bg)}
                         >
-                            <i className="fas fa-times"></i>
+                            <i className="fas fa-times" />
                             <span>Cancel</span>
                         </button>
                     </div>
                 </div>
             )}
 
-            {showAddSheet && <ListAddView onClose={() => setShowAddSheet(false)} onItemAdded={fetchAllData} />}
+            {showAddSheet && (
+                <ListAddView
+                    onClose={() => setShowAddSheet(false)}
+                    onItemAdded={() => {
+                        setIsLoading(true)
+                        Promise.all([ListService.fetchListItems(), ListService.fetchPlants()])
+                            .then(() => setPlants(ListService.plants))
+                            .finally(() => setIsLoading(false))
+                    }}
+                />
+            )}
         </div>
     )
 }

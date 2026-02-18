@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
+import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import PlantDropdownModal from '../../components/common/PlantDropdownModal'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
