@@ -335,6 +335,35 @@ class ListServiceImpl {
         this.plantDistribution = distribution
         return distribution
     }
+
+    async fetchPlannedItems(startDate, endDate) {
+        const { res, json } = await APIUtility.post('/list-service/fetch-planned-items', { endDate, startDate })
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch planned items')
+        return json?.data ?? []
+    }
+
+    async addPlannedItem(listItemId, plannedDate) {
+        const user = await UserService.getCurrentUser()
+        const { res, json } = await APIUtility.post('/list-service/add-planned-item', {
+            listItemId,
+            plannedDate,
+            userId: user?.id
+        })
+        if (!res.ok) throw new Error(json?.error || 'Failed to add planned item')
+        return json
+    }
+
+    async removePlannedItem(listItemId, plannedDate) {
+        const { res, json } = await APIUtility.post('/list-service/remove-planned-item', { listItemId, plannedDate })
+        if (!res.ok) throw new Error(json?.error || 'Failed to remove planned item')
+        return json
+    }
+
+    async clearPlannedItems(startDate, endDate) {
+        const { res, json } = await APIUtility.post('/list-service/clear-planned-items', { endDate, startDate })
+        if (!res.ok) throw new Error(json?.error || 'Failed to clear planned items')
+        return json
+    }
 }
 
 export const ListService = new ListServiceImpl()

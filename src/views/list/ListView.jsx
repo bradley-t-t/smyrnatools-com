@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import LoadingScreen from '../../app/components/common/LoadingScreen'
+import WeeklyPlanner from '../../app/components/list/WeeklyPlanner'
 import TopSection from '../../app/components/sections/TopSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { ListService } from '../../services/ListService'
@@ -32,7 +33,8 @@ const ROLE_OPTIONS = ['Maintenance', 'Plant Manager', 'District Manager', 'Unass
 const VIEW_MODES = [
     { icon: 'fa-layer-group', id: 'status', label: 'Status' },
     { icon: 'fa-calendar-alt', id: 'date', label: 'Date' },
-    { icon: 'fa-user', id: 'role', label: 'Role' }
+    { icon: 'fa-user', id: 'role', label: 'Role' },
+    { icon: 'fa-calendar-week', id: 'planner', label: 'Planner' }
 ]
 
 const STATUS_COLORS = {
@@ -690,6 +692,12 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 <span>Add Item</span>
                             </button>
                         </div>
+                    ) : viewMode === 'planner' ? (
+                        <WeeklyPlanner
+                            items={roleFilteredItems}
+                            onSelectItem={onSelectItem}
+                            accentColor={accentColor}
+                        />
                     ) : (
                         <div
                             style={{

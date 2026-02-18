@@ -256,6 +256,118 @@ Deno.serve(async (req) => {
                 });
                 return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
             }
+            case "fetch-planned-items": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    body = {};
+                }
+                const {startDate, endDate} = body || {};
+                let query = supabase.from("list_planned_items").select("*");
+                if (startDate) query = query.gte("planned_date", startDate);
+                if (endDate) query = query.lte("planned_date", endDate);
+                const {data, error} = await query.order("planned_date");
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({data: data ?? []}), {headers: corsHeaders});
+            }
+            case "add-planned-item": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                const {listItemId, plannedDate, userId} = body || {};
+                if (typeof listItemId !== "string" || !listItemId) return new Response(JSON.stringify({error: "List item ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (typeof plannedDate !== "string" || !plannedDate) return new Response(JSON.stringify({error: "Planned date is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                const id = crypto.randomUUID();
+                const {error} = await supabase.from("list_planned_items").insert({
+                    id,
+                    list_item_id: listItemId,
+                    planned_date: plannedDate,
+                    created_by: typeof userId === "string" ? userId : null
+                });
+                if (error) {
+                    if (error.code === "23505") {
+                        return new Response(JSON.stringify({error: "Item already planned for this date"}), {
+                            status: 400,
+                            headers: corsHeaders
+                        });
+                    }
+                    return new Response(JSON.stringify({error: error.message}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                return new Response(JSON.stringify({success: true, id}), {headers: corsHeaders});
+            }
+            case "remove-planned-item": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                const {listItemId, plannedDate} = body || {};
+                if (typeof listItemId !== "string" || !listItemId) return new Response(JSON.stringify({error: "List item ID is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                if (typeof plannedDate !== "string" || !plannedDate) return new Response(JSON.stringify({error: "Planned date is required"}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                const {error} = await supabase
+                    .from("list_planned_items")
+                    .delete()
+                    .eq("list_item_id", listItemId)
+                    .eq("planned_date", plannedDate);
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
+            }
+            case "clear-planned-items": {
+                let body: any;
+                try {
+                    body = await req.json();
+                } catch {
+                    body = {};
+                }
+                const {startDate, endDate} = body || {};
+                let query = supabase.from("list_planned_items").delete();
+                if (startDate) query = query.gte("planned_date", startDate);
+                if (endDate) query = query.lte("planned_date", endDate);
+                if (!startDate && !endDate) {
+                    return new Response(JSON.stringify({error: "Date range required for clear operation"}), {
+                        status: 400,
+                        headers: corsHeaders
+                    });
+                }
+                const {error} = await query;
+                if (error) return new Response(JSON.stringify({error: error.message}), {
+                    status: 400,
+                    headers: corsHeaders
+                });
+                return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
+            }
             default:
                 return new Response(JSON.stringify({error: "Invalid endpoint", path: url.pathname}), {
                     status: 404,

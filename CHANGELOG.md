@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.0] - 2026-02-18
+
+- Added new `WeeklyPlanner.jsx` component for weekly task planning with features including day-based task views, status color coding, and interactive task cards with hover effects and removal options.
+- Introduced `ListService.js` to handle list-related operations, enhancing data management for the planner component.
+- Updated `ListView.jsx` to integrate the new weekly planner functionality with minor modifications to existing code.
+- Created a new Supabase function `list-service/index.ts` to support backend operations for list management.
+- Added a new database migration `20260218_create_list_planned_items.sql` to create a table for storing planned list items.
+
 ## [12.9] - 2026-02-18
 
 - Added user plant code retrieval in `useSubmitData.js` by integrating `UserService.getUserPlant` to fetch and store the user's plant code.
