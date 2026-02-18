@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { supabase } from '../../../services/DatabaseService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import OperatorSelectModal from '../../mixers/OperatorSelectModal'
@@ -1093,7 +1092,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
     )
 }
 
-function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plantCode }) {
+function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plantCode, regionalPlants }) {
     const [plants, setPlants] = useState([])
     const [operators, setOperators] = useState([])
     const [loading, setLoading] = useState(true)
@@ -1121,40 +1120,70 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
     useEffect(() => {
         let mounted = true
         async function fetchData() {
-            if (!currentPlantCode) {
-                setLoading(false)
-                return
-            }
-
             try {
-                const regions = await RegionService.fetchRegionsByPlantCode(currentPlantCode)
-                if (!mounted) return
-                if (regions && regions.length > 0) {
-                    const regionCode = regions[0].regionCode || regions[0].region_code
-                    const regionPlants = await RegionService.fetchRegionPlants(regionCode)
-                    if (!mounted) return
-                    setPlants(regionPlants || [])
+                if (regionalPlants && regionalPlants.length > 0) {
+                    const mappedPlants = regionalPlants.map((p) => ({
+                        plantCode: p.plantCode || p.plant_code,
+                        plantName: p.plantName || p.plant_name
+                    }))
+                    setPlants(mappedPlants)
+                } else if (currentPlantCode) {
+                    let regionPlantCodes = []
+
+                    const { data: regionData } = await supabase
+                        .from('regions_plants')
+                        .select('region_id')
+                        .eq('plant_code', currentPlantCode)
+                        .limit(1)
+                        .maybeSingle()
+
+                    if (regionData?.region_id) {
+                        const { data: regionPlantsData } = await supabase
+                            .from('regions_plants')
+                            .select('plant_code')
+                            .eq('region_id', regionData.region_id)
+
+                        regionPlantCodes = (regionPlantsData || []).map((rp) => rp.plant_code).filter(Boolean)
+                    }
+
+                    if (regionPlantCodes.length > 0) {
+                        const { data: plantsData } = await supabase
+                            .from('plants')
+                            .select('plant_code, plant_name')
+                            .in('plant_code', regionPlantCodes)
+                            .order('plant_code')
+
+                        if (!mounted) return
+                        setPlants(
+                            (plantsData || []).map((p) => ({
+                                plantCode: p.plant_code,
+                                plantName: p.plant_name
+                            }))
+                        )
+                    }
                 }
 
-                const { data: operatorsData } = await supabase
-                    .from('operators')
-                    .select('employee_id, name, status, plant_code, smyrna_id, position')
-                    .eq('status', 'Active')
-                    .eq('plant_code', currentPlantCode)
-                    .eq('position', 'Mixer Operator')
-                    .order('name')
+                if (currentPlantCode) {
+                    const { data: operatorsData } = await supabase
+                        .from('operators')
+                        .select('employee_id, name, status, plant_code, smyrna_id, position')
+                        .eq('status', 'Active')
+                        .eq('plant_code', currentPlantCode)
+                        .eq('position', 'Mixer Operator')
+                        .order('name')
 
-                if (!mounted) return
-                const transformedOperators = (operatorsData || []).map((op) => ({
-                    employeeId: op.employee_id,
-                    name: op.name,
-                    plantCode: op.plant_code,
-                    position: op.position,
-                    smyrnaId: op.smyrna_id,
-                    status: op.status
-                }))
+                    if (!mounted) return
+                    const transformedOperators = (operatorsData || []).map((op) => ({
+                        employeeId: op.employee_id,
+                        name: op.name,
+                        plantCode: op.plant_code,
+                        position: op.position,
+                        smyrnaId: op.smyrna_id,
+                        status: op.status
+                    }))
 
-                setOperators(transformedOperators)
+                    setOperators(transformedOperators)
+                }
             } catch (err) {
             } finally {
                 if (mounted) setLoading(false)
@@ -1165,7 +1194,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
         return () => {
             mounted = false
         }
-    }, [currentPlantCode])
+    }, [currentPlantCode, regionalPlants])
 
     const addEntry = () => {
         const defaultDate = minDate || new Date().toISOString().split('T')[0]
@@ -1319,10 +1348,11 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                                       if (entry.destination_plant === 'OTHER_REGION')
                                                           return 'Other Region'
                                                       const plant = plants.find(
-                                                          (p) => p.plant_code === entry.destination_plant
+                                                          (p) =>
+                                                              (p.plantCode || p.plant_code) === entry.destination_plant
                                                       )
                                                       return plant
-                                                          ? `${plant.plant_code} - ${plant.plant_name}`
+                                                          ? `${plant.plantCode || plant.plant_code} - ${plant.plantName || plant.plant_name}`
                                                           : entry.destination_plant
                                                   })()
                                                 : 'No plant selected'}
@@ -1341,10 +1371,11 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                                       if (entry.destination_plant === 'OTHER_REGION')
                                                           return 'Other Region'
                                                       const plant = plants.find(
-                                                          (p) => p.plant_code === entry.destination_plant
+                                                          (p) =>
+                                                              (p.plantCode || p.plant_code) === entry.destination_plant
                                                       )
                                                       return plant
-                                                          ? `${plant.plant_code} - ${plant.plant_name}`
+                                                          ? `${plant.plantCode || plant.plant_code} - ${plant.plantName || plant.plant_name}`
                                                           : entry.destination_plant
                                                   })()
                                                 : 'Select Plant'}
@@ -1464,8 +1495,10 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                         setSelectedEntryIdForPlant(null)
                     }}
                     plants={[
-                        ...plants.filter((p) => p.plant_code !== currentPlantCode),
-                        { plant_code: 'OTHER_REGION', plant_name: 'Other Region' }
+                        ...plants.filter(
+                            (p) => String(p.plantCode || p.plant_code || '') !== String(currentPlantCode || '')
+                        ),
+                        { plantCode: 'OTHER_REGION', plantName: 'Other Region' }
                     ]}
                     currentValue={
                         selectedEntryIdForPlant
@@ -1551,7 +1584,8 @@ export function PlantManagerSubmitPlugin({
     form,
     setForm,
     weekIso,
-    user
+    user,
+    plants: propPlants
 }) {
     const { preferences: _preferences } = usePreferences()
     const isDark = false
@@ -1575,6 +1609,7 @@ export function PlantManagerSubmitPlugin({
                     readOnly={false}
                     user={user}
                     plantCode={plantCode}
+                    regionalPlants={propPlants}
                 />
                 <MetricsSection
                     yph={propYph ?? yph}
@@ -1606,7 +1641,8 @@ export function PlantManagerReviewPlugin({
     weekIso,
     user,
     assignedPlant,
-    reportUserId: _reportUserId
+    reportUserId: _reportUserId,
+    plants: propPlants
 }) {
     const { preferences: _preferences } = usePreferences()
     const isDark = false
@@ -1626,6 +1662,7 @@ export function PlantManagerReviewPlugin({
                     readOnly={true}
                     user={user}
                     plantCode={plantCode}
+                    regionalPlants={propPlants}
                 />
                 <MetricsSection
                     yph={yph}

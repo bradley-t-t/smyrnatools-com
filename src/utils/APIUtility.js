@@ -1,9 +1,19 @@
+import { supabase } from '../services/DatabaseService'
+
 const EDGE_FUNCTIONS_URL = process.env.REACT_APP_EDGE_FUNCTIONS_URL
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
 
+const getAuthToken = async () => {
+    try {
+        const { data } = await supabase.auth.getSession()
+        if (data?.session?.access_token) return data.session.access_token
+    } catch {}
+    return SUPABASE_ANON_KEY
+}
+
 const APIUtility = {
     async post(path, data, options = {}) {
-        const token = SUPABASE_ANON_KEY
+        const token = await getAuthToken()
         const url = `${EDGE_FUNCTIONS_URL}${path}`
         const maxRetries = options.maxRetries || 2
         const retryDelay = options.retryDelay || 1000

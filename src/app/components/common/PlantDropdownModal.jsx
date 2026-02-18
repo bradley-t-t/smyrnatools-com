@@ -192,7 +192,7 @@ function PlantDropdownModal({
                 <div style={listStyle}>
                     {showAllPlants && !allowMultiple && (
                         <div
-                            style={optionStyle(false)}
+                            style={{ ...optionStyle(false), marginBottom: '4px' }}
                             onClick={() => {
                                 onSelect('All')
                                 onClose()
@@ -204,11 +204,13 @@ function PlantDropdownModal({
                         </div>
                     )}
                     {filteredPlants
-                        .sort(
-                            (a, b) =>
-                                parseInt((a.plantCode || a.plant_code || '').replace(/\D/g, '') || '0') -
-                                parseInt((b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0')
-                        )
+                        .sort((a, b) => {
+                            const codeA = a.plantCode || a.plant_code || ''
+                            const codeB = b.plantCode || b.plant_code || ''
+                            if (codeA === 'OTHER_REGION') return 1
+                            if (codeB === 'OTHER_REGION') return -1
+                            return parseInt(codeA.replace(/\D/g, '') || '0') - parseInt(codeB.replace(/\D/g, '') || '0')
+                        })
                         .map((plant) => {
                             const code = plant.plantCode || plant.plant_code
                             const isSelected = allowMultiple && localSelectedCodes.includes(code)

@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.8] - 2026-02-18
+
+- Updated `PlantDropdownModal.jsx` to add custom sorting for plants, prioritizing 'OTHER_REGION' to appear at the end of the list.
+- Modified `PlantDropdownModal.jsx` to add a margin-bottom style to the "All" option for better spacing.
+- Enhanced `APIUtility.js` to dynamically fetch an authentication token using `supabase.auth.getSession()` before falling back to the static `SUPABASE_ANON_KEY` for API requests.
+- Refactored `WeeklyPlantManagerReport.jsx` to pass `regionalPlants` as a prop to the `OperatorsSentToHelp` component and utilize it for setting plant data.
+- Updated `WeeklyPlantManagerReport.jsx` to remove dependency on `RegionService` and directly query Supabase for region and plant data in the `OperatorsSentToHelp` component.
+- Improved data fetching logic in `WeeklyPlantManagerReport.jsx` for operators and plants in the `OperatorsSentToHelp` component to handle cases where `regionalPlants` prop is not provided.
+
 ## [12.7] - 2026-02-18
 
 - Reordered import statements for consistency in `LoadingScreen.jsx`, moving `usePreferences` import below `SrmLogo`.
