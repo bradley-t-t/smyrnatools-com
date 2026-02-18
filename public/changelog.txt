@@ -2,6 +2,18 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.0] - 2026-02-18
+
+- Updated `ListView.jsx` to replace `--sticky-cover-height` with `--top-section-height` for sticky header height calculation.
+- Modified `ListView.jsx` styles to remove fixed height and overflow properties from `container`, `contentArea`, and `mainContent`, adopting a more flexible layout with `minHeight` and added padding.
+- Added `className` attributes in `ListView.jsx` for better CSS targeting, including `global-dashboard-container` and `list-content-area`.
+- Adjusted `ListView.jsx` sticky positioning to use CSS variable `--top-section-height` and increased `zIndex` to 40 for better layering.
+- Enhanced `ListView.jsx` with `overscroll-behavior` and `-webkit-overflow-scrolling` for improved scrolling behavior on mobile devices.
+- Updated `PlanView.jsx` to introduce new utility functions and constants like `getTomorrowDate`, `formatTime`, `parseTime`, and `addMinutesToTime` for better time handling.
+- Added new UI components in `PlanView.jsx` such as `Pill` and `PlantSelect` for improved user interface elements.
+- Introduced new constants in `PlanView.jsx` like `AUTOSAVE_DELAY_MS`, `DEFAULT_STAGGER_MINUTES`, and `DROPDOWN_ARROW_SVG` for configuration and styling.
+- Refactored `PlanView.jsx` to use `getTomorrowDate` for initializing `planDate` state.
+
 ## [11.9] - 2026-02-18
 
 - Updated `TutorialService.js` to improve tutorial reset functionality in `resetAllTutorials` and `resetTutorial` methods by adding error handling, querying existing records before deletion, and returning `false` on failure instead of defaulting to `true`.

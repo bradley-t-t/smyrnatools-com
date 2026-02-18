@@ -385,8 +385,9 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         function updateStickyCoverHeight() {
             const el = headerRef.current
             const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0
-            const root = document.querySelector('.global-dashboard-container.list-view')
-            if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
+            if (h) {
+                document.documentElement.style.setProperty('--top-section-height', h + 'px')
+            }
         }
 
         updateStickyCoverHeight()
@@ -524,19 +525,13 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         },
         container: {
             background: '#f1f5f9',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            overflow: 'hidden',
+            minHeight: '100%',
             position: 'relative',
             width: '100%'
         },
         contentArea: {
-            flex: 1,
-            height: '100%',
-            overflowX: 'hidden',
-            overflowY: 'auto',
-            padding: isMobile ? '1rem' : '1.5rem 2rem'
+            padding: isMobile ? '1rem' : '1.5rem 2rem',
+            paddingBottom: isMobile ? '2rem' : '2rem'
         },
         emptyIcon: {
             color: '#cbd5e1',
@@ -700,12 +695,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             wordBreak: 'break-word'
         },
         mainContent: {
-            display: 'flex',
-            flex: 1,
-            flexDirection: 'column',
-            height: 'calc(100vh - 120px)',
-            maxHeight: 'calc(100vh - 120px)',
-            overflow: 'hidden',
             position: 'relative'
         },
         metaTag: (type) => {
@@ -733,6 +722,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             display: 'flex',
             flexDirection: 'column',
             gap: '1.25rem',
+            paddingBottom: isMobile ? '1.5rem' : '2rem',
             width: '100%'
         },
         plannerItem: (completed, selected) => ({
@@ -763,7 +753,10 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     }
 
     return (
-        <div style={styles.container}>
+        <div
+            className="global-dashboard-container dashboard-container global-flush-top flush-top list-view"
+            style={styles.container}
+        >
             <TopSection
                 title={title}
                 addButtonLabel="Add Item"
@@ -804,12 +797,13 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         background: '#ffffff',
                         borderBottom: '1px solid #e5e7eb',
                         display: 'flex',
+                        flexShrink: 0,
                         flexWrap: 'wrap',
                         gap: '8px',
                         padding: '12px 16px',
                         position: 'sticky',
-                        top: 0,
-                        zIndex: 20
+                        top: 'var(--top-section-height, 120px)',
+                        zIndex: 40
                     }}
                 >
                     <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
@@ -1021,9 +1015,13 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         0%, 100% { opacity: 1; }
                         50% { opacity: 0.7; }
                     }
+                    .list-content-area {
+                        overscroll-behavior: contain;
+                        -webkit-overflow-scrolling: touch;
+                    }
                 `}</style>
 
-                <div style={styles.contentArea}>
+                <div className="content-area list-content-area" style={styles.contentArea}>
                     {isLoading ? (
                         <LoadingScreen message="Loading list items..." inline={true} />
                     ) : filteredItems.length === 0 ? (
