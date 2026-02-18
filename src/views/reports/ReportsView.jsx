@@ -13,7 +13,7 @@ import ReportsToolbar from './components/ReportsToolbar'
 import ReviewReportsList from './components/ReviewReportsList'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
-import { reportsViewStyles } from './styles/ReportsViewStyles'
+import { reportsViewStyles as styles } from './styles/ReportsViewStyles'
 
 function ReportsView() {
     const {
@@ -62,8 +62,6 @@ function ReportsView() {
     const [managerEditUser, setManagerEditUser] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
 
-    const styles = reportsViewStyles
-
     const allMyItems = useMemo(() => Object.values(myReportsByWeek).flat(), [myReportsByWeek])
 
     const visibleReviewReports = useMemo(
@@ -93,73 +91,18 @@ function ReportsView() {
         items: allMyItems,
         resetDependencies: [filterReportType, filterPlant]
     })
-
     const reviewPagination = usePagination({
         initialPageSize: 25,
         items: visibleReviewReports,
         resetDependencies: [filterReportType, filterPlant]
     })
 
-    useEffect(() => {
-        if (tab === 'review') {
-            loadReviewReports()
-        }
-    }, [tab, loadReviewReports])
-
-    async function handleSubmitReport(formData, completed = true) {
-        const result = await submitReport({ completed, formData, showForm })
-        if (result.success) {
-            setShowForm(null)
-        }
-    }
-
-    async function handleManagerEditSubmit(formData) {
-        const result = await submitManagerEdit({ formData, managerEditUser, showForm })
-        if (result.success) {
-            setShowForm(null)
-            setManagerEditUser(null)
-        }
-    }
-
-    async function handleReview(report) {
-        if (report.userId !== user?.id) {
-            const { error } = await supabase
-                .from('reports_reviewed')
-                .upsert(
-                    { report_id: report.id, reviewed_at: new Date().toISOString(), reviewed_by_user_id: user.id },
-                    { onConflict: 'report_id,reviewed_by_user_id' }
-                )
-            if (!error) {
-                markReportReviewed(report.id)
-            }
-        }
-        setReviewData(report)
-        setShowReview(reportTypes.find((rt) => rt.name === report.name))
-    }
-
-    function handleManagerEdit(reportType, reportData) {
-        setShowReview(null)
-        setReviewData(null)
-        setShowForm({ ...reportType, name: reportType.name, weekIso: reportData.week || reportData.data?.week })
-        setSubmitInitialData({ ...reportData, data: reportData.data })
-        setManagerEditUser(reportData.userId)
-    }
-
-    async function handleShowForm(item) {
-        setSubmitInitialData(null)
-        if (!user || !item?.name || !item.weekIso) {
-            setShowForm(item)
-            return
-        }
-        const existingData = await fetchReportForEdit({ item, userId: user.id })
-        if (existingData) {
-            setSubmitInitialData(existingData)
-        }
-        setShowForm(item)
-    }
-
-    const regionalPlants = plants.filter(
-        (p) => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code)
+    const regionalPlants = useMemo(
+        () =>
+            plants.filter(
+                (p) => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code)
+            ),
+        [plants, preferences.selectedRegion?.code, regionPlantCodes]
     )
     const selectedPlantObj = regionalPlants.find((p) => p.plant_code === filterPlant)
     const plantDisplayText = filterPlant
@@ -169,124 +112,177 @@ function ReportsView() {
     const isMyReportsLoading = isLoadingUser || isLoadingMy || isLoadingPermissions
     const isReviewLoading = isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview
 
-    return (
-        <>
+    useEffect(() => {
+        if (tab === 'review') loadReviewReports()
+    }, [tab, loadReviewReports])
+
+    const handleSubmitReport = async (formData, completed = true) => {
+        const result = await submitReport({ completed, formData, showForm })
+        if (result.success) setShowForm(null)
+    }
+
+    const handleManagerEditSubmit = async (formData) => {
+        const result = await submitManagerEdit({ formData, managerEditUser, showForm })
+        if (result.success) {
+            setShowForm(null)
+            setManagerEditUser(null)
+        }
+    }
+
+    const handleReview = async (report) => {
+        if (report.userId !== user?.id) {
+            const { error } = await supabase
+                .from('reports_reviewed')
+                .upsert(
+                    { report_id: report.id, reviewed_at: new Date().toISOString(), reviewed_by_user_id: user.id },
+                    { onConflict: 'report_id,reviewed_by_user_id' }
+                )
+            if (!error) markReportReviewed(report.id)
+        }
+        setReviewData(report)
+        setShowReview(reportTypes.find((rt) => rt.name === report.name))
+    }
+
+    const handleManagerEdit = (reportType, reportData) => {
+        setShowReview(null)
+        setReviewData(null)
+        setShowForm({ ...reportType, name: reportType.name, weekIso: reportData.week || reportData.data?.week })
+        setSubmitInitialData({ ...reportData, data: reportData.data })
+        setManagerEditUser(reportData.userId)
+    }
+
+    const handleShowForm = async (item) => {
+        setSubmitInitialData(null)
+        if (user && item?.name && item.weekIso) {
+            const existingData = await fetchReportForEdit({ item, userId: user.id })
+            if (existingData) setSubmitInitialData(existingData)
+        }
+        setShowForm(item)
+    }
+
+    const handleBack = () => {
+        setShowForm(null)
+        setManagerEditUser(null)
+    }
+    const handleReviewBack = () => {
+        setShowReview(null)
+        setReviewData(null)
+    }
+
+    const handleFormSubmit = (form, submitType) => {
+        managerEditUser ? handleManagerEditSubmit(form) : handleSubmitReport(form, submitType === 'submit')
+    }
+
+    if (showForm) {
+        const report = reportTypeMap[showForm.name]
+            ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso }
+            : showForm
+        return (
             <div style={styles.root}>
-                {loadError && (
-                    <div style={styles.loadError}>
-                        <i className="fas fa-exclamation-circle"></i>
-                        {loadError}
-                    </div>
-                )}
-                {!showForm && !showReview && (
-                    <div>
-                        <ReportsToolbar
-                            tab={tab}
-                            onTabChange={setTab}
-                            filterReportType={filterReportType}
-                            onFilterReportTypeChange={setFilterReportType}
-                            plantDisplayText={plantDisplayText}
-                            onPlantModalOpen={() => setIsPlantModalOpen(true)}
-                            isRefreshing={isRefreshing}
-                            onRefresh={triggerRefresh}
-                            hasAssigned={hasAssigned}
-                            hasReviewPermission={hasReviewPermission}
-                            hasAnyReviewPermission={hasAnyReviewPermission}
-                            regionType={regionType}
-                        />
-                        <div style={styles.content}>
-                            {tab === 'all' && !isMyReportsLoading && <ReportsStatsCards items={allMyItems} tab={tab} />}
-                            {tab === 'review' && !isReviewLoading && (
-                                <ReportsStatsCards items={visibleReviewReports} tab={tab} />
-                            )}
-                            {tab === 'all' &&
-                                (allMyItems.length === 0 && !isMyReportsLoading ? (
-                                    <ReportsEmptyState tab={tab} hasAssigned={hasAssigned} />
-                                ) : (
-                                    <MyReportsList
-                                        isLoading={isMyReportsLoading}
-                                        items={myPagination.paginatedItems}
-                                        weeksToShow={weeksToShow}
-                                        pageSize={myPagination.pageSize}
-                                        currentPage={myPagination.currentPage}
-                                        totalPages={myPagination.totalPages}
-                                        onPageSizeChange={myPagination.changePageSize}
-                                        onPageChange={myPagination.goToPage}
-                                        onShowForm={handleShowForm}
-                                    />
-                                ))}
-                            {tab === 'review' &&
-                                (visibleReviewReports.length === 0 && !isReviewLoading ? (
-                                    <ReportsEmptyState tab={tab} />
-                                ) : (
-                                    <ReviewReportsList
-                                        isLoading={isReviewLoading}
-                                        items={reviewPagination.paginatedItems}
-                                        reviewedByCurrentUser={reviewedByCurrentUser}
-                                        pageSize={reviewPagination.pageSize}
-                                        currentPage={reviewPagination.currentPage}
-                                        totalPages={reviewPagination.totalPages}
-                                        onPageSizeChange={reviewPagination.changePageSize}
-                                        onPageChange={reviewPagination.goToPage}
-                                        onReview={handleReview}
-                                        getUserName={getUserName}
-                                    />
-                                ))}
-                        </div>
-                    </div>
-                )}
-                {showForm && (
-                    <ReportsSubmitView
-                        report={
-                            reportTypeMap[showForm.name]
-                                ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso }
-                                : showForm
-                        }
-                        initialData={submitInitialData}
-                        onBack={() => {
-                            setShowForm(null)
-                            setManagerEditUser(null)
-                        }}
-                        onSubmit={(form, submitType) => {
-                            if (managerEditUser) {
-                                handleManagerEditSubmit(form)
-                            } else {
-                                handleSubmitReport(form, submitType === 'submit')
-                            }
-                        }}
-                        user={user}
-                        readOnly={showReview === null && reviewData !== null}
-                        managerEditUser={managerEditUser}
-                        userProfiles={userProfiles}
-                    />
-                )}
-                {showReview && (
-                    <ReportsReviewView
-                        report={reportTypeMap[showReview.name] || showReview}
-                        initialData={reviewData}
-                        onBack={() => {
-                            setShowReview(null)
-                            setReviewData(null)
-                        }}
-                        user={user}
-                        completedByUser={reviewData?.userId ? userProfiles[reviewData.userId] : undefined}
-                        onManagerEdit={handleManagerEdit}
-                    />
-                )}
-                {isPlantModalOpen && (
-                    <PlantDropdownModal
-                        isOpen={isPlantModalOpen}
-                        onClose={() => setIsPlantModalOpen(false)}
-                        plants={regionalPlants}
-                        onSelect={(plantCode) => {
-                            setFilterPlant(plantCode)
-                            setIsPlantModalOpen(false)
-                        }}
-                        showAllPlants={true}
-                    />
-                )}
+                <ReportsSubmitView
+                    report={report}
+                    initialData={submitInitialData}
+                    onBack={handleBack}
+                    onSubmit={handleFormSubmit}
+                    user={user}
+                    readOnly={showReview === null && reviewData !== null}
+                    managerEditUser={managerEditUser}
+                    userProfiles={userProfiles}
+                />
             </div>
-        </>
+        )
+    }
+
+    if (showReview) {
+        return (
+            <div style={styles.root}>
+                <ReportsReviewView
+                    report={reportTypeMap[showReview.name] || showReview}
+                    initialData={reviewData}
+                    onBack={handleReviewBack}
+                    user={user}
+                    completedByUser={reviewData?.userId ? userProfiles[reviewData.userId] : undefined}
+                    onManagerEdit={handleManagerEdit}
+                />
+            </div>
+        )
+    }
+
+    return (
+        <div style={styles.root}>
+            {loadError && (
+                <div style={styles.loadError}>
+                    <i className="fas fa-exclamation-circle"></i>
+                    {loadError}
+                </div>
+            )}
+            <ReportsToolbar
+                tab={tab}
+                onTabChange={setTab}
+                filterReportType={filterReportType}
+                onFilterReportTypeChange={setFilterReportType}
+                plantDisplayText={plantDisplayText}
+                onPlantModalOpen={() => setIsPlantModalOpen(true)}
+                isRefreshing={isRefreshing}
+                onRefresh={triggerRefresh}
+                hasAssigned={hasAssigned}
+                hasReviewPermission={hasReviewPermission}
+                hasAnyReviewPermission={hasAnyReviewPermission}
+                regionType={regionType}
+            />
+            <div style={styles.content}>
+                {tab === 'all' && !isMyReportsLoading && <ReportsStatsCards items={allMyItems} tab={tab} />}
+                {tab === 'review' && !isReviewLoading && <ReportsStatsCards items={visibleReviewReports} tab={tab} />}
+
+                {tab === 'all' &&
+                    (allMyItems.length === 0 && !isMyReportsLoading ? (
+                        <ReportsEmptyState tab={tab} hasAssigned={hasAssigned} />
+                    ) : (
+                        <MyReportsList
+                            isLoading={isMyReportsLoading}
+                            items={myPagination.paginatedItems}
+                            weeksToShow={weeksToShow}
+                            pageSize={myPagination.pageSize}
+                            currentPage={myPagination.currentPage}
+                            totalPages={myPagination.totalPages}
+                            onPageSizeChange={myPagination.changePageSize}
+                            onPageChange={myPagination.goToPage}
+                            onShowForm={handleShowForm}
+                        />
+                    ))}
+
+                {tab === 'review' &&
+                    (visibleReviewReports.length === 0 && !isReviewLoading ? (
+                        <ReportsEmptyState tab={tab} />
+                    ) : (
+                        <ReviewReportsList
+                            isLoading={isReviewLoading}
+                            items={reviewPagination.paginatedItems}
+                            reviewedByCurrentUser={reviewedByCurrentUser}
+                            pageSize={reviewPagination.pageSize}
+                            currentPage={reviewPagination.currentPage}
+                            totalPages={reviewPagination.totalPages}
+                            onPageSizeChange={reviewPagination.changePageSize}
+                            onPageChange={reviewPagination.goToPage}
+                            onReview={handleReview}
+                            getUserName={getUserName}
+                        />
+                    ))}
+            </div>
+
+            {isPlantModalOpen && (
+                <PlantDropdownModal
+                    isOpen={isPlantModalOpen}
+                    onClose={() => setIsPlantModalOpen(false)}
+                    plants={regionalPlants}
+                    onSelect={(plantCode) => {
+                        setFilterPlant(plantCode)
+                        setIsPlantModalOpen(false)
+                    }}
+                    showAllPlants={true}
+                />
+            )}
+        </div>
     )
 }
 

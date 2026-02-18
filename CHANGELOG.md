@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.2] - 2026-02-18
+
+- Updated import statement in `src/views/reports/ReportsView.jsx` to rename `reportsViewStyles` to `styles` and removed separate `styles` variable declaration.
+- Refactored function declarations to use arrow function syntax with `const` for `handleSubmitReport`, `handleManagerEditSubmit`, `handleReview`, `handleManagerEdit`, and `handleShowForm` in `src/views/reports/ReportsView.jsx`.
+- Added new utility functions `handleBack`, `handleReviewBack`, and `handleFormSubmit` to manage navigation and form submission logic in `src/views/reports/ReportsView.jsx`.
+- Restructured rendering logic in `src/views/reports/ReportsView.jsx` to separate form and review views into conditional blocks before the main return statement.
+- Moved `regionalPlants`, `selectedPlantObj`, and `plantDisplayText` calculations before the `useEffect` hook for better readability in `src/views/reports/ReportsView.jsx`.
+- Simplified conditional checks and removed redundant code in `handleShowForm` function in `src/views/reports/ReportsView.jsx`.
+- Updated loading state variables `isMyReportsLoading` and `isReviewLoading` to be defined earlier in the component for clarity in `src/views/reports/ReportsView.jsx`.
+
 ## [12.1] - 2026-02-18
 
 - Added utility constants and functions in `PlantsView.jsx` for handling plant data, including `REGION_TYPE_TO_PLANT_TYPE`, `PLANT_TYPE_OPTIONS`, `getPlantCode`, `getPlantName`, `getPlantType`, and `PLANT_TYPE_BADGE_CLASSES`.
