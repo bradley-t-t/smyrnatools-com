@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.6] - 2026-02-18
+
+- Refactored asynchronous code in `src/views/list/ListView.jsx` by extracting inline async functions into named functions `loadData` and `fetchRegionCodes` for better readability and maintenance.
+- Reordered import statements in `src/views/reports/ReportsView.jsx` to move `PlantDropdownModal` import above hooks for consistency.
+- Adjusted import order in `src/views/reports/components/ReportsToolbar.jsx` and `src/views/reports/types/WeeklyPlantManagerReport.jsx` to maintain consistent placement of `usePreferences` import from `PreferencesContext`.
+
 ## [12.5] - 2026-02-18
 
 - Removed CSS styles for `.btn-primary` and its hover state from `src/app/App.css`.

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { usePreferences } from '../../app/context/PreferencesContext'
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import TopSection from '../../app/components/sections/TopSection'
+import { usePreferences } from '../../app/context/PreferencesContext'
 import { ListService } from '../../services/ListService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
@@ -240,7 +240,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     }, [handleScroll])
 
     useEffect(() => {
-        ;(async () => {
+        const loadData = async () => {
             setIsLoading(true)
             try {
                 await Promise.all([ListService.fetchListItems(), ListService.fetchPlants()])
@@ -248,7 +248,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             } finally {
                 setIsLoading(false)
             }
-        })()
+        }
+        loadData()
     }, [])
 
     useEffect(() => {
@@ -259,7 +260,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
 
     useEffect(() => {
         let cancelled = false
-        ;(async () => {
+        const fetchRegionCodes = async () => {
             try {
                 const codes = await RegionService.getAllowedPlantCodes(preferences?.selectedRegion?.code || '')
                 if (cancelled) return
@@ -268,7 +269,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             } catch {
                 if (!cancelled) setRegionPlantCodes(null)
             }
-        })()
+        }
+        fetchRegionCodes()
         return () => {
             cancelled = true
         }

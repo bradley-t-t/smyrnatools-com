@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { usePreferences } from '../../../app/context/PreferencesContext'
 import TopSection from '../../../app/components/sections/TopSection'
+import { usePreferences } from '../../../app/context/PreferencesContext'
 import { reportTypes } from '../../../types/ReportTypes'
 import { reportsViewStyles as styles } from '../styles/ReportsViewStyles'
 
