@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.1] - 2026-02-18
+
+- Added utility constants and functions in `PlantsView.jsx` for handling plant data, including `REGION_TYPE_TO_PLANT_TYPE`, `PLANT_TYPE_OPTIONS`, `getPlantCode`, `getPlantName`, `getPlantType`, and `PLANT_TYPE_BADGE_CLASSES`.
+- Refactored data fetching in `PlantsView.jsx` to use an immediately invoked async function and improved error handling for region plants fetching with `Promise.all`.
+- Simplified function definitions in `PlantsView.jsx` by converting `handleSelectPlant`, `handlePlantAdded`, `handlePlantDeleted`, and `handlePlantUpdated` to arrow functions and utilizing utility functions for plant code and name retrieval.
+- Enhanced filtering logic in `PlantsView.jsx` by using utility functions for plant code, name, and type, improving readability and consistency.
+- Added a `resetFilters` function in `PlantsView.jsx` to clear search and filter selections.
+- Moved inline styles for select elements to a reusable `SELECT_STYLE` constant in `PlantsView.jsx`.
+- Updated plant type options rendering in `PlantsView.jsx` to dynamically map over `PLANT_TYPE_OPTIONS` instead of hardcoding options.
+
 ## [12.0] - 2026-02-18
 
 - Updated `ListView.jsx` to replace `--sticky-cover-height` with `--top-section-height` for sticky header height calculation.
