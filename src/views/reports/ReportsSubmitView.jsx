@@ -112,6 +112,7 @@ function ReportsSubmitView({
         operatorOptions,
         plants,
         targetUserId,
+        userPlantCode,
         weekVerbose
     } = useSubmitData({ initialData, managerEditUser, report, user })
     const {
@@ -667,6 +668,7 @@ function ReportsSubmitView({
                         readOnly={readOnly}
                         user={user}
                         userId={targetUserId}
+                        userPlantCode={userPlantCode}
                         onChange={handleChange}
                     />
                 )}

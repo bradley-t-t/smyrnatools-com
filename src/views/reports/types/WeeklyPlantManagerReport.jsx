@@ -1163,12 +1163,13 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     }
                 }
 
-                if (currentPlantCode) {
+                const operatorPlantCode = currentPlantCode
+                if (operatorPlantCode) {
                     const { data: operatorsData } = await supabase
                         .from('operators')
                         .select('employee_id, name, status, plant_code, smyrna_id, position')
                         .eq('status', 'Active')
-                        .eq('plant_code', currentPlantCode)
+                        .eq('plant_code', operatorPlantCode)
                         .eq('position', 'Mixer Operator')
                         .order('name')
 
@@ -1585,11 +1586,12 @@ export function PlantManagerSubmitPlugin({
     setForm,
     weekIso,
     user,
-    plants: propPlants
+    plants: propPlants,
+    userPlantCode: propUserPlantCode
 }) {
     const { preferences: _preferences } = usePreferences()
     const isDark = false
-    const userPlantCode = user?.plant_code || ''
+    const userPlantCode = propUserPlantCode || user?.plant_code || ''
     const plantCode = form?.plant || userPlantCode
 
     const { yph, grade: yphGrade, label: yphLabel } = useYphCalculation(weekIso, plantCode, form)

@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.9] - 2026-02-18
+
+- Added user plant code retrieval in `useSubmitData.js` by integrating `UserService.getUserPlant` to fetch and store the user's plant code.
+- Updated `useSubmitData.js` to include `userPlantCode` in the returned values for use in components.
+- Modified `ReportsSubmitView.jsx` to pass `userPlantCode` from `useSubmitData` hook to the `PlantManagerSubmitPlugin` component.
+- Updated `WeeklyPlantManagerReport.jsx` to accept `userPlantCode` as a prop (`propUserPlantCode`) and use it as a fallback for determining the user's plant code.
+- Renamed variable `currentPlantCode` to `operatorPlantCode` in `WeeklyPlantManagerReport.jsx` for clarity when fetching operators data.
+
 ## [12.8] - 2026-02-18
 
 - Updated `PlantDropdownModal.jsx` to add custom sorting for plants, prioritizing 'OTHER_REGION' to appear at the end of the list.

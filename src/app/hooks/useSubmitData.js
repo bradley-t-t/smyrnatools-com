@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
 import { ReportService } from '../../services/ReportService'
+import { UserService } from '../../services/UserService'
 import { DateUtility } from '../../utils/DateUtility'
 import { ReportUtility } from '../../utils/ReportUtility'
 
@@ -12,6 +13,7 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
     const [plants, setPlants] = useState([])
     const [loadingPlants, setLoadingPlants] = useState(true)
     const [hoursReceivedFromOtherPlants, setHoursReceivedFromOtherPlants] = useState(0)
+    const [userPlantCode, setUserPlantCode] = useState('')
 
     const targetUserId = managerEditUser || user?.id
 
@@ -40,6 +42,8 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
             setLoadingPlants(true)
             let list = []
             if (targetUserId) {
+                const plantCode = await UserService.getUserPlant(targetUserId)
+                if (plantCode) setUserPlantCode(plantCode)
                 list = await ReportService.fetchPlantsForUser(targetUserId)
             }
             if (!list || list.length === 0) {
@@ -123,6 +127,7 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
         plants,
         setHoursReceivedFromOtherPlants,
         targetUserId,
+        userPlantCode,
         weekVerbose
     }
 }
