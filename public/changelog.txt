@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [12.4] - 2026-02-18
+
+- Refactored asynchronous code in `PlanView.jsx` by replacing immediately invoked async functions with named async functions `loadInitialData` and `loadPlan`, improving readability and maintainability.
+- Refactored asynchronous code in `PlantsView.jsx` by replacing immediately invoked async function with a named async function `fetchData`, enhancing code clarity.
+- Improved code structure in `PlantsView.jsx` by extracting region plants processing into a separate variable `plantsForRegion` before iteration.
+
 ## [12.3] - 2026-02-18
 
 - Updated src/views/plan/PlanView.jsx to include a comment about removing a semi-colon in the code structure.

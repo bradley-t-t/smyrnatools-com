@@ -54,7 +54,7 @@ function PlantsView({ title = 'Plants' }) {
     const headerRef = useRef(null)
 
     useEffect(() => {
-        ;(async () => {
+        const fetchData = async () => {
             setIsLoading(true)
             try {
                 const [plantsData, regionsData] = await Promise.all([
@@ -69,7 +69,8 @@ function PlantsView({ title = 'Plants' }) {
                 )
                 const map = {}
                 regionsData.forEach((region, index) => {
-                    ;(regionPlantsResults[index] || []).forEach((p) => {
+                    const plantsForRegion = regionPlantsResults[index] || []
+                    plantsForRegion.forEach((p) => {
                         map[p.plantCode] = region
                     })
                 })
@@ -77,7 +78,8 @@ function PlantsView({ title = 'Plants' }) {
             } finally {
                 setIsLoading(false)
             }
-        })()
+        }
+        fetchData()
     }, [])
 
     const handleSelectPlant = (plantCode) => setSelectedPlant(plants.find((p) => getPlantCode(p) === plantCode))

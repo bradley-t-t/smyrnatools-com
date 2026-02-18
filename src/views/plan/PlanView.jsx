@@ -133,9 +133,8 @@ function PlanView() {
         await PlanService.fetchTravelTimes()
         setTravelTimes(PlanService.getTravelTimesMap())
     }
-    // Removed semi-colon...
     useEffect(() => {
-        ;(async () => {
+        const loadInitialData = async () => {
             const user = await UserService.getCurrentUser()
             let plantList = user?.id ? await ReportService.fetchPlantsForUser(user.id) : []
             if (user?.id) setUserId(user.id)
@@ -152,18 +151,20 @@ function PlanView() {
             }
             await refreshTravelTimes()
             setIsLoading(false)
-        })()
+        }
+        loadInitialData()
     }, [])
 
     useEffect(() => {
         if (!userId || !planDate || isLoading) return
-        ;(async () => {
+        const loadPlan = async () => {
             try {
                 const plan = await PlanService.fetchUserPlan(userId, planDate)
                 if (plan?.assignments?.length) setAssignments(plan.assignments)
                 if (plan?.notes) setNotes(plan.notes)
             } catch {}
-        })()
+        }
+        loadPlan()
     }, [userId, planDate, isLoading])
 
     useEffect(() => {
