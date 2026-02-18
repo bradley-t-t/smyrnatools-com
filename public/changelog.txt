@@ -2,6 +2,19 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.1] - 2026-02-18
+
+- Updated `WeeklyPlanner.jsx` to dynamically handle mobile responsiveness for `isMobile` state with a `useEffect` hook for window resize events.
+- Adjusted padding in the main container of `WeeklyPlanner.jsx` for mobile view from `12px` to `10px`.
+- Modified layout in `WeeklyPlanner.jsx` to switch to a column layout on mobile for the header section.
+- Changed border radius in the header of `WeeklyPlanner.jsx` to `10px` on mobile (previously `14px`).
+- Adjusted gaps and padding in various elements of `WeeklyPlanner.jsx` for mobile view, including reducing gaps from `16px` to `12px` and padding from `14px` to `12px`.
+- Updated button sizes in `WeeklyPlanner.jsx` for mobile, reducing height and width from `36px` to `32px` and font size from `14px` to `12px`.
+- Modified text styling in `WeeklyPlanner.jsx`, reducing font size of week label from `15px/17px` to `14px/17px` on mobile and adjusting text alignment to center on mobile.
+- Hid the week number text on mobile view in `WeeklyPlanner.jsx`.
+- Adjusted the "Today" button styling in `WeeklyPlanner.jsx` for mobile, reducing font size from `12px` to `11px` and padding from `8px 14px` to `6px 10px`.
+- Removed hover effects (`onMouseEnter` and `onMouseLeave`) from navigation buttons in `WeeklyPlanner.jsx`.
+
 ## [13.0] - 2026-02-18
 
 - Added new `WeeklyPlanner.jsx` component for weekly task planning with features including day-based task views, status color coding, and interactive task cards with hover effects and removal options.

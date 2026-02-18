@@ -602,7 +602,13 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     const [weekOffset, setWeekOffset] = useState(0)
     const [plannedItems, setPlannedItems] = useState([])
     const [loading, setLoading] = useState(true)
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768)
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset])
 
@@ -672,22 +678,36 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     const totalPlanned = plannedItems.length
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: isMobile ? '12px' : '20px' }}>
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: isMobile ? '12px' : '20px',
+                padding: isMobile ? '10px' : '20px'
+            }}
+        >
             <div
                 style={{
-                    alignItems: 'center',
                     background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)',
                     border: '1px solid #e2e8f0',
-                    borderRadius: '14px',
+                    borderRadius: isMobile ? '10px' : '14px',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                     display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '16px',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '12px' : '16px',
                     justifyContent: 'space-between',
-                    padding: isMobile ? '14px' : '16px 20px'
+                    padding: isMobile ? '12px' : '16px 20px'
                 }}
             >
-                <div style={{ alignItems: 'center', display: 'flex', gap: '12px' }}>
+                <div
+                    style={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        gap: isMobile ? '8px' : '12px',
+                        justifyContent: isMobile ? 'space-between' : 'flex-start',
+                        width: isMobile ? '100%' : 'auto'
+                    }}
+                >
                     <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                         <button
                             onClick={() => setWeekOffset((w) => w - 1)}
@@ -699,14 +719,12 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                                 color: '#475569',
                                 cursor: 'pointer',
                                 display: 'flex',
-                                fontSize: '14px',
-                                height: '36px',
+                                fontSize: isMobile ? '12px' : '14px',
+                                height: isMobile ? '32px' : '36px',
                                 justifyContent: 'center',
                                 transition: 'all 0.15s',
-                                width: '36px'
+                                width: isMobile ? '32px' : '36px'
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#e2e8f0')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#f1f5f9')}
                         >
                             <i className="fas fa-chevron-left" />
                         </button>
@@ -720,34 +738,41 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                                 color: '#475569',
                                 cursor: 'pointer',
                                 display: 'flex',
-                                fontSize: '14px',
-                                height: '36px',
+                                fontSize: isMobile ? '12px' : '14px',
+                                height: isMobile ? '32px' : '36px',
                                 justifyContent: 'center',
                                 transition: 'all 0.15s',
-                                width: '36px'
+                                width: isMobile ? '32px' : '36px'
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#e2e8f0')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#f1f5f9')}
                         >
                             <i className="fas fa-chevron-right" />
                         </button>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ color: '#1e293b', fontSize: isMobile ? '15px' : '17px', fontWeight: 700 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flex: isMobile ? 1 : 'none',
+                            flexDirection: 'column',
+                            textAlign: isMobile ? 'center' : 'left'
+                        }}
+                    >
+                        <span style={{ color: '#1e293b', fontSize: isMobile ? '14px' : '17px', fontWeight: 700 }}>
                             {weekLabel}
                         </span>
-                        <span style={{ color: '#64748b', fontSize: '12px' }}>
-                            Week{' '}
-                            {Math.ceil(
-                                (weekDates[0].date.getDate() +
-                                    new Date(
-                                        weekDates[0].date.getFullYear(),
-                                        weekDates[0].date.getMonth(),
-                                        1
-                                    ).getDay()) /
-                                    7
-                            )}
-                        </span>
+                        {!isMobile && (
+                            <span style={{ color: '#64748b', fontSize: '12px' }}>
+                                Week{' '}
+                                {Math.ceil(
+                                    (weekDates[0].date.getDate() +
+                                        new Date(
+                                            weekDates[0].date.getFullYear(),
+                                            weekDates[0].date.getMonth(),
+                                            1
+                                        ).getDay()) /
+                                        7
+                                )}
+                            </span>
+                        )}
                     </div>
                     {weekOffset !== 0 && (
                         <button
@@ -761,10 +786,10 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                                 color: '#fff',
                                 cursor: 'pointer',
                                 display: 'flex',
-                                fontSize: '12px',
+                                fontSize: isMobile ? '11px' : '12px',
                                 fontWeight: 600,
                                 gap: '5px',
-                                padding: '8px 14px',
+                                padding: isMobile ? '6px 10px' : '8px 14px',
                                 transition: 'all 0.15s'
                             }}
                         >
@@ -774,7 +799,14 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                     )}
                 </div>
 
-                <div style={{ alignItems: 'center', display: 'flex', gap: '10px' }}>
+                <div
+                    style={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        gap: isMobile ? '8px' : '10px',
+                        justifyContent: isMobile ? 'center' : 'flex-end'
+                    }}
+                >
                     {loading && (
                         <div
                             style={{
@@ -786,7 +818,7 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                             }}
                         >
                             <i className="fas fa-circle-notch fa-spin" />
-                            <span>Loading...</span>
+                            {!isMobile && <span>Loading...</span>}
                         </div>
                     )}
                     <div
@@ -796,22 +828,25 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                             border: totalPlanned > 0 ? `1px solid ${accentColor}30` : '1px solid #e2e8f0',
                             borderRadius: '10px',
                             display: 'flex',
-                            gap: '8px',
-                            padding: '8px 14px'
+                            gap: '6px',
+                            padding: isMobile ? '6px 10px' : '8px 14px'
                         }}
                     >
                         <i
                             className="fas fa-clipboard-check"
-                            style={{ color: totalPlanned > 0 ? accentColor : '#64748b', fontSize: '13px' }}
+                            style={{
+                                color: totalPlanned > 0 ? accentColor : '#64748b',
+                                fontSize: isMobile ? '11px' : '13px'
+                            }}
                         />
                         <span
                             style={{
                                 color: totalPlanned > 0 ? accentColor : '#475569',
-                                fontSize: '13px',
+                                fontSize: isMobile ? '12px' : '13px',
                                 fontWeight: 600
                             }}
                         >
-                            {totalPlanned} planned
+                            {totalPlanned} {isMobile ? '' : 'planned'}
                         </span>
                     </div>
                     {totalPlanned > 0 && (
@@ -826,19 +861,15 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                                 color: '#dc2626',
                                 cursor: loading ? 'not-allowed' : 'pointer',
                                 display: 'flex',
-                                fontSize: '12px',
+                                fontSize: isMobile ? '11px' : '12px',
                                 fontWeight: 500,
                                 gap: '5px',
-                                padding: '8px 12px',
+                                padding: isMobile ? '6px 10px' : '8px 12px',
                                 transition: 'all 0.15s'
                             }}
-                            onMouseEnter={(e) => {
-                                if (!loading) e.currentTarget.style.background = '#fee2e2'
-                            }}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#fef2f2')}
                         >
                             <i className="fas fa-trash-alt" style={{ fontSize: '10px' }} />
-                            Clear
+                            {!isMobile && 'Clear'}
                         </button>
                     )}
                 </div>
@@ -847,9 +878,11 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             <div
                 style={{
                     display: 'flex',
-                    gap: isMobile ? '10px' : '14px',
+                    gap: isMobile ? '8px' : '14px',
                     overflowX: 'auto',
-                    paddingBottom: '8px'
+                    paddingBottom: '8px',
+                    scrollSnapType: isMobile ? 'x mandatory' : 'none',
+                    WebkitOverflowScrolling: 'touch'
                 }}
             >
                 {weekDates.map((day) => (
@@ -868,39 +901,41 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                 ))}
             </div>
 
-            <div
-                style={{
-                    alignItems: 'center',
-                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                    border: '1px solid #bfdbfe',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    gap: '10px',
-                    padding: '12px 16px'
-                }}
-            >
+            {!isMobile && (
                 <div
                     style={{
                         alignItems: 'center',
-                        background: '#3b82f6',
-                        borderRadius: '8px',
-                        color: '#fff',
+                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                        border: '1px solid #bfdbfe',
+                        borderRadius: '10px',
                         display: 'flex',
-                        fontSize: '14px',
-                        height: '32px',
-                        justifyContent: 'center',
-                        width: '32px'
+                        gap: '10px',
+                        padding: '12px 16px'
                     }}
                 >
-                    <i className="fas fa-users" />
-                </div>
-                <div>
-                    <div style={{ color: '#1e40af', fontSize: '13px', fontWeight: 600 }}>Shared Team Schedule</div>
-                    <div style={{ color: '#3b82f6', fontSize: '12px' }}>
-                        All team members can view and edit this weekly plan
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            background: '#3b82f6',
+                            borderRadius: '8px',
+                            color: '#fff',
+                            display: 'flex',
+                            fontSize: '14px',
+                            height: '32px',
+                            justifyContent: 'center',
+                            width: '32px'
+                        }}
+                    >
+                        <i className="fas fa-users" />
+                    </div>
+                    <div>
+                        <div style={{ color: '#1e40af', fontSize: '13px', fontWeight: 600 }}>Shared Team Schedule</div>
+                        <div style={{ color: '#3b82f6', fontSize: '12px' }}>
+                            All team members can view and edit this weekly plan
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }
