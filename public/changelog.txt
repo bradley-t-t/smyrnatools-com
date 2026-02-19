@@ -2,6 +2,20 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.2] - 2026-02-19
+
+- Added new `EfficiencyInfoCard.jsx` component to display how efficiency is calculated with a detailed formula breakdown and expandable content.
+- Updated `HelpDetailsModal.jsx` with revised styling for help entries, including new background and border color classes for sent/received entries, and adjusted layout for better readability.
+- Introduced `LeaderboardCategorySelector.jsx` and `LeaderboardPodium.jsx` components to enhance leaderboard functionality and presentation.
+- Added new UI components including `CollapsibleTable.jsx`, `DashboardCards.jsx`, `EmptyState.jsx`, `ToggleButtonGroup.jsx`, and `YearSelector.jsx` to improve dashboard and data visualization features.
+- Created `dashboardConstants.js` to centralize dashboard-related constants.
+- Updated `leaderboardConstants.js` with modifications to existing constants for leaderboard features.
+- Implemented new hooks `useDashboardData.js` and `useDashboardEffects.js` for managing dashboard data and side effects.
+- Refactored `DashboardCharts.jsx`, `DashboardPlantSummary.jsx`, and `DashboardView.jsx` with significant content updates and structural changes to improve dashboard functionality and user experience.
+- Modified `LeaderboardsView.jsx` with updates to leaderboard display logic and removed `LeaderboardsView.refactored.jsx` as part of codebase cleanup.
+- Updated `LeaderboardItem.jsx` with enhancements to individual leaderboard item rendering.
+- Adjusted utility functions in `LeaderboardsUtility.js` to support new leaderboard features.
+
 ## [13.1] - 2026-02-18
 
 - Updated `WeeklyPlanner.jsx` to dynamically handle mobile responsiveness for `isMobile` state with a `useEffect` hook for window resize events.

@@ -1,16 +1,18 @@
 export const LEADERBOARD_CATEGORIES = [
-    { id: 'efficiency', label: 'Efficiency' },
-    { id: 'yph', label: 'YPH' },
-    { id: 'production', label: 'Total Yards' },
-    { id: 'monthly-yardage', label: 'Monthly Yards' },
-    { id: 'weekly-yardage', label: 'Weekly Yards' },
-    { id: 'daily-yardage', label: 'Daily Yards' },
-    { id: 'monthly-hours', label: 'Monthly Hours' },
-    { id: 'weekly-hours', label: 'Weekly Hours' },
-    { id: 'daily-hours', label: 'Daily Hours' },
-    { id: 'help-given', label: 'Help Given' },
-    { id: 'help-received', label: 'Help Received' }
+    { group: 'Performance', icon: 'fa-chart-line', id: 'efficiency', label: 'Efficiency' },
+    { group: 'Performance', icon: 'fa-tachometer-alt', id: 'yph', label: 'YPH' },
+    { group: 'Production', icon: 'fa-mountain', id: 'production', label: 'Total Yards' },
+    { group: 'Production', icon: 'fa-calendar-alt', id: 'monthly-yardage', label: 'Monthly Yards' },
+    { group: 'Production', icon: 'fa-calendar-week', id: 'weekly-yardage', label: 'Weekly Yards' },
+    { group: 'Production', icon: 'fa-calendar-day', id: 'daily-yardage', label: 'Daily Yards' },
+    { group: 'Hours', icon: 'fa-clock', id: 'monthly-hours', label: 'Monthly Hours' },
+    { group: 'Hours', icon: 'fa-hourglass-half', id: 'weekly-hours', label: 'Weekly Hours' },
+    { group: 'Hours', icon: 'fa-stopwatch', id: 'daily-hours', label: 'Daily Hours' },
+    { group: 'Teamwork', icon: 'fa-hand-holding-heart', id: 'help-given', label: 'Help Given' },
+    { group: 'Teamwork', icon: 'fa-hands-helping', id: 'help-received', label: 'Help Received' }
 ]
+
+export const CATEGORY_GROUPS = ['Performance', 'Production', 'Hours', 'Teamwork']
 
 export const DEFAULT_FLEET_DATA = {
     avgFleetCleanliness: 0,

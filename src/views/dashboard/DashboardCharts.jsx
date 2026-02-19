@@ -31,6 +31,71 @@ const COLORS = {
     warning: '#f59e0b'
 }
 
+const ALLOCATION_THRESHOLDS = { HIGH: 80, MEDIUM: 50 }
+
+const getColorByAllocation = (percent) => {
+    if (percent >= ALLOCATION_THRESHOLDS.HIGH) return '#22c55e'
+    if (percent >= ALLOCATION_THRESHOLDS.MEDIUM) return '#f59e0b'
+    return '#ef4444'
+}
+
+const ChartTooltip = ({ active, label, payload }) => {
+    if (!active || !payload?.length) return null
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+            <p className="text-[#1e3a5f] text-sm font-semibold m-0 mb-1.5">{label}</p>
+            {payload.map((entry, index) => (
+                <p key={index} className="text-xs m-0.5" style={{ color: entry.color }}>
+                    {entry.name}: {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
+                </p>
+            ))}
+        </div>
+    )
+}
+
+const PieChartTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null
+    const data = payload[0]
+    const total = data.payload.total || 0
+    const percent = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+            <p className="text-[#1e3a5f] text-sm font-semibold m-0 mb-1">{data.name}</p>
+            <p className="text-xs m-0" style={{ color: data.payload.color || data.fill }}>
+                {data.value} ({percent}%)
+            </p>
+        </div>
+    )
+}
+
+const ChartCard = ({ icon, iconColor, title, children, footer }) => (
+    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <h4 className="flex items-center gap-2 text-[#1e3a5f] text-[15px] font-semibold mb-4">
+            <i className={`fa-solid ${icon}`} style={{ color: iconColor }} />
+            {title}
+        </h4>
+        {children}
+        {footer && <div className="flex flex-wrap gap-4 justify-center text-xs mt-2">{footer}</div>}
+    </div>
+)
+
+const StatLabel = ({ color, icon, children }) => (
+    <span style={{ color }} className="flex items-center gap-1">
+        {icon && <i className={`fa-solid ${icon} mr-1`} />}
+        {children}
+    </span>
+)
+
+const LegendDot = ({ color, label }) => (
+    <span className="flex items-center gap-1 text-slate-500">
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+        {label}
+    </span>
+)
+
+const calcAverage = (data, key) => (data.length > 0 ? data.reduce((sum, item) => sum + item[key], 0) / data.length : 0)
+const calcTotal = (data, key) => data.reduce((sum, item) => sum + item[key], 0)
+
 export default function DashboardCharts({
     dashboardPlant,
     dashboardRegionCode,
@@ -57,14 +122,11 @@ export default function DashboardCharts({
                 const region = RegionService.getRegionByCode(dashboardRegionCode)
                 const isOffice = region?.type === 'Office'
 
-                let plantCodes
-                if (isOffice) {
-                    plantCodes = allPlants.map((p) => p.plantCode || p.plant_code).filter(Boolean)
-                } else if (dashboardPlant) {
-                    plantCodes = [dashboardPlant]
-                } else {
-                    plantCodes = (regionPlants || []).map((p) => p.plantCode || p.plant_code).filter(Boolean)
-                }
+                const plantCodes = isOffice
+                    ? allPlants.map((p) => p.plantCode || p.plant_code).filter(Boolean)
+                    : dashboardPlant
+                      ? [dashboardPlant]
+                      : (regionPlants || []).map((p) => p.plantCode || p.plant_code).filter(Boolean)
 
                 if (plantCodes.length === 0) {
                     setLoading(false)
@@ -122,18 +184,15 @@ export default function DashboardCharts({
                         .slice(-12)
                         .map(([week, data]) => {
                             const date = new Date(week)
-                            const label = `${date.getMonth() + 1}/${date.getDate()}`
-                            const yph = data.hours > 0 ? (data.yardage / data.hours).toFixed(2) : 0
-                            const recoveryRate = data.lost > 0 ? Math.round((data.resold / data.lost) * 100) : 0
                             return {
                                 hours: Math.round(data.hours),
-                                label,
+                                label: `${date.getMonth() + 1}/${date.getDate()}`,
                                 lost: Math.round(data.lost),
-                                recoveryRate,
+                                recoveryRate: data.lost > 0 ? Math.round((data.resold / data.lost) * 100) : 0,
                                 resold: Math.round(data.resold),
                                 week,
                                 yardage: Math.round(data.yardage),
-                                yph: parseFloat(yph)
+                                yph: data.hours > 0 ? parseFloat((data.yardage / data.hours).toFixed(2)) : 0
                             }
                         })
 
@@ -152,10 +211,12 @@ export default function DashboardCharts({
                     const ratings = { average: 0, excellent: 0, good: 0, poor: 0, unrated: 0 }
                     let totalRating = 0
                     let ratedCount = 0
+
                     mixers.forEach((m) => {
                         const rating = m.cleanliness_rating
-                        if (!rating || rating === 0) ratings.unrated++
-                        else {
+                        if (!rating || rating === 0) {
+                            ratings.unrated++
+                        } else {
                             if (rating >= 5) ratings.excellent++
                             else if (rating >= 4) ratings.good++
                             else if (rating >= 3) ratings.average++
@@ -164,9 +225,9 @@ export default function DashboardCharts({
                             ratedCount++
                         }
                     })
-                    const avgRating = ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : 0
+
                     setCleanlinessData({
-                        avg: parseFloat(avgRating),
+                        avg: ratedCount > 0 ? parseFloat((totalRating / ratedCount).toFixed(1)) : 0,
                         data: [
                             { color: '#22c55e', name: 'Excellent (5)', value: ratings.excellent },
                             { color: '#3b82f6', name: 'Good (4)', value: ratings.good },
@@ -197,100 +258,30 @@ export default function DashboardCharts({
             const total = data.reduce((sum, d) => sum + (d.days || 0), 0)
             if (total === 0) return null
 
-            const active = data.find((d) => d.status === 'Active')?.days || 0
-            const shop = data.find((d) => d.status === 'In Shop')?.days || 0
-            const spare = data.find((d) => d.status === 'Spare')?.days || 0
+            const getPercent = (status) =>
+                Math.round(((data.find((d) => d.status === status)?.days || 0) / total) * 100)
 
             return {
-                activePercent: Math.round((active / total) * 100),
+                activePercent: getPercent('Active'),
                 label,
-                shopPercent: Math.round((shop / total) * 100),
-                sparePercent: Math.round((spare / total) * 100)
+                shopPercent: getPercent('In Shop'),
+                sparePercent: getPercent('Spare')
             }
         }
 
-        const results = []
-        if (!isAggregate) {
-            const mixerData = processData(statusHistoryData.mixers, 'Mixers')
-            if (mixerData) results.push(mixerData)
-        }
-        const tractorData = processData(statusHistoryData.tractors, 'Tractors')
-        if (tractorData) results.push(tractorData)
-        const trailerData = processData(statusHistoryData.trailers, 'Trailers')
-        if (trailerData) results.push(trailerData)
-        const equipmentData = processData(statusHistoryData.equipment, 'Equipment')
-        if (equipmentData) results.push(equipmentData)
-
-        return results
+        return [
+            !isAggregate && processData(statusHistoryData.mixers, 'Mixers'),
+            processData(statusHistoryData.tractors, 'Tractors'),
+            processData(statusHistoryData.trailers, 'Trailers'),
+            processData(statusHistoryData.equipment, 'Equipment')
+        ].filter(Boolean)
     }, [statusHistoryData, isAggregate])
-
-    const CustomTooltip = ({ active, label, payload }) => {
-        if (!active || !payload?.length) return null
-        return (
-            <div
-                style={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                    padding: '10px 14px'
-                }}
-            >
-                <p style={{ color: '#1e3a5f', fontSize: '13px', fontWeight: 600, margin: '0 0 6px 0' }}>{label}</p>
-                {payload.map((entry, index) => (
-                    <p key={index} style={{ color: entry.color, fontSize: '12px', margin: '2px 0' }}>
-                        {entry.name}: {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
-                    </p>
-                ))}
-            </div>
-        )
-    }
-
-    const PieTooltip = ({ active, payload }) => {
-        if (!active || !payload?.length) return null
-        const data = payload[0]
-        const total = data.payload.total || 0
-        const percent = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0
-        return (
-            <div
-                style={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                    padding: '10px 14px'
-                }}
-            >
-                <p style={{ color: '#1e3a5f', fontSize: '13px', fontWeight: 600, margin: '0 0 4px 0' }}>{data.name}</p>
-                <p style={{ color: data.payload.color || data.fill, fontSize: '12px', margin: '0' }}>
-                    {data.value} ({percent}%)
-                </p>
-            </div>
-        )
-    }
-
-    const chartCardStyle = {
-        backgroundColor: '#f8fafc',
-        border: '1px solid #e2e8f0',
-        borderRadius: '12px',
-        padding: '16px'
-    }
-
-    const chartTitleStyle = {
-        alignItems: 'center',
-        color: '#1e3a5f',
-        display: 'flex',
-        fontSize: '15px',
-        fontWeight: 600,
-        gap: '8px',
-        marginBottom: '16px'
-    }
 
     if (loading) {
         return (
-            <div style={{ ...chartCardStyle, padding: '40px', textAlign: 'center' }}>
-                <i className="fas fa-spinner fa-spin" style={{ color: '#64748b', fontSize: '24px' }} />
-                <p style={{ color: '#64748b', margin: '12px 0 0 0' }}>Loading analytics...</p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center">
+                <i className="fas fa-spinner fa-spin text-slate-500 text-2xl" />
+                <p className="text-slate-500 mt-3 m-0">Loading analytics...</p>
             </div>
         )
     }
@@ -299,33 +290,67 @@ export default function DashboardCharts({
 
     if (!hasAnyData) {
         return (
-            <div style={{ ...chartCardStyle, padding: '40px', textAlign: 'center' }}>
-                <i
-                    className="fa-regular fa-chart-bar"
-                    style={{ color: '#94a3b8', display: 'block', fontSize: '32px', marginBottom: '12px' }}
-                />
-                <p style={{ color: '#64748b', margin: 0 }}>No report data available for analytics</p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center">
+                <i className="fa-regular fa-chart-bar text-slate-400 text-3xl block mb-3" />
+                <p className="text-slate-500 m-0">No report data available for analytics</p>
             </div>
         )
     }
 
-    return (
-        <div
-            style={{
-                display: 'grid',
-                gap: '16px',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-                marginTop: '16px'
-            }}
-        >
-            {/* ===== PRODUCTION & EFFICIENCY GROUP ===== */}
+    const totalYardage = calcTotal(weeklyData, 'yardage')
+    const totalHours = calcTotal(weeklyData, 'hours')
+    const totalLost = calcTotal(weeklyData, 'lost')
+    const totalResold = calcTotal(weeklyData, 'resold')
+    const avgYph = totalHours > 0 ? (totalYardage / totalHours).toFixed(2) : 0
+    const recoveryRate = totalLost > 0 ? Math.round((totalResold / totalLost) * 100) : 0
 
+    const getYphTrend = () => {
+        if (weeklyData.length < 2) return { avgYph: 0, trend: 0 }
+        const midpoint = Math.floor(weeklyData.length / 2)
+        const firstHalfAvg = calcAverage(weeklyData.slice(0, midpoint), 'yph')
+        const secondHalfAvg = calcAverage(weeklyData.slice(midpoint), 'yph')
+        return { avgYph: calcAverage(weeklyData, 'yph'), trend: secondHalfAvg - firstHalfAvg }
+    }
+
+    const buildAssetData = (filterFn = () => true) =>
+        [
+            !isAggregate &&
+                stats.mixers.total > 0 &&
+                filterFn('mixers') && { color: '#3b82f6', name: 'Mixers', ...stats.mixers },
+            stats.tractors.total > 0 &&
+                filterFn('tractors') && { color: '#22c55e', name: 'Tractors', ...stats.tractors },
+            stats.trailers.total > 0 &&
+                filterFn('trailers') && { color: '#f59e0b', name: 'Trailers', ...stats.trailers },
+            stats.equipment.total > 0 &&
+                filterFn('equipment') && { color: '#8b5cf6', name: 'Equipment', ...stats.equipment },
+            stats.pickups.total > 0 && filterFn('pickups') && { color: '#ec4899', name: 'Pickups', ...stats.pickups }
+        ].filter(Boolean)
+
+    return (
+        <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
             {weeklyData.length > 0 && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-chart-line" style={{ color: '#2563eb' }} />
-                        Weekly Yardage Production
-                    </h4>
+                <ChartCard
+                    icon="fa-chart-line"
+                    iconColor="#2563eb"
+                    title="Weekly Yardage Production"
+                    footer={
+                        weeklyData.length >= 2 && (
+                            <>
+                                <StatLabel color="#64748b">
+                                    Avg:{' '}
+                                    <strong className="text-[#1e3a5f]">
+                                        {Math.round(calcAverage(weeklyData, 'yardage')).toLocaleString()}
+                                    </strong>{' '}
+                                    yards/week
+                                </StatLabel>
+                                <StatLabel color="#64748b">
+                                    Total: <strong className="text-[#1e3a5f]">{totalYardage.toLocaleString()}</strong>{' '}
+                                    yards
+                                </StatLabel>
+                            </>
+                        )
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <AreaChart data={weeklyData}>
                             <defs>
@@ -340,7 +365,7 @@ export default function DashboardCharts({
                                 tick={{ fill: '#64748b', fontSize: 11 }}
                                 tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                             />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Area
                                 type="monotone"
                                 dataKey="yardage"
@@ -351,49 +376,38 @@ export default function DashboardCharts({
                             />
                         </AreaChart>
                     </ResponsiveContainer>
-                    {weeklyData.length >= 2 && (
-                        <div
-                            style={{
-                                display: 'flex',
-                                fontSize: '12px',
-                                gap: '16px',
-                                justifyContent: 'center',
-                                marginTop: '8px'
-                            }}
-                        >
-                            <span style={{ color: '#64748b' }}>
-                                Avg:{' '}
-                                <strong style={{ color: '#1e3a5f' }}>
-                                    {Math.round(
-                                        weeklyData.reduce((s, w) => s + w.yardage, 0) / weeklyData.length
-                                    ).toLocaleString()}
-                                </strong>{' '}
-                                yards/week
-                            </span>
-                            <span style={{ color: '#64748b' }}>
-                                Total:{' '}
-                                <strong style={{ color: '#1e3a5f' }}>
-                                    {weeklyData.reduce((s, w) => s + w.yardage, 0).toLocaleString()}
-                                </strong>{' '}
-                                yards
-                            </span>
-                        </div>
-                    )}
-                </div>
+                </ChartCard>
             )}
 
             {weeklyData.length > 0 && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-gauge-high" style={{ color: '#10b981' }} />
-                        Yards Per Hour (YPH) Trend
-                    </h4>
+                <ChartCard
+                    icon="fa-gauge-high"
+                    iconColor="#10b981"
+                    title="Yards Per Hour (YPH) Trend"
+                    footer={
+                        weeklyData.length >= 2 &&
+                        (() => {
+                            const { trend, avgYph: avg } = getYphTrend()
+                            return (
+                                <>
+                                    <StatLabel color="#64748b">
+                                        Avg YPH: <strong className="text-[#1e3a5f]">{avg.toFixed(2)}</strong>
+                                    </StatLabel>
+                                    <StatLabel color={trend >= 0 ? '#10b981' : '#ef4444'}>
+                                        <i className={`fa-solid fa-arrow-${trend >= 0 ? 'up' : 'down'} mr-1`} />
+                                        {Math.abs(trend).toFixed(2)} YPH
+                                    </StatLabel>
+                                </>
+                            )
+                        })()
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <LineChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 'auto']} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Line
                                 type="monotone"
                                 dataKey="yph"
@@ -405,155 +419,72 @@ export default function DashboardCharts({
                             />
                         </LineChart>
                     </ResponsiveContainer>
-                    {weeklyData.length >= 2 &&
-                        (() => {
-                            const avgYph = weeklyData.reduce((s, w) => s + w.yph, 0) / weeklyData.length
-                            const firstHalf = weeklyData.slice(0, Math.floor(weeklyData.length / 2))
-                            const secondHalf = weeklyData.slice(Math.floor(weeklyData.length / 2))
-                            const firstAvg = firstHalf.reduce((s, w) => s + w.yph, 0) / firstHalf.length
-                            const secondAvg = secondHalf.reduce((s, w) => s + w.yph, 0) / secondHalf.length
-                            const trend = secondAvg - firstAvg
-                            return (
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        fontSize: '12px',
-                                        gap: '16px',
-                                        justifyContent: 'center',
-                                        marginTop: '8px'
-                                    }}
-                                >
-                                    <span style={{ color: '#64748b' }}>
-                                        Avg YPH: <strong style={{ color: '#1e3a5f' }}>{avgYph.toFixed(2)}</strong>
-                                    </span>
-                                    <span style={{ color: trend >= 0 ? '#10b981' : '#ef4444' }}>
-                                        <i
-                                            className={`fa-solid fa-arrow-${trend >= 0 ? 'up' : 'down'}`}
-                                            style={{ marginRight: '4px' }}
-                                        />
-                                        {Math.abs(trend).toFixed(2)} YPH
-                                    </span>
-                                </div>
-                            )
-                        })()}
-                </div>
+                </ChartCard>
             )}
 
-            {weeklyData.length > 0 &&
-                (() => {
-                    const totalYards = weeklyData.reduce((s, w) => s + w.yardage, 0)
-                    const totalHours = weeklyData.reduce((s, w) => s + w.hours, 0)
-                    const avgYph = totalHours > 0 ? (totalYards / totalHours).toFixed(2) : 0
-
-                    const ProductionTooltip = ({ active, label, payload }) => {
-                        if (!active || !payload?.length) return null
-                        const yards = payload.find((p) => p.dataKey === 'yardage')?.value || 0
-                        const hours = payload.find((p) => p.dataKey === 'hours')?.value || 0
-                        const weekYph = hours > 0 ? (yards / hours).toFixed(2) : 0
-                        return (
-                            <div
-                                style={{
-                                    backgroundColor: 'white',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                                    padding: '10px 14px'
-                                }}
-                            >
-                                <p style={{ color: '#1e3a5f', fontSize: '13px', fontWeight: 600, margin: '0 0 6px 0' }}>
-                                    {label}
-                                </p>
-                                <p style={{ color: '#0891b2', fontSize: '12px', margin: '2px 0' }}>
-                                    Yards: {yards.toLocaleString()}
-                                </p>
-                                <p style={{ color: '#f97316', fontSize: '12px', margin: '2px 0' }}>
-                                    Hours: {hours.toLocaleString()}
-                                </p>
-                                <p style={{ color: '#10b981', fontSize: '12px', fontWeight: 600, margin: '6px 0 0 0' }}>
-                                    YPH: {weekYph}
-                                </p>
-                            </div>
-                        )
+            {weeklyData.length > 0 && (
+                <ChartCard
+                    icon="fa-scale-balanced"
+                    iconColor="#0891b2"
+                    title="Production vs Labor"
+                    footer={
+                        <>
+                            <StatLabel color="#0891b2" icon="fa-cubes-stacked">
+                                {totalYardage.toLocaleString()} yards
+                            </StatLabel>
+                            <StatLabel color="#f97316" icon="fa-clock">
+                                {totalHours.toLocaleString()} hours
+                            </StatLabel>
+                            <StatLabel color="#10b981" icon="fa-gauge-high">
+                                {avgYph} avg YPH
+                            </StatLabel>
+                        </>
                     }
-
-                    return (
-                        <div style={chartCardStyle}>
-                            <h4 style={chartTitleStyle}>
-                                <i className="fa-solid fa-scale-balanced" style={{ color: '#0891b2' }} />
-                                Production vs Labor
-                            </h4>
-                            <ResponsiveContainer width="100%" height={220}>
-                                <BarChart data={weeklyData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
-                                    <YAxis
-                                        yAxisId="left"
-                                        tick={{ fill: '#64748b', fontSize: 11 }}
-                                        tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
-                                    />
-                                    <YAxis
-                                        yAxisId="right"
-                                        orientation="right"
-                                        tick={{ fill: '#64748b', fontSize: 11 }}
-                                    />
-                                    <Tooltip content={<ProductionTooltip />} />
-                                    <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
-                                    <Bar
-                                        yAxisId="left"
-                                        dataKey="yardage"
-                                        fill="#0891b2"
-                                        name="Yards"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                    <Bar
-                                        yAxisId="right"
-                                        dataKey="hours"
-                                        fill="#f97316"
-                                        name="Hours"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    fontSize: '12px',
-                                    gap: '16px',
-                                    justifyContent: 'center',
-                                    marginTop: '8px'
-                                }}
-                            >
-                                <span style={{ color: '#0891b2' }}>
-                                    <i className="fa-solid fa-cubes-stacked" style={{ marginRight: '4px' }} />
-                                    {totalYards.toLocaleString()} yards
-                                </span>
-                                <span style={{ color: '#f97316' }}>
-                                    <i className="fa-solid fa-clock" style={{ marginRight: '4px' }} />
-                                    {totalHours.toLocaleString()} hours
-                                </span>
-                                <span style={{ color: '#10b981' }}>
-                                    <i className="fa-solid fa-gauge-high" style={{ marginRight: '4px' }} />
-                                    {avgYph} avg YPH
-                                </span>
-                            </div>
-                        </div>
-                    )
-                })()}
-
-            {/* ===== LOSS & RECOVERY GROUP ===== */}
+                >
+                    <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={weeklyData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
+                            />
+                            <YAxis yAxisId="right" orientation="right" tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <Tooltip content={<ProductionTooltip />} />
+                            <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                            <Bar yAxisId="left" dataKey="yardage" fill="#0891b2" name="Yards" radius={[4, 4, 0, 0]} />
+                            <Bar yAxisId="right" dataKey="hours" fill="#f97316" name="Hours" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            )}
 
             {weeklyData.length > 0 && weeklyData.some((w) => w.lost > 0) && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-triangle-exclamation" style={{ color: '#ef4444' }} />
-                        Yardage Lost Per Week
-                    </h4>
+                <ChartCard
+                    icon="fa-triangle-exclamation"
+                    iconColor="#ef4444"
+                    title="Yardage Lost Per Week"
+                    footer={
+                        <>
+                            <StatLabel color="#64748b">
+                                Total Lost: <strong className="text-red-500">{totalLost.toLocaleString()}</strong> yards
+                            </StatLabel>
+                            <StatLabel color="#64748b">
+                                Avg/Week:{' '}
+                                <strong className="text-[#1e3a5f]">
+                                    {Math.round(calcAverage(weeklyData, 'lost'))}
+                                </strong>
+                            </StatLabel>
+                        </>
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Bar dataKey="lost" fill={COLORS.danger} name="Yards Lost" radius={[4, 4, 0, 0]}>
                                 {weeklyData.map((entry, index) => (
                                     <Cell
@@ -564,132 +495,81 @@ export default function DashboardCharts({
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
-                    <div
-                        style={{
-                            display: 'flex',
-                            fontSize: '12px',
-                            gap: '16px',
-                            justifyContent: 'center',
-                            marginTop: '8px'
-                        }}
-                    >
-                        <span style={{ color: '#64748b' }}>
-                            Total Lost:{' '}
-                            <strong style={{ color: '#ef4444' }}>
-                                {weeklyData.reduce((s, w) => s + w.lost, 0).toLocaleString()}
-                            </strong>{' '}
-                            yards
-                        </span>
-                        <span style={{ color: '#64748b' }}>
-                            Avg/Week:{' '}
-                            <strong style={{ color: '#1e3a5f' }}>
-                                {Math.round(weeklyData.reduce((s, w) => s + w.lost, 0) / weeklyData.length)}
-                            </strong>
-                        </span>
-                    </div>
-                </div>
+                </ChartCard>
             )}
 
             {weeklyData.length > 0 && weeklyData.some((w) => w.lost > 0 || w.resold > 0) && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-recycle" style={{ color: '#10b981' }} />
-                        Yardage Recovery (Lost vs Resold)
-                    </h4>
+                <ChartCard
+                    icon="fa-recycle"
+                    iconColor="#10b981"
+                    title="Yardage Recovery (Lost vs Resold)"
+                    footer={
+                        <>
+                            <StatLabel color="#ef4444">
+                                Lost: <strong>{totalLost.toLocaleString()}</strong>
+                            </StatLabel>
+                            <StatLabel color="#10b981">
+                                Resold: <strong>{totalResold.toLocaleString()}</strong>
+                            </StatLabel>
+                            <StatLabel
+                                color={recoveryRate >= 50 ? '#10b981' : recoveryRate >= 25 ? '#f59e0b' : '#ef4444'}
+                            >
+                                Recovery: <strong>{recoveryRate}%</strong>
+                            </StatLabel>
+                        </>
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
                             <Bar dataKey="lost" fill="#ef4444" name="Yards Lost" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="resold" fill="#10b981" name="Yards Resold" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
-                    {(() => {
-                        const totalLost = weeklyData.reduce((s, w) => s + w.lost, 0)
-                        const totalResold = weeklyData.reduce((s, w) => s + w.resold, 0)
-                        const recoveryRate = totalLost > 0 ? Math.round((totalResold / totalLost) * 100) : 0
-                        return (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    fontSize: '12px',
-                                    gap: '16px',
-                                    justifyContent: 'center',
-                                    marginTop: '8px'
-                                }}
-                            >
-                                <span style={{ color: '#ef4444' }}>
-                                    Lost: <strong>{totalLost.toLocaleString()}</strong>
-                                </span>
-                                <span style={{ color: '#10b981' }}>
-                                    Resold: <strong>{totalResold.toLocaleString()}</strong>
-                                </span>
-                                <span
-                                    style={{
-                                        color:
-                                            recoveryRate >= 50 ? '#10b981' : recoveryRate >= 25 ? '#f59e0b' : '#ef4444'
-                                    }}
-                                >
-                                    Recovery: <strong>{recoveryRate}%</strong>
-                                </span>
-                            </div>
-                        )
-                    })()}
-                </div>
+                </ChartCard>
             )}
 
-            {/* ===== LABOR & OPERATORS GROUP ===== */}
-
             {weeklyData.length > 0 && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-users-between-lines" style={{ color: '#0891b2' }} />
-                        Weekly Operator Hours
-                    </h4>
+                <ChartCard
+                    icon="fa-users-between-lines"
+                    iconColor="#0891b2"
+                    title="Weekly Operator Hours"
+                    footer={
+                        <>
+                            <StatLabel color="#64748b">
+                                Total: <strong className="text-[#1e3a5f]">{totalHours.toLocaleString()}</strong> hours
+                            </StatLabel>
+                            <StatLabel color="#64748b">
+                                Avg/Week:{' '}
+                                <strong className="text-[#1e3a5f]">
+                                    {Math.round(calcAverage(weeklyData, 'hours')).toLocaleString()}
+                                </strong>
+                            </StatLabel>
+                        </>
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Bar dataKey="hours" fill={COLORS.secondary} name="Hours" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
-                    <div
-                        style={{
-                            display: 'flex',
-                            fontSize: '12px',
-                            gap: '16px',
-                            justifyContent: 'center',
-                            marginTop: '8px'
-                        }}
-                    >
-                        <span style={{ color: '#64748b' }}>
-                            Total:{' '}
-                            <strong style={{ color: '#1e3a5f' }}>
-                                {weeklyData.reduce((s, w) => s + w.hours, 0).toLocaleString()}
-                            </strong>{' '}
-                            hours
-                        </span>
-                        <span style={{ color: '#64748b' }}>
-                            Avg/Week:{' '}
-                            <strong style={{ color: '#1e3a5f' }}>
-                                {Math.round(
-                                    weeklyData.reduce((s, w) => s + w.hours, 0) / weeklyData.length
-                                ).toLocaleString()}
-                            </strong>
-                        </span>
-                    </div>
-                </div>
+                </ChartCard>
             )}
 
-            {stats &&
-                stats.operators.total > 0 &&
-                (() => {
-                    const operatorData = [
+            {stats?.operators.total > 0 && (
+                <PieChartCard
+                    icon="fa-users"
+                    iconColor="#0891b2"
+                    title="Operator Status"
+                    data={[
                         stats.operators.assigned > 0 && {
                             color: '#8b5cf6',
                             name: 'Assigned',
@@ -714,112 +594,31 @@ export default function DashboardCharts({
                             total: stats.operators.total,
                             value: stats.operators.lightDuty
                         }
-                    ].filter(Boolean)
-                    return (
-                        <div style={chartCardStyle}>
-                            <h4 style={chartTitleStyle}>
-                                <i className="fa-solid fa-users" style={{ color: '#0891b2' }} />
-                                Operator Status
-                            </h4>
-                            <ResponsiveContainer width="100%" height={220}>
-                                <PieChart>
-                                    <Pie
-                                        data={operatorData}
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={75}
-                                        paddingAngle={2}
-                                        dataKey="value"
-                                    >
-                                        {operatorData.map((entry, index) => (
-                                            <Cell key={index} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<PieTooltip />} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div style={{ color: '#64748b', fontSize: '12px', marginTop: '8px', textAlign: 'center' }}>
-                                Total Operators: <strong style={{ color: '#1e3a5f' }}>{stats.operators.total}</strong>
-                            </div>
-                        </div>
-                    )
-                })()}
+                    ].filter(Boolean)}
+                    footerText={`Total Operators: ${stats.operators.total}`}
+                />
+            )}
 
-            {/* ===== FLEET & ASSETS GROUP ===== */}
-
-            {stats &&
-                stats.fleetTotal > 0 &&
-                (() => {
-                    const assetData = [
-                        !isAggregate &&
-                            stats.mixers.total > 0 && {
-                                color: '#3b82f6',
-                                name: 'Mixers',
-                                total: stats.fleetTotal,
-                                value: stats.mixers.total
-                            },
-                        stats.tractors.total > 0 && {
-                            color: '#22c55e',
-                            name: 'Tractors',
-                            total: stats.fleetTotal,
-                            value: stats.tractors.total
-                        },
-                        stats.trailers.total > 0 && {
-                            color: '#f59e0b',
-                            name: 'Trailers',
-                            total: stats.fleetTotal,
-                            value: stats.trailers.total
-                        },
-                        stats.equipment.total > 0 && {
-                            color: '#8b5cf6',
-                            name: 'Equipment',
-                            total: stats.fleetTotal,
-                            value: stats.equipment.total
-                        },
-                        stats.pickups.total > 0 && {
-                            color: '#ec4899',
-                            name: 'Pickups',
-                            total: stats.fleetTotal,
-                            value: stats.pickups.total
-                        }
-                    ].filter(Boolean)
-                    return (
-                        <div style={chartCardStyle}>
-                            <h4 style={chartTitleStyle}>
-                                <i className="fa-solid fa-chart-pie" style={{ color: '#2563eb' }} />
-                                Asset Distribution
-                            </h4>
-                            <ResponsiveContainer width="100%" height={220}>
-                                <PieChart>
-                                    <Pie
-                                        data={assetData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={45}
-                                        outerRadius={75}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                    >
-                                        {assetData.map((entry, index) => (
-                                            <Cell key={index} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<PieTooltip />} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div style={{ color: '#64748b', fontSize: '12px', marginTop: '8px', textAlign: 'center' }}>
-                                Total Assets: <strong style={{ color: '#1e3a5f' }}>{stats.fleetTotal}</strong>
-                            </div>
-                        </div>
-                    )
-                })()}
+            {stats?.fleetTotal > 0 && (
+                <PieChartCard
+                    icon="fa-chart-pie"
+                    iconColor="#2563eb"
+                    title="Asset Distribution"
+                    data={buildAssetData().map((a) => ({ ...a, total: stats.fleetTotal, value: a.total }))}
+                    innerRadius={45}
+                    footerText={`Total Assets: ${stats.fleetTotal}`}
+                />
+            )}
 
             {shopTimeData.length > 0 && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-clock-rotate-left" style={{ color: '#8b5cf6' }} />
-                        Fleet Uptime vs Downtime
-                    </h4>
+                <ChartCard
+                    icon="fa-clock-rotate-left"
+                    iconColor="#8b5cf6"
+                    title="Fleet Uptime vs Downtime"
+                    footer={
+                        <span className="text-slate-500 text-[11px]">Based on historical status tracking data</span>
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={shopTimeData} layout="vertical">
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -830,200 +629,89 @@ export default function DashboardCharts({
                                 tick={{ fill: '#64748b', fontSize: 11 }}
                                 width={70}
                             />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
                             <Bar dataKey="activePercent" stackId="a" fill={COLORS.active} name="Active %" />
                             <Bar dataKey="sparePercent" stackId="a" fill={COLORS.spare} name="Spare %" />
                             <Bar dataKey="shopPercent" stackId="a" fill={COLORS.shop} name="In Shop %" />
                         </BarChart>
                     </ResponsiveContainer>
-                    <div style={{ color: '#64748b', fontSize: '11px', marginTop: '8px', textAlign: 'center' }}>
-                        Based on historical status tracking data
-                    </div>
-                </div>
+                </ChartCard>
             )}
 
             {stats && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-gauge-high" style={{ color: '#9333ea' }} />
-                        Allocation Rate
-                    </h4>
+                <ChartCard
+                    icon="fa-gauge-high"
+                    iconColor="#9333ea"
+                    title="Allocation Rate"
+                    footer={
+                        <div className="flex gap-3 text-[11px]">
+                            <LegendDot color="#22c55e" label="80%+" />
+                            <LegendDot color="#f59e0b" label="50-79%" />
+                            <LegendDot color="#ef4444" label="<50%" />
+                        </div>
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart
-                            data={[
-                                !isAggregate &&
-                                    stats.mixers.total > 0 && {
-                                        allocation: stats.mixers.allocationPercent,
-                                        name: 'Mixers'
-                                    },
-                                stats.tractors.total > 0 && {
-                                    allocation: stats.tractors.allocationPercent,
-                                    name: 'Tractors'
-                                },
-                                stats.trailers.total > 0 && {
-                                    allocation: stats.trailers.allocationPercent,
-                                    name: 'Trailers'
-                                },
-                                stats.equipment.total > 0 && {
-                                    allocation: stats.equipment.allocationPercent,
-                                    name: 'Equipment'
-                                },
-                                stats.pickups.total > 0 && {
-                                    allocation: stats.pickups.allocationPercent,
-                                    name: 'Pickups'
-                                }
-                            ].filter(Boolean)}
+                            data={buildAssetData().map((a) => ({ allocation: a.allocationPercent, name: a.name }))}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 100]} unit="%" />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Bar dataKey="allocation" fill="#8b5cf6" name="Allocation %" radius={[4, 4, 0, 0]}>
-                                {[
-                                    !isAggregate && stats.mixers.total > 0 && stats.mixers.allocationPercent,
-                                    stats.tractors.total > 0 && stats.tractors.allocationPercent,
-                                    stats.trailers.total > 0 && stats.trailers.allocationPercent,
-                                    stats.equipment.total > 0 && stats.equipment.allocationPercent,
-                                    stats.pickups.total > 0 && stats.pickups.allocationPercent
-                                ]
-                                    .filter((v) => typeof v === 'number')
-                                    .map((val, index) => (
-                                        <Cell
-                                            key={index}
-                                            fill={val >= 80 ? '#22c55e' : val >= 50 ? '#f59e0b' : '#ef4444'}
-                                        />
-                                    ))}
+                                {buildAssetData().map((a, index) => (
+                                    <Cell key={index} fill={getColorByAllocation(a.allocationPercent)} />
+                                ))}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
-                    <div
-                        style={{
-                            display: 'flex',
-                            fontSize: '11px',
-                            gap: '12px',
-                            justifyContent: 'center',
-                            marginTop: '8px'
-                        }}
-                    >
-                        <span style={{ alignItems: 'center', color: '#64748b', display: 'flex', gap: '4px' }}>
-                            <span
-                                style={{ backgroundColor: '#22c55e', borderRadius: '50%', height: '8px', width: '8px' }}
-                            />{' '}
-                            80%+
-                        </span>
-                        <span style={{ alignItems: 'center', color: '#64748b', display: 'flex', gap: '4px' }}>
-                            <span
-                                style={{ backgroundColor: '#f59e0b', borderRadius: '50%', height: '8px', width: '8px' }}
-                            />{' '}
-                            50-79%
-                        </span>
-                        <span style={{ alignItems: 'center', color: '#64748b', display: 'flex', gap: '4px' }}>
-                            <span
-                                style={{ backgroundColor: '#ef4444', borderRadius: '50%', height: '8px', width: '8px' }}
-                            />{' '}
-                            &lt;50%
-                        </span>
-                    </div>
-                </div>
+                </ChartCard>
             )}
 
-            {/* ===== MAINTENANCE & QUALITY GROUP ===== */}
-
             {stats && (stats.openIssuesTotal > 0 || stats.overdueTotal > 0) && (
-                <div style={chartCardStyle}>
-                    <h4 style={chartTitleStyle}>
-                        <i className="fa-solid fa-wrench" style={{ color: '#f59e0b' }} />
-                        Issues & Overdue Service
-                    </h4>
+                <ChartCard
+                    icon="fa-wrench"
+                    iconColor="#f59e0b"
+                    title="Issues & Overdue Service"
+                    footer={
+                        <>
+                            <StatLabel color="#f59e0b" icon="fa-wrench">
+                                {stats.openIssuesTotal} Issues
+                            </StatLabel>
+                            <StatLabel color="#dc2626" icon="fa-clock">
+                                {stats.overdueTotal} Overdue
+                            </StatLabel>
+                        </>
+                    }
+                >
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart
-                            data={[
-                                !isAggregate &&
-                                    stats.mixers.total > 0 && {
-                                        issues: stats.mixers.issues,
-                                        name: 'Mixers',
-                                        overdue: stats.mixers.overdue
-                                    },
-                                stats.tractors.total > 0 && {
-                                    issues: stats.tractors.issues,
-                                    name: 'Tractors',
-                                    overdue: stats.tractors.overdue
-                                },
-                                stats.trailers.total > 0 && {
-                                    issues: stats.trailers.issues,
-                                    name: 'Trailers',
-                                    overdue: stats.trailers.overdue
-                                },
-                                stats.equipment.total > 0 && {
-                                    issues: stats.equipment.issues,
-                                    name: 'Equipment',
-                                    overdue: stats.equipment.overdue
-                                }
-                            ].filter(Boolean)}
+                            data={buildAssetData(() => true)
+                                .slice(0, 4)
+                                .map((a) => ({ issues: a.issues, name: a.name, overdue: a.overdue }))}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} />
                             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<ChartTooltip />} />
                             <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
                             <Bar dataKey="issues" fill="#f59e0b" name="Open Issues" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="overdue" fill="#dc2626" name="Overdue Service" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
-                    <div
-                        style={{
-                            display: 'flex',
-                            fontSize: '12px',
-                            gap: '16px',
-                            justifyContent: 'center',
-                            marginTop: '8px'
-                        }}
-                    >
-                        <span style={{ color: '#f59e0b' }}>
-                            <i className="fa-solid fa-wrench" style={{ marginRight: '4px' }} />
-                            {stats.openIssuesTotal} Issues
-                        </span>
-                        <span style={{ color: '#dc2626' }}>
-                            <i className="fa-solid fa-clock" style={{ marginRight: '4px' }} />
-                            {stats.overdueTotal} Overdue
-                        </span>
-                    </div>
-                </div>
+                </ChartCard>
             )}
 
-            {cleanlinessData.data.length > 0 &&
-                !isAggregate &&
-                (() => {
-                    const total = cleanlinessData.data.reduce((s, d) => s + d.value, 0)
-                    const dataWithTotal = cleanlinessData.data.map((d) => ({ ...d, total }))
-                    return (
-                        <div style={chartCardStyle}>
-                            <h4 style={chartTitleStyle}>
-                                <i className="fa-solid fa-spray-can-sparkles" style={{ color: '#f59e0b' }} />
-                                Mixer Cleanliness Ratings
-                            </h4>
-                            <ResponsiveContainer width="100%" height={220}>
-                                <PieChart>
-                                    <Pie
-                                        data={dataWithTotal}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={45}
-                                        outerRadius={75}
-                                        paddingAngle={2}
-                                        dataKey="value"
-                                    >
-                                        {dataWithTotal.map((entry, index) => (
-                                            <Cell key={index} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<PieTooltip />} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div
-                                style={{ color: '#64748b', fontSize: '12px', marginBottom: '8px', textAlign: 'center' }}
-                            >
+            {cleanlinessData.data.length > 0 && !isAggregate && (
+                <ChartCard
+                    icon="fa-spray-can-sparkles"
+                    iconColor="#f59e0b"
+                    title="Mixer Cleanliness Ratings"
+                    footer={
+                        <div className="flex flex-col items-center gap-2">
+                            <span className="text-slate-500">
                                 Average Rating:{' '}
                                 <strong
                                     style={{
@@ -1038,34 +726,89 @@ export default function DashboardCharts({
                                     {cleanlinessData.avg}
                                 </strong>{' '}
                                 / 5
-                            </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                            </span>
+                            <div className="flex flex-wrap gap-2 justify-center">
                                 {cleanlinessData.data.map((entry, index) => (
-                                    <div
+                                    <LegendDot
                                         key={index}
-                                        style={{
-                                            alignItems: 'center',
-                                            color: '#64748b',
-                                            display: 'flex',
-                                            fontSize: '11px',
-                                            gap: '4px'
-                                        }}
-                                    >
-                                        <span
-                                            style={{
-                                                backgroundColor: entry.color,
-                                                borderRadius: '50%',
-                                                height: '8px',
-                                                width: '8px'
-                                            }}
-                                        />
-                                        {entry.name}: {entry.value}
-                                    </div>
+                                        color={entry.color}
+                                        label={`${entry.name}: ${entry.value}`}
+                                    />
                                 ))}
                             </div>
                         </div>
-                    )
-                })()}
+                    }
+                >
+                    <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                            <Pie
+                                data={cleanlinessData.data.map((d) => ({
+                                    ...d,
+                                    total: cleanlinessData.data.reduce((s, x) => s + x.value, 0)
+                                }))}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={45}
+                                outerRadius={75}
+                                paddingAngle={2}
+                                dataKey="value"
+                            >
+                                {cleanlinessData.data.map((entry, index) => (
+                                    <Cell key={index} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <Tooltip content={<PieChartTooltip />} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            )}
         </div>
     )
 }
+
+const ProductionTooltip = ({ active, label, payload }) => {
+    if (!active || !payload?.length) return null
+    const yards = payload.find((p) => p.dataKey === 'yardage')?.value || 0
+    const hours = payload.find((p) => p.dataKey === 'hours')?.value || 0
+    const weekYph = hours > 0 ? (yards / hours).toFixed(2) : 0
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+            <p className="text-[#1e3a5f] text-sm font-semibold m-0 mb-1.5">{label}</p>
+            <p className="text-[#0891b2] text-xs m-0.5">Yards: {yards.toLocaleString()}</p>
+            <p className="text-[#f97316] text-xs m-0.5">Hours: {hours.toLocaleString()}</p>
+            <p className="text-[#10b981] text-xs font-semibold mt-1.5 m-0">YPH: {weekYph}</p>
+        </div>
+    )
+}
+
+const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0 }) => (
+    <ChartCard
+        icon={icon}
+        iconColor={iconColor}
+        title={title}
+        footer={
+            <span className="text-slate-500">
+                Total: <strong className="text-[#1e3a5f]">{footerText?.split(': ')[1]}</strong>
+            </span>
+        }
+    >
+        <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+                <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={innerRadius}
+                    outerRadius={75}
+                    paddingAngle={2}
+                    dataKey="value"
+                >
+                    {data.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                    ))}
+                </Pie>
+                <Tooltip content={<PieChartTooltip />} />
+            </PieChart>
+        </ResponsiveContainer>
+    </ChartCard>
+)

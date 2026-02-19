@@ -2,6 +2,145 @@ import React, { memo, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 
+const STORAGE_KEY = 'dashboard-plant-summary-minimized'
+
+const AlertItem = ({
+    icon,
+    iconBg,
+    count,
+    title,
+    subtitle,
+    items,
+    expandKey,
+    renderItem,
+    maxItems = 5,
+    expandedSections,
+    setExpandedSections
+}) => {
+    const isExpanded = expandedSections[expandKey]
+    const displayItems = isExpanded ? items : items.slice(0, maxItems)
+    const hasMore = items.length > maxItems
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center gap-3 p-3.5 border-b border-slate-100">
+                <div
+                    className="flex items-center justify-center w-10 h-10 rounded-lg flex-shrink-0"
+                    style={{ background: iconBg }}
+                >
+                    <i className={`fas ${icon} text-white text-base`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                        <span className="text-slate-900 text-[15px] font-semibold">{title}</span>
+                        <span
+                            className="rounded-xl text-white text-xs font-bold px-2 py-0.5"
+                            style={{ background: iconBg }}
+                        >
+                            {count}
+                        </span>
+                    </div>
+                    <div className="text-slate-500 text-xs mt-0.5">{subtitle}</div>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-2 p-3">
+                {displayItems.map((item, i) => renderItem(item, i))}
+                {hasMore && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setExpandedSections((prev) => ({ ...prev, [expandKey]: !isExpanded }))
+                        }}
+                        className="bg-sky-50 border border-sky-200 rounded-lg text-sky-700 text-xs font-semibold px-3 py-1.5 cursor-pointer hover:bg-sky-100 transition-colors"
+                    >
+                        {isExpanded ? 'Show less' : `+${items.length - maxItems} more`}
+                    </button>
+                )}
+            </div>
+        </div>
+    )
+}
+
+const AssetButton = ({ label, onClick, color }) => (
+    <button
+        onClick={onClick}
+        className="bg-slate-50 rounded-lg text-sm font-medium px-3 py-1.5 cursor-pointer transition-all hover:opacity-80"
+        style={{ border: `1px solid ${color}20`, color }}
+    >
+        {label}
+    </button>
+)
+
+const MetricCard = ({ label, value, color, icon, accentColor, isMobile }) => (
+    <div
+        className={`flex flex-col items-center gap-1 bg-white rounded-xl shadow-sm ${isMobile ? 'flex-[1_1_45%] min-w-[120px] px-2.5 py-3.5' : 'flex-[1_1_auto] min-w-[100px] px-5 py-4'}`}
+    >
+        {icon && <i className={`fas ${icon} text-sm mb-1`} style={{ color: color || '#64748b' }} />}
+        <div
+            className={`font-bold leading-none ${isMobile ? 'text-[22px]' : 'text-[26px]'}`}
+            style={{ color: color || accentColor }}
+        >
+            {value}
+        </div>
+        <div className="text-slate-500 text-[11px] font-medium text-center uppercase">{label}</div>
+    </div>
+)
+
+const OperatorSection = ({
+    iconBg,
+    icon,
+    title,
+    count,
+    subtitle,
+    operators,
+    buttonBg,
+    buttonBorder,
+    buttonColor,
+    setEmbeddedView,
+    setEmbeddedViewSearch,
+    nameField = 'name'
+}) => (
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 p-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg" style={{ background: iconBg }}>
+                <i className={`fas ${icon} text-white text-base`} />
+            </div>
+            <div>
+                <div className="flex items-center gap-2">
+                    <span className="text-slate-900 text-[15px] font-semibold">{title}</span>
+                    <span
+                        className="rounded-xl text-white text-xs font-bold px-2 py-0.5"
+                        style={{ background: iconBg }}
+                    >
+                        {count}
+                    </span>
+                </div>
+                <div className="text-slate-500 text-xs mt-0.5">{subtitle}</div>
+            </div>
+        </div>
+        <div className="flex flex-wrap gap-2 p-3">
+            {operators.map((o, i) => (
+                <button
+                    key={i}
+                    onClick={() => {
+                        setEmbeddedView('operators')
+                        setEmbeddedViewSearch(o[nameField] || '')
+                    }}
+                    className="rounded-lg text-sm font-medium px-3 py-1.5 cursor-pointer"
+                    style={{ background: buttonBg, border: `1px solid ${buttonBorder}`, color: buttonColor }}
+                >
+                    {o[nameField]}
+                </button>
+            ))}
+        </div>
+    </div>
+)
+
+const getAssetViewType = (assetType) => {
+    const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
+    return viewMap[assetType] || 'equipment'
+}
+
 const DashboardPlantSummary = memo(function DashboardPlantSummary({
     dashboardPlant,
     plantNotifications,
@@ -24,12 +163,12 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     const [activeTab, setActiveTab] = useState('alerts')
     const [isMinimized, setIsMinimized] = useState(() => {
         if (typeof window === 'undefined') return true
-        const saved = localStorage.getItem('dashboard-plant-summary-minimized')
+        const saved = localStorage.getItem(STORAGE_KEY)
         return saved === null ? true : saved === 'true'
     })
 
     useEffect(() => {
-        localStorage.setItem('dashboard-plant-summary-minimized', String(isMinimized))
+        localStorage.setItem(STORAGE_KEY, String(isMinimized))
     }, [isMinimized])
 
     const hasNotifications =
@@ -48,1051 +187,174 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         plantNotifications.assetsWithMostIssues.length +
         plantNotifications.longTermShopAssets.length
 
-    const AlertItem = ({ icon, iconBg, count, title, subtitle, items, expandKey, renderItem, maxItems = 5 }) => {
-        const isExpanded = expandedSections[expandKey]
-        const displayItems = isExpanded ? items : items.slice(0, maxItems)
-        const hasMore = items.length > maxItems
+    const { leaderboardMetrics, aiSummary, aiSummaryLoading, aiSummaryFailed, shopIssue } = plantNotifications
 
-        return (
-            <div
-                style={{
-                    background: '#fff',
-                    borderRadius: '12px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                    overflow: 'hidden'
-                }}
-            >
-                <div
-                    style={{
-                        alignItems: 'center',
-                        borderBottom: '1px solid #f1f5f9',
-                        display: 'flex',
-                        gap: '12px',
-                        padding: '14px 16px'
-                    }}
-                >
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: iconBg,
-                            borderRadius: '10px',
-                            display: 'flex',
-                            flexShrink: 0,
-                            height: '40px',
-                            justifyContent: 'center',
-                            width: '40px'
-                        }}
-                    >
-                        <i className={`fas ${icon}`} style={{ color: '#fff', fontSize: '16px' }}></i>
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                            <span style={{ color: '#1e293b', fontSize: '15px', fontWeight: 600 }}>{title}</span>
-                            <span
-                                style={{
-                                    background: iconBg,
-                                    borderRadius: '12px',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    fontWeight: 700,
-                                    padding: '2px 8px'
-                                }}
-                            >
-                                {count}
-                            </span>
-                        </div>
-                        <div style={{ color: '#64748b', fontSize: '12px', marginTop: '2px' }}>{subtitle}</div>
-                    </div>
-                </div>
-                <div style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {displayItems.map((item, i) => renderItem(item, i))}
-                        {hasMore && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setExpandedSections((prev) => ({ ...prev, [expandKey]: !isExpanded }))
-                                }}
-                                style={{
-                                    background: '#f0f9ff',
-                                    border: '1px solid #bae6fd',
-                                    borderRadius: '8px',
-                                    color: '#0369a1',
-                                    cursor: 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    padding: '6px 12px'
-                                }}
-                            >
-                                {isExpanded ? 'Show less' : `+${items.length - maxItems} more`}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    const toggleMinimized = () => setIsMinimized(!isMinimized)
 
-    const AssetButton = ({ label, onClick, color }) => (
-        <button
-            onClick={onClick}
-            style={{
-                background: '#f8fafc',
-                border: `1px solid ${color}20`,
-                borderRadius: '8px',
-                color: color,
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: 500,
-                padding: '6px 12px',
-                transition: 'all 0.15s'
+    const renderAssetButton = (asset, color) => (
+        <AssetButton
+            label={`${asset.type} ${asset.identifier || ''}`}
+            color={color}
+            onClick={() => {
+                setEmbeddedView(getAssetViewType(asset.type))
+                setEmbeddedViewSearch(asset.identifier || '')
             }}
-        >
-            {label}
-        </button>
-    )
-
-    const MetricCard = ({ label, value, color, icon }) => (
-        <div
-            style={{
-                alignItems: 'center',
-                background: '#fff',
-                borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                display: 'flex',
-                flex: isMobile ? '1 1 45%' : '1 1 auto',
-                flexDirection: 'column',
-                gap: '4px',
-                minWidth: isMobile ? '120px' : '100px',
-                padding: isMobile ? '14px 10px' : '16px 20px'
-            }}
-        >
-            {icon && (
-                <i
-                    className={`fas ${icon}`}
-                    style={{ color: color || '#64748b', fontSize: '14px', marginBottom: '4px' }}
-                ></i>
-            )}
-            <div
-                style={{
-                    color: color || accentColor,
-                    fontSize: isMobile ? '22px' : '26px',
-                    fontWeight: 700,
-                    lineHeight: 1
-                }}
-            >
-                {value}
-            </div>
-            <div
-                style={{
-                    color: '#64748b',
-                    fontSize: '11px',
-                    fontWeight: 500,
-                    textAlign: 'center',
-                    textTransform: 'uppercase'
-                }}
-            >
-                {label}
-            </div>
-        </div>
+        />
     )
 
     return (
-        <div
-            style={{
-                background: '#fff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                marginBottom: '24px',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease'
-            }}
-        >
+        <div className="bg-white border border-slate-200 rounded-2xl mb-6 overflow-hidden transition-all duration-300">
             <div
-                onClick={() => setIsMinimized(!isMinimized)}
-                style={{
-                    alignItems: 'center',
-                    background: accentColor,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    gap: isMobile ? '12px' : '24px',
-                    justifyContent: 'space-between',
-                    padding: isMobile ? '16px' : '20px 28px'
-                }}
+                onClick={toggleMinimized}
+                className={`flex items-center justify-between cursor-pointer ${isMobile ? 'gap-3 p-4' : 'gap-6 px-7 py-5'}`}
+                style={{ background: accentColor }}
             >
-                <div style={{ alignItems: 'center', display: 'flex', flex: 1, gap: '16px' }}>
+                <div className="flex items-center flex-1 gap-4">
                     <div
-                        style={{
-                            alignItems: 'center',
-                            background: 'rgba(255,255,255,0.15)',
-                            borderRadius: '12px',
-                            display: 'flex',
-                            height: isMinimized ? '44px' : '52px',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            width: isMinimized ? '44px' : '52px'
-                        }}
+                        className={`flex items-center justify-center bg-white/15 rounded-xl transition-all duration-300 ${isMinimized ? 'w-11 h-11' : 'w-[52px] h-[52px]'}`}
                     >
                         <i
-                            className="fas fa-building"
-                            style={{
-                                color: '#fff',
-                                fontSize: isMinimized ? '18px' : '22px',
-                                transition: 'all 0.3s ease'
-                            }}
-                        ></i>
+                            className={`fas fa-building text-white transition-all duration-300 ${isMinimized ? 'text-lg' : 'text-[22px]'}`}
+                        />
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <h2 style={{ color: '#fff', fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: 0 }}>
+                    <div className="flex-1">
+                        <h2 className={`text-white font-bold m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>
                             Plant {dashboardPlant || 'Summary'}
                         </h2>
                         {!isMinimized && (
-                            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', margin: '4px 0 0 0' }}>
+                            <p className="text-white/70 text-sm m-0 mt-1">
                                 {alertCount > 0 ? `${alertCount} items need attention` : 'All systems operational'}
                             </p>
                         )}
                     </div>
                     {isMinimized && alertCount > 0 && (
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                background: '#dc2626',
-                                borderRadius: '12px',
-                                color: '#fff',
-                                display: 'flex',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                gap: '6px',
-                                padding: '6px 12px'
-                            }}
-                        >
-                            <i className="fas fa-bell"></i>
+                        <div className="flex items-center gap-1.5 bg-red-600 rounded-xl text-white text-sm font-semibold px-3 py-1.5">
+                            <i className="fas fa-bell" />
                             {alertCount}
                         </div>
                     )}
-                    {isMinimized && plantNotifications.leaderboardMetrics && (
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                background: 'rgba(255,255,255,0.15)',
-                                borderRadius: '8px',
-                                color: '#fff',
-                                display: 'flex',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                padding: '6px 12px'
-                            }}
-                        >
-                            #{plantNotifications.leaderboardMetrics.rank}
+                    {isMinimized && leaderboardMetrics && (
+                        <div className="flex items-center bg-white/15 rounded-lg text-white text-sm font-semibold px-3 py-1.5">
+                            #{leaderboardMetrics.rank}
                         </div>
                     )}
                 </div>
                 <button
                     onClick={(e) => {
                         e.stopPropagation()
-                        setIsMinimized(!isMinimized)
+                        toggleMinimized()
                     }}
-                    style={{
-                        alignItems: 'center',
-                        background: 'rgba(255,255,255,0.15)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        height: '36px',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s ease',
-                        width: '36px'
-                    }}
+                    className="flex items-center justify-center w-9 h-9 bg-white/15 border-none rounded-lg text-white cursor-pointer transition-all duration-200 hover:bg-white/25"
                     title={isMinimized ? 'Expand' : 'Collapse'}
                 >
-                    <i className={`fas fa-chevron-${isMinimized ? 'down' : 'up'}`} style={{ fontSize: '14px' }}></i>
+                    <i className={`fas fa-chevron-${isMinimized ? 'down' : 'up'} text-sm`} />
                 </button>
             </div>
 
             {!isMinimized && (
                 <>
-                    {plantNotifications.leaderboardMetrics && (
+                    {leaderboardMetrics && (
                         <div
-                            style={{
-                                background: '#f8fafc',
-                                borderBottom: '1px solid #e2e8f0',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '12px',
-                                justifyContent: 'center',
-                                padding: isMobile ? '16px' : '20px 28px'
-                            }}
+                            className={`flex flex-wrap gap-3 justify-center bg-slate-50 border-b border-slate-200 ${isMobile ? 'p-4' : 'px-7 py-5'}`}
                         >
                             <MetricCard
                                 label="Raw YPH"
-                                value={plantNotifications.leaderboardMetrics.rawYPH?.toFixed(2) || '--'}
+                                value={leaderboardMetrics.rawYPH?.toFixed(2) || '--'}
                                 icon="fa-chart-line"
+                                accentColor={accentColor}
+                                isMobile={isMobile}
                             />
                             <MetricCard
                                 label="Adjusted YPH"
-                                value={plantNotifications.leaderboardMetrics.adjustedYPH?.toFixed(2) || '--'}
+                                value={leaderboardMetrics.adjustedYPH?.toFixed(2) || '--'}
                                 icon="fa-calculator"
+                                accentColor={accentColor}
+                                isMobile={isMobile}
                             />
                             <MetricCard
                                 label="Net Help"
-                                value={`${plantNotifications.leaderboardMetrics.netHelp > 0 ? '+' : ''}${Math.round(plantNotifications.leaderboardMetrics.netHelp || 0)}h`}
+                                value={`${leaderboardMetrics.netHelp > 0 ? '+' : ''}${Math.round(leaderboardMetrics.netHelp || 0)}h`}
                                 color={
-                                    plantNotifications.leaderboardMetrics.netHelp > 0
+                                    leaderboardMetrics.netHelp > 0
                                         ? '#16a34a'
-                                        : plantNotifications.leaderboardMetrics.netHelp < 0
+                                        : leaderboardMetrics.netHelp < 0
                                           ? '#dc2626'
                                           : '#64748b'
                                 }
                                 icon="fa-hands-helping"
+                                accentColor={accentColor}
+                                isMobile={isMobile}
                             />
                             <MetricCard
                                 label="Cleanliness"
-                                value={plantNotifications.leaderboardMetrics.avgCleanliness?.toFixed(1) || '--'}
+                                value={leaderboardMetrics.avgCleanliness?.toFixed(1) || '--'}
                                 color={
-                                    (plantNotifications.leaderboardMetrics.avgCleanliness || 0) >= 4
+                                    (leaderboardMetrics.avgCleanliness || 0) >= 4
                                         ? '#16a34a'
-                                        : (plantNotifications.leaderboardMetrics.avgCleanliness || 0) >= 3
+                                        : (leaderboardMetrics.avgCleanliness || 0) >= 3
                                           ? '#f59e0b'
                                           : '#dc2626'
                                 }
                                 icon="fa-broom"
+                                accentColor={accentColor}
+                                isMobile={isMobile}
                             />
                             <MetricCard
                                 label="Safety"
-                                value={plantNotifications.leaderboardMetrics.safetyIncidents || 0}
-                                color={
-                                    (plantNotifications.leaderboardMetrics.safetyIncidents || 0) === 0
-                                        ? '#16a34a'
-                                        : '#dc2626'
-                                }
+                                value={leaderboardMetrics.safetyIncidents || 0}
+                                color={(leaderboardMetrics.safetyIncidents || 0) === 0 ? '#16a34a' : '#dc2626'}
                                 icon="fa-hard-hat"
+                                accentColor={accentColor}
+                                isMobile={isMobile}
                             />
                         </div>
                     )}
 
-                    {(plantNotifications.aiSummary ||
-                        plantNotifications.aiSummaryLoading ||
-                        plantNotifications.aiSummaryFailed) && (
-                        <div
-                            style={{
-                                background: '#fff',
-                                borderBottom: '1px solid #e2e8f0',
-                                padding: isMobile ? '16px' : '20px 28px'
-                            }}
-                        >
-                            <div
-                                style={{
-                                    alignItems: 'flex-start',
-                                    background: plantNotifications.aiSummaryFailed ? '#fef2f2' : '#f0f9ff',
-                                    borderRadius: '12px',
-                                    display: 'flex',
-                                    gap: '12px',
-                                    padding: '16px'
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        alignItems: 'center',
-                                        background: plantNotifications.aiSummaryFailed ? '#fee2e2' : '#e0f2fe',
-                                        borderRadius: '10px',
-                                        display: 'flex',
-                                        flexShrink: 0,
-                                        height: '36px',
-                                        justifyContent: 'center',
-                                        width: '36px'
-                                    }}
-                                >
-                                    <i
-                                        className={`fas ${plantNotifications.aiSummaryLoading ? 'fa-circle-notch fa-spin' : plantNotifications.aiSummaryFailed ? 'fa-exclamation-triangle' : 'fa-robot'}`}
-                                        style={{
-                                            color: plantNotifications.aiSummaryFailed ? '#dc2626' : '#0284c7',
-                                            fontSize: '14px'
-                                        }}
-                                    ></i>
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    {userRoleName && !plantNotifications.aiSummaryLoading && (
-                                        <div style={{ color: '#64748b', fontSize: '11px', marginBottom: '6px' }}>
-                                            <i className="fas fa-user-check" style={{ marginRight: '4px' }}></i>
-                                            Analysis for <strong>{userRoleName}</strong>
-                                            {userPlantCode && isPlantManager && userPlantCode === dashboardPlant
-                                                ? ' (your plant)'
-                                                : ''}
-                                        </div>
-                                    )}
-                                    <p
-                                        style={{
-                                            color: plantNotifications.aiSummaryFailed ? '#dc2626' : '#334155',
-                                            fontSize: '14px',
-                                            lineHeight: 1.6,
-                                            margin: 0
-                                        }}
-                                    >
-                                        {plantNotifications.aiSummaryLoading
-                                            ? 'Analyzing plant performance...'
-                                            : plantNotifications.aiSummaryFailed
-                                              ? 'Failed to generate analysis'
-                                              : aiDisplayText}
-                                    </p>
-                                    {showActionPlan && aiActionPlan.length > 0 && (
-                                        <div
-                                            style={{
-                                                borderTop: '1px solid #e2e8f0',
-                                                marginTop: '12px',
-                                                paddingTop: '12px'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    color: '#475569',
-                                                    display: 'flex',
-                                                    fontSize: '12px',
-                                                    fontWeight: 600,
-                                                    gap: '6px',
-                                                    marginBottom: '10px',
-                                                    textTransform: 'uppercase'
-                                                }}
-                                            >
-                                                <i className="fas fa-tasks"></i>
-                                                Action Plan
-                                            </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                {aiActionPlan.map((item, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        style={{
-                                                            alignItems: 'flex-start',
-                                                            display: 'flex',
-                                                            gap: '10px'
-                                                        }}
-                                                    >
-                                                        <span
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                background: accentColor,
-                                                                borderRadius: '50%',
-                                                                color: '#fff',
-                                                                display: 'flex',
-                                                                flexShrink: 0,
-                                                                fontSize: '10px',
-                                                                fontWeight: 700,
-                                                                height: '20px',
-                                                                justifyContent: 'center',
-                                                                width: '20px'
-                                                            }}
-                                                        >
-                                                            {idx + 1}
-                                                        </span>
-                                                        <span
-                                                            style={{
-                                                                color: '#334155',
-                                                                fontSize: '13px',
-                                                                lineHeight: 1.5
-                                                            }}
-                                                        >
-                                                            {item}
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                {!plantNotifications.aiSummaryLoading && isTypingComplete && (
-                                    <button
-                                        onClick={handleRegenerateAISummary}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: '#64748b',
-                                            cursor: 'pointer',
-                                            padding: '4px'
-                                        }}
-                                        title="Regenerate analysis"
-                                    >
-                                        <i className="fas fa-sync-alt" style={{ fontSize: '12px' }}></i>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                    {(aiSummary || aiSummaryLoading || aiSummaryFailed) && (
+                        <AISummarySection
+                            aiSummaryLoading={aiSummaryLoading}
+                            aiSummaryFailed={aiSummaryFailed}
+                            aiDisplayText={aiDisplayText}
+                            aiActionPlan={aiActionPlan}
+                            showActionPlan={showActionPlan}
+                            isTypingComplete={isTypingComplete}
+                            handleRegenerateAISummary={handleRegenerateAISummary}
+                            userRoleName={userRoleName}
+                            userPlantCode={userPlantCode}
+                            isPlantManager={isPlantManager}
+                            dashboardPlant={dashboardPlant}
+                            accentColor={accentColor}
+                            isMobile={isMobile}
+                        />
                     )}
 
                     {hasNotifications && (
-                        <div style={{ padding: isMobile ? '16px' : '20px 28px' }}>
-                            <div
-                                style={{
-                                    borderBottom: '2px solid #e2e8f0',
-                                    display: 'flex',
-                                    gap: '4px',
-                                    marginBottom: '20px'
-                                }}
-                            >
-                                <button
-                                    onClick={() => setActiveTab('alerts')}
-                                    style={{
-                                        background: activeTab === 'alerts' ? accentColor : 'transparent',
-                                        border: 'none',
-                                        borderRadius: '8px 8px 0 0',
-                                        color: activeTab === 'alerts' ? '#fff' : '#64748b',
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                        fontWeight: 600,
-                                        padding: '10px 20px',
-                                        transition: 'all 0.15s'
-                                    }}
-                                >
-                                    <i className="fas fa-bell" style={{ marginRight: '8px' }}></i>
-                                    Alerts{' '}
-                                    {alertCount > 0 && (
-                                        <span
-                                            style={{
-                                                background:
-                                                    activeTab === 'alerts' ? 'rgba(255,255,255,0.2)' : '#dc2626',
-                                                borderRadius: '10px',
-                                                color: '#fff',
-                                                fontSize: '11px',
-                                                marginLeft: '6px',
-                                                padding: '2px 8px'
-                                            }}
-                                        >
-                                            {alertCount}
-                                        </span>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('operators')}
-                                    style={{
-                                        background: activeTab === 'operators' ? accentColor : 'transparent',
-                                        border: 'none',
-                                        borderRadius: '8px 8px 0 0',
-                                        color: activeTab === 'operators' ? '#fff' : '#64748b',
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                        fontWeight: 600,
-                                        padding: '10px 20px',
-                                        transition: 'all 0.15s'
-                                    }}
-                                >
-                                    <i className="fas fa-users" style={{ marginRight: '8px' }}></i>
-                                    Operators
-                                </button>
-                            </div>
+                        <div className={isMobile ? 'p-4' : 'px-7 py-5'}>
+                            <TabHeader
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                alertCount={alertCount}
+                                accentColor={accentColor}
+                            />
 
                             {activeTab === 'alerts' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    {plantNotifications.unverifiedMixers.length > 0 && (
-                                        <AlertItem
-                                            icon="fa-clipboard-check"
-                                            iconBg="#dc2626"
-                                            count={plantNotifications.unverifiedMixers.length}
-                                            title="Unverified Mixers"
-                                            subtitle="Needs weekly verification"
-                                            items={plantNotifications.unverifiedMixers}
-                                            expandKey="unverifiedMixers"
-                                            renderItem={(m, i) => (
-                                                <AssetButton
-                                                    key={i}
-                                                    label={m.truckNumber || 'N/A'}
-                                                    color="#dc2626"
-                                                    onClick={() => {
-                                                        setEmbeddedView('mixers')
-                                                        setEmbeddedViewSearch(m.truckNumber || '')
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                    )}
-                                    {plantNotifications.overdueService.length > 0 && (
-                                        <AlertItem
-                                            icon="fa-wrench"
-                                            iconBg="#f59e0b"
-                                            count={plantNotifications.overdueService.length}
-                                            title="Service Overdue"
-                                            subtitle="Last service 6+ months ago"
-                                            items={plantNotifications.overdueService}
-                                            expandKey="overdueService"
-                                            maxItems={4}
-                                            renderItem={(a, i) => (
-                                                <AssetButton
-                                                    key={i}
-                                                    label={`${a.type} ${a.identifier || ''}`}
-                                                    color="#f59e0b"
-                                                    onClick={() => {
-                                                        setEmbeddedView(
-                                                            a.type === 'Mixer'
-                                                                ? 'mixers'
-                                                                : a.type === 'Tractor'
-                                                                  ? 'tractors'
-                                                                  : a.type === 'Trailer'
-                                                                    ? 'trailers'
-                                                                    : 'equipment'
-                                                        )
-                                                        setEmbeddedViewSearch(a.identifier || '')
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                    )}
-                                    {plantNotifications.assetsWithMostIssues.length > 0 && (
-                                        <AlertItem
-                                            icon="fa-exclamation-circle"
-                                            iconBg="#ea580c"
-                                            count={plantNotifications.assetsWithMostIssues.length}
-                                            title="Open Issues"
-                                            subtitle="Assets with unresolved issues"
-                                            items={plantNotifications.assetsWithMostIssues}
-                                            expandKey="assetsWithIssues"
-                                            maxItems={4}
-                                            renderItem={(a, i) => (
-                                                <AssetButton
-                                                    key={i}
-                                                    label={`${a.type} ${a.identifier || ''} (${a.openIssueCount})`}
-                                                    color="#ea580c"
-                                                    onClick={() => {
-                                                        setEmbeddedView(
-                                                            a.type === 'Mixer'
-                                                                ? 'mixers'
-                                                                : a.type === 'Tractor'
-                                                                  ? 'tractors'
-                                                                  : a.type === 'Trailer'
-                                                                    ? 'trailers'
-                                                                    : 'equipment'
-                                                        )
-                                                        setEmbeddedViewSearch(a.identifier || '')
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                    )}
-                                    {plantNotifications.longTermShopAssets.length > 0 && (
-                                        <AlertItem
-                                            icon="fa-tools"
-                                            iconBg="#be123c"
-                                            count={plantNotifications.longTermShopAssets.length}
-                                            title="Long-Term Shop"
-                                            subtitle="In shop for 6+ days"
-                                            items={plantNotifications.longTermShopAssets}
-                                            expandKey="longTermShop"
-                                            maxItems={4}
-                                            renderItem={(a, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => {
-                                                        setEmbeddedView(
-                                                            a.type === 'Mixer'
-                                                                ? 'mixers'
-                                                                : a.type === 'Tractor'
-                                                                  ? 'tractors'
-                                                                  : a.type === 'Trailer'
-                                                                    ? 'trailers'
-                                                                    : 'equipment'
-                                                        )
-                                                        setEmbeddedViewSearch(a.identifier || '')
-                                                    }}
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: '#f8fafc',
-                                                        border: '1px solid #be123c20',
-                                                        borderRadius: '8px',
-                                                        color: '#be123c',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        fontSize: '13px',
-                                                        fontWeight: 500,
-                                                        gap: '8px',
-                                                        padding: '6px 12px'
-                                                    }}
-                                                >
-                                                    <span>{a.identifier}</span>
-                                                    <span style={{ color: '#94a3b8', fontSize: '12px' }}>
-                                                        ({a.daysInShop}d)
-                                                    </span>
-                                                    {a.downInYard && (
-                                                        <span
-                                                            style={{
-                                                                background: '#fee2e2',
-                                                                borderRadius: '4px',
-                                                                color: '#dc2626',
-                                                                fontSize: '10px',
-                                                                fontWeight: 600,
-                                                                padding: '2px 6px'
-                                                            }}
-                                                        >
-                                                            In Yard
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            )}
-                                        />
-                                    )}
-                                    {plantNotifications.shopIssue && (
-                                        <div
-                                            style={{
-                                                alignItems: 'center',
-                                                background: '#fef2f2',
-                                                border: '1px solid #fecaca',
-                                                borderRadius: '12px',
-                                                display: 'flex',
-                                                gap: '12px',
-                                                padding: '16px'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    background: '#dc2626',
-                                                    borderRadius: '10px',
-                                                    display: 'flex',
-                                                    flexShrink: 0,
-                                                    height: '40px',
-                                                    justifyContent: 'center',
-                                                    width: '40px'
-                                                }}
-                                            >
-                                                <i
-                                                    className="fas fa-exclamation"
-                                                    style={{ color: '#fff', fontSize: '16px' }}
-                                                ></i>
-                                            </div>
-                                            <div>
-                                                <div style={{ color: '#991b1b', fontSize: '15px', fontWeight: 600 }}>
-                                                    Fleet Availability Alert
-                                                </div>
-                                                <div style={{ color: '#dc2626', fontSize: '13px', marginTop: '4px' }}>
-                                                    <strong>{plantNotifications.shopIssue.inShopCount}</strong> in shop,
-                                                    only <strong>{plantNotifications.shopIssue.spareCount}</strong>{' '}
-                                                    spare
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                <AlertsTab
+                                    plantNotifications={plantNotifications}
+                                    expandedSections={expandedSections}
+                                    setExpandedSections={setExpandedSections}
+                                    setEmbeddedView={setEmbeddedView}
+                                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                                    renderAssetButton={renderAssetButton}
+                                    shopIssue={shopIssue}
+                                />
                             )}
 
                             {activeTab === 'operators' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    {plantNotifications.unassignedOperators.length > 0 && (
-                                        <div
-                                            style={{
-                                                background: '#fff',
-                                                borderRadius: '12px',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                                                overflow: 'hidden'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    borderBottom: '1px solid #f1f5f9',
-                                                    display: 'flex',
-                                                    gap: '12px',
-                                                    padding: '14px 16px'
-                                                }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: '#0ea5e9',
-                                                        borderRadius: '10px',
-                                                        display: 'flex',
-                                                        height: '40px',
-                                                        justifyContent: 'center',
-                                                        width: '40px'
-                                                    }}
-                                                >
-                                                    <i
-                                                        className="fas fa-user-slash"
-                                                        style={{ color: '#fff', fontSize: '16px' }}
-                                                    ></i>
-                                                </div>
-                                                <div>
-                                                    <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                                                        <span
-                                                            style={{
-                                                                color: '#1e293b',
-                                                                fontSize: '15px',
-                                                                fontWeight: 600
-                                                            }}
-                                                        >
-                                                            Unassigned Operators
-                                                        </span>
-                                                        <span
-                                                            style={{
-                                                                background: '#0ea5e9',
-                                                                borderRadius: '12px',
-                                                                color: '#fff',
-                                                                fontSize: '12px',
-                                                                fontWeight: 700,
-                                                                padding: '2px 8px'
-                                                            }}
-                                                        >
-                                                            {plantNotifications.unassignedOperators.length}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        style={{ color: '#64748b', fontSize: '12px', marginTop: '2px' }}
-                                                    >
-                                                        Not assigned to any asset
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    flexWrap: 'wrap',
-                                                    gap: '8px',
-                                                    padding: '12px 16px'
-                                                }}
-                                            >
-                                                {plantNotifications.unassignedOperators.map((o, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => {
-                                                            setEmbeddedView('operators')
-                                                            setEmbeddedViewSearch(o.name || '')
-                                                        }}
-                                                        style={{
-                                                            background: '#f0f9ff',
-                                                            border: '1px solid #bae6fd',
-                                                            borderRadius: '8px',
-                                                            color: '#0369a1',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            fontWeight: 500,
-                                                            padding: '6px 12px'
-                                                        }}
-                                                    >
-                                                        {o.name}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {plantNotifications.pendingOperators.length > 0 && (
-                                        <div
-                                            style={{
-                                                background: '#fff',
-                                                borderRadius: '12px',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                                                overflow: 'hidden'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    borderBottom: '1px solid #f1f5f9',
-                                                    display: 'flex',
-                                                    gap: '12px',
-                                                    padding: '14px 16px'
-                                                }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: '#10b981',
-                                                        borderRadius: '10px',
-                                                        display: 'flex',
-                                                        height: '40px',
-                                                        justifyContent: 'center',
-                                                        width: '40px'
-                                                    }}
-                                                >
-                                                    <i
-                                                        className="fas fa-user-plus"
-                                                        style={{ color: '#fff', fontSize: '16px' }}
-                                                    ></i>
-                                                </div>
-                                                <div>
-                                                    <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                                                        <span
-                                                            style={{
-                                                                color: '#1e293b',
-                                                                fontSize: '15px',
-                                                                fontWeight: 600
-                                                            }}
-                                                        >
-                                                            Pending Start
-                                                        </span>
-                                                        <span
-                                                            style={{
-                                                                background: '#10b981',
-                                                                borderRadius: '12px',
-                                                                color: '#fff',
-                                                                fontSize: '12px',
-                                                                fontWeight: 700,
-                                                                padding: '2px 8px'
-                                                            }}
-                                                        >
-                                                            {plantNotifications.pendingOperators.length}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        style={{ color: '#64748b', fontSize: '12px', marginTop: '2px' }}
-                                                    >
-                                                        New hires awaiting start
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    flexWrap: 'wrap',
-                                                    gap: '8px',
-                                                    padding: '12px 16px'
-                                                }}
-                                            >
-                                                {plantNotifications.pendingOperators.map((o, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => {
-                                                            setEmbeddedView('operators')
-                                                            setEmbeddedViewSearch(o.operatorName || '')
-                                                        }}
-                                                        style={{
-                                                            background: '#ecfdf5',
-                                                            border: '1px solid #a7f3d0',
-                                                            borderRadius: '8px',
-                                                            color: '#047857',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            fontWeight: 500,
-                                                            padding: '6px 12px'
-                                                        }}
-                                                    >
-                                                        {o.operatorName}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {plantNotifications.trainingOperators.length > 0 && (
-                                        <div
-                                            style={{
-                                                background: '#fff',
-                                                borderRadius: '12px',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                                                overflow: 'hidden'
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    borderBottom: '1px solid #f1f5f9',
-                                                    display: 'flex',
-                                                    gap: '12px',
-                                                    padding: '14px 16px'
-                                                }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: '#8b5cf6',
-                                                        borderRadius: '10px',
-                                                        display: 'flex',
-                                                        height: '40px',
-                                                        justifyContent: 'center',
-                                                        width: '40px'
-                                                    }}
-                                                >
-                                                    <i
-                                                        className="fas fa-graduation-cap"
-                                                        style={{ color: '#fff', fontSize: '16px' }}
-                                                    ></i>
-                                                </div>
-                                                <div>
-                                                    <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                                                        <span
-                                                            style={{
-                                                                color: '#1e293b',
-                                                                fontSize: '15px',
-                                                                fontWeight: 600
-                                                            }}
-                                                        >
-                                                            In Training
-                                                        </span>
-                                                        <span
-                                                            style={{
-                                                                background: '#8b5cf6',
-                                                                borderRadius: '12px',
-                                                                color: '#fff',
-                                                                fontSize: '12px',
-                                                                fontWeight: 700,
-                                                                padding: '2px 8px'
-                                                            }}
-                                                        >
-                                                            {plantNotifications.trainingOperators.length}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        style={{ color: '#64748b', fontSize: '12px', marginTop: '2px' }}
-                                                    >
-                                                        Currently being trained
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    flexWrap: 'wrap',
-                                                    gap: '8px',
-                                                    padding: '12px 16px'
-                                                }}
-                                            >
-                                                {plantNotifications.trainingOperators.map((o, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => {
-                                                            setEmbeddedView('operators')
-                                                            setEmbeddedViewSearch(o.operatorName || '')
-                                                        }}
-                                                        style={{
-                                                            background: '#f5f3ff',
-                                                            border: '1px solid #ddd6fe',
-                                                            borderRadius: '8px',
-                                                            color: '#6d28d9',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            fontWeight: 500,
-                                                            padding: '6px 12px'
-                                                        }}
-                                                    >
-                                                        {o.operatorName}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {plantNotifications.unassignedOperators.length === 0 &&
-                                        plantNotifications.pendingOperators.length === 0 &&
-                                        plantNotifications.trainingOperators.length === 0 && (
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    background: '#f8fafc',
-                                                    borderRadius: '12px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '8px',
-                                                    padding: '40px 20px',
-                                                    textAlign: 'center'
-                                                }}
-                                            >
-                                                <i
-                                                    className="fas fa-check-circle"
-                                                    style={{ color: '#10b981', fontSize: '32px' }}
-                                                ></i>
-                                                <div style={{ color: '#1e293b', fontSize: '15px', fontWeight: 600 }}>
-                                                    All operators assigned
-                                                </div>
-                                                <div style={{ color: '#64748b', fontSize: '13px' }}>
-                                                    No operators need attention
-                                                </div>
-                                            </div>
-                                        )}
-                                </div>
+                                <OperatorsTab
+                                    plantNotifications={plantNotifications}
+                                    setEmbeddedView={setEmbeddedView}
+                                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                                />
                             )}
                         </div>
                     )}
@@ -1101,5 +363,306 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         </div>
     )
 })
+
+const AISummarySection = ({
+    aiSummaryLoading,
+    aiSummaryFailed,
+    aiDisplayText,
+    aiActionPlan,
+    showActionPlan,
+    isTypingComplete,
+    handleRegenerateAISummary,
+    userRoleName,
+    userPlantCode,
+    isPlantManager,
+    dashboardPlant,
+    accentColor,
+    isMobile
+}) => (
+    <div className={`bg-white border-b border-slate-200 ${isMobile ? 'p-4' : 'px-7 py-5'}`}>
+        <div className={`flex items-start gap-3 rounded-xl p-4 ${aiSummaryFailed ? 'bg-red-50' : 'bg-sky-50'}`}>
+            <div
+                className={`flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 ${aiSummaryFailed ? 'bg-red-100' : 'bg-sky-100'}`}
+            >
+                <i
+                    className={`fas ${aiSummaryLoading ? 'fa-circle-notch fa-spin' : aiSummaryFailed ? 'fa-exclamation-triangle' : 'fa-robot'} text-sm`}
+                    style={{ color: aiSummaryFailed ? '#dc2626' : '#0284c7' }}
+                />
+            </div>
+            <div className="flex-1">
+                {userRoleName && !aiSummaryLoading && (
+                    <div className="text-slate-500 text-[11px] mb-1.5">
+                        <i className="fas fa-user-check mr-1" />
+                        Analysis for <strong>{userRoleName}</strong>
+                        {userPlantCode && isPlantManager && userPlantCode === dashboardPlant ? ' (your plant)' : ''}
+                    </div>
+                )}
+                <p className={`text-sm leading-relaxed m-0 ${aiSummaryFailed ? 'text-red-600' : 'text-slate-700'}`}>
+                    {aiSummaryLoading
+                        ? 'Analyzing plant performance...'
+                        : aiSummaryFailed
+                          ? 'Failed to generate analysis'
+                          : aiDisplayText}
+                </p>
+                {showActionPlan && aiActionPlan.length > 0 && (
+                    <div className="border-t border-slate-200 mt-3 pt-3">
+                        <div className="flex items-center gap-1.5 text-slate-600 text-xs font-semibold uppercase mb-2.5">
+                            <i className="fas fa-tasks" />
+                            Action Plan
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {aiActionPlan.map((item, idx) => (
+                                <div key={idx} className="flex items-start gap-2.5">
+                                    <span
+                                        className="flex items-center justify-center w-5 h-5 rounded-full text-white text-[10px] font-bold flex-shrink-0"
+                                        style={{ background: accentColor }}
+                                    >
+                                        {idx + 1}
+                                    </span>
+                                    <span className="text-slate-700 text-sm leading-normal">{item}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+            {!aiSummaryLoading && isTypingComplete && (
+                <button
+                    onClick={handleRegenerateAISummary}
+                    className="bg-transparent border-none text-slate-500 cursor-pointer p-1 hover:text-slate-700"
+                    title="Regenerate analysis"
+                >
+                    <i className="fas fa-sync-alt text-xs" />
+                </button>
+            )}
+        </div>
+    </div>
+)
+
+const TabHeader = ({ activeTab, setActiveTab, alertCount, accentColor }) => (
+    <div className="flex gap-1 border-b-2 border-slate-200 mb-5">
+        {[
+            { badge: alertCount, icon: 'fa-bell', id: 'alerts', label: 'Alerts' },
+            { icon: 'fa-users', id: 'operators', label: 'Operators' }
+        ].map((tab) => (
+            <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="border-none rounded-t-lg text-sm font-semibold px-5 py-2.5 cursor-pointer transition-all"
+                style={{
+                    background: activeTab === tab.id ? accentColor : 'transparent',
+                    color: activeTab === tab.id ? '#fff' : '#64748b'
+                }}
+            >
+                <i className={`fas ${tab.icon} mr-2`} />
+                {tab.label}
+                {tab.badge > 0 && (
+                    <span
+                        className="rounded-xl text-white text-[11px] ml-1.5 px-2 py-0.5"
+                        style={{ background: activeTab === tab.id ? 'rgba(255,255,255,0.2)' : '#dc2626' }}
+                    >
+                        {tab.badge}
+                    </span>
+                )}
+            </button>
+        ))}
+    </div>
+)
+
+const AlertsTab = ({
+    plantNotifications,
+    expandedSections,
+    setExpandedSections,
+    setEmbeddedView,
+    setEmbeddedViewSearch,
+    renderAssetButton,
+    shopIssue
+}) => (
+    <div className="flex flex-col gap-4">
+        {plantNotifications.unverifiedMixers.length > 0 && (
+            <AlertItem
+                icon="fa-clipboard-check"
+                iconBg="#dc2626"
+                count={plantNotifications.unverifiedMixers.length}
+                title="Unverified Mixers"
+                subtitle="Needs weekly verification"
+                items={plantNotifications.unverifiedMixers}
+                expandKey="unverifiedMixers"
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(m, i) => (
+                    <AssetButton
+                        key={i}
+                        label={m.truckNumber || 'N/A'}
+                        color="#dc2626"
+                        onClick={() => {
+                            setEmbeddedView('mixers')
+                            setEmbeddedViewSearch(m.truckNumber || '')
+                        }}
+                    />
+                )}
+            />
+        )}
+
+        {plantNotifications.overdueService.length > 0 && (
+            <AlertItem
+                icon="fa-wrench"
+                iconBg="#f59e0b"
+                count={plantNotifications.overdueService.length}
+                title="Service Overdue"
+                subtitle="Last service 6+ months ago"
+                items={plantNotifications.overdueService}
+                expandKey="overdueService"
+                maxItems={4}
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(a, i) => <span key={i}>{renderAssetButton(a, '#f59e0b')}</span>}
+            />
+        )}
+
+        {plantNotifications.assetsWithMostIssues.length > 0 && (
+            <AlertItem
+                icon="fa-exclamation-circle"
+                iconBg="#ea580c"
+                count={plantNotifications.assetsWithMostIssues.length}
+                title="Open Issues"
+                subtitle="Assets with unresolved issues"
+                items={plantNotifications.assetsWithMostIssues}
+                expandKey="assetsWithIssues"
+                maxItems={4}
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(a, i) => (
+                    <AssetButton
+                        key={i}
+                        label={`${a.type} ${a.identifier || ''} (${a.openIssueCount})`}
+                        color="#ea580c"
+                        onClick={() => {
+                            setEmbeddedView(getAssetViewType(a.type))
+                            setEmbeddedViewSearch(a.identifier || '')
+                        }}
+                    />
+                )}
+            />
+        )}
+
+        {plantNotifications.longTermShopAssets.length > 0 && (
+            <AlertItem
+                icon="fa-tools"
+                iconBg="#be123c"
+                count={plantNotifications.longTermShopAssets.length}
+                title="Long-Term Shop"
+                subtitle="In shop for 6+ days"
+                items={plantNotifications.longTermShopAssets}
+                expandKey="longTermShop"
+                maxItems={4}
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(a, i) => (
+                    <button
+                        key={i}
+                        onClick={() => {
+                            setEmbeddedView(getAssetViewType(a.type))
+                            setEmbeddedViewSearch(a.identifier || '')
+                        }}
+                        className="flex items-center gap-2 bg-slate-50 rounded-lg text-rose-700 text-sm font-medium px-3 py-1.5 cursor-pointer"
+                        style={{ border: '1px solid #be123c20' }}
+                    >
+                        <span>{a.identifier}</span>
+                        <span className="text-slate-400 text-xs">({a.daysInShop}d)</span>
+                        {a.downInYard && (
+                            <span className="bg-red-100 text-red-600 rounded text-[10px] font-semibold px-1.5 py-0.5">
+                                In Yard
+                            </span>
+                        )}
+                    </button>
+                )}
+            />
+        )}
+
+        {shopIssue && (
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                <div className="flex items-center justify-center w-10 h-10 bg-red-600 rounded-lg flex-shrink-0">
+                    <i className="fas fa-exclamation text-white text-base" />
+                </div>
+                <div>
+                    <div className="text-red-800 text-[15px] font-semibold">Fleet Availability Alert</div>
+                    <div className="text-red-600 text-sm mt-1">
+                        <strong>{shopIssue.inShopCount}</strong> in shop, only <strong>{shopIssue.spareCount}</strong>{' '}
+                        spare
+                    </div>
+                </div>
+            </div>
+        )}
+    </div>
+)
+
+const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSearch }) => {
+    const { unassignedOperators, pendingOperators, trainingOperators } = plantNotifications
+    const hasOperatorAlerts =
+        unassignedOperators.length > 0 || pendingOperators.length > 0 || trainingOperators.length > 0
+
+    return (
+        <div className="flex flex-col gap-4">
+            {unassignedOperators.length > 0 && (
+                <OperatorSection
+                    iconBg="#0ea5e9"
+                    icon="fa-user-slash"
+                    title="Unassigned Operators"
+                    count={unassignedOperators.length}
+                    subtitle="Not assigned to any asset"
+                    operators={unassignedOperators}
+                    buttonBg="#f0f9ff"
+                    buttonBorder="#bae6fd"
+                    buttonColor="#0369a1"
+                    setEmbeddedView={setEmbeddedView}
+                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                />
+            )}
+
+            {pendingOperators.length > 0 && (
+                <OperatorSection
+                    iconBg="#10b981"
+                    icon="fa-user-plus"
+                    title="Pending Start"
+                    count={pendingOperators.length}
+                    subtitle="New hires awaiting start"
+                    operators={pendingOperators}
+                    buttonBg="#ecfdf5"
+                    buttonBorder="#a7f3d0"
+                    buttonColor="#047857"
+                    setEmbeddedView={setEmbeddedView}
+                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                    nameField="operatorName"
+                />
+            )}
+
+            {trainingOperators.length > 0 && (
+                <OperatorSection
+                    iconBg="#8b5cf6"
+                    icon="fa-graduation-cap"
+                    title="In Training"
+                    count={trainingOperators.length}
+                    subtitle="Currently being trained"
+                    operators={trainingOperators}
+                    buttonBg="#f5f3ff"
+                    buttonBorder="#ddd6fe"
+                    buttonColor="#6d28d9"
+                    setEmbeddedView={setEmbeddedView}
+                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                    nameField="operatorName"
+                />
+            )}
+
+            {!hasOperatorAlerts && (
+                <div className="flex flex-col items-center gap-2 bg-slate-50 rounded-xl px-5 py-10 text-center">
+                    <i className="fas fa-check-circle text-emerald-500 text-[32px]" />
+                    <div className="text-slate-900 text-[15px] font-semibold">All operators assigned</div>
+                    <div className="text-slate-500 text-sm">No operators need attention</div>
+                </div>
+            )}
+        </div>
+    )
+}
 
 export default DashboardPlantSummary

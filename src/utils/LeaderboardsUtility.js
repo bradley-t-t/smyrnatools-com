@@ -139,7 +139,7 @@ const LeaderboardsUtility = {
 
     calculateMetrics(
         reportsList,
-        avgFleetCleanlinessActual = 0,
+        _avgFleetCleanlinessActual = 0,
         mixerOperatorCount = 1,
         currentWeekStart,
         hoursAdjustments = null,
@@ -294,29 +294,14 @@ const LeaderboardsUtility = {
         const targetLoadsPerOperatorPerDay = 3
         const loadsEfficiency = Math.min((loadsPerOperatorPerDay / targetLoadsPerOperatorPerDay) * 100, 100)
 
-        let cleanlinessModifier = 0
-        if (avgFleetCleanlinessActual >= 5) {
-            cleanlinessModifier = 10
-        } else if (avgFleetCleanlinessActual >= 4) {
-            cleanlinessModifier = 5
-        } else if (avgFleetCleanlinessActual >= 3) {
-            cleanlinessModifier = -5
-        } else if (avgFleetCleanlinessActual > 0) {
-            cleanlinessModifier = -10
-        }
-
         const baseEfficiency = yphEfficiency * 0.9 + loadsEfficiency * 0.1
 
         const reportDeduction = (missingCount + incompleteCount) * 10
 
         const impactfulIncidents = safetyIncidents?.impactfulIncidents || 0
         const totalSafetyIncidents = safetyIncidents?.totalIncidents || 0
-        const safetyDeduction = impactfulIncidents * 1
 
-        const avgEfficiency =
-            avgYPH > 0
-                ? Math.min(Math.max(baseEfficiency + cleanlinessModifier - reportDeduction - safetyDeduction, 0), 100)
-                : 0
+        const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency - reportDeduction, 0), 100) : 0
 
         const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports) * 100 : 100
 

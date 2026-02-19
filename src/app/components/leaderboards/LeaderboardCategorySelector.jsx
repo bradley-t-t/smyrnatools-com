@@ -1,0 +1,84 @@
+import React from 'react'
+
+import { CATEGORY_GROUPS, LEADERBOARD_CATEGORIES } from '../../constants/leaderboardConstants'
+
+function CategoryTab({ category, isSelected, onSelect, variant }) {
+    const isDark = variant === 'dark'
+    const baseClasses =
+        'flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all md:px-4'
+    const selectedClasses = isDark ? 'bg-white text-slate-900 shadow-md' : 'bg-accent text-white shadow-sm'
+    const unselectedClasses = isDark
+        ? 'bg-white/10 text-white/90 hover:bg-white/20 hover:text-white'
+        : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+
+    return (
+        <button
+            type="button"
+            onClick={() => onSelect(category.id)}
+            className={`${baseClasses} ${isSelected ? selectedClasses : unselectedClasses}`}
+        >
+            <i className={`fas ${category.icon} text-xs`} />
+            <span>{category.label}</span>
+        </button>
+    )
+}
+
+function CategoryGroup({ group, categories, selectedId, onSelect, variant }) {
+    const isDark = variant === 'dark'
+    return (
+        <div className="flex flex-col gap-2">
+            <span
+                className={`px-1 text-[0.625rem] font-semibold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-slate-400'}`}
+            >
+                {group}
+            </span>
+            <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                    <CategoryTab
+                        key={cat.id}
+                        category={cat}
+                        isSelected={selectedId === cat.id}
+                        onSelect={onSelect}
+                        variant={variant}
+                    />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export default function LeaderboardCategorySelector({ selectedId, onSelect, showGroups = true, variant = 'light' }) {
+    if (showGroups) {
+        return (
+            <div className="flex flex-col gap-4 md:flex-row md:gap-8">
+                {CATEGORY_GROUPS.map((group) => {
+                    const groupCategories = LEADERBOARD_CATEGORIES.filter((c) => c.group === group)
+                    return (
+                        <CategoryGroup
+                            key={group}
+                            group={group}
+                            categories={groupCategories}
+                            selectedId={selectedId}
+                            onSelect={onSelect}
+                            variant={variant}
+                        />
+                    )
+                })}
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex flex-wrap gap-2">
+            {LEADERBOARD_CATEGORIES.map((cat) => (
+                <CategoryTab
+                    key={cat.id}
+                    category={cat}
+                    isSelected={selectedId === cat.id}
+                    onSelect={onSelect}
+                    variant={variant}
+                />
+            ))}
+        </div>
+    )
+}
