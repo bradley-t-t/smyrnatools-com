@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.8] - 2026-02-19
+
+- Updated `useDashboardData.js` to improve code clarity by introducing temporary variables (`recordsList` and `plants`) for array handling in `processMaintenanceRecords`, `processCommentRecords`, and `usePlantFilter` functions.
+- Modified `RolesView.jsx` to remove the `onSearch` prop from the `PageHeader` component signature.
+
 ## [13.7] - 2026-02-19
 
 - Removed CSS styles for `.btn-secondary` and its hover state from `src/app/App.css`.

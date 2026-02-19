@@ -229,7 +229,8 @@ export function useIssueCommentCounts({ allMixersRef, allTractorsRef, allTrailer
             const equipmentMap = new Map(allEquipmentRef.current.map((a) => [a.id, a]))
 
             const processMaintenanceRecords = (records, assetMap, assetType, idField, identifierField) => {
-                ;(records || []).forEach((record) => {
+                const recordsList = records || []
+                recordsList.forEach((record) => {
                     const isResolved = !!record.time_completed
                     const assetId = record[idField]
 
@@ -255,7 +256,8 @@ export function useIssueCommentCounts({ allMixersRef, allTractorsRef, allTrailer
             }
 
             const processCommentRecords = (records, assetType, idField) => {
-                ;(records || []).forEach((record) => {
+                const recordsList = records || []
+                recordsList.forEach((record) => {
                     const assetId = record[idField]
                     counts[assetType][assetId] = counts[assetType][assetId] || { comments: 0, issues: 0 }
                     counts[assetType][assetId].comments++
@@ -299,7 +301,8 @@ export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants
             } else if (dashboardPlant) {
                 plantSet.add(String(dashboardPlant).trim())
             } else {
-                ;(regionPlants || []).forEach((p) => {
+                const plants = regionPlants || []
+                plants.forEach((p) => {
                     const code = p.plantCode || p.plant_code
                     if (code) plantSet.add(String(code).trim())
                 })

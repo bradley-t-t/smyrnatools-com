@@ -20,7 +20,7 @@ const getPermissionCount = (role) => (Array.isArray(role?.permissions) ? role.pe
 const getSortedPermissions = (permissions) =>
     Array.isArray(permissions) ? [...permissions].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) : []
 
-function PageHeader({ hasITAccess, onBulkAdd, onCreate, onSearch }) {
+function PageHeader({ hasITAccess, onBulkAdd, onCreate }) {
     return (
         <div
             className="sticky top-0 z-10 border-b border-slate-200 px-6 py-5"
