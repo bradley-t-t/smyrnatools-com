@@ -2,6 +2,21 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.4] - 2026-02-19
+
+- Updated version number to 13.4 in `public/turl.json`.
+- Made significant structural changes to `TopSection.jsx`, including the addition of new components and functionality (specific details not fully visible in the truncated diff).
+
+## [13.3] - 2026-02-19
+
+- Added new components in `TopSection.jsx` for enhanced UI functionality, including `SearchInput`, `Badge`, `ActionButton`, `ViewToggle`, `FilterSelect`, `PlantFilterButton`, `ResetButton`, `ListHeader`, and `MobileViewToggle`.
+- Introduced mobile responsiveness in `TopSection.jsx` by integrating the `useIsMobile` hook.
+- Implemented view mode toggling between list and grid views with the `ViewToggle` and `MobileViewToggle` components in `TopSection.jsx`.
+- Added search functionality with a clear button in the `SearchInput` component within `TopSection.jsx`.
+- Enhanced filtering capabilities in `TopSection.jsx` with `FilterSelect` and `PlantFilterButton` components for better data management.
+- Added sortable table headers in `ListHeader` component of `TopSection.jsx` with support for ascending and descending order.
+- Introduced customizable styling with `accentColor` prop across multiple components in `TopSection.jsx` for consistent theming.
+
 ## [13.2] - 2026-02-19
 
 - Added new `EfficiencyInfoCard.jsx` component to display how efficiency is calculated with a detailed formula breakdown and expandable content.

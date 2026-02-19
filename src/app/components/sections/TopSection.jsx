@@ -1,7 +1,216 @@
 import React, { useLayoutEffect, useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import PlantDropdownModal from '../common/PlantDropdownModal'
+
+const DEFAULT_LIST_LABELS = ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']
+const DEFAULT_COL_WIDTHS = ['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']
+
+const SearchInput = ({ value, onChange, onClear, placeholder, className = '' }) => (
+    <div className={`relative ${className}`} role="search">
+        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]" />
+        <input
+            type="text"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm outline-none py-3 pl-11 pr-4 placeholder:text-slate-400"
+            placeholder={placeholder}
+            value={value || ''}
+            onChange={(e) => onChange?.(e.target.value)}
+            aria-label="Search"
+        />
+        {value && onClear && (
+            <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-gray-200 rounded-lg text-slate-500 text-xs cursor-pointer"
+                onClick={onClear}
+                type="button"
+                aria-label="Clear search"
+            >
+                <i className="fas fa-times" />
+            </button>
+        )}
+    </div>
+)
+
+const Badge = ({ children, onClick, accentColor }) => {
+    const baseClasses = 'inline-flex items-center gap-2 rounded-lg text-sm font-semibold px-4 py-2'
+    const style = { backgroundColor: `${accentColor}15`, color: accentColor }
+
+    return onClick ? (
+        <button className={`${baseClasses} border-none cursor-pointer`} style={style} onClick={onClick}>
+            <i className="fas fa-user-clock" />
+            <span>{children}</span>
+        </button>
+    ) : (
+        <span className={baseClasses} style={style}>
+            <i className="fas fa-user-clock" />
+            <span>{children}</span>
+        </span>
+    )
+}
+
+const ActionButton = ({ icon, label, onClick, variant = 'subtle', accentColor, className = '' }) => {
+    const baseClasses =
+        'flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer transition-all duration-150'
+    const isPrimary = variant === 'primary'
+
+    return (
+        <button
+            className={`${baseClasses} ${className}`}
+            style={{
+                backgroundColor: isPrimary ? accentColor : '#f1f5f9',
+                color: isPrimary ? 'white' : '#475569'
+            }}
+            onClick={onClick}
+            type="button"
+            aria-label={label}
+        >
+            <i className={`fas ${icon}`} />
+            {label && <span>{label}</span>}
+        </button>
+    )
+}
+
+const ViewToggle = ({ viewMode, onChange, accentColor }) => (
+    <div
+        className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1"
+        role="group"
+        aria-label="View mode"
+    >
+        {['list', 'grid'].map((mode) => {
+            const isActive = viewMode === mode
+            return (
+                <button
+                    key={mode}
+                    className="flex items-center justify-center w-10 h-10 rounded-lg text-[15px] border-none cursor-pointer transition-all duration-150"
+                    style={{
+                        backgroundColor: isActive ? accentColor : 'transparent',
+                        color: isActive ? 'white' : '#64748b'
+                    }}
+                    onClick={() => onChange?.(mode)}
+                    aria-label={`${mode} view`}
+                    aria-pressed={isActive}
+                    type="button"
+                >
+                    <i className={`fas ${mode === 'list' ? 'fa-list' : 'fa-th-large'}`} />
+                </button>
+            )
+        })}
+    </div>
+)
+
+const FilterSelect = ({ value, options, onChange, ariaLabel, className = '' }) => (
+    <select
+        className={`appearance-none bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm cursor-pointer min-w-[140px] py-3 pl-4 pr-10 bg-no-repeat ${className}`}
+        style={{
+            backgroundImage: CHEVRON_SVG,
+            backgroundPosition: 'right 12px center',
+            backgroundSize: '18px'
+        }}
+        value={value || ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        aria-label={ariaLabel}
+    >
+        {options.map((opt) => (
+            <option key={opt} value={opt === 'All Positions' || opt === 'All Freight' ? '' : opt}>
+                {opt}
+            </option>
+        ))}
+    </select>
+)
+
+const CHEVRON_SVG =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")"
+
+const PlantFilterButton = ({ displayText, onClick }) => (
+    <button
+        className="bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-medium cursor-pointer py-3 pl-4 pr-10 bg-no-repeat"
+        style={{
+            backgroundImage: CHEVRON_SVG,
+            backgroundPosition: 'right 12px center',
+            backgroundSize: '18px'
+        }}
+        onClick={onClick}
+        aria-label="Filter by plant"
+    >
+        {displayText}
+    </button>
+)
+
+const ResetButton = ({ onClick }) => (
+    <button
+        className="flex items-center justify-center w-[46px] h-[46px] bg-slate-50 border border-slate-200 rounded-xl text-slate-500 text-[15px] cursor-pointer"
+        onClick={onClick}
+        type="button"
+        aria-label="Reset filters"
+    >
+        <i className="fas fa-undo" />
+    </button>
+)
+
+const ListHeader = ({ labels, colWidths, sortKey, sortDirection, onHeaderClick, accentColor }) => (
+    <div className="flex items-center bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7">
+        {labels.map((label, index) => {
+            const colWidth = colWidths[index] || 'auto'
+            const isFlex = colWidth === 'flex' || colWidth === 'auto'
+            const isActive = sortKey === label
+
+            return (
+                <div
+                    key={label}
+                    className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold uppercase tracking-wide py-3 px-2 cursor-pointer select-none hover:text-[--accent]"
+                    style={{
+                        ...(isFlex ? { flex: 1, minWidth: 0 } : { flexShrink: 0, width: colWidth }),
+                        '--accent': accentColor
+                    }}
+                    onClick={() => onHeaderClick?.(label)}
+                >
+                    <span>{label}</span>
+                    {isActive && (
+                        <i
+                            className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'} text-[10px]`}
+                            style={{ color: accentColor }}
+                        />
+                    )}
+                </div>
+            )
+        })}
+    </div>
+)
+
+const MobileViewToggle = ({ viewMode, onChange, accentColor }) => (
+    <div className="flex gap-2.5">
+        {[
+            { icon: 'fa-list', label: 'List', mode: 'list' },
+            { icon: 'fa-th-large', label: 'Grid', mode: 'grid' }
+        ].map(({ mode, icon, label }) => {
+            const isActive = viewMode === mode
+            return (
+                <button
+                    key={mode}
+                    className="flex items-center justify-center gap-2 flex-1 rounded-lg text-sm font-semibold py-3 border-2 cursor-pointer"
+                    style={{
+                        backgroundColor: isActive ? `${accentColor}15` : 'white',
+                        borderColor: isActive ? accentColor : '#e5e7eb',
+                        color: isActive ? accentColor : '#64748b'
+                    }}
+                    onClick={() => onChange?.(mode)}
+                    aria-label={`${label} view`}
+                    type="button"
+                >
+                    <i className={`fas ${icon}`} />
+                    <span>{label}</span>
+                </button>
+            )
+        })}
+    </div>
+)
+
+const MobileFilterItem = ({ label, children, fullWidth = false }) => (
+    <div className={`flex flex-col gap-2 ${fullWidth ? 'col-span-2' : ''}`}>
+        <label className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{label}</label>
+        {children}
+    </div>
+)
 
 function TopSection({
     title,
@@ -30,9 +239,7 @@ function TopSection({
     onReset,
     forwardedRef,
     sticky = true,
-    flush = true,
     tightTop = false,
-    flushTop,
     positionFilter,
     positionOptions,
     onPositionFilterChange,
@@ -47,17 +254,19 @@ function TopSection({
     isOfficeRegion = false,
     customBottomContent = null
 }) {
+    const { preferences } = usePreferences()
+    const accentColor = preferences.accentColor || '#1e3a5f'
+    const isMobile = useIsMobile()
+
+    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
+    const [showMobileFilters, setShowMobileFilters] = useState(false)
+
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
     const safePositionOptions = Array.isArray(positionOptions) ? positionOptions : []
-    const safeListLabels =
-        Array.isArray(listLabels) && listLabels.length > 0
-            ? listLabels
-            : ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']
-    const safeColWidths =
-        Array.isArray(colWidths) && colWidths.length > 0
-            ? colWidths
-            : ['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']
+    const safeFreightOptions = Array.isArray(freightOptions) ? freightOptions : []
+    const safeListLabels = Array.isArray(listLabels) && listLabels.length > 0 ? listLabels : DEFAULT_LIST_LABELS
+    const safeColWidths = Array.isArray(colWidths) && colWidths.length > 0 ? colWidths : DEFAULT_COL_WIDTHS
 
     const filteredPlants =
         isOfficeRegion || !regionPlantCodes || regionPlantCodes.size === 0
@@ -70,11 +279,6 @@ function TopSection({
                   )
               )
 
-    const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-    const [showMobileFilters, setShowMobileFilters] = useState(false)
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
     const selectedPlantObj = safePlants.find((p) => (p.plantCode || p.plant_code) === selectedPlant)
     const plantDisplayText =
         selectedPlant && selectedPlantObj
@@ -82,602 +286,145 @@ function TopSection({
             : 'All Plants'
 
     useLayoutEffect(() => {
-        if (forwardedRef?.current) {
-            const element = forwardedRef.current
-            const updateHeight = () => {
-                const height = element.offsetHeight
-                document.documentElement.style.setProperty('--top-section-height', `${height}px`)
-            }
-            updateHeight()
-            const resizeObserver = new ResizeObserver(updateHeight)
-            resizeObserver.observe(element)
-            return () => resizeObserver.disconnect()
+        if (!forwardedRef?.current) return
+        const element = forwardedRef.current
+        const updateHeight = () => {
+            document.documentElement.style.setProperty('--top-section-height', `${element.offsetHeight}px`)
         }
+        updateHeight()
+        const resizeObserver = new ResizeObserver(updateHeight)
+        resizeObserver.observe(element)
+        return () => resizeObserver.disconnect()
     }, [forwardedRef])
 
-    useLayoutEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768)
-        }
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    const styles = {
-        actionButton: {
-            alignItems: 'center',
-            border: 'none',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '14px',
-            fontWeight: 600,
-            gap: '8px',
-            padding: '12px 20px',
-            transition: 'all 0.15s ease'
-        },
-        actionButtonPrimary: {
-            backgroundColor: accentColor,
-            color: 'white'
-        },
-        actionButtonSubtle: {
-            backgroundColor: '#f1f5f9',
-            color: '#475569'
-        },
-        actionCluster: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '12px',
-            marginLeft: 'auto'
-        },
-        badge: {
-            alignItems: 'center',
-            backgroundColor: `${accentColor}15`,
-            border: 'none',
-            borderRadius: '10px',
-            color: accentColor,
-            cursor: onBadgeClick ? 'pointer' : 'default',
-            display: 'inline-flex',
-            fontSize: '14px',
-            fontWeight: 600,
-            gap: '8px',
-            padding: '8px 16px'
-        },
-        badgeContainer: {
-            marginLeft: '16px'
-        },
-        clearButton: {
-            alignItems: 'center',
-            background: '#e5e7eb',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '12px',
-            height: '26px',
-            justifyContent: 'center',
-            position: 'absolute',
-            right: '12px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '26px'
-        },
-        controlsRow: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '14px',
-            justifyContent: 'space-between'
-        },
-        filters: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '12px',
-            marginLeft: 'auto'
-        },
-        headerCell: {
-            alignItems: 'center',
-            color: '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '11px',
-            fontWeight: 700,
-            gap: '6px',
-            letterSpacing: '0.5px',
-            padding: '12px 8px',
-            textTransform: 'uppercase',
-            userSelect: 'none'
-        },
-        headerCellHover: {
-            color: accentColor
-        },
-        headerRow: {
-            alignItems: 'center',
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e5e7eb',
-            display: 'flex',
-            marginBottom: '-24px',
-            marginLeft: '-28px',
-            marginRight: '-28px',
-            marginTop: '16px',
-            paddingLeft: '28px',
-            paddingRight: '28px'
-        },
-        inner: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '18px'
-        },
-        mobileActionBtn: {
-            alignItems: 'center',
-            border: 'none',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '18px',
-            height: '44px',
-            justifyContent: 'center',
-            width: '44px'
-        },
-        mobileActionButtons: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '10px'
-        },
-        mobileAddBtn: {
-            backgroundColor: accentColor,
-            color: 'white'
-        },
-        mobileFilterItem: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px'
-        },
-        mobileFilterItemFull: {
-            gridColumn: 'span 2'
-        },
-        mobileFilterLabel: {
-            color: '#64748b',
-            fontSize: '11px',
-            fontWeight: 700,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        mobileFilterToggle: (isActive) => ({
-            alignItems: 'center',
-            backgroundColor: isActive ? `${accentColor}15` : '#f8fafc',
-            border: isActive ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
-            borderRadius: '12px',
-            color: isActive ? accentColor : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '18px',
-            height: '50px',
-            justifyContent: 'center',
-            width: '50px'
-        }),
-        mobileFiltersGrid: {
-            display: 'grid',
-            gap: '14px',
-            gridTemplateColumns: 'repeat(2, 1fr)'
-        },
-        mobileFiltersPanel: {
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e5e7eb',
-            borderRadius: '16px',
-            marginTop: '16px',
-            padding: '20px'
-        },
-        mobileHeader: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '12px',
-            justifyContent: 'space-between'
-        },
-        mobileMenuBtn: {
-            backgroundColor: '#f1f5f9',
-            color: '#475569'
-        },
-        mobileResetBtn: {
-            alignItems: 'center',
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            color: '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '14px',
-            fontWeight: 600,
-            gap: '10px',
-            justifyContent: 'center',
-            padding: '14px',
-            width: '100%'
-        },
-        mobileSearchBar: {
-            flex: 1,
-            position: 'relative'
-        },
-        mobileSearchInput: {
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            boxSizing: 'border-box',
-            color: '#1e293b',
-            fontSize: '15px',
-            outline: 'none',
-            padding: '14px 18px 14px 44px',
-            width: '100%'
-        },
-        mobileSearchRow: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '12px',
-            marginTop: '14px'
-        },
-        mobileSelect: {
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            color: '#1e293b',
-            fontSize: '14px',
-            padding: '12px 16px',
-            width: '100%'
-        },
-        mobileSelectBtn: {
-            alignItems: 'center',
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            color: '#1e293b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '14px',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            width: '100%'
-        },
-        mobileTitle: {
-            color: '#1e293b',
-            fontSize: '22px',
-            fontWeight: 700,
-            margin: 0
-        },
-        mobileTitleSection: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '12px'
-        },
-        mobileViewBtn: (isActive) => ({
-            alignItems: 'center',
-            backgroundColor: isActive ? `${accentColor}15` : 'white',
-            border: isActive ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
-            borderRadius: '10px',
-            color: isActive ? accentColor : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            flex: 1,
-            fontSize: '14px',
-            fontWeight: 600,
-            gap: '8px',
-            justifyContent: 'center',
-            padding: '12px'
-        }),
-        mobileViewToggle: {
-            display: 'flex',
-            gap: '10px'
-        },
-        primaryRow: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '16px',
-            justifyContent: 'space-between'
-        },
-        resetButton: {
-            alignItems: 'center',
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            color: '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '15px',
-            height: '46px',
-            justifyContent: 'center',
-            width: '46px'
-        },
-        searchBar: {
-            flex: '0 1 auto',
-            maxWidth: '420px',
-            minWidth: '220px',
-            position: 'relative'
-        },
-        searchIcon: {
-            color: '#94a3b8',
-            fontSize: '15px',
-            left: '16px',
-            position: 'absolute',
-            top: '50%',
-            transform: 'translateY(-50%)'
-        },
-        searchInput: {
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            boxSizing: 'border-box',
-            color: '#1e293b',
-            fontSize: '14px',
-            outline: 'none',
-            padding: '12px 18px 12px 44px',
-            width: '100%'
-        },
-        section: {
-            backgroundColor: 'white',
-            backgroundImage: `
-                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
-            `,
-            backgroundPosition: '0 0, 0 0, 0 0',
-            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
-            borderBottom: '1px solid #e5e7eb',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-            padding: tightTop ? '16px 24px 20px' : '20px 28px 24px',
-            ...(sticky ? { position: 'sticky', top: 0, zIndex: 50 } : {})
-        },
-        select: {
-            appearance: 'none',
-            backgroundColor: '#f8fafc',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-            backgroundPosition: 'right 12px center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '18px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            color: '#1e293b',
-            cursor: 'pointer',
-            fontSize: '14px',
-            minWidth: '140px',
-            padding: '12px 40px 12px 16px'
-        },
-        selectButton: {
-            backgroundColor: '#f8fafc',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-            backgroundPosition: 'right 12px center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '18px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            color: '#1e293b',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 500,
-            padding: '12px 40px 12px 16px'
-        },
-        sortIcon: {
-            color: '#94a3b8',
-            fontSize: '10px'
-        },
-        sortIconActive: {
-            color: accentColor
-        },
-        title: {
-            color: '#1e293b',
-            fontSize: '28px',
-            fontWeight: 700,
-            letterSpacing: '-0.5px',
-            margin: 0
-        },
-        viewToggle: {
-            alignItems: 'center',
-            backgroundColor: '#f1f5f9',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            display: 'flex',
-            padding: '4px'
-        },
-        viewToggleBtn: (isActive) => ({
-            alignItems: 'center',
-            backgroundColor: isActive ? accentColor : 'transparent',
-            border: 'none',
-            borderRadius: '8px',
-            color: isActive ? 'white' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '15px',
-            height: '40px',
-            justifyContent: 'center',
-            transition: 'all 0.15s ease',
-            width: '40px'
-        })
+    const sectionClasses = `bg-white border-b border-slate-200 shadow-sm ${tightTop ? 'px-6 py-4 pb-5' : 'px-7 py-5 pb-6'} ${sticky ? 'sticky top-0 z-50' : ''}`
+    const sectionStyle = {
+        backgroundImage: `
+            linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
+            radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+        `,
+        backgroundPosition: '0 0, 0 0, 0 0',
+        backgroundSize: '20px 20px, 20px 20px, 40px 40px'
     }
 
     if (isMobile) {
         return (
             <>
-                <style>{`
-                    .top-section-search::placeholder {
-                        color: #94a3b8;
-                    }
-                    .top-section-select option {
-                        background-color: white;
-                        color: #1e293b;
-                    }
-                `}</style>
-                <div style={styles.section} ref={forwardedRef} data-section="top" aria-label="Page controls">
-                    <div style={styles.inner}>
-                        <div style={styles.mobileHeader}>
-                            <div style={styles.mobileTitleSection}>
-                                <h1 style={styles.mobileTitle}>{title}</h1>
-                                {badge &&
-                                    (onBadgeClick ? (
-                                        <button style={styles.badge} onClick={onBadgeClick}>
-                                            <i
-                                                className="fas fa-user-clock"
-                                                style={{ color: accentColor }}
-                                                aria-hidden="true"
-                                            ></i>
-                                            <span style={{ color: accentColor }}>{badge}</span>
-                                        </button>
-                                    ) : (
-                                        <span style={styles.badge}>
-                                            <i
-                                                className="fas fa-user-clock"
-                                                style={{ color: accentColor }}
-                                                aria-hidden="true"
-                                            ></i>
-                                            <span style={{ color: accentColor }}>{badge}</span>
-                                        </span>
-                                    ))}
+                <div
+                    ref={forwardedRef}
+                    className={sectionClasses}
+                    style={sectionStyle}
+                    data-section="top"
+                    aria-label="Page controls"
+                >
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-[22px] font-bold text-slate-900 m-0">{title}</h1>
+                                {badge && (
+                                    <Badge onClick={onBadgeClick} accentColor={accentColor}>
+                                        {badge}
+                                    </Badge>
+                                )}
                             </div>
-                            <div style={styles.mobileActionButtons}>
+                            <div className="flex items-center gap-2.5">
                                 {onAddClick && (
                                     <button
-                                        style={{ ...styles.mobileActionBtn, ...styles.mobileAddBtn }}
+                                        className="flex items-center justify-center w-11 h-11 rounded-xl border-none text-white text-lg cursor-pointer"
+                                        style={{ backgroundColor: accentColor }}
                                         onClick={onAddClick}
                                         type="button"
                                         aria-label={addButtonLabel}
                                     >
-                                        <i className="fas fa-plus" style={{ color: 'white' }} aria-hidden="true"></i>
+                                        <i className="fas fa-plus" />
                                     </button>
                                 )}
                                 {onToggleSidebar && (
                                     <button
-                                        style={{ ...styles.mobileActionBtn, ...styles.mobileMenuBtn }}
+                                        className="flex items-center justify-center w-11 h-11 rounded-xl border-none bg-slate-100 text-slate-600 text-lg cursor-pointer"
                                         onClick={onToggleSidebar}
                                         type="button"
                                         aria-label="Toggle menu"
                                     >
-                                        <i className="fas fa-bars" aria-hidden="true"></i>
+                                        <i className="fas fa-bars" />
                                     </button>
                                 )}
                             </div>
                         </div>
 
-                        <div style={styles.mobileSearchRow}>
-                            <div style={styles.mobileSearchBar} role="search">
-                                <i className="fas fa-search" style={styles.searchIcon}></i>
-                                <input
-                                    type="text"
-                                    className="top-section-search"
-                                    style={styles.mobileSearchInput}
-                                    placeholder={searchPlaceholder}
-                                    value={searchInput || ''}
-                                    onChange={(e) => onSearchInputChange && onSearchInputChange(e.target.value)}
-                                    aria-label="Search"
-                                />
-                                {searchInput && onClearSearch && (
-                                    <button
-                                        style={styles.clearButton}
-                                        onClick={onClearSearch}
-                                        type="button"
-                                        aria-label="Clear search"
-                                    >
-                                        <i className="fas fa-times" aria-hidden="true"></i>
-                                    </button>
-                                )}
-                            </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                            <SearchInput
+                                value={searchInput}
+                                onChange={onSearchInputChange}
+                                onClear={onClearSearch}
+                                placeholder={searchPlaceholder}
+                                className="flex-1"
+                            />
                             <button
-                                style={styles.mobileFilterToggle(showMobileFilters)}
+                                className="flex items-center justify-center w-[50px] h-[50px] rounded-xl text-lg border-2 cursor-pointer"
+                                style={{
+                                    backgroundColor: showMobileFilters ? `${accentColor}15` : '#f8fafc',
+                                    borderColor: showMobileFilters ? accentColor : '#e5e7eb',
+                                    color: showMobileFilters ? accentColor : '#64748b'
+                                }}
                                 onClick={() => setShowMobileFilters(!showMobileFilters)}
                                 type="button"
                                 aria-label="Toggle filters"
                             >
-                                <i className="fas fa-filter" aria-hidden="true"></i>
+                                <i className="fas fa-filter" />
                             </button>
                         </div>
 
                         {showMobileFilters && (
-                            <div style={styles.mobileFiltersPanel}>
-                                <div style={styles.mobileFiltersGrid}>
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl mt-4 p-5">
+                                <div className="grid grid-cols-2 gap-3.5">
                                     {viewMode && !hideViewModeToggle && (
-                                        <div style={{ ...styles.mobileFilterItem, ...styles.mobileFilterItemFull }}>
-                                            <label style={styles.mobileFilterLabel}>View Mode</label>
-                                            <div style={styles.mobileViewToggle}>
-                                                <button
-                                                    style={styles.mobileViewBtn(viewMode === 'list')}
-                                                    onClick={() =>
-                                                        onViewModeChange &&
-                                                        viewMode !== 'list' &&
-                                                        onViewModeChange('list')
-                                                    }
-                                                    aria-label="List view"
-                                                    type="button"
-                                                >
-                                                    <i className="fas fa-list" aria-hidden="true"></i>
-                                                    <span>List</span>
-                                                </button>
-                                                <button
-                                                    style={styles.mobileViewBtn(viewMode === 'grid')}
-                                                    onClick={() =>
-                                                        onViewModeChange &&
-                                                        viewMode !== 'grid' &&
-                                                        onViewModeChange('grid')
-                                                    }
-                                                    aria-label="Grid view"
-                                                    type="button"
-                                                >
-                                                    <i className="fas fa-th-large" aria-hidden="true"></i>
-                                                    <span>Grid</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <MobileFilterItem label="View Mode" fullWidth>
+                                            <MobileViewToggle
+                                                viewMode={viewMode}
+                                                onChange={onViewModeChange}
+                                                accentColor={accentColor}
+                                            />
+                                        </MobileFilterItem>
                                     )}
 
                                     {!hidePlantFilter && (
-                                        <div style={styles.mobileFilterItem}>
-                                            <label style={styles.mobileFilterLabel}>Plant</label>
+                                        <MobileFilterItem label="Plant">
                                             <button
-                                                style={styles.mobileSelectBtn}
+                                                className="flex items-center justify-between w-full bg-white border border-slate-200 rounded-lg text-slate-900 text-sm py-3 px-4 cursor-pointer"
                                                 onClick={() => setIsPlantModalOpen(true)}
                                                 aria-label="Filter by plant"
                                             >
-                                                <span
-                                                    style={{
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    {plantDisplayText}
-                                                </span>
-                                                <i className="fas fa-chevron-down" style={{ color: '#64748b' }}></i>
+                                                <span className="truncate">{plantDisplayText}</span>
+                                                <i className="fas fa-chevron-down text-slate-500" />
                                             </button>
-                                        </div>
+                                        </MobileFilterItem>
                                     )}
 
                                     {safeStatusOptions.length > 0 && (
-                                        <div style={styles.mobileFilterItem}>
-                                            <label style={styles.mobileFilterLabel}>Status</label>
+                                        <MobileFilterItem label="Status">
                                             <select
-                                                className="top-section-select"
-                                                style={styles.mobileSelect}
+                                                className="w-full bg-white border border-slate-200 rounded-lg text-slate-900 text-sm py-3 px-4"
                                                 value={statusFilter || ''}
-                                                onChange={(e) =>
-                                                    onStatusFilterChange && onStatusFilterChange(e.target.value)
-                                                }
+                                                onChange={(e) => onStatusFilterChange?.(e.target.value)}
                                                 aria-label="Status filter"
                                             >
-                                                {safeStatusOptions.map((option) => (
-                                                    <option key={option} value={option}>
-                                                        {option}
+                                                {safeStatusOptions.map((opt) => (
+                                                    <option key={opt} value={opt}>
+                                                        {opt}
                                                     </option>
                                                 ))}
                                             </select>
-                                        </div>
+                                        </MobileFilterItem>
                                     )}
 
                                     {safePositionOptions.length > 0 && (
-                                        <div style={styles.mobileFilterItem}>
-                                            <label style={styles.mobileFilterLabel}>Position</label>
+                                        <MobileFilterItem label="Position">
                                             <select
-                                                className="top-section-select"
-                                                style={styles.mobileSelect}
+                                                className="w-full bg-white border border-slate-200 rounded-lg text-slate-900 text-sm py-3 px-4"
                                                 value={positionFilter || ''}
-                                                onChange={(e) =>
-                                                    onPositionFilterChange && onPositionFilterChange(e.target.value)
-                                                }
+                                                onChange={(e) => onPositionFilterChange?.(e.target.value)}
                                                 aria-label="Position filter"
                                             >
                                                 {safePositionOptions.map((opt) => (
@@ -686,39 +433,39 @@ function TopSection({
                                                     </option>
                                                 ))}
                                             </select>
-                                        </div>
+                                        </MobileFilterItem>
                                     )}
 
-                                    {Array.isArray(freightOptions) && freightOptions.length > 0 && (
-                                        <div style={styles.mobileFilterItem}>
-                                            <label style={styles.mobileFilterLabel}>Freight</label>
+                                    {safeFreightOptions.length > 0 && (
+                                        <MobileFilterItem label="Freight">
                                             <select
-                                                className="top-section-select"
-                                                style={styles.mobileSelect}
+                                                className="w-full bg-white border border-slate-200 rounded-lg text-slate-900 text-sm py-3 px-4"
                                                 value={freightFilter || ''}
-                                                onChange={(e) =>
-                                                    onFreightFilterChange && onFreightFilterChange(e.target.value)
-                                                }
+                                                onChange={(e) => onFreightFilterChange?.(e.target.value)}
                                                 aria-label="Freight filter"
                                             >
-                                                {freightOptions.map((opt) => (
+                                                {safeFreightOptions.map((opt) => (
                                                     <option key={opt} value={opt === 'All Freight' ? '' : opt}>
                                                         {opt}
                                                     </option>
                                                 ))}
                                             </select>
-                                        </div>
+                                        </MobileFilterItem>
                                     )}
 
                                     {customFilters}
 
                                     {showReset && onReset && (
-                                        <div style={{ ...styles.mobileFilterItem, ...styles.mobileFilterItemFull }}>
-                                            <button style={styles.mobileResetBtn} onClick={onReset} type="button">
-                                                <i className="fas fa-undo" aria-hidden="true"></i>
+                                        <MobileFilterItem fullWidth>
+                                            <button
+                                                className="flex items-center justify-center gap-2.5 w-full bg-white border border-slate-200 rounded-lg text-slate-500 text-sm font-semibold py-3.5 cursor-pointer"
+                                                onClick={onReset}
+                                                type="button"
+                                            >
+                                                <i className="fas fa-undo" />
                                                 Reset Filters
                                             </button>
-                                        </div>
+                                        </MobileFilterItem>
                                     )}
                                 </div>
                             </div>
@@ -727,6 +474,7 @@ function TopSection({
                         {customBottomContent}
                     </div>
                 </div>
+
                 {isPlantModalOpen && (
                     <PlantDropdownModal
                         isOpen={isPlantModalOpen}
@@ -742,212 +490,122 @@ function TopSection({
 
     return (
         <>
-            <style>{`
-                .top-section-search::placeholder {
-                    color: #94a3b8;
-                }
-                .top-section-select option {
-                    background-color: white;
-                    color: #1e293b;
-                }
-            `}</style>
-            <div style={styles.section} ref={forwardedRef} data-section="top" aria-label="Page controls">
-                <div style={styles.inner}>
-                    <div style={styles.primaryRow}>
-                        <h1 style={styles.title}>{title}</h1>
+            <div
+                ref={forwardedRef}
+                className={sectionClasses}
+                style={sectionStyle}
+                data-section="top"
+                aria-label="Page controls"
+            >
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4 justify-between">
+                        <h1 className="text-[28px] font-bold text-slate-900 tracking-tight m-0">{title}</h1>
                         {badge && (
-                            <div style={styles.badgeContainer}>
-                                {onBadgeClick ? (
-                                    <button style={styles.badge} onClick={onBadgeClick}>
-                                        <i
-                                            className="fas fa-user-clock"
-                                            style={{ color: accentColor }}
-                                            aria-hidden="true"
-                                        ></i>
-                                        <span style={{ color: accentColor }}>{badge}</span>
-                                    </button>
-                                ) : (
-                                    <span style={styles.badge}>
-                                        <i
-                                            className="fas fa-user-clock"
-                                            style={{ color: accentColor }}
-                                            aria-hidden="true"
-                                        ></i>
-                                        <span style={{ color: accentColor }}>{badge}</span>
-                                    </span>
-                                )}
+                            <div className="ml-4">
+                                <Badge onClick={onBadgeClick} accentColor={accentColor}>
+                                    {badge}
+                                </Badge>
                             </div>
                         )}
-                        <div style={styles.actionCluster} role="group" aria-label="Primary actions">
+                        <div className="flex items-center gap-3 ml-auto" role="group" aria-label="Primary actions">
                             {onToggleSidebar && (
-                                <button
-                                    style={{ ...styles.actionButton, ...styles.actionButtonSubtle }}
+                                <ActionButton
+                                    icon="fa-bars"
+                                    label="Menu"
                                     onClick={onToggleSidebar}
-                                    type="button"
-                                    aria-label="Toggle menu"
-                                >
-                                    <i className="fas fa-bars" aria-hidden="true"></i>
-                                    <span>Menu</span>
-                                </button>
+                                    variant="subtle"
+                                    accentColor={accentColor}
+                                />
                             )}
                             {onAddClick && (
-                                <button
-                                    style={{ ...styles.actionButton, ...styles.actionButtonPrimary }}
+                                <ActionButton
+                                    icon="fa-plus"
+                                    label={addButtonLabel}
                                     onClick={onAddClick}
-                                    type="button"
-                                >
-                                    <i className="fas fa-plus" style={{ color: 'white' }} aria-hidden="true"></i>
-                                    <span style={{ color: 'white' }}>{addButtonLabel}</span>
-                                </button>
+                                    variant="primary"
+                                    accentColor={accentColor}
+                                />
                             )}
                         </div>
                     </div>
-                    <div style={styles.controlsRow} role="region" aria-label="Search and filters">
-                        <div style={styles.searchBar} role="search">
-                            <i className="fas fa-search" style={styles.searchIcon}></i>
-                            <input
-                                type="text"
-                                className="top-section-search"
-                                style={styles.searchInput}
-                                placeholder={searchPlaceholder}
-                                value={searchInput || ''}
-                                onChange={(e) => onSearchInputChange && onSearchInputChange(e.target.value)}
-                                aria-label="Search"
-                            />
-                            {searchInput && onClearSearch && (
-                                <button
-                                    style={styles.clearButton}
-                                    onClick={onClearSearch}
-                                    type="button"
-                                    aria-label="Clear search"
-                                >
-                                    <i className="fas fa-times" aria-hidden="true"></i>
-                                </button>
-                            )}
-                        </div>
-                        <div style={styles.filters} role="group" aria-label="Filters and view options">
+
+                    <div
+                        className="flex items-center flex-wrap gap-3.5 justify-between"
+                        role="region"
+                        aria-label="Search and filters"
+                    >
+                        <SearchInput
+                            value={searchInput}
+                            onChange={onSearchInputChange}
+                            onClear={onClearSearch}
+                            placeholder={searchPlaceholder}
+                            className="flex-[0_1_auto] min-w-[220px] max-w-[420px]"
+                        />
+
+                        <div
+                            className="flex items-center flex-wrap gap-3 ml-auto"
+                            role="group"
+                            aria-label="Filters and view options"
+                        >
                             {viewMode && !hideViewModeToggle && (
-                                <div style={styles.viewToggle} role="group" aria-label="View mode">
-                                    <button
-                                        style={styles.viewToggleBtn(viewMode === 'list')}
-                                        onClick={() =>
-                                            onViewModeChange && viewMode !== 'list' && onViewModeChange('list')
-                                        }
-                                        aria-label="List view"
-                                        aria-pressed={viewMode === 'list'}
-                                        type="button"
-                                    >
-                                        <i className="fas fa-list" aria-hidden="true"></i>
-                                    </button>
-                                    <button
-                                        style={styles.viewToggleBtn(viewMode === 'grid')}
-                                        onClick={() =>
-                                            onViewModeChange && viewMode !== 'grid' && onViewModeChange('grid')
-                                        }
-                                        aria-label="Grid view"
-                                        aria-pressed={viewMode === 'grid'}
-                                        type="button"
-                                    >
-                                        <i className="fas fa-th-large" aria-hidden="true"></i>
-                                    </button>
-                                </div>
+                                <ViewToggle viewMode={viewMode} onChange={onViewModeChange} accentColor={accentColor} />
                             )}
+
                             {!hidePlantFilter && (
-                                <button
-                                    style={styles.selectButton}
+                                <PlantFilterButton
+                                    displayText={plantDisplayText}
                                     onClick={() => setIsPlantModalOpen(true)}
-                                    aria-label="Filter by plant"
-                                >
-                                    {plantDisplayText}
-                                </button>
+                                />
                             )}
+
                             {safeStatusOptions.length > 0 && (
-                                <select
-                                    className="top-section-select"
-                                    style={styles.select}
-                                    value={statusFilter || ''}
-                                    onChange={(e) => onStatusFilterChange && onStatusFilterChange(e.target.value)}
-                                    aria-label="Status filter"
-                                >
-                                    {safeStatusOptions.map((option) => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
+                                <FilterSelect
+                                    value={statusFilter}
+                                    options={safeStatusOptions}
+                                    onChange={onStatusFilterChange}
+                                    ariaLabel="Status filter"
+                                />
                             )}
+
                             {safePositionOptions.length > 0 && (
-                                <select
-                                    className="top-section-select"
-                                    style={styles.select}
-                                    value={positionFilter || ''}
-                                    onChange={(e) => onPositionFilterChange && onPositionFilterChange(e.target.value)}
-                                    aria-label="Position filter"
-                                >
-                                    {safePositionOptions.map((opt) => (
-                                        <option key={opt} value={opt === 'All Positions' ? '' : opt}>
-                                            {opt}
-                                        </option>
-                                    ))}
-                                </select>
+                                <FilterSelect
+                                    value={positionFilter}
+                                    options={safePositionOptions}
+                                    onChange={onPositionFilterChange}
+                                    ariaLabel="Position filter"
+                                />
                             )}
-                            {Array.isArray(freightOptions) && freightOptions.length > 0 && (
-                                <select
-                                    className="top-section-select"
-                                    style={styles.select}
-                                    value={freightFilter || ''}
-                                    onChange={(e) => onFreightFilterChange && onFreightFilterChange(e.target.value)}
-                                    aria-label="Freight filter"
-                                >
-                                    {freightOptions.map((opt) => (
-                                        <option key={opt} value={opt === 'All Freight' ? '' : opt}>
-                                            {opt}
-                                        </option>
-                                    ))}
-                                </select>
+
+                            {safeFreightOptions.length > 0 && (
+                                <FilterSelect
+                                    value={freightFilter}
+                                    options={safeFreightOptions}
+                                    onChange={onFreightFilterChange}
+                                    ariaLabel="Freight filter"
+                                />
                             )}
+
                             {customFilters}
-                            {showReset && onReset && (
-                                <button
-                                    style={styles.resetButton}
-                                    onClick={onReset}
-                                    type="button"
-                                    aria-label="Reset filters"
-                                >
-                                    <i className="fas fa-undo" aria-hidden="true"></i>
-                                </button>
-                            )}
+
+                            {showReset && onReset && <ResetButton onClick={onReset} />}
                         </div>
                     </div>
+
                     {customBottomContent}
+
                     {viewMode === 'list' && safeListLabels.length > 0 && (
-                        <div style={styles.headerRow}>
-                            {safeListLabels.map((label, index) => {
-                                const colWidth = safeColWidths[index] || 'auto'
-                                const isFlex = colWidth === 'flex' || colWidth === 'auto'
-                                return (
-                                    <div
-                                        key={label}
-                                        style={{
-                                            ...styles.headerCell,
-                                            ...(isFlex ? { flex: 1, minWidth: 0 } : { flexShrink: 0, width: colWidth })
-                                        }}
-                                        onClick={() => onHeaderClick && onHeaderClick(label)}
-                                    >
-                                        <span>{label}</span>
-                                        {sortKey === label && (
-                                            <i
-                                                className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}
-                                                style={{ ...styles.sortIcon, ...styles.sortIconActive }}
-                                            ></i>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <ListHeader
+                            labels={safeListLabels}
+                            colWidths={safeColWidths}
+                            sortKey={sortKey}
+                            sortDirection={sortDirection}
+                            onHeaderClick={onHeaderClick}
+                            accentColor={accentColor}
+                        />
                     )}
                 </div>
             </div>
+
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
