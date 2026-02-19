@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.6] - 2026-02-19
+
+- Added new `RoleModal.jsx` component for displaying modal dialogs related to roles, including sub-components like `RoleModalBody`, `RoleModalScrollBody`, `RoleModalFooter`, `RoleFormField`, `RoleTextInput`, and `RoleTextarea` for structured modal content and input handling.
+- Introduced `useRolesData.js` hook to manage roles data, including loading roles, checking IT access, updating role permissions and weights, and handling success/error messages with functions like `parsePermissionsText` and `showMessage`.
+- Updated `RolesView.jsx` with significant refactoring, likely integrating the new `RoleModal` component and `useRolesData` hook for improved role management UI and functionality (exact changes not fully detailed in diff due to truncation).
+
 ## [13.5] - 2026-02-19
 
 - Added a custom dropdown arrow icon to the plant selection dropdown in `ReportsSubmitView.jsx` using a background SVG image and adjusted styling with `appearance-none` and cursor properties.
