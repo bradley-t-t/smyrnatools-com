@@ -61,6 +61,7 @@ export default function LeaderboardsView() {
                         selectedId={selectedCategory}
                         onSelect={setSelectedCategory}
                         showGroups={!isMobile}
+                        accentColor={accentColor}
                     />
                 </div>
             </header>

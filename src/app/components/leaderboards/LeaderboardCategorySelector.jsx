@@ -2,11 +2,10 @@ import React from 'react'
 
 import { CATEGORY_GROUPS, LEADERBOARD_CATEGORIES } from '../../constants/leaderboardConstants'
 
-function CategoryTab({ category, isSelected, onSelect, variant }) {
+function CategoryTab({ category, isSelected, onSelect, variant, accentColor }) {
     const isDark = variant === 'dark'
     const baseClasses =
         'flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all md:px-4'
-    const selectedClasses = isDark ? 'bg-white text-slate-900 shadow-md' : 'bg-accent text-white shadow-sm'
     const unselectedClasses = isDark
         ? 'bg-white/10 text-white/90 hover:bg-white/20 hover:text-white'
         : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -15,7 +14,14 @@ function CategoryTab({ category, isSelected, onSelect, variant }) {
         <button
             type="button"
             onClick={() => onSelect(category.id)}
-            className={`${baseClasses} ${isSelected ? selectedClasses : unselectedClasses}`}
+            className={`${baseClasses} ${isSelected ? '' : unselectedClasses}`}
+            style={
+                isSelected
+                    ? isDark
+                        ? { background: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#0f172a' }
+                        : { background: accentColor, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', color: '#fff' }
+                    : {}
+            }
         >
             <i className={`fas ${category.icon} text-xs`} />
             <span>{category.label}</span>
@@ -23,7 +29,7 @@ function CategoryTab({ category, isSelected, onSelect, variant }) {
     )
 }
 
-function CategoryGroup({ group, categories, selectedId, onSelect, variant }) {
+function CategoryGroup({ group, categories, selectedId, onSelect, variant, accentColor }) {
     const isDark = variant === 'dark'
     return (
         <div className="flex flex-col gap-2">
@@ -40,6 +46,7 @@ function CategoryGroup({ group, categories, selectedId, onSelect, variant }) {
                         isSelected={selectedId === cat.id}
                         onSelect={onSelect}
                         variant={variant}
+                        accentColor={accentColor}
                     />
                 ))}
             </div>
@@ -47,7 +54,13 @@ function CategoryGroup({ group, categories, selectedId, onSelect, variant }) {
     )
 }
 
-export default function LeaderboardCategorySelector({ selectedId, onSelect, showGroups = true, variant = 'light' }) {
+export default function LeaderboardCategorySelector({
+    selectedId,
+    onSelect,
+    showGroups = true,
+    variant = 'light',
+    accentColor = '#1e3a5f'
+}) {
     if (showGroups) {
         return (
             <div className="flex flex-col gap-4 md:flex-row md:gap-8">
@@ -61,6 +74,7 @@ export default function LeaderboardCategorySelector({ selectedId, onSelect, show
                             selectedId={selectedId}
                             onSelect={onSelect}
                             variant={variant}
+                            accentColor={accentColor}
                         />
                     )
                 })}
@@ -77,6 +91,7 @@ export default function LeaderboardCategorySelector({ selectedId, onSelect, show
                     isSelected={selectedId === cat.id}
                     onSelect={onSelect}
                     variant={variant}
+                    accentColor={accentColor}
                 />
             ))}
         </div>

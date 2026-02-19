@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.9] - 2026-02-19
+
+- Added support for custom accent color in `LeaderboardCategorySelector.jsx` with a new `accentColor` prop, defaulting to '#1e3a5f'
+- Updated `CategoryTab` component in `LeaderboardCategorySelector.jsx` to use dynamic styling for selected state based on `accentColor` and theme variant
+- Passed `accentColor` prop through `CategoryGroup` and individual `CategoryTab` components in `LeaderboardCategorySelector.jsx`
+- Integrated `accentColor` prop usage in `LeaderboardsView.jsx` for the `LeaderboardCategorySelector` component
+
 ## [13.8] - 2026-02-19
 
 - Updated `useDashboardData.js` to improve code clarity by introducing temporary variables (`recordsList` and `plants`) for array handling in `processMaintenanceRecords`, `processCommentRecords`, and `usePlantFilter` functions.
