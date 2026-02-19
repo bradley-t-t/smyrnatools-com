@@ -76,15 +76,6 @@
     cursor: pointer;
 }
 
-.btn-secondary {
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-}
-
-.btn-secondary:hover {
-    background-color: var(--bg-secondary);
-}
-
 body:has(.my-account-wrapper) .App,
 body:has(.my-account-wrapper) .app-container,
 body:has(.my-account-wrapper) .main-content,

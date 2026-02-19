@@ -1,20 +1,8 @@
 import React from 'react'
 
-const COLORS = {
-    errorBg: '#fee2e2',
-    errorBorder: '#fecaca',
-    errorDark: '#991b1b',
-    errorIcon: '#dc2626',
-    grayMuted: '#64748b',
-    primary: '#1e3a5f',
-    successBg: '#f0fdf4',
-    successText: '#166534',
-    textDark: '#1e293b'
-}
-
 const ErrorIconBadge = () => (
-    <div style={styles.iconBadge}>
-        <i className="fas fa-exclamation-triangle" />
+    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+        <i className="fas fa-exclamation-triangle text-red-600 text-base sm:text-lg" />
     </div>
 )
 
@@ -26,9 +14,9 @@ const CommentIssuesBadges = ({ issuesString }) => {
             .filter(Boolean) ?? []
     if (!issues.length) return null
     return (
-        <div style={styles.badgeContainer}>
+        <div className="flex flex-wrap gap-1.5">
             {issues.map((issue, i) => (
-                <span key={i} style={styles.issueBadge}>
+                <span key={i} className="px-2 py-1 bg-red-200 text-red-800 rounded text-[11px] font-semibold">
                     {issue}
                 </span>
             ))}
@@ -37,24 +25,24 @@ const CommentIssuesBadges = ({ issuesString }) => {
 }
 
 const CommentExamplesGrid = () => (
-    <div style={styles.examplesGrid}>
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 bg-green-50 rounded-lg p-3 sm:p-4 mb-4">
         <div>
-            <div style={styles.validHeader}>
-                <i className="fas fa-check" style={{ marginRight: '4px' }} />
+            <div className="text-green-700 text-[10px] sm:text-[11px] font-bold mb-1 flex items-center">
+                <i className="fas fa-check mr-1" />
                 VALID
             </div>
-            <div style={styles.validText}>
+            <div className="text-green-700 text-[11px] sm:text-xs">
                 {'"Sent to plant 402"'}
                 <br />
                 {'"Truck breakdown"'}
             </div>
         </div>
         <div>
-            <div style={styles.invalidHeader}>
-                <i className="fas fa-times" style={{ marginRight: '4px' }} />
+            <div className="text-red-800 text-[10px] sm:text-[11px] font-bold mb-1 flex items-center">
+                <i className="fas fa-times mr-1" />
                 INVALID
             </div>
-            <div style={styles.invalidText}>
+            <div className="text-red-800 text-[11px] sm:text-xs">
                 {'"N/A", "mixer"'}
                 <br />
                 {'"none", vague'}
@@ -77,24 +65,30 @@ function ErrorModal({ error, onClose }) {
     const parsed = isCommentError ? parseCommentError(error) : null
 
     return (
-        <div className="rpts-sbmt-modal-backdrop" style={styles.backdrop}>
-            <div className="rpts-sbmt-modal-content" style={styles.modal}>
-                <div style={styles.header}>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] p-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl">
+                <div className="flex items-center gap-3 mb-4 sm:mb-5">
                     <ErrorIconBadge />
-                    <div>
-                        <h2 style={styles.title}>{errorTitle}</h2>
-                        {isCommentError && <p style={styles.subtitle}>Comment needs improvement</p>}
+                    <div className="min-w-0">
+                        <h2 className="text-base sm:text-lg font-bold text-slate-800 m-0">{errorTitle}</h2>
+                        {isCommentError && (
+                            <p className="text-xs sm:text-sm text-red-600 font-medium m-0 mt-0.5">
+                                Comment needs improvement
+                            </p>
+                        )}
                     </div>
                 </div>
 
                 {isCommentError ? (
                     <>
-                        <div style={styles.errorBox}>
-                            <div style={styles.errorMessage}>{parsed.message}</div>
+                        <div className="bg-red-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                            <div className="text-red-800 text-xs sm:text-sm font-medium mb-2">{parsed.message}</div>
                             {parsed.hasComment && (
-                                <div style={styles.commentBox}>
-                                    <div style={styles.commentLabel}>Your Comment</div>
-                                    <div style={styles.commentText}>{parsed.comment}</div>
+                                <div className="bg-white border border-red-200 rounded-md p-2 sm:p-3 mb-2">
+                                    <div className="text-slate-500 text-[10px] font-semibold uppercase mb-1">
+                                        Your Comment
+                                    </div>
+                                    <div className="text-slate-800 text-xs sm:text-sm italic">{parsed.comment}</div>
                                 </div>
                             )}
                             {parsed.hasIssues && <CommentIssuesBadges issuesString={parsed.issuesString} />}
@@ -102,90 +96,23 @@ function ErrorModal({ error, onClose }) {
                         <CommentExamplesGrid />
                     </>
                 ) : (
-                    <div style={styles.simpleErrorBox}>
-                        <div style={styles.errorMessage}>{error}</div>
+                    <div className="bg-red-50 rounded-lg p-3 sm:p-4 mb-4">
+                        <div className="text-red-800 text-xs sm:text-sm font-medium">{error}</div>
                     </div>
                 )}
 
-                <div style={styles.actions}>
-                    <button type="button" onClick={onClose} style={styles.button}>
+                <div className="text-right">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#1e3a5f] text-white rounded-lg text-sm font-semibold hover:bg-[#152d4a] transition-colors"
+                    >
                         Go Back & Fix
                     </button>
                 </div>
             </div>
         </div>
     )
-}
-
-const styles = {
-    actions: { textAlign: 'right' },
-    backdrop: { backgroundColor: 'rgba(0, 0, 0, 0.7)' },
-    badgeContainer: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
-    button: {
-        background: COLORS.primary,
-        border: 'none',
-        borderRadius: '8px',
-        color: 'white',
-        cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: 600,
-        padding: '10px 20px'
-    },
-    commentBox: {
-        background: '#fff',
-        border: `1px solid ${COLORS.errorBorder}`,
-        borderRadius: '6px',
-        marginBottom: '8px',
-        padding: '8px 10px'
-    },
-    commentLabel: {
-        color: COLORS.grayMuted,
-        fontSize: '10px',
-        fontWeight: 600,
-        marginBottom: '2px',
-        textTransform: 'uppercase'
-    },
-    commentText: { color: COLORS.textDark, fontSize: '13px', fontStyle: 'italic' },
-    errorBox: { background: '#fef2f2', borderRadius: '8px', marginBottom: '12px', padding: '12px' },
-    errorMessage: { color: COLORS.errorDark, fontSize: '13px', fontWeight: 500, marginBottom: '8px' },
-    examplesGrid: {
-        background: COLORS.successBg,
-        borderRadius: '8px',
-        display: 'grid',
-        gap: '8px',
-        gridTemplateColumns: '1fr 1fr',
-        marginBottom: '16px',
-        padding: '12px'
-    },
-    header: { alignItems: 'center', display: 'flex', gap: '12px', marginBottom: '20px' },
-    iconBadge: {
-        alignItems: 'center',
-        background: COLORS.errorBg,
-        borderRadius: '50%',
-        color: COLORS.errorIcon,
-        display: 'flex',
-        flexShrink: 0,
-        fontSize: '18px',
-        height: '40px',
-        justifyContent: 'center',
-        width: '40px'
-    },
-    invalidHeader: { color: COLORS.errorDark, fontSize: '11px', fontWeight: 700, marginBottom: '4px' },
-    invalidText: { color: COLORS.errorDark, fontSize: '12px' },
-    issueBadge: {
-        background: COLORS.errorBorder,
-        borderRadius: '4px',
-        color: COLORS.errorDark,
-        fontSize: '11px',
-        fontWeight: 600,
-        padding: '4px 8px'
-    },
-    modal: { maxWidth: '480px' },
-    simpleErrorBox: { background: '#fef2f2', borderRadius: '8px', marginBottom: '16px', padding: '12px' },
-    subtitle: { color: COLORS.errorIcon, fontSize: '13px', fontWeight: 500, margin: '2px 0 0 0' },
-    title: { color: COLORS.textDark, fontSize: '16px', fontWeight: 700, margin: 0 },
-    validHeader: { color: COLORS.successText, fontSize: '11px', fontWeight: 700, marginBottom: '4px' },
-    validText: { color: COLORS.successText, fontSize: '12px' }
 }
 
 export default ErrorModal

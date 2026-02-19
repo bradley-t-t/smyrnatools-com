@@ -13,7 +13,6 @@ import ReportsToolbar from './components/ReportsToolbar'
 import ReviewReportsList from './components/ReviewReportsList'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
-import { reportsViewStyles as styles } from './styles/ReportsViewStyles'
 
 function ReportsView() {
     const {
@@ -178,7 +177,7 @@ function ReportsView() {
             ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso }
             : showForm
         return (
-            <div style={styles.root}>
+            <div className="bg-slate-50 min-h-screen w-full pb-16">
                 <ReportsSubmitView
                     report={report}
                     initialData={submitInitialData}
@@ -195,7 +194,7 @@ function ReportsView() {
 
     if (showReview) {
         return (
-            <div style={styles.root}>
+            <div className="bg-slate-50 min-h-screen w-full pb-16">
                 <ReportsReviewView
                     report={reportTypeMap[showReview.name] || showReview}
                     initialData={reviewData}
@@ -209,10 +208,10 @@ function ReportsView() {
     }
 
     return (
-        <div style={styles.root}>
+        <div className="bg-slate-50 min-h-screen w-full pb-16">
             {loadError && (
-                <div style={styles.loadError}>
-                    <i className="fas fa-exclamation-circle"></i>
+                <div className="flex items-center gap-2 m-3 sm:m-4 p-3 sm:p-4 bg-red-100 text-red-700 rounded-lg text-sm font-medium">
+                    <i className="fas fa-exclamation-circle" />
                     {loadError}
                 </div>
             )}
@@ -230,7 +229,7 @@ function ReportsView() {
                 hasAnyReviewPermission={hasAnyReviewPermission}
                 regionType={regionType}
             />
-            <div style={styles.content}>
+            <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
                 {tab === 'all' && !isMyReportsLoading && <ReportsStatsCards items={allMyItems} tab={tab} />}
                 {tab === 'review' && !isReviewLoading && (
                     <ReportsStatsCards

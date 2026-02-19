@@ -52,44 +52,44 @@ const computeReviewStats = (items, reviewedByCurrentUser, rangeValue) => {
 }
 
 const StatItem = ({ icon, color, bgColor, count, label }) => (
-    <div className="flex items-center gap-3">
-        <div className={`w-9 h-9 flex items-center justify-center rounded-lg ${bgColor} ${color}`}>
-            <i className={`fas ${icon} text-sm`} />
+    <div className="flex items-center gap-2 sm:gap-3">
+        <div className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg ${bgColor} ${color}`}>
+            <i className={`fas ${icon} text-xs sm:text-sm`} />
         </div>
         <div>
-            <div className="text-xl font-bold text-slate-800 leading-none">{count}</div>
-            <div className="text-xs text-slate-500 mt-0.5">{label}</div>
+            <div className="text-lg sm:text-xl font-bold text-slate-800 leading-none">{count}</div>
+            <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">{label}</div>
         </div>
     </div>
 )
 
-const Divider = () => <div className="w-px h-8 bg-gray-200" />
+const Divider = () => <div className="w-px h-6 sm:h-8 bg-gray-200 hidden sm:block" />
 
 const ProgressPill = ({ percent, label }) => {
     const color = percent >= 80 ? 'bg-emerald-500' : percent >= 50 ? 'bg-amber-500' : 'bg-red-500'
     return (
-        <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3">
-            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3">
+            <div className="w-16 sm:w-24 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                     className={`h-full ${color} rounded-full transition-all duration-500`}
                     style={{ width: `${percent}%` }}
                 />
             </div>
-            <div className="flex items-baseline gap-1.5">
-                <span className="text-lg font-bold text-slate-800">{percent}%</span>
-                <span className="text-xs text-slate-400">{label}</span>
+            <div className="flex items-baseline gap-1 sm:gap-1.5">
+                <span className="text-base sm:text-lg font-bold text-slate-800">{percent}%</span>
+                <span className="text-[10px] sm:text-xs text-slate-400 hidden xs:inline">{label}</span>
             </div>
         </div>
     )
 }
 
 const RangeSelector = ({ value, onChange }) => (
-    <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+    <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 rounded-lg p-0.5 sm:p-1">
         {RANGE_OPTIONS.map((opt) => (
             <button
                 key={opt.value}
                 onClick={() => onChange(opt.value)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-semibold transition-all ${
                     value === opt.value ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
@@ -112,8 +112,8 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
 
     if (tab === 'all') {
         return (
-            <div className="flex items-center justify-between mb-4 px-1">
-                <div className="flex items-center gap-6 bg-white border border-gray-200 rounded-xl px-5 py-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-1">
+                <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-white border border-gray-200 rounded-xl px-4 sm:px-5 py-3">
                     <StatItem
                         icon="fa-check-circle"
                         color="text-emerald-600"
@@ -144,8 +144,8 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
     }
 
     return (
-        <div className="flex items-center justify-between mb-4 px-1">
-            <div className="flex items-center gap-6 bg-white border border-gray-200 rounded-xl px-5 py-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-1">
+            <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-white border border-gray-200 rounded-xl px-4 sm:px-5 py-3">
                 <StatItem
                     icon="fa-check-double"
                     color="text-emerald-600"
@@ -162,7 +162,7 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
                     label="Pending"
                 />
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
                 <RangeSelector value={reviewRange} onChange={setReviewRange} />
                 <ProgressPill percent={stats.completionRate} label={`${stats.reviewed}/${stats.total} reviewed`} />
             </div>

@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.7] - 2026-02-19
+
+- Removed CSS styles for `.btn-secondary` and its hover state from `src/app/App.css`.
+- Updated `StatusBadge` component in `src/views/reports/ReportsReviewView.jsx` to adjust styling for responsiveness with smaller padding and text visibility based on screen size, and changed 'Saved (Draft)' to 'Draft'.
+- Refactored `ReportsSubmitView.jsx` to replace inline styles with Tailwind CSS classes for layout and styling, including responsive design for form elements and buttons, and updated button ordering for mobile and desktop views.
+- Changed submission button text in `ReportsSubmitView.jsx` from 'Validating comments...' to 'Validating...' for a specific report type during submission.
+- Applied Tailwind CSS classes in `ReportsView.jsx` to replace inline styles for the root container and error message display, improving layout and responsiveness.
+- Updated error message display in `ReportsView.jsx` to use a flex layout with an icon and consistent spacing.
+
 ## [13.6] - 2026-02-19
 
 - Added new `RoleModal.jsx` component for displaying modal dialogs related to roles, including sub-components like `RoleModalBody`, `RoleModalScrollBody`, `RoleModalFooter`, `RoleFormField`, `RoleTextInput`, and `RoleTextarea` for structured modal content and input handling.

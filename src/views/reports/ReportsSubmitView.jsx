@@ -8,7 +8,6 @@ import { ReportUtility } from '../../utils/ReportUtility'
 import ConfirmationModal from './components/ConfirmationModal'
 import ErrorModal from './components/ErrorModal'
 import SubmitHeader from './components/SubmitHeader'
-import { reportsSubmitViewStyles as styles } from './styles/ReportsSubmitViewStyles'
 import { AggregateProductionSubmitPlugin } from './types/WeeklyAggregateProductionReport'
 import { DistrictManagerSubmitPlugin } from './types/WeeklyDistrictManagerReport'
 import { EfficiencySubmitPlugin } from './types/WeeklyEfficiencyReport'
@@ -622,7 +621,7 @@ function ReportsSubmitView({
     }
 
     return (
-        <div style={styles.container}>
+        <div className="bg-slate-50 min-h-screen w-full">
             <SubmitHeader
                 report={report}
                 weekVerbose={weekVerbose}
@@ -639,9 +638,11 @@ function ReportsSubmitView({
                 onBack={handleBackClick}
                 onExport={handleExport}
             />
-            <form style={styles.content} onSubmit={handleSubmit}>
+            <form className="max-w-5xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:px-6" onSubmit={handleSubmit}>
                 {!EXCLUDED_REPORT_TYPES.includes(report.name) && (
-                    <div style={styles.section}>{renderFormSection()}</div>
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+                        {renderFormSection()}
+                    </div>
                 )}
                 {PluginComponent && (
                     <PluginComponent
@@ -683,10 +684,10 @@ function ReportsSubmitView({
                     </div>
                 )}
                 {!readOnly && (
-                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 mt-6">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-gray-200 mt-4 sm:mt-6">
                         <button
                             type="button"
-                            className="px-6 py-3 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors"
+                            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors order-3 sm:order-1"
                             onClick={handleBackClick}
                             disabled={submitting || savingDraft}
                         >
@@ -694,7 +695,7 @@ function ReportsSubmitView({
                         </button>
                         <button
                             type="button"
-                            className="px-6 py-3 bg-sky-100 text-sky-700 rounded-lg text-sm font-semibold hover:bg-sky-200 transition-colors"
+                            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-sky-100 text-sky-700 rounded-lg text-sm font-semibold hover:bg-sky-200 transition-colors order-2"
                             onClick={handleSaveDraft}
                             disabled={submitting || savingDraft}
                         >
@@ -703,13 +704,13 @@ function ReportsSubmitView({
                         {!managerEditUser && (
                             <button
                                 type="submit"
-                                className="px-6 py-3 text-white rounded-lg text-sm font-semibold transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                                className="px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-lg text-sm font-semibold transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed order-1 sm:order-3"
                                 style={{ background: accentColor }}
                                 disabled={submitting || savingDraft}
                             >
                                 {submitting
                                     ? report.name === 'plant_production'
-                                        ? 'Validating comments...'
+                                        ? 'Validating...'
                                         : 'Submitting...'
                                     : 'Submit'}
                             </button>

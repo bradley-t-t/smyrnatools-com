@@ -36,10 +36,10 @@ const getFieldLabel = (field) => (field.name === 'yardage' ? 'Total Yardage' : f
 
 const StatusBadge = ({ isSubmitted }) => (
     <div
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${isSubmitted ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}
+        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold ${isSubmitted ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}
     >
         <i className={`fas ${isSubmitted ? 'fa-check-circle' : 'fa-save'}`}></i>
-        {isSubmitted ? 'Submitted' : 'Saved (Draft)'}
+        <span className="hidden xs:inline">{isSubmitted ? 'Submitted' : 'Draft'}</span>
     </div>
 )
 
