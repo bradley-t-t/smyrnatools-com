@@ -40,7 +40,7 @@ const gmReportStyles = `
 .rpt-dot { width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; cursor: pointer; transition: all 0.15s; }
 .rpt-dot:hover { background: #94a3b8; transform: scale(1.1); }
 .rpt-dot.active { background: #1e3a5f; transform: scale(1.3); }
-.rpt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+.rpt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-top: 1.25rem; margin-bottom: 1rem; }
 .rpt-stat-card { text-align: center; padding: 0.875rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; }
 .rpt-stat-label { font-size: 0.6875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
 .rpt-stat-value { font-size: 1.125rem; font-weight: 700; color: #1e3a5f; }

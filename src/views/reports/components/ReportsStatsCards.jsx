@@ -1,4 +1,22 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
+
+const RANGE_OPTIONS = [
+    { label: 'Last Week', value: 'week' },
+    { days: 30, label: '1 Month', value: 'month' },
+    { days: 365, label: '1 Year', value: 'year' }
+]
+
+const getLastWeekMondayISO = () => {
+    const now = new Date()
+    const day = now.getDay()
+    const diffToMonday = day === 0 ? 6 : day - 1
+    const thisMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday)
+    const lastMonday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() - 7)
+    const yyyy = lastMonday.getFullYear()
+    const mm = String(lastMonday.getMonth() + 1).padStart(2, '0')
+    const dd = String(lastMonday.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+}
 
 const computeMyReportsStats = (items) => {
     const total = items.length
@@ -8,9 +26,27 @@ const computeMyReportsStats = (items) => {
     return { completed, completionRate, notStarted: total - completed - pending, pending, total }
 }
 
-const computeReviewStats = (items, reviewedByCurrentUser) => {
-    const total = items.length
-    const reviewed = reviewedByCurrentUser?.size ?? 0
+const computeReviewStats = (items, reviewedByCurrentUser, rangeValue) => {
+    let filteredItems
+
+    if (rangeValue === 'week') {
+        const lastMondayISO = getLastWeekMondayISO()
+        filteredItems = items.filter((item) => {
+            if (!item.week) return false
+            const itemWeek = String(item.week).slice(0, 10)
+            return itemWeek === lastMondayISO
+        })
+    } else {
+        const rangeDays = RANGE_OPTIONS.find((r) => r.value === rangeValue)?.days || 30
+        const cutoffDate = new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000)
+        filteredItems = items.filter((item) => {
+            const itemDate = new Date(item.week || item.createdAt || item.created_at)
+            return !isNaN(itemDate.getTime()) && itemDate >= cutoffDate
+        })
+    }
+
+    const total = filteredItems.length
+    const reviewed = filteredItems.filter((item) => reviewedByCurrentUser?.has(item.id)).length
     const completionRate = total > 0 ? Math.round((reviewed / total) * 100) : 0
     return { completionRate, pending: total - reviewed, reviewed, total }
 }
@@ -47,10 +83,31 @@ const ProgressPill = ({ percent, label }) => {
     )
 }
 
+const RangeSelector = ({ value, onChange }) => (
+    <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+        {RANGE_OPTIONS.map((opt) => (
+            <button
+                key={opt.value}
+                onClick={() => onChange(opt.value)}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    value === opt.value ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+                {opt.label}
+            </button>
+        ))}
+    </div>
+)
+
 function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
+    const [reviewRange, setReviewRange] = useState('week')
+
     const stats = useMemo(
-        () => (tab === 'all' ? computeMyReportsStats(items) : computeReviewStats(items, reviewedByCurrentUser)),
-        [items, tab, reviewedByCurrentUser]
+        () =>
+            tab === 'all'
+                ? computeMyReportsStats(items)
+                : computeReviewStats(items, reviewedByCurrentUser, reviewRange),
+        [items, tab, reviewedByCurrentUser, reviewRange]
     )
 
     if (tab === 'all') {
@@ -105,7 +162,10 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
                     label="Pending"
                 />
             </div>
-            <ProgressPill percent={stats.completionRate} label={`${stats.reviewed}/${stats.total} reviewed`} />
+            <div className="flex items-center gap-3">
+                <RangeSelector value={reviewRange} onChange={setReviewRange} />
+                <ProgressPill percent={stats.completionRate} label={`${stats.reviewed}/${stats.total} reviewed`} />
+            </div>
         </div>
     )
 }

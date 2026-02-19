@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [13.5] - 2026-02-19
+
+- Added a custom dropdown arrow icon to the plant selection dropdown in `ReportsSubmitView.jsx` using a background SVG image and adjusted styling with `appearance-none` and cursor properties.
+- Enhanced `ReportsStatsCards.jsx` with a new time range filter for review stats, allowing users to view data for "Last Week", "1 Month", or "1 Year" with a `RangeSelector` component for toggling between these options.
+- Implemented date filtering logic in `computeReviewStats` function within `ReportsStatsCards.jsx` to filter items based on selected time range using `getLastWeekMondayISO` for weekly filtering and cutoff dates for monthly/yearly ranges.
+- Updated styling for `.rpt-stats` class in `WeeklyGeneralManagerReport.jsx` and `reportPluginStyles.js` to include a top margin of `1.25rem` alongside the existing bottom margin and grid layout.
+
 ## [13.4] - 2026-02-19
 
 - Updated version number to 13.4 in `public/turl.json`.
