@@ -17,8 +17,8 @@ import {
     YAxis
 } from 'recharts'
 
-import { supabase } from '../../services/DatabaseService'
-import { RegionService } from '../../services/RegionService'
+import { supabase } from '../../../services/DatabaseService'
+import { RegionService } from '../../../services/RegionService'
 
 const COLORS = {
     active: '#22c55e',
@@ -95,6 +95,38 @@ const LegendDot = ({ color, label }) => (
 
 const calcAverage = (data, key) => (data.length > 0 ? data.reduce((sum, item) => sum + item[key], 0) / data.length : 0)
 const calcTotal = (data, key) => data.reduce((sum, item) => sum + item[key], 0)
+
+const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0 }) => (
+    <ChartCard
+        icon={icon}
+        iconColor={iconColor}
+        title={title}
+        footer={
+            <span className="text-slate-500">
+                Total: <strong className="text-[#1e3a5f]">{footerText?.split(': ')[1]}</strong>
+            </span>
+        }
+    >
+        <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+                <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={innerRadius}
+                    outerRadius={75}
+                    paddingAngle={2}
+                    dataKey="value"
+                >
+                    {data.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                    ))}
+                </Pie>
+                <Tooltip content={<PieChartTooltip />} />
+            </PieChart>
+        </ResponsiveContainer>
+    </ChartCard>
+)
 
 export default function DashboardCharts({
     dashboardPlant,
@@ -780,35 +812,3 @@ const ProductionTooltip = ({ active, label, payload }) => {
         </div>
     )
 }
-
-const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0 }) => (
-    <ChartCard
-        icon={icon}
-        iconColor={iconColor}
-        title={title}
-        footer={
-            <span className="text-slate-500">
-                Total: <strong className="text-[#1e3a5f]">{footerText?.split(': ')[1]}</strong>
-            </span>
-        }
-    >
-        <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-                <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={innerRadius}
-                    outerRadius={75}
-                    paddingAngle={2}
-                    dataKey="value"
-                >
-                    {data.map((entry, index) => (
-                        <Cell key={index} fill={entry.color} />
-                    ))}
-                </Pie>
-                <Tooltip content={<PieChartTooltip />} />
-            </PieChart>
-        </ResponsiveContainer>
-    </ChartCard>
-)

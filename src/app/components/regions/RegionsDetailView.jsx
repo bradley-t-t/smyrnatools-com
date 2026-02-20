@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
-import { PlantService } from '../../services/PlantService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
+import { RegionService } from '../../../services/RegionService'
 
 function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const [regionName, setRegionName] = useState(region.region_name || region.regionName || '')

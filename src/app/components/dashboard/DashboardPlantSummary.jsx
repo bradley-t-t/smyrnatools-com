@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react'
 
-import { usePreferences } from '../../app/context/PreferencesContext'
+import { usePreferences } from '../../context/PreferencesContext'
 
 const STORAGE_KEY = 'dashboard-plant-summary-minimized'
 

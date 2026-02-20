@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import LoadingScreen from '../../app/components/common/LoadingScreen'
+import RegionsAddView from '../../app/components/regions/RegionsAddView'
+import RegionsDetailView from '../../app/components/regions/RegionsDetailView'
 import TopSection from '../../app/components/sections/TopSection'
 import { RegionService } from '../../services/RegionService'
-import RegionsAddView from './RegionsAddView'
-import RegionsDetailView from './RegionsDetailView'
 
 function RegionsView({ title = 'Regions' }) {
     const [regions, setRegions] = useState([])

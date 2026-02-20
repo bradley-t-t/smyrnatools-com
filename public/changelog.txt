@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.1] - 2026-02-20
+
+- Restructured project directory by moving multiple components from `src/views/` to `src/app/components/`, including `DashboardCharts.jsx`, `DashboardPlantSummary.jsx`, `RegionSelectorOverlay.jsx`, `RegionsAddView.jsx`, `RegionsDetailView.jsx`, and various report components.
+- Updated import paths in `DashboardCharts.jsx` to reflect new directory structure, changing `../../services/` to `../../../services/` for `DatabaseService` and `RegionService`.
+- Relocated the `PieChartCard` component within `DashboardCharts.jsx` to a different position in the file, though its content remains unchanged.
+- Updated import path in `DashboardPlantSummary.jsx` for `usePreferences` from `../../app/context/PreferencesContext` to `../../context/PreferencesContext`.
+- Updated import paths in `RegionsAddView.jsx` for `RegionService` to `../../../services/RegionService` and for `AddViewSection` to `../sections/AddViewSection`.
+- Updated import paths in `RegionsDetailView.jsx` for `PlantService` and `RegionService` to `../../../services/`.
+
 ## [14.0] - 2026-02-20
 
 - Added color brightness clamping functionality in `MyAccountView.jsx` to adjust very light accent colors for better readability.

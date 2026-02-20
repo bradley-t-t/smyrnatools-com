@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState, useTransition } from '
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import DashboardCharts from '../../app/components/dashboard/DashboardCharts'
+import DashboardPlantSummary from '../../app/components/dashboard/DashboardPlantSummary'
 import { CollapsibleTable } from '../../app/components/ui/CollapsibleTable'
 import {
     AllocationPill,
@@ -37,8 +39,6 @@ import MixersView from '../mixers/MixersView'
 import OperatorsView from '../operators/OperatorsView'
 import TractorsView from '../tractors/TractorsView'
 import TrailersView from '../trailers/TrailersView'
-import DashboardCharts from './DashboardCharts'
-import DashboardPlantSummary from './DashboardPlantSummary'
 
 export default function DashboardView() {
     const { preferences } = usePreferences()
