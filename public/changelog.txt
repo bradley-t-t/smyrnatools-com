@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.5] - 2026-02-20
+
+- Added new utility file `RegionPlantScopeUtility.js` for handling region and plant scope logic, including functions `getRegionScopedPlantCodes` and `resolveUserPlantCode` to manage plant code normalization and user plant resolution.
+- Introduced `VerificationDueDateUtility.js` to manage due date logic with `buildDueSeverity` function for determining notification severity based on Central Time zone weekdays and hours.
+- Created `createVerificationNotificationProvider.js` to centralize notification logic, supporting single and multi-plant notifications with functions for grouping by plant code and building notifications based on user permissions and plant scopes.
+- Refactored `EquipmentVerificationNotifications.js` to use the new `createVerificationNotificationProvider` utility, simplifying the notification generation logic.
+- Updated `MixerVerificationNotifications.js` to integrate with `createVerificationNotificationProvider`, reducing redundant code for notification handling.
+- Modified `TractorVerificationNotifications.js` to leverage the new notification provider utility for consistent verification notification logic.
+- Revised `OverdueListNotifications.js` to align with updated notification utilities, adjusting the logic for overdue item notifications.
+
 ## [14.4] - 2026-02-20
 
 - Removed the file `public/changelog_ai.txt` which contained user-friendly AI-generated changelog summaries.
