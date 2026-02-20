@@ -2,6 +2,32 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.3] - 2026-02-20
+
+- Removed `ProtectedRoute.jsx` component from `src/app/components/auth/`, which handled authentication and role-based routing logic.
+- Deleted `AIAgentPopup.jsx` from `src/app/components/common/`, removing AI agent popup functionality and related data fetching for mixers, tractors, trailers, equipment, pickups, operators, and reports.
+- Removed `RegionOverlay.jsx` from `src/app/components/common/`, eliminating region overlay UI component.
+- Deleted `LeaderboardPodium.jsx` from `src/app/components/leaderboards/`, removing leaderboard podium display functionality.
+- Removed `RegionSelectorOverlay.jsx` from `src/app/components/regions/`, deleting region selection overlay component.
+- Deleted `ToggleButtonGroup.jsx` from `src/app/components/ui/`, removing toggle button group UI component.
+- Removed `RealtimeContext.js` from `src/app/context/`, eliminating real-time data context functionality.
+- Deleted `useAssetRealtimeUpdates.js` from `src/app/hooks/`, removing hook for real-time asset updates.
+- Removed `usePresence.js` from `src/app/hooks/`, deleting hook for user presence tracking.
+- Deleted `useVersionPolling.js` from `src/app/hooks/`, removing hook for version polling.
+- Removed styles from `src/app/index.css`, deleting associated CSS rules.
+- Deleted `AppState.js` from `src/models/app/`, removing application state model definitions.
+- Removed `ListItem.jsx` from `src/models/list/`, deleting list item model component.
+- Deleted `BaseService.js` from `src/services/`, removing base service utility functions.
+- Removed `ChatService.js` from `src/services/`, deleting chat-related service functionality.
+- Deleted `CryptoUtility.js` from `src/utils/`, removing cryptographic utility functions.
+- Removed `DatabaseUtility.js` from `src/utils/`, deleting database utility functions.
+- Deleted `EmailUtility.js` from `src/utils/`, removing email handling utility functions.
+- Removed `ErrorUtility.js` from `src/utils/`, deleting error handling utility functions.
+- Deleted `ListItemCard.jsx` from `src/views/list/`, removing list item card UI component.
+- Removed `ReportsReviewViewStyles.js` from `src/views/reports/styles/`, deleting styles for reports review view.
+- Deleted `ReportsSubmitViewStyles.js` from `src/views/reports/styles/`, removing styles for reports submit view.
+- Removed `ReportsViewStyles.js` from `src/views/reports/styles/`, deleting styles for general reports view.
+
 ## [14.2] - 2026-02-20
 
 - Updated ReportsToolbar.jsx to replace the `viewMode="list"` prop with `listLabels={[]}` in the ReportsToolbar component.
