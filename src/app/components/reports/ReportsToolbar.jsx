@@ -73,7 +73,7 @@ function ReportsToolbar({
             hideViewModeToggle
             hidePlantFilter
             sticky
-            viewMode="list"
+            listLabels={[]}
             searchPlaceholder="Search by name or report type"
             customFilters={
                 <div className="flex items-center flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">

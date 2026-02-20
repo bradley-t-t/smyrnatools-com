@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.2] - 2026-02-20
+
+- Updated ReportsToolbar.jsx to replace the `viewMode="list"` prop with `listLabels={[]}` in the ReportsToolbar component.
+
 ## [14.1] - 2026-02-20
 
 - Restructured project directory by moving multiple components from `src/views/` to `src/app/components/`, including `DashboardCharts.jsx`, `DashboardPlantSummary.jsx`, `RegionSelectorOverlay.jsx`, `RegionsAddView.jsx`, `RegionsDetailView.jsx`, and various report components.
