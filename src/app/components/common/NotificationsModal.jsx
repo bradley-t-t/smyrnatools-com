@@ -3,10 +3,12 @@ import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 import { useNotifications } from '../../hooks/useNotifications'
 
 function NotificationsModal({ isOpen, onClose, anchorRect }) {
     const { preferences } = usePreferences()
+    const accentColor = useAccentColor()
     const [userId, setUserId] = useState(null)
     const [collapsedCategories, setCollapsedCategories] = useState(new Set())
     const panelRef = useRef(null)
@@ -201,14 +203,14 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                                         >
                                             <i
                                                 className={`${category.icon} text-sm w-5 text-center`}
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                style={{ color: accentColor }}
                                             ></i>
                                             <span className="flex-1 text-sm font-semibold text-slate-700">
                                                 {category.label}
                                             </span>
                                             <span
                                                 className="px-2 py-0.5 text-white text-xs font-semibold rounded-full min-w-[22px] text-center"
-                                                style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
+                                                style={{ backgroundColor: accentColor }}
                                             >
                                                 {category.items.length}
                                             </span>

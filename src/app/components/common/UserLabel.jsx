@@ -1,167 +1,98 @@
 import React, { useEffect, useState } from 'react'
 
 import { UserService } from '../../../services/UserService'
+import { useAccentColor } from '../../hooks/useAccentColor'
+
+const SIZE_CONFIG = {
+    large: { fontSize: 'text-base', initialsFontSize: 'text-[13px]', initialsSize: 'h-8 w-8' },
+    medium: { fontSize: 'text-sm', initialsFontSize: 'text-[11px]', initialsSize: 'h-[26px] w-[26px]' },
+    small: { fontSize: 'text-xs', initialsFontSize: 'text-[10px]', initialsSize: 'h-5 w-5' }
+}
+
+function getInitials(displayName) {
+    const parts = displayName.trim().split(' ').filter(Boolean)
+    if (parts.length > 1) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+    return displayName.substring(0, 2).toUpperCase()
+}
 
 function UserLabel({ userId, showInitials = false, showIcon = false, size = 'medium' }) {
     const [userName, setUserName] = useState('')
     const [initials, setInitials] = useState('')
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
+    const accentColor = useAccentColor()
+    const sizeStyles = SIZE_CONFIG[size] || SIZE_CONFIG.medium
 
     useEffect(() => {
-        let isMounted = true
+        let mounted = true
 
         async function fetchUserData() {
             if (!userId) {
-                if (isMounted) {
+                if (mounted) {
                     setUserName('Unknown User')
                     setInitials('?')
                     setIsLoading(false)
                 }
                 return
             }
-
             try {
                 const displayName = await UserService.getUserDisplayName(userId)
-
-                if (!isMounted) return
-
+                if (!mounted) return
                 setUserName(displayName)
-
-                const nameParts = displayName
-                    .trim()
-                    .split(' ')
-                    .filter((part) => part)
-                if (nameParts.length > 1) {
-                    setInitials(`${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase())
-                } else if (displayName.includes('@')) {
-                    setInitials(displayName.substring(0, 2).toUpperCase())
-                } else if (displayName.startsWith('User ')) {
-                    setInitials(displayName.substring(0, 2).toUpperCase())
-                } else {
-                    setInitials(displayName.substring(0, 2).toUpperCase())
-                }
+                setInitials(getInitials(displayName))
             } catch (err) {
-                if (isMounted) {
+                if (mounted) {
                     setError(err.message)
                     setUserName('Unknown User')
                     setInitials('?')
                 }
             } finally {
-                if (isMounted) {
-                    setIsLoading(false)
-                }
+                if (mounted) setIsLoading(false)
             }
         }
 
         fetchUserData()
-
         return () => {
-            isMounted = false
+            mounted = false
         }
     }, [userId])
 
-    const getSizeStyles = () => {
-        switch (size) {
-            case 'small':
-                return { fontSize: '12px', initialsFontSize: '10px', initialsSize: '20px' }
-            case 'large':
-                return { fontSize: '16px', initialsFontSize: '13px', initialsSize: '32px' }
-            default:
-                return { fontSize: '14px', initialsFontSize: '11px', initialsSize: '26px' }
-        }
-    }
-
-    const sizeStyles = getSizeStyles()
-
-    const labelStyle = {
-        alignItems: 'center',
-        color: '#374151',
-        display: 'inline-flex',
-        fontSize: sizeStyles.fontSize,
-        gap: '8px'
-    }
-
-    const initialsStyle = {
-        alignItems: 'center',
-        backgroundColor: '#1e3a5f',
-        borderRadius: '50%',
-        color: 'white',
-        display: 'inline-flex',
-        flexShrink: 0,
-        fontSize: sizeStyles.initialsFontSize,
-        fontWeight: 600,
-        height: sizeStyles.initialsSize,
-        justifyContent: 'center',
-        width: sizeStyles.initialsSize
-    }
-
-    const initialsErrorStyle = {
-        ...initialsStyle,
-        backgroundColor: '#fef2f2',
-        color: '#991b1b'
-    }
-
-    const initialsLoadingStyle = {
-        ...initialsStyle,
-        backgroundColor: '#f1f5f9',
-        color: '#94a3b8'
-    }
-
-    const nameStyle = {
-        color: '#374151',
-        fontWeight: 500
-    }
-
-    const nameLoadingStyle = {
-        ...nameStyle,
-        backgroundColor: '#e5e7eb',
-        borderRadius: '4px',
-        height: '14px',
-        width: '80px'
-    }
-
-    const iconStyle = {
-        color: '#64748b',
-        fontSize: sizeStyles.fontSize
-    }
-
-    const errorIconStyle = {
-        ...iconStyle,
-        color: '#f59e0b'
-    }
+    const baseClass = `inline-flex items-center gap-2 text-gray-700 ${sizeStyles.fontSize}`
+    const initialsBaseClass = `inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white ${sizeStyles.initialsFontSize} ${sizeStyles.initialsSize}`
 
     if (isLoading) {
         return (
-            <span style={labelStyle}>
-                {showIcon && <i className="fas fa-user" style={iconStyle}></i>}
-                {showInitials && <span style={initialsLoadingStyle}>?</span>}
-                <span style={nameLoadingStyle}></span>
+            <span className={baseClass}>
+                {showIcon && <i className="fas fa-user text-slate-500" />}
+                {showInitials && <span className={`${initialsBaseClass} bg-slate-100 text-slate-400`}>?</span>}
+                <span className="h-3.5 w-20 rounded bg-gray-200" />
             </span>
         )
     }
 
     if (error) {
         return (
-            <span style={labelStyle} title={`Error: ${error}`}>
+            <span className={baseClass} title={`Error: ${error}`}>
                 {showIcon ? (
-                    <i className="fas fa-exclamation-triangle" style={errorIconStyle}></i>
+                    <i className="fas fa-exclamation-triangle text-amber-500" />
                 ) : showInitials ? (
-                    <span style={initialsErrorStyle}>!</span>
+                    <span className={`${initialsBaseClass} bg-red-50 text-red-800`}>!</span>
                 ) : null}
-                <span style={nameStyle}>Unknown User</span>
+                <span className="font-medium text-gray-700">Unknown User</span>
             </span>
         )
     }
 
     return (
-        <span style={labelStyle} data-testid={`user-label-${userId}`}>
+        <span className={baseClass} data-testid={`user-label-${userId}`}>
             {showIcon ? (
-                <i className="fas fa-user" style={iconStyle}></i>
+                <i className="fas fa-user text-slate-500" />
             ) : showInitials ? (
-                <span style={initialsStyle}>{initials}</span>
+                <span className={initialsBaseClass} style={{ backgroundColor: accentColor }}>
+                    {initials}
+                </span>
             ) : null}
-            <span style={nameStyle}>{userName}</span>
+            <span className="font-medium text-gray-700">{userName}</span>
         </span>
     )
 }

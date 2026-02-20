@@ -2,6 +2,28 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.7] - 2026-02-20
+
+- Refactored `AppInstallPromptModal.jsx` to simplify logic for showing install prompts and added structured step-by-step instructions for iOS and Android devices.
+- Updated `ErrorMessage.jsx` with minor styling or content adjustments.
+- Simplified `LoadingScreen.jsx` by reducing code complexity or UI elements.
+- Adjusted `LockedOverlay.jsx` for improved display or functionality.
+- Made minor updates to `Modal.jsx` for consistency or bug fixes.
+- Updated `Navigation.jsx` with small changes to navigation behavior or styling.
+- Adjusted `NotificationsModal.jsx` for better notification display or interaction.
+- Updated `OfflineOverlay.jsx` with minor improvements to offline state handling.
+- Refactored `OnlineUsersModal.jsx` for better user list management or display.
+- Simplified `PlantDropdownModal.jsx` by reducing code or improving dropdown functionality.
+- Updated `TerminatedOverlay.jsx` with changes to termination messaging or styling.
+- Made minor adjustments to `TutorialPopup.jsx` for tutorial display.
+- Updated `UserLabel.jsx` for improved user information display or styling.
+- Adjusted `VerificationRequirementsModal.jsx` with small changes to verification content.
+- Updated `VersionPopup.jsx` for version information display or interaction.
+- Simplified `VideoBackground.jsx` by optimizing video rendering or styling.
+- Updated `WebOverlay.jsx` with minor improvements to overlay behavior.
+- Added new color or theme property in `themeConstants.js`.
+- Enhanced `useAccentColor.js` hook with new functionality for dynamic color application.
+
 ## [14.6] - 2026-02-20
 
 - Updated OfflineOverlay.jsx to use CSS classes instead of inline styles for the overlay and modal components.

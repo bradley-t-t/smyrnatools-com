@@ -36,7 +36,7 @@ export function ModalSummaryItem({ label, value, valueClassName = '' }) {
     return (
         <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-4">
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</span>
-            <span className={`text-2xl font-bold text-[#1e3a5f] ${valueClassName}`}>{value}</span>
+            <span className={`text-2xl font-bold text-accent ${valueClassName}`}>{value}</span>
         </div>
     )
 }

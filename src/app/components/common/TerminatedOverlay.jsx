@@ -2,86 +2,33 @@ import React from 'react'
 
 import SmyrnaLogo from '../../../assets/images/SmyrnaLogo.png'
 import { useAuth } from '../../context/AuthContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 
 function TerminatedOverlay() {
     const { signOut } = useAuth()
+    const accentColor = useAccentColor()
 
     const handleSignOut = async () => {
         try {
             await signOut()
             window.location.href = '/'
-        } catch (error) {}
-    }
-
-    const containerStyle = {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        bottom: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        left: 0,
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        zIndex: 9999
-    }
-
-    const contentStyle = {
-        backgroundColor: 'white',
-        borderRadius: '20px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-        maxWidth: '440px',
-        padding: '48px',
-        textAlign: 'center',
-        width: '90%'
-    }
-
-    const logoStyle = {
-        height: 'auto',
-        marginBottom: '24px',
-        width: '120px'
-    }
-
-    const titleStyle = {
-        color: '#991b1b',
-        fontSize: '28px',
-        fontWeight: 700,
-        margin: '0 0 16px 0'
-    }
-
-    const messageStyle = {
-        color: '#64748b',
-        fontSize: '16px',
-        lineHeight: 1.7,
-        margin: '0 0 32px 0'
-    }
-
-    const buttonStyle = {
-        alignItems: 'center',
-        backgroundColor: '#1e3a5f',
-        border: 'none',
-        borderRadius: '12px',
-        color: 'white',
-        cursor: 'pointer',
-        display: 'inline-flex',
-        fontSize: '15px',
-        fontWeight: 600,
-        gap: '10px',
-        justifyContent: 'center',
-        padding: '14px 32px',
-        width: '100%'
+        } catch {}
     }
 
     return (
-        <div style={containerStyle}>
-            <div style={contentStyle}>
-                <img src={SmyrnaLogo} alt="Smyrna Logo" style={logoStyle} />
-                <h1 style={titleStyle}>Access Revoked</h1>
-                <p style={messageStyle}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85">
+            <div className="w-[90%] max-w-[440px] rounded-[20px] bg-white p-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+                <img src={SmyrnaLogo} alt="Smyrna Logo" className="mb-6 h-auto w-[120px]" />
+                <h1 className="mb-4 text-[28px] font-bold text-red-800">Access Revoked</h1>
+                <p className="mb-8 text-base leading-relaxed text-slate-500">
                     Your access to this application has been revoked. Please contact your district manager for more
                     information.
                 </p>
-                <button style={buttonStyle} onClick={handleSignOut}>
+                <button
+                    className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border-none px-8 py-3.5 text-[15px] font-semibold text-white"
+                    style={{ backgroundColor: accentColor }}
+                    onClick={handleSignOut}
+                >
                     Sign Out
                 </button>
             </div>

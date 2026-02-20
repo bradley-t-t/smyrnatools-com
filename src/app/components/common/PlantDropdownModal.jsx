@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { useAccentColor } from '../../hooks/useAccentColor'
+
 function PlantDropdownModal({
     isOpen,
     onClose,
@@ -13,20 +15,26 @@ function PlantDropdownModal({
 }) {
     const [search, setSearch] = useState('')
     const [localSelectedCodes, setLocalSelectedCodes] = useState(selectedPlantCodes || [])
+    const accentColor = useAccentColor()
 
     const filteredPlants = plants.filter((plant) => {
         const code = plant.plantCode || plant.plant_code || ''
         const name = plant.plantName || plant.plant_name || ''
-        return code.toLowerCase().includes(search.toLowerCase()) || name.toLowerCase().includes(search.toLowerCase())
+        const term = search.toLowerCase()
+        return code.toLowerCase().includes(term) || name.toLowerCase().includes(term)
+    })
+
+    const sortedPlants = [...filteredPlants].sort((a, b) => {
+        const codeA = a.plantCode || a.plant_code || ''
+        const codeB = b.plantCode || b.plant_code || ''
+        if (codeA === 'OTHER_REGION') return 1
+        if (codeB === 'OTHER_REGION') return -1
+        return parseInt(codeA.replace(/\D/g, '') || '0') - parseInt(codeB.replace(/\D/g, '') || '0')
     })
 
     const handlePlantClick = (code) => {
         if (allowMultiple) {
-            if (localSelectedCodes.includes(code)) {
-                setLocalSelectedCodes((prev) => prev.filter((c) => c !== code))
-            } else {
-                setLocalSelectedCodes((prev) => [...prev, code])
-            }
+            setLocalSelectedCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
             onSelect(code)
         } else {
             onSelect(code)
@@ -34,216 +42,85 @@ function PlantDropdownModal({
         }
     }
 
-    const handleDone = () => {
-        onClose()
-    }
-
-    if (!isOpen) return null
-
-    if (typeof document === 'undefined' || !document.body) {
-        return null
-    }
-
-    const overlayStyle = {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        bottom: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        left: 0,
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        zIndex: 10000
-    }
-
-    const modalStyle = {
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        display: 'flex',
-        flexDirection: 'column',
-        maxHeight: '80vh',
-        maxWidth: '400px',
-        overflow: 'hidden',
-        width: '90%'
-    }
-
-    const headerStyle = {
-        alignItems: 'center',
-        backgroundColor: '#f8fafc',
-        borderBottom: '1px solid #e5e7eb',
-        borderRadius: '16px 16px 0 0',
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '16px 20px'
-    }
-
-    const titleStyle = {
-        color: '#1e3a5f',
-        fontSize: '18px',
-        fontWeight: 600,
-        margin: 0
-    }
-
-    const closeButtonStyle = {
-        alignItems: 'center',
-        background: 'transparent',
-        border: 'none',
-        borderRadius: '8px',
-        color: '#64748b',
-        cursor: 'pointer',
-        display: 'flex',
-        fontSize: '16px',
-        height: '32px',
-        justifyContent: 'center',
-        width: '32px'
-    }
-
-    const searchWrapperStyle = {
-        borderBottom: '1px solid #e5e7eb',
-        padding: '12px 16px',
-        position: 'relative'
-    }
-
-    const searchInputStyle = {
-        border: '1px solid #e5e7eb',
-        borderRadius: '10px',
-        boxSizing: 'border-box',
-        fontSize: '14px',
-        outline: 'none',
-        padding: '12px 16px 12px 40px',
-        width: '100%'
-    }
-
-    const searchIconStyle = {
-        color: '#94a3b8',
-        fontSize: '14px',
-        left: '28px',
-        position: 'absolute',
-        top: '50%',
-        transform: 'translateY(-50%)'
-    }
-
-    const listStyle = {
-        backgroundColor: 'white',
-        flex: 1,
-        overflowY: 'auto',
-        padding: '8px'
-    }
-
-    const optionStyle = (isSelected) => ({
-        alignItems: 'center',
-        backgroundColor: isSelected ? '#f0f7ff' : 'transparent',
-        borderRadius: '10px',
-        color: '#374151',
-        cursor: 'pointer',
-        display: 'flex',
-        fontSize: '14px',
-        fontWeight: isSelected ? 600 : 400,
-        gap: '12px',
-        padding: '12px 16px',
-        transition: 'background-color 0.15s'
-    })
-
-    const checkboxStyle = {
-        accentColor: '#1e3a5f',
-        height: '18px',
-        width: '18px'
-    }
-
-    const footerStyle = {
-        backgroundColor: '#f8fafc',
-        borderTop: '1px solid #e5e7eb',
-        padding: '12px 16px'
-    }
-
-    const doneButtonStyle = {
-        backgroundColor: '#1e3a5f',
-        border: 'none',
-        borderRadius: '10px',
-        color: 'white',
-        cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: 600,
-        padding: '12px 20px',
-        width: '100%'
-    }
+    if (!isOpen || typeof document === 'undefined' || !document.body) return null
 
     return ReactDOM.createPortal(
-        <div style={overlayStyle} onClick={allowMultiple ? undefined : onClose}>
-            <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-                <div style={headerStyle}>
-                    <h2 style={titleStyle}>{allowMultiple ? 'Select Plants' : 'Select Plant'}</h2>
-                    <button onClick={onClose} style={closeButtonStyle}>
-                        <i className="fas fa-times" aria-hidden="true"></i>
+        <div
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-5"
+            onClick={allowMultiple ? undefined : onClose}
+        >
+            <div
+                className="flex max-h-[80vh] w-[90%] max-w-[400px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-slate-50 px-5 py-4">
+                    <h2 className="m-0 text-lg font-semibold" style={{ color: accentColor }}>
+                        {allowMultiple ? 'Select Plants' : 'Select Plant'}
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border-none bg-transparent text-base text-slate-500 hover:bg-slate-100"
+                    >
+                        <i className="fas fa-times" />
                     </button>
                 </div>
-                <div style={searchWrapperStyle}>
+
+                <div className="relative border-b border-gray-200 px-4 py-3">
                     <input
                         type="text"
                         placeholder={searchPlaceholder}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        style={searchInputStyle}
+                        className="w-full rounded-[10px] border border-gray-200 py-3 pl-10 pr-4 text-sm outline-none focus:border-slate-400"
                     />
-                    <i className="fas fa-search" style={searchIconStyle} aria-hidden="true"></i>
+                    <i className="fas fa-search absolute left-7 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
                 </div>
-                <div style={listStyle}>
+
+                <div className="flex-1 overflow-y-auto bg-white p-2">
                     {showAllPlants && !allowMultiple && (
                         <div
-                            style={{ ...optionStyle(false), marginBottom: '4px' }}
+                            className="mb-1 flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-3 text-sm text-gray-700 hover:bg-slate-100"
                             onClick={() => {
                                 onSelect('All')
                                 onClose()
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
-                            <span style={{ color: '#374151' }}>All Plants</span>
+                            All Plants
                         </div>
                     )}
-                    {filteredPlants
-                        .sort((a, b) => {
-                            const codeA = a.plantCode || a.plant_code || ''
-                            const codeB = b.plantCode || b.plant_code || ''
-                            if (codeA === 'OTHER_REGION') return 1
-                            if (codeB === 'OTHER_REGION') return -1
-                            return parseInt(codeA.replace(/\D/g, '') || '0') - parseInt(codeB.replace(/\D/g, '') || '0')
-                        })
-                        .map((plant) => {
-                            const code = plant.plantCode || plant.plant_code
-                            const isSelected = allowMultiple && localSelectedCodes.includes(code)
-                            return (
-                                <div
-                                    key={code}
-                                    style={optionStyle(isSelected)}
-                                    onClick={() => handlePlantClick(code)}
-                                    onMouseEnter={(e) => {
-                                        if (!isSelected) e.currentTarget.style.backgroundColor = '#f1f5f9'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'
-                                    }}
-                                >
-                                    {allowMultiple && (
-                                        <input
-                                            type="checkbox"
-                                            checked={isSelected}
-                                            onChange={() => {}}
-                                            style={checkboxStyle}
-                                        />
-                                    )}
-                                    <span style={{ color: '#374151' }}>
-                                        ({code}) {plant.plantName || plant.plant_name}
-                                    </span>
-                                </div>
-                            )
-                        })}
+                    {sortedPlants.map((plant) => {
+                        const code = plant.plantCode || plant.plant_code
+                        const isSelected = allowMultiple && localSelectedCodes.includes(code)
+                        return (
+                            <div
+                                key={code}
+                                className={`flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-3 text-sm transition-colors hover:bg-slate-100 ${isSelected ? 'bg-blue-50 font-semibold' : 'text-gray-700'}`}
+                                onClick={() => handlePlantClick(code)}
+                            >
+                                {allowMultiple && (
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => {}}
+                                        className="h-[18px] w-[18px]"
+                                        style={{ accentColor }}
+                                    />
+                                )}
+                                <span className="text-gray-700">
+                                    ({code}) {plant.plantName || plant.plant_name}
+                                </span>
+                            </div>
+                        )
+                    })}
                 </div>
+
                 {allowMultiple && (
-                    <div style={footerStyle}>
-                        <button onClick={handleDone} style={doneButtonStyle}>
+                    <div className="border-t border-gray-200 bg-slate-50 px-4 py-3">
+                        <button
+                            onClick={onClose}
+                            className="w-full rounded-[10px] border-none px-5 py-3 text-sm font-semibold text-white"
+                            style={{ backgroundColor: accentColor }}
+                        >
                             Done ({localSelectedCodes.length} selected)
                         </button>
                     </div>

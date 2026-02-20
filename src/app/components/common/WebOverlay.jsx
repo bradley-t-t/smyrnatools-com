@@ -1,68 +1,28 @@
 import React from 'react'
 
+import { useAccentColor } from '../../hooks/useAccentColor'
+
 function WebOverlay({ url, onClose }) {
-    const containerStyle = {
-        backgroundColor: 'white',
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        left: 0,
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        zIndex: 10000
-    }
-
-    const headerStyle = {
-        alignItems: 'center',
-        backgroundColor: '#1e3a5f',
-        borderBottom: '1px solid #163352',
-        display: 'flex',
-        gap: '16px',
-        padding: '12px 16px'
-    }
-
-    const closeButtonStyle = {
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        border: 'none',
-        borderRadius: '8px',
-        color: 'white',
-        cursor: 'pointer',
-        display: 'flex',
-        fontSize: '16px',
-        height: '36px',
-        justifyContent: 'center',
-        width: '36px'
-    }
-
-    const urlDisplayStyle = {
-        color: 'rgba(255, 255, 255, 0.8)',
-        flex: 1,
-        fontSize: '14px',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
-    }
-
-    const frameStyle = {
-        border: 'none',
-        flex: 1,
-        width: '100%'
-    }
+    const accentColor = useAccentColor()
 
     return (
-        <div style={containerStyle}>
-            <div style={headerStyle}>
-                <button style={closeButtonStyle} onClick={onClose}>
-                    <i className="fas fa-times"></i>
+        <div className="fixed inset-0 z-[10000] flex flex-col bg-white">
+            <div
+                className="flex items-center gap-4 border-b px-4 py-3"
+                style={{ backgroundColor: accentColor, borderBottomColor: `${accentColor}cc` }}
+            >
+                <button
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border-none bg-white/20 text-base text-white hover:bg-white/30"
+                    onClick={onClose}
+                >
+                    <i className="fas fa-times" />
                 </button>
-                <div style={urlDisplayStyle}>{url}</div>
+                <div className="flex-1 truncate text-sm text-white/80">{url}</div>
             </div>
             <iframe
                 src={url}
                 title="External Content"
-                style={frameStyle}
+                className="flex-1 border-none"
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             />
         </div>

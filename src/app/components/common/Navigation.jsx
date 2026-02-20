@@ -4,6 +4,7 @@ import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
@@ -79,7 +80,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const dropdownRef = useRef(null)
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
-    const accentColor = preferences.accentColor || '#1e3a5f'
+    const accentColor = useAccentColor()
     const { count: notificationsCount } = useNotifications(userId, preferences?.selectedRegion)
 
     useEffect(() => {

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { usePreferences } from '../../context/PreferencesContext'
 import { useTutorial } from '../../context/TutorialContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 
 const TUTORIALS = {
     'account-nav-hint': {
@@ -22,8 +22,7 @@ const TUTORIALS = {
 }
 
 function TutorialPopup({ tutorialId, onDismiss }) {
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
+    const accentColor = useAccentColor()
     const [position, setPosition] = useState(null)
     const [targetRect, setTargetRect] = useState(null)
     const [isReady, setIsReady] = useState(false)

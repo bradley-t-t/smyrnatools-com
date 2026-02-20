@@ -1,14 +1,11 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { usePreferences } from '../../context/PreferencesContext'
-
-const DEFAULT_ACCENT = '#1e3a5f'
+import { useAccentColor } from '../../hooks/useAccentColor'
 
 function OfflineOverlay({ onRetry }) {
     const [isRetrying, setIsRetrying] = useState(false)
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || DEFAULT_ACCENT
+    const accentColor = useAccentColor()
 
     if (typeof document === 'undefined' || !document.body) {
         return null

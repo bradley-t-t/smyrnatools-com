@@ -4,53 +4,34 @@ import vid1 from '../../../assets/videos/1.mp4'
 import vid2 from '../../../assets/videos/2.mp4'
 import vid3 from '../../../assets/videos/3.mp4'
 import vid4 from '../../../assets/videos/4.mp4'
+import { useAccentColor } from '../../hooks/useAccentColor'
 
-const backgroundVideos = [vid1, vid2, vid3, vid4]
+const BACKGROUND_VIDEOS = [vid1, vid2, vid3, vid4]
 
 const VideoBackground = memo(function VideoBackground({ className = '' }) {
-    const [currentVideoIndex] = useState(() => Math.floor(Math.random() * backgroundVideos.length))
+    const [currentVideoIndex] = useState(() => Math.floor(Math.random() * BACKGROUND_VIDEOS.length))
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
+    const accentColor = useAccentColor()
 
     useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.load()
-        }
+        videoRef.current?.load()
     }, [currentVideoIndex])
 
     const handleCanPlay = () => {
-        if (videoRef.current) {
-            videoRef.current.currentTime = 5
-            videoRef.current
-                .play()
-                .then(() => setShowVideo(true))
-                .catch(() => setShowVideo(true))
-        }
+        if (!videoRef.current) return
+        videoRef.current.currentTime = 5
+        videoRef.current
+            .play()
+            .then(() => setShowVideo(true))
+            .catch(() => setShowVideo(true))
     }
 
     return (
-        <div
-            style={{
-                height: '100%',
-                left: 0,
-                overflow: 'hidden',
-                position: 'absolute',
-                top: 0,
-                width: '100%',
-                zIndex: 0
-            }}
-            className={className}
-        >
+        <div className={`absolute inset-0 overflow-hidden ${className}`}>
             <div
-                style={{
-                    background: 'linear-gradient(135deg, #0a1929 0%, #1e3a5f 100%)',
-                    height: '100%',
-                    left: 0,
-                    position: 'absolute',
-                    top: 0,
-                    width: '100%',
-                    zIndex: 1
-                }}
+                className="absolute inset-0 z-[1]"
+                style={{ background: `linear-gradient(135deg, #0a1929 0%, ${accentColor} 100%)` }}
             />
             <video
                 ref={videoRef}
@@ -59,34 +40,12 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
                 playsInline
                 preload="auto"
                 onCanPlay={handleCanPlay}
-                style={{
-                    height: 'auto',
-                    left: '50%',
-                    minHeight: '100%',
-                    minWidth: '100%',
-                    objectFit: 'cover',
-                    opacity: showVideo ? 1 : 0,
-                    position: 'absolute',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    transition: 'opacity 1s ease-in-out',
-                    width: 'auto',
-                    zIndex: 2
-                }}
+                className="absolute left-1/2 top-1/2 z-[2] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-1000"
+                style={{ opacity: showVideo ? 1 : 0 }}
             >
-                <source src={backgroundVideos[currentVideoIndex]} type="video/mp4" />
+                <source src={BACKGROUND_VIDEOS[currentVideoIndex]} type="video/mp4" />
             </video>
-            <div
-                style={{
-                    background: 'rgba(0, 0, 0, 0.4)',
-                    height: '100%',
-                    left: 0,
-                    position: 'absolute',
-                    top: 0,
-                    width: '100%',
-                    zIndex: 3
-                }}
-            />
+            <div className="absolute inset-0 z-[3] bg-black/40" />
         </div>
     )
 })

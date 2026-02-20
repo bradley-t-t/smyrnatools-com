@@ -6,7 +6,7 @@ import { UserService } from '../../../services/UserService'
 import DateUtility from '../../../utils/DateUtility'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import { ValidationUtility } from '../../../utils/ValidationUtility'
-import { usePreferences } from '../../context/PreferencesContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 import LoadingScreen from './LoadingScreen'
 
 export default function VerificationRequirementsModal({
@@ -33,8 +33,7 @@ export default function VerificationRequirementsModal({
     service,
     status
 }) {
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
+    const accentColor = useAccentColor()
     const [operatorData, setOperatorData] = useState(null)
     const [operatorPhone, setOperatorPhone] = useState('')
     const [operatorRating, setOperatorRating] = useState(0)

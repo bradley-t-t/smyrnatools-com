@@ -1,29 +1,20 @@
 import React from 'react'
 
-import { usePreferences } from '../../context/PreferencesContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 
 function VersionPopup({ version }) {
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
+    const accentColor = useAccentColor()
 
     if (!version) return null
 
-    const popupStyle = {
-        backgroundColor: accentColor,
-        borderRadius: '10px',
-        bottom: '20px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        color: 'white',
-        fontSize: '13px',
-        fontWeight: 500,
-        left: '50%',
-        padding: '10px 20px',
-        position: 'fixed',
-        transform: 'translateX(-50%)',
-        zIndex: 1000
-    }
-
-    return <div style={popupStyle}>Version: {version}</div>
+    return (
+        <div
+            className="fixed bottom-5 left-1/2 z-[1000] -translate-x-1/2 rounded-[10px] px-5 py-2.5 text-[13px] font-medium text-white shadow-lg"
+            style={{ backgroundColor: accentColor }}
+        >
+            Version: {version}
+        </div>
+    )
 }
 
 export default VersionPopup

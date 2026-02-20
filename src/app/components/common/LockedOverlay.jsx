@@ -2,136 +2,65 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import { useAuth } from '../../context/AuthContext'
+import { useAccentColor } from '../../hooks/useAccentColor'
 import VideoBackground from './VideoBackground'
+
+const REASON_CONFIG = {
+    'invalid-session': {
+        message:
+            'Your session has expired or is invalid. Please refresh the page or sign out and log in again to continue.',
+        title: 'Session Invalid'
+    },
+    'no-plant': {
+        message:
+            'Your account is not assigned to a plant. Please contact your district manager to complete your setup.',
+        title: 'Setup Incomplete'
+    }
+}
+
+const DEFAULT_REASON = {
+    message: 'You must contact your district manager for them to approve your sign-up.',
+    title: 'Access Pending'
+}
 
 function LockedOverlay({ reason }) {
     const { signOut } = useAuth()
+    const accentColor = useAccentColor()
+    const { title, message } = REASON_CONFIG[reason] || DEFAULT_REASON
+
+    if (typeof document === 'undefined' || !document.body) return null
 
     const handleSignOut = async () => {
         try {
             await signOut()
             window.location.href = '/'
-        } catch (error) {
-            console.error('Sign out failed:', error)
-        }
-    }
-
-    const handleRefresh = () => {
-        window.location.reload()
-    }
-
-    const getMessage = () => {
-        if (reason === 'invalid-session') {
-            return 'Your session has expired or is invalid. Please refresh the page or sign out and log in again to continue.'
-        }
-        if (reason === 'no-plant') {
-            return 'Your account is not assigned to a plant. Please contact your district manager to complete your setup.'
-        }
-        return 'You must contact your district manager for them to approve your sign-up.'
-    }
-
-    const getTitle = () => {
-        if (reason === 'invalid-session') {
-            return 'Session Invalid'
-        }
-        if (reason === 'no-plant') {
-            return 'Setup Incomplete'
-        }
-        return 'Access Pending'
-    }
-
-    if (typeof document === 'undefined' || !document.body) {
-        return null
-    }
-
-    const backdropStyle = {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        bottom: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        left: 0,
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        zIndex: 9999
-    }
-
-    const modalStyle = {
-        backgroundColor: 'white',
-        borderRadius: '20px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-        maxWidth: '440px',
-        padding: '48px',
-        position: 'relative',
-        textAlign: 'center',
-        width: '90%',
-        zIndex: 1
-    }
-
-    const titleStyle = {
-        color: '#1e3a5f',
-        fontSize: '28px',
-        fontWeight: 700,
-        margin: '0 0 16px 0'
-    }
-
-    const messageStyle = {
-        color: '#64748b',
-        fontSize: '16px',
-        lineHeight: 1.7,
-        margin: '0 0 32px 0'
-    }
-
-    const actionsStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px'
-    }
-
-    const buttonBaseStyle = {
-        alignItems: 'center',
-        border: 'none',
-        borderRadius: '12px',
-        cursor: 'pointer',
-        display: 'flex',
-        fontSize: '15px',
-        fontWeight: 600,
-        gap: '10px',
-        justifyContent: 'center',
-        padding: '14px 24px',
-        width: '100%'
-    }
-
-    const refreshButtonStyle = {
-        ...buttonBaseStyle,
-        backgroundColor: '#1e3a5f',
-        color: 'white'
-    }
-
-    const signOutButtonStyle = {
-        ...buttonBaseStyle,
-        backgroundColor: '#f1f5f9',
-        color: '#374151'
+        } catch {}
     }
 
     return ReactDOM.createPortal(
-        <div style={backdropStyle}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85">
             <VideoBackground />
-            <div style={modalStyle}>
-                <div>
-                    <h1 style={titleStyle}>{getTitle()}</h1>
-                    <p style={messageStyle}>{getMessage()}</p>
-                    <div style={actionsStyle}>
-                        <button style={refreshButtonStyle} onClick={handleRefresh}>
-                            <i className="fas fa-sync-alt"></i>
-                            Refresh Page
-                        </button>
-                        <button style={signOutButtonStyle} onClick={handleSignOut}>
-                            <i className="fas fa-sign-out-alt"></i>
-                            Sign Out
-                        </button>
-                    </div>
+            <div className="relative z-[1] w-[90%] max-w-[440px] rounded-[20px] bg-white p-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+                <h1 className="mb-4 text-[28px] font-bold" style={{ color: accentColor }}>
+                    {title}
+                </h1>
+                <p className="mb-8 text-base leading-relaxed text-slate-500">{message}</p>
+                <div className="flex flex-col gap-3">
+                    <button
+                        className="flex w-full items-center justify-center gap-2.5 rounded-xl border-none px-6 py-3.5 text-[15px] font-semibold text-white"
+                        style={{ backgroundColor: accentColor }}
+                        onClick={() => window.location.reload()}
+                    >
+                        <i className="fas fa-sync-alt" />
+                        Refresh Page
+                    </button>
+                    <button
+                        className="flex w-full items-center justify-center gap-2.5 rounded-xl border-none bg-slate-100 px-6 py-3.5 text-[15px] font-semibold text-gray-700"
+                        onClick={handleSignOut}
+                    >
+                        <i className="fas fa-sign-out-alt" />
+                        Sign Out
+                    </button>
                 </div>
             </div>
         </div>,
