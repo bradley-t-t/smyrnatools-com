@@ -6,6 +6,29 @@ import { AuthService } from '../../services/AuthService'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
 
+const MAX_BRIGHTNESS_HEX = '#D6D6D6'
+const MAX_BRIGHTNESS_VALUE = 214
+
+const getRgbFromHex = (hex) => {
+    const cleanHex = hex.replace('#', '')
+    return {
+        b: parseInt(cleanHex.substring(4, 6), 16),
+        g: parseInt(cleanHex.substring(2, 4), 16),
+        r: parseInt(cleanHex.substring(0, 2), 16)
+    }
+}
+
+const clampColorToMaxBrightness = (hex) => {
+    const { b, g, r } = getRgbFromHex(hex)
+    const currentBrightness = (r + g + b) / 3
+    if (currentBrightness <= MAX_BRIGHTNESS_VALUE) return hex
+    const scale = MAX_BRIGHTNESS_VALUE / currentBrightness
+    const clampedR = Math.round(r * scale)
+    const clampedG = Math.round(g * scale)
+    const clampedB = Math.round(b * scale)
+    return `#${clampedR.toString(16).padStart(2, '0')}${clampedG.toString(16).padStart(2, '0')}${clampedB.toString(16).padStart(2, '0')}`
+}
+
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
     const { isMobile, resetAllTutorials, triggerTutorial } = useTutorial()
@@ -903,9 +926,12 @@ function MyAccountView({ userId }) {
                                                     <input
                                                         type="color"
                                                         value={preferences.accentColor || '#1e3a5f'}
-                                                        onChange={(e) =>
-                                                            updatePreferences('accentColor', e.target.value)
-                                                        }
+                                                        onChange={(e) => {
+                                                            const clampedColor = clampColorToMaxBrightness(
+                                                                e.target.value
+                                                            )
+                                                            updatePreferences('accentColor', clampedColor)
+                                                        }}
                                                         className="absolute inset-0 h-10 w-10 cursor-pointer opacity-0"
                                                     />
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 transition-all hover:border-gray-400 hover:bg-gray-100">
@@ -913,6 +939,10 @@ function MyAccountView({ userId }) {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <p className="mt-2 text-xs text-gray-400">
+                                                Very light colors will be adjusted for readability (max:{' '}
+                                                {MAX_BRIGHTNESS_HEX})
+                                            </p>
                                             <div className="mt-4 flex items-center gap-4">
                                                 <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
                                                     <div

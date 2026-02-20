@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.0] - 2026-02-20
+
+- Added color brightness clamping functionality in `MyAccountView.jsx` to adjust very light accent colors for better readability.
+- Introduced `getRgbFromHex` function to convert hex color codes to RGB values.
+- Implemented `clampColorToMaxBrightness` function to limit color brightness to a maximum value (`#D6D6D6` or 214 brightness).
+- Modified the accent color input handler to apply brightness clamping before updating preferences.
+- Added a note below the accent color picker to inform users about color adjustments for readability with the maximum brightness value displayed.
+
 ## [13.9] - 2026-02-19
 
 - Added support for custom accent color in `LeaderboardCategorySelector.jsx` with a new `accentColor` prop, defaulting to '#1e3a5f'
