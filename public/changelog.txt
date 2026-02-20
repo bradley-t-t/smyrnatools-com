@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.6] - 2026-02-20
+
+- Updated OfflineOverlay.jsx to use CSS classes instead of inline styles for the overlay and modal components.
+- Replaced hardcoded styles with Tailwind CSS utility classes for layout, spacing, and design in OfflineOverlay.jsx.
+- Added dynamic accent color support in OfflineOverlay.jsx by integrating the PreferencesContext to customize the title and button background colors.
+- Removed hardcoded color values and extensive inline style objects from OfflineOverlay.jsx, simplifying the code structure.
+- Maintained functionality for retry button with conditional styling for cursor and opacity based on retrying state in OfflineOverlay.jsx.
+
 ## [14.5] - 2026-02-20
 
 - Added new utility file `RegionPlantScopeUtility.js` for handling region and plant scope logic, including functions `getRegionScopedPlantCodes` and `resolveUserPlantCode` to manage plant code normalization and user plant resolution.
