@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { useIsMobile } from '../../hooks/useIsMobile'
+
 function ListViewModeSection({
     filteredItems,
     operators,
@@ -11,7 +13,7 @@ function ListViewModeSection({
     onShowHistoryModal,
     onVerify
 }) {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const isMobile = useIsMobile()
 
     const styles = {
         actionBtn: {

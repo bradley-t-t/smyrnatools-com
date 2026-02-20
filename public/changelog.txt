@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.4] - 2026-02-20
+
+- Removed the file `public/changelog_ai.txt` which contained user-friendly AI-generated changelog summaries.
+- Fixed a typo in `public/changelog.txt` by adding a stray 'f' before "Changelog" in the header.
+- Replaced custom mobile detection logic with `useIsMobile` hook in `src/app/components/list/WeeklyPlanner.jsx`, `src/app/components/sections/ListViewModeSection.jsx`, and other components for consistent mobile responsiveness.
+
 ## [14.3] - 2026-02-20
 
 - Removed `ProtectedRoute.jsx` component from `src/app/components/auth/`, which handled authentication and role-based routing logic.

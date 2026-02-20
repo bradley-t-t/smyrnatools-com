@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { useIsMobile } from '../../../app/hooks/useIsMobile'
+
 const SetTimeCalculator = () => {
+    const isMobile = useIsMobile()
     const [weather, setWeather] = useState(null)
     const [loading, setLoading] = useState(false)
     const [locationError, setLocationError] = useState(null)
@@ -282,8 +285,6 @@ const SetTimeCalculator = () => {
                 return 'success'
         }
     }
-
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
         container: {

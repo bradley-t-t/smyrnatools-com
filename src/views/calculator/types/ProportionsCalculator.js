@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { useIsMobile } from '../../../app/hooks/useIsMobile'
+
 const ProportionsCalculator = () => {
+    const isMobile = useIsMobile()
     const [target, setTarget] = useState({
         cement: '',
         coarse: '',
@@ -178,8 +181,6 @@ const ProportionsCalculator = () => {
         if (value < 0.5) return 0
         return Math.round(value)
     }
-
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
         actualGrid: {

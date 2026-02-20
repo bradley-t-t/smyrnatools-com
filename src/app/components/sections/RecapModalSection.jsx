@@ -5,6 +5,7 @@ import { supabase } from '../../../services/DatabaseService'
 import { OperatorService } from '../../../services/OperatorService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 function RecapModalSection({
     plantCode,
@@ -26,7 +27,7 @@ function RecapModalSection({
     const [dateFilter, setDateFilter] = useState('week')
     const [expandedAssets, setExpandedAssets] = useState({})
     const [isTabVisible, setIsTabVisible] = useState(false)
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+    const isMobile = useIsMobile()
 
     const mixerIds = useMemo(() => {
         if (!mixers || !Array.isArray(mixers)) return []
@@ -351,14 +352,6 @@ function RecapModalSection({
         }, 2000)
         return () => clearTimeout(timer)
     }, [mixersLoaded, externalLoading])
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768)
-        }
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
 
     const formatFieldName = (fieldName) => {
         if (!fieldName) return 'Unknown Field'

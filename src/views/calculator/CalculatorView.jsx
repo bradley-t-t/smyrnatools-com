@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { useIsMobile } from '../../app/hooks/useIsMobile'
 import ProportionsCalculator from './types/ProportionsCalculator'
 import SetTimeCalculator from './types/SetTimeCalculator'
 import SlumpAdjustmentCalculator from './types/SlumpAdjustmentCalculator'
@@ -19,7 +20,7 @@ const CalculatorView = () => {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [selectedCalculator, setSelectedCalculator] = useState('yardage-hour')
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const isMobile = useIsMobile()
 
     const styles = {
         comingSoon: {

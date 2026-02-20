@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { ListService } from '../../../services/ListService'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const DAYS = [
     { fullLabel: 'Monday', key: 'monday', label: 'Mon' },
@@ -602,13 +603,7 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     const [weekOffset, setWeekOffset] = useState(0)
     const [plannedItems, setPlannedItems] = useState([])
     const [loading, setLoading] = useState(true)
-    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768)
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768)
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
+    const isMobile = useIsMobile()
 
     const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset])
 

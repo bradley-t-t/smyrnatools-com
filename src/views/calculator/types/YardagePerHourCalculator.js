@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
+import { useIsMobile } from '../../../app/hooks/useIsMobile'
 
 const YardagePerHourCalculator = () => {
     const { preferences } = usePreferences()
+    const isMobile = useIsMobile()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [values, setValues] = useState({
         completionTime: '',
@@ -106,7 +108,6 @@ const YardagePerHourCalculator = () => {
     }
 
     const status = getPerformanceStatus()
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
         container: {

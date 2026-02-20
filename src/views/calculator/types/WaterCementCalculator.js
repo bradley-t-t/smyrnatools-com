@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 
+import { useIsMobile } from '../../../app/hooks/useIsMobile'
+
 const WaterCementCalculator = () => {
+    const isMobile = useIsMobile()
     const [values, setValues] = useState({
         batchSize: '',
         cementLbs: '',
@@ -63,7 +66,6 @@ const WaterCementCalculator = () => {
     const waterLbs = waterGal * WATER_LBS_PER_GALLON
     const totalCite = (parseFloat(values.cementLbs) || 0) + (parseFloat(values.supplementalLbs) || 0)
     const hasData = waterGal > 0 && totalCite > 0
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
         breakdown: {

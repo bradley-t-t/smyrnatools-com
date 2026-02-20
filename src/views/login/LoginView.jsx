@@ -2,6 +2,7 @@ import React, { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, u
 
 import VersionPopup from '../../app/components/common/VersionPopup'
 import { useAuth } from '../../app/context/AuthContext'
+import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { useVersion } from '../../app/hooks/useVersion'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import { supabase } from '../../services/DatabaseService'
@@ -97,6 +98,7 @@ const inputBaseStyle = {
 
 function LoginView() {
     const version = useVersion()
+    const isMobile = useIsMobile()
     const [isSignUp, setIsSignUp] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -418,8 +420,6 @@ function LoginView() {
             </Suspense>
         )
     }
-
-    const isMobile = window.innerWidth < 768
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { PlanService } from '../../services/PlanService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
@@ -102,7 +103,7 @@ function PlanView() {
     const [showSettings, setShowSettings] = useState(false)
     const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const isMobile = useIsMobile()
     const btnStyle = {
         background: accentColor,
         border: 'none',

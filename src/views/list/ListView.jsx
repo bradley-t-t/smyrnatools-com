@@ -4,6 +4,7 @@ import LoadingScreen from '../../app/components/common/LoadingScreen'
 import WeeklyPlanner from '../../app/components/list/WeeklyPlanner'
 import TopSection from '../../app/components/sections/TopSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { ListService } from '../../services/ListService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
@@ -83,7 +84,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const [selectedIds, setSelectedIds] = useState(new Set())
     const [viewMode, setViewMode] = useState('status')
     const [roleFilter, setRoleFilter] = useState('')
-    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768)
+    const isMobile = useIsMobile()
 
     const baseFilteredItems = ListService.getFilteredItems({
         filterType: '',
@@ -252,12 +253,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             }
         }
         loadData()
-    }, [])
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768)
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
     }, [])
 
     useEffect(() => {

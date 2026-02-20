@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { useIsMobile } from '../../../app/hooks/useIsMobile'
+
 const SlumpAdjustmentCalculator = () => {
+    const isMobile = useIsMobile()
     const [values, setValues] = useState({
         batchSize: '',
         currentSlump: '',
@@ -53,7 +56,6 @@ const SlumpAdjustmentCalculator = () => {
     const slumpDiff = (parseFloat(values.targetSlump) || 0) - (parseFloat(values.currentSlump) || 0)
     const batchSize = parseFloat(values.batchSize) || 0
     const hasResult = parseFloat(values.currentSlump) > 0 && parseFloat(values.targetSlump) > 0 && batchSize > 0
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
     const styles = {
         adjustValue: {
