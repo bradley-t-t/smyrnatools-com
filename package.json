@@ -1,6 +1,6 @@
 {
   "name": "smyrnatools",
-  "version": "0.1.0",
+  "version": "15.4.0",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
@@ -98,7 +98,7 @@
     "prettier": "^3.2.5",
     "react-app-rewired": "^2.2.1",
     "sharp": "^0.33.4",
-    "turl-release": "github:bradley-t-t/turl-release",
+    "turl-release": "github:bradley-t-t/turl-release#main",
     "typescript": "^4.9.5"
   },
   "browserslist": {

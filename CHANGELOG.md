@@ -2,6 +2,18 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [15.4] - 2026-02-24
+
+- Updated the turl-release dependency to version 3.0.0 (commit e818e64) and pinned it to the main branch for consistent updates.
+
+## [15.3] - 2026-02-24
+
+- Updated the turl-release dependency from version 1.0.0 (commit fcd0383) to version 3.0.0 (commit e818e64) and pinned it to the main branch for consistent updates.
+
+## [15.2] - 2026-02-24
+
+- Updated turl-release dependency from v1.0.0 (fcd0383) to v3.0.0 (e818e64) with MIT license, pinning to main branch for consistent updates.
+
 ## [15.1] - 2026-02-24
 
 - Refactored AIService.js to improve code organization and modularity by introducing helper functions like `buildHeaders`, `buildRequestBody`, and utility functions for formatting fleet statistics and finding/filtering truck data.
