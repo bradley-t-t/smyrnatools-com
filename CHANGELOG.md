@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.8] - 2026-02-24
+
+- Added new file `OperatorRatingsExport.js` to implement operator ratings export functionality with features including grouping operators by plant, formatting phone numbers, calculating average ratings, and exporting data to an Excel sheet with styled headers and rating stars.
+- Updated `TopSection.jsx` to support custom actions by adding a `customActions` prop, allowing additional action elements to be rendered in the UI.
+- Modified `OperatorsView.jsx` to integrate the new `exportOperatorRatingsSheet` function from `OperatorRatingsExport.js` for exporting operator ratings data.
+
 ## [14.7] - 2026-02-20
 
 - Refactored `AppInstallPromptModal.jsx` to simplify logic for showing install prompts and added structured step-by-step instructions for iOS and Android devices.

@@ -252,6 +252,7 @@ function TopSection({
     sortKey,
     sortDirection,
     isOfficeRegion = false,
+    customActions = null,
     customBottomContent = null
 }) {
     const { preferences } = usePreferences()
@@ -329,6 +330,7 @@ function TopSection({
                                 )}
                             </div>
                             <div className="flex items-center gap-2.5">
+                                {customActions}
                                 {onAddClick && (
                                     <button
                                         className="flex items-center justify-center w-11 h-11 rounded-xl border-none text-white text-lg cursor-pointer"
@@ -508,6 +510,7 @@ function TopSection({
                             </div>
                         )}
                         <div className="flex items-center gap-3 ml-auto" role="group" aria-label="Primary actions">
+                            {customActions}
                             {onToggleSidebar && (
                                 <ActionButton
                                     icon="fa-bars"

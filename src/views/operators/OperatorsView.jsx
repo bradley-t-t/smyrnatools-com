@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
+import { exportOperatorRatingsSheet } from '../../app/components/modules/export/operators/OperatorRatingsExport'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
@@ -90,6 +91,18 @@ function OperatorsView({
     const [showCommentModal, setShowCommentModal] = useState(false)
     const [modalOperatorId, setModalOperatorId] = useState(null)
     const [modalOperatorName, setModalOperatorName] = useState('')
+    const [isExporting, setIsExporting] = useState(false)
+
+    const handleExportRatings = async () => {
+        setIsExporting(true)
+        try {
+            await exportOperatorRatingsSheet({ operators, plants })
+        } catch (err) {
+            console.error('Export ratings failed:', err)
+        } finally {
+            setIsExporting(false)
+        }
+    }
 
     useEffect(() => {
         if (initialSearch) {
@@ -564,6 +577,19 @@ function OperatorsView({
                             forwardedRef={headerRef}
                             addButtonLabel="Add Operator"
                             onAddClick={() => setShowAddSheet(true)}
+                            customActions={
+                                <button
+                                    className="flex items-center gap-2 rounded-xl border-none px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
+                                    style={{ backgroundColor: '#10b981' }}
+                                    onClick={handleExportRatings}
+                                    disabled={isExporting || operators.length === 0}
+                                    type="button"
+                                    aria-label="Export Ratings Sheet"
+                                >
+                                    <i className={`fas ${isExporting ? 'fa-spinner fa-spin' : 'fa-file-export'}`} />
+                                    <span>{isExporting ? 'Exporting...' : 'Export Ratings'}</span>
+                                </button>
+                            }
                             searchInput={searchText}
                             onSearchInputChange={(value) => {
                                 setSearchText(value)
