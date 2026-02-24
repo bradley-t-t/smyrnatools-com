@@ -3,5 +3,7 @@
 # Rules are learned from past commits and mistakes to prevent future issues.
 # Do NOT manually edit this file unless you know what you are doing.
 
-- - Ensure that dependency updates, such as changes to commit hashes in package-lock.json, are clearly documented in both CHANGELOG.md and any duplicate changelog files like public/changelog.txt to maintain consistency across documentation.
-- When updating dependencies, include relevant metadata such as license information in package-lock.json to comply with legal and project requirements.
+- - - - Ensure that dependency updates, such as changes to commit hashes in package-lock.json, are clearly documented in both CHANGELOG.md and any duplicate changelog files like public/changelog.txt to maintain consistency across documentation.
+- - - When updating dependencies, include relevant metadata such as license information in package-lock.json to comply with legal and project requirements.
+- - Ensure that updates to AI context prompts in src/app/ai/context.json are thoroughly tested for functionality and accuracy before deployment, as they directly impact the behavior of validation and analysis tools.
+- Maintain consistency in changelog formatting and content across all documentation files (e.g., CHANGELOG.md and public/changelog.txt) by using identical entries for each version to avoid confusion or discrepancies.

@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [15.0] - 2026-02-24
+
+- Updated the AI context prompts with two new validation tools for plant efficiency reports. Added "validateEfficiencyComment" to assess whether comments on performance issues are reasonable, accepting a wide range of operational explanations and only rejecting clearly invalid or unrelated input.
+- Introduced "validatePlantManagerMetrics" to flag obvious data entry errors in weekly plant manager reports, focusing on impossible efficiency metrics like YPH over 25 or under 0.5, and providing structured JSON feedback for review.
+
 ## [14.9] - 2026-02-24
 
 - Updated the resolved commit hash for the turl-release dependency to a new version (fcd0383).
