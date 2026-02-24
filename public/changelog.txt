@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [15.1] - 2026-02-24
+
+- Refactored AIService.js to improve code organization and modularity by introducing helper functions like `buildHeaders`, `buildRequestBody`, and utility functions for formatting fleet statistics and finding/filtering truck data.
+- Added new constants for API models with `DEFAULT_MODEL` set to 'grok-4' and `FAST_MODEL` as 'grok-3-mini-fast' for optimized API calls.
+- Introduced cleanliness impact thresholds with `CLEANLINESS_THRESHOLDS` to categorize and evaluate scores with associated labels and impact descriptions.
+- Enhanced API interaction by consolidating fetch logic into a single `fetchFromAPI` method, improving error handling, and providing clearer feedback messages for rate limiting and connection issues.
+- Added a new method `generateContentFromPrompt` to streamline content generation using specific prompts with formatted data and customized API options.
+- Improved data formatting with new utility functions like `formatFleetStatLine`, `formatFleetStatSummary`, `findByTruckNumber`, and `filterByTruckNumber` for better handling of fleet and truck-related data.
+- Updated error handling in `generateDashboardInsights` to provide more specific error messages based on API response status.
+
 ## [15.0] - 2026-02-24
 
 - Updated the AI context prompts with two new validation tools for plant efficiency reports. Added "validateEfficiencyComment" to assess whether comments on performance issues are reasonable, accepting a wide range of operational explanations and only rejecting clearly invalid or unrelated input.
