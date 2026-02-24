@@ -1,0 +1,7 @@
+# TURL Project Rules & Lessons Learned
+# This file is automatically managed by turl-release.
+# Rules are learned from past commits and mistakes to prevent future issues.
+# Do NOT manually edit this file unless you know what you are doing.
+
+- - Ensure that dependency updates, such as changes to commit hashes in package-lock.json, are clearly documented in both CHANGELOG.md and any duplicate changelog files like public/changelog.txt to maintain consistency across documentation.
+- When updating dependencies, include relevant metadata such as license information in package-lock.json to comply with legal and project requirements.

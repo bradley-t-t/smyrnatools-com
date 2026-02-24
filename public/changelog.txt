@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [14.9] - 2026-02-24
+
+- Updated the resolved commit hash for the turl-release dependency to a new version (fcd0383).
+- Added license information for turl-release, specifying it as MIT.
+
 ## [14.8] - 2026-02-24
 
 - Added new file `OperatorRatingsExport.js` to implement operator ratings export functionality with features including grouping operators by plant, formatting phone numbers, calculating average ratings, and exporting data to an Excel sheet with styled headers and rating stars.
