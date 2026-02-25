@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [15.8] - 2026-02-25
+
+- Updated the turl-release dependency to version 3.4.0 with a new commit hash in package-lock.json.
+- Removed the public/turl.txt file, which previously contained rules and lessons learned for the TURL project.
+
 ## [15.7] - 2026-02-25
 
 - Added a new Copilot instructions file at .github/copilot-instructions.md to provide context and rules for GitHub Copilot, including auto-managed project rules for consistent development practices.
