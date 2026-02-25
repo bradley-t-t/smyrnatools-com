@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.0] - 2026-02-25
+
+- Removed the Copilot instructions file (.github/copilot-instructions.md) which previously contained project rules and context for GitHub Copilot.
+
 ## [15.9] - 2026-02-25
 
 - Updated the turl-release dependency to version 3.6.0 for improved release management functionality.
