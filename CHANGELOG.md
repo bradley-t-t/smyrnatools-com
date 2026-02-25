@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [15.7] - 2026-02-25
+
+- Added a new Copilot instructions file at .github/copilot-instructions.md to provide context and rules for GitHub Copilot, including auto-managed project rules for consistent development practices.
+- Updated the public/turl.txt file with revised comments explaining the purpose of rules for GitHub Copilot and noting that manual edits are preserved but may be reformatted.
+- Added two new rules to public/turl.txt regarding the use of consistent commit message prefixes (e.g., "SmyrnaTools:") and including version numbers in release commit messages for better tracking and context.
+
 ## [15.6] - 2026-02-25
 
 - Updated the dependency turl-release to version 3.3.0 to enhance release management capabilities.

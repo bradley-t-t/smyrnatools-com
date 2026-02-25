@@ -1,7 +1,7 @@
 # TURL Project Rules & Lessons Learned
 # This file is automatically managed by turl-release.
-# Rules are learned from past commits and mistakes to prevent future issues.
-# Do NOT manually edit this file unless you know what you are doing.
+# Rules are learned from commits and help GitHub Copilot generate consistent code.
+# Manual edits are preserved but may be reformatted on next release.
 
 - - - - - - Ensure that dependency updates, such as changes to commit hashes in package-lock.json, are clearly documented in both CHANGELOG.md and any duplicate changelog files like public/changelog.txt to maintain consistency across documentation.
 - - - - - When updating dependencies, include relevant metadata such as license information in package-lock.json to comply with legal and project requirements.
@@ -11,3 +11,5 @@
 - During significant refactors, such as consolidating API interaction logic into methods like `fetchFromAPI`, include unit tests or integration tests to validate the new structure and error handling mechanisms before deployment.
 - When updating dependency versions in package.json and package-lock.json, ensure that the version numbers in the changelog entries (e.g., CHANGELOG.md and public/changelog.txt) are consistent with the actual resolved version in package-lock.json to avoid discrepancies (e.g., changelog mentions v3.0.0 while package-lock.json shows v3.1.0 for turl-release).
 - When pinning dependencies to a specific branch (e.g., turl-release to main), verify that the commit hash referenced in package-lock.json matches the expected commit mentioned in the changelog to prevent unintended version drift or mismatches.
+- Use a consistent prefix in commit messages (e.g., "SmyrnaTools:") to clearly identify the project or component being updated, aiding in tracking and filtering commits.
+- Include the version number in commit messages for releases (e.g., "Release vX.Y") to provide immediate context about the scope and impact of the change.
