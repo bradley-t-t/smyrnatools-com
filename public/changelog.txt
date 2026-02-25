@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.2] - 2026-02-25
+
+- Introduced a new utility function `resolveEntityId` in a dedicated file to handle extracting IDs from objects or direct ID values, along with a `requireEntityId` helper to enforce ID presence with custom error messaging.
+- Refactored `UserService.js` to use the new `resolveEntityId` utility for consistent ID resolution across methods like `getUserRoles` and other user-related functions.
+- Improved error handling and fallback logic in `UserService.js` by adding a `fallbackUserName` helper for generating default user names based on IDs when full data is unavailable.
+- Enhanced caching and API interaction in `UserService.js` by consolidating API calls under a reusable `postUser` helper function for better maintainability.
+- Added a new method `fetchProfileField` in `UserService.js` to retrieve specific profile fields for a user directly from the database, improving data access flexibility.
+- Simplified user ID checks and return values in methods like `getCurrentUser` and `getUserWeight` for clearer logic and better null handling in `UserService.js`.
+
 ## [16.1] - 2026-02-25
 
 - Added a new Copilot instructions file to provide context and rules for GitHub Copilot, including auto-managed project rules for consistent release commit message formatting.
