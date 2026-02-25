@@ -1,21 +1,19 @@
 import { CacheUtility } from '../utils/CacheUtility'
 
-const VERSION_TTL = 60000
+const VERSION_CACHE_KEY = 'app:version'
+const VERSION_CACHE_TTL_MS = 60_000
 
 async function getVersion() {
-    const cacheKey = 'app:version'
-    const cached = CacheUtility.get(cacheKey)
+    const cached = CacheUtility.get(VERSION_CACHE_KEY)
     if (cached) return cached
+
     try {
-        const res = await fetch('/turl.json', { cache: 'no-store' })
-        if (!res.ok) throw new Error('failed')
-        const data = await res.json()
-        const version = data.version || ''
-        CacheUtility.set(cacheKey, version, VERSION_TTL)
-        return version
+        const response = await fetch('/turl.json', { cache: 'no-store' })
+        if (!response.ok) throw new Error('failed')
+        const { version = '' } = await response.json()
+        return CacheUtility.set(VERSION_CACHE_KEY, version, VERSION_CACHE_TTL_MS)
     } catch {
-        CacheUtility.set(cacheKey, '', VERSION_TTL)
-        return ''
+        return CacheUtility.set(VERSION_CACHE_KEY, '', VERSION_CACHE_TTL_MS)
     }
 }
 

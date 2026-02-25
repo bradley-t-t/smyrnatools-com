@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.1] - 2026-02-25
+
+- Added a new Copilot instructions file to provide context and rules for GitHub Copilot, including auto-managed project rules for consistent release commit message formatting.
+- Improved the AppService by refactoring the version fetching logic in `getVersion()` to use constants for cache key and TTL values, enhancing code readability and maintainability.
+- Updated the error handling and response processing in `getVersion()` to use destructuring for cleaner JSON parsing and consistent variable naming.
+
 ## [16.0] - 2026-02-25
 
 - Removed the Copilot instructions file (.github/copilot-instructions.md) which previously contained project rules and context for GitHub Copilot.
