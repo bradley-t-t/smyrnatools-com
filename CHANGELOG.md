@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [15.9] - 2026-02-25
+
+- Updated the turl-release dependency to version 3.6.0 for improved release management functionality.
+
 ## [15.8] - 2026-02-25
 
 - Updated the turl-release dependency to version 3.4.0 with a new commit hash in package-lock.json.
