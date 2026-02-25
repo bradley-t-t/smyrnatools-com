@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.3] - 2026-02-25
+
+- Added a step in the CI workflow to configure Git to use HTTPS instead of SSH for GitHub packages, ensuring smoother dependency resolution in the build process.
+
 ## [16.2] - 2026-02-25
 
 - Introduced a new utility function `resolveEntityId` in a dedicated file to handle extracting IDs from objects or direct ID values, along with a `requireEntityId` helper to enforce ID presence with custom error messaging.
