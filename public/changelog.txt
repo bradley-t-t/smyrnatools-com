@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.6] - 2026-02-27
+
+- Refactored asset data structuring in DashboardUtility.js to improve code reuse and consistency by introducing reusable helper functions like `BASE_ASSET_FIELDS` and `VEHICLE_FIELDS`, and consolidating field resolution logic with `resolvePlantCode` and `resolveTruckNumber`.
+- Enhanced status distribution calculation in DashboardUtility.js by adding new utility functions such as `daysBetween`, `getAssetStatusHistory`, and `accumulateStatusDays` for more accurate tracking of asset status over time.
+- Simplified date handling logic in DashboardUtility.js with the introduction of `findEarliestDate` to determine the earliest relevant date for status calculations.
+
 ## [16.5] - 2026-02-27
 
 - Updated the turl-release dependency to version 4.1.0 for improved release management functionality.

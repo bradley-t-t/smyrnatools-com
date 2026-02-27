@@ -1,68 +1,66 @@
 const AI_CACHE_KEY = 'srm_plant_ai_summaries'
 const AI_CACHE_DURATION = 24 * 60 * 60 * 1000
 const SERVICE_OVERDUE_DAYS = 180
+const MS_PER_DAY = 86400000
 
-const slimMixer = (m) => ({
-    assignedOperator: m.assignedOperator,
-    assignedPlant: m.assignedPlant || m.plantCode,
-    cleanlinessRating: m.cleanlinessRating || m.cleanliness_rating || 0,
-    downInYard: m.downInYard || m.down_in_yard || false,
-    id: m.id,
-    lastServiceDate: m.lastServiceDate,
-    plantCode: m.assignedPlant || m.plantCode,
-    status: m.status,
-    truckNumber: m.truckNumber || m.truck_number || '',
-    updatedAt: m.updatedAt,
-    updatedBy: m.updatedBy,
-    updatedLast: m.updatedLast,
-    vin: m.vin || ''
+const resolvePlantCode = (asset) => asset.assignedPlant || asset.plantCode
+const resolveTruckNumber = (asset) => asset.truckNumber || asset.truck_number || ''
+
+const BASE_ASSET_FIELDS = (asset) => ({
+    id: asset.id,
+    plantCode: resolvePlantCode(asset),
+    status: asset.status
 })
 
-const slimTractor = (t) => ({
-    assignedOperator: t.assignedOperator,
-    assignedPlant: t.assignedPlant || t.plantCode,
-    freight: t.freight || '',
-    id: t.id,
-    lastServiceDate: t.lastServiceDate,
-    plantCode: t.assignedPlant || t.plantCode,
-    status: t.status,
-    truckNumber: t.truckNumber || t.truck_number || '',
-    updatedAt: t.updatedAt,
-    updatedBy: t.updatedBy,
-    updatedLast: t.updatedLast,
-    vin: t.vin || ''
+const VEHICLE_FIELDS = (asset) => ({
+    assignedOperator: asset.assignedOperator,
+    assignedPlant: resolvePlantCode(asset),
+    lastServiceDate: asset.lastServiceDate,
+    truckNumber: resolveTruckNumber(asset),
+    updatedAt: asset.updatedAt,
+    updatedBy: asset.updatedBy,
+    updatedLast: asset.updatedLast,
+    vin: asset.vin || ''
 })
 
-const slimTrailer = (t) => ({
-    assignedPlant: t.assignedPlant || t.plantCode,
-    id: t.id,
-    identifyingNumber: t.trailerNumber || t.trailer_number || t.truck_number || t.asset_number || '',
-    lastServiceDate: t.lastServiceDate,
-    plantCode: t.assignedPlant || t.plantCode,
-    status: t.status,
-    trailerType: t.trailerType || t.trailer_type || 'Cement'
+const slimMixer = (asset) => ({
+    ...BASE_ASSET_FIELDS(asset),
+    ...VEHICLE_FIELDS(asset),
+    cleanlinessRating: asset.cleanlinessRating || asset.cleanliness_rating || 0,
+    downInYard: asset.downInYard || asset.down_in_yard || false
 })
 
-const slimEquipment = (e) => ({
-    assignedPlant: e.assignedPlant || e.plantCode,
-    id: e.id,
-    identifyingNumber: e.identifyingNumber || e.identifying_number || e.asset_number || e.truck_number || '',
-    lastServiceDate: e.lastServiceDate,
-    plantCode: e.assignedPlant || e.plantCode,
-    status: e.status
+const slimTractor = (asset) => ({
+    ...BASE_ASSET_FIELDS(asset),
+    ...VEHICLE_FIELDS(asset),
+    freight: asset.freight || ''
 })
 
-const slimPickup = (p) => ({
-    id: p.id,
-    plantCode: p.assignedPlant || p.plantCode,
-    status: p.status
+const slimTrailer = (asset) => ({
+    ...BASE_ASSET_FIELDS(asset),
+    assignedPlant: resolvePlantCode(asset),
+    identifyingNumber: asset.trailerNumber || asset.trailer_number || asset.truck_number || asset.asset_number || '',
+    lastServiceDate: asset.lastServiceDate,
+    trailerType: asset.trailerType || asset.trailer_type || 'Cement'
 })
 
-const slimOperator = (o) => ({
-    employeeId: o.employeeId,
-    id: o.id,
-    plantCode: o.plantCode,
-    status: o.status
+const slimEquipment = (asset) => ({
+    ...BASE_ASSET_FIELDS(asset),
+    assignedPlant: resolvePlantCode(asset),
+    identifyingNumber:
+        asset.identifyingNumber || asset.identifying_number || asset.asset_number || asset.truck_number || '',
+    lastServiceDate: asset.lastServiceDate
+})
+
+const slimPickup = (asset) => ({
+    ...BASE_ASSET_FIELDS(asset)
+})
+
+const slimOperator = (operator) => ({
+    employeeId: operator.employeeId,
+    id: operator.id,
+    plantCode: operator.plantCode,
+    status: operator.status
 })
 
 const isServiceOverdue = (date) => {
@@ -80,6 +78,29 @@ const normalizeDate = (dateStr, endOfDay = false) => {
     return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0))
 }
 
+const ASSET_ID_FIELDS = ['mixer_id', 'tractor_id', 'trailer_id', 'equipment_id', 'truck_id']
+
+const daysBetween = (start, end) => Math.round((end - start) / MS_PER_DAY)
+
+const getAssetStatusHistory = (historyRecords, assetId) =>
+    historyRecords
+        .filter((h) => ASSET_ID_FIELDS.some((field) => h[field] === assetId) && h.field_name === 'status')
+        .sort((a, b) => new Date(a.changed_at) - new Date(b.changed_at))
+
+const resolveStatusAtDate = (sortedHistory, cutoffDate, fallbackStatus) => {
+    if (!sortedHistory.length) return fallbackStatus
+    const recordsBefore = sortedHistory.filter((h) => new Date(h.changed_at) <= cutoffDate)
+    if (recordsBefore.length) return recordsBefore[recordsBefore.length - 1].new_value || fallbackStatus
+    return sortedHistory[0].old_value || fallbackStatus
+}
+
+const findEarliestDate = (dates) => dates.filter(Boolean).sort((a, b) => a - b)[0] ?? null
+
+const accumulateStatusDays = (statusDaysMap, status, days) => {
+    statusDaysMap[status] = (statusDaysMap[status] || 0) + days
+    return days
+}
+
 const calculateStatusDistribution = (assets, historyRecords, filterStartDate = null, filterEndDate = null) => {
     const statusDaysMap = {}
     let totalDays = 0
@@ -88,62 +109,30 @@ const calculateStatusDistribution = (assets, historyRecords, filterStartDate = n
     const rangeEnd = filterEndDate ? normalizeDate(filterEndDate, true) : new Date()
 
     if (rangeEnd) {
-        let earliestDataDate = null
-
-        if (historyRecords.length > 0) {
-            earliestDataDate = historyRecords
-                .filter((h) => h.changed_at)
-                .map((h) => new Date(h.changed_at))
-                .sort((a, b) => a - b)[0]
-        }
-
-        const earliestAssetCreationDate = assets
-            .map((a) => a.createdAt || a.created_at)
-            .filter((d) => d)
-            .map((d) => new Date(d))
-            .sort((a, b) => a - b)[0]
-
-        if (earliestAssetCreationDate) {
-            if (!earliestDataDate || earliestAssetCreationDate < earliestDataDate) {
-                earliestDataDate = earliestAssetCreationDate
-            }
-        }
-
-        if (earliestDataDate && rangeEnd < earliestDataDate) {
-            return []
-        }
+        const earliestHistoryDate = findEarliestDate(
+            historyRecords.filter((h) => h.changed_at).map((h) => new Date(h.changed_at))
+        )
+        const earliestCreationDate = findEarliestDate(
+            assets
+                .map((a) => a.createdAt || a.created_at)
+                .filter(Boolean)
+                .map((d) => new Date(d))
+        )
+        const earliestDataDate = findEarliestDate([earliestHistoryDate, earliestCreationDate])
+        if (earliestDataDate && rangeEnd < earliestDataDate) return []
     }
 
-    assets.forEach((asset) => {
-        let assetHistory = historyRecords
-            .filter(
-                (h) =>
-                    h.mixer_id === asset.id ||
-                    h.tractor_id === asset.id ||
-                    h.trailer_id === asset.id ||
-                    h.equipment_id === asset.id ||
-                    h.truck_id === asset.id
-            )
-            .filter((h) => h.field_name === 'status')
-            .sort((a, b) => new Date(a.changed_at) - new Date(b.changed_at))
-
+    for (const asset of assets) {
+        const assetHistory = getAssetStatusHistory(historyRecords, asset.id)
         const currentStatus = asset.status || 'Unknown'
         const createdAt = asset.createdAt || asset.created_at
         const assetCreationDate = createdAt ? new Date(createdAt) : null
 
-        if (assetCreationDate && rangeEnd && assetCreationDate > rangeEnd) {
-            return
-        }
+        if (assetCreationDate && rangeEnd && assetCreationDate > rangeEnd) continue
 
         const earliestAssetHistory = assetHistory.length > 0 ? new Date(assetHistory[0].changed_at) : null
-
-        if (earliestAssetHistory && rangeEnd && earliestAssetHistory > rangeEnd) {
-            return
-        }
-
-        if (!earliestAssetHistory && rangeEnd && rangeEnd < new Date()) {
-            return
-        }
+        if (earliestAssetHistory && rangeEnd && earliestAssetHistory > rangeEnd) continue
+        if (!earliestAssetHistory && rangeEnd && rangeEnd < new Date()) continue
 
         let effectiveStart = rangeStart
             ? assetCreationDate && assetCreationDate > rangeStart
@@ -151,40 +140,19 @@ const calculateStatusDistribution = (assets, historyRecords, filterStartDate = n
                 : rangeStart
             : assetCreationDate || new Date()
 
-        if (earliestAssetHistory && assetHistory.length > 0 && effectiveStart < earliestAssetHistory) {
+        if (earliestAssetHistory && effectiveStart < earliestAssetHistory) {
             effectiveStart = earliestAssetHistory
         }
 
-        const effectiveEnd = rangeEnd
+        if (effectiveStart > rangeEnd) continue
 
-        if (effectiveStart > effectiveEnd) {
-            return
-        }
+        const startingStatus =
+            rangeStart && assetHistory.length
+                ? resolveStatusAtDate(assetHistory, rangeStart, currentStatus)
+                : currentStatus
 
-        let startingStatus = currentStatus
-        let endingStatus = currentStatus
-
-        if (assetHistory.length > 0) {
-            if (rangeStart) {
-                const recordsBeforeOrAtStart = assetHistory.filter((h) => new Date(h.changed_at) <= rangeStart)
-                if (recordsBeforeOrAtStart.length > 0) {
-                    const lastRecordBeforeStart = recordsBeforeOrAtStart[recordsBeforeOrAtStart.length - 1]
-                    startingStatus = lastRecordBeforeStart.new_value || currentStatus
-                } else if (assetHistory.length > 0) {
-                    startingStatus = assetHistory[0].old_value || currentStatus
-                }
-            }
-
-            if (rangeEnd) {
-                const recordsBeforeOrAtEnd = assetHistory.filter((h) => new Date(h.changed_at) <= rangeEnd)
-                if (recordsBeforeOrAtEnd.length > 0) {
-                    const lastRecordBeforeEnd = recordsBeforeOrAtEnd[recordsBeforeOrAtEnd.length - 1]
-                    endingStatus = lastRecordBeforeEnd.new_value || currentStatus
-                } else if (assetHistory.length > 0) {
-                    endingStatus = assetHistory[0].old_value || currentStatus
-                }
-            }
-        }
+        const endingStatus =
+            rangeEnd && assetHistory.length ? resolveStatusAtDate(assetHistory, rangeEnd, currentStatus) : currentStatus
 
         const recordsInRange =
             rangeStart && rangeEnd
@@ -195,33 +163,27 @@ const calculateStatusDistribution = (assets, historyRecords, filterStartDate = n
                 : assetHistory
 
         if (recordsInRange.length === 0) {
-            const days = Math.max(1, Math.round((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)))
-            statusDaysMap[startingStatus] = (statusDaysMap[startingStatus] || 0) + days
-            totalDays += days
+            totalDays += accumulateStatusDays(
+                statusDaysMap,
+                startingStatus,
+                Math.max(1, daysBetween(effectiveStart, rangeEnd))
+            )
         } else {
             let previousStatus = startingStatus
             let previousDate = effectiveStart
 
-            recordsInRange.forEach((historyEntry) => {
-                const changeDate = new Date(historyEntry.changed_at)
-                const daysDiff = Math.round((changeDate - previousDate) / (1000 * 60 * 60 * 24))
-
-                if (daysDiff > 0) {
-                    statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + daysDiff
-                    totalDays += daysDiff
-                }
-
-                previousStatus = historyEntry.new_value || endingStatus
+            for (const entry of recordsInRange) {
+                const changeDate = new Date(entry.changed_at)
+                const days = daysBetween(previousDate, changeDate)
+                if (days > 0) totalDays += accumulateStatusDays(statusDaysMap, previousStatus, days)
+                previousStatus = entry.new_value || endingStatus
                 previousDate = changeDate
-            })
-
-            const finalDays = Math.round((effectiveEnd - previousDate) / (1000 * 60 * 60 * 24))
-            if (finalDays > 0) {
-                statusDaysMap[previousStatus] = (statusDaysMap[previousStatus] || 0) + finalDays
-                totalDays += finalDays
             }
+
+            const finalDays = daysBetween(previousDate, rangeEnd)
+            if (finalDays > 0) totalDays += accumulateStatusDays(statusDaysMap, previousStatus, finalDays)
         }
-    })
+    }
 
     if (totalDays === 0) totalDays = 1
 
@@ -237,10 +199,8 @@ const calculateStatusDistribution = (assets, historyRecords, filterStartDate = n
     if (entries.length > 0) {
         const sum = entries.reduce((acc, item) => acc + parseFloat(item.percentage), 0)
         if (sum < 100) {
-            const diff = (100 - sum).toFixed(1)
-            entries[entries.length - 1].percentage = (
-                parseFloat(entries[entries.length - 1].percentage) + parseFloat(diff)
-            ).toFixed(1)
+            const lastEntry = entries[entries.length - 1]
+            lastEntry.percentage = (parseFloat(lastEntry.percentage) + (100 - sum)).toFixed(1)
         }
     }
 
@@ -294,71 +254,63 @@ const getLongTermShopAssets = (assets, history, type, identifierField, considerF
     const thresholdDate = new Date()
     thresholdDate.setDate(thresholdDate.getDate() - daysThreshold)
 
-    const inShopAssets = assets.filter((a) => a.status === 'In Shop' && considerFn(a.plantCode))
-    return inShopAssets
+    return assets
+        .filter((a) => a.status === 'In Shop' && considerFn(a.plantCode))
         .map((asset) => {
-            const assetHistory = history
+            const latestShopEntry = history
                 .filter((h) => h.asset_id === asset.id && h.new_value === 'In Shop')
-                .sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at))
-            const lastShopEntry = assetHistory[0]
-            const shopEntryDate = lastShopEntry
-                ? new Date(lastShopEntry.changed_at)
+                .sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at))[0]
+            const shopEntryDate = latestShopEntry
+                ? new Date(latestShopEntry.changed_at)
                 : asset.updatedAt
                   ? new Date(asset.updatedAt)
                   : null
-            if (shopEntryDate && shopEntryDate <= thresholdDate) {
-                const daysInShop = Math.floor((Date.now() - shopEntryDate.getTime()) / 86400000)
-                return {
-                    daysInShop,
-                    downInYard: asset.downInYard || false,
-                    enteredShop: shopEntryDate.toISOString(),
-                    id: asset.id,
-                    identifier: asset[identifierField] || 'Unknown',
-                    plantCode: asset.plantCode,
-                    type
-                }
+            if (!shopEntryDate || shopEntryDate > thresholdDate) return null
+            return {
+                daysInShop: Math.floor((Date.now() - shopEntryDate.getTime()) / MS_PER_DAY),
+                downInYard: asset.downInYard || false,
+                enteredShop: shopEntryDate.toISOString(),
+                id: asset.id,
+                identifier: asset[identifierField] || 'Unknown',
+                plantCode: asset.plantCode,
+                type
             }
-            return null
         })
         .filter(Boolean)
 }
 
-const buildPlantSet = (region, allPlants, regionPlants, dashboardPlant) => {
-    const isOffice = region?.type === 'Office'
-    const plantSet = new Set()
+const extractPlantCode = (plant) => plant.plantCode || plant.plant_code
 
-    if (isOffice) {
-        allPlants.forEach((p) => {
-            const c = p.plantCode || p.plant_code
-            if (c) plantSet.add(String(c).trim())
-        })
-    } else {
-        if (dashboardPlant) {
-            plantSet.add(String(dashboardPlant).trim())
-        } else {
-            const plants = regionPlants || []
-            plants.forEach((p) => {
-                const c = p.plantCode || p.plant_code
-                if (c) plantSet.add(String(c).trim())
-            })
-        }
+const addPlantCodesToSet = (plants, plantSet) => {
+    for (const plant of plants) {
+        const code = extractPlantCode(plant)
+        if (code) plantSet.add(String(code).trim())
     }
+}
 
+const buildPlantSet = (region, allPlants, regionPlants, dashboardPlant) => {
+    const plantSet = new Set()
+    if (region?.type === 'Office') {
+        addPlantCodesToSet(allPlants, plantSet)
+    } else if (dashboardPlant) {
+        plantSet.add(String(dashboardPlant).trim())
+    } else {
+        addPlantCodesToSet(regionPlants || [], plantSet)
+    }
     return plantSet
 }
 
-const createConsiderFn = (plantSet) => {
-    const filterActive = plantSet.size > 0
-    return (plantCode) => !filterActive || plantSet.has(String(plantCode || '').trim())
-}
+const createConsiderFn = (plantSet) =>
+    plantSet.size > 0 ? (plantCode) => plantSet.has(String(plantCode || '').trim()) : () => true
 
-const formatDateForDisplay = (d) => {
-    if (!d) return ''
-    if (d.length === 10 && /\d{4}-\d{2}-\d{2}/.test(d)) return d
+const formatDateForDisplay = (dateValue) => {
+    if (!dateValue) return ''
+    if (typeof dateValue === 'string' && dateValue.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(dateValue))
+        return dateValue
     try {
-        return new Date(d).toISOString().slice(0, 10)
+        return new Date(dateValue).toISOString().slice(0, 10)
     } catch {
-        return d
+        return String(dateValue)
     }
 }
 

@@ -625,45 +625,20 @@ export default function DashboardView() {
             ...getOverdueAssets(allEquipmentRef.current, 'Equipment', 'identifyingNumber')
         ].slice(0, 5)
 
-        const sixDaysAgo = new Date()
-        sixDaysAgo.setDate(sixDaysAgo.getDate() - 6)
-
-        const getLongTermShopAssets = (assets, history, type, identifierField) => {
-            return assets
-                .filter((a) => a.status === 'In Shop' && consider(a.plantCode))
-                .map((asset) => {
-                    const assetHistory = history
-                        .filter((h) => h.asset_id === asset.id && h.new_value === 'In Shop')
-                        .sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at))
-                    const shopEntryDate = assetHistory[0]
-                        ? new Date(assetHistory[0].changed_at)
-                        : asset.updatedAt
-                          ? new Date(asset.updatedAt)
-                          : null
-                    if (shopEntryDate && shopEntryDate <= sixDaysAgo) {
-                        const daysInShop = Math.floor((Date.now() - shopEntryDate.getTime()) / 86400000)
-                        return {
-                            daysInShop,
-                            downInYard: asset.downInYard || false,
-                            enteredShop: shopEntryDate.toISOString(),
-                            id: asset.id,
-                            identifier: asset[identifierField] || 'Unknown',
-                            plantCode: asset.plantCode,
-                            type
-                        }
-                    }
-                    return null
-                })
-                .filter(Boolean)
-        }
-
         const longTermShop = [
-            ...getLongTermShopAssets(allMixersRef.current, historyRecordsRef.current.mixers, 'Mixer', 'truckNumber'),
-            ...getLongTermShopAssets(
+            ...DashboardUtility.getLongTermShopAssets(
+                allMixersRef.current,
+                historyRecordsRef.current.mixers,
+                'Mixer',
+                'truckNumber',
+                consider
+            ),
+            ...DashboardUtility.getLongTermShopAssets(
                 allTractorsRef.current,
                 historyRecordsRef.current.tractors,
                 'Tractor',
-                'truckNumber'
+                'truckNumber',
+                consider
             )
         ]
             .sort((a, b) => b.daysInShop - a.daysInShop)
