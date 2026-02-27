@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.4] - 2026-02-27
+
+- Removed the LockedOverlay display for guest-only users in App.js, allowing them to bypass this restriction.
+- Added role-based checks in AppInstallPromptModal to prevent the install prompt from showing for users with only 'guest' role or no roles at all.
+- Updated the z-index of the content div in LockedOverlay from 1 to 10 to ensure it appears above other elements.
+
 ## [17.3] - 2026-02-27
 
 - Simplified the Copilot instructions by removing redundant or overlapping guidelines, focusing on clearer and more concise rules for code organization and best practices in service files, utility functions, and CI configurations.

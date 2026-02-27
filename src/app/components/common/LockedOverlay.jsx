@@ -40,7 +40,7 @@ function LockedOverlay({ reason }) {
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85">
             <VideoBackground />
-            <div className="relative z-[1] w-[90%] max-w-[440px] rounded-[20px] bg-white p-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+            <div className="relative z-[10] w-[90%] max-w-[440px] rounded-[20px] bg-white p-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
                 <h1 className="mb-4 text-[28px] font-bold" style={{ color: accentColor }}>
                     {title}
                 </h1>

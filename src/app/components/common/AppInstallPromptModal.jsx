@@ -240,6 +240,10 @@ function AppInstallPromptModal() {
             const currentUser = await UserService.getCurrentUser()
             if (!currentUser?.id) return
 
+            const roles = await UserService.getUserRoles(currentUser.id)
+            const isGuestOnly = roles.length > 0 && roles.every((r) => r?.name?.toLowerCase() === 'guest')
+            if (isGuestOnly || roles.length === 0) return
+
             const device = AppInstallPromptService.detectDeviceType()
             setDeviceType(device)
 

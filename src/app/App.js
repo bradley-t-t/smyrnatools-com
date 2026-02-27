@@ -223,7 +223,7 @@ function AppContent() {
     const renderCurrentView = () => {
         if (!userId) return <LoginView />
         if (!rolesLoaded) return null
-        if (isGuestOnly) return <LockedOverlay reason="guest-only" />
+        if (isGuestOnly) return null
         if (webViewURL) return <WebOverlay url={webViewURL} onClose={handleCloseWebView} />
 
         switch (selectedView.view) {
