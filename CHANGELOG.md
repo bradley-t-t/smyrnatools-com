@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.8] - 2026-02-27
+
+- Updated the turl-release dependency to version 4.2.0 for improved release management functionality.
+
 ## [16.7] - 2026-02-27
 
 - Completely revamped the HistoryViewSection component by refactoring it to use a custom hook, useHistoryData, for managing history data, AI summaries, and related operations like fetching and updating issues.
