@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.3] - 2026-02-27
+
+- Simplified the Copilot instructions by removing redundant or overlapping guidelines, focusing on clearer and more concise rules for code organization and best practices in service files, utility functions, and CI configurations.
+- Removed specific instructions for handling ID resolution with strict validation and object-based entities, streamlining the guidance for utility functions.
+- Consolidated duplicate instructions for export functionality in asset-related data, focusing on uniform integration across views like EquipmentsView.jsx and MixersView.jsx for a consistent user experience.
+- Removed detailed instructions for specific formatting and grouping in export modules like AssetIssuesExport.js, keeping only the essential guidance for consistency.
+- Simplified guidelines for refactoring utility functions in DashboardUtility.js by consolidating duplicate entries about reusable helper functions and constants for asset data structuring.
+- Removed redundant instructions for CI workflow configurations regarding Git HTTPS setup, retaining a single clear directive for smoother dependency resolution during builds.
+- Streamlined instructions for new UI components and feature-specific constants, focusing on modularity and centralized organization without repetitive details.
+
 ## [17.2] - 2026-02-27
 
 - Updated the turl-release dependency to version 4.8.0 for improved release management capabilities.
