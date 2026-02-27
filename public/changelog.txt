@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.7] - 2026-02-27
+
+- Completely revamped the HistoryViewSection component by refactoring it to use a custom hook, useHistoryData, for managing history data, AI summaries, and related operations like fetching and updating issues.
+- Simplified the HistoryViewSection component by removing direct data fetching and state management logic, delegating these tasks to the useHistoryData hook for better maintainability and separation of concerns.
+- Introduced new UI components for the history view, including HistoryEmptyState for displaying an empty state message, RatingChart for visualizing ratings data, StatCard and StatCardGrid for presenting key statistics, TabButton for tab navigation, and TimelineItem with sub-components for rendering history timeline entries.
+- Added historyConstants.js to define constants related to asset types and their associated views (e.g., cleanliness, operators, service) as well as severity colors and rating labels used in the history view.
+- Created a new utility file, HistoryViewHelpersUtility.js, with helper functions for formatting dates, timestamps, durations, and field names, as well as building consolidated timelines and resolving item names for the history view.
+- Implemented comprehensive data handling in useHistoryData.js, including fetching and processing history data, managing AI summary generation, and handling issue completion and deletion directly within the hook.
+
 ## [16.6] - 2026-02-27
 
 - Refactored asset data structuring in DashboardUtility.js to improve code reuse and consistency by introducing reusable helper functions like `BASE_ASSET_FIELDS` and `VEHICLE_FIELDS`, and consolidating field resolution logic with `resolvePlantCode` and `resolveTruckNumber`.
