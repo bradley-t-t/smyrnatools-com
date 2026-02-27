@@ -2,6 +2,22 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.2] - 2026-02-27
+
+- Updated the turl-release dependency to version 4.8.0 for improved release management capabilities.
+
+## [17.1] - 2026-02-27
+
+- Updated the turl-release dependency to version 4.7.0 for enhanced release management capabilities.
+
+## [17.0] - 2026-02-27
+
+- Updated the turl-release dependency to version 4.7.0 for enhanced release management capabilities.
+
+## [16.9] - 2026-02-27
+
+- Updated the turl-release dependency to version 4.7.0 for improved release management.
+
 ## [16.8] - 2026-02-27
 
 - Updated the turl-release dependency to version 4.2.0 for improved release management functionality.
